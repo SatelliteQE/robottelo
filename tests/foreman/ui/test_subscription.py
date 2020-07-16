@@ -40,7 +40,6 @@ from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -486,8 +485,8 @@ def test_positive_subscription_status_disabled(session, content_host_setup):
             assert "Disabled" in host
 
 
-@stubbed()
-def test_positive_candlepin_events_processed_by_STOMP(self):
+@tier2
+def test_positive_candlepin_events_processed_by_STOMP(session):
     """Verify that Candlepin events are being read and processed by
        attaching subscriptions, validating host subscriptions status,
        and viewing processed and failed Candlepin events
@@ -510,3 +509,31 @@ def test_positive_candlepin_events_processed_by_STOMP(self):
 
     :CaseImportance: High
     """
+    org = entities.Organization().create()
+    repo = entities.Repository(product=entities.Product(organization=org).create()).create()
+    repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+    ).create()
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        vm.install_katello_ca()
+        vm.register_contenthost(org.name, ak.name)
+        with session:
+            session.organization.select(org_name=org.name)
+            host = session.contenthost.read(vm.hostname, widget_names='details')['details']
+            sub_status = host['subscription_status']
+            assert "Unentitled" in sub_status
+            with manifests.clone() as manifest:
+                upload_manifest(org.id, manifest.content)
+            session.contenthost.add_subscription(vm.hostname, DEFAULT_SUBSCRIPTION_NAME)
+            session.browser.refresh()
+            updated_sub_status = session.contenthost.read(vm.hostname, widget_names='details')[
+                'details'
+            ]['subscription_status']
+            assert "Fully entitled" in updated_sub_status
+            response = entities.Ping().search_json()["services"]["candlepin_events"]
+            assert response["status"] == "ok"
+            assert "0 Failed" in response["message"]
