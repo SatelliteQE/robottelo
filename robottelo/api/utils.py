@@ -569,10 +569,9 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
                     'resource type "{}" empty. You must select at'
                     ' least one permission'.format(resource_type)
                 )
-
-            resource_type_permissions_entities = entities.Permission(
-                resource_type=resource_type
-            ).search()
+            resource_type_permissions_entities = entities.Permission().search(
+                query={'per_page': 350}
+            )
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(
                     'resource type "{}" permissions not found'.format(resource_type)

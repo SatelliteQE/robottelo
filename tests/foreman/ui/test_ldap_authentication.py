@@ -14,10 +14,9 @@
 
 :Upstream: No
 """
-import copy
 import os
+from time import sleep
 
-import decorator
 import pyotp
 from airgun.session import Session
 from fauxfactory import gen_url
@@ -29,9 +28,7 @@ from pytest import skip
 from robottelo import ssh
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
-from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import CERT_PATH
-from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
@@ -44,15 +41,12 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
-from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import create_new_rhsso_user
 from robottelo.rhsso_utils import delete_rhsso_user
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
 
-
 pytestmark = [run_in_one_thread]
-
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
@@ -89,89 +83,6 @@ def set_certificate_in_satellite(server_type):
         )
 
 
-@fixture(scope='module')
-def ldap_data():
-    return {
-        'ldap_user_name': settings.ldap.username,
-        'ldap_user_passwd': settings.ldap.password,
-        'base_dn': settings.ldap.basedn,
-        'group_base_dn': settings.ldap.grpbasedn,
-        'ldap_hostname': settings.ldap.hostname,
-    }
-
-
-@fixture(scope='module')
-def ipa_data():
-    return {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
-        'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
-        'time_based_secret': settings.ipa.time_based_secret,
-    }
-
-
-@fixture(scope='function')
-def auth_source(ldap_data, module_org, module_loc):
-    return entities.AuthSourceLDAP(
-        onthefly_register=True,
-        account=ldap_data['ldap_user_name'],
-        account_password=ldap_data['ldap_user_passwd'],
-        base_dn=ldap_data['base_dn'],
-        groups_base=ldap_data['group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login_ad'],
-        server_type=LDAP_SERVER_TYPE['API']['ad'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ldap_data['ldap_hostname'],
-        tls=False,
-        port='389',
-        organization=[module_org],
-        location=[module_loc],
-    ).create()
-
-
-@fixture(scope='function')
-def auth_source_ipa(ipa_data, module_org, module_loc):
-    return entities.AuthSourceLDAP(
-        onthefly_register=True,
-        account=ipa_data['ldap_ipa_user_name'],
-        account_password=ipa_data['ldap_ipa_user_passwd'],
-        base_dn=ipa_data['ipa_base_dn'],
-        groups_base=ipa_data['ipa_group_base_dn'],
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login'],
-        server_type=LDAP_SERVER_TYPE['API']['ipa'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=ipa_data['ldap_ipa_hostname'],
-        tls=False,
-        port='389',
-        organization=[module_org],
-        location=[module_loc],
-    ).create()
-
-
-@fixture()
-def ldap_user_name(ldap_data, test_name):
-    """Add LDAP user to satellite by logging in, return username to test and delete the user (if
-    still exists) when test finishes.
-    """
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']):
-        pass
-    yield ldap_data['ldap_user_name']
-    users = entities.User().search(
-        query={'search': 'login="{}"'.format(ldap_data['ldap_user_name'])}
-    )
-    if users:
-        users[0].delete()
-
-
 @fixture()
 def ldap_usergroup_name():
     """Return some random usergroup name, and attempt to delete such usergroup when test finishes.
@@ -183,48 +94,48 @@ def ldap_usergroup_name():
         user_groups[0].delete()
 
 
-@fixture(scope='module')
-def ldap_auth_name():
-    """Return some random ldap name, and attempt to delete all ldap when test starts.
-    """
-    ldap = entities.AuthSourceLDAP().search()
-    for ldap_auth in range(len(ldap)):
-        users = entities.User(auth_source=ldap[ldap_auth]).search()
-        for user in range(len(users)):
-            users[user].delete()
-        ldap[ldap_auth].delete()
-    ldap_name = gen_string('alphanumeric')
-    yield ldap_name
+@fixture()
+def ldap_tear_down():
+    """Teardown the all ldap settings user, usergroup and ldap delete"""
+    yield
+    ldap_auth_sources = entities.AuthSourceLDAP().search()
+    for ldap_auth in ldap_auth_sources:
+        users = entities.User(auth_source=ldap_auth).search()
+        for user in users:
+            user.delete()
+        ldap_auth.delete()
 
 
-@fixture(scope='module')
-def enroll_idm_and_configure_external_auth():
-    """Enroll the Satellite6 Server to an IDM Server."""
-    run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
+@fixture()
+def rhsso_setting_setup(request):
+    """Update the RHSSO setting and revert it in cleanup"""
+    update_rhsso_settings_in_satellite()
 
-    run_command(
-        cmd='echo {0} | kinit admin'.format(settings.ipa.password_ipa),
-        hostname=settings.ipa.hostname_ipa,
-    )
-    result = run_command(
-        cmd='ipa host-add --random {}'.format(settings.server.hostname),
-        hostname=settings.ipa.hostname_ipa,
-    )
+    def rhsso_setting_cleanup():
+        update_rhsso_settings_in_satellite(revert=True)
 
-    for line in result:
-        if "Random password" in line:
-            _, password = line.split(': ', 2)
-            break
-    run_command(
-        cmd='ipa service-add HTTP/{}'.format(settings.server.hostname),
-        hostname=settings.ipa.hostname_ipa,
-    )
-    _, domain = settings.ipa.hostname_ipa.split('.', 1)
-    run_command(
-        cmd="ipa-client-install --password '{}' --domain {} --server {} --realm {} -U".format(
-            password, domain, settings.ipa.hostname_ipa, domain.upper()
-        )
-    )
+    request.addfinalizer(rhsso_setting_cleanup)
+
+
+@fixture()
+def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
+    """Update the RHSSO setting with timeout setting and revert it in cleanup"""
+    setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
+    setting_entity.value = 1
+    setting_entity.update({'value'})
+
+    def setting_timeout_cleanup():
+        setting_entity.value = 30
+        setting_entity.update({'value'})
+
+    request.addfinalizer(setting_timeout_cleanup)
+
+
+@fixture()
+def external_user_count():
+    """return the external auth source user count"""
+    users = entities.User().search()
+    yield len([user for user in users if user.auth_source_name == 'External'])
 
 
 def update_rhsso_settings_in_satellite(revert=False):
@@ -232,12 +143,12 @@ def update_rhsso_settings_in_satellite(revert=False):
     rhhso_settings = {
         'authorize_login_delegation': True,
         'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
         'oidc_algorithm': 'RS256',
-        'oidc_audience': ['{}-foreman-openidc'.format(settings.server.hostname)],
-        'oidc_issuer': '{}/auth/realms/{}'.format(settings.rhsso.host_url, settings.rhsso.realm),
-        'oidc_jwks_url': '{}/auth/realms/{}/protocol/openid-connect/certs'.format(
-            settings.rhsso.host_url, settings.rhsso.realm
-        ),
+        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
+        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
+        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
     }
     if not revert:
         for setting_name, setting_value in rhhso_settings.items():
@@ -254,78 +165,14 @@ def update_rhsso_settings_in_satellite(revert=False):
         setting_entity.update({'value'})
 
 
-@fixture(scope='module')
-def enroll_configure_rhsso_external_auth():
-    """Enroll the Satellite6 Server to an RHSSO Server."""
-    run_command(
-        cmd='yum -y --disableplugin=foreman-protector install '
-        'mod_auth_openidc keycloak-httpd-client-install'
-    )
-    run_command(
-        cmd='echo {0} | keycloak-httpd-client-install --app-name foreman-openidc \
-                --keycloak-server-url {1} \
-                --keycloak-admin-username "admin" \
-                --keycloak-realm "{2}" \
-                --keycloak-admin-realm master \
-                --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'.format(
-            settings.rhsso.password, settings.rhsso.host_url, settings.rhsso.realm,
-        )
-    )
-    run_command(
-        cmd="satellite-installer --foreman-keycloak true "
-        "--foreman-keycloak-app-name 'foreman-openidc' "
-        "--foreman-keycloak-realm '{}' ".format(settings.rhsso.realm),
-        timeout=1000,
-    )
-    run_command(cmd="systemctl restart httpd")
-
-
-@fixture(scope='module')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
-    """register the satellite with RH-SSO Server for single sign-on"""
-    client_id = get_rhsso_client_id()
-    create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
-    audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
-    audience_mapper["config"]["included.client.audience"] = audience_mapper["config"][
-        "included.client.audience"
-    ].format(rhsso_host=settings.server.hostname)
-    create_mapper(audience_mapper, client_id)
-
-
 def generate_otp(secret):
     """Return the time_based_otp """
     time_otp = pyotp.TOTP(secret)
     return time_otp.now()
 
 
-def ldap_tear_down():
-    """Teardown the all ldap settings user, usergroup and ldap delete"""
-    ldap = entities.AuthSourceLDAP().search()
-    for ldap_auth in range(len(ldap)):
-        users = entities.User(auth_source=ldap[ldap_auth]).search()
-        for user in range(len(users)):
-            users[user].delete()
-        ldap[ldap_auth].delete()
-    user_groups = entities.UserGroup().search()
-    for user_group in user_groups:
-        user_group.delete()
-
-
-def ldap_wrapper(test_func):
-    """This decorator will take care of tear_down for ldap resources and wraps test function"""
-
-    def test_wrapper(test_func, *args, **kwargs):
-        try:
-            test_func(*args, **kwargs)
-        finally:
-            ldap_tear_down()
-
-    return decorator.decorator(test_wrapper, test_func)
-
-
-@ldap_wrapper
 @tier2
-def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
+def test_positive_end_to_end_ad(session, ldap_tear_down, ldap_data):
     """Perform end to end testing for LDAP authentication component with AD
 
     :id: a6528239-e090-4379-a850-3900ee625b24
@@ -337,6 +184,7 @@ def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
     :CaseImportance: High
     """
     new_server = gen_url()
+    ldap_auth_name = gen_string('alphanumeric')
     with session:
         session.ldapauthentication.create(
             {
@@ -360,10 +208,9 @@ def test_positive_end_to_end_ad(session, ldap_data, ldap_auth_name):
         assert not session.ldapauthentication.read_table_row(ldap_auth_name)
 
 
-@ldap_wrapper
 @tier2
 @upgrade
-def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name):
+def test_positive_create_with_ad_org_and_loc(session, ldap_tear_down, ldap_data):
     """Create LDAP auth_source for AD with org and loc assigned.
 
     :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
@@ -378,6 +225,7 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name)
     """
     org = entities.Organization().create()
     loc = entities.Location().create()
+    ldap_auth_name = gen_string('alphanumeric')
     with session:
         session.ldapauthentication.create(
             {
@@ -415,10 +263,9 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_data, ldap_auth_name)
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
 
 
-@ldap_wrapper
 @skip_if_not_set('ipa')
 @tier2
-def test_positive_create_with_idm_org_and_loc(session, ipa_data):
+def test_positive_create_with_idm_org_and_loc(session, ldap_tear_down, ipa_data):
     """Create LDAP auth_source for IDM with org and loc assigned.
 
     :id: bc70bcff-1241-4d8e-9713-da752d6c4798
@@ -471,10 +318,9 @@ def test_positive_create_with_idm_org_and_loc(session, ipa_data):
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
 
 
-@ldap_wrapper
 @skip_if_not_set('ipa')
 @destructive
-def test_positive_create_with_idm_https(session, test_name, ipa_data):
+def test_positive_create_with_idm_https(session, test_name, ldap_tear_down, ipa_data):
     """Create LDAP auth_source for IDM with HTTPS.
 
     :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
@@ -529,9 +375,8 @@ def test_positive_create_with_idm_https(session, test_name, ipa_data):
         assert ldapsession.task.read_all()['current_user'] == full_name
 
 
-@ldap_wrapper
 @destructive
-def test_positive_create_with_ad_https(session, test_name, ldap_data):
+def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ldap_data):
     """Create LDAP auth_source for AD with HTTPS.
 
     :id: 739a82a2-2b01-11ea-93ea-398446a2b98f
@@ -584,10 +429,9 @@ def test_positive_create_with_ad_https(session, test_name, ldap_data):
         assert ldapsession.task.read_all()['current_user'] == settings.ldap.username
 
 
-@ldap_wrapper
 @tier2
 def test_positive_add_katello_role(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
 ):
     """Associate katello roles to User Group.
     [belonging to external AD User Group.]
@@ -628,11 +472,10 @@ def test_positive_add_katello_role(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@ldap_wrapper
 @upgrade
 @tier2
 def test_positive_update_external_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
 ):
     """Added AD UserGroup roles get pushed down to user
 
@@ -691,11 +534,10 @@ def test_positive_update_external_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@ldap_wrapper
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
 ):
     """Deleted AD UserGroup roles get pushed down to user
 
@@ -749,10 +591,9 @@ def test_positive_delete_external_roles(
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
-@ldap_wrapper
 @tier2
 def test_positive_update_external_user_roles(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
 ):
     """Assure that user has roles/can access feature areas for
     additional roles assigned outside any roles assigned by his group
@@ -814,10 +655,9 @@ def test_positive_update_external_user_roles(
         assert current_user == ldap_data['ldap_user_name']
 
 
-@ldap_wrapper
 @tier2
 def test_positive_add_admin_role_with_org_loc(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
+    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ldap_data
 ):
     """Associate Admin role to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -862,17 +702,16 @@ def test_positive_add_admin_role_with_org_loc(
         assert ak['details']['name'] == ak_name
 
 
-@ldap_wrapper
 @tier2
 def test_positive_add_foreman_role_with_org_loc(
-    session,
-    ldap_data,
-    ldap_user_name,
     test_name,
+    session,
     auth_source,
     ldap_usergroup_name,
     module_org,
     module_loc,
+    ldap_tear_down,
+    ldap_data,
 ):
     """Associate foreman roles to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -925,10 +764,9 @@ def test_positive_add_foreman_role_with_org_loc(
         assert module_loc.name in hostgroup['locations']['resources']['assigned']
 
 
-@ldap_wrapper
 @tier2
 def test_positive_add_katello_role_with_org(
-    session, ldap_data, ldap_user_name, test_name, auth_source, ldap_usergroup_name, module_org
+    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ldap_data
 ):
     """Associate katello roles to User Group with org set.
     [belonging to external AD User Group.]
@@ -985,10 +823,9 @@ def test_positive_add_katello_role_with_org(
     assert ak.organization.id == module_org.id
 
 
-@ldap_wrapper
 @tier2
 @upgrade
-def test_positive_create_user_in_ldap_mode(session, auth_source):
+def test_positive_create_user_in_ldap_mode(session, auth_source, ldap_tear_down):
     """Create User in ldap mode
 
     :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
@@ -1004,9 +841,8 @@ def test_positive_create_user_in_ldap_mode(session, auth_source):
         assert user_values['user']['auth'] == auth_source_name
 
 
-@ldap_wrapper
 @tier2
-def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, auth_source):
+def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down, ldap_data):
     """Login with LDAP Auth- AD for user with no roles/rights
 
     :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
@@ -1026,11 +862,10 @@ def test_positive_login_ad_user_no_roles(test_name, ldap_data, ldap_user_name, a
         assert ldapsession.task.read_all()['current_user'] == ldap_data['ldap_user_name']
 
 
-@ldap_wrapper
 @tier2
 @upgrade
 def test_positive_login_ad_user_basic_roles(
-    session, test_name, ldap_data, ldap_user_name, auth_source
+    test_name, session, auth_source, ldap_tear_down, ldap_data
 ):
     """Login with LDAP - AD for user with roles/rights
 
@@ -1061,10 +896,9 @@ def test_positive_login_ad_user_basic_roles(
         assert ldapsession.architecture.search(name)[0]['Name'] == name
 
 
-@ldap_wrapper
 @upgrade
 @tier2
-def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
+def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_down, ipa_data):
     """Login with password with time based OTP
 
     :id: be7eb5d6-3228-4660-aa64-c56f9f3ec5e0
@@ -1090,9 +924,10 @@ def test_positive_login_user_password_otp(test_name, ipa_data, auth_source_ipa):
     assert users[0].login == ipa_data['ipa_otp_username']
 
 
-@ldap_wrapper
 @tier2
-def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth_source_ipa):
+def test_negative_login_user_with_invalid_password_otp(
+    auth_source_ipa, test_name, ldap_tear_down, ipa_data
+):
     """Login with password with time based OTP
 
     :id: 3718c86e-5976-4fb8-9c80-4685d53bd955
@@ -1114,8 +949,7 @@ def test_negative_login_user_with_invalid_password_otp(test_name, ipa_data, auth
 
 
 @destructive
-@ldap_wrapper
-def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
+def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, ldap_tear_down):
     """Verify the single sign-on functionality with external authentication
 
     :id: 9813a4da-4639-11ea-9780-d46d6dd3b5b2
@@ -1157,7 +991,7 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth):
 
 
 @destructive
-def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
+def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
     :id: 18a77de8-570f-11ea-a202-d46d6dd3b5b2
@@ -1171,24 +1005,18 @@ def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, session):
     :expectedresults: After entering the login details in RHSSO page user should
         logged into Satellite
     """
-    try:
-        update_rhsso_settings_in_satellite()
-        with session(login=False):
-            session.rhsso_login.login(
-                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
-            )
-            with raises(NavigationTriesExceeded):
-                session.user.search('')
-                actual_user = session.task.read_all(widget_names="current_user")['current_user']
-                assert settings.rhsso.rhsso_user in actual_user
-
-    finally:
-        update_rhsso_settings_in_satellite(revert=True)
+    with session(login=False):
+        session.rhsso_login.login(
+            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+        )
+        with raises(NavigationTriesExceeded):
+            session.user.search('')
+        actual_user = session.task.read_all(widget_names="current_user")['current_user']
+        assert settings.rhsso.rhsso_user in actual_user
 
 
-@upgrade
 @destructive
-def test_external_logout_rhsso(enable_external_auth_rhsso, session):
+def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the external logout page navigation with external authentication RH-SSO
 
     :id: 87b5e08e-69c6-11ea-8126-e74d80ea4308
@@ -1202,31 +1030,55 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, session):
 
     :expectedresults: After logout from Satellite navigate should be external_loout page
     """
-    try:
-        update_rhsso_settings_in_satellite()
-        with session(login=False):
-            login_details = {
-                'username': settings.rhsso.rhsso_user,
-                'password': settings.rhsso.password,
-            }
-            session.rhsso_login.login(login_details)
-            view = session.rhsso_login.logout()
-            assert view['login_again'] == "Click to log in again"
-            session.rhsso_login.login(login_details, external_login=True)
-            actual_user = session.task.read_all(widget_names="current_user")['current_user']
-            assert settings.rhsso.rhsso_user in actual_user
-    finally:
-        update_rhsso_settings_in_satellite(revert=True)
+    with session(login=False):
+        login_details = {
+            'username': settings.rhsso.rhsso_user,
+            'password': settings.rhsso.password,
+        }
+        session.rhsso_login.login(login_details)
+        view = session.rhsso_login.logout()
+        assert view['login_again'] == "Click to log in again"
+        session.rhsso_login.login(login_details, external_login=True)
+        actual_user = session.task.read_all(widget_names="current_user")['current_user']
+        assert settings.rhsso.rhsso_user in actual_user
 
 
-@upgrade
 @destructive
-def test_external_new_user_login_and_check_count(session):
+def test_session_expire_rhsso_idle_timeout(
+    enable_external_auth_rhsso, rhsso_setting_setup_with_timeout, session
+):
+    """Verify the idle session expiration timeout with external authentication RH-SSO
+
+    :id: 80247b30-a988-11ea-943c-d46d6dd3b5b2
+
+    :steps:
+        1. Change the idle timeout settings for the External Authentication
+        2. Login into Satellite using RHSSO login and wait for the idle timeout
+
+    :expectedresults: After completion of the idle timeout user session
+        should get expired
+    """
+    with session(login=False):
+        session.rhsso_login.login(
+            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+        )
+        sleep(360)
+        with raises(NavigationTriesExceeded) as error:
+            session.task.read_all(widget_names="current_user")['current_user']
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@destructive
+def test_external_new_user_login_and_check_count_rhsso(
+    enable_external_auth_rhsso, external_user_count, rhsso_setting_setup, session
+):
     """Verify the external new user login and verify the external user count
 
     :id: bf938ea2-6df9-11ea-a7cf-951107ed0bbb
 
     :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :CaseImportance: Medium
 
     :steps:
         1. Create new user on RHSSO Instance and Update the Settings in Satellite
@@ -1236,27 +1088,25 @@ def test_external_new_user_login_and_check_count(session):
         and correct count shown for external users
     """
     client_id = get_rhsso_client_id()
-    with session:
-        current_count = session.ldapauthentication.read_auth_source_counts('External')
-        try:
-            update_rhsso_settings_in_satellite()
-            user_details = create_new_rhsso_user(client_id)
-            login_details = {
-                'username': user_details['username'],
-                'password': settings.rhsso.password,
-            }
-            with Session(login=False) as rhsso_session:
-                rhsso_session.rhsso_login.login(login_details)
-                actual_user = rhsso_session.task.read_all(widget_names="current_user")[
-                    'current_user'
-                ]
-                assert user_details['firstName'] in actual_user
-            session.browser.refresh()
-            count = session.ldapauthentication.read_auth_source_counts('External')
-            assert count == current_count + 1
-        finally:
-            update_rhsso_settings_in_satellite(revert=True)
-            delete_rhsso_user(user_details['username'])
+    user_details = create_new_rhsso_user(client_id)
+    login_details = {
+        'username': user_details['username'],
+        'password': settings.rhsso.password,
+    }
+    with Session(login=False) as rhsso_session:
+        rhsso_session.rhsso_login.login(login_details)
+        actual_user = rhsso_session.task.read_all(widget_names="current_user")['current_user']
+        assert user_details['firstName'] in actual_user
+    users = entities.User().search()
+    updated_count = len([user for user in users if user.auth_source_name == 'External'])
+    assert updated_count == external_user_count + 1
+    # checking delete user can't login anymore
+    delete_rhsso_user(user_details['username'])
+    with Session(login=False) as rhsso_session:
+        with raises(NavigationTriesExceeded) as error:
+            rhsso_session.rhsso_login.login(login_details)
+            rhsso_session.task.read_all()
+        assert error.typename == "NavigationTriesExceeded"
 
 
 @tier2
