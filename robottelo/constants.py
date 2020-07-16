@@ -847,6 +847,8 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
         'view_statuses',
+        'view_foreman_rh_cloud',
+        'generate_foreman_rh_cloud',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -893,6 +895,8 @@ PERMISSIONS = {
         'destroy_compute_resources_vms',
         'power_compute_resources_vms',
         'console_compute_resources_vms',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
     ],
     'DiscoveryRule': [
         'create_discovery_rules',
@@ -985,7 +989,7 @@ PERMISSIONS = {
         'destroy_locations',
         'assign_locations',
     ],
-    'MailNotification': ['view_mail_notifications'],
+    'MailNotification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
@@ -1073,12 +1077,6 @@ PERMISSIONS = {
     'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
-    'VariableLookupKey': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
@@ -1097,6 +1095,7 @@ PERMISSIONS = {
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
+        'forget_status_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
