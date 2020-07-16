@@ -765,6 +765,21 @@ gpgcheck=0'''.format(
                 'Unable to register client to Access Insights through Satellite'
             )
 
+    def set_infrastructure_type(self, infrastructure_type="physical"):
+        """Force host to appear as bare-metal or virtual machine in
+        subscription-manager fact.
+
+        :param str infrastructure_type: One of "physical", "virtual"
+        """
+        script_path = "/usr/sbin/virt-what"
+        self.run(f"cp -n {script_path} {script_path}.old")
+
+        script_content = ["#!/bin/sh -"]
+        if infrastructure_type == "virtual":
+            script_content.append("echo kvm")
+        script_content = "\n".join(script_content)
+        self.run(f"echo -e '{script_content}' > {script_path}")
+
     def patch_os_release_version(self, distro=DISTRO_RHEL7):
         """Patch VM OS release version.
 
