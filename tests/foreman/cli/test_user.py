@@ -25,7 +25,6 @@ import datetime
 import random
 
 import paramiko
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -97,7 +96,7 @@ class UserTestCase(CLITestCase):
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
             'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
-            'description': random.choice(valid_data_list()),
+            'description': random.choice(list(valid_data_list().values())),
         }
         user = make_user(user_params)
         user['firstname'], user['lastname'] = user['name'].split()
@@ -127,7 +126,7 @@ class UserTestCase(CLITestCase):
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
             'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
-            'description': random.choice(valid_data_list()),
+            'description': random.choice(list(valid_data_list().values())),
         }
         user_params.update({'id': user['id']})
         User.update(user_params)
@@ -255,7 +254,6 @@ class UserTestCase(CLITestCase):
             User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
-    @pytest.mark.skip_if_open("BZ:1763816")
     @tier2
     def test_positive_last_login_for_new_user(self):
         """Create new user with admin role and check last login updated for that user
