@@ -57,8 +57,8 @@ class UserGroupTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         user = make_user()
-        ug_name = random.choice(valid_data_list())
-        role_name = random.choice(valid_data_list())
+        ug_name = random.choice(list(valid_data_list().values()))
+        role_name = random.choice(list(valid_data_list().values()))
         role = make_role({'name': role_name})
         sub_user_group = make_usergroup()
 
@@ -84,7 +84,7 @@ class UserGroupTestCase(CLITestCase):
         self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 
         # Update
-        new_name = random.choice(valid_data_list())
+        new_name = random.choice(list(valid_data_list().values()))
         UserGroup.update({'id': user_group['id'], 'new-name': new_name})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['name'], new_name)
@@ -300,7 +300,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             UserGroupExternal.refresh(
                 {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
             )
-        self.assertEqual(User.info({'login': self.ldap_user_name})['user-groups'][1], role['name'])
+        self.assertIn(role['name'], User.info({'login': self.ldap_user_name})['user-groups'])
         User.delete({'login': self.ldap_user_name})
 
     @tier2
