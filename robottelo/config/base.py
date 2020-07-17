@@ -662,7 +662,9 @@ class LDAPSettings(FeatureSettings):
         self.basedn = None
         self.grpbasedn = None
         self.hostname = None
+        self.nameserver = None
         self.password = None
+        self.realm = None
         self.username = None
 
     def read(self, reader):
@@ -670,7 +672,9 @@ class LDAPSettings(FeatureSettings):
         self.basedn = reader.get('ldap', 'basedn')
         self.grpbasedn = reader.get('ldap', 'grpbasedn')
         self.hostname = reader.get('ldap', 'hostname')
+        self.nameserver = reader.get('ldap', 'nameserver')
         self.password = reader.get('ldap', 'password')
+        self.realm = reader.get('ldap', 'realm')
         self.username = reader.get('ldap', 'username')
 
     def validate(self):
@@ -678,7 +682,7 @@ class LDAPSettings(FeatureSettings):
         validation_errors = []
         if not all(vars(self).values()):
             validation_errors.append(
-                'All [ldap] basedn, grpbasedn, hostname, password, '
+                'All [ldap] basedn, grpbasedn, hostname, nameserver, password, realm'
                 'username options must be provided.'
             )
         return validation_errors

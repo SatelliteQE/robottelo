@@ -991,6 +991,48 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
 
 
 @destructive
+def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
+    """Verify the single sign-on functionality with external authentication
+
+    :id: 3c233aa4-c817-11ea-b105-d46d6dd3b5b2
+
+    :setup: Enroll the AD Configuration for External Authentication
+
+    :steps: Assert single sign-on session user is directed to satellite instead of login page
+
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /hosts page
+
+    """
+    # register the satellite with AD for single sign-on and update external auth
+    try:
+        # enable the foreman-ipa-authentication feature
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
+        run_command('systemctl restart gssproxy.service')
+        run_command('systemctl enable gssproxy.service')
+
+        # restart the deamon and httpd services
+        httpd_service_content = (
+            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+        )
+        run_command(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+        run_command('systemctl daemon-reload && systemctl restart httpd.service')
+
+        # create the kerberos ticket for authentication
+        run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
+        result = run_command(
+            f"curl -k -u : --negotiate " f"https://{settings.server.hostname}/users/extlogin/"
+        )
+        result = ''.join(result)
+        assert 'redirected' in result
+        assert f"https://{settings.server.hostname}/users" in result
+        assert f"-{settings.ldap.username}" in result
+    finally:
+        # resetting the settings to default for external auth
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
+        run_command('foreman-maintain service restart', timeout=300)
+
+
+@destructive
 def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
