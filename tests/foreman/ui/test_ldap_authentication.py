@@ -1122,3 +1122,23 @@ def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     with session:
         for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
             session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
+
+
+@tier2
+def test_negative_login_with_incorrect_password(test_name):
+    """Attempt to login in Satellite an IDM user with the wrong password
+
+    :id: 3f09de90-a656-11ea-aa43-4ceb42ab8dbc
+
+    :steps:
+        1. Randomaly generate a string as a incorrect password.
+        2. Try login with the incorrect password
+
+    :expectedresults: Login fails
+    """
+    incorrect_password = gen_string('alphanumeric')
+    username = settings.ipa.user_ipa
+    with Session(test_name, user=username, password=incorrect_password) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
