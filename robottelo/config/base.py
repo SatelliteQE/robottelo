@@ -697,6 +697,7 @@ class LDAPIPASettings(FeatureSettings):
         self.user_ipa = None
         self.otp_user = None
         self.time_based_secret = None
+        self.disabled_user_ipa = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -708,6 +709,7 @@ class LDAPIPASettings(FeatureSettings):
         self.user_ipa = reader.get('ipa', 'user_ipa')
         self.otp_user = reader.get('ipa', 'otp_user')
         self.time_based_secret = reader.get('ipa', 'time_based_secret')
+        self.disabled_user_ipa = reader.get('ipa', 'disabled_user_ipa')
 
     def validate(self):
         """Validate LDAP freeIPA settings."""

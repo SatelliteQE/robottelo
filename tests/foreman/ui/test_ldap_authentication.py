@@ -1142,3 +1142,20 @@ def test_negative_login_with_incorrect_password(test_name):
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
+
+
+def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
+    """Disabled IDM user cannot login
+
+    :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
+
+    :steps: Try login from the disabled user
+
+    :expectedresults: Login fails
+    """
+    with Session(
+        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
