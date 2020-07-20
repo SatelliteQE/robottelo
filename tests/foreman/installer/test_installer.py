@@ -1380,8 +1380,11 @@ class SELinuxTestCase(TestCase):
         """
         major_version = get_host_info()[1]
         services = (
+            'dynflow-sidekiq@orchestrator',
+            'dynflow-sidekiq@worker',
+            'dynflow-sidekiq@worker-hosts-queue',
             'foreman-proxy',
-            'foreman-tasks',
+            'foreman',
             'httpd',
             'rh-mongodb34-mongod',
             'postgresql',
@@ -1389,8 +1392,10 @@ class SELinuxTestCase(TestCase):
             'pulp_resource_manager',
             'pulp_streamer',
             'pulp_workers',
+            'puppetserver',
             'qdrouterd',
             'qpidd',
+            'rh-redis5-redis',
             'smart_proxy_dynflow_core',
             'squid',
             'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
@@ -1413,9 +1418,13 @@ class SELinuxTestCase(TestCase):
             'hammer -u {0[0]} -p {0[1]} ping'.format(settings.server.get_credentials())
         )
 
+        result_output = [
+            service.strip() for service in result.stdout if not re.search(r'message:', service)
+        ]
+
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-        for service, status, response in zip(*[iter(result.stdout)] * 3):
+        for service, status, response in zip(*[iter(result_output)] * 3):
             service = service.replace(':', '').strip()
             status = status.split(':')[1].strip().lower()
             response = response.split(':', 1)[1].strip()
