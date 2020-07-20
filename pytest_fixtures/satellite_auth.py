@@ -35,6 +35,7 @@ def ipa_data():
         'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
         'ldap_ipa_hostname': settings.ipa.hostname_ipa,
         'time_based_secret': settings.ipa.time_based_secret,
+        'disabled_user_ipa': settings.ipa.disabled_user_ipa,
     }
 
 
