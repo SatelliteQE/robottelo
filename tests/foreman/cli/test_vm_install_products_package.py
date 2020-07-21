@@ -60,6 +60,8 @@ def test_vm_install_package(value, module_org, module_lce):
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
 
+    :parametrized: yes
+
     :expectedresults: Package is install is installed
     """
     # the value is support distro DISTRO_RH6 or DISTRO_RH7

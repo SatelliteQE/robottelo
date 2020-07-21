@@ -47,6 +47,8 @@ class TestUserGroup:
 
         :id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
 
+        :parametrized: yes
+
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
@@ -60,6 +62,8 @@ class TestUserGroup:
         """Create new user group using valid user attached to that group.
 
         :id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
+
+        :parametrized: yes
 
         :expectedresults: User group is created successfully.
 
@@ -93,6 +97,8 @@ class TestUserGroup:
         """Create new user group using valid role attached to that group.
 
         :id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
+
+        :parametrized: yes
 
         :expectedresults: User group is created successfully.
 
@@ -128,6 +134,8 @@ class TestUserGroup:
 
         :id: 2a3f7b1a-7411-4c12-abaf-9a3ca1dfae31
 
+        :parametrized: yes
+
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
@@ -162,6 +170,8 @@ class TestUserGroup:
 
         :id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
 
+        :parametrized: yes
+
         :expectedresults: User group is not created.
 
         :CaseImportance: Critical
@@ -189,6 +199,8 @@ class TestUserGroup:
         """Update existing user group with different valid names.
 
         :id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
+
+        :parametrized: yes
 
         :expectedresults: User group is updated successfully.
 
@@ -269,6 +281,8 @@ class TestUserGroup:
         """Attempt to update existing user group using different invalid names.
 
         :id: 03772bd0-0d52-498d-8259-5c8a87e08344
+
+        :parametrized: yes
 
         :expectedresults: User group is not updated.
 
