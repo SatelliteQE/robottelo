@@ -47,7 +47,7 @@ class MediumTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 medium = make_medium({'name': name})
                 self.assertEqual(medium['name'], name)
@@ -93,7 +93,7 @@ class MediumTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 medium = make_medium({'name': name})
                 Medium.delete({'id': medium['id']})

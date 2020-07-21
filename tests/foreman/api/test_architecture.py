@@ -53,7 +53,7 @@ class ArchitectureTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 arch = entities.Architecture(name=name).create()
                 self.assertEqual(name, arch.name)
@@ -89,7 +89,7 @@ class ArchitectureTestCase(APITestCase):
         """
         arch = entities.Architecture().create()
 
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 entities.Architecture(id=arch.id, name=new_name).update(['name'])
                 updated = entities.Architecture(id=arch.id).read()
@@ -124,7 +124,7 @@ class ArchitectureTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 arch = entities.Architecture(name=name).create()
                 arch.delete()

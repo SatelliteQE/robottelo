@@ -41,7 +41,7 @@ class ModelTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 model = make_model({'name': name})
                 self.assertEqual(model['name'], name)
@@ -86,7 +86,7 @@ class ModelTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         model = make_model()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 Model.update({'id': model['id'], 'new-name': new_name})
                 model = Model.info({'id': model['id']})
@@ -122,7 +122,7 @@ class ModelTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 model = make_model({'name': name})
                 Model.delete({'id': model['id']})

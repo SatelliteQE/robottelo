@@ -1080,14 +1080,14 @@ class HostParameterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = valid_data_list()[0].lower()
-        value = valid_data_list()[0]
+        name = next(iter(valid_data_list()))
+        value = valid_data_list()[name]
         Host.set_parameter({'host-id': self.host['id'], 'name': name, 'value': value})
         self.host = Host.info({'id': self.host['id']})
         self.assertIn(name, self.host['parameters'].keys())
         self.assertEqual(value, self.host['parameters'][name])
 
-        new_value = valid_data_list()[0]
+        new_value = valid_data_list()[name]
         Host.set_parameter({'host-id': self.host['id'], 'name': name, 'value': new_value})
         self.host = Host.info({'id': self.host['id']})
         self.assertIn(name, self.host['parameters'].keys())
