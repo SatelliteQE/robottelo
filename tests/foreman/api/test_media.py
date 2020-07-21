@@ -49,7 +49,7 @@ class MediaTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 media = entities.Media(organization=[self.org], name=name).create()
                 self.assertEqual(media.name, name)
@@ -147,7 +147,7 @@ class MediaTestCase(APITestCase):
         :expectedresults: Media entity is created and updated properly
         """
         media = entities.Media(organization=[self.org]).create()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 media = entities.Media(id=media.id, name=new_name).update(['name'])
                 self.assertEqual(media.name, new_name)
@@ -240,7 +240,7 @@ class MediaTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 media = entities.Media(organization=[self.org], name=name).create()
                 media.delete()

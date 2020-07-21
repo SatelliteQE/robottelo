@@ -498,7 +498,7 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert values['properties']['properties_table']['Build'] == 'Pending installation'
+        assert 'Pending installation' in values['properties']['properties_table']['Build']
         assert (
             values['properties']['properties_table']['Domain'] == module_host_template.domain.name
         )

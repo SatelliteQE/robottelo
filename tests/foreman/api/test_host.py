@@ -500,7 +500,7 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for comment in valid_data_list():
+        for comment in valid_data_list().values():
             with self.subTest(comment):
                 host = entities.Host(comment=comment).create()
                 self.assertEqual(host.comment, comment)
@@ -1021,7 +1021,7 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for new_comment in valid_data_list():
+        for new_comment in valid_data_list().values():
             with self.subTest(new_comment):
                 host = entities.Host(comment=gen_string('alpha')).create()
                 host.comment = new_comment

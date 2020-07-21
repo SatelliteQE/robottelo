@@ -39,7 +39,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 architecture = make_architecture({'name': name})
                 self.assertEqual(architecture['name'], name)
@@ -71,7 +71,7 @@ class ArchitectureTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         architecture = make_architecture()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 Architecture.update({'id': architecture['id'], 'new-name': new_name})
                 architecture = Architecture.info({'id': architecture['id']})
@@ -108,7 +108,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 architecture = make_architecture({'name': name})
                 Architecture.delete({'id': architecture['id']})
