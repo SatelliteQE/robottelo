@@ -285,14 +285,14 @@ class SubscriptionsTestCase(APITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             vm.register_contenthost(org.name, ak.name)
-            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
+            host = entities.Host().search(query={'search': f'name={vm.hostname}'})
             host_id = host[0].id
             host_content = entities.Host(id=host_id).read_json()
             assert host_content["subscription_status"] == 2
             with manifests.clone() as manifest:
                 upload_manifest(org.id, manifest.content)
             subscription = entities.Subscription(organization=org).search(
-                query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+                query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
             )[0]
             entities.HostSubscription(host=host_id).add_subscriptions(
                 data={'subscriptions': [{'id': subscription.cp_id, 'quantity': 1}]}
