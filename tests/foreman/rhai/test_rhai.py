@@ -121,6 +121,8 @@ def test_rhai_navigation(autosession, nav_item):
 
     :id: 1f5faa05-83c2-43b3-925a-78c77d30d1ef
 
+    :parametrized: yes
+
     :expectedresults: All pages should be opened correctly without 500 error
     """
     entity_name, destination = nav_item

@@ -108,6 +108,8 @@ def test_positive_create_in_different_orgs(session, product_name):
 
     :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
+    :parametrized: yes
+
     :expectedresults: Product is created successfully in both
         organizations.
 

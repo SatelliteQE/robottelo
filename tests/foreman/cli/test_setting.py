@@ -352,6 +352,8 @@ def test_negative_update_send_welcome_email(value):
 
     :id: 2f75775d-72a1-4b2f-86c2-98c36e446099
 
+    :parametrized: yes
+
     :steps: set invalid values: not booleans
 
     :expectedresults: send_welcome_email is not updated

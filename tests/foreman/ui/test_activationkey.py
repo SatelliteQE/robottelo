@@ -141,6 +141,8 @@ def test_positive_create_with_cv(session, module_org, cv_name):
 
     :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
 
+    :parametrized: yes
+
     :expectedresults: Activation key is created
 
     :CaseLevel: Integration
@@ -411,6 +413,8 @@ def test_positive_update_cv(session, module_org, cv2_name):
     """Update Content View in an Activation key
 
     :id: 68880ca6-acb9-4a16-aaa0-ced680126732
+
+    :parametrized: yes
 
     :Steps:
         1. Create Activation key

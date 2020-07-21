@@ -45,6 +45,7 @@ from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
@@ -55,7 +56,6 @@ from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.helpers import get_nailgun_config
-from robottelo.helpers import idgen
 
 
 # Some tests repeatedly publish content views or promote content view versions.
@@ -334,12 +334,14 @@ class TestContentView:
 class TestContentViewCreate:
     """Create tests for content views."""
 
-    @pytest.mark.parametrize('composite', (True, False), ids=idgen)
+    @pytest.mark.parametrize('composite', [True, False])
     @tier1
     def test_positive_create_composite(self, composite):
         """Create composite and non-composite content views.
 
         :id: 4a3b616d-53ab-4396-9a50-916d6c42a401
+
+        :parametrized: yes
 
         :expectedresults: Creation succeeds and content-view is composite or
             non-composite, respectively.
@@ -348,12 +350,14 @@ class TestContentViewCreate:
         """
         assert entities.ContentView(composite=composite).create().composite == composite
 
-    @pytest.mark.parametrize('name', valid_data_list(), ids=idgen)
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier1
     def test_positive_create_with_name(self, name):
         """Create empty content-view with random names.
 
         :id: 80d36498-2e71-4aa9-b696-f0a45e86267f
+
+        :parametrized: yes
 
         :expectedresults: Content-view is created and had random name.
 
@@ -361,12 +365,14 @@ class TestContentViewCreate:
         """
         assert entities.ContentView(name=name).create().name == name
 
-    @pytest.mark.parametrize('desc', valid_data_list(), ids=idgen)
+    @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
     @tier1
     def test_positive_create_with_description(self, desc):
         """Create empty content view with random description.
 
         :id: 068e3e7c-34ac-47cb-a1bb-904d12c74cc7
+
+        :parametrized: yes
 
         :expectedresults: Content-view is created and has random description.
 
@@ -394,12 +400,14 @@ class TestContentViewCreate:
             del cloned_cv[key]
         assert cv_origin == cloned_cv
 
-    @pytest.mark.parametrize('name', invalid_names_list(), ids=idgen)
+    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @tier1
     def test_negative_create_with_invalid_name(self, name):
         """Create content view providing an invalid name.
 
         :id: 261376ca-7d12-41b6-9c36-5f284865243e
+
+        :parametrized: yes
 
         :expectedresults: Content View is not created
 
@@ -917,14 +925,14 @@ class TestContentViewPublishPromote:
 class TestContentViewUpdate:
     """Tests for updating content views."""
 
-    @pytest.mark.parametrize(
-        'key, value', {'description': gen_utf8(), 'name': gen_utf8()}.items(), ids=idgen
-    )
+    @pytest.mark.parametrize('key, value', {'description': gen_utf8(), 'name': gen_utf8()}.items())
     @tier1
     def test_positive_update_attributes(self, module_cv, key, value):
         """Update a content view and provide valid attributes.
 
         :id: 3f1457f2-586b-472c-8053-99017c4a4909
+
+        :parametrized: yes
 
         :expectedresults: The update succeeds.
 
@@ -934,13 +942,15 @@ class TestContentViewUpdate:
         content_view = module_cv.update({key})
         assert getattr(content_view, key) == value
 
-    @pytest.mark.parametrize('new_name', valid_data_list(), ids=idgen)
+    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
     @tier1
     def test_positive_update_name(self, module_cv, new_name):
         """Create content view providing the initial name, then update
         its name to another valid name.
 
         :id: 15e6fa3a-1a65-4e7d-8d32-3a81227ac1c8
+
+        :parametrized: yes
 
         :expectedresults: Content View is created, and its name can be updated.
 
@@ -951,13 +961,15 @@ class TestContentViewUpdate:
         updated = entities.ContentView(id=module_cv.id).read()
         assert new_name == updated.name
 
-    @pytest.mark.parametrize('new_name', invalid_names_list(), ids=idgen)
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
     @tier1
     def test_negative_update_name(self, module_cv, new_name):
         """Create content view then update its name to an
         invalid name.
 
         :id: 69a2ce8d-19b2-49a3-97db-a1fdebbb16be
+
+        :parametrized: yes
 
         :expectedresults: Content View is created, and its name is not updated.
 
@@ -973,12 +985,14 @@ class TestContentViewUpdate:
 class TestContentViewDelete:
     """Tests for deleting content views."""
 
-    @pytest.mark.parametrize('name', valid_data_list(), ids=idgen)
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier1
     def test_positive_delete(self, content_view, name):
         """Create content view and then delete it.
 
         :id: d582f1b3-8118-4e78-a639-237c6f9d27c6
+
+        :parametrized: yes
 
         :expectedresults: Content View is successfully deleted.
 

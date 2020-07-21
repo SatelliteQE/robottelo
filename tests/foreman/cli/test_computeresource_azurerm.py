@@ -40,7 +40,6 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import idgen
 
 
 @pytest.fixture(scope='class')
@@ -140,13 +139,14 @@ class TestAzureRMComputeResourceTestCase:
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
             AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         ],
-        ids=idgen,
     )
     def test_positive_image_crud(self, default_architecture, module_azurerm_cr, default_os, image):
         """ Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
+
+        :parametrized: yes
 
         :steps:
             1. Create an AzureRm Compute Resource.

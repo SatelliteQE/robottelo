@@ -48,6 +48,8 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
 
     :id: b346ae66-1720-46af-b0da-460c52ce9476
 
+    :parametrized: yes
+
     :expectedresults: Domain parameter is created.
 
     :CaseLevel: Integration
