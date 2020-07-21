@@ -195,7 +195,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :steps:
 
-            0. use default report template called Host statuses
+            0. use default report template called Host - Statuses
             1. hammer report-template generate --id ... # do not specify any filter
             2. hammer report-template generate --id ... # specify filter
 
@@ -211,9 +211,9 @@ class ReportTemplateTestCase(CLITestCase):
         host2 = make_fake_host({'name': host_name_2})
 
         result_list = ReportTemplate.list()
-        self.assertIn('Host statuses', [rt['name'] for rt in result_list])
+        self.assertIn('Host - Statuses', [rt['name'] for rt in result_list])
 
-        rt_host_statuses = ReportTemplate.info({'name': 'Host statuses'})
+        rt_host_statuses = ReportTemplate.info({'name': 'Host - Statuses'})
         result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
         self.assertIn(host1['name'], [item.split(',')[0] for item in result_no_filter])
@@ -582,7 +582,7 @@ class ReportTemplateTestCase(CLITestCase):
         permissions_pt = [
             permission['name']
             for permission in Filter.available_permissions(
-                {'resource-type': 'ProvisioningTemplate'}
+                {"search": "resource_type=ProvisioningTemplate"}
             )
         ]
         permissions_jt = [
@@ -634,7 +634,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :steps:
 
-            0. use default report template called Host statuses
+            0. use default report template called Host - Statuses
             1. hammer report-template generate --name ... --organization ...
 
         :expectedresults: Report successfully generated (in BZ, it results in
@@ -648,7 +648,7 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
-        result = ReportTemplate.generate({'name': 'Host statuses', 'organization': DEFAULT_ORG})
+        result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
         self.assertIn(host['name'], [item.split(',')[0] for item in result])
 
@@ -713,7 +713,8 @@ class ReportTemplateTestCase(CLITestCase):
 
     @tier3
     def test_positive_generate_entitlements_report_multiple_formats(self):
-        """Generate an report using the Entitlements template in html, yaml, and csv format.
+        """Generate an report using the Subscription - Entitlement Report template
+        in html, yaml, and csv format.
 
         :id: f2b74916-1298-4d20-9c24-a2c2b3a3e9a9
 
@@ -724,7 +725,7 @@ class ReportTemplateTestCase(CLITestCase):
             1. hammer report-template generate --organization '' --id '' --report-format ''
 
         :expectedresults: report is generated containing all the expected information
-                          regarding Entitlements.
+                          regarding entitlements.
 
         :CaseImportance: High
 
@@ -737,8 +738,9 @@ class ReportTemplateTestCase(CLITestCase):
             result_html = ReportTemplate.generate(
                 {
                     'organization': self.setup_org['name'],
-                    'name': 'Entitlements',
+                    'name': 'Subscription - Entitlement Report',
                     'report-format': 'html',
+                    'inputs': 'Days from Now=no limit',
                 }
             )
             assert vm.hostname in result_html[2]
@@ -746,8 +748,9 @@ class ReportTemplateTestCase(CLITestCase):
             result_yaml = ReportTemplate.generate(
                 {
                     'organization': self.setup_org['name'],
-                    'name': 'Entitlements',
+                    'name': 'Subscription - Entitlement Report',
                     'report-format': 'yaml',
+                    'inputs': 'Days from Now=no limit',
                 }
             )
             for entry in result_yaml:
@@ -758,8 +761,9 @@ class ReportTemplateTestCase(CLITestCase):
             result_csv = ReportTemplate.generate(
                 {
                     'organization': self.setup_org['name'],
-                    'name': 'Entitlements',
+                    'name': 'Subscription - Entitlement Report',
                     'report-format': 'csv',
+                    'inputs': 'Days from Now=no limit',
                 }
             )
             assert vm.hostname in result_csv[1]
@@ -769,7 +773,7 @@ class ReportTemplateTestCase(CLITestCase):
 
     @tier3
     def test_positive_schedule_Entitlements_report(self):
-        """Schedule an report using the Entitlements template in csv format.
+        """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
         :id: 572fb387-86e0-40e2-b2df-e8ec26433610
 
@@ -781,7 +785,7 @@ class ReportTemplateTestCase(CLITestCase):
             1. hammer report-template schedule --organization '' --id '' --report-format ''
 
         :expectedresults: report is scheduled and generated containing all the expected information
-                          regarding Entitlements.
+                          regarding entitlements.
 
         :CaseImportance: High
         """
@@ -791,13 +795,17 @@ class ReportTemplateTestCase(CLITestCase):
             assert vm.subscribed
             scheduled_csv = ReportTemplate.schedule(
                 {
-                    'name': 'Entitlements',
+                    'name': 'Subscription - Entitlement Report',
                     'organization': self.setup_org['name'],
                     'report-format': 'csv',
+                    'inputs': 'Days from Now=no limit',
                 }
             )
             data_csv = ReportTemplate.report_data(
-                {'name': 'Entitlements', 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
+                {
+                    'name': 'Subscription - Entitlement Report',
+                    'job-id': scheduled_csv[0].split("Job ID: ", 1)[1],
+                }
             )
             assert any(vm.hostname in line for line in data_csv)
             assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
