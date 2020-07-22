@@ -57,7 +57,7 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                for name in valid_data_list():
+                for name in valid_data_list().values():
                     with self.subTest(name):
                         bm = entities.Bookmark(
                             controller=entity['controller'], name=name, public=False
@@ -84,7 +84,7 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                for query in valid_data_list():
+                for query in valid_data_list().values():
                     with self.subTest(query):
                         bm = entities.Bookmark(
                             controller=entity['controller'], query=query
@@ -249,7 +249,7 @@ class BookmarkTestCase(APITestCase):
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
                 bm = entities.Bookmark(controller=entity['controller'], public=False).create()
-                for new_name in valid_data_list():
+                for new_name in valid_data_list().values():
                     with self.subTest(new_name):
                         bm.name = new_name
                         bm = bm.update(['name'])
@@ -325,7 +325,7 @@ class BookmarkTestCase(APITestCase):
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
                 bm = entities.Bookmark(controller=entity['controller']).create()
-                for new_query in valid_data_list():
+                for new_query in valid_data_list().values():
                     with self.subTest(new_query):
                         bm.query = new_query
                         bm = bm.update(['query'])

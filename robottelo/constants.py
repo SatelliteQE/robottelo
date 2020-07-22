@@ -1641,8 +1641,8 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
     {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
-    {'name': 'Roles', 'controller': 'ansible_roles', 'setup': entities.Role},
-    {'name': 'Variables', 'controller': 'ansible_variables'},
+    {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role},
+    {'name': 'Variables', 'controller': 'ansible_variables', 'skip_for_ui': True},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
         'name': 'ComputeResource',
