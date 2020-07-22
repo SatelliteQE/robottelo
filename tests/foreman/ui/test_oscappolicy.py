@@ -125,7 +125,7 @@ def test_positive_check_dashboard(
         )
         policy_details = session.oscappolicy.details(name)
         assert policy_details['HostsBreakdownStatus']['total_count'] == 1
-        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%'
+        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%Not audited'
 
 
 @tier1
