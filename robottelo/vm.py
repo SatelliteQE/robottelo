@@ -671,19 +671,20 @@ gpgcheck=0'''.format(
             'pluginsync      = true\n'
             'report          = true\n'
             'ignoreschedules = true\n'
-            'ca_server       = {0}\n'
+            f'ca_server       = {proxy_hostname}\n'
+            f'certname        = {self.hostname}\n'
             'environment     = production\n'
-            'server          = {1}\n'.format(proxy_hostname, proxy_hostname)
+            f'server          = {proxy_hostname}\n'
         )
         result = self.run('yum install puppet -y')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install the puppet rpm')
-        self.run('echo "{0}" >> /etc/puppetlabs/puppet/puppet.conf'.format(puppet_conf))
+        self.run(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppet
-        # cert list", so that we sign it.
+        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # ca list", so that we sign it.
         self.run('puppet agent -t')
-        ssh.command(cmd='puppet cert sign --all', hostname=proxy_hostname)
+        ssh.command(cmd='puppetserver ca sign --all', hostname=proxy_hostname)
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
