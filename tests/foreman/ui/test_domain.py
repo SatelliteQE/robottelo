@@ -38,7 +38,7 @@ def module_loc():
 
 @pytest.fixture
 def valid_domain_name():
-    return list(valid_domain_names(interface='ui')['argvalues'])[0]
+    return list(valid_domain_names(interface='ui').values())[0]
 
 
 @tier2
