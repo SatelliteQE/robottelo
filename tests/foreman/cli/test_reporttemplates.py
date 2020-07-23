@@ -727,6 +727,8 @@ class ReportTemplateTestCase(CLITestCase):
                           regarding Entitlements.
 
         :CaseImportance: High
+
+        :BZ: 1830289
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
@@ -762,6 +764,8 @@ class ReportTemplateTestCase(CLITestCase):
             )
             assert vm.hostname in result_csv[1]
             assert self.setup_subs_id[0]['name'] in result_csv[1]
+            # BZ 1830289
+            assert 'Subscription Quantity' in result_csv[0]
 
     @tier3
     def test_positive_schedule_Entitlements_report(self):
