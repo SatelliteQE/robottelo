@@ -474,7 +474,7 @@ class HostCreateTestCase(CLITestCase):
         :BZ: 1671148
         """
         help_output = Host.execute('host update --help')
-        for arg in ['lifecycle-environment-id', 'openscap-proxy-id']:
+        for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
             assert any(
                 ('--{}'.format(arg) in line for line in help_output)
             ), "--{} not supported by update subcommand".format(arg)
