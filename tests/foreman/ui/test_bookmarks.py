@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Navigation
+:CaseComponent: Search
 
 :TestType: Functional
 
