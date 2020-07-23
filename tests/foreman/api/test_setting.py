@@ -99,6 +99,7 @@ class SettingTestCase(APITestCase):
                 login = login.update(['value'])
                 self.assertEqual(login.value, login_text)
 
+    @pytest.mark.skip_if_open("BZ:1470083")
     @tier2
     def test_negative_update_hostname_with_empty_fact(self):
         """Update the Hostname_facts settings without any string(empty values)
