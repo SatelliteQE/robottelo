@@ -65,7 +65,7 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup)
         'model = KVM',
         'Organization = Default_Organization',
     ]
-    name = gen_choice(valid_data_list())
+    name = gen_choice(list(valid_data_list().values()))
     search = gen_choice(searches)
     hostname = 'myhost-<%= rand(99999) %>'
     discovery_rule = entities.DiscoveryRule(
@@ -84,7 +84,7 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup)
     assert discovery_rule.enabled is True
 
     # Update discovery rule
-    name = gen_choice(valid_data_list())
+    name = gen_choice(list(valid_data_list().values()))
     search = 'Location = Default_Location'
     max_count = gen_integer(1, 100)
     enabled = False
