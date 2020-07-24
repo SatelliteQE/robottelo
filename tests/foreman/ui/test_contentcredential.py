@@ -81,6 +81,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         # transform string for comparison
         transformed_string = gpg_content.replace('\n', ' ')
         transformed_string = transformed_string.replace('  ', ' ')
+        transformed_string = transformed_string.rstrip()
         assert values['details']['content'] == transformed_string
         assert values['details']['products'] == '1'
         assert values['details']['repos'] == '1'
