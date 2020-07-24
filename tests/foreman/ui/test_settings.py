@@ -466,6 +466,7 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
+@pytest.mark.skip_if_open("BZ:1470083")
 @tier2
 def test_negative_update_hostname_with_empty_fact(session):
     """Update the Hostname_facts settings without any string(empty values)
