@@ -112,6 +112,8 @@ class CannedRoleTestCases(APITestCase):
                 'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}
             }
         )
+        if 'role' in org_admin:
+            return entities.Role(id=org_admin['role']['id']).read()
         return entities.Role(id=org_admin['id']).read()
 
     def create_org_admin_user(self, role_taxos, user_taxos, same_taxos):
