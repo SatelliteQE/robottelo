@@ -128,7 +128,7 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         org = Org.info({'name': DEFAULT_ORG})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 gpg_key = make_gpg_key(
                     {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': org['id']}
@@ -150,7 +150,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 gpg_key = make_gpg_key(
                     {
@@ -200,7 +200,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
                     GPGKey.create({'name': name, 'organization-id': self.org['id']})
@@ -235,7 +235,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 gpg_key = make_gpg_key({'name': name, 'organization-id': self.org['id']})
                 result = GPGKey.exists(
@@ -264,7 +264,7 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 GPGKey.update(
                     {
@@ -497,7 +497,7 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
+        new_name = gen_choice(valid_data_list().values())
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -536,7 +536,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
+        new_name = gen_choice(valid_data_list().values())
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -579,7 +579,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
+        new_name = gen_choice(valid_data_list().values())
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -632,7 +632,7 @@ class TestGPGKey(CLITestCase):
         # Verify gpg key was associated
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
+        new_name = gen_choice(valid_data_list().values())
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -673,7 +673,7 @@ class TestGPGKey(CLITestCase):
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
+        new_name = gen_choice(valid_data_list().values())
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -1002,7 +1002,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 gpg_key = make_gpg_key(
                     {
