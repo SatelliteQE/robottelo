@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.cleanup import setting_cleanup
