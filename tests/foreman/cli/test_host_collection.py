@@ -78,8 +78,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = valid_data_list()[0]
-        desc = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
+        desc = list(valid_data_list().values())[0]
         new_host_col = make_host_collection(
             {'description': desc, 'name': name, 'organization-id': self.organization['id']}
         )
@@ -117,8 +117,8 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
         # update
-        new_name = valid_data_list()[0]
-        new_desc = valid_data_list()[0]
+        new_name = list(valid_data_list().values())[0]
+        new_desc = list(valid_data_list().values())[0]
         HostCollection.update(
             {'description': new_desc, 'id': new_host_col['id'], 'new-name': new_name}
         )
