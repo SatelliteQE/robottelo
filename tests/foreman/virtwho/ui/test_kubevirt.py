@@ -1,3 +1,19 @@
+"""Test class for Virtwho Configure UI
+
+:Requirement: Virt-whoConfigurePlugin
+
+:CaseAutomation: Automated
+
+:CaseLevel: Acceptance
+
+:CaseComponent: Virt-whoConfigurePlugin
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
 from fauxfactory import gen_string
 
 from robottelo.config import settings
