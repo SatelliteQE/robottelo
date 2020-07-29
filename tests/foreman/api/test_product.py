@@ -28,7 +28,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import FAKE_1_PUPPET_REPO
 from robottelo.constants import FAKE_1_YUM_REPO
@@ -406,7 +405,6 @@ class ProductTestCase(APITestCase):
         http_proxy_b = entities.HTTPProxy(
             name=gen_string('alpha', 15), url=http_proxy_url_b, organization=[self.org.id]
         ).create()
-        proxy_fqdn = re.split(r'[:]', http_proxy_b.url)[1].strip("//")
         # Create products and repositories
         product_a = entities.Product(organization=self.org).create()
         product_b = entities.Product(organization=self.org).create()
@@ -436,7 +434,3 @@ class ProductTestCase(APITestCase):
         assert repo_a2.read().http_proxy_id == http_proxy_b.id
         assert repo_b1.read().http_proxy_id == http_proxy_b.id
         assert repo_b2.read().http_proxy_id == http_proxy_b.id
-        # check if proxy fqdn is present in log during sync
-        product_a.sync({'async': True})
-        result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
-        assert result.return_code == 0
