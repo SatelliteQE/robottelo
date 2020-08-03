@@ -20,9 +20,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.decorators import fixture
-from robottelo.decorators import skipif
 from robottelo.decorators import tier2
-from robottelo.helpers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -48,15 +46,9 @@ def form_data(default_org):
         'organization_id': default_org.id,
         'filtering_mode': 'none',
         'satellite_url': settings.server.hostname,
+        'hypervisor_username': settings.virtwho.hypervisor_username,
+        'hypervisor_password': settings.virtwho.hypervisor_password,
     }
-    if settings.virtwho.hypervisor_type == 'libvirt':
-        form['hypervisor_username'] = settings.virtwho.hypervisor_username
-    elif settings.virtwho.hypervisor_type == 'kubevirt':
-        del form['hypervisor_server']
-        form['kubeconfig'] = settings.virtwho.hypervisor_config_file
-    else:
-        form['hypervisor_username'] = settings.virtwho.hypervisor_username
-        form['hypervisor_password'] = settings.virtwho.hypervisor_password
     return form
 
 
@@ -65,11 +57,7 @@ def virtwho_config(form_data):
     return entities.VirtWhoConfig(**form_data).create()
 
 
-@skipif(
-    condition=(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540')),
-    reason='We have not supported kubevirt hypervisor yet',
-)
-class TestVirtWhoConfig:
+class TestVirtWhoConfigforEsx:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
         subscriptions = entities.Subscription().search(query={'search': sku})
         for item in subscriptions:
@@ -91,7 +79,7 @@ class TestVirtWhoConfig:
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
-        :id: b469822f-8b1f-437b-8193-6723ad3648dd
+        :id: 72d74c05-2580-4f38-b6c0-999ff470d4d6
 
         :expectedresults: Config can be created and deployed
 
@@ -142,7 +130,7 @@ class TestVirtWhoConfig:
 
         v2/configs/:id/deploy_script"
 
-        :id: bb673b27-c258-4517-8fb9-436a4b51ba9d
+        :id: 166ec4f8-e3fa-4555-9acb-1a5d693a42bb
 
         :expectedresults: Config can be created and deployed
 
@@ -195,7 +183,7 @@ class TestVirtWhoConfig:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 75a20b8c-bed8-4c55-b291-14bca6cac364
+        :id: be395108-3944-4a04-bee4-6bac3fa03a19
 
         :expectedresults: debug option can be updated.
 
@@ -219,7 +207,7 @@ class TestVirtWhoConfig:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 9a96c25b-fddd-47c3-aa9f-3b6dc298d068
+        :id: 65f4138b-ca8f-4f1e-805c-1a331b951be5
 
         :expectedresults: interval option can be updated.
 
@@ -252,7 +240,7 @@ class TestVirtWhoConfig:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 9aa17bbc-e417-473a-831c-4d87781f41d8
+        :id: de40c1fc-e6ec-49e2-ba06-3eeafe0ccde9
 
         :expectedresults: hypervisor_id option can be updated.
 
@@ -279,7 +267,7 @@ class TestVirtWhoConfig:
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
-        :id: 89cc1134-69d9-4da8-9ba9-a296c17f4f16
+        :id: 1f251d89-5e22-4470-be4c-0aeba84c0273
 
         :expectedresults: filter and filter_hosts can be updated.
 
@@ -331,7 +319,7 @@ class TestVirtWhoConfig:
 
         /foreman_virt_who_configure/api/v2/configs/:id""
 
-        :id: 11352fee-5e00-4b24-9515-30a790685ede
+        :id: e1b00b46-d5e6-40d5-a955-a45a75a5cfad
 
         :expectedresults: http_proxy and no_proxy option can be updated.
 
@@ -360,7 +348,7 @@ class TestVirtWhoConfig:
 
         api/v2/organizations/:organization_id/configs"
 
-        :id: 7434a875-e96a-40bd-9652-83d0805997a5
+        :id: 5bf34bef-bf68-4557-978d-419bd4df0ba1
 
         :expectedresults: Config can be searched in org list
 

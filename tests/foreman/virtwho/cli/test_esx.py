@@ -27,9 +27,7 @@ from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import fixture
-from robottelo.decorators import skipif
 from robottelo.decorators import tier2
-from robottelo.helpers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -52,14 +50,9 @@ def form_data():
         'organization-id': 1,
         'filtering-mode': 'none',
         'satellite-url': settings.server.hostname,
+        'hypervisor-username': settings.virtwho.hypervisor_username,
+        'hypervisor-password': settings.virtwho.hypervisor_password,
     }
-    if settings.virtwho.hypervisor_type == 'libvirt':
-        form['hypervisor-username'] = settings.virtwho.hypervisor_username
-    elif settings.virtwho.hypervisor_type == 'kubevirt':
-        form['kubeconfig'] = settings.virtwho.hypervisor_config_file
-    else:
-        form['hypervisor-username'] = settings.virtwho.hypervisor_username
-        form['hypervisor-password'] = settings.virtwho.hypervisor_password
     return form
 
 
@@ -68,16 +61,12 @@ def virtwho_config(form_data):
     return VirtWhoConfig.create(form_data)['general-information']
 
 
-@skipif(
-    condition=(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540')),
-    reason='We have not supported kubevirt hypervisor yet',
-)
-class TestVirtWhoConfigCLICases:
+class TestVirtWhoConfigforEsx:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """ Verify " hammer virt-who-config deploy"
 
-        :id: 19ffe76e-7e3d-48c7-b846-10a83afe0f3e
+        :id: 1885dd56-e3f9-43a7-af27-e496967b6256
 
         :expectedresults: Config can be created and deployed
 
@@ -114,7 +103,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
         """ Verify " hammer virt-who-config fetch"
 
-        :id: ef0f1e33-7084-4d0e-95f1-d3080dfbb4cc
+        :id: 6aaffaeb-aaf2-42cf-b0dc-ca41a53d42a6
 
         :expectedresults: Config can be created, fetch and deploy
 
@@ -151,7 +140,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_debug_option(self, form_data, virtwho_config):
         """ Verify debug option by hammer virt-who-config update"
 
-        :id: 27ae5606-16a8-4b4a-9596-e0fa97e81c0d
+        :id: c98bc518-828c-49ba-a644-542db3190263
 
         :expectedresults: debug option can be updated.
 
@@ -179,7 +168,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_interval_option(self, form_data, virtwho_config):
         """ Verify interval option by hammer virt-who-config update"
 
-        :id: cf754c07-99d2-4758-b9dc-ab47443855b3
+        :id: 5d558bca-534c-4bd4-b401-a0c362033c57
 
         :expectedresults: interval option can be updated.
 
@@ -209,7 +198,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
         """ Verify hypervisor_id option by hammer virt-who-config update"
 
-        :id: eae7e767-8a71-424c-87da-475c91ac2ea1
+        :id: 551cfc6c-71cd-40e7-9997-a7c85db02c1f
 
         :expectedresults: hypervisor_id option can be updated.
 
@@ -235,7 +224,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_filter_option(self, form_data, virtwho_config):
         """ Verify filter option by hammer virt-who-config update"
 
-        :id: f46e4aa8-c325-4281-8744-f85e819e68c1
+        :id: aaf45c5e-9504-47ce-8f25-b8073c2de036
 
         :expectedresults: filter and filter_hosts can be updated.
 
@@ -280,7 +269,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_proxy_option(self, form_data, virtwho_config):
         """ Verify http_proxy option by hammer virt-who-config update"
 
-        :id: becd00f7-e140-481a-9249-8a3082297a4b
+        :id: 409d108e-e814-482b-93ed-09db89d21dda
 
         :expectedresults: http_proxy and no_proxy option can be updated.
 
@@ -307,7 +296,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_rhsm_option(self, form_data, virtwho_config):
         """ Verify rhsm options in the configure file"
 
-        :id: 5155d145-0a8d-4443-81d3-6fb7cef0533b
+        :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
 
         :expectedresults:
             rhsm_hostname, rhsm_prefix are ecpected
@@ -331,7 +320,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_post_hypervisors(self):
         """ Post large json file to /rhsm/hypervisors"
 
-        :id: e344c9d2-3538-4432-9a74-b025e9ef852d
+        :id: bcfd6698-b5b3-4cba-a3a5-b91057ad60e9
 
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
@@ -358,7 +347,7 @@ class TestVirtWhoConfigCLICases:
     def test_positive_foreman_packages_protection(self, form_data, virtwho_config):
         """foreman-protector should allow virt-who to be installed
 
-        :id: 73dc895f-50b8-4de5-91de-ea55da935fe5
+        :id: 635ef99b-c5a3-4ac4-a0f1-09f7036d116e
 
         :expectedresults:
             virt-who packages can be installed
