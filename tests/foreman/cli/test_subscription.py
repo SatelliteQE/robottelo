@@ -312,7 +312,7 @@ class SubscriptionTestCase(CLITestCase):
         :id: 668fae4d-7364-4167-967f-6fc31ba52d26
 
         :expectedresults: auto attaching a subscription is not allowed
-        and returns an error message
+            and returns an error message
 
         :BZ: 1718954
 
