@@ -703,7 +703,7 @@ gpgcheck=0'''.format(
                 'awk -F "/" \'/download_path/ {print $4}\' /etc/foreman_scap_client/config.yaml'
             )
             policy_id = result.stdout[0]
-        self.run('foreman_scap_client {0}'.format(policy_id))
+        self.run(f'foreman_scap_client {policy_id}', timeout=600)
         if result.return_code != 0:
             raise VirtualMachineError('Failed to execute foreman_scap_client run.')
 
