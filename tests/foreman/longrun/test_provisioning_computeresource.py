@@ -26,9 +26,9 @@ from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.helpers import host_provisioning_check
-from robottelo.helpers import is_open
 from robottelo.helpers import ProvisioningCheckError
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class ComputeResourceHostTestCase(CLITestCase):

@@ -29,7 +29,7 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.decorators import fixture
 from robottelo.decorators import skipif
 from robottelo.decorators import tier2
-from robottelo.helpers import is_open
+from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command

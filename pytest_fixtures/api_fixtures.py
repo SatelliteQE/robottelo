@@ -75,7 +75,7 @@ def default_smart_proxy():
 
 @pytest.fixture(scope='session')
 def default_domain(default_smart_proxy):
-    *_, domain_name = settings.server.hostname.partition('.')
+    domain_name = settings.server.hostname.partition('.')[-1]
     dom = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})[0]
     dom.dns = default_smart_proxy
     dom.update(['dns'])

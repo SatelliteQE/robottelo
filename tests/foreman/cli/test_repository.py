@@ -85,9 +85,9 @@ from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class RepositoryTestCase(CLITestCase):

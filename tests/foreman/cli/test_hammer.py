@@ -28,9 +28,9 @@ from robottelo.cli.factory import make_product
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 
