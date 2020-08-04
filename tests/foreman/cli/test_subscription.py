@@ -23,10 +23,12 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
+from robottelo.cli.host import Host
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
@@ -46,7 +48,7 @@ from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='class')
-def ContentHostSetup(request):
+def golden_ticket_host_setup(request):
     org = make_org()
     with manifests.clone(name='golden_ticket') as manifest:
         upload_manifest(org['id'], manifest.content)
@@ -261,8 +263,9 @@ class SubscriptionTestCase(CLITestCase):
         self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
 
     @tier2
-    @pytest.mark.usefixtures("ContentHostSetup")
-    def test_positive_Subscription_status_disabled(self):
+    @stubbed()
+    @pytest.mark.usefixtures("golden_ticket_host_setup")
+    def test_positive_subscription_status_disabled_golden_ticket(self):
         """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
 
@@ -274,14 +277,6 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
-            assert vm.subscribed
-            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
-            host_id = host[0].id
-            host_content = entities.Host(id=host_id).read_raw().content
-            assert "Disabled" in str(host_content)
 
     @stubbed()
     def test_positive_candlepin_events_processed_by_STOMP(self):
@@ -307,3 +302,28 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: High
         """
+
+    @tier2
+    @pytest.mark.usefixtures("golden_ticket_host_setup")
+    def test_positive_auto_attach_disabled_golden_ticket(self):
+        """Verify that Auto-Attach is disabled or "Not Applicable"
+        when a host organization is in Simple Content Access mode (Golden Ticket)
+
+        :id: 668fae4d-7364-4167-967f-6fc31ba52d26
+
+        :expectedresults: auto attaching a subscription is not allowed
+            and returns an error message
+
+        :BZ: 1718954
+
+        :CaseImportance: Medium
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
+            assert vm.subscribed
+            host = Host.list({'search': vm.hostname})
+            host_id = host[0]['id']
+            with pytest.raises(CLIReturnCodeError) as context:
+                Host.subscription_auto_attach({'host-id': host_id})
+            assert 'Auto-attach is disabled' in str(context.value)
