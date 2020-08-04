@@ -342,9 +342,9 @@ class TestVirtWhoConfigCLICases:
 
         :BZ: 1637042, 1769680
         """
-        data = hypervisor_json_create(hypervisors=100, guests=10)
-        owner = "owner=Default_Organization&env=Library"
-        url = f'https://{settings.server.hostname}/rhsm/hypervisors?{owner}'
+        data = hypervisor_json_create(hypervisors=1, guests=1)
+        print(data)
+        url = f'https://{settings.server.hostname}/rhsm/hypervisors/Default_Organization'
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
         if result.status_code != 200:
