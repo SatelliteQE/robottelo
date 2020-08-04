@@ -1322,6 +1322,7 @@ class Settings(object):
         self.reader = None
         self.rhel6_repo = None
         self.rhel7_repo = None
+        self.rhel8_repo = None
         self.rhel6_os = None
         self.rhel7_os = None
         self.rhel8_os = None
@@ -1445,6 +1446,7 @@ class Settings(object):
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
+        self.rhel8_repo = self.reader.get('robottelo', 'rhel8_repo', None)
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.rhel8_os = self.reader.get('robottelo', 'rhel8_os', None, dict)
