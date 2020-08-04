@@ -3,6 +3,8 @@
 pytest_plugins = [
     # Plugins
     "pytest_plugins.rerun_rp.rerun_rp",
+    "pytest_plugins.markers",
+    "pytest_plugins.issue_handlers",
     # Fixtures
     "pytest_fixtures.api_fixtures",
     # Component Fixtures

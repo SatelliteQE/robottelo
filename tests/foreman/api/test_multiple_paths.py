@@ -26,8 +26,8 @@ from robottelo.config import settings
 from robottelo.decorators import tier1
 from robottelo.decorators import tier3
 from robottelo.helpers import get_nailgun_config
-from robottelo.helpers import is_open
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 
 logger = logging.getLogger(__name__)
 

@@ -108,6 +108,7 @@ ssh_key=
 # properly
 # rhel6_repo=http://example.com/yum/repo_files/rhel6-updates.repo
 # rhel7_repo=http://example.com/yum/repo_files/rhel7-updates.repo
+# rhel8_repo=http://example.com/yum/repo_files/rhel8-updates.repo
 
 # Provide link to rhel6/7 repositories URL as we need all OS packages in order
 # to have real installation media for provisioning procedure
