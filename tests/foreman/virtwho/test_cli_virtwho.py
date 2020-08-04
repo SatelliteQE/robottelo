@@ -343,7 +343,6 @@ class TestVirtWhoConfigCLICases:
         :BZ: 1637042, 1769680
         """
         data = hypervisor_json_create(hypervisors=100, guests=10)
-        print(data)
         url = f'https://{settings.server.hostname}/rhsm/hypervisors/Default_Organization'
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
