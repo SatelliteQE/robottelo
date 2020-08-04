@@ -343,8 +343,7 @@ def add_configure_option(option, value, config_file):
 
 def hypervisor_json_create(hypervisors, guests):
     """
-    Create a hypervisor guest json data.
-    For example:
+    Create a hypervisor guest json data. For example:
     {'hypervisors': [{'hypervisorId': '820b5143-3885-4dba-9358-4ce8c30d934e',
     'guests': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
     'attributes': {'active': 1, 'virtWhoType': 'esx'}}]}]}
