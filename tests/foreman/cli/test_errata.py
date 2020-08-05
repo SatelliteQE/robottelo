@@ -683,9 +683,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is in the list
         assert self.virtual_machines[0].hostname in result
-        # Assert second VM's name is not in the list
         assert self.virtual_machines[1].hostname not in result
         # Step 2: Search for hosts that require RHSA errata
         result = Host.list(
@@ -696,9 +694,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is not in the list
         assert self.virtual_machines[0].hostname not in result
-        # Assert second VM's name is in the list
         assert self.virtual_machines[1].hostname in result
         # Step 3: Search for hosts that have RHBA-2012:1030 applicable
         result = Host.list(
@@ -709,9 +705,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is in the list
         assert self.virtual_machines[0].hostname in result
-        # Assert second VM's name is not in the list
         assert self.virtual_machines[1].hostname not in result
         # Step 4: Search for hosts that have RHSA-2012:0055 applicable
         result = Host.list(
@@ -722,9 +716,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is not in the list
         assert self.virtual_machines[0].hostname not in result
-        # Assert second VM's name is in the list
         assert self.virtual_machines[1].hostname in result
         # Step 5: Search for hosts that have RPM for RHBA-2012:1030 applicable
         result = Host.list(
@@ -735,9 +727,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is in the list
         assert self.virtual_machines[0].hostname in result
-        # Assert second VM's name is not in the list
         assert self.virtual_machines[1].hostname not in result
         # Step 6: Search for hosts that have RPM for RHSA-2012:0055 applicable
         result = Host.list(
@@ -748,9 +738,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is not in the list
         assert self.virtual_machines[0].hostname not in result
-        # Assert second VM's name is in the list
         assert self.virtual_machines[1].hostname in result
         # Step 7: Apply filter and rule to CV to hide RPM, thus making erratum not installable
         # Make RPM exclude filter
@@ -793,9 +781,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is in the list
         assert self.virtual_machines[0].hostname in result
-        # Assert second VM's name is not in the list
         assert self.virtual_machines[1].hostname not in result
         # There is no installable_rpms flag, so its just the one test.
         # Search for hosts that show RHBA-2012:1030 installable
@@ -807,9 +793,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
         result = [item['name'] for item in result]
-        # Assert first VM's name is not in the list
         assert self.virtual_machines[0].hostname not in result
-        # Assert second VM's name is also not in the list
         assert self.virtual_machines[1].hostname not in result
         # Clean up by removing the CV filter
         ContentViewFilter.delete(
