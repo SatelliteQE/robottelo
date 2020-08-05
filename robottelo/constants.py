@@ -70,7 +70,7 @@ LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
 RHEV_CR = '%s (RHV)'
 
-AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
+AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - T2 Micro Instance'
 
 COMPUTE_PROFILE_LARGE = '3-Large'
 COMPUTE_PROFILE_SMALL = '1-Small'
