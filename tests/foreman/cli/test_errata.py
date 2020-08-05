@@ -667,14 +667,11 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
 
         """
-        # Install package on first VM to create a need for RHBA-2012:1030
+        # Install kangaroo-0.2 on first VM to create a need for RHBA-2012:1030
+        # Update walrus on first VM to remove its need for RHSA-2012:0055
         result = ssh.command(
-            f'yum install -y {FAKE_4_CUSTOM_PACKAGE}', self.virtual_machines[0].ip_addr
-        )
-        assert result.return_code == 0, "Failed to install RPM"
-        # Update package on first VM to remove its need for RHSA-2012:0055
-        result = ssh.command(
-            f'yum install -y {FAKE_2_CUSTOM_PACKAGE}', self.virtual_machines[0].ip_addr
+            f'yum install -y {FAKE_4_CUSTOM_PACKAGE} {FAKE_2_CUSTOM_PACKAGE}',
+            self.virtual_machines[0].ip_addr,
         )
         assert result.return_code == 0, "Failed to install RPM"
         # Step 1: Search for hosts that require RHBA errata
