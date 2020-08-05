@@ -1,5 +1,4 @@
 import copy
-import re
 
 from nailgun import entities
 from pytest import fixture
@@ -185,9 +184,8 @@ def enroll_ad_and_configure_external_auth():
     run_command(cmd=f'echo "{keytab_content}" > /etc/net-keytab.conf')
 
     # gather the apache id
-    result = run_command(cmd="id apache")
-    _str = ''.join(result).split('(apache)')[0]
-    id_apache = int(re.search(r'\d+', _str).group(0))
+    result = run_command(cmd="id -u apache")
+    id_apache = "".join(result)
     http_conf_content = (
         f"[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab"
         f"\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U"

@@ -1000,7 +1000,8 @@ def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
 
     :steps: Assert single sign-on session user is directed to satellite instead of login page
 
-    :expectedresults: After single sign on, user should be redirected from /extlogin to /hosts page
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /users page
+        using curl. It should navigate to user's profile page.(verify using url only)
 
     """
     # register the satellite with AD for single sign-on and update external auth
