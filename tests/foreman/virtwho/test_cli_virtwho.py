@@ -343,7 +343,7 @@ class TestVirtWhoConfigCLICases:
 
         :BZ: 1637042, 1769680
         """
-        org = Org.info({'id': 1})
+        org = Org.info({'name': DEFAULT_ORG})
         data = hypervisor_json_create(hypervisors=100, guests=10)
         url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org['label']}"
         auth = (settings.server.admin_username, settings.server.admin_password)
