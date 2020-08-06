@@ -5,14 +5,12 @@ import logging
 
 import pytest
 
-
 try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.helpers import generate_issue_collection, is_open
 
 
 def log(message, level="DEBUG"):
@@ -121,17 +119,12 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-def pytest_collection_modifyitems(items, config):
+def pytest_collection_modifyitems(session, items, config):
     """Called after collection has been performed, may filter or re-order
     the items in-place.
     """
 
     log("Collected %s test cases" % len(items))
-
-    # First collect all issues in use and build an issue collection
-    # This collection includes pre-processed `is_open` status for each issue
-    # generate_issue_collection will save a file `bz_cache.json` on each run.
-    pytest.issue_data = generate_issue_collection(items, config)
 
     # Modify items based on collected issue_data
     deselected_items = []
@@ -147,13 +140,6 @@ def pytest_collection_modifyitems(items, config):
             # Do nothing more with deselected tests
             continue
 
-        # 2. Skip items based on skip_if_open marker
-        skip_if_open = item.get_closest_marker('skip_if_open')
-        if skip_if_open:
-            # marker must have `BZ:123456` as argument.
-            issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
-            item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
-
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
 
@@ -162,35 +148,3 @@ def pytest_collection_modifyitems(items, config):
 def record_test_timestamp_xml(record_property):
     now = datetime.datetime.utcnow()
     record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
-
-
-def pytest_configure(config):
-    """Register custom markers to avoid warnings."""
-    markers = [
-        "stubbed: Tests that are not automated yet.",
-        "deselect(reason=None): Mark test to be removed from collection.",
-        "skip_if_open(issue): Skip test based on issue status.",
-        "tier1: Tier 1 tests",
-        "tier2: Tier 2 tests",
-        "tier3: Tier 3 tests",
-        "tier4: Tier 4 tests",
-        "destructive: Destructive tests",
-        "upgrade: Upgrade tests",
-        "run_in_one_thread: Sequential tests",
-    ]
-    for marker in markers:
-        config.addinivalue_line("markers", marker)
-
-    # ignore warnings about dynamically added markers e.g: component markers
-    config.addinivalue_line('filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning')
-
-
-def pytest_addoption(parser):
-    """Adds custom options to pytest runner."""
-    parser.addoption(
-        "--bz-cache",
-        nargs='?',
-        default=None,
-        const='bz_cache.json',
-        help="Use a bz_cache.json instead of calling BZ API.",
-    )

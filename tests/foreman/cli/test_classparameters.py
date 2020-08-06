@@ -217,6 +217,8 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Parameter Value overridden with new value.
 
+        :BZ: 1830834
+
         :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
@@ -243,6 +245,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Attempt to submit the changes.
 
         :expectedresults: Not overridden parameter value cannot be updated.
+
+        :BZ: 1830834
 
         :CaseImportance: Medium
         """
@@ -298,6 +302,8 @@ class SmartClassParametersTestCase(CLITestCase):
             4.  Submit the change.
 
         :expectedresults: Error not raised for default value in list.
+
+        :BZ: 1830834
 
         :CaseImportance: Medium
         """

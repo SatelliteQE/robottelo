@@ -70,7 +70,7 @@ LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
 RHEV_CR = '%s (RHV)'
 
-AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
+AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - T2 Micro Instance'
 
 COMPUTE_PROFILE_LARGE = '3-Large'
 COMPUTE_PROFILE_SMALL = '1-Small'
@@ -1501,21 +1501,25 @@ OSCAP_WEEKDAY = {
 OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
+    'rhel8_content': 'Red Hat rhel8 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
+    'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'esp': 'Example Server Profile',
-    'rhccp': ('Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'),
+    'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
-    'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
     'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7',
+    'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
+    'ppgpo': 'Protection Profile for General Purpose Operating Systems',
+    'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
 }
 
 ROLES = [

@@ -44,7 +44,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     template_description = gen_string('alpha')
     template_new_name = gen_string('alpha')
     template_clone_name = gen_string('alpha')
-    job_category = gen_string('alpha')
+    job_category = 'Miscellaneous'
     description_format = gen_string('alpha')
     template_user_input_name = gen_string('alpha')
     template_editor_value = '<%= input("{0}") %>'.format(template_user_input_name)
@@ -94,7 +94,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'template.template_editor.rendering_options': 'Editor',
                 'template.template_editor.editor': template_editor_value,
                 'template.description': template_description,
-                'job.job_category': job_category,
+                'job.job_category': 'Miscellaneous',
                 'job.description_format': description_format,
                 'job.provider_type': 'SSH',
                 'job.timeout': '6000',
