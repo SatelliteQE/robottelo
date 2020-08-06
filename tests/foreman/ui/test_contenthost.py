@@ -1338,9 +1338,8 @@ def test_search_for_virt_who_hypervisors(session):
         assert not session.contenthost.search("hypervisor = true")
         # create virt-who hypervisor through the fake json conf
         data = hypervisor_json_create(hypervisors=1, guests=1)
-        hypervisor_name = list(data.keys())[0]
-        owner = f"owner={org.name}&env=Library"
-        url = f'https://{settings.server.hostname}/rhsm/hypervisors?{owner}'
+        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org.label}"
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
         assert result.status_code == 200
