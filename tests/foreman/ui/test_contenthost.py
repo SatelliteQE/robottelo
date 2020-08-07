@@ -59,6 +59,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
 
@@ -1313,3 +1314,35 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         # Assert that total items reported is the number of hosts created for this test
         total_items_found = pagination_values['total_items']
         assert int(total_items_found) >= host_num
+
+
+@tier3
+def test_search_for_virt_who_hypervisors(session):
+    """
+    Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
+
+    :id: 3c759e13-d5ef-4273-8e64-2cc8ed9099af
+
+    :expectedresults: Search with hypervisor=True and hypervisor=False gives the correct result.
+
+    :BZ: 1653386
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    org = entities.Organization().create()
+    with session:
+        session.organization.select(org.name)
+        assert not session.contenthost.search("hypervisor = true")
+        # create virt-who hypervisor through the fake json conf
+        data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
+        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        hypervisor_display_name = f"virt-who-{hypervisor_name}-{org.id}"
+        # Search with hypervisor=True gives the correct result.
+        assert (
+            session.contenthost.search("hypervisor = true")[0]['Name']
+        ) == hypervisor_display_name
+        # Search with hypervisor=false gives the correct result.
+        content_hosts = [host['Name'] for host in session.contenthost.search("hypervisor = false")]
+        assert hypervisor_display_name not in content_hosts
