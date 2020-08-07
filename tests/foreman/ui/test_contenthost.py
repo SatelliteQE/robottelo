@@ -19,7 +19,6 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytest
-import requests
 from airgun.session import Session
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
@@ -60,7 +59,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
-from robottelo.virtwho_utils import hypervisor_json_create
+from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
 
@@ -1337,16 +1336,13 @@ def test_search_for_virt_who_hypervisors(session):
         session.organization.select(org.name)
         assert not session.contenthost.search("hypervisor = true")
         # create virt-who hypervisor through the fake json conf
-        data = hypervisor_json_create(hypervisors=1, guests=1)
+        data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
         hypervisor_name = data['hypervisors'][0]['hypervisorId']
-        url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org.label}"
-        auth = (settings.server.admin_username, settings.server.admin_password)
-        result = requests.post(url, auth=auth, verify=False, json=data)
-        assert result.status_code == 200
         hypervisor_display_name = f"virt-who-{hypervisor_name}-{org.id}"
         # Search with hypervisor=True gives the correct result.
         assert (
             session.contenthost.search("hypervisor = true")[0]['Name']
         ) == hypervisor_display_name
         # Search with hypervisor=false gives the correct result.
-        assert hypervisor_display_name not in session.contenthost.search("hypervisor = false")
+        content_hosts = [host['Name'] for host in session.contenthost.search("hypervisor = false")]
+        assert hypervisor_display_name not in content_hosts
