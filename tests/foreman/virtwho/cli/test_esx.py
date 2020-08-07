@@ -21,6 +21,7 @@ from fauxfactory import gen_string
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.host import Host
+from robottelo.cli.org import Org
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.cli.virt_who_config import VirtWhoConfig
@@ -34,8 +35,11 @@ from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import hypervisor_json_create
+from robottelo.virtwho_utils import hypervisorsettings
 from robottelo.virtwho_utils import virtwho_package_locked
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
+
+HYPERVISOR_TYPE = 'esx'
 
 
 @fixture()
@@ -45,13 +49,13 @@ def form_data():
         'debug': 1,
         'interval': '60',
         'hypervisor-id': 'hostname',
-        'hypervisor-type': settings.virtwho.hypervisor_type,
-        'hypervisor-server': settings.virtwho.hypervisor_server,
+        'hypervisor-type': hypervisorsettings.esx.hypervisor_type,
+        'hypervisor-server': hypervisorsettings.esx.hypervisor_server,
         'organization-id': 1,
         'filtering-mode': 'none',
         'satellite-url': settings.server.hostname,
-        'hypervisor-username': settings.virtwho.hypervisor_username,
-        'hypervisor-password': settings.virtwho.hypervisor_password,
+        'hypervisor-username': hypervisorsettings.esx.hypervisor_username,
+        'hypervisor-password': hypervisorsettings.esx.hypervisor_password,
     }
     return form
 
@@ -76,14 +80,22 @@ class TestVirtWhoConfigforEsx:
         """
         assert virtwho_config['status'] == 'No Report Yet'
         command = get_configure_command(virtwho_config['id'])
-        hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, HYPERVISOR_TYPE, debug=True
+        )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED'),
+            (
+                hypervisor_name,
+                f'product_id={hypervisorsettings.esx.sku_vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={hypervisorsettings.esx.sku_vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -113,14 +125,22 @@ class TestVirtWhoConfigforEsx:
         """
         assert virtwho_config['status'] == 'No Report Yet'
         script = VirtWhoConfig.fetch({'id': virtwho_config['id']}, output_format='base')
-        hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script, HYPERVISOR_TYPE, debug=True
+        )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED'),
+            (
+                hypervisor_name,
+                f'product_id={hypervisorsettings.esx.sku_vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={hypervisorsettings.esx.sku_vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -159,7 +179,7 @@ class TestVirtWhoConfigforEsx:
         for key, value in sorted(options.items(), key=lambda item: item[0]):
             VirtWhoConfig.update({'id': virtwho_config['id'], 'debug': key})
             command = get_configure_command(virtwho_config['id'])
-            deploy_configure_by_command(command)
+            deploy_configure_by_command(command, HYPERVISOR_TYPE)
             assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG), value
         VirtWhoConfig.delete({'name': new_name})
         assert not VirtWhoConfig.exists(search=('name', new_name))
@@ -189,7 +209,7 @@ class TestVirtWhoConfigforEsx:
         for key, value in sorted(options.items(), key=lambda item: int(item[0])):
             VirtWhoConfig.update({'id': virtwho_config['id'], 'interval': key})
             command = get_configure_command(virtwho_config['id'])
-            deploy_configure_by_command(command)
+            deploy_configure_by_command(command, HYPERVISOR_TYPE)
             assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
@@ -206,16 +226,14 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        values = ['uuid', 'hostname']
-        if settings.virtwho.hypervisor_type in ('esx', 'rhevm'):
-            values.append('hwuuid')
+        values = ['uuid', 'hostname', 'hwuuid']
         for value in values:
             VirtWhoConfig.update({'id': virtwho_config['id'], 'hypervisor-id': value})
             result = VirtWhoConfig.info({'id': virtwho_config['id']})
             assert result['connection']['hypervisor-id'] == value
             config_file = get_configure_file(virtwho_config['id'])
             command = get_configure_command(virtwho_config['id'])
-            deploy_configure_by_command(command)
+            deploy_configure_by_command(command, HYPERVISOR_TYPE)
             assert get_configure_option('hypervisor_id', config_file) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
@@ -235,9 +253,9 @@ class TestVirtWhoConfigforEsx:
         regex = '.*redhat.com'
         whitelist = {'id': virtwho_config['id'], 'filtering-mode': 'whitelist', 'whitelist': regex}
         blacklist = {'id': virtwho_config['id'], 'filtering-mode': 'blacklist', 'blacklist': regex}
-        if settings.virtwho.hypervisor_type == 'esx':
-            whitelist['filter-host-parents'] = regex
-            blacklist['exclude-host-parents'] = regex
+        # esx support filter-host-parents and exclude-host-parents options
+        whitelist['filter-host-parents'] = regex
+        blacklist['exclude-host-parents'] = regex
         config_file = get_configure_file(virtwho_config['id'])
         command = get_configure_command(virtwho_config['id'])
         # Update Whitelist and check the result
@@ -245,23 +263,19 @@ class TestVirtWhoConfigforEsx:
         result = VirtWhoConfig.info({'id': virtwho_config['id']})
         assert result['connection']['filtering'] == 'Whitelist'
         assert result['connection']['filtered-hosts'] == regex
-        if settings.virtwho.hypervisor_type == 'esx':
-            assert result['connection']['filter-host-parents'] == regex
-        deploy_configure_by_command(command)
+        assert result['connection']['filter-host-parents'] == regex
+        deploy_configure_by_command(command, HYPERVISOR_TYPE)
         assert get_configure_option('filter_hosts', config_file) == regex
-        if settings.virtwho.hypervisor_type == 'esx':
-            assert get_configure_option('filter_host_parents', config_file) == regex
+        assert get_configure_option('filter_host_parents', config_file) == regex
         # Update Blacklist and check the result
         VirtWhoConfig.update(blacklist)
         result = VirtWhoConfig.info({'id': virtwho_config['id']})
         assert result['connection']['filtering'] == 'Blacklist'
         assert result['connection']['excluded-hosts'] == regex
-        if settings.virtwho.hypervisor_type == 'esx':
-            assert result['connection']['exclude-host-parents'] == regex
-        deploy_configure_by_command(command)
+        assert result['connection']['exclude-host-parents'] == regex
+        deploy_configure_by_command(command, HYPERVISOR_TYPE)
         assert get_configure_option('exclude_hosts', config_file) == regex
-        if settings.virtwho.hypervisor_type == 'esx':
-            assert get_configure_option('exclude_host_parents', config_file) == regex
+        assert get_configure_option('exclude_host_parents', config_file) == regex
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
@@ -286,7 +300,7 @@ class TestVirtWhoConfigforEsx:
         assert result['connection']['http-proxy'] == http_proxy
         assert result['connection']['ignore-proxy'] == no_proxy
         command = get_configure_command(virtwho_config['id'])
-        deploy_configure_by_command(command)
+        deploy_configure_by_command(command, HYPERVISOR_TYPE)
         assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
         VirtWhoConfig.delete({'name': virtwho_config['name']})
@@ -308,7 +322,7 @@ class TestVirtWhoConfigforEsx:
         """
         config_file = get_configure_file(virtwho_config['id'])
         command = get_configure_command(virtwho_config['id'])
-        deploy_configure_by_command(command)
+        deploy_configure_by_command(command, HYPERVISOR_TYPE)
         rhsm_username = get_configure_option('rhsm_username', config_file)
         assert not User.exists(search=('login', rhsm_username))
         assert get_configure_option('rhsm_hostname', config_file) == settings.server.hostname
@@ -319,21 +333,16 @@ class TestVirtWhoConfigforEsx:
     @tier2
     def test_positive_post_hypervisors(self):
         """ Post large json file to /rhsm/hypervisors"
-
-        :id: bcfd6698-b5b3-4cba-a3a5-b91057ad60e9
-
+        :id: e344c9d2-3538-4432-9a74-b025e9ef852d
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
-
         :CaseLevel: Integration
-
         :CaseImportance: Medium
-
         :BZ: 1637042, 1769680
         """
+        org = Org.info({'name': DEFAULT_ORG})
         data = hypervisor_json_create(hypervisors=100, guests=10)
-        owner = "owner=Default_Organization&env=Library"
-        url = f'https://{settings.server.hostname}/rhsm/hypervisors?{owner}'
+        url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org['label']}"
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
         if result.status_code != 200:
@@ -361,7 +370,7 @@ class TestVirtWhoConfigforEsx:
         """
         virtwho_package_locked()
         command = get_configure_command(virtwho_config['id'])
-        deploy_configure_by_command(command)
+        deploy_configure_by_command(command, HYPERVISOR_TYPE)
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
