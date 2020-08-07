@@ -333,11 +333,16 @@ class TestVirtWhoConfigforEsx:
     @tier2
     def test_positive_post_hypervisors(self):
         """ Post large json file to /rhsm/hypervisors"
+
         :id: e344c9d2-3538-4432-9a74-b025e9ef852d
+
         :expectedresults:
             hypervisor/guest json can be posted and the task is success status
+
         :CaseLevel: Integration
+
         :CaseImportance: Medium
+
         :BZ: 1637042, 1769680
         """
         org = Org.info({'name': DEFAULT_ORG})
