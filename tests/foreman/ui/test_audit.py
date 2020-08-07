@@ -60,7 +60,7 @@ def test_positive_create_event(session, module_org, module_loc):
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
         values = session.audit.search('type=host')
-        assert values.get('action_type') == 'created'
+        assert values.get('action_type') == 'create'
         assert values.get('resource_type') == 'HOST'
         assert values.get('resource_name') == host.name
         assert values.get('created_at')
