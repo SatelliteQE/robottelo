@@ -32,8 +32,6 @@ from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -152,11 +150,13 @@ class OpenScapTestCase(CLITestCase):
             )
 
         for content in cls.rhel8_content, cls.rhel7_content, cls.rhel6_content:
+            content = Scapcontent.info({'title': content}, output_format='json')
+            organizations = [content_org['id'] for content_org in content.get('organizations', [])]
+            organizations.append(org.id)
             Scapcontent.update(
                 {
-                    'title': content,
-                    'organizations': f'{org.name},{DEFAULT_ORG}',
-                    'locations': DEFAULT_LOC,
+                    'title': content['title'],
+                    'organizations': organizations,
                 }
             )
 

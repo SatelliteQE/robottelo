@@ -1002,6 +1002,7 @@ class OpenScapTestCase(CLITestCase):
         assert scap_info['tailoring-file-id'] == tailoring_file['id']
         assert scap_info['tailoring-file-profile-id'] == tailor_profile_id
 
+    @pytest.mark.skip_if_open("BZ:1862445")
     @tier2
     @upgrade
     def test_positive_update_scap_policy_with_tailoringfiles_name(self):
@@ -1017,6 +1018,8 @@ class OpenScapTestCase(CLITestCase):
             3. Pass tailoring-file as parameter.
 
         :expectedresults: The scap policy is updated.
+
+        :BZ: 1862445
         """
         tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
         tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
@@ -1043,6 +1046,7 @@ class OpenScapTestCase(CLITestCase):
         assert scap_info['tailoring-file-id'] == tailoring_file['id']
         assert scap_info['tailoring-file-profile-id'] == tailor_profile_id
 
+    @pytest.mark.skip_if_open("BZ:1862445")
     @tier2
     @upgrade
     def test_positive_delete_scap_policy_with_id(self):
@@ -1063,6 +1067,8 @@ class OpenScapTestCase(CLITestCase):
             3. Pass id as parameter.
 
         :expectedresults: The scap policy is deleted successfully.
+
+        :BZ: 1862445
         """
         name = gen_string('alphanumeric')
         scap_policy = make_scap_policy(

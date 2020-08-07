@@ -701,10 +701,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     org = host.organization.read()
     loc = host.location.read()
     # add host organization and location to scap policy
-    scap_policy = Scappolicy.info({'id': scap_policy['id']}, output_format='json')
-    organization_ids = [policy_org['id'] for policy_org in scap_policy.get('organizations', [])]
+    content = Scapcontent.info({'id': scap_policy['id']}, output_format='json')
+    organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
     organization_ids.append(org.id)
-    location_ids = [policy_loc['id'] for policy_loc in scap_policy.get('locations', [])]
+    location_ids = [policy_loc['id'] for policy_loc in content.get('locations', [])]
 
     location_ids.append(loc.id)
     Scapcontent.update(
