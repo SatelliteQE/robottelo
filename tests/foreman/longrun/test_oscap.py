@@ -133,12 +133,12 @@ class OpenScapTestCase(CLITestCase):
         env = entities.LifecycleEnvironment(organization=org, name=gen_string('alpha')).create()
         # Create content view
         content_view = entities.ContentView(organization=org, name=gen_string('alpha')).create()
-        # Create two activation keys for rhel7 and rhel6
+        # Create activation keys for rhel6, rhel7 and rhel8.
         for repo in repo_values:
             activation_key = entities.ActivationKey(
                 name=repo.get('akname'), environment=env, organization=org
             ).create()
-            # Setup org for a custom repo for RHEL6 and RHEL7
+            # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
             setup_org_for_a_custom_repo(
                 {
                     'url': repo.get('repo'),
@@ -151,14 +151,11 @@ class OpenScapTestCase(CLITestCase):
 
         for content in cls.rhel8_content, cls.rhel7_content, cls.rhel6_content:
             content = Scapcontent.info({'title': content}, output_format='json')
-            organizations = [content_org['id'] for content_org in content.get('organizations', [])]
-            organizations.append(org.id)
-            Scapcontent.update(
-                {
-                    'title': content['title'],
-                    'organizations': organizations,
-                }
-            )
+            organization_ids = [
+                content_org['id'] for content_org in content.get('organizations', [])
+            ]
+            organization_ids.append(org.id)
+            Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
 
         return {
             'org_name': org.name,
