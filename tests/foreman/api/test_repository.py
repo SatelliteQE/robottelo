@@ -103,7 +103,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 self.assertEqual(name, repo.name)
@@ -687,7 +687,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(product=self.product).create()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 repo.name = new_name
                 repo = repo.update(['name'])
@@ -1093,7 +1093,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 repo.delete()

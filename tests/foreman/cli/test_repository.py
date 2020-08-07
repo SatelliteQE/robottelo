@@ -174,7 +174,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 self.assertEqual(new_repo['name'], name)
@@ -190,7 +190,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 # Generate a random, 'safe' label
                 label = gen_string('alpha', 20)
@@ -459,7 +459,7 @@ class RepositoryTestCase(CLITestCase):
         """
         # Make a new gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'gpg-key-id': gpg_key['id'], 'name': name})
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
@@ -478,7 +478,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository(
                     {'gpg-key': gpg_key['name'], 'name': name, 'organization-id': self.org['id']}
@@ -1311,7 +1311,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 Repository.delete({'id': new_repo['id']})
@@ -1329,7 +1329,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 Repository.delete({'name': new_repo['name'], 'product-id': self.product['id']})
@@ -1990,7 +1990,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository(
                     {
