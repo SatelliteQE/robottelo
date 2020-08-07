@@ -236,6 +236,23 @@ class ServerSettings(FeatureSettings):
         return urljoin(self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
+class BrokerSettings(FeatureSettings):
+    """Broker settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(BrokerSettings, self).__init__(*args, **kwargs)
+        self.broker_directory = None
+
+    def read(self, reader):
+        """Read and validate broker settings."""
+        self.broker_directory = reader.get('broker', 'broker_directory', '.')
+        os.environ["BROKER_DIRECTORY"] = self.broker_directory
+
+    def validate(self):
+        """This section is lazily validated on .issue_handlers.bugzilla."""
+        return []
+
+
 class BugzillaSettings(FeatureSettings):
     """Bugzilla server settings definitions."""
 
@@ -1397,6 +1414,7 @@ class Settings(object):
         self.command_executor = None
         self.repos_hosting_url = None
 
+        self.broker = BrokerSettings()
         self.bugzilla = BugzillaSettings()
         # Features
         self.azurerm = AzureRMSettings()
