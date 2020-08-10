@@ -52,7 +52,7 @@ class TestRealm:
 
         :expectedresults: Realm is deleted
         """
-        realm = make_realm({'realm-proxy-id': proxy['id'], 'realm-type': 'Active Directory'})
+        realm = make_realm({'realm-proxy-id': _make_proxy['id'], 'realm-type': 'Active Directory'})
         Realm.delete({'name': realm['name']})
         with pytest.raises(CLIReturnCodeError):
             Realm.info({'id': realm['id']})
