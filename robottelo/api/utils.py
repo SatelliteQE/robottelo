@@ -529,7 +529,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
           example usage::
 
            permissions_types_names = {
-               None: ['access_dashboard'],
+               '(Miscellaneous)': ['access_dashboard'],
                'Organization': ['view_organizations'],
                'Location': ['view_locations'],
                'Katello::KTEnvironment': [
