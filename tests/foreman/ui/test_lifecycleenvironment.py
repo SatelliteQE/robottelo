@@ -328,7 +328,7 @@ def test_positive_custom_user_view_lce(session, test_name):
     org = entities.Organization().create()
     role = entities.Role(name=role_name).create()
     permissions_types_names = {
-        None: ['access_dashboard'],
+        '(Miscellaneous)': ['access_dashboard'],
         'Organization': ['view_organizations'],
         'Location': ['view_locations'],
         'Katello::KTEnvironment': [
