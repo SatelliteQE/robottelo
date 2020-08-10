@@ -967,3 +967,30 @@ def set_hammer_api_timeout(timeout=-1, reverse=False):
                 new_timeout, default_timeout
             )
         )
+
+
+def update_rhsso_settings_in_satellite(revert=False):
+    """Update or Revert the RH-SSO settings in satellite"""
+    rhhso_settings = {
+        'authorize_login_delegation': True,
+        'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'oidc_algorithm': 'RS256',
+        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
+        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
+        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
+    }
+    if not revert:
+        for setting_name, setting_value in rhhso_settings.items():
+            setting_entity = entities.Setting().search(
+                query={'search': 'name={}'.format(setting_name)}
+            )[0]
+            setting_entity.value = setting_value
+            setting_entity.update({'value'})
+    else:
+        setting_entity = entities.Setting().search(
+            query={'search': 'name=authorize_login_delegation'}
+        )[0]
+        setting_entity.value = False
+        setting_entity.update({'value'})
