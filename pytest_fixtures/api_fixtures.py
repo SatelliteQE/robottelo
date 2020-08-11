@@ -35,12 +35,12 @@ if not settings.configured:
 
 @pytest.fixture(scope='session')
 def default_org():
-    return entities.Organization().search(query={'search': f'name={DEFAULT_ORG}'})[0]
+    return entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
 
 
 @pytest.fixture(scope='session')
 def default_location():
-    return entities.Location().search(query={'search': f'name={DEFAULT_LOC}'})[0]
+    return entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
 @pytest.fixture(scope='module')

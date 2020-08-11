@@ -39,6 +39,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -410,6 +411,73 @@ class ContentViewSync(CLITestCase):
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         return exported_tar
+
+    @upgrade
+    @tier3
+    def test_positive_export_import_default_org_view(self):
+        """Export Default Organization View version contents in directory and Import them.
+
+        :id: b8a2c878-cfc2-491c-a71f-74108d6bc247
+
+        :bz: 1671319
+
+        :steps:
+
+            1. Create product and repository with custom contents.
+            2. Sync the repository.
+            3. Create CV with above product and publish.
+            4. Export `Default Organization View version` contents to a directory
+            5. Import those contents from some other org/satellite.
+
+        :expectedresults:
+
+            1. Default Organization View version custom contents has been exported to directory
+            2. All The exported custom contents has been imported in org/satellite
+
+        :CaseAutomation: Automated
+
+        :CaseComponent: ContentViews
+
+        :CaseImportance: High
+
+        :CaseLevel: System
+        """
+        exporting_cv_name = importing_cv_name = DEFAULT_CV
+        cview = ContentView.info(
+            {'name': exporting_cv_name, 'organization-id': self.exporting_org['id']}
+        )
+        default_cvv_id = cview['versions'][0]['id']
+        ContentView.version_export({'export-dir': self.export_dir, 'id': default_cvv_id})
+        exporting_cvv_version = cview['versions'][0]['version']
+        cview_label = cview['label']
+        exported_tar = f'{self.export_dir}/export-{cview_label}-{exporting_cvv_version}.tar'
+        result = ssh.command(f"[ -f {exported_tar} ]")
+        self.assertEqual(result.return_code, 0)
+        exported_packages = Package.list({'content-view-version-id': default_cvv_id})
+        self.assertTrue(len(exported_packages) > 0)
+        # importing
+        importing_org = make_org()
+        importing_prod = make_product(
+            {'organization-id': importing_org['id'], 'name': self.exporting_prod_name}
+        )
+        make_repository(
+            {
+                'name': self.exporting_repo_name,
+                'mirror-on-sync': 'no',
+                'download-policy': 'immediate',
+                'product-id': importing_prod['id'],
+            }
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': importing_org['id']}
+        )
+        importing_cvv = ContentView.info(
+            {'name': importing_cv_name, 'organization-id': importing_org['id']}
+        )['versions']
+        self.assertTrue(len(importing_cvv) >= 1)
+        imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
+        self.assertTrue(len(imported_packages) > 0)
+        self.assertEqual(len(exported_packages), len(imported_packages))
 
     @tier3
     def test_positive_export_import_filtered_cvv(self):
