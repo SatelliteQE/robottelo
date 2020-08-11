@@ -156,7 +156,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
             'build_host': 'smqe-ws15',
-            'build_time': '1331831364',
+            'build_time': 'March 15, 2012, 01:09 PM',
         }
         all_package_details = session.package.read('gorilla', repository=module_yum_repo.name)[
             'details'
