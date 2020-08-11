@@ -2,6 +2,13 @@
 """Defines various constants"""
 from nailgun import entities
 
+from robottelo.config import settings
+
+if not settings.configured:
+    settings.configure()
+
+FIXTURES_URL = settings.fixtures_url
+
 LOCALES = (
     'ca',
     'de',
@@ -660,38 +667,38 @@ CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
 
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
-CUSTOM_MODULE_STREAM_REPO_1 = 'https://partha.fedorapeople.org/test-repos/pteradactyl/'
-CUSTOM_MODULE_STREAM_REPO_2 = 'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
-CUSTOM_SWID_TAG_REPO = 'https://partha.fedorapeople.org/test-repos/swid-zoo/'
+CUSTOM_MODULE_STREAM_REPO_1 = f'{FIXTURES_URL}/module_stream1'
+CUSTOM_MODULE_STREAM_REPO_2 = f'{FIXTURES_URL}/module_stream2'
+CUSTOM_SWID_TAG_REPO = f'{FIXTURES_URL}/swid_zoo'
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
-FAKE_0_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo/'
-FAKE_1_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo3/'
-FAKE_2_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo2/'
-FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
-FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
+FAKE_0_YUM_REPO = f'{FIXTURES_URL}/fake_yum0'
+FAKE_1_YUM_REPO = f'{FIXTURES_URL}/fake_yum1'
+FAKE_2_YUM_REPO = f'{FIXTURES_URL}/fake_yum2'
+FAKE_3_YUM_REPO = f'{FIXTURES_URL}/fake_yum3'
+FAKE_4_YUM_REPO = f'{FIXTURES_URL}/fake_yum4'
 FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
-FAKE_7_YUM_REPO = 'https://fixtures.pulpproject.org/rpm-long-updateinfo/'
-FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
-FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
-FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
-FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'
-FAKE_YUM_SRPM_REPO = 'https://fixtures.pulpproject.org/srpm-signed/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://fixtures.pulpproject.org/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
+FAKE_6_YUM_REPO = f'{FIXTURES_URL}/needed_errata'
+FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
+FAKE_8_YUM_REPO = f'{FIXTURES_URL}/lots_files'
+FAKE_9_YUM_REPO = f'{FIXTURES_URL}/multiple_errata'
+FAKE_10_YUM_REPO = f'{FIXTURES_URL}/modules_rpms'
+FAKE_11_YUM_REPO = f'{FIXTURES_URL}/rpm_deps'
+FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
+FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
+FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
+FAKE_YUM_MIXED_REPO = f'{FIXTURES_URL}/yum_mixed'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
-CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
-FAKE_0_PUPPET_REPO = 'http://davidd.fedorapeople.org/repos/random_puppet/'
-FAKE_1_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet01'
-FAKE_2_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet02'
-FAKE_3_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet03'
-FAKE_4_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet04'
-FAKE_5_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet05'
-FAKE_6_PUPPET_REPO = 'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
+CUSTOM_PUPPET_REPO = f'{FIXTURES_URL}/custom_puppet'
+FAKE_0_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet0'
+FAKE_1_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet1'
+FAKE_2_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet2'
+FAKE_3_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet3'
+FAKE_4_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet4'
+FAKE_5_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet5'
+FAKE_6_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet6'
 FAKE_7_PUPPET_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
-FAKE_8_PUPPET_REPO = 'https://omaciel.fedorapeople.org/f4cb00ed/'
+FAKE_8_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet8'
 # Fedora's OSTree repo changed to a single repo at
 #   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
 # With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
@@ -699,7 +706,7 @@ FAKE_8_PUPPET_REPO = 'https://omaciel.fedorapeople.org/f4cb00ed/'
 FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
 FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
 REPO_DISCOVERY_URL = 'http://omaciel.fedorapeople.org/'
-FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
+FAKE_0_INC_UPD_URL = f'{FIXTURES_URL}/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
@@ -803,7 +810,7 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
 
-FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
+FAKE_PULP_REMOTE_FILEREPO = f'{FIXTURES_URL}/pulp_remote'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
