@@ -14,119 +14,90 @@
 
 :Upstream: No
 """
+import pytest
+from fauxfactory import gen_choice
 from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
-from robottelo.test import APITestCase
 
 
-class ArchitectureTestCase(APITestCase):
-    """Tests for architectures."""
+@pytest.fixture(scope="module")
+def module_os():
+    module_os = entities.OperatingSystem().create()
+    yield module_os
+    module_os.delete()
 
-    @tier2
-    def test_positive_add_os(self):
-        """Create an architecture and associate it with an OS.
 
-        :id: 9943063d-34f3-4dbc-a341-474ec781e4d9
+@pytest.fixture(scope="module")
+def module_arch():
+    module_arch = entities.Architecture().create()
+    yield module_arch
+    module_arch.delete()
 
-        :expectedresults: The architecture can be created, and the association
-            can be read back from the server.
 
-        :CaseLevel: Integration
-        """
-        operating_sys = entities.OperatingSystem().create()
-        arch = entities.Architecture(operatingsystem=[operating_sys]).create()
-        self.assertEqual({operating_sys.id}, {os.id for os in arch.operatingsystem})
+@tier1
+def test_positive_CRUD(module_os):
+    """Create a new Architecture with several attributes, update the name
+    and delete the Architecture itself.
 
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create an architecture providing the initial name.
+    :id: 80bca2c0-a6a1-4676-a036-bd918812d600
 
-        :id: acbadcda-3410-45cb-a3aa-932a0facadc1
+    :expectedresults: Architecture should be created, modified and deleted successfully
+        with given attributes.
 
-        :expectedresults: Architecture is created and contains provided name.
+    :CaseImportance: Critical
+    """
 
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                arch = entities.Architecture(name=name).create()
-                self.assertEqual(name, arch.name)
+    # Create
+    name = gen_choice(list(valid_data_list().values()))
+    arch = entities.Architecture(name=name, operatingsystem=[module_os]).create()
+    assert {module_os.id} == {os.id for os in arch.operatingsystem}
+    assert name == arch.name
 
-    @tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create architecture providing an invalid initial name.
-        set.
+    # Update
+    name = gen_choice(list(valid_data_list().values()))
+    arch = entities.Architecture(id=arch.id, name=name).update(['name'])
+    assert name == arch.name
 
-        :id: c740b8c4-8ee3-4481-b041-4eff2faf9055
+    # Delete
+    arch.delete()
+    with pytest.raises(HTTPError):
+        arch.read()
 
-        :expectedresults: Architecture is not created
 
-        :CaseImportance: Medium
+@tier1
+@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
+def test_negative_create_with_invalid_name(name):
+    """Create architecture providing an invalid initial name.
 
-        :BZ: 1401519
-        """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Architecture(name=name).create()
+    :id: 0fa6377d-063a-4e24-b606-b342e0d9108b
 
-    @tier1
-    def test_positive_update_name(self):
-        """Create architecture then update its name to another
-        valid name.
+    :expectedresults: Architecture is not created
 
-        :id: 8dbbf4f8-188e-406a-9099-a707f553d6bb
+    :CaseImportance: Medium
 
-        :expectedresults: Architecture is created, and its name can be updated.
+    :BZ: 1401519
+    """
+    with pytest.raises(HTTPError):
+        entities.Architecture(name=name).create()
 
-        :CaseImportance: Critical
-        """
-        arch = entities.Architecture().create()
 
-        for new_name in valid_data_list().values():
-            with self.subTest(new_name):
-                entities.Architecture(id=arch.id, name=new_name).update(['name'])
-                updated = entities.Architecture(id=arch.id).read()
-                self.assertEqual(new_name, updated.name)
+@tier1
+@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
+def test_negative_update_with_invalid_name(name, module_arch):
+    """Update architecture's name to an invalid name.
 
-    @tier1
-    def test_negative_update_name(self):
-        """Create architecture then update its name to an invalid name.
+    :id: cb27b69b-14e0-42d0-9e44-e09d68324803
 
-        :id: 301b335e-9bc1-47d9-8bef-a8ca2e9ea18e
+    :expectedresults: Architecture's name is not updated.
 
-        :expectedresults: Architecture is created, and its name is not updated.
-
-        :CaseImportance: Medium
-        """
-        arch = entities.Architecture().create()
-        for new_name in invalid_names_list():
-            with self.subTest(new_name):
-                with self.assertRaises(HTTPError):
-                    entities.Architecture(id=arch.id, name=new_name).update(['name'])
-                arch = entities.Architecture(id=arch.id).read()
-                self.assertNotEqual(arch.name, new_name)
-
-    @tier1
-    @upgrade
-    def test_positive_delete(self):
-        """Create architecture and then delete it.
-
-        :id: 114a2973-a889-4a5e-bfac-de4406826258
-
-        :expectedresults: architecture is successfully deleted.
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                arch = entities.Architecture(name=name).create()
-                arch.delete()
-                with self.assertRaises(HTTPError):
-                    entities.Architecture(id=arch.id).read()
+    :CaseImportance: Medium
+    """
+    with pytest.raises(HTTPError):
+        entities.Architecture(id=module_arch.id, name=name).update(['name'])
+    arch = entities.Architecture(id=module_arch.id).read()
+    assert arch.name != name
