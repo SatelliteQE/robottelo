@@ -1159,3 +1159,34 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
+
+
+def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
+    """Email of the user created via idm as external source should be copied over to the satellite
+
+    :id: 9ce7d7c6-dc73-11ea-8a97-4ceb42ab8dbc
+
+    :steps:
+        1. Create an the auth source with onthefly enabled
+        2. Login to the satellite with the user(from IDM) to create the account
+        3. Assert the email of the newly created user
+
+    :expectedresults: Email is copied over:
+    """
+    run_command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    result = run_command(
+        cmd=f"ipa user-find --login {ipa_data['user_ipa']}", hostname=settings.ipa.hostname_ipa
+    )
+    for line in result:
+        if 'Email' in line:
+            _, result = line.split(': ', 2)
+            break
+    with Session(
+        user=ipa_data['user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        ldapsession.task.read_all()
+    with session:
+        user_value = session.user.read(ipa_data['user_ipa'])
+        assert user_value['user']['mail'] == result
