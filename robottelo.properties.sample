@@ -146,6 +146,8 @@ ssh_key=
 # password=
 # basedn=
 # grpbasedn=
+# realm=
+# nameserver=
 
 # For LDAP freeIPA Authentication.
 # [ipa]
