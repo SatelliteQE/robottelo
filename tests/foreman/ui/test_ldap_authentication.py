@@ -1162,16 +1162,17 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
 
 
 def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
-    """Email of the user created via idm as external source should be copied over to the satellite
+    """Email of the user created in idm server ( set as external authorization source)
+    should be copied to the satellite.
 
     :id: 9ce7d7c6-dc73-11ea-8a97-4ceb42ab8dbc
 
     :steps:
         1. Create an the auth source with onthefly enabled
-        2. Login to the satellite with the user(from IDM) to create the account
+        2. Login to the satellite with the user (from IDM) to create the account
         3. Assert the email of the newly created user
 
-    :expectedresults: Email is copied over:
+    :expectedresults: Email is copied to Satellite:
     """
     run_command(
         cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
