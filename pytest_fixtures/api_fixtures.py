@@ -148,6 +148,11 @@ def default_architecture():
     return arch
 
 
+@pytest.fixture(scope='module')
+def module_architecture():
+    return entities.Architecture().create()
+
+
 @pytest.fixture(scope='session')
 def default_os(
     default_architecture, default_partitiontable, default_pxetemplate, os=None,
