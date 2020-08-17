@@ -64,7 +64,7 @@ def pytest_collection_modifyitems(items, config):
     """
     Collects tests based on pytest option to select tests marked as failed on Report Portal
     """
-    fail_args = config.getvalue('only_failed')
+    fail_args = config.getoption('only_failed', False)
     if not fail_args:
         return
     rp = ReportPortal()
