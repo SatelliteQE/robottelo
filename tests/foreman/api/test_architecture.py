@@ -25,22 +25,8 @@ from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 
 
-@pytest.fixture(scope="module")
-def module_os():
-    module_os = entities.OperatingSystem().create()
-    yield module_os
-    module_os.delete()
-
-
-@pytest.fixture(scope="module")
-def module_arch():
-    module_arch = entities.Architecture().create()
-    yield module_arch
-    module_arch.delete()
-
-
 @tier1
-def test_positive_CRUD(module_os):
+def test_positive_CRUD(default_os):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
 
@@ -54,8 +40,8 @@ def test_positive_CRUD(module_os):
 
     # Create
     name = gen_choice(list(valid_data_list().values()))
-    arch = entities.Architecture(name=name, operatingsystem=[module_os]).create()
-    assert {module_os.id} == {os.id for os in arch.operatingsystem}
+    arch = entities.Architecture(name=name, operatingsystem=[default_os]).create()
+    assert {default_os.id} == {os.id for os in arch.operatingsystem}
     assert name == arch.name
 
     # Update
@@ -88,7 +74,7 @@ def test_negative_create_with_invalid_name(name):
 
 @tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_update_with_invalid_name(name, module_arch):
+def test_negative_update_with_invalid_name(name, module_architecture):
     """Update architecture's name to an invalid name.
 
     :id: cb27b69b-14e0-42d0-9e44-e09d68324803
@@ -98,6 +84,6 @@ def test_negative_update_with_invalid_name(name, module_arch):
     :CaseImportance: Medium
     """
     with pytest.raises(HTTPError):
-        entities.Architecture(id=module_arch.id, name=name).update(['name'])
-    arch = entities.Architecture(id=module_arch.id).read()
+        entities.Architecture(id=module_architecture.id, name=name).update(['name'])
+    arch = entities.Architecture(id=module_architecture.id).read()
     assert arch.name != name
