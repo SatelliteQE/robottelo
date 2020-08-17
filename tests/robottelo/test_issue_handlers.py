@@ -398,7 +398,7 @@ class TestBugzillaIssueHandler:
 
 
 def test_add_workaround():
-    """Assert helper function adds corrent items to given data"""
+    """Assert helper function adds current items to given data"""
     data = defaultdict(lambda: {"data": {}, "used_in": []})
     matches = [('BZ', '123456'), ('BZ', '789456')]
 
