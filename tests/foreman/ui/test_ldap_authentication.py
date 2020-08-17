@@ -1187,6 +1187,7 @@ def test_negative_login_with_incorrect_password(test_name):
         assert error.typename == "NavigationTriesExceeded"
 
 
+@tier2
 def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
     """Disabled IDM user cannot login
 
@@ -1204,6 +1205,7 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
         assert error.typename == "NavigationTriesExceeded"
 
 
+@tier2
 def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
     """Email of the user created in idm server ( set as external authorization source)
     should be copied to the satellite.
@@ -1211,7 +1213,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
     :id: 9ce7d7c6-dc73-11ea-8a97-4ceb42ab8dbc
 
     :steps:
-        1. Create an the auth source with onthefly enabled
+        1. Create a new auth source with onthefly enabled
         2. Login to the satellite with the user (from IDM) to create the account
         3. Assert the email of the newly created user
 
@@ -1234,3 +1236,48 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
     with session:
         user_value = session.user.read(ipa_data['user_ipa'])
         assert user_value['user']['mail'] == result
+
+
+@tier2
+def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear_down):
+    """After deleting a user in IDM, user should not be able to login into satellite
+
+    :id: 18ad0526-e083-11ea-b1ad-4ceb42ab8dbc
+
+    :steps:
+        1. Create a new auth source with onthefly enabled
+        2. Create a new user in IDM and assigning a group to it.
+        3. Login to satellite to create the user
+        4. Delete the user from IDM
+        5. Try login to the satellite from the user
+
+    :expectedresults: User login fails
+    """
+    result = ssh.command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    assert result.return_code == 0
+    test_user = gen_string('alpha')
+    add_user_cmd = (
+        f"echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first"
+        f"={test_user} --last={test_user} --password"
+    )
+    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+    group = settings.ipa.grpbasedn_ipa.split(',')
+    for line in group:
+        if 'group' in line:
+            _, group = line.split('=')
+            break
+    result = ssh.command(
+        cmd=f"ipa group-add-member {group} --user={test_user}", hostname=settings.ipa.hostname_ipa,
+    )
+    assert result.return_code == 0
+    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+        ldapsession.task.read_all()
+    result = ssh.command(cmd=f"ipa user-del {test_user}", hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
