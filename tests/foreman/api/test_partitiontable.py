@@ -18,7 +18,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :Upstream: No
 """
-from random import randint
+import random
 
 import pytest
 from fauxfactory import gen_integer
@@ -43,6 +43,8 @@ class TestPartitionTable:
         """Create Partition table with 1 character in name
 
         :id: 71601d96-8ce8-4ecb-b053-af6f26a246ea
+
+        :parametrized: yes
 
         :expectedresults: Partition table was created
 
@@ -70,6 +72,8 @@ class TestPartitionTable:
 
         :id: 32250f23-3704-496f-83e6-6379a415650a
 
+        :parametrized: yes
+
         :expectedresults: Partition table is created, searched, updated and deleted successfully
             with correct name
 
@@ -95,6 +99,8 @@ class TestPartitionTable:
             layout
 
         :id: 5cdf156f-72d9-4950-b11c-4bca5d2aa5bb
+
+        :parametrized: yes
 
         :expectedresults: Partition table is created and updated successfully and has correct
             layout
@@ -132,10 +138,10 @@ class TestPartitionTable:
             operating system
 
         """
-        os_family = OPERATING_SYSTEMS[randint(0, 8)]
+        os_family = random.choice(OPERATING_SYSTEMS)
         ptable = entities.PartitionTable(os_family=os_family).create()
         assert ptable.os_family == os_family
-        new_os_family = OPERATING_SYSTEMS[randint(0, 8)]
+        new_os_family = random.choice(OPERATING_SYSTEMS)
         ptable.os_family = new_os_family
         assert ptable.update(['os_family']).os_family == new_os_family
 
@@ -166,6 +172,8 @@ class TestPartitionTable:
 
         :id: 02631917-2f7a-4cf7-bb2a-783349a04758
 
+        :parametrized: yes
+
         :expectedresults: Partition table was not created
 
         :CaseImportance: Medium
@@ -180,6 +188,8 @@ class TestPartitionTable:
 
         :id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
 
+        :parametrized: yes
+
         :expectedresults: Partition table was not created
         """
         with pytest.raises(HTTPError):
@@ -191,6 +201,8 @@ class TestPartitionTable:
         """Try to update partition table using invalid names only
 
         :id: 7e9face8-2c20-450e-890c-6def6de570ca
+
+        :parametrized: yes
 
         :expectedresults: Partition table was not updated
 
@@ -207,6 +219,8 @@ class TestPartitionTable:
         """Try to update partition table with empty layout
 
         :id: 35c84c8f-b802-4076-89f2-4ec04cf43a31
+
+        :parametrized: yes
 
         :expectedresults: Partition table was not updated
 
