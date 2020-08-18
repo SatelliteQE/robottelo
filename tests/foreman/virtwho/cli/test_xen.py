@@ -26,6 +26,9 @@ from robottelo.decorators import tier2
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
+from robottelo.virtwho_utils import get_configure_file
+from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import virtwhosettings
 
 
 @fixture()
@@ -35,13 +38,13 @@ def form_data():
         'debug': 1,
         'interval': '60',
         'hypervisor-id': 'hostname',
-        'hypervisor-type': settings.virtwho.hypervisor_type,
-        'hypervisor-server': settings.virtwho.hypervisor_server,
+        'hypervisor-type': virtwhosettings.xen.hypervisor_type,
+        'hypervisor-server': virtwhosettings.xen.hypervisor_server,
         'organization-id': 1,
         'filtering-mode': 'none',
         'satellite-url': settings.server.hostname,
-        'hypervisor-username': settings.virtwho.hypervisor_username,
-        'hypervisor-password': settings.virtwho.hypervisor_password,
+        'hypervisor-username': virtwhosettings.xen.hypervisor_username,
+        'hypervisor-password': virtwhosettings.xen.hypervisor_password,
     }
     return form
 
@@ -51,7 +54,7 @@ def virtwho_config(form_data):
     return VirtWhoConfig.create(form_data)['general-information']
 
 
-class TestVirtWhoConfigforRhevm:
+class TestVirtWhoConfigforXen:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """ Verify " hammer virt-who-config deploy"
@@ -66,14 +69,16 @@ class TestVirtWhoConfigforRhevm:
         """
         assert virtwho_config['status'] == 'No Report Yet'
         command = get_configure_command(virtwho_config['id'])
-        hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor-type'], debug=True
+        )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -103,14 +108,16 @@ class TestVirtWhoConfigforRhevm:
         """
         assert virtwho_config['status'] == 'No Report Yet'
         script = VirtWhoConfig.fetch({'id': virtwho_config['id']}, output_format='base')
-        hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script, form_data['hypervisor-type'], debug=True
+        )
         virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
             'general-information'
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -123,5 +130,29 @@ class TestVirtWhoConfigforRhevm:
                         break
             result = Host.subscription_attach({'host-id': host['id'], 'subscription-id': vdc_id})
             assert 'attached to the host successfully' in '\n'.join(result)
+        VirtWhoConfig.delete({'name': virtwho_config['name']})
+        assert not VirtWhoConfig.exists(search=('name', form_data['name']))
+
+    @tier2
+    def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
+        """ Verify hypervisor_id option by hammer virt-who-config update"
+
+        :id: 551cfc6c-71cd-40e7-9997-a7c85db02c1f
+
+        :expectedresults: hypervisor_id option can be updated.
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+        """
+        values = ['uuid', 'hostname']
+        for value in values:
+            VirtWhoConfig.update({'id': virtwho_config['id'], 'hypervisor-id': value})
+            result = VirtWhoConfig.info({'id': virtwho_config['id']})
+            assert result['connection']['hypervisor-id'] == value
+            config_file = get_configure_file(virtwho_config['id'])
+            command = get_configure_command(virtwho_config['id'])
+            deploy_configure_by_command(command, form_data['hypervisor-type'])
+            assert get_configure_option('hypervisor_id', config_file) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))

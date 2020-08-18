@@ -8,12 +8,12 @@ from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.config.virtwho import HypervisorSettings
+from robottelo.config.virtwho import VirtwhoSettings
 from robottelo.constants import DEFAULT_ORG
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
-hypervisorsettings = HypervisorSettings()
-hypervisorsettings.configure()
+virtwhosettings = VirtwhoSettings()
+virtwhosettings.configure()
 
 
 class VirtWhoError(Exception):
@@ -37,10 +37,10 @@ def get_system(system_type):
     """
     if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
         return {
-            'hostname': eval(f'hypervisorsettings.{system_type}.guest'),
-            'username': eval(f'hypervisorsettings.{system_type}.guest_username'),
-            'password': eval(f'hypervisorsettings.{system_type}.guest_password'),
-            'port': eval(f'hypervisorsettings.{system_type}.guest_port'),
+            'hostname': eval(f'virtwhosettings.{system_type}.guest'),
+            'username': eval(f'virtwhosettings.{system_type}.guest_username'),
+            'password': eval(f'virtwhosettings.{system_type}.guest_password'),
+            'port': eval(f'virtwhosettings.{system_type}.guest_port'),
         }
     elif system_type == 'satellite':
         return {

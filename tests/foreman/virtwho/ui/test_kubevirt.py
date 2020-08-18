@@ -16,11 +16,15 @@
 """
 from fauxfactory import gen_string
 
-from robottelo.config import settings
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
+from robottelo.virtwho_utils import get_configure_command
+from robottelo.virtwho_utils import get_configure_file
+from robottelo.virtwho_utils import get_configure_id
+from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import virtwhosettings
 
 
 @fixture()
@@ -29,8 +33,8 @@ def form_data():
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': settings.virtwho.hypervisor_type,
-        'hypervisor_content.kubeconfig': settings.virtwho.hypervisor_config_file,
+        'hypervisor_type': virtwhosettings.kubevirt.hypervisor_type,
+        'hypervisor_content.kubeconfig': virtwhosettings.kubevirt.hypervisor_config_file,
     }
     return form
 
@@ -59,14 +63,16 @@ class TestVirtwhoConfigforKubevirt:
             session.virtwho_configure.create(form_data)
             values = session.virtwho_configure.read(name)
             command = values['deploy']['command']
-            hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+            hypervisor_name, guest_name = deploy_configure_by_command(
+                command, form_data['hypervisor_type'], debug=True
+            )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
             vdc_physical = 'product_id = {} and type=NORMAL'.format(
-                settings.virtwho.sku_vdc_physical
+                virtwhosettings.sku.vdc_physical
             )
             vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-                settings.virtwho.sku_vdc_physical
+                virtwhosettings.sku.vdc_physical
             )
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
@@ -98,18 +104,51 @@ class TestVirtwhoConfigforKubevirt:
             session.virtwho_configure.create(form_data)
             values = session.virtwho_configure.read(name)
             script = values['deploy']['script']
-            hypervisor_name, guest_name = deploy_configure_by_script(script, debug=True)
+            hypervisor_name, guest_name = deploy_configure_by_script(
+                script, form_data['hypervisor_type'], debug=True
+            )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
             vdc_physical = 'product_id = {} and type=NORMAL'.format(
-                settings.virtwho.sku_vdc_physical
+                virtwhosettings.sku.vdc_physical
             )
             vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-                settings.virtwho.sku_vdc_physical
+                virtwhosettings.sku.vdc_physical
             )
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
             assert session.contenthost.search(guest_name)[0]['Subscription Status'] == 'green'
+            session.virtwho_configure.delete(name)
+            assert not session.virtwho_configure.search(name)
+
+    @tier2
+    def test_positive_hypervisor_id_option(self, session, form_data):
+        """ Verify Hypervisor ID dropdown options.
+
+        :id: 09826cc0-aa49-4355-8980-8097511eb7d7
+
+        :expectedresults:
+            hypervisor_id can be changed in virt-who-config-{}.conf if the
+            dropdown option is selected to uuid/hwuuid/hostname.
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+        """
+        name = gen_string('alpha')
+        form_data['name'] = name
+        with session:
+            session.virtwho_configure.create(form_data)
+            config_id = get_configure_id(name)
+            config_command = get_configure_command(config_id)
+            config_file = get_configure_file(config_id)
+            values = ['uuid', 'hostname', 'hwuuid']
+            for value in values:
+                session.virtwho_configure.edit(name, {'hypervisor_id': value})
+                results = session.virtwho_configure.read(name)
+                assert results['overview']['hypervisor_id'] == value
+                deploy_configure_by_command(config_command, form_data['hypervisor_type'])
+                assert get_configure_option('hypervisor_id', config_file) == value
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)

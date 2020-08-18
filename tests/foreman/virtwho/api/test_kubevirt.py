@@ -26,6 +26,9 @@ from robottelo.helpers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
+from robottelo.virtwho_utils import get_configure_file
+from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import virtwhosettings
 
 
 @fixture(scope='class')
@@ -40,11 +43,11 @@ def form_data(default_org):
         'debug': 1,
         'interval': '60',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': settings.virtwho.hypervisor_type,
+        'hypervisor_type': virtwhosettings.kubevirt.hypervisor_type,
         'organization_id': default_org.id,
         'filtering_mode': 'none',
         'satellite_url': settings.server.hostname,
-        'kubeconfig': settings.virtwho.hypervisor_config_file,
+        'kubeconfig': virtwhosettings.kubevirt.hypervisor_config_file,
     }
     return form
 
@@ -55,8 +58,7 @@ def virtwho_config(form_data):
 
 
 @skipif(
-    condition=(settings.virtwho.hypervisor_type == 'kubevirt' and is_open('BZ:1735540')),
-    reason='We have not supported kubevirt hypervisor yet',
+    condition=(is_open('BZ:1735540')), reason='We have not supported kubevirt hypervisor yet',
 )
 class TestVirtWhoConfigforKubevirt:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
@@ -90,7 +92,9 @@ class TestVirtWhoConfigforKubevirt:
         """
         assert virtwho_config.status == 'unknown'
         command = get_configure_command(virtwho_config.id)
-        hypervisor_name, guest_name = deploy_configure_by_command(command, debug=True)
+        hypervisor_name, guest_name = deploy_configure_by_command(
+            command, form_data['hypervisor-type'], debug=True
+        )
         virt_who_instance = (
             entities.VirtWhoConfig()
             .search(query={'search': f'name={virtwho_config.name}'})[0]
@@ -98,11 +102,8 @@ class TestVirtWhoConfigforKubevirt:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL',),
-            (
-                guest_name,
-                f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED',
-            ),
+            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL',),
+            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED',),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -142,7 +143,7 @@ class TestVirtWhoConfigforKubevirt:
         assert virtwho_config.status == 'unknown'
         script = virtwho_config.deploy_script()
         hypervisor_name, guest_name = deploy_configure_by_script(
-            script['virt_who_config_script'], debug=True
+            script['virt_who_config_script'], form_data['hypervisor-type'], debug=True
         )
         virt_who_instance = (
             entities.VirtWhoConfig()
@@ -151,11 +152,8 @@ class TestVirtWhoConfigforKubevirt:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={settings.virtwho.sku_vdc_physical} and type=NORMAL',),
-            (
-                guest_name,
-                f'product_id={settings.virtwho.sku_vdc_physical} and type=STACK_DERIVED',
-            ),
+            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL',),
+            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED',),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -175,5 +173,30 @@ class TestVirtWhoConfigforKubevirt:
             )
             result = entities.Host().search(query={'search': hostname})[0].read_json()
             assert result['subscription_status_label'] == 'Fully entitled'
+        virtwho_config.delete()
+        assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
+
+    @tier2
+    def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
+        """ Verify hypervisor_id option by "PUT
+
+        /foreman_virt_who_configure/api/v2/configs/:id"
+
+        :id: c1ca38e8-6030-4a3f-8880-00ab3f29574a
+
+        :expectedresults: hypervisor_id option can be updated.
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+        """
+        values = ['uuid', 'hostname']
+        for value in values:
+            virtwho_config.hypervisor_id = value
+            virtwho_config.update(['hypervisor_id'])
+            config_file = get_configure_file(virtwho_config.id)
+            command = get_configure_command(virtwho_config.id)
+            deploy_configure_by_command(command, form_data['hypervisor_type'])
+            assert get_configure_option('hypervisor_id', config_file) == value
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
