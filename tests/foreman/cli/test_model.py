@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -22,29 +23,45 @@ from robottelo.cli.factory import make_model
 from robottelo.cli.model import Model
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
-from robottelo.test import CLITestCase
 
 
-class ModelTestCase(CLITestCase):
+class TestModel:
     """Test class for Model CLI"""
 
+    @pytest.fixture()
+    def class_model(self):
+        """Shared model for tests"""
+        return make_model()
+
     @tier1
-    def test_positive_create_with_name(self):
-        """Successfully creates a Model.
+    @upgrade
+    @pytest.mark.parametrize(
+        'name, new_name',
+        **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
+    )
+    def test_positive_crud_with_name(self, name, new_name):
+        """Successfully creates, updates and deletes a Model.
 
-        :id: c8192831-5dde-4c3c-8427-00902ddbc0ac
+        :id: 9ca9d5ff-750a-4d60-91b2-4c4375f0e35f
 
-        :expectedresults: Model is created.
+        :parametrized: yes
+
+        :expectedresults: Model is created, updated and deleted.
 
         :CaseImportance: High
         """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                model = make_model({'name': name})
-                self.assertEqual(model['name'], name)
+        model = make_model({'name': name})
+        assert model['name'] == name
+        Model.update({'id': model['id'], 'new-name': new_name})
+        model = Model.info({'id': model['id']})
+        assert model['name'] == new_name
+        Model.delete({'id': model['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Model.info({'id': model['id']})
 
     @tier1
     def test_positive_create_with_vendor_class(self):
@@ -58,88 +75,54 @@ class ModelTestCase(CLITestCase):
         """
         vendor_class = gen_string('utf8')
         model = make_model({'vendor-class': vendor_class})
-        self.assertEqual(model['vendor-class'], vendor_class)
+        assert model['vendor-class'] == vendor_class
 
     @tier1
-    def test_negative_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_name(self, name):
         """Don't create an Model with invalid data.
 
         :id: b2eade66-b612-47e7-bfcc-6e363023f498
+
+        :parametrized: yes
 
         :expectedresults: Model is not created.
 
         :CaseImportance: High
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIReturnCodeError):
-                    Model.create({'name': name})
+        with pytest.raises(CLIReturnCodeError):
+            Model.create({'name': name})
 
     @tier1
-    def test_positive_update_name(self):
-        """Successfully update an Model.
-
-        :id: 66eb6cf2-9ec5-4947-97e0-b612780c5cc3
-
-        :expectedresults: Model is updated.
-
-        :CaseImportance: Medium
-        """
-        model = make_model()
-        for new_name in valid_data_list().values():
-            with self.subTest(new_name):
-                Model.update({'id': model['id'], 'new-name': new_name})
-                model = Model.info({'id': model['id']})
-                self.assertEqual(model['name'], new_name)
-
-    @tier1
-    def test_negative_update_name(self):
-        """Create Model then fail to update its name
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
+    def test_negative_update_name(self, class_model, new_name):
+        """Fail to update shared model name
 
         :id: 98020a4a-1789-4df3-929c-6c132b57f5a1
+
+        :parametrized: yes
 
         :expectedresults: Model name is not updated
 
         :CaseImportance: Medium
         """
-        model = make_model()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    Model.update({'id': model['id'], 'new-name': new_name})
-                result = Model.info({'id': model['id']})
-                self.assertEqual(model['name'], result['name'])
+        with pytest.raises(CLIReturnCodeError):
+            Model.update({'id': class_model['id'], 'new-name': new_name})
+        result = Model.info({'id': class_model['id']})
+        assert class_model['name'] == result['name']
 
     @tier1
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Create Model with valid values then delete it
-        by ID
-
-        :id: 39f02cec-ac4c-4801-9a4a-11160247213f
-
-        :expectedresults: Model is deleted
-
-        :CaseImportance: High
-        """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                model = make_model({'name': name})
-                Model.delete({'id': model['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Model.info({'id': model['id']})
-
-    @tier1
-    def test_negative_delete_by_id(self):
-        """Create Model then delete it by wrong ID
+    @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
+    def test_negative_delete_by_id(self, entity_id):
+        """Delete model by wrong ID
 
         :id: f8b0d428-1b3d-4fc9-9ca1-1eb30c8ac20a
+
+        :parametrized: yes
 
         :expectedresults: Model is not deleted
 
         :CaseImportance: High
         """
-        for entity_id in invalid_id_list():
-            with self.subTest(entity_id):
-                with self.assertRaises(CLIReturnCodeError):
-                    Model.delete({'id': entity_id})
+        with pytest.raises(CLIReturnCodeError):
+            Model.delete({'id': entity_id})
