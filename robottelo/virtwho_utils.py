@@ -37,10 +37,10 @@ def get_system(system_type):
     """
     if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
         return {
-            'hostname': eval(f'virtwhosettings.{system_type}.guest'),
-            'username': eval(f'virtwhosettings.{system_type}.guest_username'),
-            'password': eval(f'virtwhosettings.{system_type}.guest_password'),
-            'port': eval(f'virtwhosettings.{system_type}.guest_port'),
+            'hostname': eval(f'virtwho.{system_type}.guest'),
+            'username': eval(f'virtwho.{system_type}.guest_username'),
+            'password': eval(f'virtwho.{system_type}.guest_password'),
+            'port': eval(f'virtwho.{system_type}.guest_port'),
         }
     elif system_type == 'satellite':
         return {
