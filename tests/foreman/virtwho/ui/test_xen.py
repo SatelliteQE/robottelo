@@ -24,7 +24,7 @@ from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_id
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import virtwhosettings
+from robottelo.virtwho_utils import virtwho
 
 
 @fixture()
@@ -33,10 +33,10 @@ def form_data():
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': virtwhosettings.xen.hypervisor_type,
-        'hypervisor_content.server': virtwhosettings.xen.hypervisor_server,
-        'hypervisor_content.username': virtwhosettings.xen.hypervisor_username,
-        'hypervisor_content.password': virtwhosettings.xen.hypervisor_password,
+        'hypervisor_type': virtwho.xen.hypervisor_type,
+        'hypervisor_content.server': virtwho.xen.hypervisor_server,
+        'hypervisor_content.username': virtwho.xen.hypervisor_username,
+        'hypervisor_content.password': virtwho.xen.hypervisor_password,
     }
     return form
 
@@ -70,12 +70,8 @@ class TestVirtwhoConfigforXen:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(
-                virtwhosettings.sku.vdc_physical
-            )
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-                virtwhosettings.sku.vdc_physical
-            )
+            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
+            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -111,12 +107,8 @@ class TestVirtwhoConfigforXen:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(
-                virtwhosettings.sku.vdc_physical
-            )
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(
-                virtwhosettings.sku.vdc_physical
-            )
+            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
+            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)

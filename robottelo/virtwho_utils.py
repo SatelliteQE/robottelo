@@ -12,8 +12,8 @@ from robottelo.config.virtwho import VirtwhoSettings
 from robottelo.constants import DEFAULT_ORG
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
-virtwhosettings = VirtwhoSettings()
-virtwhosettings.configure()
+virtwho = VirtwhoSettings()
+virtwho.configure()
 
 
 class VirtWhoError(Exception):

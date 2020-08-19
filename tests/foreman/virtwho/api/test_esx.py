@@ -26,8 +26,8 @@ from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import virtwho
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
-from robottelo.virtwho_utils import virtwhosettings
 
 
 @fixture(scope='class')
@@ -42,13 +42,13 @@ def form_data(default_org):
         'debug': 1,
         'interval': '60',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': virtwhosettings.esx.hypervisor_type,
-        'hypervisor_server': virtwhosettings.esx.hypervisor_server,
+        'hypervisor_type': virtwho.esx.hypervisor_type,
+        'hypervisor_server': virtwho.esx.hypervisor_server,
         'organization_id': default_org.id,
         'filtering_mode': 'none',
         'satellite_url': settings.server.hostname,
-        'hypervisor_username': virtwhosettings.esx.hypervisor_username,
-        'hypervisor_password': virtwhosettings.esx.hypervisor_password,
+        'hypervisor_username': virtwho.esx.hypervisor_username,
+        'hypervisor_password': virtwho.esx.hypervisor_password,
     }
     return form
 
@@ -100,8 +100,8 @@ class TestVirtWhoConfigforEsx:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED',),
+            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
+            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -150,8 +150,8 @@ class TestVirtWhoConfigforEsx:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwhosettings.sku.vdc_physical} and type=STACK_DERIVED',),
+            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
+            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
