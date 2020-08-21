@@ -126,11 +126,10 @@ def update_client_configuration(json_content):
     """Update the client configuration"""
     client_id = get_rhsso_client_id()
     upload_rhsso_entity(json_content, "update_client_info")
-    run_command(
-        cmd=f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info "
-        f"-s enabled=true --merge",
-        hostname=rhsso_host,
+    update_cmd = (
+        f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info -s enabled=true --merge"
     )
+    run_command(cmd=update_cmd, hostname=rhsso_host)
 
 
 def get_oidc_token_endpoint():

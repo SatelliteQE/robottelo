@@ -231,4 +231,3 @@ def enroll_ad_and_configure_external_auth():
     run_command(cmd=f"echo {settings.ldap.password} | {token_command}")
     run_command(cmd="chown root.apache /etc/httpd/conf/http.keytab")
     run_command(cmd="chmod 640 /etc/httpd/conf/http.keytab")
-

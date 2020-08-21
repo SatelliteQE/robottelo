@@ -328,6 +328,8 @@ class TestRHSSOAuthSource:
 
     def configure_hammer_session(self, enable=True):
         """take backup of the hammer config file and enable use_sessions"""
+        run_command(f"cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup")
+        run_command(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
         run_command(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
 
     @pytest.fixture()
@@ -339,7 +341,7 @@ class TestRHSSOAuthSource:
 
         def rh_sso_hammer_auth_cleanup():
             """restore the hammer config backup file and rhsso client settings"""
-            run_command(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+            run_command(f"mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}")
             client_config = {"publicClient": "false"}
             update_client_configuration(client_config)
 
