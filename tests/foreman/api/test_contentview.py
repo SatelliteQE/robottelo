@@ -57,7 +57,6 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.helpers import get_nailgun_config
 
-
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting
 # but longer test.
@@ -925,7 +924,12 @@ class TestContentViewPublishPromote:
 class TestContentViewUpdate:
     """Tests for updating content views."""
 
-    @pytest.mark.parametrize('key, value', {'description': gen_utf8(), 'name': gen_utf8()}.items())
+    @pytest.mark.parametrize(
+        'key, value',
+        **(lambda x: {'argvalues': list(x.items()), 'ids': list(x.keys())})(
+            {'description': gen_utf8(), 'name': gen_utf8()}
+        ),
+    )
     @tier1
     def test_positive_update_attributes(self, module_cv, key, value):
         """Update a content view and provide valid attributes.
