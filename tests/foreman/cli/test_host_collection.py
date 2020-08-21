@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -29,7 +30,6 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -289,7 +289,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertEqual(result['name'], new_name)
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
 
@@ -306,7 +306,7 @@ class HostCollectionTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
 

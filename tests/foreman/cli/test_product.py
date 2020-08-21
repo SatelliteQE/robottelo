@@ -71,9 +71,9 @@ class ProductTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        name = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
         label = valid_labels_list()[0]
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
         product = make_product(
@@ -94,7 +94,7 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(product['sync-plan-id'], sync_plan['id'])
 
         # update
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
         new_sync_plan = make_sync_plan({'organization-id': self.org['id']})
         new_prod_name = gen_string('alpha', 8)

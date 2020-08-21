@@ -14,10 +14,11 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo.config import settings
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.test import APITestCase
 
@@ -32,7 +33,7 @@ class PuppetTestCase(APITestCase):
         super(PuppetTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_puppet_scenario(self):
         """Tests extensive all-in-one puppet scenario
@@ -78,7 +79,7 @@ class PuppetCapsuleTestCase(APITestCase):
         super(PuppetCapsuleTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_puppet_capsule_scenario(self):
         """Tests extensive all-in-one puppet scenario via Capsule

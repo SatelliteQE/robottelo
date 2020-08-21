@@ -662,7 +662,9 @@ class LDAPSettings(FeatureSettings):
         self.basedn = None
         self.grpbasedn = None
         self.hostname = None
+        self.nameserver = None
         self.password = None
+        self.realm = None
         self.username = None
 
     def read(self, reader):
@@ -670,7 +672,9 @@ class LDAPSettings(FeatureSettings):
         self.basedn = reader.get('ldap', 'basedn')
         self.grpbasedn = reader.get('ldap', 'grpbasedn')
         self.hostname = reader.get('ldap', 'hostname')
+        self.nameserver = reader.get('ldap', 'nameserver')
         self.password = reader.get('ldap', 'password')
+        self.realm = reader.get('ldap', 'realm')
         self.username = reader.get('ldap', 'username')
 
     def validate(self):
@@ -678,7 +682,7 @@ class LDAPSettings(FeatureSettings):
         validation_errors = []
         if not all(vars(self).values()):
             validation_errors.append(
-                'All [ldap] basedn, grpbasedn, hostname, password, '
+                'All [ldap] basedn, grpbasedn, hostname, nameserver, password, realm'
                 'username options must be provided.'
             )
         return validation_errors
@@ -697,6 +701,7 @@ class LDAPIPASettings(FeatureSettings):
         self.user_ipa = None
         self.otp_user = None
         self.time_based_secret = None
+        self.disabled_user_ipa = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -708,6 +713,7 @@ class LDAPIPASettings(FeatureSettings):
         self.user_ipa = reader.get('ipa', 'user_ipa')
         self.otp_user = reader.get('ipa', 'otp_user')
         self.time_based_secret = reader.get('ipa', 'time_based_secret')
+        self.disabled_user_ipa = reader.get('ipa', 'disabled_user_ipa')
 
     def validate(self):
         """Validate LDAP freeIPA settings."""

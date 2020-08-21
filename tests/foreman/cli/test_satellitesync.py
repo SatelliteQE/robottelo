@@ -18,6 +18,7 @@
 import json
 from random import randint
 
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
@@ -44,7 +45,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -1353,7 +1353,7 @@ class ContentViewSync(CLITestCase):
 class InterSatelliteSyncTestCase(CLITestCase):
     """Implements InterSatellite Sync tests in CLI"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_import_cv(self):
         """Export whole CV version contents in directory and Import nothing.
@@ -1381,7 +1381,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_cv(self):
         """Export whole CV version contents is aborted due to insufficient
@@ -1400,7 +1400,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_cv_iso(self):
@@ -1426,7 +1426,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_import_cv_iso(self):
         """Export whole CV version as ISO in directory and Import nothing.
@@ -1452,7 +1452,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_cv_iso(self):
         """Export whole CV version to iso is aborted due to insufficient
@@ -1471,7 +1471,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_cv_iso_max_size(self):
         """Export whole CV version to iso is aborted due to inadequate maximum
@@ -1490,7 +1490,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_cv_iso_max_size(self):
         """CV version exported to iso in maximum iso size.
@@ -1507,7 +1507,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_cv_incremental(self):
@@ -1537,7 +1537,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_import_cv_incremental(self):
         """No new incremental packages exported or imported.
@@ -1564,7 +1564,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_exported_cv_iso_dir_structure(self):
         """Exported CV in iso format respects cdn directory structure.
@@ -1585,7 +1585,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_repo(self):
@@ -1610,7 +1610,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_import_repo(self):
         """Export repo contents in directory and Import nothing.
@@ -1635,7 +1635,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_repo(self):
         """Export repo is aborted due ti insufficient memory.
@@ -1653,7 +1653,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_lazy_sync_repo(self):
         """Error is raised for lazy sync repo.
@@ -1670,7 +1670,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_reimport_repo(self):
@@ -1693,7 +1693,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_repo_iso(self):
@@ -1718,7 +1718,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_import_repo_iso(self):
         """Export repo as ISO in directory and Import nothing.
@@ -1742,7 +1742,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_repo_iso(self):
         """Export repo to iso is aborted due to insufficient memory.
@@ -1760,7 +1760,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_repo_iso_max_size(self):
         """Export repo to iso is aborted due to inadequate maximum iso size.
@@ -1777,7 +1777,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_repo_iso_max_size(self):
         """Repo exported to iso with maximum iso size.
@@ -1793,7 +1793,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_repo_from_future_datetime(self):
         """Incremental export fails with future datetime.
@@ -1810,7 +1810,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_repo_incremental(self):
@@ -1838,7 +1838,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_import_repo_incremental(self):
         """No new incremental packages exported or imported.
@@ -1863,7 +1863,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_exported_repo_iso_dir_structure(self):
         """Exported repo in iso format respects cdn directory structure.
@@ -1884,7 +1884,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_kickstart_tree(self):
@@ -1910,7 +1910,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_import_kickstart_tree(self):
         """Export whole kickstart tree in directory and Import nothing.
@@ -1939,7 +1939,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_export_kickstart_tree(self):
         """Export whole kickstart tree contents is aborted due to insufficient
@@ -1960,7 +1960,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
     # Red Hat Repositories Export and Import
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_redhat_yum_repo(self):
         """Export Red Hat YUM repo in directory.
@@ -1977,7 +1977,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_yum_repo(self):
@@ -2000,7 +2000,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_redhat_incremental_yum_repo(self):
         """Export Red Hat YUM repo in directory incrementally.
@@ -2021,7 +2021,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_incremental_yum_repo(self):
@@ -2044,7 +2044,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory.
@@ -2061,7 +2061,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_yum_repo_iso(self):
@@ -2084,7 +2084,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
@@ -2106,7 +2106,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_yum_incremental_repo_iso(self):
@@ -2131,7 +2131,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_export_redhat_cv(self):
         """Export CV version having Red Hat contents in directory.
@@ -2149,7 +2149,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_cv(self):
@@ -2173,7 +2173,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_mix_cv(self):
@@ -2199,7 +2199,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_redhat_cv_iso(self):
@@ -2216,7 +2216,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_export_import_redhat_cv_iso(self):
@@ -2240,7 +2240,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_install_package_from_imported_repos(self):

@@ -692,7 +692,7 @@ def test_positive_assign_compliance_policy(session, scap_policy):
 
     :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
 
-    :expectedresults: Host Assign Compliance Policy action is working as
+    :expectedresults: Host Assign/Unassign Compliance Policy action is working as
         expected.
 
     :CaseLevel: Integration
@@ -701,11 +701,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     org = host.organization.read()
     loc = host.location.read()
     # add host organization and location to scap policy
-    scap_policy = Scappolicy.info({'id': scap_policy['id']}, output_format='json')
-    organization_ids = [policy_org['id'] for policy_org in scap_policy.get('organizations', [])]
+    content = Scapcontent.info({'id': scap_policy['scap-content-id']}, output_format='json')
+    organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
     organization_ids.append(org.id)
-    location_ids = [policy_loc['id'] for policy_loc in scap_policy.get('locations', [])]
-
+    location_ids = [content_loc['id'] for content_loc in content.get('locations', [])]
     location_ids.append(loc.id)
     Scapcontent.update(
         {
@@ -733,6 +732,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
             session.host.search('compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
             == host.name
         )
+        session.host.apply_action(
+            'Unassign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert not session.host.search('compliance_policy = {0}'.format(scap_policy['name']))
 
 
 @skip_if(settings.webdriver != 'chrome')

@@ -36,7 +36,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -91,7 +90,7 @@ def setup_content(module_org):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_create_report_without_name(session):
     """ A report template with empty name can't be created
 
@@ -112,7 +111,7 @@ def test_negative_create_report_without_name(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_cannot_delete_locked_report(session):
     """ Edit a report template
 
@@ -132,7 +131,7 @@ def test_negative_cannot_delete_locked_report(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_preview_report(session):
     """ Preview a report
 
@@ -321,7 +320,7 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_applied_errata(session):
     """ Generate an Applied Errata report
 
@@ -337,7 +336,7 @@ def test_positive_applied_errata(session):
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_datetime_picker(session):
     """ Generate an Applied Errata report with date filled
 
@@ -358,7 +357,7 @@ def test_datetime_picker(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_autocomplete(session):
     """ Check if host field suggests matching hosts on typing
 
@@ -438,7 +437,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_bad_email(session):
     """ Generate a report and request the result be sent to
         a wrong formatted e-mail address
@@ -456,7 +455,7 @@ def test_negative_bad_email(session):
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it(session):
     """ The resulting report should only be downloadable by
         the user that generated it. Check.

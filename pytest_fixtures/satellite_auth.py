@@ -37,6 +37,8 @@ def ipa_data():
         'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
         'ldap_ipa_hostname': settings.ipa.hostname_ipa,
         'time_based_secret': settings.ipa.time_based_secret,
+        'disabled_user_ipa': settings.ipa.disabled_user_ipa,
+        'user_ipa': settings.ipa.user_ipa,
     }
 
 
@@ -173,3 +175,60 @@ def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
         setting_entity.update({'value'})
 
     request.addfinalizer(setting_timeout_cleanup)
+
+
+@fixture(scope='session')
+def enroll_ad_and_configure_external_auth():
+    """Enroll Satellite Server to an AD Server."""
+    packages = (
+        'sssd adcli realmd ipa-python-compat krb5-workstation '
+        'samba-common-tools gssproxy nfs-utils ipa-client'
+    )
+    realm = settings.ldap.realm
+    workgroup = realm.split(".")[0]
+
+    default_content = f"[global]\nserver = unused\nrealm = {realm}"
+    keytab_content = (
+        f"[global]\nworkgroup = {workgroup}\nrealm = {realm}"
+        f"\nkerberos method = system keytab\nsecurity = ads"
+    )
+
+    # install the required packages
+    run_command(cmd=f'yum -y --disableplugin=foreman-protector install {packages}')
+
+    # update the AD name server
+    run_command(cmd="chattr -i /etc/resolv.conf")
+    result = run_command(
+        cmd="awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
+    )
+    line_number = int(''.join(result))
+    run_command(
+        cmd=f'sed -i "{line_number}i nameserver {settings.ldap.nameserver}" /etc/resolv.conf'
+    )
+    run_command(cmd="chattr +i /etc/resolv.conf")
+
+    # join the realm
+    run_command(cmd=f"echo {settings.ldap.password} | realm join -v {realm}")
+    run_command(cmd="touch /etc/ipa/default.conf")
+    run_command(cmd=f'echo "{default_content}" > /etc/ipa/default.conf')
+    run_command(cmd=f'echo "{keytab_content}" > /etc/net-keytab.conf')
+
+    # gather the apache id
+    result = run_command(cmd="id -u apache")
+    id_apache = "".join(result)
+    http_conf_content = (
+        f"[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab"
+        f"\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U"
+        f"\neuid = {id_apache}"
+    )
+
+    # register the satellite as client for external auth
+    run_command(cmd=f'echo "{http_conf_content}" > /etc/gssproxy/00-http.conf')
+    token_command = (
+        "KRB5_KTNAME=FILE:/etc/httpd/conf/http.keytab net ads keytab add HTTP "
+        "-U administrator -d3 -s /etc/net-keytab.conf"
+    )
+    run_command(cmd=f"echo {settings.ldap.password} | {token_command}")
+    run_command(cmd="chown root.apache /etc/httpd/conf/http.keytab")
+    run_command(cmd="chmod 640 /etc/httpd/conf/http.keytab")
+

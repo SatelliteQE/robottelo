@@ -1824,7 +1824,7 @@ def test_positive_delete_version_with_ak(session):
     cv.publish()
     cvv = cv.read().version[0].read()
     lc_env = entities.LifecycleEnvironment(organization=org).create()
-    cvv.promote(data={'environment_id': lc_env.id})
+    promote(cvv, lc_env.id)
     ak = entities.ActivationKey(
         name=gen_string('alphanumeric'), environment=lc_env.id, organization=org, content_view=cv
     ).create()

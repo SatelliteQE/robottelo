@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
@@ -26,7 +27,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.helpers import default_url_on_new_port
@@ -193,7 +193,7 @@ class CapsuleTestCase(CLITestCase):
 class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_provision(self):
         """User can provision through a capsule
 
@@ -215,7 +215,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_register(self):
         """User can register system through proxy-enabled capsule
 
@@ -228,7 +228,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_unregister(self):
         """User can unregister system through proxy-enabled capsule
 
@@ -241,7 +241,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_subscribe(self):
         """User can subscribe system to content through proxy-enabled
         capsule
@@ -260,7 +260,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_consume_content(self):
         """User can consume content on system, from a content source,
         through proxy-enabled capsule
@@ -282,7 +282,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_unsubscribe(self):
         """User can unsubscribe system from content through
         proxy-enabled capsule
@@ -305,7 +305,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_reregister_with_capsule_cert(self):
         """system can register via capsule using cert provided by
         the capsule itself.
@@ -327,7 +327,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_ssl_capsule(self):
         """Assure SSL functionality for capsules
 
@@ -345,7 +345,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_enable_bmc(self):
         """Enable BMC feature on smart-proxy
 

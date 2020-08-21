@@ -529,7 +529,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
           example usage::
 
            permissions_types_names = {
-               None: ['access_dashboard'],
+               '(Miscellaneous)': ['access_dashboard'],
                'Organization': ['view_organizations'],
                'Location': ['view_locations'],
                'Katello::KTEnvironment': [
@@ -549,7 +549,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
         if resource_type is None:
             permissions_entities = []
             for name in permissions_name:
-                result = entities.Permission(name=name).search()
+                result = entities.Permission().search(query={'search': f'name="{name}"'})
                 if not result:
                     raise entities.APIResponseError('permission "{}" not found'.format(name))
                 if len(result) > 1:
@@ -569,8 +569,9 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
                     'resource type "{}" empty. You must select at'
                     ' least one permission'.format(resource_type)
                 )
+
             resource_type_permissions_entities = entities.Permission().search(
-                query={'per_page': 350}
+                query={'per_page': 350, 'search': f'resource_type="{resource_type}"'}
             )
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(

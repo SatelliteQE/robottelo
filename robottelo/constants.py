@@ -299,7 +299,7 @@ SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
 
-NOT_IMPLEMENTED = 'Test not implemented'
+NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
@@ -847,8 +847,12 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
         'view_statuses',
-        'view_foreman_rh_cloud',
         'generate_foreman_rh_cloud',
+        'forget_status_hosts',
+        'edit_user_mail_notifications',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
+        'view_foreman_rh_cloud',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [

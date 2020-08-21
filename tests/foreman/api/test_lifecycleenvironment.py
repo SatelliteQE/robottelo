@@ -18,6 +18,7 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -25,7 +26,6 @@ from requests.exceptions import HTTPError
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -203,7 +203,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         self.assertEqual({lc_env_.name for lc_env_ in lc_envs}, {'Library', lc_env.name})
 
     @tier2
-    @stubbed('Implement once BZ1348727 is fixed')
+    @pytest.mark.stubbed('Implement once BZ1348727 is fixed')
     def test_positive_create_environment_after_host_register(self):
         """Verify that no error is thrown when creating an evironment after
         registering a host to Library.

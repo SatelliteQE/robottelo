@@ -15,7 +15,8 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed
+import pytest
+
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -30,7 +31,7 @@ class BootstrapScriptTestCase(CLITestCase):
         super(BootstrapScriptTestCase, cls).setUpClass()
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_register(self):
         """System is registered
 
@@ -49,7 +50,7 @@ class BootstrapScriptTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     def test_positive_reregister(self):
         """Registered system is re-registered

@@ -19,13 +19,13 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -186,7 +186,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             entities.Parameter(name='duplicateParameter', subnet=subnet.id).create()
         self.assertRegexpMatches(context.exception.response.text, "Name has already been taken")
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_inherit_subnet_parmeters_in_host(self):
         """Host inherits parameters from subnet
@@ -213,7 +213,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overridden from host
@@ -352,7 +352,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                     sub_param.name = new_name
                     sub_param.update(['name'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_subnet_parameter_host_impact(self):
         """Update in parameter name and value from subnet component updates
@@ -398,7 +398,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sub_param.read()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
         """Deleting parameter from subnet component deletes the parameter in
@@ -423,7 +423,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_delete_subnet_overridden_parameter_host_impact(self):
@@ -489,7 +489,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         }
         self.assertEqual(params_list[sub_param.name], sub_param.value)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_subnet_parameter_priority(self):
         """Higher priority hosts component parameter overrides subnet parameter
@@ -519,7 +519,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_component_overrides_subnet_parameter(self):
         """Lower priority hosts component parameter doesnt overrides subnet

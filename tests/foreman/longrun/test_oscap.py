@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -32,8 +33,6 @@ from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -42,7 +41,6 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -135,12 +133,12 @@ class OpenScapTestCase(CLITestCase):
         env = entities.LifecycleEnvironment(organization=org, name=gen_string('alpha')).create()
         # Create content view
         content_view = entities.ContentView(organization=org, name=gen_string('alpha')).create()
-        # Create two activation keys for rhel7 and rhel6
+        # Create activation keys for rhel6, rhel7 and rhel8.
         for repo in repo_values:
             activation_key = entities.ActivationKey(
                 name=repo.get('akname'), environment=env, organization=org
             ).create()
-            # Setup org for a custom repo for RHEL6 and RHEL7
+            # Setup org for a custom repo for RHEL6, RHEL7 and RHEL8.
             setup_org_for_a_custom_repo(
                 {
                     'url': repo.get('repo'),
@@ -152,13 +150,12 @@ class OpenScapTestCase(CLITestCase):
             )
 
         for content in cls.rhel8_content, cls.rhel7_content, cls.rhel6_content:
-            Scapcontent.update(
-                {
-                    'title': content,
-                    'organizations': f'{org.name},{DEFAULT_ORG}',
-                    'locations': DEFAULT_LOC,
-                }
-            )
+            content = Scapcontent.info({'title': content}, output_format='json')
+            organization_ids = [
+                content_org['id'] for content_org in content.get('organizations', [])
+            ]
+            organization_ids.append(org.id)
+            Scapcontent.update({'title': content['title'], 'organization-ids': organization_ids})
 
         return {
             'org_name': org.name,
@@ -596,7 +593,7 @@ class OpenScapTestCase(CLITestCase):
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
@@ -615,7 +612,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
@@ -635,7 +632,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_download_xml_button(self):
         """'Download xml' button should exist for OSCAP Reports
@@ -656,7 +653,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_select_oscap_proxy(self):
         """Oscap-Proxy select box should exist while filling hosts
@@ -675,7 +672,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
@@ -696,7 +693,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.

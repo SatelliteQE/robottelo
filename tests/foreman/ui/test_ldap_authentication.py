@@ -939,6 +939,49 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
 
 
 @destructive
+def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
+    """Verify the single sign-on functionality with external authentication
+
+    :id: 3c233aa4-c817-11ea-b105-d46d6dd3b5b2
+
+    :setup: Enroll the AD Configuration for External Authentication
+
+    :steps: Assert single sign-on session user is directed to satellite instead of login page
+
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /users page
+        using curl. It should navigate to user's profile page.(verify using url only)
+
+    """
+    # register the satellite with AD for single sign-on and update external auth
+    try:
+        # enable the foreman-ipa-authentication feature
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
+        run_command('systemctl restart gssproxy.service')
+        run_command('systemctl enable gssproxy.service')
+
+        # restart the deamon and httpd services
+        httpd_service_content = (
+            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+        )
+        run_command(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+        run_command('systemctl daemon-reload && systemctl restart httpd.service')
+
+        # create the kerberos ticket for authentication
+        run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
+        result = run_command(
+            f"curl -k -u : --negotiate " f"https://{settings.server.hostname}/users/extlogin/"
+        )
+        result = ''.join(result)
+        assert 'redirected' in result
+        assert f"https://{settings.server.hostname}/users" in result
+        assert f"-{settings.ldap.username}" in result
+    finally:
+        # resetting the settings to default for external auth
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
+        run_command('foreman-maintain service restart', timeout=300)
+
+
+@destructive
 def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
@@ -1070,3 +1113,72 @@ def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     with session:
         for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
             session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
+
+
+@tier2
+def test_negative_login_with_incorrect_password(test_name):
+    """Attempt to login in Satellite an IDM user with the wrong password
+
+    :id: 3f09de90-a656-11ea-aa43-4ceb42ab8dbc
+
+    :steps:
+        1. Randomaly generate a string as a incorrect password.
+        2. Try login with the incorrect password
+
+    :expectedresults: Login fails
+    """
+    incorrect_password = gen_string('alphanumeric')
+    username = settings.ipa.user_ipa
+    with Session(test_name, user=username, password=incorrect_password) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+
+
+def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
+    """Disabled IDM user cannot login
+
+    :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
+
+    :steps: Try login from the disabled user
+
+    :expectedresults: Login fails
+    """
+    with Session(
+        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+
+
+def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
+    """Email of the user created in idm server ( set as external authorization source)
+    should be copied to the satellite.
+
+    :id: 9ce7d7c6-dc73-11ea-8a97-4ceb42ab8dbc
+
+    :steps:
+        1. Create an the auth source with onthefly enabled
+        2. Login to the satellite with the user (from IDM) to create the account
+        3. Assert the email of the newly created user
+
+    :expectedresults: Email is copied to Satellite:
+    """
+    run_command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    result = run_command(
+        cmd=f"ipa user-find --login {ipa_data['user_ipa']}", hostname=settings.ipa.hostname_ipa
+    )
+    for line in result:
+        if 'Email' in line:
+            _, result = line.split(': ', 2)
+            break
+    with Session(
+        user=ipa_data['user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        ldapsession.task.read_all()
+    with session:
+        user_value = session.user.read(ipa_data['user_ipa'])
+        assert user_value['user']['mail'] == result
