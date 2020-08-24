@@ -100,7 +100,13 @@ def repos_collection_for_module_streams(module_org):
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=settings.rhel8_os['baseos']),
+            YumRepository(url=settings.rhel8_os['appstream']),
+            YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
+        ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -119,7 +125,7 @@ def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(
-            vm_module_streams, install_katello_agent=False
+            vm_module_streams, install_katello_agent=True
         )
         add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
@@ -944,6 +950,19 @@ def test_install_modular_errata(session, vm_module_streams):
             status='Upgrade Available',
             stream_version=stream_version,
         )
+
+        run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
+        # Install errata using Katello Agent
+        result = session.contenthost.install_errata(
+            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='katello'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Installed',
+            stream_version=stream_version,
+        )
+        assert module_stream[0]['Name'] == module_name
 
 
 @tier3
