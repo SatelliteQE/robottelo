@@ -15,8 +15,10 @@
 :Upstream: No
 """
 import pytest
+from airgun.session import Session
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
@@ -174,3 +176,33 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
             'Provisioning template {} expected to be removed but is included in the search '
             'results'.format(new_name)
         )
+
+
+@pytest.mark.skip_if_open("BZ:1767040")
+@pytest.mark.tier3
+def test_negative_template_search_using_url():
+    """Satellite should not show full trace on web_browser after invalid search in url
+
+    :id: 7ed8a9ec-e6b2-11ea-b845-d46d6dd3b5b2
+
+    :expectedresults: Satellite should not show full trace and show correct error message
+
+    :CaseImportance: Medium
+
+    :BZ: 1767040
+    """
+    with Session(
+        url='/templates/provisioning_templates?search=&page=1"sadfasf', login=False
+    ) as session:
+        login_details = {
+            'username': settings.server.admin_username,
+            'password': settings.server.admin_password,
+        }
+        session.login.login(login_details)
+        error_page = session.browser.selenium.page_source
+        error_helper_message = (
+            "Please include in your report the full error log that can be acquired by running"
+        )
+        trace_link_word = "Full trace"
+        assert error_helper_message in error_page
+        assert trace_link_word not in error_page
