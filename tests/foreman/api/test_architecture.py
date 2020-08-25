@@ -62,6 +62,8 @@ def test_negative_create_with_invalid_name(name):
 
     :id: 0fa6377d-063a-4e24-b606-b342e0d9108b
 
+    :parametrized: yes
+
     :expectedresults: Architecture is not created
 
     :CaseImportance: Medium
@@ -78,6 +80,8 @@ def test_negative_update_with_invalid_name(name, module_architecture):
     """Update architecture's name to an invalid name.
 
     :id: cb27b69b-14e0-42d0-9e44-e09d68324803
+
+    :parametrized: yes
 
     :expectedresults: Architecture's name is not updated.
 
