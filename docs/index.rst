@@ -76,7 +76,7 @@ Robottelo is also available on `dockerhub`_.::
 
 It also can be built locally using the Dockerfile, in the main directory.::
 
-    $ docker built -t robottelo .
+    $ docker build -t robottelo .
 
 In order to run tests, you will need to mount your robottelo.properties file.::
 
@@ -118,7 +118,7 @@ If you want to run tests without the aid of ``make``, you can do that with
 either `pytest`_ , `unittest`_ or `nose`_. Just specify the path for the test suite you
 want to run::
 
-    $ pytest tests/robotello
+    $ pytest tests/robottelo
     $ pytest tests/foreman
     $ python -m unittest discover -s tests/robottelo -t .
     $ python -m unittest discover -s tests/foreman -t .

@@ -256,7 +256,7 @@ class TestRenameHost:
         # original_name = settings.server.hostname
         username = settings.server.admin_username
         password = settings.server.admin_password
-        # the rename part of the test, not necessary to run from robotello
+        # the rename part of the test, not necessary to run from robottelo
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(
