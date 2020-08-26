@@ -16,6 +16,8 @@
 """
 import re
 
+import pytest
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION
@@ -1474,3 +1476,80 @@ def test_installer_options_and_flags():
     added_options.sort()
     msg = "###Removed options:\n{}\n###Added options:\n{}".format(removed_options, added_options)
     assert PREVIOUS_INSTALLER_OPTIONS == current_installer_options, msg
+
+
+@pytest.mark.stubbed
+@tier3
+def test_satellite_installation_on_ipv6():
+    """
+    Check the satellite installation on ipv6 machine.
+
+    :id: 24fa5ef0-1673-427c-82ab-740758683cff
+
+    steps:
+        1. Install satellite on ipv6 machine.
+
+    :expectedresults:
+        1: Installation should be successful.
+        2: After installation, All the services should be up and running.
+        3. Status of hammer ping should be ok.
+        4: Satellite service restart should work.
+        5: After system reboot all the services comes to up state.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """
+
+
+@pytest.mark.stubbed
+@tier3
+def test_capsule_installation_on_ipv6():
+    """
+    Check the capsule installation over ipv6 machine
+
+    :id: 75341e29-342f-41fc-aaa8-cda013b7dfa1
+
+    :steps:
+        1. Install capsule on ipv6 machine.
+
+    :expectedresults:
+        1. Capsule installation should be successful.
+        2. After installation, All the Services should be up and running.
+        3. Satellite service restart should work.
+        4. After system reboot all the services come to up state.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """
+
+
+@pytest.mark.stubbed
+@tier3
+def test_installer_check_on_ipv6():
+    """
+    Check the satellite-installer command execution with tuning options and updated config file.
+
+    :id: 411bbffb-027f-4df0-8566-1719d1d0651a
+
+    steps:
+        1. Install satellite on ipv6 machine
+        2. Trigger the satellite-installer command with "--tuning medium" flag.
+        3. Update the custom-hira.yaml file(add any supportable config parameter).
+        4. Trigger the satellite-installer command with no option.
+
+    :expectedresults:
+        1. Tuning parameter set successfully for medium size.
+        2. custom-hiera.yaml related changes should be successfully applied.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """
