@@ -23,7 +23,6 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
-from robottelo.config import settings
 from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
@@ -32,19 +31,11 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
 from robottelo.helpers import get_data_file
 
 
 class TestTailoringFiles:
     """Implements Tailoring Files tests in CLI."""
-
-    @pytest.fixture(scope="class")
-    def tailoring_file_path(self):
-        tailoring_file_path = file_downloader(
-            file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
-        )[0]
-        return tailoring_file_path
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier1
@@ -63,7 +54,9 @@ class TestTailoringFiles:
 
         :CaseImportance: Critical
         """
-        tailoring_file = make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
         assert tailoring_file['name'] == name
 
     @tier1
@@ -81,7 +74,9 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
-        tailoring_file = make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
         assert tailoring_file['name'] == name
 
     @tier1
@@ -103,7 +98,7 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
         result = TailoringFiles.info({'name': name})
         assert result['name'] == name
 
@@ -125,7 +120,7 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
         result = TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
@@ -168,7 +163,7 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         with pytest.raises(CLIFactoryError):
-            make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+            make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
 
     @pytest.mark.stubbed
     @tier2
@@ -210,8 +205,10 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        file_path = f'/var/{tailoring_file_path}'
-        tailoring_file = make_tailoringfile({'name': name, 'scap-file': tailoring_file_path})
+        file_path = f'/var/{tailoring_file_path["satellite"]}'
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
         assert tailoring_file['name'] == name
         result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
         assert file_path in result[0]
@@ -235,7 +232,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Critical
         """
-        tailoring_file = make_tailoringfile({'scap-file': tailoring_file_path})
+        tailoring_file = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
         TailoringFiles.delete({'id': tailoring_file['id']})
         with pytest.raises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})
