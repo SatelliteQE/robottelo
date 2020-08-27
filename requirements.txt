@@ -3,7 +3,7 @@
 
 attrdict==2.0.1
 azure>=3.0.0,<5.0.0
-cryptography==2.7
+cryptography==3.1
 fauxfactory==3.0.6
 idna==2.8
 Inflector==2.0.12
