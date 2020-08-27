@@ -115,7 +115,7 @@ def test_positive_audit_comment(session, module_org):
         current_user = session.partitiontable.read(name, 'current_user')['current_user']
         values = session.audit.search('type=ptable and username={}'.format(current_user))
         assert values['user'] == current_user
-        assert values['action_type'] == 'created'
+        assert values['action_type'] == 'create'
         assert values['resource_type'] == 'PARTITION TABLE'
         assert values['resource_name'] == name
         assert values['comment'] == audit_comment
@@ -143,7 +143,7 @@ def test_positive_update_event(session, module_org):
     cv.update(['name'])
     with session:
         values = session.audit.search('type=katello/content_view and action=update')
-        assert values['action_type'] == 'updated'
+        assert values['action_type'] == 'update'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW'
         assert values['resource_name'] == name
         assert values['affected_organization'] == module_org.name
@@ -171,8 +171,8 @@ def test_positive_delete_event(session, module_org):
     architecture = entities.Architecture().create()
     architecture.delete()
     with session:
-        values = session.audit.search('type=architecture and action=delete')
-        assert values['action_type'] == 'deleted'
+        values = session.audit.search('type=architecture and action=destroy')
+        assert values['action_type'] == 'destroy'
         assert values['resource_type'] == 'ARCHITECTURE'
         assert values['resource_name'] == architecture.name
         assert len(values['action_summary']) == 1
@@ -201,7 +201,7 @@ def test_positive_add_event(session, module_org):
         values = session.audit.search(
             'type=katello/content_view_environment and organization={}'.format(module_org.name)
         )
-        assert values['action_type'] == 'added'
+        assert values['action_type'] == 'add'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW ENVIRONMENT'
         assert values['resource_name'] == '{}/{} / {}'.format(ENVIRONMENT, cv.name, cv.name)
         assert len(values['action_summary']) == 1
@@ -236,7 +236,7 @@ def test_positive_create_role_filter(session, module_org):
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         values = session.audit.search('type=role and organization={}'.format(module_org.name))
-        assert values['action_type'] == 'created'
+        assert values['action_type'] == 'create'
         assert values['resource_type'] == 'ROLE'
         assert values['resource_name'] == role.name
         create_role_permissions(
