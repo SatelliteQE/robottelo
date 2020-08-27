@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -25,10 +26,10 @@ from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import parametrized
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.test import CLITestCase
 
 
 @filtered_datapoint
@@ -113,158 +114,158 @@ def valid_delete_params():
     ]
 
 
-class DomainTestCase(CLITestCase):
-    """Domain CLI tests"""
+@tier1
+@upgrade
+def test_positive_create_update_delete_domain():
+    """Create domain, update and delete domain and set parameters
 
-    @tier1
-    @upgrade
-    def test_positive_create_update_delete_domain(self):
-        """Create domain, update and delete domain and set parameters
+    :id: 018740bf-1551-4162-b88e-4d4905af097b
 
-        :id: 018740bf-1551-4162-b88e-4d4905af097b
+    :expectedresults: Domain successfully created, updated and deleted
 
-        :expectedresults: Domain successfully created, updated and deleted
-
-
-        :CaseImportance: Critical
-        """
-        options = valid_create_params()[0]
-        location = make_location()
-        org = make_org()
-        domain = make_domain(
-            {
-                'name': options['name'],
-                'description': options['description'],
-                'location-ids': location['id'],
-                'organization-ids': org['id'],
-            }
-        )
-        self.assertEqual(domain['name'], options['name'])
-        self.assertEqual(domain['description'], options['description'])
-        self.assertIn(location['name'], domain['locations'])
-        self.assertIn(org['name'], domain['organizations'])
-
-        # set parameter
-        parameter_options = valid_set_params()[0]
-        parameter_options['domain-id'] = domain['id']
-        Domain.set_parameter(parameter_options)
-        domain = Domain.info({'id': domain['id']})
-        parameter = {
-            # Satellite applies lower to parameter's name
-            parameter_options['name'].lower(): parameter_options['value']
+    :CaseImportance: Critical
+    """
+    options = valid_create_params()[0]
+    location = make_location()
+    org = make_org()
+    domain = make_domain(
+        {
+            'name': options['name'],
+            'description': options['description'],
+            'location-ids': location['id'],
+            'organization-ids': org['id'],
         }
-        self.assertDictEqual(parameter, domain['parameters'])
+    )
+    assert domain['name'] == options['name']
+    assert domain['description'] == options['description']
+    assert location['name'] in domain['locations']
+    assert org['name'] in domain['organizations']
 
-        # update domain
-        options = valid_update_params()[0]
-        Domain.update(dict(options, id=domain['id']))
-        # check - domain updated
-        domain = Domain.info({'id': domain['id']})
-        for key, val in options.items():
-            self.assertEqual(domain[key], val)
+    # set parameter
+    parameter_options = valid_set_params()[0]
+    parameter_options['domain-id'] = domain['id']
+    Domain.set_parameter(parameter_options)
+    domain = Domain.info({'id': domain['id']})
+    parameter = {
+        # Satellite applies lower to parameter's name
+        parameter_options['name'].lower(): parameter_options['value']
+    }
+    assert parameter == domain['parameters']
 
-        # delete parameter
-        Domain.delete_parameter({'name': parameter_options['name'], 'domain-id': domain['id']})
-        # check - parameter not set
-        domain = Domain.info({'name': domain['name']})
-        self.assertEqual(len(domain['parameters']), 0)
+    # update domain
+    options = valid_update_params()[0]
+    Domain.update(dict(options, id=domain['id']))
+    # check - domain updated
+    domain = Domain.info({'id': domain['id']})
+    for key, val in options.items():
+        assert domain[key] == val
 
-        # delete domain
-        Domain.delete({'id': domain['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Domain.info({'id': domain['id']})
+    # delete parameter
+    Domain.delete_parameter({'name': parameter_options['name'], 'domain-id': domain['id']})
+    # check - parameter not set
+    domain = Domain.info({'name': domain['name']})
+    assert len(domain['parameters']) == 0
 
-    @tier2
-    def test_negative_create(self):
-        """Create domain with invalid values
-
-        :id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
-
-        :expectedresults: Domain is not created
-
-
-        :CaseImportance: Medium
-        """
-        for options in invalid_create_params():
-            with self.subTest(options):
-                with self.assertRaises(CLIFactoryError):
-                    make_domain(options)
-
-    @tier2
-    def test_negative_create_with_invalid_dns_id(self):
-        """Attempt to register a domain with invalid id
-
-        :id: 4aa52167-368a-41ad-87b7-41d468ad41a8
-
-        :expectedresults: Error is raised and user friendly message returned
-
-        :BZ: 1398392
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Medium
-        """
-        with self.assertRaises(CLIFactoryError) as context:
-            make_domain({'name': gen_string('alpha'), 'dns-id': -1})
-        valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
-        exception_string = str(context.exception)
-        messages = [message for message in valid_messages if message in exception_string]
-        self.assertGreater(len(messages), 0)
-
-    @tier2
-    def test_negative_update(self):
-        """Update domain with invalid values
-
-        :id: 9fc708dc-20f9-4d7c-af53-863826462981
-
-        :expectedresults: Domain is not updated
+    # delete domain
+    Domain.delete({'id': domain['id']})
+    with pytest.raises(CLIReturnCodeError):
+        Domain.info({'id': domain['id']})
 
 
-        :CaseImportance: Medium
-        """
-        domain = make_domain()
-        for options in invalid_update_params():
-            with self.subTest(options):
-                with self.assertRaises(CLIReturnCodeError):
-                    Domain.update(dict(options, id=domain['id']))
-                # check - domain not updated
-                result = Domain.info({'id': domain['id']})
-                for key in options.keys():
-                    self.assertEqual(result[key], domain[key])
+@tier2
+@pytest.mark.parametrize('options', **parametrized(invalid_create_params()))
+def test_negative_create(options):
+    """Create domain with invalid values
 
-    @tier2
-    def test_negative_set_parameter(self):
-        """Domain set-parameter with invalid values
+    :id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
 
-        :id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
+    :parametrized: yes
 
-        :expectedresults: Domain parameter is not set
+    :expectedresults: Domain is not created
+
+    :CaseImportance: Medium
+    """
+    with pytest.raises(CLIFactoryError):
+        make_domain(options)
 
 
-        :CaseImportance: Low
-        """
-        domain = make_domain()
-        for options in invalid_set_params():
-            with self.subTest(options):
-                options['domain-id'] = domain['id']
-                # set parameter
-                with self.assertRaises(CLIReturnCodeError):
-                    Domain.set_parameter(options)
-                # check - parameter not set
-                domain = Domain.info({'id': domain['id']})
-                self.assertEqual(len(domain['parameters']), 0)
+@tier2
+def test_negative_create_with_invalid_dns_id():
+    """Attempt to register a domain with invalid id
 
-    @tier2
-    def test_negative_delete_by_id(self):
-        """Create Domain then delete it by wrong ID
+    :id: 4aa52167-368a-41ad-87b7-41d468ad41a8
 
-        :id: 0e4ef107-f006-4433-abc3-f872613e0b91
+    :expectedresults: Error is raised and user friendly message returned
 
-        :expectedresults: Domain is not deleted
+    :BZ: 1398392
 
-        :CaseImportance: Medium
-        """
-        for entity_id in invalid_id_list():
-            with self.subTest(entity_id):
-                with self.assertRaises(CLIReturnCodeError):
-                    Domain.delete({'id': entity_id})
+    :CaseLevel: Integration
+
+    :CaseImportance: Medium
+    """
+    with pytest.raises(CLIFactoryError) as context:
+        make_domain({'name': gen_string('alpha'), 'dns-id': -1})
+    valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
+    exception_string = str(context.value)
+    messages = [message for message in valid_messages if message in exception_string]
+    assert len(messages) > 0
+
+
+@tier2
+@pytest.mark.parametrize('options', **parametrized(invalid_update_params()))
+def test_negative_update(module_domain, options):
+    """Update domain with invalid values
+
+    :id: 9fc708dc-20f9-4d7c-af53-863826462981
+
+    :parametrized: yes
+
+    :expectedresults: Domain is not updated
+
+    :CaseImportance: Medium
+    """
+    with pytest.raises(CLIReturnCodeError):
+        Domain.update(dict(options, id=module_domain['id']))
+    # check - domain not updated
+    result = Domain.info({'id': module_domain['id']})
+    for key in options.keys():
+        assert result[key] == module_domain[key]
+
+
+@tier2
+@pytest.mark.parametrize('options', **parametrized(invalid_set_params()))
+def test_negative_set_parameter(module_domain, options):
+    """Domain set-parameter with invalid values
+
+    :id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
+
+    :parametrized: yes
+
+    :expectedresults: Domain parameter is not set
+
+    :CaseImportance: Low
+    """
+    options['domain-id'] = module_domain['id']
+    # set parameter
+    with pytest.raises(CLIReturnCodeError):
+        Domain.set_parameter(options)
+    # check - parameter not set
+    domain = Domain.info({'id': module_domain['id']})
+    assert len(domain['parameters']) == 0
+
+
+@tier2
+@pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
+def test_negative_delete_by_id(entity_id):
+    """Create Domain then delete it by wrong ID
+
+    :id: 0e4ef107-f006-4433-abc3-f872613e0b91
+
+    :parametrized: yes
+
+    :expectedresults: Domain is not deleted
+
+    :CaseImportance: Medium
+    """
+    with pytest.raises(CLIReturnCodeError):
+        Domain.delete({'id': entity_id})
