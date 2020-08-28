@@ -115,7 +115,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
     user_password = gen_string('alphanumeric')
     repo_name = gen_string('alpha')
     user_permissions = {
-        '(Miscellaneous)': ['access_dashboard'],
+        None: ['access_dashboard'],
         'Katello::Product': [
             'view_products',
             'create_products',
@@ -208,7 +208,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
     user_password = gen_string('alphanumeric')
     repo_name = gen_string('alpha')
     user_permissions = {
-        '(Miscellaneous)': ['access_dashboard'],
+        None: ['access_dashboard'],
         'Katello::Product': [
             'view_products',
             'create_products',
