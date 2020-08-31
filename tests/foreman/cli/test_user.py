@@ -91,16 +91,18 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # create with params
+        mail = random.choice(valid_emails_list())
         user_params = {
             'login': random.choice(valid_usernames_list()),
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
-            'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
+            'mail': mail.replace('"', r'\"').replace('`', r'\`'),
             'description': random.choice(list(valid_data_list().values())),
         }
         user = make_user(user_params)
         user['firstname'], user['lastname'] = user['name'].split()
-        user_params['email'] = user_params.pop('mail')
+        user_params.pop('mail')
+        user_params['email'] = mail
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
@@ -122,17 +124,19 @@ class UserTestCase(CLITestCase):
         )
 
         # update params
+        new_mail = random.choice(valid_emails_list())
         user_params = {
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
-            'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
+            'mail': new_mail.replace('"', r'\"').replace('`', r'\`'),
             'description': random.choice(list(valid_data_list().values())),
         }
         user_params.update({'id': user['id']})
         User.update(user_params)
         user = User.info({'login': user['login']})
         user['firstname'], user['lastname'] = user['name'].split()
-        user_params['email'] = user_params.pop('mail')
+        user_params.pop('mail')
+        user_params['email'] = new_mail
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
