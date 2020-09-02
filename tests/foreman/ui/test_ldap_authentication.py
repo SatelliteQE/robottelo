@@ -18,6 +18,7 @@ import os
 from time import sleep
 
 import pyotp
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
@@ -1145,6 +1146,48 @@ def test_external_new_user_login_and_check_count_rhsso(
     assert updated_count == external_user_count + 1
     # checking delete user can't login anymore
     delete_rhsso_user(user_details['username'])
+    with Session(login=False) as rhsso_session:
+        with raises(NavigationTriesExceeded) as error:
+            rhsso_session.rhsso_login.login(login_details)
+            rhsso_session.task.read_all()
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@pytest.mark.skip_if_open("BZ:1873439")
+@destructive
+def test_login_failure_rhsso_user_if_internal_user_exist(
+    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_loc
+):
+    """Verify the failure of login for the external rhsso user in case same username
+    internal user exists
+
+    :id: e573902c-ed1a-11ea-835a-d46d6dd3b5b2
+
+    :BZ: 1873439
+
+    :CaseImportance: High
+
+    :steps:
+        1. create an internal user
+        2. create a rhsso user with same username mentioned in internal user
+        3. update the satellite to use rhsso and now try login using external rhsso user
+
+    :expectedresults: external rhsso user should not able to login with same username as internal
+    """
+    client_id = get_rhsso_client_id()
+    username = gen_string('alpha')
+    entities.User(
+        admin=True,
+        default_organization=module_org,
+        default_location=module_loc,
+        login=username,
+        password=settings.rhsso.password,
+    ).create()
+    external_rhsso_user = create_new_rhsso_user(client_id, username=username)
+    login_details = {
+        'username': external_rhsso_user['username'],
+        'password': settings.rhsso.password,
+    }
     with Session(login=False) as rhsso_session:
         with raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
