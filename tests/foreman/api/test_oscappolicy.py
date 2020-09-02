@@ -70,7 +70,7 @@ def tailoring_file(module_org, module_location, tailoring_file_path):
     if not entity:
         result = entities.TailoringFile(
             name=f"{tf_name}",
-            scap_file=f"{tailoring_file_path}",
+            scap_file=f"{tailoring_file_path['local']}",
             organization=[module_org],
             location=[module_location],
         ).create()

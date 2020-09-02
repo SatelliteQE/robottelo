@@ -392,13 +392,17 @@ def default_contentview(module_org):
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def tailoring_file_path():
     """ Return Tailoring file path."""
-    return file_downloader(file_url=settings.oscap.tailoring_path)[0]
+    local = file_downloader(file_url=settings.oscap.tailoring_path)[0]
+    satellite = file_downloader(
+        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
+    )[0]
+    return {'local': local, 'satellite': satellite}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def oscap_content_path():
     """ Download scap content from satellite and return local path of it."""
     _, file_name = os.path.split(settings.oscap.content_path)

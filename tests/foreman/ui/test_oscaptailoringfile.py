@@ -18,24 +18,16 @@
 import pytest
 from nailgun import entities
 
-from robottelo.config import settings
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
-
-
-@fixture(scope='module')
-def oscap_tailoring_path():
-    return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier1
 @upgrade
-def test_positive_end_to_end(session, oscap_tailoring_path):
+def test_positive_end_to_end(session, tailoring_file_path):
     """Perform end to end testing for tailoring file component
 
     :id: 9aebccb8-6837-4583-8a8a-8883480ab688
@@ -54,7 +46,7 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
         session.oscaptailoringfile.create(
             {
                 'file_upload.name': name,
-                'file_upload.scap_file': oscap_tailoring_path,
+                'file_upload.scap_file': tailoring_file_path['local'],
                 'organizations.resources.assigned': [org.name],
                 'locations.resources.assigned': [loc.name],
             }
@@ -64,7 +56,7 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
         assert tailroingfile_values['file_upload']['name'] == name
         assert (
             tailroingfile_values['file_upload']['uploaded_scap_file']
-            == oscap_tailoring_path.rsplit('/', 1)[-1]
+            == tailoring_file_path['local'].rsplit('/', 1)[-1]
         )
         assert org.name in tailroingfile_values['organizations']['resources']['assigned']
         assert loc.name in tailroingfile_values['locations']['resources']['assigned']
