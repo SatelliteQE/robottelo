@@ -153,7 +153,7 @@ class ServerSettings(FeatureSettings):
 
     @property
     def version(self):
-        # Version is lazily taken from config OR SAT_VERSION env var or SSH.
+        # Version is lazily taken from config OR SATELLITE_VERSION env var or SSH.
         if self._version is None:
             # import here to avoid circular import error
             from robottelo.host_info import get_sat_version
