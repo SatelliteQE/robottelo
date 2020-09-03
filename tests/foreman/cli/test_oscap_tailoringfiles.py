@@ -205,7 +205,7 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        file_path = f'/var/{tailoring_file_path["satellite"]}'
+        file_path = f'/var{tailoring_file_path["satellite"]}'
         tailoring_file = make_tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )

@@ -110,12 +110,17 @@ class OpenScapTestCase(CLITestCase):
             1. Login to shell from admin account.
             2. Execute the scap-content command with list as sub-command.
 
-        :expectedresults: The scap-content are listed.
+        :expectedresults: Default scap-content are listed.
+
+        :BZ: 1749692
+
+        :customerscenario: true
 
         :CaseImportance: Critical
         """
-        result = Scapcontent.list()
-        assert OSCAP_DEFAULT_CONTENT['rhel7_content'] in [scap['title'] for scap in result]
+        scap_contents = [content['title'] for content in Scapcontent.list()]
+        for title in OSCAP_DEFAULT_CONTENT.values():
+            assert title in scap_contents
 
     @tier1
     def test_negative_list_default_content_with_viewer_role(self):
