@@ -204,7 +204,7 @@ def test_end_to_end(session, module_repos_col, vm):
     :CaseLevel: System
     """
     ERRATA_DETAILS = {
-        'advisory': 'RHEA-2012:0055',
+        'advisory': 'RHSA-2012:0055',
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
