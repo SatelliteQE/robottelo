@@ -1324,3 +1324,40 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
+
+
+@tier2
+def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
+    """IDM user will not be created automatically in Satellite if onthefly is
+    disabled
+
+    :id: 6998de30-ef77-11ea-a0ce-0c7a158cbff4
+
+    :Steps:
+        1. Create an auth source (IDM) with onthefly disabled
+        2. Try login with a user from auth source
+
+    :expectedresults: Login fails
+    """
+    ldap_auth_name = gen_string('alphanumeric')
+    with session:
+        session.ldapauthentication.create(
+            {
+                'ldap_server.name': ldap_auth_name,
+                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
+                'account.account_name': ipa_data['ldap_ipa_user_name'],
+                'account.password': ipa_data['ldap_ipa_user_passwd'],
+                'account.base_dn': ipa_data['ipa_base_dn'],
+                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.onthefly_register': False,
+                'attribute_mappings.login': LDAP_ATTR['login'],
+                'attribute_mappings.first_name': LDAP_ATTR['firstname'],
+                'attribute_mappings.last_name': LDAP_ATTR['surname'],
+                'attribute_mappings.mail': LDAP_ATTR['mail'],
+            }
+        )
+    with Session(user=ipa_data['user_ipa'], password=settings.ipa.password_ipa) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
