@@ -87,6 +87,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         user = entities.User(firstname=firstname).create()
         assert user.firstname == firstname
 
@@ -105,6 +107,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         user = entities.User(lastname=lastname).create()
         assert user.lastname == lastname
 
@@ -226,6 +230,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         create_user.firstname = firstname
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
@@ -245,6 +251,8 @@ class TestUser:
 
         :CaseImportance: Critical
         """
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         create_user.lastname = lastname
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
