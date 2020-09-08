@@ -290,7 +290,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         raise ImproperlyConfigured('settings file is not configured for rhel os')
     # Create a new Life-Cycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
-    # Create a Product, Repository for custom RHEL6 contents
+    # Create a Product, Repository for custom RHEL7 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
         product=product, url=settings.rhel7_os, download_policy='immediate'
