@@ -814,7 +814,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
         3.  host list --search "applicable_errata = RHSA-2012:0055"
         4.  host list --search "applicable_errata = RHBA-2012:1030"
         5.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
-        6.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
+        6.  host list --search "applicable_rpms = kangaroo-0.2-1.noarch"
         7.  host list --search "installable_errata = RHSA-2012:0055"
         8.  host list --search "installable_errata = RHBA-2012:1030"
 
@@ -830,7 +830,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
             module_repos_col.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
         assert _install_client_package(client1, FAKE_1_CUSTOM_PACKAGE, errata_applicability=False)
-        # Install pkg kangaroo-0.2-1.noarch to create need for RHBA on client 2
+        # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
         assert _install_client_package(client2, FAKE_4_CUSTOM_PACKAGE, errata_applicability=False)
         with session:
             # Search for hosts needing RHSA security errata

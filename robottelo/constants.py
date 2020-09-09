@@ -714,9 +714,9 @@ FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_3_CUSTOM_PACKAGE = 'duck-0.8-1.noarch'
 FAKE_3_CUSTOM_PACKAGE_NAME = 'duck'
-FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
+FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
-FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.3-1.noarch'  # for RHBA-2012:1030
+FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
@@ -731,7 +731,7 @@ FAKE_9_YUM_OUTDATED_PACKAGES = [
     'penguin-0.8.1-1.noarch',
     'stork-0.11-1.noarch',
     'walrus-0.71-1.noarch',
-    'kangaroo-0.2-1.noarch',
+    'kangaroo-0.1-1.noarch',
 ]
 FAKE_9_YUM_UPDATED_PACKAGES = [
     'bear-4.1-1.noarch',
@@ -741,7 +741,7 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'penguin-0.9.1-1.noarch',
     'stork-0.12-1.noarch',
     'walrus-5.21-1.noarch',
-    'kangaroo-0.3-1.noarch',
+    'kangaroo-0.2-1.noarch',
 ]
 FAKE_0_MODULAR_ERRATA_ID = 'RHEA-2012:0059'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
