@@ -655,26 +655,23 @@ def extract_ui_token(input):
         return token[1]
 
 
-def get_web_session():
-    """Logs in as admin user and returns the valid requests.Session object"""
+def get_web_session(user=settings.server.admin_username, password=settings.server.admin_password):
+    """Logs in as user(default admin) and returns the content of
+    requests.Session object"""
     sat_session = requests.Session()
     url = 'https://{0}'.format(settings.server.hostname)
-
     init_request = sat_session.get(url, verify=False)
     login_request = sat_session.post(
         '{0}/users/login'.format(url),
         data={
             'authenticity_token': extract_ui_token(init_request.text),
-            'login[login]': settings.server.admin_username,
-            'login[password]': settings.server.admin_password,
+            'login[login]': user,
+            'login[password]': password,
             'commit': 'Log In',
         },
         verify=False,
     )
-    login_request.raise_for_status()
-    if 'users/login' in login_request.history[0].headers.get('Location'):
-        raise requests.HTTPError('Failed to authenticate using the given credentials')
-    return sat_session
+    return login_request.text
 
 
 def host_provisioning_check(ip_addr):
