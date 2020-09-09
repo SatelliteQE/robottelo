@@ -695,6 +695,8 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     :expectedresults: Host Assign/Unassign Compliance Policy action is working as
         expected.
 
+    :BZ: 1862135
+
     :CaseLevel: Integration
     """
     host = entities.Host().create()
@@ -723,19 +725,26 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert not session.host.search('compliance_policy = {0}'.format(scap_policy['name']))
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
         )
         assert (
-            session.host.search('compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
+            == host.name
+        )
+        session.host.apply_action(
+            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert (
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
             == host.name
         )
         session.host.apply_action(
             'Unassign Compliance Policy', [host.name], {'policy': scap_policy['name']}
         )
-        assert not session.host.search('compliance_policy = {0}'.format(scap_policy['name']))
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
 @skip_if(settings.webdriver != 'chrome')
