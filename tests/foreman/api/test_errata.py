@@ -51,7 +51,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -738,7 +737,7 @@ class ErrataTestCase(APITestCase):
         )
         self.assertEqual(set(cvv.id for cvv in cvvs), set(both_cvvs_errata['comparison']))
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_apply_to_envs_cvs(self):
         """Select multiple errata and apply them to multiple content
@@ -760,7 +759,7 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_query_envs_cvs(self):
         """Query a subset of environments or content views to push new
@@ -782,7 +781,7 @@ class ErrataTestCase(APITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
         """Select multiple packages and apply them to multiple content

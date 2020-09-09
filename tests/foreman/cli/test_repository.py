@@ -79,15 +79,14 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class RepositoryTestCase(CLITestCase):
@@ -174,7 +173,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 self.assertEqual(new_repo['name'], name)
@@ -190,7 +189,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 # Generate a random, 'safe' label
                 label = gen_string('alpha', 20)
@@ -459,7 +458,7 @@ class RepositoryTestCase(CLITestCase):
         """
         # Make a new gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'gpg-key-id': gpg_key['id'], 'name': name})
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
@@ -478,7 +477,7 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository(
                     {'gpg-key': gpg_key['name'], 'name': name, 'organization-id': self.org['id']}
@@ -1311,7 +1310,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 Repository.delete({'id': new_repo['id']})
@@ -1329,7 +1328,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository({'name': name})
                 Repository.delete({'name': new_repo['name'], 'product-id': self.product['id']})
@@ -1990,7 +1989,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 new_repo = self._make_repository(
                     {
@@ -2131,6 +2130,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         cls.product = make_product({'organization-id': cls.org['id']})
 
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with SRPMs
 
@@ -2150,6 +2150,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish content view
@@ -2174,6 +2175,7 @@ class SRPMRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -2214,6 +2216,7 @@ class DRPMRepositoryTestCase(CLITestCase):
         cls.product = make_product({'organization-id': cls.org['id']})
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -2233,6 +2236,7 @@ class DRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -2257,6 +2261,7 @@ class DRPMRepositoryTestCase(CLITestCase):
 
     @tier2
     @upgrade
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -2298,7 +2303,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
     # create a sync schedule against the mirror to make sure it is periodically
     # update to contain the latest and greatest.
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_local_create(self):
         """Create repository with local git puppet mirror.
@@ -2317,7 +2322,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_local_update(self):
         """Update repository with local git puppet mirror.
@@ -2336,7 +2341,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_local_delete(self):
@@ -2356,7 +2361,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_remote_create(self):
         """Create repository with remote git puppet mirror.
@@ -2375,7 +2380,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_remote_update(self):
         """Update repository with remote git puppet mirror.
@@ -2394,7 +2399,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_remote_delete(self):
@@ -2414,7 +2419,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_sync(self):
         """Sync repository with git puppet mirror.
@@ -2435,7 +2440,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_git_sync_with_content_change(self):
@@ -2464,7 +2469,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
@@ -2483,7 +2488,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_git_view_content(self):
         """View content in synced git puppet mirror
@@ -2553,7 +2558,7 @@ class FileRepositoryTestCase(CLITestCase):
         )
         self.assertEqual(RPM_TO_UPLOAD, filesearch[0].name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository

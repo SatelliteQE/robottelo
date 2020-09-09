@@ -3,6 +3,8 @@ import json
 import re
 import uuid
 
+import requests
+
 from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
@@ -372,6 +374,22 @@ def hypervisor_json_create(hypervisors, guests):
         hypervisors_list.append(hypervisor)
     mapping = {"hypervisors": hypervisors_list}
     return mapping
+
+
+def create_fake_hypervisor_content(org_label, hypervisors, guests):
+    """
+    Post the fake hypervisor content to satellite server
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    :param org_label: the label of the Organization
+    :return data: the hypervisor content
+    """
+    data = hypervisor_json_create(hypervisors, guests)
+    url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org_label}"
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    result = requests.post(url, auth=auth, verify=False, json=data)
+    assert result.status_code == 200
+    return data
 
 
 def get_hypervisor_info(hypervisor_type):

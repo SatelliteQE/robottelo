@@ -90,10 +90,10 @@ def parse_help(output):
 
     contents = {'subcommands': [], 'options': []}
     option_regex = re.compile(
-        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w-]+))?'
-        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>\w+))?\s+(?P<help>.*)$'
+        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w\[\]|-]+))?'
+        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>[\w-]+))?\s+(?P<help>.*)$'
     )
-    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?\s+(?P<description>.*)$')
+    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?(, [\w-]+)?\s+(?P<description>.*)$')
 
     for line in output:
         if len(line.strip()) == 0:
@@ -132,6 +132,23 @@ def parse_help(output):
                         'help': match.group('help'),
                     }
                 )
+
+    # handle multiple options disguised as one, e.g. --hostgroup[s|-ids|-titles]
+    grouped_option_regex = re.compile(r'^(?P<prefix>[\w-]+)\[(?P<postfixes>\S+)\]$')
+    new_options = []
+    for option in contents['options']:
+        match = grouped_option_regex.search(option['name'])
+        if not match:
+            new_options.append(option)
+            continue
+        prefix = match.group('prefix')
+        postfixes = match.group('postfixes').split('|')
+        if postfixes[0].startswith('-'):
+            postfixes.insert(0, '')
+        names = [f'{prefix}{postfix}' for postfix in postfixes]
+        exploded = [{**option, **{'name': name}} for name in names]
+        new_options.extend(exploded)
+    contents['options'] = new_options
 
     return contents
 

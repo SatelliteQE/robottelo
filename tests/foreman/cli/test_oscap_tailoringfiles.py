@@ -23,32 +23,23 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_tailoringfile
 from robottelo.cli.scap_tailoring_files import TailoringFiles
-from robottelo.config import settings
 from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
 from robottelo.helpers import get_data_file
-from robottelo.test import CLITestCase
 
 
-class TailoringFilesTestCase(CLITestCase):
+class TestTailoringFiles:
     """Implements Tailoring Files tests in CLI."""
 
-    @classmethod
-    def setUpClass(cls):
-        super(TailoringFilesTestCase, cls).setUpClass()
-        cls.tailoring_file_path = file_downloader(
-            file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
-        )[0]
-
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier1
-    def test_positive_create(self):
+    def test_positive_create(self, tailoring_file_path, name):
         """Create new Tailoring Files using different values types as name
 
         :id: e1bb4de2-1b64-4904-bc7c-f0befa9dbd6f
@@ -59,17 +50,17 @@ class TailoringFilesTestCase(CLITestCase):
 
         :expectedresults: Tailoring file will be added to satellite
 
+        :parametrized: yes
+
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                tailoring_file = make_tailoringfile(
-                    {'name': name, 'scap-file': self.tailoring_file_path}
-                )
-                assert tailoring_file['name'] == name
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
+        assert tailoring_file['name'] == name
 
     @tier1
-    def test_positive_create_with_space(self):
+    def test_positive_create_with_space(self, tailoring_file_path):
         """Create tailoring files with space in name
 
         :id: c98ef4e7-41c5-4a8b-8a0b-8d53100b75a8
@@ -83,11 +74,13 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
-        tailoring_file = make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
         assert tailoring_file['name'] == name
 
     @tier1
-    def test_positive_get_info_of_tailoring_file(self):
+    def test_positive_get_info_of_tailoring_file(self, tailoring_file_path):
         """Get information of tailoring file
 
         :id: bc201194-e8c8-4385-a577-09f3455f5a4d
@@ -105,12 +98,12 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
         result = TailoringFiles.info({'name': name})
         assert result['name'] == name
 
     @tier1
-    def test_positive_list_tailoring_file(self):
+    def test_positive_list_tailoring_file(self, tailoring_file_path):
         """List all created tailoring files
 
         :id: 2ea63c4b-eebe-468d-8153-807e86d1b6a2
@@ -127,7 +120,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
+        make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
         result = TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
@@ -152,8 +145,9 @@ class TailoringFilesTestCase(CLITestCase):
         with pytest.raises(CLIFactoryError):
             make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})
 
+    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @tier1
-    def test_negative_create_with_invalid_name(self):
+    def test_negative_create_with_invalid_name(self, tailoring_file_path, name):
         """Create Tailoring files with invalid name
 
         :id: 973eee82-9735-49bb-b534-0de619aa0279
@@ -164,14 +158,14 @@ class TailoringFilesTestCase(CLITestCase):
 
         :expectedresults: Tailoring file will not be added to satellite
 
+        :parametrized: yes
+
         :CaseImportance: Critical
         """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with pytest.raises(CLIFactoryError):
-                    make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
+        with pytest.raises(CLIFactoryError):
+            make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_negative_associate_tailoring_file_with_different_scap(self):
         """ Associate a tailoring file with different scap content
@@ -193,7 +187,7 @@ class TailoringFilesTestCase(CLITestCase):
 
     @pytest.mark.skip_if_open("BZ:1857572")
     @tier2
-    def test_positive_download_tailoring_file(self):
+    def test_positive_download_tailoring_file(self, tailoring_file_path):
 
         """ Download the tailoring file from satellite
 
@@ -211,8 +205,10 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        file_path = f'/var/{self.tailoring_file_path}'
-        tailoring_file = make_tailoringfile({'name': name, 'scap-file': self.tailoring_file_path})
+        file_path = f'/var{tailoring_file_path["satellite"]}'
+        tailoring_file = make_tailoringfile(
+            {'name': name, 'scap-file': tailoring_file_path['satellite']}
+        )
         assert tailoring_file['name'] == name
         result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
         assert file_path in result[0]
@@ -222,7 +218,7 @@ class TailoringFilesTestCase(CLITestCase):
 
     @tier1
     @upgrade
-    def test_positive_delete_tailoring_file(self):
+    def test_positive_delete_tailoring_file(self, tailoring_file_path):
         """ Delete tailoring file
 
         :id: 8bab5478-1ef1-484f-aafd-98e5cba7b1e7
@@ -236,12 +232,12 @@ class TailoringFilesTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
+        tailoring_file = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
         TailoringFiles.delete({'id': tailoring_file['id']})
         with pytest.raises(CLIReturnCodeError):
             TailoringFiles.info({'id': tailoring_file['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
@@ -268,7 +264,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
@@ -295,7 +291,7 @@ class TailoringFilesTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):

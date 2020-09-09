@@ -14,10 +14,11 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo.config import settings
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier4
 from robottelo.test import CLITestCase
 
@@ -32,7 +33,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         super(PuppetUpgradeTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_puppet_upgrade(self):
         """Upgrade Satellite/client puppet versions
@@ -58,7 +59,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_puppet_capsule_upgrade(self):
         """Upgrade standalone Capsule/client puppet versions
@@ -84,7 +85,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_puppet_capsule_rolling_upgrade(self):
         """Upgrade by moving clients from old to new Capsule

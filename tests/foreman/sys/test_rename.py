@@ -16,13 +16,13 @@
 :Upstream: No
 
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.decorators import destructive
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.ssh import get_connection
 
 BCK_MSG = "**** Hostname change complete! ****"
@@ -224,7 +224,7 @@ class TestRenameHost:
             assert result.return_code == 1
             assert BAD_CREDS_MSG in result.stderr
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_rename_capsule(self):
         """run katello-change-hostname on Capsule
 
@@ -256,7 +256,7 @@ class TestRenameHost:
         # original_name = settings.server.hostname
         username = settings.server.admin_username
         password = settings.server.admin_password
-        # the rename part of the test, not necessary to run from robotello
+        # the rename part of the test, not necessary to run from robottelo
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(

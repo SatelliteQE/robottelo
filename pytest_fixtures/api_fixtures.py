@@ -15,9 +15,12 @@ from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.helpers import download_gce_cert
@@ -31,13 +34,13 @@ if not settings.configured:
 
 
 @pytest.fixture(scope='session')
-def default_lce():
-    return entities.LifecycleEnvironment().search(query={'search': 'name=Library'})[0]
+def default_org():
+    return entities.Organization().search(query={'search': f'name={DEFAULT_ORG}'})[0]
 
 
-@pytest.fixture(scope='module')
-def module_lce(module_org):
-    return entities.LifecycleEnvironment(organization=module_org).create()
+@pytest.fixture(scope='session')
+def default_location():
+    return entities.Location().search(query={'search': f'name={DEFAULT_LOC}'})[0]
 
 
 @pytest.fixture(scope='module')
@@ -48,6 +51,16 @@ def module_org():
 @pytest.fixture(scope='module')
 def module_location(module_org):
     return entities.Location(organization=[module_org]).create()
+
+
+@pytest.fixture(scope='session')
+def default_lce():
+    return entities.LifecycleEnvironment().search(query={'search': f'name={ENVIRONMENT}'})[0]
+
+
+@pytest.fixture(scope='module')
+def module_lce(module_org):
+    return entities.LifecycleEnvironment(organization=module_org).create()
 
 
 @pytest.fixture(scope='session')
@@ -62,7 +75,7 @@ def default_smart_proxy():
 
 @pytest.fixture(scope='session')
 def default_domain(default_smart_proxy):
-    *_, domain_name = settings.server.hostname.partition('.')
+    domain_name = settings.server.hostname.partition('.')[-1]
     dom = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})[0]
     dom.dns = default_smart_proxy
     dom.update(['dns'])
@@ -133,6 +146,11 @@ def default_architecture():
         .read()
     )
     return arch
+
+
+@pytest.fixture(scope='module')
+def module_architecture():
+    return entities.Architecture().create()
 
 
 @pytest.fixture(scope='session')
@@ -374,13 +392,17 @@ def default_contentview(module_org):
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def tailoring_file_path():
     """ Return Tailoring file path."""
-    return file_downloader(file_url=settings.oscap.tailoring_path)[0]
+    local = file_downloader(file_url=settings.oscap.tailoring_path)[0]
+    satellite = file_downloader(
+        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
+    )[0]
+    return {'local': local, 'satellite': satellite}
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def oscap_content_path():
     """ Download scap content from satellite and return local path of it."""
     _, file_name = os.path.split(settings.oscap.content_path)

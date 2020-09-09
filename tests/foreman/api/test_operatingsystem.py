@@ -33,8 +33,8 @@ from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class OperatingSystemParameterTestCase(APITestCase):

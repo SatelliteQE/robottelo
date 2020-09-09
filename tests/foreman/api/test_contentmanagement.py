@@ -17,6 +17,7 @@
 import os
 from time import sleep
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -50,18 +51,17 @@ from robottelo.constants import REPOSET
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import tier4
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.helpers import md5_by_url
 from robottelo.host_info import get_repo_files
 from robottelo.host_info import get_repomd_revision
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
@@ -72,6 +72,7 @@ class ContentManagementTestCase(APITestCase):
     """
 
     @tier2
+    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
@@ -570,7 +571,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(lce_repo_path, hostname=self.capsule_ip), get_repo_files(cvv_repo_path)
         )
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized

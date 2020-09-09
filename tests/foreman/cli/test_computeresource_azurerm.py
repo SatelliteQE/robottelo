@@ -40,7 +40,6 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import idgen
 
 
 @pytest.fixture(scope='class')
@@ -140,13 +139,14 @@ class TestAzureRMComputeResourceTestCase:
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
             AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         ],
-        ids=idgen,
     )
     def test_positive_image_crud(self, default_architecture, module_azurerm_cr, default_os, image):
         """ Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
+
+        :parametrized: yes
 
         :steps:
             1. Create an AzureRm Compute Resource.
@@ -221,6 +221,7 @@ class TestAzureRMComputeResourceTestCase:
         assert result['message'] == 'Image deleted.'
         assert result['name'] == new_img_name
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @tier2
     def test_positive_check_available_networks(self, azurermclient, module_azurerm_cr):
         """Check networks from AzureRm CR are available to select during host provision.
@@ -230,6 +231,8 @@ class TestAzureRMComputeResourceTestCase:
         :expectedresults: All the networks from AzureRM CR should be available.
 
         :CaseLevel: Integration
+
+        :BZ: 1850934
         """
 
         result = ComputeResource.networks({'id': module_azurerm_cr.id})
@@ -380,6 +383,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ft['name'].split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_host_provisioned(
@@ -405,6 +409,8 @@ class TestAzureRm_FinishTemplate_Provisioning:
             6. The host image name same as previsioned
             7. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned.
+
+        :BZ: 1850934
         """
 
         assert class_host_ft['name'] == self.fullhostname
@@ -501,6 +507,7 @@ class TestAzureRm_UserData_Provisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_host_ud['name'].split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_host_provisioned(
@@ -531,6 +538,8 @@ class TestAzureRm_UserData_Provisioning:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned.
+
+        :BZ: 1850934
         """
         assert class_host_ud['name'] == self.fullhostname
         assert class_host_ud['status']['build-status'] == "Pending installation"
@@ -620,6 +629,7 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_byos_ft_host['name'].split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_byosft_host_provisioned(
@@ -649,6 +659,8 @@ class TestAzureRm_BYOS_FinishTemplate_Provisioning:
             6. The host image name same as provisioned
             7. The host Name and Platform should be same on Azure Cloud as provided during
                provisioning.
+
+        :BZ: 1850934
         """
 
         assert class_byos_ft_host['name'] == self.fullhostname

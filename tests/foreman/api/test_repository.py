@@ -66,7 +66,6 @@ from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -103,7 +102,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 self.assertEqual(name, repo.name)
@@ -687,7 +686,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(product=self.product).create()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 repo.name = new_name
                 repo = repo.update(['name'])
@@ -812,6 +811,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @upgrade
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_create_delete_srpm_repo(self):
         """Create a repository, sync SRPM contents and remove repo
 
@@ -1092,7 +1092,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 repo.delete()
@@ -1306,7 +1306,7 @@ class RepositorySyncTestCase(APITestCase):
         for key, count in FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS.items():
             assert repository.content_counts[key] == count
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier2
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
@@ -1800,6 +1800,7 @@ class SRPMRepositoryTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
@@ -1840,6 +1841,7 @@ class DRPMRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -1859,6 +1861,7 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -1884,6 +1887,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1961,6 +1965,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         self.assertEqual(repo.content_counts['srpm'], 2)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_ignore_srpm_sync(self):
         """Test whether SRPM content can be ignored during sync.
 
@@ -1980,7 +1985,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
 class FileRepositoryTestCase(APITestCase):
     """Specific tests for File Repositories"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -1998,7 +2003,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository
@@ -2018,7 +2023,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     @upgrade
     def test_positive_remove_file(self):
@@ -2040,7 +2045,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_remote_directory_sync(self):
@@ -2064,7 +2069,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
@@ -2088,7 +2093,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_symlinks_sync(self):
         """Check synlinks can be synced to File Repository

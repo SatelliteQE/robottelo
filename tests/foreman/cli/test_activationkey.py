@@ -18,6 +18,7 @@
 import re
 from random import choice
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
@@ -51,14 +52,13 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 
@@ -810,7 +810,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(len(content), 2)
         self.assertEqual({REPOSET['rhst7'], repo['name']}, {pc['name'] for pc in content})
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key
 
@@ -901,7 +901,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertTrue(vm.subscribed)
 
     @skip_if_not_set('clients')
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_update_aks_to_chost_in_one_command(self):
         """Check if multiple Activation keys can be attached to a

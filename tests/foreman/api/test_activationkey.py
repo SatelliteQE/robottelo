@@ -16,6 +16,7 @@
 """
 import http
 
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import client
@@ -34,7 +35,6 @@ from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -483,7 +483,7 @@ class ActivationKeyTestCase(APITestCase):
     @upgrade
     @skip_if_not_set('fake_manifest')
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_add_future_subscription(self):
         """Add a future-dated subscription to an activation key.
 

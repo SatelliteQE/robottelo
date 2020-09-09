@@ -18,6 +18,7 @@ import os
 from time import sleep
 
 import pyotp
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
@@ -991,6 +992,49 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
 
 
 @destructive
+def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
+    """Verify the single sign-on functionality with external authentication
+
+    :id: 3c233aa4-c817-11ea-b105-d46d6dd3b5b2
+
+    :setup: Enroll the AD Configuration for External Authentication
+
+    :steps: Assert single sign-on session user is directed to satellite instead of login page
+
+    :expectedresults: After single sign on, user should be redirected from /extlogin to /users page
+        using curl. It should navigate to user's profile page.(verify using url only)
+
+    """
+    # register the satellite with AD for single sign-on and update external auth
+    try:
+        # enable the foreman-ipa-authentication feature
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
+        run_command('systemctl restart gssproxy.service')
+        run_command('systemctl enable gssproxy.service')
+
+        # restart the deamon and httpd services
+        httpd_service_content = (
+            '.include /lib/systemd/system/httpd.service\n[Service]' '\nEnvironment=GSS_USE_PROXY=1'
+        )
+        run_command(f'echo "{httpd_service_content}" > /etc/systemd/system/httpd.service')
+        run_command('systemctl daemon-reload && systemctl restart httpd.service')
+
+        # create the kerberos ticket for authentication
+        run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
+        result = run_command(
+            f"curl -k -u : --negotiate " f"https://{settings.server.hostname}/users/extlogin/"
+        )
+        result = ''.join(result)
+        assert 'redirected' in result
+        assert f"https://{settings.server.hostname}/users" in result
+        assert f"-{settings.ldap.username}" in result
+    finally:
+        # resetting the settings to default for external auth
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
+        run_command('foreman-maintain service restart', timeout=300)
+
+
+@destructive
 def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
@@ -1109,6 +1153,48 @@ def test_external_new_user_login_and_check_count_rhsso(
         assert error.typename == "NavigationTriesExceeded"
 
 
+@pytest.mark.skip_if_open("BZ:1873439")
+@destructive
+def test_login_failure_rhsso_user_if_internal_user_exist(
+    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_loc
+):
+    """Verify the failure of login for the external rhsso user in case same username
+    internal user exists
+
+    :id: e573902c-ed1a-11ea-835a-d46d6dd3b5b2
+
+    :BZ: 1873439
+
+    :CaseImportance: High
+
+    :steps:
+        1. create an internal user
+        2. create a rhsso user with same username mentioned in internal user
+        3. update the satellite to use rhsso and now try login using external rhsso user
+
+    :expectedresults: external rhsso user should not able to login with same username as internal
+    """
+    client_id = get_rhsso_client_id()
+    username = gen_string('alpha')
+    entities.User(
+        admin=True,
+        default_organization=module_org,
+        default_location=module_loc,
+        login=username,
+        password=settings.rhsso.password,
+    ).create()
+    external_rhsso_user = create_new_rhsso_user(client_id, username=username)
+    login_details = {
+        'username': external_rhsso_user['username'],
+        'password': settings.rhsso.password,
+    }
+    with Session(login=False) as rhsso_session:
+        with raises(NavigationTriesExceeded) as error:
+            rhsso_session.rhsso_login.login(login_details)
+            rhsso_session.task.read_all()
+        assert error.typename == "NavigationTriesExceeded"
+
+
 @tier2
 def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     """Verify for a positive test connection response
@@ -1122,3 +1208,156 @@ def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     with session:
         for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
             session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
+
+
+@tier2
+def test_negative_login_with_incorrect_password(test_name):
+    """Attempt to login in Satellite an IDM user with the wrong password
+
+    :id: 3f09de90-a656-11ea-aa43-4ceb42ab8dbc
+
+    :steps:
+        1. Randomaly generate a string as a incorrect password.
+        2. Try login with the incorrect password
+
+    :expectedresults: Login fails
+    """
+    incorrect_password = gen_string('alphanumeric')
+    username = settings.ipa.user_ipa
+    with Session(test_name, user=username, password=incorrect_password) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@tier2
+def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
+    """Disabled IDM user cannot login
+
+    :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
+
+    :steps: Try login from the disabled user
+
+    :expectedresults: Login fails
+    """
+    with Session(
+        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@tier2
+def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, ldap_tear_down):
+    """Email of the user created in idm server ( set as external authorization source)
+    should be copied to the satellite.
+
+    :id: 9ce7d7c6-dc73-11ea-8a97-4ceb42ab8dbc
+
+    :steps:
+        1. Create a new auth source with onthefly enabled
+        2. Login to the satellite with the user (from IDM) to create the account
+        3. Assert the email of the newly created user
+
+    :expectedresults: Email is copied to Satellite:
+    """
+    run_command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    result = run_command(
+        cmd=f"ipa user-find --login {ipa_data['user_ipa']}", hostname=settings.ipa.hostname_ipa
+    )
+    for line in result:
+        if 'Email' in line:
+            _, result = line.split(': ', 2)
+            break
+    with Session(
+        user=ipa_data['user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+    ) as ldapsession:
+        ldapsession.task.read_all()
+    with session:
+        user_value = session.user.read(ipa_data['user_ipa'])
+        assert user_value['user']['mail'] == result
+
+
+@tier2
+def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear_down):
+    """After deleting a user in IDM, user should not be able to login into satellite
+
+    :id: 18ad0526-e083-11ea-b1ad-4ceb42ab8dbc
+
+    :steps:
+        1. Create a new auth source with onthefly enabled
+        2. Create a new user in IDM and assigning a group to it.
+        3. Login to satellite to create the user
+        4. Delete the user from IDM
+        5. Try login to the satellite from the user
+
+    :expectedresults: User login fails
+    """
+    result = ssh.command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    assert result.return_code == 0
+    test_user = gen_string('alpha')
+    add_user_cmd = (
+        f"echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first"
+        f"={test_user} --last={test_user} --password"
+    )
+    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+    group = settings.ipa.grpbasedn_ipa.split(',')
+    for line in group:
+        if 'group' in line:
+            _, group = line.split('=')
+            break
+    result = ssh.command(
+        cmd=f"ipa group-add-member {group} --user={test_user}", hostname=settings.ipa.hostname_ipa,
+    )
+    assert result.return_code == 0
+    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+        ldapsession.task.read_all()
+    result = ssh.command(cmd=f"ipa user-del {test_user}", hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@tier2
+def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
+    """IDM user will not be created automatically in Satellite if onthefly is
+    disabled
+
+    :id: 6998de30-ef77-11ea-a0ce-0c7a158cbff4
+
+    :Steps:
+        1. Create an auth source (IDM) with onthefly disabled
+        2. Try login with a user from auth source
+
+    :expectedresults: Login fails
+    """
+    ldap_auth_name = gen_string('alphanumeric')
+    with session:
+        session.ldapauthentication.create(
+            {
+                'ldap_server.name': ldap_auth_name,
+                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
+                'account.account_name': ipa_data['ldap_ipa_user_name'],
+                'account.password': ipa_data['ldap_ipa_user_passwd'],
+                'account.base_dn': ipa_data['ipa_base_dn'],
+                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.onthefly_register': False,
+                'attribute_mappings.login': LDAP_ATTR['login'],
+                'attribute_mappings.first_name': LDAP_ATTR['firstname'],
+                'attribute_mappings.last_name': LDAP_ATTR['surname'],
+                'attribute_mappings.mail': LDAP_ATTR['mail'],
+            }
+        )
+    with Session(user=ipa_data['user_ipa'], password=settings.ipa.password_ipa) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"

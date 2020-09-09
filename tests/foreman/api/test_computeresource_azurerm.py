@@ -242,6 +242,7 @@ class TestAzureRMHostProvisioningTestCase:
 
         return azurermclient.get_vm(name=class_host_ft.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
@@ -263,6 +264,8 @@ class TestAzureRMHostProvisioningTestCase:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned
+
+        :BZ: 1850934
         """
 
         assert class_host_ft.name == self.fullhostname
@@ -273,6 +276,7 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @tier3
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
@@ -290,6 +294,8 @@ class TestAzureRMHostProvisioningTestCase:
         :expectedresults:
             1. The provisioned host should be powered off.
             2. The provisioned host should be powered on.
+
+        :BZ: 1850934
         """
         class_host_ft.power(data={'power_action': 'stop'})
         assert azureclient_host.is_stopped
@@ -388,6 +394,7 @@ class TestAzureRM_UserData_Provisioning:
 
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
@@ -411,6 +418,8 @@ class TestAzureRM_UserData_Provisioning:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned.
+
+        :BZ: 1850934
         """
 
         assert class_host_ud.name == self.fullhostname
@@ -421,6 +430,7 @@ class TestAzureRM_UserData_Provisioning:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
@@ -435,6 +445,7 @@ class TestAzureRM_UserData_Provisioning:
             1. The host should be Disassociate
             2. The host should be Associate
 
+        :BZ: 1850934
         """
 
         # Disassociate
@@ -535,6 +546,7 @@ class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
 
         return azurermclient.get_vm(name=class_host_gallery_ft.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_shared_gallery_host_provisioned(
@@ -558,6 +570,8 @@ class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned
+
+        :BZ: 1850934
         """
 
         assert class_host_gallery_ft.name == self.fullhostname
@@ -656,6 +670,7 @@ class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
 
         return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_custom_image_host_provisioned(
@@ -679,6 +694,8 @@ class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned
+
+        :BZ: 1850934
         """
 
         assert class_host_custom_ft.name == self.fullhostname

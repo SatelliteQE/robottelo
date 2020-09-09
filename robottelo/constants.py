@@ -70,7 +70,7 @@ LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
 RHEV_CR = '%s (RHV)'
 
-AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
+AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - T2 Micro Instance'
 
 COMPUTE_PROFILE_LARGE = '3-Large'
 COMPUTE_PROFILE_SMALL = '1-Small'
@@ -299,7 +299,7 @@ SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
 
-NOT_IMPLEMENTED = 'Test not implemented'
+NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
@@ -647,16 +647,16 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
 DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
 DOCKER_UPSTREAM_NAME = 'busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
-CUSTOM_FILE_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
+CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'
 CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 
 CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
 
-CUSTOM_RPM_REPO = 'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
+CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
 
-CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
+CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
 
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
 
@@ -672,14 +672,14 @@ FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
 FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
-FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
+FAKE_7_YUM_REPO = 'https://fixtures.pulpproject.org/rpm-long-updateinfo/'
 FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
 FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
 FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
 FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
-FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
+FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'
+FAKE_YUM_SRPM_REPO = 'https://fixtures.pulpproject.org/srpm-signed/'
+FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://fixtures.pulpproject.org/srpm-duplicate/'
 FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
 CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
@@ -806,7 +806,7 @@ FAKE_0_PUPPET_MODULE = 'httpd'
 FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
 
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-string-version-updateinfo/'
+    'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
 
@@ -847,6 +847,12 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
         'view_statuses',
+        'generate_foreman_rh_cloud',
+        'forget_status_hosts',
+        'edit_user_mail_notifications',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
+        'view_foreman_rh_cloud',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -893,6 +899,8 @@ PERMISSIONS = {
         'destroy_compute_resources_vms',
         'power_compute_resources_vms',
         'console_compute_resources_vms',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
     ],
     'DiscoveryRule': [
         'create_discovery_rules',
@@ -985,7 +993,7 @@ PERMISSIONS = {
         'destroy_locations',
         'assign_locations',
     ],
-    'MailNotification': ['view_mail_notifications'],
+    'MailNotification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
@@ -1073,12 +1081,6 @@ PERMISSIONS = {
     'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
-    'VariableLookupKey': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
@@ -1097,6 +1099,7 @@ PERMISSIONS = {
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
+        'forget_status_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -1502,21 +1505,26 @@ OSCAP_WEEKDAY = {
 OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
+    'jre_content': 'Red Hat jre default content',
+    'rhel8_content': 'Red Hat rhel8 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
+    'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'esp': 'Example Server Profile',
-    'rhccp': ('Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'),
+    'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
-    'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
     'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7',
+    'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
+    'ppgpo': 'Protection Profile for General Purpose Operating Systems',
+    'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
 }
 
 ROLES = [
@@ -1747,8 +1755,6 @@ VMWARE_CONSTANTS = {
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
-ANSWERS = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 
 FOREMAN_TEMPLATES_COMMUNITY_URL = 'https://github.com/theforeman/community-templates.git'
@@ -1757,6 +1763,8 @@ FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
     'example_template.erb'
 )
+
+FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
 
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),

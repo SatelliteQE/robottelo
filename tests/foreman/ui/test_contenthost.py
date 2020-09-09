@@ -59,6 +59,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
 
@@ -99,7 +100,13 @@ def repos_collection_for_module_streams(module_org):
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=settings.rhel8_os['baseos']),
+            YumRepository(url=settings.rhel8_os['appstream']),
+            YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
+        ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -118,7 +125,7 @@ def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(
-            vm_module_streams, install_katello_agent=False
+            vm_module_streams, install_katello_agent=True
         )
         add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
@@ -944,6 +951,19 @@ def test_install_modular_errata(session, vm_module_streams):
             stream_version=stream_version,
         )
 
+        run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
+        # Install errata using Katello Agent
+        result = session.contenthost.install_errata(
+            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='katello'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Installed',
+            stream_version=stream_version,
+        )
+        assert module_stream[0]['Name'] == module_name
+
 
 @tier3
 def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
@@ -1313,3 +1333,35 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         # Assert that total items reported is the number of hosts created for this test
         total_items_found = pagination_values['total_items']
         assert int(total_items_found) >= host_num
+
+
+@tier3
+def test_search_for_virt_who_hypervisors(session):
+    """
+    Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
+
+    :id: 3c759e13-d5ef-4273-8e64-2cc8ed9099af
+
+    :expectedresults: Search with hypervisor=True and hypervisor=False gives the correct result.
+
+    :BZ: 1653386
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    org = entities.Organization().create()
+    with session:
+        session.organization.select(org.name)
+        assert not session.contenthost.search("hypervisor = true")
+        # create virt-who hypervisor through the fake json conf
+        data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
+        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        hypervisor_display_name = f"virt-who-{hypervisor_name}-{org.id}"
+        # Search with hypervisor=True gives the correct result.
+        assert (
+            session.contenthost.search("hypervisor = true")[0]['Name']
+        ) == hypervisor_display_name
+        # Search with hypervisor=false gives the correct result.
+        content_hosts = [host['Name'] for host in session.contenthost.search("hypervisor = false")]
+        assert hypervisor_display_name not in content_hosts

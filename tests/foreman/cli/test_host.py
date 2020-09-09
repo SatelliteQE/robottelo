@@ -95,7 +95,6 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -474,7 +473,7 @@ class HostCreateTestCase(CLITestCase):
         :BZ: 1671148
         """
         help_output = Host.execute('host update --help')
-        for arg in ['lifecycle-environment-id', 'openscap-proxy-id']:
+        for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
             assert any(
                 ('--{}'.format(arg) in line for line in help_output)
             ), "--{} not supported by update subcommand".format(arg)
@@ -830,7 +829,7 @@ class HostCreateTestCase(CLITestCase):
         hosts = Host.list({'organization-id': options.organization.id})
         self.assertEqual('{0}/{1}'.format(parent_hg_name, nested_hg_name), hosts[0]['host-group'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
@@ -1349,7 +1348,7 @@ class HostParameterTestCase(CLITestCase):
 class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_bios_syslinux(self):
@@ -1387,7 +1386,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
         """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
@@ -1424,7 +1423,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
         """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
@@ -1464,7 +1463,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_uefi_grub2(self):
@@ -1506,7 +1505,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
         """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
@@ -2555,3 +2554,62 @@ class EncDumpTestCase(CLITestCase):
         """
         hostname = ssh.command('hostname').stdout[0]
         self.assertIsInstance(Host.enc_dump({'name': hostname}), list)
+
+
+class SLESTestCase(CLITestCase):
+    """ Tests SUSE Linux Enterprise Server Client """
+
+    @classmethod
+    def setUpClass(cls):
+        """Prepare satellite for SLES.
+        1. Upload manifest that contains the “Red Smart Management
+            for non-Red Hat Enterprise Linux Platforms
+        2. Enable and Sync Satellite Tools (for SLES)
+        3. Synchronize the Satellite Tools (for SLES) repositories
+        4. Create symlink - Make the Satellite Tools SLES repositories available via http
+        5. Download the correct version of the Satellite Tools (for SLES) product cert from the CDN
+        6. Verify access to the Satellite Tools (for SLES)
+        """
+
+    def _setup_SLES_client(self, sles_distro):
+        """
+        1. Create VM with defined sles_distro
+        2. Ensure you have the base and Updates SUSE Linux Enterprise Server repositories available
+            for your version
+        3. Manually add the custom repository on client
+        4. Install subscription-manager
+        5. Download and place the product cert
+        6. Register VM to satellite
+        7. Verify that Satellite Tools (for SLES) repos are visible to the client
+        8. Install katello-host-tools package
+        9. Remove the temporary custom repository from point 3.
+        """
+
+    @pytest.mark.stubbed
+    @tier3
+    def test_positive_report_package_installed_removed(self):
+        """Verify that SLES setup works correctly for every distribution,
+        by ensuring that installed/removed package is reported to satellite
+
+        :id: 33c4ed50-ca7c-11ea-bd85-98fa9b6ecd5a
+
+        :customerscenario: true
+
+        :steps:
+            1. register a host to activation key with content view that contain
+               packages
+            2. install a package 1 from the available packages
+            3. list the host installed packages with search for package 1 name
+            4. remove the package 1
+            5. list the host installed packages with search for package 1 name
+
+        :expectedresults:
+            1. after step3: package 1 is listed in installed packages
+            2. after step5: installed packages list is empty
+
+        :CaseLevel: System
+
+        :CaseAutomation: notautomated
+
+        :CaseImportance: High
+        """

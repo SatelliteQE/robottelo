@@ -38,7 +38,6 @@ from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
 from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -85,7 +84,7 @@ def fixture_vmsetup(request, fixture_org):
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_run_job_multiple_hosts_time_span(self):
         """Run job against multiple hosts with time span setting
@@ -98,7 +97,7 @@ class TestRemoteExecution:
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_multiple_hosts_concurrency(self):
@@ -774,7 +773,7 @@ class TestAnsibleREX:
         result = ssh.command("systemctl status {0}".format(service), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_power_job(self):
@@ -797,7 +796,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_puppet_job(self):
@@ -822,7 +821,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_roles_galaxy_install_job(self):
@@ -845,7 +844,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_roles_git_install_job(self):
@@ -879,7 +878,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         cls.sat6_hostname = settings.server.hostname
         # provision host here and tests will share the host, step 0. in tests
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_for_provisioned_host(self):
@@ -902,7 +901,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_for_multiple_provisioned_hosts(self):

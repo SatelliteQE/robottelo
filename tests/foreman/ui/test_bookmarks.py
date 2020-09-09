@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Navigation
+:CaseComponent: Search
 
 :TestType: Functional
 
@@ -27,7 +27,7 @@ from robottelo.decorators import fixture
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
-from robottelo.helpers import is_open
+from robottelo.utils.issue_handlers import is_open
 
 
 @fixture(scope='module')

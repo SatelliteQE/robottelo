@@ -54,7 +54,7 @@ if not setting_is_set('fake_manifest'):
 
 
 @pytest.fixture(scope='module')
-def content_host_setup():
+def golden_ticket_host_setup():
     org = entities.Organization().create()
     with manifests.clone(name='golden_ticket') as manifest:
         upload_manifest(org.id, manifest.content)
@@ -460,7 +460,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
 
 @tier3
-def test_positive_subscription_status_disabled(session, content_host_setup):
+def test_positive_subscription_status_disabled_golden_ticket(session, golden_ticket_host_setup):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -474,7 +474,7 @@ def test_positive_subscription_status_disabled(session, content_host_setup):
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.install_katello_ca()
-        org, ak = content_host_setup
+        org, ak = golden_ticket_host_setup
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
         with session:

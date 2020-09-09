@@ -20,6 +20,7 @@ import os
 import re
 from pathlib import Path
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -27,15 +28,14 @@ from robottelo.config import settings
 from robottelo.decorators import destructive
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
 from robottelo.ssh import upload_file
 from robottelo.test import TestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 @run_in_one_thread
@@ -285,7 +285,7 @@ class KatelloCertsCheckTestCase(TestCase):
             # assert the certs.tar was built
             assert connection.run('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_check_expiration_of_certificate(self):
         """Check expiration of certificate.
@@ -302,7 +302,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_check_ca_bundle(self):
         """Check ca bundle file that contains invalid data.
@@ -319,7 +319,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_validate_certificate_subject(self):
         """Validate certificate subject.
@@ -337,7 +337,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_check_private_key_match(self):
         """Validate private key match with certificate.
@@ -354,7 +354,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_check_expiration_of_ca_bundle(self):
         """Validate expiration of ca bundle file.
@@ -371,7 +371,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_check_for_non_ascii_characters(self):
         """Validate non ascii character in certs.
@@ -389,7 +389,7 @@ class KatelloCertsCheckTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_validate_without_req_file_output(self):
         """Check katello-certs-check without -r REQ_FILE generates correct command.

@@ -41,7 +41,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -92,16 +91,18 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # create with params
+        mail = random.choice(valid_emails_list())
         user_params = {
             'login': random.choice(valid_usernames_list()),
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
-            'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
-            'description': random.choice(valid_data_list()),
+            'mail': mail.replace('"', r'\"').replace('`', r'\`'),
+            'description': random.choice(list(valid_data_list().values())),
         }
         user = make_user(user_params)
         user['firstname'], user['lastname'] = user['name'].split()
-        user_params['email'] = user_params.pop('mail')
+        user_params.pop('mail')
+        user_params['email'] = mail
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
@@ -123,17 +124,19 @@ class UserTestCase(CLITestCase):
         )
 
         # update params
+        new_mail = random.choice(valid_emails_list())
         user_params = {
             'firstname': random.choice(valid_usernames_list()),
             'lastname': random.choice(valid_usernames_list()),
-            'mail': random.choice(valid_emails_list()).replace('"', r'\"').replace('`', r'\`'),
-            'description': random.choice(valid_data_list()),
+            'mail': new_mail.replace('"', r'\"').replace('`', r'\`'),
+            'description': random.choice(list(valid_data_list().values())),
         }
         user_params.update({'id': user['id']})
         User.update(user_params)
         user = User.info({'login': user['login']})
         user['firstname'], user['lastname'] = user['name'].split()
-        user_params['email'] = user_params.pop('mail')
+        user_params.pop('mail')
+        user_params['email'] = new_mail
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
@@ -223,7 +226,7 @@ class UserTestCase(CLITestCase):
         user = User.info({'id': user['id']})
         self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_create_in_ldap_modes(self):
@@ -255,7 +258,6 @@ class UserTestCase(CLITestCase):
             User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
-    @pytest.mark.skip_if_open("BZ:1763816")
     @tier2
     def test_positive_last_login_for_new_user(self):
         """Create new user with admin role and check last login updated for that user
