@@ -16,7 +16,6 @@
 """
 from random import choice
 
-import pytest
 from nailgun import entities
 from nailgun.client import request
 from requests.exceptions import HTTPError
@@ -392,17 +391,22 @@ class HostCollectionTestCase(APITestCase):
                     entities.HostCollection(name=name, organization=self.org).create()
 
     @tier1
-    def test_positive_add_subscription(self):
-        """Try to bulk add a subscription to members of a host collection.
+    def test_positive_add_remove_subscription(self):
+        """Try to bulk add and remove a subscription to members of a host collection.
 
         :id: c4ec5727-eb25-452e-a91f-87cafb16666b
 
         :steps:
 
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the members of the host collection
+            1. Create AK and HC, add AK to HC
+            2. Create product so we can use it's subscription
+            3. Create some VMs and register them with AK so they are in HC
+            4. Add the subscription to the members of the Host Collection
+            5. Assert subscription is added
+            6. Bulk remove subscription
+            7. Assert it is removed
 
-        :expectedresults: The subscription was added to hosts in the host collection
+        :expectedresults: subscription added to, and removed from, members of host collection
 
         :CaseImportance: Critical
         """
@@ -414,12 +418,13 @@ class HostCollectionTestCase(APITestCase):
         act_key.host_collection.append(entities.HostCollection(organization=self.org).create())
         # Move HC from Add tab to List tab on AK view
         act_key = act_key.update(['host_collection'])
-        # Create a product to be bulk added to members of Host Collection
+        # Create a product so we have a subscription to use
         product = entities.Product(organization=self.org).create()
         prod_name = product.name
         product_subscription = entities.Subscription().search(
             query={'search': f'name={prod_name}'}
         )[0]
+        # Create and register VMs as members of Host Collection
         with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
             distro=DISTRO_RHEL7
         ) as client2:
@@ -429,6 +434,7 @@ class HostCollectionTestCase(APITestCase):
             # Read host_collection back from Satellite to get host_ids
             host_collection = act_key.host_collection[0].read()
             host_ids = [host.id for host in host_collection.host]
+            # Add subscription
             # Call nailgun to make the API PUT to members of Host Collection
             entities.Host().bulk_add_subscriptions(
                 data={
@@ -437,7 +443,7 @@ class HostCollectionTestCase(APITestCase):
                     "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
                 }
             )
-            # Get the subscriptions from hosts
+            # GET the subscriptions from hosts and assert they are there
             for host_id in host_ids:
                 req = request(
                     'GET',
@@ -448,22 +454,25 @@ class HostCollectionTestCase(APITestCase):
                     auth=settings.server.get_credentials(),
                     headers={'content-type': 'application/json'},
                 )
-                assert prod_name in req.text, 'Subscription not applied HC members'
-
-    @tier1
-    @pytest.mark.stubbed
-    def test_positive_remove_subscription(self):
-        """Try to remove a subscription from a host collection
-
-        :id: fdf43e57-5101-4270-9750-afe26f77c53c
-
-        :steps:
-
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the host collection
-            3. Remove the subscription from the host collection
-
-        :expectedresults: The subscription was added to the host collection
-
-        :CaseImportance: Critical
-        """
+                assert prod_name in req.text, 'Subscription not applied to HC members'
+            # Remove the subscription
+            # Call nailgun to make the API PUT to members of Host Collection
+            entities.Host().bulk_remove_subscriptions(
+                data={
+                    "organization_id": self.org.id,
+                    "included": {"ids": host_ids},
+                    "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
+                }
+            )
+            # GET the subscriptions from hosts and assert they are gone
+            for host_id in host_ids:
+                req = request(
+                    'GET',
+                    '{0}/api/v2/hosts/{1}/subscriptions'.format(
+                        settings.server.get_url(), host_id
+                    ),
+                    verify=False,
+                    auth=settings.server.get_credentials(),
+                    headers={'content-type': 'application/json'},
+                )
+                assert prod_name not in req.text, 'Subscription not removed from HC members'
