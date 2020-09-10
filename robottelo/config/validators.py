@@ -36,6 +36,8 @@ validators = dict(
         )
     ],
     clients=[Validator("clients.provisioning_server")],
+    compute_resources=[Validator("compute_resources.libvirt_image_dir", must_exist=True)],
+    # FIXME: merge obecnego pliku do struktury dynaconf, dodanie walidacji
     container_repo=[
         Validator(
             'container_repo.label',
@@ -63,6 +65,8 @@ validators = dict(
         Validator('ec2.manage_ip', is_in=('Private', 'Public')),
     ],
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
+    # FIXME: że musi być default nie jest sprawdzane
+    # w sumie to yaml, więc można zmienić? - że musi być przynajmniej jeden
     fake_manifest=[
         Validator(
             'fake_manifest.cert_url', 'fake_manifest.key_url', 'fake_manifest.url', must_exist=True
@@ -77,6 +81,7 @@ validators = dict(
             "gce.cert_url",
             must_exist=True,
         ),
+        # FIXME: przenieś do constant
         Validator("gce.cert_path", startswith='/usr/share/foreman/'),
         Validator("gce.zone", is_in=VALID_GCE_ZONES),
     ],
@@ -90,6 +95,7 @@ validators = dict(
             "ipa.user_ipa",
             "ipa.otp_user",
             "ipa.time_based_secret",
+            "ipa.disabled_user_ipa",
             must_exist=True,
         )
     ],
@@ -103,5 +109,88 @@ validators = dict(
             must_exist=True,
         )
     ],
-    compute_resources=[Validator("compute_resources.libvirt_image_dir", must_exist=True)],
+    oscap=[Validator("oscap.content_path", "oscap.tailoring_path", must_exist=True,)],
+    osp=[
+        Validator(
+            "osp.hostname",
+            "osp.username",
+            "osp.password",
+            "osp.tenant",
+            "osp.project_domain_id",
+            "osp.security_group",
+            "osp.vm_name",
+            "osp.image_os",
+            "osp.image_arch",
+            "osp.image_username",
+            "osp.image_name",
+            must_exist=True,
+        )
+    ],
+    ostree=[Validator("ostree.ostree_installer", must_exist=True)],
+    performance=[
+        Validator(
+            "performance.cdn_address",
+            "performance.virtual_machines",
+            "performance.fresh_install_savepoint",
+            "performance.enabled_repos_savepoint",
+            must_exist=True,
+        )
+    ],
+    report_portal=[
+        Validator(
+            "report_portal.portal_url",
+            "report_portal.project",
+            "report_portal.api_key",
+            must_exist=True,
+        )
+    ],
+    rhev=[
+        Validator(
+            "rhev.hostname",
+            "rhev.username",
+            "rhev.password",
+            "rhev.datacenter",
+            "rhev.vm_name",
+            "rhev.storage_domain",
+            "rhev.image_os",
+            "rhev.image_arch",
+            "rhev.image_username",
+            "rhev.image_password",
+            "rhev.image_name",
+            must_exist=True,
+        )
+    ],
+    rhsso=[
+        Validator(
+            "rhsso.host_name",
+            "rhsso.host_url",
+            "rhsso.rhsso_user",
+            "rhsso.user_password",
+            "rhsso.realm",
+            must_exist=True,
+        )
+    ],
+    # FIXME: SharedFunctionSettings
+    shared_function=[],
+    # FIXME: UpgradeSettings , complex validation rules
+    upgrade=[],
+    # FIXME: VirtWhoSettings
+    virtwho=[],
+    # FIXME: VlanNetworkSettings , complex validation rules
+    vlan_networking=[],
+    vmware=[
+        Validator(
+            "vmware.vcenter",
+            "vmware.username",
+            "vmware.password",
+            "vmware.datacenter",
+            "vmware.vm_name",
+            "vmware.image_os",
+            "vmware.image_arch",
+            "vmware.image_username",
+            "vmware.image_password",
+            "vmware.image_name",
+            must_exist=True,
+        )
+    ],
 )
