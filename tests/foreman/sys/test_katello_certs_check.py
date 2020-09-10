@@ -27,19 +27,17 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.decorators import destructive
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
 from robottelo.ssh import upload_file
-from robottelo.test import TestCase
 from robottelo.utils.issue_handlers import is_open
 
 
 @run_in_one_thread
-class KatelloCertsCheckTestCase(TestCase):
+class TestKatelloCertsCheck:
     """Implements ``katello-certs-check`` tests.
 
     Depends on presence of scripts and files in
@@ -48,21 +46,32 @@ class KatelloCertsCheckTestCase(TestCase):
     CA cert (a.k.a cacert.crt or rootCA.pem) can be used as bundle file.
     """
 
-    @classmethod
-    def setUpClass(cls):
+    @pytest.fixture(scope="module")
+    def cert_data(self):
         """Get host name, scripts, and create working directory."""
-        super(KatelloCertsCheckTestCase, cls).setUpClass()
-        _, cls.sat6_hostname = os.path.split(settings.server.hostname)
-        cls.capsule_hostname = 'capsule.example.com'
-        cls.key_file_name = '{0}/{0}.key'.format(cls.sat6_hostname)
-        cls.cert_file_name = '{0}/{0}.crt'.format(cls.sat6_hostname)
-        cls.ca_bundle_file_name = 'cacert.crt'
-        cls.SUCCESS_MSG = "Validation succeeded"
+        _, sat6_hostname = os.path.split(settings.server.hostname)
+        capsule_hostname = 'capsule.example.com'
+        key_file_name = '{0}/{0}.key'.format(sat6_hostname)
+        cert_file_name = '{0}/{0}.crt'.format(sat6_hostname)
+        ca_bundle_file_name = 'cacert.crt'
+        success_message = "Validation succeeded"
+        cert_data = {
+            'sat6_hostname': sat6_hostname,
+            'capsule_hostname': capsule_hostname,
+            'key_file_name': key_file_name,
+            'cert_file_name': cert_file_name,
+            'ca_bundle_file_name': ca_bundle_file_name,
+            'success_message': success_message,
+        }
+        return cert_data
+
+    @pytest.fixture(scope="module")
+    def cert_setup(self, cert_data):
         # Need a subdirectory under ssl-build with same name as Capsule name
         with get_connection(timeout=100) as connection:
-            connection.run('mkdir ssl-build/{0}'.format(cls.capsule_hostname))
+            connection.run('mkdir ssl-build/{0}'.format(cert_data['capsule_hostname']))
             # Ignore creation error, but assert directory exists
-            assert connection.run('test -e ssl-build/{0}'.format(cls.capsule_hostname))
+            assert connection.run('test -e ssl-build/{0}'.format(cert_data['capsule_hostname']))
         upload_file(
             local_file=get_data_file('generate-ca.sh'), remote_file="generate-ca.sh",
         )
@@ -78,11 +87,11 @@ class KatelloCertsCheckTestCase(TestCase):
         # create the Satellite's cert
         with get_connection(timeout=300) as connection:
             result = connection.run(
-                "yes | bash {} {}".format('generate-crt.sh', cls.sat6_hostname)
+                "yes | bash {} {}".format('generate-crt.sh', cert_data['sat6_hostname'])
             )
             assert result.return_code == 0
 
-    def validate_output(self, result):
+    def validate_output(self, result, cert_data):
         """Validate katello-certs-check output against a set.
 
         If CN part of Subject in the server cert matches the FQDN of the machine running
@@ -100,11 +109,12 @@ class KatelloCertsCheckTestCase(TestCase):
                 '--certs-update-server-ca',
             ]
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertIn(self.SUCCESS_MSG, result.stdout)
+        assert result.return_code == 0
+        assert cert_data['success_message'] in result.stdout
         # validate all checks passed
-        self.assertEqual(
-            any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK'), False
+        assert (
+            any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK')
+            == False
         )
         # validate options in output
         commands = result.stdout.split('To')
@@ -114,10 +124,10 @@ class KatelloCertsCheckTestCase(TestCase):
             for i in cmd.split():
                 if i.startswith('--'):
                     options.append(i)
-        self.assertEqual(set(options), expected_result)
+        assert set(options) == expected_result
 
     @tier1
-    def test_positive_validate_katello_certs_check_output(self):
+    def test_positive_validate_katello_certs_check_output(self, cert_setup, cert_data):
         """Validate that katello-certs-check generates correct output.
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
@@ -136,14 +146,16 @@ class KatelloCertsCheckTestCase(TestCase):
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c {} -k {} -b {}'.format(
-                    self.cert_file_name, self.key_file_name, self.ca_bundle_file_name
+                    cert_data['cert_file_name'],
+                    cert_data['key_file_name'],
+                    cert_data['ca_bundle_file_name'],
                 ),
                 output_format='plain',
             )
-        self.validate_output(result)
+        self.validate_output(result, cert_data)
 
     @destructive
-    def test_positive_update_katello_certs(self):
+    def test_positive_update_katello_certs(self, cert_setup, cert_data):
         """Update certificates on a currently running satellite instance.
 
         :id: 0ddf6954-dc83-435e-b156-b567b877c2a5
@@ -172,7 +184,9 @@ class KatelloCertsCheckTestCase(TestCase):
                     '--certs-server-key {} '
                     '--certs-server-ca-cert {} '
                     '--certs-update-server --certs-update-server-ca'.format(
-                        self.cert_file_name, self.key_file_name, self.ca_bundle_file_name
+                        cert_data['cert_file_name'],
+                        cert_data['key_file_name'],
+                        cert_data['ca_bundle_file_name'],
                     ),
                     timeout=500,
                 )
@@ -197,7 +211,7 @@ class KatelloCertsCheckTestCase(TestCase):
                 assert result.return_code == 0, 'Not all services are running'
 
     @destructive
-    def test_positive_generate_capsule_certs_using_absolute_path(self):
+    def test_positive_generate_capsule_certs_using_absolute_path(self, cert_setup, cert_data):
         """Create Capsule certs using absolute paths.
 
         :id: 72024757-be6f-49f0-8b88-c57c83f5e7e9
@@ -218,13 +232,17 @@ class KatelloCertsCheckTestCase(TestCase):
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
-                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(self.ca_bundle_file_name)
+                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(
+                    cert_data['ca_bundle_file_name']
+                )
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(self.cert_file_name)
+                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(self.key_file_name)
+                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(
+                    cert_data['key_file_name']
+                )
             )
             result = connection.run(
                 'capsule-certs-generate '
@@ -233,7 +251,7 @@ class KatelloCertsCheckTestCase(TestCase):
                 '--server-cert /root/capsule_cert/capsule_cert.pem '
                 '--server-key /root/capsule_cert/capsule_cert_key.pem '
                 '--server-ca-cert /root/capsule_cert/ca_cert_bundle.pem '
-                '--certs-update-server'.format(self.capsule_hostname),
+                '--certs-update-server'.format(cert_data['capsule_hostname']),
                 timeout=80,
             )
             assert result.return_code == 0, 'Capsule certs generate script failed.'
@@ -242,7 +260,7 @@ class KatelloCertsCheckTestCase(TestCase):
 
     @destructive
     @upgrade
-    def test_positive_generate_capsule_certs_using_relative_path(self):
+    def test_positive_generate_capsule_certs_using_relative_path(self, cert_setup, cert_data):
         """Create Capsule certs using relative paths.
 
         :id: 50df0b87-d2d3-42fb-86d5-988ebaaa9ba3
@@ -263,13 +281,17 @@ class KatelloCertsCheckTestCase(TestCase):
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
-                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(self.ca_bundle_file_name)
+                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(
+                    cert_data['ca_bundle_file_name']
+                )
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(self.cert_file_name)
+                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(self.key_file_name)
+                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(
+                    cert_data['key_file_name']
+                )
             )
             result = connection.run(
                 'capsule-certs-generate '
@@ -278,7 +300,7 @@ class KatelloCertsCheckTestCase(TestCase):
                 '--server-cert ~/capsule_cert/capsule_cert.pem '
                 '--server-key ~/capsule_cert/capsule_cert_key.pem '
                 '--server-ca-cert ~/capsule_cert/ca_cert_bundle.pem '
-                '--certs-update-server'.format(self.capsule_hostname),
+                '--certs-update-server'.format(cert_data['capsule_hostname']),
                 timeout=80,
             )
             assert result.return_code == 0, 'Capsule certs generate script failed.'
@@ -411,37 +433,36 @@ class KatelloCertsCheckTestCase(TestCase):
         """
 
 
-class CapsuleCertsCheckTestCase(TestCase):
+class TestCapsuleCertsCheckTestCase:
     """Implements Capsule certs checks on Satellite Server.
 
     Creates a temporary subdirectory and file under /var/tmp/
     on both Satellite Server's base system and on local host.
     """
 
-    @classmethod
-    @skip_if_not_set('certs')
-    def setUpClass(cls):
+    @pytest.fixture(scope="module")
+    def file_setup(self):
         """Create working directory and file."""
-        super(CapsuleCertsCheckTestCase, cls).setUpClass()
-        cls.tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
-        cls.caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(cls.tmp_dir)
+        tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
+        caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir)
         # Use same path locally as on remote for storing files
-        Path('{0}/ssl-build/capsule.example.com/'.format(cls.tmp_dir)).mkdir(
+        Path('{0}/ssl-build/capsule.example.com/'.format(tmp_dir)).mkdir(
             parents=True, exist_ok=True
         )
         with get_connection(timeout=200) as connection:
-            result = ssh.command('mkdir {0}'.format(cls.tmp_dir))
+            result = ssh.command('mkdir {0}'.format(tmp_dir))
             assert result.return_code == 0, 'Create working directory failed.'
             # Generate a Capsule cert for capsule.example.com
             result = connection.run(
                 'capsule-certs-generate '
                 '--foreman-proxy-fqdn capsule.example.com '
-                '--certs-tar {0}/capsule_certs.tar '.format(cls.tmp_dir),
+                '--certs-tar {0}/capsule_certs.tar '.format(tmp_dir),
                 timeout=100,
             )
+        return {'tmp_dir': tmp_dir, 'caps_cert_file': caps_cert_file}
 
     @tier1
-    def test_positive_validate_capsule_certificate(self):
+    def test_positive_validate_capsule_certificate(self, file_setup):
         """Check that Capsules cert handles additional proxy names.
 
         :id: 8b53fc3d-704f-44f4-899e-74654529bfcf
@@ -462,27 +483,26 @@ class CapsuleCertsCheckTestCase(TestCase):
         with get_connection(timeout=200) as connection:
             # extract the cert from the tar file
             result = connection.run(
-                'tar -xf {0}/capsule_certs.tar --directory {0}/ '.format(self.tmp_dir)
+                'tar -xf {0}/capsule_certs.tar --directory {0}/ '.format(file_setup['tmp_dir'])
             )
             assert result.return_code == 0, 'Extraction to working directory failed.'
             # Extract raw data from RPM to a file
             result = connection.run(
                 'rpm2cpio {0}/ssl-build/capsule.example.com/'
                 'capsule.example.com-qpid-router-server*.rpm'
-                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'.format(self.tmp_dir)
+                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'.format(file_setup['tmp_dir'])
             )
             # Extract the cert data from file cert-raw-data and write to cert-data
             result = connection.run(
                 'openssl x509 -noout -text -in {0}/ssl-build/capsule.example.com/cert-raw-data'
-                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(self.tmp_dir)
+                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(file_setup['tmp_dir'])
             )
             # use same location on remote and local for cert_file
-            download_file(self.caps_cert_file)
+            download_file(file_setup['caps_cert_file'])
             # search the file for the line with DNS
-            with open(self.caps_cert_file, "r") as file:
+            with open(file_setup['caps_cert_file'], "r") as file:
                 for line in file:
                     if re.search(r'\bDNS:', line):
-                        self.logger.info('Found the line with alternative names for DNS')
                         match = re.search(r'capsule.example.com', line)
                         assert match, "No proxy name found."
                         if is_open('BZ:1747581'):
