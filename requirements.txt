@@ -4,6 +4,7 @@
 attrdict==2.0.1
 broker>=0.1.3
 cryptography==3.2.1
+dynaconf==3.1.2
 fauxfactory==3.0.6
 Inflector==3.0.1
 navmazing==1.1.6
@@ -26,9 +27,6 @@ PyYAML==5.3.1
 pyotp==2.4.1
 pexpect==4.8.0
 pytest-ibutsu==1.1.1
-
-# Temporarily get dynaconf from master until 3.0.0 is out
-git+https://github.com/rochacbruno/dynaconf.git#egg=dynaconf
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
