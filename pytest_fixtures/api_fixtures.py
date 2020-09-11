@@ -8,12 +8,14 @@ from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
 from robottelo import ssh
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
@@ -61,6 +63,11 @@ def default_lce():
 @pytest.fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
+def module_host():
+    return entities.Host().create()
 
 
 @pytest.fixture(scope='session')
@@ -202,6 +209,19 @@ def module_puppet_environment(module_org, module_location):
         organization=[module_org], location=[module_location]
     ).create()
     return entities.Environment(id=environment.id).read()
+
+
+# Compute resource - Libvirt entities
+@pytest.fixture(scope="module")
+def module_cr_libvirt(module_org, module_location):
+    return entities.LibvirtComputeResource(
+        organization=[module_org], location=[module_location]
+    ).create()
+
+
+@pytest.fixture(scope="module")
+def module_libvirt_image(module_cr_libvirt):
+    return entities.Image(compute_resource=module_cr_libvirt).create()
 
 
 # Google Cloud Engine Entities
@@ -389,6 +409,15 @@ def default_contentview(module_org):
             'search': 'label=Default_Organization_View',
             'organization_id': '{}'.format(module_org.id),
         }
+    )
+
+
+@pytest.fixture(scope='module')
+def module_cv_with_puppet_module(module_org):
+    return publish_puppet_module(
+        [{'author': 'robottelo', 'name': 'generic_1'}],
+        CUSTOM_PUPPET_REPO,
+        organization_id=module_org.id,
     )
 
 

@@ -20,8 +20,11 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 :Upstream: No
 """
 import http
+import re
 
 import pytest
+
+from fauxfactory import gen_choice
 from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
@@ -31,73 +34,61 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
-from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_interfaces_list
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.datafactory import valid_interfaces_list
-from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.decorators.func_locker import lock_function
-from robottelo.test import APITestCase
 
 
-class HostTestCase(APITestCase):
+class TestHost:
     """Tests for ``entities.Host().path()``."""
 
-    @classmethod
-    @lock_function
-    @skip_if(not settings.repos_hosting_url)
-    def setUpClass(cls):
-        """Setup common entities."""
-        super(HostTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location(organization=[cls.org]).create()
-        # Content View and repository related entities
-        cls.cv = publish_puppet_module(
-            [{'author': 'robottelo', 'name': 'generic_1'}],
-            CUSTOM_PUPPET_REPO,
-            organization_id=cls.org.id,
-        )
-        cls.env = (
+    @pytest.fixture(scope='module')
+    def module_env_search(self, module_org, module_location, module_cv_with_puppet_module):
+        env = (
             entities.Environment()
             .search(
                 query={
                     'search': 'content_view="{0}" and organization_id={1}'.format(
-                        cls.cv.name, cls.org.id
+                        module_cv_with_puppet_module.name, module_org.id
                     )
                 }
             )[0]
             .read()
         )
-        cls.env.location.append(cls.loc)
-        cls.env.update(['location'])
-        cls.lce = (
+        env.location.append(module_location)
+        env.update(['location'])
+        return env
+
+    @pytest.fixture(scope='module')
+    def module_lce_search(self, module_org, module_env_search):
+        return (
             entities.LifecycleEnvironment()
             .search(
                 query={
-                    'search': 'name={0} and organization_id={1}'.format(ENVIRONMENT, cls.org.id)
+                    'search': 'name={0} and organization_id={1}'.format(ENVIRONMENT, module_org.id)
                 }
             )[0]
             .read()
         )
-        cls.puppet_classes = entities.PuppetClass().search(
+
+    @pytest.fixture(scope='module')
+    def module_puppet_classes(self, module_env_search):
+        return entities.PuppetClass().search(
             query={
-                'search': 'name ~ "{0}" and environment = "{1}"'.format('generic_1', cls.env.name)
+                'search': 'name ~ "{0}" and environment = "{1}"'.format(
+                    'generic_1', module_env_search.name
+                )
             }
         )
-        # Compute Resource related entities
-        cls.compresource_libvirt = entities.LibvirtComputeResource(
-            organization=[cls.org], location=[cls.loc]
-        ).create()
-        cls.image = entities.Image(compute_resource=cls.compresource_libvirt).create()
 
     @tier1
     def test_positive_get_search(self):
@@ -116,8 +107,8 @@ class HostTestCase(APITestCase):
             data={'search': query},
             verify=False,
         )
-        self.assertEqual(response.status_code, http.client.OK)
-        self.assertEqual(response.json()['search'], query)
+        assert response.status_code == http.client.OK
+        assert response.json()['search'] == query
 
     @tier1
     def test_positive_get_per_page(self):
@@ -137,11 +128,35 @@ class HostTestCase(APITestCase):
             data={'per_page': per_page},
             verify=False,
         )
-        self.assertEqual(response.status_code, http.client.OK)
-        self.assertEqual(response.json()['per_page'], per_page)
+        assert response.status_code == http.client.OK
+        assert response.json()['per_page'] == per_page
+
+    @tier2
+    def test_positive_search_by_org_id(self):
+        """Search for host by specifying host's organization id
+
+        :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
+
+        :customerscenario: true
+
+        :expectedresults: Search functionality works as expected and correct
+            result is returned
+
+        :BZ: 1447958
+
+        :CaseLevel: Integration
+        """
+        host = entities.Host().create()
+        # adding org id as GET parameter for correspondence with BZ
+        query = entities.Host()
+        query._meta['api_path'] += '?organization_id={}'.format(host.organization.id)
+        results = query.search()
+        assert len(results) == 1
+        assert results[0].id == host.id
 
     @tier1
-    def test_negative_create_with_owner_type(self):
+    @pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
+    def test_negative_create_with_owner_type(self, owner_type):
         """Create a host and specify only ``owner_type``.
 
         :id: cdf9d16f-1c47-498a-be48-901355385dde
@@ -150,17 +165,14 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for owner_type in ('User', 'Usergroup'):
-            with self.subTest(owner_type):
-                with self.assertRaises(HTTPError) as context:
-                    entities.Host(owner_type=owner_type).create()
-                self.assertEqual(context.exception.response.status_code, 422)
-                self.assertRegexpMatches(
-                    context.exception.response.text, "owner must be specified"
-                )
+        with pytest.raises(HTTPError) as context:
+            entities.Host(owner_type=owner_type).create()
+            assert context.exception.response.status_code == 422
+            assert re.search("owner must be specified", context.exception.response.text)
 
     @tier1
-    def test_positive_update_owner_type(self):
+    @pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
+    def test_positive_update_owner_type(self, owner_type, module_org, module_location):
         """Update a host's ``owner_type``.
 
         :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
@@ -173,54 +185,78 @@ class HostTestCase(APITestCase):
         :BZ: 1210001
         """
         owners = {
-            'User': entities.User(organization=[self.org], location=[self.loc]).create(),
+            'User': entities.User(organization=[module_org], location=[module_location]).create(),
             'Usergroup': entities.UserGroup().create(),
         }
-        host = entities.Host(organization=self.org, location=self.loc).create()
-        for owner_type in owners:
-            with self.subTest(owner_type):
-                host.owner_type = owner_type
-                host.owner = owners[owner_type]
-                host = host.update(['owner_type', 'owner'])
-                self.assertEqual(host.owner_type, owner_type)
-                self.assertEqual(host.owner.read(), owners[owner_type])
+        host = entities.Host(organization=module_org, location=module_location).create()
+        host.owner_type = owner_type
+        host.owner = owners[owner_type]
+        host = host.update(['owner_type', 'owner'])
+        assert host.owner_type == owner_type
+        assert host.owner.read() == owners[owner_type]
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Create a host with different names and minimal input parameters
+    def test_positive_create_and_update_with_name(self):
+        """Create and update a host with different names and minimal input parameters
 
         :id: a7c0e8ec-3816-4092-88b1-0324cb271752
 
-        :expectedresults: A host is created with expected name
+        :expectedresults: A host is created and updated with expected name
 
         :CaseImportance: Critical
         """
-        for name in valid_hosts_list():
-            with self.subTest(name):
-                host = entities.Host(name=name).create()
-                self.assertEqual(host.name, '{0}.{1}'.format(name, host.domain.read().name))
+        name = gen_choice(valid_hosts_list())
+        host = entities.Host(name=name).create()
+        assert host.name == '{0}.{1}'.format(name, host.domain.read().name)
+        new_name = gen_choice(valid_hosts_list())
+        host.name = new_name
+        host = host.update(['name'])
+        assert host.name == '{0}.{1}'.format(new_name, host.domain.read().name)
 
     @tier1
-    def test_positive_create_with_ip(self):
-        """Create a host with IP address specified
+    def test_positive_create_and_update_with_ip(self):
+        """Create and update host with IP address specified
 
         :id: 3f266906-c509-42ce-9b20-def448bf8d86
 
-        :expectedresults: A host is created with expected IP address
+        :expectedresults: A host is created and updated with expected IP address
 
         :CaseImportance: Critical
         """
         ip_addr = gen_ipaddr()
         host = entities.Host(ip=ip_addr).create()
-        self.assertEqual(host.ip, ip_addr)
+        assert host.ip == ip_addr
+        new_ip_addr = gen_ipaddr()
+        host.ip = new_ip_addr
+        host = host.update(['ip'])
+        assert host.ip == new_ip_addr
+
+    @tier1
+    def test_positive_create_and_update_mac(self):
+        """Create host with MAC address and update it
+
+        :id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
+
+        :expectedresults: A host is created with MAC address updated with a new MAC address
+
+        :CaseImportance: Critical
+        """
+
+        mac = gen_mac(multicast=False)
+        host = entities.Host(mac=mac).create()
+        assert host.mac == mac
+        new_mac = gen_mac(multicast=False)
+        host.mac = new_mac
+        host = host.update(['mac'])
+        assert host.mac == new_mac
 
     @tier2
-    def test_positive_create_with_hostgroup(self):
-        """Create a host with hostgroup specified
+    def test_positive_create_and_update_with_hostgroup(self):
+        """Create and update host with hostgroup specified
 
         :id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
 
-        :expectedresults: A host is created with expected hostgroup assigned
+        :expectedresults: A host is created and updated with expected hostgroup assigned
 
         :CaseLevel: Integration
         """
@@ -241,10 +277,22 @@ class HostTestCase(APITestCase):
                 'lifecycle_environment_id': lce.id,
             },
         ).create()
-        self.assertEqual(host.hostgroup.read().name, hostgroup.name)
+        assert host.hostgroup.read().name == hostgroup.name
+        new_hostgroup = entities.HostGroup(
+            location=[host.location], organization=[host.organization]
+        ).create()
+        host.hostgroup = new_hostgroup
+        host.content_facet_attributes = {
+            'content_view_id': content_view.id,
+            'lifecycle_environment_id': lce.id,
+        }
+        host = host.update(['hostgroup', 'content_facet_attributes'])
+        assert host.hostgroup.read().name == new_hostgroup.name
 
     @tier2
-    def test_positive_create_inherit_lce_cv(self):
+    def test_positive_create_inherit_lce_cv(
+        self, module_cv_with_puppet_module, module_lce_search, module_org
+    ):
         """Create a host with hostgroup specified. Make sure host inherited
         hostgroup's lifecycle environment and content-view
 
@@ -258,16 +306,16 @@ class HostTestCase(APITestCase):
         :BZ: 1391656
         """
         hostgroup = entities.HostGroup(
-            content_view=self.cv, lifecycle_environment=self.lce, organization=[self.org]
+            content_view=module_cv_with_puppet_module,
+            lifecycle_environment=module_lce_search,
+            organization=[module_org],
         ).create()
-        host = entities.Host(hostgroup=hostgroup, organization=self.org).create()
-        self.assertEqual(
-            host.content_facet_attributes['lifecycle_environment_id'],
-            hostgroup.lifecycle_environment.id,
+        host = entities.Host(hostgroup=hostgroup, organization=module_org).create()
+        assert (
+            host.content_facet_attributes['lifecycle_environment_id']
+            == hostgroup.lifecycle_environment.id
         )
-        self.assertEqual(
-            host.content_facet_attributes['content_view_id'], hostgroup.content_view.id
-        )
+        assert host.content_facet_attributes['content_view_id'] == hostgroup.content_view.id
 
     @tier2
     def test_positive_create_with_inherited_params(self):
@@ -301,20 +349,21 @@ class HostTestCase(APITestCase):
             glob_param_list = {
                 (param.name, param.value) for param in entities.CommonParameter().search()
             }
-        self.assertEqual(len(host.all_parameters), 2 + len(glob_param_list))
+        assert len(host.all_parameters) == 2 + len(glob_param_list)
         innerited_params = {(org_param.name, org_param.value), (loc_param.name, loc_param.value)}
         expected_params = innerited_params.union(glob_param_list)
-        self.assertEqual(
-            expected_params, {(param['name'], param['value']) for param in host.all_parameters}
-        )
+        assert expected_params == {
+            (param['name'], param['value']) for param in host.all_parameters
+        }
 
     @tier1
-    def test_positive_create_with_puppet_proxy(self):
-        """Create a host with puppet proxy specified
+    def test_positive_create_and_update_with_puppet_proxy(self):
+        """Create a host with puppet proxy specified and then create new host without specified
+        puppet proxy and update the new host with the same puppet proxy
 
         :id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
 
-        :expectedresults: A host is created with expected puppet proxy assigned
+        :expectedresults: Both hosts are associated with expected puppet proxy assigned
 
         :CaseImportance: Critical
         """
@@ -322,16 +371,20 @@ class HostTestCase(APITestCase):
             query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
         )[0]
         host = entities.Host(puppet_proxy=proxy).create()
-        self.assertEqual(host.puppet_proxy.read().name, proxy.name)
+        assert host.puppet_proxy.read().name == proxy.name
+        new_host = entities.Host().create()
+        new_host.puppet_proxy = proxy
+        new_host = new_host.update(['puppet_proxy'])
+        assert new_host.puppet_proxy.read().name == proxy.name
 
     @tier1
     def test_positive_create_with_puppet_ca_proxy(self):
-        """Create a host with puppet CA proxy specified
+        """Create a host with puppet CA proxy specified and then create new host without specified
+         puppet CA proxy and update the new host with the same puppet CA proxy
 
         :id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
-        :expectedresults: A host is created with expected puppet CA proxy
-            assigned
+        :expectedresults: Both hosts are associated with expected puppet CA proxy assigned
 
         :CaseImportance: Critical
         """
@@ -339,34 +392,51 @@ class HostTestCase(APITestCase):
             query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
         )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create()
-        self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
+        assert host.puppet_ca_proxy.read().name == proxy.name
+        new_host = entities.Host().create()
+        new_host.puppet_ca_proxy = proxy
+        new_host = new_host.update(['puppet_ca_proxy'])
+        assert new_host.puppet_ca_proxy.read().name == proxy.name
 
     @tier2
-    def test_positive_create_with_puppet_class(self):
-        """Create a host with associated puppet classes
+    def test_positive_end_to_end_with_puppet_class(
+        self, module_org, module_location, module_env_search, module_puppet_classes
+    ):
+        """Create a host with associated puppet classes then remove it and update the host
+        with same associated puppet classes
 
         :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
 
-        :expectedresults: A host is created with expected puppet classes
+        :expectedresults: A host is created with expected puppet classes then puppet classes
+        are removed and the host is updated with same puppet classes
         """
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
-            environment=self.env,
-            puppetclass=self.puppet_classes,
+            organization=module_org,
+            location=module_location,
+            environment=module_env_search,
+            puppetclass=module_puppet_classes,
         ).create()
-        self.assertEqual(
-            {puppet_class.id for puppet_class in host.puppetclass},
-            {puppet_class.id for puppet_class in self.puppet_classes},
-        )
+        assert {puppet_class.id for puppet_class in host.puppetclass} == {
+            puppet_class.id for puppet_class in module_puppet_classes
+        }
+        host.puppetclass = []
+        host.environment = []
+        host = host.update(['environment', 'puppetclass'])
+        assert len(host.puppetclass) == 0
+        host.environment = module_env_search
+        host.puppetclass = module_puppet_classes
+        host = host.update(['environment', 'puppetclass'])
+        assert {puppet_class.id for puppet_class in host.puppetclass} == {
+            puppet_class.id for puppet_class in module_puppet_classes
+        }
 
     @tier2
-    def test_positive_create_with_subnet(self):
-        """Create a host with subnet specified
+    def test_positive_create_and_update_with_subnet(self):
+        """Create and update a host with subnet specified
 
         :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
 
-        :expectedresults: A host is created with expected subnet assigned
+        :expectedresults: A host is created and updated with expected subnet assigned
 
         :CaseLevel: Integration
         """
@@ -374,15 +444,19 @@ class HostTestCase(APITestCase):
         loc = entities.Location(organization=[org]).create()
         subnet = entities.Subnet(location=[loc], organization=[org]).create()
         host = entities.Host(location=loc, organization=org, subnet=subnet).create()
-        self.assertEqual(host.subnet.read().name, subnet.name)
+        assert host.subnet.read().name == subnet.name
+        new_subnet = entities.Subnet(location=[loc], organization=[org]).create()
+        host.subnet = new_subnet
+        host = host.update(['subnet'])
+        assert host.subnet.read().name == new_subnet.name
 
     @tier2
-    def test_positive_create_with_compresource(self):
-        """Create a host with compute resource specified
+    def test_positive_create_and_update_with_compresource(self):
+        """Create and update a host with compute resource specified
 
         :id: 53069f2e-67a7-4d57-9846-acf6d8ce03cb
 
-        :expectedresults: A host is created with expected compute resource
+        :expectedresults: A host is created and updated with expected compute resource
             assigned
 
         :CaseLevel: Integration
@@ -393,45 +467,59 @@ class HostTestCase(APITestCase):
         host = entities.Host(
             compute_resource=compresource, location=loc, organization=org
         ).create()
-        self.assertEqual(host.compute_resource.read().name, compresource.name)
+        assert host.compute_resource.read().name == compresource.name
+        new_compresource = entities.LibvirtComputeResource(
+            location=[host.location], organization=[host.organization]
+        ).create()
+        host.compute_resource = new_compresource
+        host = host.update(['compute_resource'])
+        assert host.compute_resource.read().name == new_compresource.name
 
     @tier2
-    def test_positive_create_with_model(self):
-        """Create a host with model specified
+    def test_positive_create_and_update_with_model(self):
+        """Create and update a host with model specified
 
         :id: 7a912a19-71e4-4843-87fd-bab98c156f4a
 
-        :expectedresults: A host is created with expected model assigned
+        :expectedresults: A host is created and updated with expected model assigned
 
         :CaseLevel: Integration
         """
         model = entities.Model().create()
         host = entities.Host(model=model).create()
-        self.assertEqual(host.model.read().name, model.name)
+        assert host.model.read().name == model.name
+        new_model = entities.Model().create()
+        host.model = new_model
+        host = host.update(['model'])
+        assert host.model.read().name == new_model.name
 
     @tier2
-    def test_positive_create_with_user(self):
-        """Create a host with user specified
+    def test_positive_create_and_update_with_user(self, module_org, module_location):
+        """Create and update host with user specified
 
         :id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
 
-        :expectedresults: A host is created with expected user assigned
+        :expectedresults: A host is created and updated with expected user assigned
 
         :CaseLevel: Integration
         """
-        user = entities.User(organization=[self.org], location=[self.loc]).create()
+        user = entities.User(organization=[module_org], location=[module_location]).create()
         host = entities.Host(
-            owner=user, owner_type='User', organization=self.org, location=self.loc
+            owner=user, owner_type='User', organization=module_org, location=module_location
         ).create()
-        self.assertEqual(host.owner.read(), user)
+        assert host.owner.read() == user
+        new_user = entities.User(organization=[module_org], location=[module_location]).create()
+        host.owner = new_user
+        host = host.update(['owner'])
+        assert host.owner.read() == new_user
 
     @tier2
-    def test_positive_create_with_usergroup(self):
-        """Create a host with user group specified
+    def test_positive_create_and_update_with_usergroup(self):
+        """Create and update host with user group specified
 
         :id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
 
-        :expectedresults: A host is created with expected user group assigned
+        :expectedresults: A host is created and updated with expected user group assigned
 
         :CaseLevel: Integration
         """
@@ -443,144 +531,208 @@ class HostTestCase(APITestCase):
         host = entities.Host(
             location=loc, organization=org, owner=usergroup, owner_type='Usergroup'
         ).create()
-        self.assertEqual(host.owner.read().name, usergroup.name)
+        assert host.owner.read().name == usergroup.name
+        new_usergroup = entities.UserGroup(role=[role], user=[user]).create()
+        host.owner = new_usergroup
+        host = host.update(['owner'])
+        assert host.owner.read().name == new_usergroup.name
 
     @tier1
-    def test_positive_create_with_build_parameter(self):
-        """Create a host with 'build' parameter specified.
+    @pytest.mark.parametrize('build', **parametrized([True, False]))
+    def test_positive_create_and_update_with_build_parameter(self, build):
+        """Create and update a host with 'build' parameter specified.
         Build parameter determines whether to enable the host for provisioning
 
         :id: de30cf62-5036-4247-a5f0-37dd2b4aae23
 
-        :expectedresults: A host is created with expected 'build' parameter
+        :expectedresults: A host is created and updated with expected 'build' parameter
             value
 
         :CaseImportance: Critical
         """
-        host = entities.Host(build=True).create()
-        self.assertEqual(host.build, True)
+        host = entities.Host(build=build).create()
+        assert host.build == build
+        host.build = not build
+        host = host.update(['build'])
+        assert host.build == (not build)
 
     @tier1
-    def test_positive_create_with_enabled_parameter(self):
-        """Create a host with 'enabled' parameter specified.
+    @pytest.mark.parametrize('enabled', **parametrized([True, False]))
+    def test_positive_create_and_update_with_enabled_parameter(self, enabled):
+        """Create and update a host with 'enabled' parameter specified.
         Enabled parameter determines whether to include the host within
         Satellite 6 reporting
 
         :id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
 
-        :expectedresults: A host is created with expected 'enabled' parameter
+        :expectedresults: A host is created and updated with expected 'enabled' parameter
             value
 
         :CaseImportance: Critical
         """
-        host = entities.Host(enabled=False).create()
-        self.assertEqual(host.enabled, False)
+        host = entities.Host(enabled=enabled).create()
+        assert host.enabled == enabled
+        host.enabled = not enabled
+        host = host.update(['enabled'])
+        assert host.enabled == (not enabled)
 
     @tier1
-    def test_positive_create_with_managed_parameter(self):
-        """Create a host with managed parameter specified.
+    @pytest.mark.parametrize('managed', **parametrized([True, False]))
+    def test_positive_create_and_update_with_managed_parameter(self, managed):
+        """Create and update a host with managed parameter specified.
         Managed flag shows whether the host is managed or unmanaged and
         determines whether some extra parameters are required
 
         :id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
 
-        :expectedresults: A host is created with expected managed parameter
+        :expectedresults: A host is created and updated with expected managed parameter
             value
 
         :CaseImportance: Critical
         """
-        host = entities.Host(managed=True).create()
-        self.assertEqual(host.managed, True)
+        host = entities.Host(managed=managed).create()
+        assert host.managed == managed
+        host.managed = not managed
+        host = host.update(['managed'])
+        assert host.managed == (not managed)
 
     @tier1
-    def test_positive_create_with_comment(self):
-        """Create a host with a comment
+    def test_positive_create_and_update_with_comment(self):
+        """Create and update a host with a comment
 
         :id: 9b78663f-139c-4d0b-9115-180624b0d41b
 
-        :expectedresults: A host is created with expected comment
+        :expectedresults: A host is created and updated with expected comment
 
         :CaseImportance: Critical
         """
-        for comment in valid_data_list().values():
-            with self.subTest(comment):
-                host = entities.Host(comment=comment).create()
-                self.assertEqual(host.comment, comment)
+        comment = gen_choice(list(valid_data_list().values()))
+        host = entities.Host(comment=comment).create()
+        assert host.comment == comment
+        new_comment = gen_choice(list(valid_data_list().values()))
+        host.comment = new_comment
+        host = host.update(['comment'])
+        assert host.comment == new_comment
 
     @tier2
-    def test_positive_create_with_compute_profile(self):
-        """Create a host with a compute profile specified
+    def test_positive_create_and_update_with_compute_profile(self):
+        """Create and update a host with a compute profile specified
 
         :id: 94be25e8-035d-42c5-b1f3-3aa20030410d
 
-        :expectedresults: A host is created with expected compute profile
+        :expectedresults: A host is created and updated with expected compute profile
             assigned
 
         :CaseLevel: Integration
         """
-        profile = entities.ComputeProfile().create()
-        host = entities.Host(compute_profile=profile).create()
-        self.assertEqual(host.compute_profile.read().name, profile.name)
+        cprofile = entities.ComputeProfile().create()
+        host = entities.Host(compute_profile=cprofile).create()
+        assert host.compute_profile.read().name == cprofile.name
+        new_cprofile = entities.ComputeProfile().create()
+        host.compute_profile = new_cprofile
+        host = host.update(['compute_profile'])
+        assert host.compute_profile.read().name == new_cprofile.name
 
     @tier2
-    def test_positive_create_with_content_view(self):
-        """Create a host with a content view specified
+    def test_positive_create_and_update_with_content_view(
+        self, module_org, module_location, module_cv_with_puppet_module, module_lce_search
+    ):
+        """Create and update host with a content view specified
 
         :id: 10f69c7a-088e-474c-b869-1ad12deda2ad
 
-        :expectedresults: A host is created with expected content view assigned
+        :expectedresults: A host is created and updated with expected content view
 
         :CaseLevel: Integration
         """
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
+            organization=module_org,
+            location=module_location,
             content_facet_attributes={
-                'content_view_id': self.cv.id,
-                'lifecycle_environment_id': self.lce.id,
+                'content_view_id': module_cv_with_puppet_module.id,
+                'lifecycle_environment_id': module_lce_search.id,
             },
         ).create()
-        self.assertEqual(host.content_facet_attributes['content_view_id'], self.cv.id)
-        self.assertEqual(host.content_facet_attributes['lifecycle_environment_id'], self.lce.id)
+        assert host.content_facet_attributes['content_view_id'] == module_cv_with_puppet_module.id
+        assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_search.id
+
+        host.content_facet_attributes = {
+            'content_view_id': module_cv_with_puppet_module.id,
+            'lifecycle_environment_id': module_lce_search.id,
+        }
+        host = host.update(['content_facet_attributes'])
+        assert host.content_facet_attributes['content_view_id'] == module_cv_with_puppet_module.id
+        assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_search.id
 
     @tier1
-    def test_positive_create_with_host_parameters(self):
+    def test_positive_end_to_end_with_host_parameters(self, module_org, module_location):
         """Create a host with a host parameters specified
+        then remove and update with the newly specified parameters
 
         :id: e3af6718-4016-4756-bbb0-e3c24ac1e340
 
-        :expectedresults: A host is created with expected host parameters
+        :expectedresults: A host is created with expected host parameters,
+        paramaters are removed and new parameters are updated
 
         :CaseImportance: Critical
         """
         parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
         host = entities.Host(
-            organization=self.org, location=self.loc, host_parameters_attributes=parameters
+            organization=module_org,
+            location=module_location,
+            host_parameters_attributes=parameters,
         ).create()
-        self.assertEqual(host.host_parameters_attributes[0]['name'], parameters[0]['name'])
-        self.assertEqual(host.host_parameters_attributes[0]['value'], parameters[0]['value'])
-        self.assertIn('id', host.host_parameters_attributes[0])
+        assert host.host_parameters_attributes[0]['name'] == parameters[0]['name']
+        assert host.host_parameters_attributes[0]['value'] == parameters[0]['value']
+        assert 'id' in host.host_parameters_attributes[0]
+
+        parameters = []
+        host.host_parameters_attributes = parameters
+        host = host.update(['host_parameters_attributes'])
+        assert host.host_parameters_attributes == []
+
+        parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
+        host.host_parameters_attributes = parameters
+        host = host.update(['host_parameters_attributes'])
+        assert host.host_parameters_attributes[0]['name'] == parameters[0]['name']
+        assert host.host_parameters_attributes[0]['value'] == parameters[0]['value']
+        assert 'id' in host.host_parameters_attributes[0]
 
     @tier2
-    def test_positive_create_with_image(self):
-        """Create a host with an image specified
+    def test_positive_end_to_end_with_image(
+        self, module_org, module_location, module_cr_libvirt, module_libvirt_image
+    ):
+        """Create a host with an image specified then remove it
+        and update the host with the same image afterwards
 
         :id: 38b17b4d-d9d8-4ea1-aa0f-558496b990fc
 
-        :expectedresults: A host is created with expected image
+        :expectedresults: A host is created with expected image, image is removed and
+        host is updated with expected image
 
         :CaseLevel: Integration
         """
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
-            compute_resource=self.compresource_libvirt,
-            image=self.image,
+            organization=module_org,
+            location=module_location,
+            compute_resource=module_cr_libvirt,
+            image=module_libvirt_image,
         ).create()
-        self.assertEqual(host.image.id, self.image.id)
+        assert host.image.id == module_libvirt_image.id
+
+        host.image = []
+        host = host.update(['image'])
+        assert host.image is None
+
+        host.image = module_libvirt_image
+        host = host.update(['image'])
+        assert host.image.id == module_libvirt_image.id
 
     @tier1
-    def test_positive_create_with_provision_method(self):
+    @pytest.mark.parametrize('method', **parametrized(['build', 'image']))
+    def test_positive_create_with_provision_method(
+        self, method, module_org, module_location, module_cr_libvirt
+    ):
         """Create a host with provision method specified
 
         :id: c2243c30-f70a-4063-a4a4-f67b598a892b
@@ -589,16 +741,14 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for method in ['build', 'image']:
-            with self.subTest(method):
-                # Compute resource is required for 'image' method
-                host = entities.Host(
-                    organization=self.org,
-                    location=self.loc,
-                    compute_resource=self.compresource_libvirt,
-                    provision_method=method,
-                ).create()
-                self.assertEqual(host.provision_method, method)
+        # Compute resource is required for 'image' method
+        host = entities.Host(
+            organization=module_org,
+            location=module_location,
+            compute_resource=module_cr_libvirt,
+            provision_method=method,
+        ).create()
+        assert host.provision_method == method
 
     @tier1
     def test_positive_delete(self):
@@ -612,105 +762,88 @@ class HostTestCase(APITestCase):
         """
         host = entities.Host().create()
         host.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             host.read()
 
-    @tier1
-    def test_positive_update_name(self):
-        """Update a host with a new name
-
-        :id: a82b606c-d683-44ba-9086-684396ef1c10
-
-        :expectedresults: A host is updated with expected name
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
-        for new_name in valid_hosts_list():
-            with self.subTest(new_name):
-                host.name = new_name
-                host = host.update(['name'])
-                self.assertEqual(host.name, '{0}.{1}'.format(new_name, host.domain.read().name))
-
-    @tier1
-    def test_positive_update_mac(self):
-        """Update a host with a new MAC address
-
-        :id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
-
-        :expectedresults: A host is updated with a new MAC address
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
-        new_mac = gen_mac(multicast=False)
-        host.mac = new_mac
-        host = host.update(['mac'])
-        self.assertEqual(host.mac, new_mac)
-
     @tier2
-    def test_positive_update_domain(self):
-        """Update a host with a new domain
+    def test_positive_create_and_update_domain(self, module_org, module_location):
+        """Create and update a host with a domain
 
         :id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
 
-        :expectedresults: A host is updated with a new domain
+        :expectedresults: A host is created and updated with expected domain
 
         :CaseLevel: Integration
         """
-        host = entities.Host().create()
+        domain = entities.Domain(organization=[module_org], location=[module_location]).create()
+        host = entities.Host(
+            organization=module_org, location=module_location, domain=domain
+        ).create()
+        assert host.domain.read().name == domain.name
+
         new_domain = entities.Domain(
-            location=[host.location], organization=[host.organization]
+            organization=[module_org], location=[module_location]
         ).create()
         host.domain = new_domain
         host = host.update(['domain'])
-        self.assertEqual(host.domain.read().name, new_domain.name)
+        assert host.domain.read().name == new_domain.name
 
     @tier2
-    def test_positive_update_env(self):
-        """Update a host with a new environment
+    def test_positive_create_and_update_env(self, module_org, module_location):
+        """Create and update a host with an environment
 
         :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
-        :expectedresults: A host is updated with a new environment
+        :expectedresults: A host is created and updated with expected environment
 
         :CaseLevel: Integration
         """
-        host = entities.Host().create()
+        env = entities.Environment(organization=[module_org], location=[module_location],).create()
+        host = entities.Host(
+            organization=module_org, location=module_location, environment=env
+        ).create()
+        assert host.environment.read().name == env.name
+
         new_env = entities.Environment(
-            location=[host.location], organization=[host.organization]
+            organization=[host.organization], location=[host.location]
         ).create()
         host.environment = new_env
         host = host.update(['environment'])
-        self.assertEqual(host.environment.read().name, new_env.name)
+        assert host.environment.read().name == new_env.name
 
     @tier2
-    def test_positive_update_arch(self):
-        """Update a host with a new architecture
+    def test_positive_create_and_update_arch(self):
+        """Create and update a host with an architecture
 
         :id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
 
-        :expectedresults: A host is updated with a new architecture
+        :expectedresults: A host is created and updated with expected architecture
 
         :CaseLevel: Integration
         """
-        host = entities.Host().create()
+        arch = entities.Architecture().create()
+        host = entities.Host(architecture=arch).create()
+        assert host.architecture.read().name == arch.name
+
         new_arch = entities.Architecture(operatingsystem=[host.operatingsystem]).create()
         host.architecture = new_arch
         host = host.update(['architecture'])
-        self.assertEqual(host.architecture.read().name, new_arch.name)
+        assert host.architecture.read().name == new_arch.name
 
     @tier2
-    def test_positive_update_os(self):
-        """Update a host with a new operating system
+    def test_positive_create_and_update_os(self):
+        """Create and update a host with an operating system
 
         :id: 46edced1-8909-4066-b196-b8e22512341f
 
-        :expectedresults: A host is updated with a new operating system
+        :expectedresults: A host is created updated with expected operating system
 
         :CaseLevel: Integration
         """
-        host = entities.Host().create()
+        os = entities.OperatingSystem().create()
+        host = entities.Host(operatingsystem=os).create()
+        assert host.operatingsystem.read().name == os.name
+
         new_os = entities.OperatingSystem(
             architecture=[host.architecture], ptable=[host.ptable]
         ).create()
@@ -719,19 +852,22 @@ class HostTestCase(APITestCase):
         medium.update(['operatingsystem'])
         host.operatingsystem = new_os
         host = host.update(['operatingsystem'])
-        self.assertEqual(host.operatingsystem.read().name, new_os.name)
+        assert host.operatingsystem.read().name == new_os.name
 
     @tier2
-    def test_positive_update_medium(self):
-        """Update a host with a new medium
+    def test_positive_create_and_update_medium(self, module_org, module_location):
+        """Create and update a host with a medium
 
         :id: d81cb65c-48b3-4ce3-971e-51b9dd123697
 
-        :expectedresults: A host is updated with a new medium
+        :expectedresults: A host is created and updated with expected medium
 
         :CaseLevel: Integration
         """
-        host = entities.Host().create()
+        medium = entities.Media(organization=[module_org], location=[module_location],).create()
+        host = entities.Host(medium=medium).create()
+        assert host.medium.read().name == medium.name
+
         new_medium = entities.Media(
             operatingsystem=[host.operatingsystem],
             location=[host.location],
@@ -741,371 +877,10 @@ class HostTestCase(APITestCase):
         new_medium.update(['operatingsystem'])
         host.medium = new_medium
         host = host.update(['medium'])
-        self.assertEqual(host.medium.read().name, new_medium.name)
+        assert host.medium.read().name == new_medium.name
 
     @tier1
-    def test_positive_update_ip(self):
-        """Update a host with a new IP address
-
-        :id: 4c009db9-d720-429e-8150-bebf246d3a43
-
-        :expectedresults: A host is updated with a new IP address
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host(ip=gen_ipaddr()).create()
-        new_ip = gen_ipaddr()
-        host.ip = new_ip
-        host = host.update(['ip'])
-        self.assertEqual(host.ip, new_ip)
-
-    @tier2
-    def test_positive_update_hostgroup(self):
-        """Update a host with a new hostgroup
-
-        :id: dbe15f9a-242e-40f1-be90-d4f135596790
-
-        :expectedresults: A host is updated with a new hostgroup
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
-        loc = entities.Location(organization=[org]).create()
-        hostgroup = entities.HostGroup(location=[loc], organization=[org]).create()
-        host = entities.Host(
-            hostgroup=hostgroup,
-            location=loc,
-            organization=org,
-            content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lce.id,
-            },
-        ).create()
-        new_hostgroup = entities.HostGroup(
-            location=[host.location], organization=[host.organization]
-        ).create()
-        host.hostgroup = new_hostgroup
-        host.content_facet_attributes = {
-            'content_view_id': content_view.id,
-            'lifecycle_environment_id': lce.id,
-        }
-        host = host.update(['hostgroup', 'content_facet_attributes'])
-        self.assertEqual(host.hostgroup.read().name, new_hostgroup.name)
-
-    @tier1
-    def test_positive_update_puppet_proxy(self):
-        """Update a host with a new puppet proxy
-
-        :id: 98c11e9b-54b0-4f1f-819c-4ff1863457ff
-
-        :expectedresults: A host is updated with a new puppet proxy
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
-        )[0]
-        host.puppet_proxy = new_proxy
-        host = host.update(['puppet_proxy'])
-        self.assertEqual(host.puppet_proxy.read().name, new_proxy.name)
-
-    @tier1
-    def test_positive_update_puppet_ca_proxy(self):
-        """Update a host with a new puppet CA proxy
-
-        :id: 82eacf60-cf89-4035-ad9a-3f78ceb41d39
-
-        :expectedresults: A host is updated with a new puppet CA proxy
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
-        )[0]
-        host.puppet_ca_proxy = new_proxy
-        host = host.update(['puppet_ca_proxy'])
-        self.assertEqual(host.puppet_ca_proxy.read().name, new_proxy.name)
-
-    @tier1
-    def test_positive_update_puppet_class(self):
-        """Update a host with a new puppet classes
-
-        :id: 73f9efce-3807-4196-b4e3-a6bfbfe95c99
-
-        :expectedresults: A host is update with a new puppet classes
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host(organization=self.org, location=self.loc).create()
-        self.assertEqual(len(host.puppetclass), 0)
-        host.environment = self.env
-        host.puppetclass = self.puppet_classes
-        host = host.update(['environment', 'puppetclass'])
-        self.assertEqual(
-            {puppet_class.id for puppet_class in host.puppetclass},
-            {puppet_class.id for puppet_class in self.puppet_classes},
-        )
-
-    @tier2
-    def test_positive_update_subnet(self):
-        """Update a host with a new subnet
-
-        :id: c938e6b2-dbc0-4cd2-894a-8f2cc0e31063
-
-        :expectedresults: A host is updated with a new subnet
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        old_subnet = entities.Subnet(location=[loc], organization=[org]).create()
-        host = entities.Host(location=loc, organization=org, subnet=old_subnet).create()
-        new_subnet = entities.Subnet(location=[loc], organization=[org]).create()
-        host.subnet = new_subnet
-        host = host.update(['subnet'])
-        self.assertEqual(host.subnet.read().name, new_subnet.name)
-
-    @tier2
-    def test_positive_update_compresource(self):
-        """Update a host with a new compute resource
-
-        :id: 422f5db1-4eb6-43c2-a908-af9f8b5358f0
-
-        :expectedresults: A host is updated with a new compute resource
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        compute_resource = entities.LibvirtComputeResource(
-            location=[loc], organization=[org]
-        ).create()
-        host = entities.Host(
-            compute_resource=compute_resource, location=loc, organization=org
-        ).create()
-        new_compresource = entities.LibvirtComputeResource(
-            location=[host.location], organization=[host.organization]
-        ).create()
-        host.compute_resource = new_compresource
-        host = host.update(['compute_resource'])
-        self.assertEqual(host.compute_resource.read().name, new_compresource.name)
-
-    @tier2
-    def test_positive_update_model(self):
-        """Update a host with a new model
-
-        :id: da584445-ec24-4bed-82d0-d964bafa49bf
-
-        :expectedresults: A host is updated with a new model
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host(model=entities.Model().create()).create()
-        new_model = entities.Model().create()
-        host.model = new_model
-        host = host.update(['model'])
-        self.assertEqual(host.model.read().name, new_model.name)
-
-    @tier2
-    def test_positive_update_user(self):
-        """Update a host with a new user
-
-        :id: afb3a9d1-61ba-43c4-a00f-a1887441b8d0
-
-        :expectedresults: A host is updated with a new user
-
-        :CaseLevel: Integration
-        """
-        user = entities.User(organization=[self.org], location=[self.loc]).create()
-        host = entities.Host(
-            owner=user, owner_type='User', organization=self.org, location=self.loc
-        ).create()
-        new_user = entities.User(organization=[self.org], location=[self.loc]).create()
-        host.owner = new_user
-        host = host.update(['owner'])
-        self.assertEqual(host.owner.read(), new_user)
-
-    @tier2
-    def test_positive_update_usergroup(self):
-        """Update a host with a new user group
-
-        :id: a8d702ee-592a-4b5d-9fec-2fa07d3fda1b
-
-        :expectedresults: A host is updated with a new user group
-
-        :CaseLevel: Integration
-        """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        role = entities.Role().create()
-        user = entities.User(location=[loc], organization=[org], role=[role]).create()
-        usergroup = entities.UserGroup(role=[role], user=[user]).create()
-        host = entities.Host(
-            location=loc, organization=org, owner=usergroup, owner_type='Usergroup'
-        ).create()
-        new_usergroup = entities.UserGroup(role=[role], user=[user]).create()
-        host.owner = new_usergroup
-        host = host.update(['owner'])
-        self.assertEqual(host.owner.read().name, new_usergroup.name)
-
-    @tier1
-    def test_positive_update_build_parameter(self):
-        """Update a host with a new 'build' parameter value.
-        Build parameter determines whether to enable the host for provisioning
-
-        :id: f176ebc9-0406-4a7e-8e20-5325808d33db
-
-        :expectedresults: A host is updated with a new 'build' parameter value
-
-        :CaseImportance: Critical
-        """
-        for build in (True, False):
-            with self.subTest(build):
-                host = entities.Host(build=build).create()
-                host.build = not build
-                host = host.update(['build'])
-                self.assertEqual(host.build, not build)
-
-    @tier1
-    def test_positive_update_enabled_parameter(self):
-        """Update a host with a new 'enabled' parameter value.
-        Enabled parameter determines whether to include the host within
-        Satellite 6 reporting
-
-        :id: 8a84e842-3537-46d5-8275-1c593c2171b3
-
-        :expectedresults: A host is updated with a new 'enabled' parameter
-            value
-
-        :CaseImportance: Critical
-        """
-        for enabled in (True, False):
-            with self.subTest(enabled):
-                host = entities.Host(enabled=enabled).create()
-                host.enabled = not enabled
-                host = host.update(['enabled'])
-                self.assertEqual(host.enabled, not enabled)
-
-    @tier1
-    def test_positive_update_managed_parameter(self):
-        """Update a host with a new 'managed' parameter value
-        Managed flag shows whether the host is managed or unmanaged and
-        determines whether some extra parameters are required
-
-        :id: 623064aa-db84-4470-ac13-63f32d9f81b6
-
-        :expectedresults: A host is updated with a new 'managed' parameter
-            value
-
-        :CaseImportance: Critical
-        """
-        for managed in (True, False):
-            with self.subTest(managed):
-                host = entities.Host(managed=managed).create()
-                host.managed = not managed
-                host = host.update(['managed'])
-                self.assertEqual(host.managed, not managed)
-
-    @tier1
-    def test_positive_update_comment(self):
-        """Update a host with a new comment
-
-        :id: ceca20ce-5ecc-4f7f-b920-28b7bd74d351
-
-        :expectedresults: A host is updated with a new comment
-
-        :CaseImportance: Critical
-        """
-        for new_comment in valid_data_list().values():
-            with self.subTest(new_comment):
-                host = entities.Host(comment=gen_string('alpha')).create()
-                host.comment = new_comment
-                host = host.update(['comment'])
-                self.assertEqual(host.comment, new_comment)
-
-    @tier2
-    def test_positive_update_compute_profile(self):
-        """Update a host with a new compute profile
-
-        :id: a634c8a5-11ef-4d92-9df1-1f7e065f162e
-
-        :expectedresults: A host is updated with a new compute profile
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host(compute_profile=entities.ComputeProfile().create()).create()
-        new_cprofile = entities.ComputeProfile().create()
-        host.compute_profile = new_cprofile
-        host = host.update(['compute_profile'])
-        self.assertEqual(host.compute_profile.read().name, new_cprofile.name)
-
-    @tier2
-    def test_positive_update_content_view(self):
-        """Update a host with a new content view
-
-        :id: f51612fd-cbbc-4f9f-b85b-a4104a0501e5
-
-        :expectedresults: A host is updated with a new content view
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host(organization=self.org, location=self.loc).create()
-        self.assertFalse(hasattr(host, 'content_facet_attributes'))
-        host.content_facet_attributes = {
-            'content_view_id': self.cv.id,
-            'lifecycle_environment_id': self.lce.id,
-        }
-        host = host.update(['content_facet_attributes'])
-        self.assertEqual(host.content_facet_attributes['content_view_id'], self.cv.id)
-        self.assertEqual(host.content_facet_attributes['lifecycle_environment_id'], self.lce.id)
-
-    @tier1
-    def test_positive_update_host_parameters(self):
-        """Update a host with a new host parameters
-
-        :id: db0f5731-b0cc-4429-85fb-4032cb43ce4a
-
-        :expectedresults: A host is updated with a new host parameters
-
-        :CaseImportance: Critical
-        """
-        parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
-        host = entities.Host(organization=self.org, location=self.loc).create()
-        self.assertEqual(host.host_parameters_attributes, [])
-        host.host_parameters_attributes = parameters
-        host = host.update(['host_parameters_attributes'])
-        self.assertEqual(host.host_parameters_attributes[0]['name'], parameters[0]['name'])
-        self.assertEqual(host.host_parameters_attributes[0]['value'], parameters[0]['value'])
-        self.assertIn('id', host.host_parameters_attributes[0])
-
-    @tier2
-    def test_positive_update_image(self):
-        """Update a host with a new image
-
-        :id: e5d8a5b0-7834-4099-9047-8290c7008931
-
-        :expectedresults: A host is updated with a new image
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host(organization=self.org, location=self.loc).create()
-        host = entities.Host(
-            organization=self.org, location=self.loc, compute_resource=self.compresource_libvirt
-        ).create()
-        self.assertIsNone(host.image)
-        host.image = self.image
-        host = host.update(['image'])
-        self.assertEqual(host.image.id, self.image.id)
-
-    @tier1
-    def test_negative_update_name(self):
+    def test_negative_update_name(self, module_host):
         """Attempt to update a host with invalid or empty name
 
         :id: 1c46b44c-a2ea-43a6-b4d9-244101b081e8
@@ -1114,18 +889,15 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host = entities.Host().create()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                host.name = new_name
-                with self.assertRaises(HTTPError):
-                    host.update(['name'])
-                self.assertNotEqual(
-                    host.read().name, '{0}.{1}'.format(new_name, host.domain.read().name).lower()
-                )
+        new_name = gen_choice(invalid_values_list())
+        host = module_host
+        host.name = new_name
+        with pytest.raises(HTTPError):
+            host.update(['name'])
+        assert host.read().name != '{0}.{1}'.format(new_name, host.domain.read().name).lower()
 
     @tier1
-    def test_negative_update_mac(self):
+    def test_negative_update_mac(self, module_host):
         """Attempt to update a host with invalid or empty MAC address
 
         :id: 1954ea4e-e0c2-475f-af67-557e91ebc1e2
@@ -1134,13 +906,12 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host = entities.Host().create()
-        for new_mac in invalid_values_list():
-            with self.subTest(new_mac):
-                host.mac = new_mac
-                with self.assertRaises(HTTPError):
-                    host.update(['mac'])
-                self.assertNotEqual(host.read().mac, new_mac)
+        new_mac = gen_choice(invalid_values_list())
+        host = module_host
+        host.mac = new_mac
+        with pytest.raises(HTTPError):
+            host.update(['mac'])
+        assert host.read().mac != new_mac
 
     @tier2
     def test_negative_update_arch(self):
@@ -1156,9 +927,9 @@ class HostTestCase(APITestCase):
         host = entities.Host().create()
         new_arch = entities.Architecture().create()
         host.architecture = new_arch
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             host = host.update(['architecture'])
-        self.assertNotEqual(host.read().architecture.read().name, new_arch.name)
+        assert host.read().architecture.read().name != new_arch.name
 
     @tier2
     def test_negative_update_os(self):
@@ -1176,12 +947,12 @@ class HostTestCase(APITestCase):
             architecture=[host.architecture], ptable=[host.ptable]
         ).create()
         host.operatingsystem = new_os
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             host = host.update(['operatingsystem'])
-        self.assertNotEqual(host.read().operatingsystem.read().name, new_os.name)
+        assert host.read().operatingsystem.read().name != new_os.name
 
     @tier3
-    def test_positive_read_content_source_id(self):
+    def test_positive_read_content_source_id(self, module_org, module_location):
         """Read the host content_source_id attribute from the read request
         response
 
@@ -1201,14 +972,14 @@ class HostTestCase(APITestCase):
             .search(query={'url': 'https://{0}:9090'.format(settings.server.hostname)})[0]
             .read()
         )
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        content_view = entities.ContentView(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        content_view = entities.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
         promote(content_view.version[0], environment_id=lce.id)
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
+            organization=module_org,
+            location=module_location,
             content_facet_attributes={
                 'content_source_id': proxy.id,
                 'content_view_id': content_view.id,
@@ -1216,13 +987,13 @@ class HostTestCase(APITestCase):
             },
         ).create()
         content_facet_attributes = getattr(host, 'content_facet_attributes')
-        self.assertIsNotNone(content_facet_attributes)
+        assert content_facet_attributes is not None
         content_source_id = content_facet_attributes.get('content_source_id')
-        self.assertIsNotNone(content_source_id)
-        self.assertEqual(content_source_id, proxy.id)
+        assert content_source_id is not None
+        assert content_source_id == proxy.id
 
     @tier3
-    def test_positive_update_content_source_id(self):
+    def test_positive_update_content_source_id(self, module_org, module_location):
         """Read the host content_source_id attribute from the update request
         response
 
@@ -1240,14 +1011,14 @@ class HostTestCase(APITestCase):
         proxy = entities.SmartProxy().search(
             query={'url': 'https://{0}:9090'.format(settings.server.hostname)}
         )[0]
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        content_view = entities.ContentView(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        content_view = entities.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
         promote(content_view.version[0], environment_id=lce.id)
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
+            organization=module_org,
+            location=module_location,
             content_facet_attributes={
                 'content_view_id': content_view.id,
                 'lifecycle_environment_id': lce.id,
@@ -1259,14 +1030,22 @@ class HostTestCase(APITestCase):
         # read method after PUT request completion
         response = host.update_json(['content_facet_attributes'])
         content_facet_attributes = response.get('content_facet_attributes')
-        self.assertIsNotNone(content_facet_attributes)
+        assert content_facet_attributes is not None
         content_source_id = content_facet_attributes.get('content_source_id')
-        self.assertIsNotNone(content_source_id)
-        self.assertEqual(content_source_id, proxy.id)
+        assert content_source_id is not None
+        assert content_source_id == proxy.id
 
     @upgrade
     @tier2
-    def test_positive_read_enc_information(self):
+    def test_positive_read_enc_information(
+        self,
+        module_org,
+        module_location,
+        module_env_search,
+        module_puppet_classes,
+        module_lce_search,
+        module_cv_with_puppet_module,
+    ):
         """Attempt to read host ENC information
 
         :id: 0d5047ab-2686-43de-8f04-cfe12b62eebf
@@ -1286,31 +1065,30 @@ class HostTestCase(APITestCase):
                 dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
             )
         host = entities.Host(
-            organization=self.org,
-            location=self.loc,
-            environment=self.env,
-            puppetclass=self.puppet_classes,
+            organization=module_org,
+            location=module_location,
+            environment=module_env_search,
+            puppetclass=module_puppet_classes,
             content_facet_attributes={
-                'content_view_id': self.cv.id,
-                'lifecycle_environment_id': self.lce.id,
+                'content_view_id': module_cv_with_puppet_module.id,
+                'lifecycle_environment_id': module_lce_search.id,
             },
             host_parameters_attributes=host_parameters_attributes,
         ).create()
         host_enc_info = host.enc()
-        self.assertEqual(
-            {puppet_class.name for puppet_class in self.puppet_classes},
-            set(host_enc_info['data']['classes']),
+        assert {puppet_class.name for puppet_class in module_puppet_classes} == set(
+            host_enc_info['data']['classes']
         )
-        self.assertEqual(host_enc_info['data']['environment'], self.env.name)
-        self.assertIn('parameters', host_enc_info['data'])
+        assert host_enc_info['data']['environment'] == module_env_search.name
+        assert 'parameters' in host_enc_info['data']
         host_enc_parameters = host_enc_info['data']['parameters']
-        self.assertEqual(host_enc_parameters['organization'], self.org.name)
-        self.assertEqual(host_enc_parameters['location'], self.loc.name)
-        self.assertEqual(host_enc_parameters['content_view'], self.cv.name)
-        self.assertEqual(host_enc_parameters['lifecycle_environment'], self.lce.name)
+        assert host_enc_parameters['organization'] == module_org.name
+        assert host_enc_parameters['location'] == module_location.name
+        assert host_enc_parameters['content_view'] == module_cv_with_puppet_module.name
+        assert host_enc_parameters['lifecycle_environment'] == module_lce_search.name
         for param in host_parameters_attributes:
-            self.assertIn(param['name'], host_enc_parameters)
-            self.assertEqual(host_enc_parameters[param['name']], param['value'])
+            assert param['name'] in host_enc_parameters
+            assert host_enc_parameters[param['name']] == param['value']
 
     @tier2
     @pytest.mark.stubbed
@@ -1555,8 +1333,8 @@ class HostTestCase(APITestCase):
             query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
         )[0]
         host = entities.Host(puppet_proxy=proxy).create().read_json()
-        self.assertIn('puppet_proxy_name', host)
-        self.assertEqual(proxy.name, host['puppet_proxy_name'])
+        assert 'puppet_proxy_name' in host
+        assert proxy.name == host['puppet_proxy_name']
 
     @tier1
     def test_positive_read_puppet_ca_proxy_name(self):
@@ -1575,145 +1353,67 @@ class HostTestCase(APITestCase):
             query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
         )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
-        self.assertIn('puppet_ca_proxy_name', host)
-        self.assertEqual(proxy.name, host['puppet_ca_proxy_name'])
-
-    @tier2
-    def test_positive_search_by_org_id(self):
-        """Search for host by specifying host's organization id
-
-        :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
-
-        :customerscenario: true
-
-        :expectedresults: Search functionality works as expected and correct
-            result is returned
-
-        :BZ: 1447958
-
-        :CaseLevel: Integration
-        """
-        host = entities.Host().create()
-        # adding org id as GET parameter for correspondence with BZ
-        query = entities.Host()
-        query._meta['api_path'] += '?organization_id={}'.format(host.organization.id)
-        results = query.search()
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].id, host.id)
+        assert 'puppet_ca_proxy_name' in host
+        assert proxy.name == host['puppet_ca_proxy_name']
 
 
-class HostInterfaceTestCase(APITestCase):
+class TestHostInterface:
     """Tests for Host Interfaces"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Create a host to reuse in tests"""
-        super(HostInterfaceTestCase, cls).setUpClass()
-        cls.host = entities.Host().create()
-
     @tier1
-    def test_positive_create_with_name(self):
-        """Create an interface with different names and minimal input
+    def test_positive_create_end_to_end(self, module_host):
+        """Create update and delete an interface with different names and minimal input
         parameters
 
         :id: a45ee576-bec6-47a6-a018-a00e555eb2ad
 
-        :expectedresults: An interface is created with expected name
+        :expectedresults: An interface is created updated and deleted
 
         :CaseImportance: Critical
         """
-        for name in valid_interfaces_list():
-            with self.subTest(name):
-                interface = entities.Interface(host=self.host, name=name).create()
-                self.assertEqual(interface.name, name)
+        name = gen_choice(valid_interfaces_list())
+        interface = entities.Interface(host=module_host, name=name).create()
+        assert interface.name == name
+        new_name = gen_choice(valid_interfaces_list())
+        interface.name = new_name
+        interface = interface.update(['name'])
+        assert interface.name == new_name
+        interface.delete()
+        with pytest.raises(HTTPError):
+            interface.read()
 
     @tier1
-    def test_negative_create_with_name(self):
-        """Attempt to create an interface with different invalid entries as
+    def test_negative_end_to_end(self, module_host):
+        """Attempt to create update and delete an interface with different invalid entries as
         names (>255 chars, unsupported string types)
 
         :id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
 
-        :expectedresults: An interface is not created
+        :expectedresults: An interface is not created, not updated and not deleted
 
         :CaseImportance: Critical
         """
-        for name in invalid_interfaces_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError) as error:
-                    entities.Interface(host=self.host, name=name).create()
-                self.assertEqual(error.exception.response.status_code, 422)
+        name = gen_choice(invalid_interfaces_list())
+        with pytest.raises(HTTPError) as error:
+            entities.Interface(host=module_host, name=name).create()
+            assert error.exception.response.status_code == 422
+        interface = entities.Interface(host=module_host).create()
+        interface.name = name
+        with pytest.raises(HTTPError) as error:
+            interface.update(['name'])
+            assert interface.read().name != name
+            assert error.exception.response.status_code == 422
 
-    @tier1
-    def test_positive_update_name(self):
-        """Update interface name with different valid inputs
-
-        :id: c5034b04-097e-47a4-908b-ee78de1699a4
-
-        :expectedresults: Interface name is successfully updated
-
-        :CaseImportance: Critical
-        """
-        interface = entities.Interface(host=self.host).create()
-        for new_name in valid_interfaces_list():
-            with self.subTest(new_name):
-                interface.name = new_name
-                interface = interface.update(['name'])
-                self.assertEqual(interface.name, new_name)
-
-    @tier1
-    def test_negative_update_name(self):
-        """Attempt to update interface name with different invalid entries
-        (>255 chars, unsupported string types)
-
-        :id: 6a1fb718-adfb-47cb-b28c-fb3cd01f99b0
-
-        :expectedresults: An interface is not updated
-
-        :CaseImportance: Critical
-        """
-        interface = entities.Interface(host=self.host).create()
-        for new_name in invalid_interfaces_list():
-            with self.subTest(new_name):
-                interface.name = new_name
-                with self.assertRaises(HTTPError) as error:
-                    interface.update(['name'])
-                self.assertNotEqual(interface.read().name, new_name)
-                self.assertEqual(error.exception.response.status_code, 422)
-
-    @tier1
-    def test_positive_delete(self):
-        """Delete host's interface (not primary)
-
-        :id: 9bf83c3a-a4dc-420e-8d47-8572e5ae1dd6
-
-        :expectedresults: An interface is successfully deleted
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
-        interface = entities.Interface(host=host).create()
-        interface.delete()
-        with self.assertRaises(HTTPError):
-            interface.read()
-
-    @tier1
-    def test_negative_delete(self):
-        """Attempt to delete host's primary interface
-
-        :id: 716a9dfd-0f31-45aa-a6d1-42add032a15c
-
-        :expectedresults: An interface is not deleted
-
-        :CaseImportance: Critical
-        """
-        host = entities.Host().create()
         primary_interface = next(
-            interface for interface in host.interface if interface.read().primary
+            interface for interface in module_host.interface if interface.read().primary
         )
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             primary_interface.delete()
-        with self.assertNotRaises(HTTPError, expected_value=404):
+        try:
+            HTTPError
+        except 404:
+            pytest.fail("HTTPError raised value 404 unexpectedly!")
+        else:
             primary_interface.read()
 
     @upgrade
@@ -1734,7 +1434,11 @@ class HostInterfaceTestCase(APITestCase):
         host = entities.Host().create()
         interface = entities.Interface(host=host, primary=False).create()
         interface.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             interface.read()
-        with self.assertNotRaises(HTTPError, expected_value=404):
+        try:
+            HTTPError
+        except 404:
+            pytest.fail("HTTPError raised value 404 unexpectedly!")
+        else:
             host.read()
