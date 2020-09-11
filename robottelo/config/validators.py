@@ -170,14 +170,69 @@ validators = dict(
             must_exist=True,
         )
     ],
-    # FIXME: SharedFunctionSettings
-    shared_function=[],
-    # FIXME: UpgradeSettings , complex validation rules
-    upgrade=[],
-    # FIXME: VirtWhoSettings
-    virtwho=[],
-    # FIXME: VlanNetworkSettings , complex validation rules
-    vlan_networking=[],
+    shared_function=[
+        Validator("shared_function.storage", is_in=("file", "redis")),
+        Validator("shared_function.share_timeout", lt=86400, default=86400),
+    ],
+    upgrade=[
+        Validator("upgrade.rhev_cap_host", must_exist=False)
+        | Validator("upgrade.capsule_hostname", must_exist=False),
+        Validator("upgrade.rhev_capsule_ak", must_exist=False)
+        | Validator("upgrade.capsule_ak", must_exist=False),
+    ],
+    virtwho=[
+        Validator(
+            "virtwho.hypervisor_type",
+            "virtwho.hypervisor_server",
+            "virtwho.guest",
+            "virtwho.guest_username",
+            "virtwho.guest_password",
+            "virtwho.sku_vdc_physical",
+            "virtwho.sku_vdc_virtual",
+            must_exist=True,
+        ),
+        Validator(
+            "virtwho.hypervisor_type",
+            is_in=('esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt'),
+        ),
+        Validator(
+            "virtwho.hypervisor_config_file",
+            must_exist=True,
+            when=Validator("virtwho.hypervisor_type", eq="kubevirt"),
+        ),
+        Validator(
+            "virtwho.hypervisor_username",
+            must_exist=True,
+            when=Validator("virtwho.hypervisor_type", eq="libvirt"),
+        ),
+        Validator(
+            "virtwho.hypervisor_username",
+            "virtwho.hypervisor_password",
+            must_exist=True,
+            when=Validator("virtwho.hypervisor_type", is_in=('esx', 'xen', 'hyperv', 'rhevm')),
+        ),
+    ],
+    vlan_networking=[
+        Validator(
+            "vlan_networking.subnet",
+            "vlan_networking.netmask",
+            "vlan_networking.gateway",
+            must_exist=True,
+        ),
+        Validator("vlan_networking.dhcp_ipam", is_in=('Internal DB', 'DHCP')),
+        # one, and only one, of ("bridge", "network") must be defined
+        (
+            Validator("vlan_networking.bridge", must_exist=True)
+            & Validator("vlan_networking.network", must_exist=False)
+        )
+        | (
+            Validator("vlan_networking.bridge", must_exist=False)
+            & Validator("vlan_networking.network", must_exist=True)
+        ),
+        # both dhcp_from and dhcp_to are defined, or neither is
+        Validator("vlan_networking.dhcp_from", "vlan_networking.dhcp_to", must_exist=True,)
+        | Validator("vlan_networking.dhcp_from", "vlan_networking.dhcp_to", must_exist=False,),
+    ],
     vmware=[
         Validator(
             "vmware.vcenter",
