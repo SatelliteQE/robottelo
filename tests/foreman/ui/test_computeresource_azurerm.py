@@ -140,7 +140,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Installed'
+            assert 'Installed' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )
@@ -219,7 +219,7 @@ def test_positive_azurerm_host_provision_ud(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
+            assert 'Pending installation' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )
