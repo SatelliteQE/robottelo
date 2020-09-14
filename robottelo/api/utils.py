@@ -982,16 +982,14 @@ def update_rhsso_settings_in_satellite(revert=False):
         'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
         f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
     }
-    if not revert:
-        for setting_name, setting_value in rhhso_settings.items():
-            setting_entity = entities.Setting().search(
-                query={'search': 'name={}'.format(setting_name)}
-            )[0]
-            setting_entity.value = setting_value
-            setting_entity.update({'value'})
-    else:
+    if revert:
         setting_entity = entities.Setting().search(
             query={'search': 'name=authorize_login_delegation'}
         )[0]
         setting_entity.value = False
         setting_entity.update({'value'})
+    else:
+        for setting_name, setting_value in rhhso_settings.items():
+            setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
+            setting_entity.value = setting_value
+            setting_entity.update({'value'})

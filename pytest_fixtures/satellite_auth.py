@@ -156,11 +156,8 @@ def enroll_idm_and_configure_external_auth():
 def rhsso_setting_setup(request):
     """Update the RHSSO setting and revert it in cleanup"""
     update_rhsso_settings_in_satellite()
-
-    def rhsso_setting_cleanup():
-        update_rhsso_settings_in_satellite(revert=True)
-
-    request.addfinalizer(rhsso_setting_cleanup)
+    yield
+    update_rhsso_settings_in_satellite(revert=True)
 
 
 @fixture()
@@ -169,12 +166,9 @@ def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
     setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
     setting_entity.value = 1
     setting_entity.update({'value'})
-
-    def setting_timeout_cleanup():
-        setting_entity.value = 30
-        setting_entity.update({'value'})
-
-    request.addfinalizer(setting_timeout_cleanup)
+    yield
+    setting_entity.value = 30
+    setting_entity.update({'value'})
 
 
 @fixture(scope='session')

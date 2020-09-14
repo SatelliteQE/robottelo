@@ -165,9 +165,9 @@ def get_two_factor_token_rh_sso_url():
 
 @contextmanager
 def open_pxssh_session(
-    ssh_key=f'{settings.server.ssh_key}',
-    hostname=f'{settings.server.hostname}',
-    username=f'{settings.server.ssh_username}',
+    ssh_key=settings.server.ssh_key,
+    hostname=settings.server.hostname,
+    username=settings.server.ssh_username,
 ):
     ssh_options = {'IdentityAgent': ssh_key}
     ssh_session = pxssh.pxssh(options=ssh_options)
