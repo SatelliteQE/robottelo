@@ -16,7 +16,6 @@
 :Upstream: No
 
 """
-import os
 import re
 from pathlib import Path
 
@@ -49,7 +48,7 @@ class TestKatelloCertsCheck:
     @pytest.fixture(scope="module")
     def cert_data(self):
         """Get host name, scripts, and create working directory."""
-        _, sat6_hostname = os.path.split(settings.server.hostname)
+        sat6_hostname = settings.server.hostname
         capsule_hostname = 'capsule.example.com'
         key_file_name = '{0}/{0}.key'.format(sat6_hostname)
         cert_file_name = '{0}/{0}.crt'.format(sat6_hostname)
@@ -443,6 +442,7 @@ class TestCapsuleCertsCheckTestCase:
     @pytest.fixture(scope="module")
     def file_setup(self):
         """Create working directory and file."""
+        capsule_hostname = 'capsule.example.com'
         tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
         caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir)
         # Use same path locally as on remote for storing files
@@ -459,7 +459,11 @@ class TestCapsuleCertsCheckTestCase:
                 '--certs-tar {0}/capsule_certs.tar '.format(tmp_dir),
                 timeout=100,
             )
-        return {'tmp_dir': tmp_dir, 'caps_cert_file': caps_cert_file}
+        return {
+            'tmp_dir': tmp_dir,
+            'caps_cert_file': caps_cert_file,
+            'capsule_hostname': capsule_hostname,
+        }
 
     @tier1
     def test_positive_validate_capsule_certificate(self, file_setup):
@@ -488,14 +492,18 @@ class TestCapsuleCertsCheckTestCase:
             assert result.return_code == 0, 'Extraction to working directory failed.'
             # Extract raw data from RPM to a file
             result = connection.run(
-                'rpm2cpio {0}/ssl-build/capsule.example.com/'
-                'capsule.example.com-qpid-router-server*.rpm'
-                '>> {0}/ssl-build/capsule.example.com/cert-raw-data'.format(file_setup['tmp_dir'])
+                'rpm2cpio {0}/ssl-build/{1}/'
+                '{1}-qpid-router-server*.rpm'
+                '>> {0}/ssl-build/{1}/cert-raw-data'.format(
+                    file_setup['tmp_dir'], file_setup['capsule_hostname']
+                )
             )
             # Extract the cert data from file cert-raw-data and write to cert-data
             result = connection.run(
-                'openssl x509 -noout -text -in {0}/ssl-build/capsule.example.com/cert-raw-data'
-                '>> {0}/ssl-build/capsule.example.com/cert-data'.format(file_setup['tmp_dir'])
+                'openssl x509 -noout -text -in {0}/ssl-build/{1}/cert-raw-data'
+                '>> {0}/ssl-build/{1}/cert-data'.format(
+                    file_setup['tmp_dir'], file_setup['capsule_hostname']
+                )
             )
             # use same location on remote and local for cert_file
             download_file(file_setup['caps_cert_file'])
@@ -503,7 +511,7 @@ class TestCapsuleCertsCheckTestCase:
             with open(file_setup['caps_cert_file'], "r") as file:
                 for line in file:
                     if re.search(r'\bDNS:', line):
-                        match = re.search(r'capsule.example.com', line)
+                        match = re.search(r''.format(file_setup['capsule_hostname']), line)
                         assert match, "No proxy name found."
                         if is_open('BZ:1747581'):
                             DNS_Check = True
