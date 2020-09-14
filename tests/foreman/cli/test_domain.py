@@ -225,11 +225,11 @@ def test_negative_update(module_domain, options):
     :CaseImportance: Medium
     """
     with pytest.raises(CLIReturnCodeError):
-        Domain.update(dict(options, id=module_domain['id']))
+        Domain.update(dict(options, id=module_domain.id))
     # check - domain not updated
-    result = Domain.info({'id': module_domain['id']})
+    result = Domain.info({'id': module_domain.id})
     for key in options.keys():
-        assert result[key] == module_domain[key]
+        assert result[key] == getattr(module_domain, key)
 
 
 @tier2
@@ -245,12 +245,12 @@ def test_negative_set_parameter(module_domain, options):
 
     :CaseImportance: Low
     """
-    options['domain-id'] = module_domain['id']
+    options['domain-id'] = module_domain.id
     # set parameter
     with pytest.raises(CLIReturnCodeError):
         Domain.set_parameter(options)
     # check - parameter not set
-    domain = Domain.info({'id': module_domain['id']})
+    domain = Domain.info({'id': module_domain.id})
     assert len(domain['parameters']) == 0
 
 
