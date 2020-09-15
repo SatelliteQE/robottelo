@@ -20,8 +20,8 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.constants import FAKE_0_YUM_REPO
-from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2

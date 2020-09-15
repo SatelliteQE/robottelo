@@ -38,7 +38,7 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS

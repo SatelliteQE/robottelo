@@ -30,9 +30,9 @@ from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import CUSTOM_REPODATA_PATH
-from robottelo.constants import CUSTOM_SWID_TAG_REPO
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.datafactory import invalid_names_list

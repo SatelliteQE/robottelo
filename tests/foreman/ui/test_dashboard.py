@@ -23,7 +23,7 @@ from robottelo.api.utils import create_role_permissions
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set

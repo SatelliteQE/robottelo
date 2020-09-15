@@ -18,12 +18,12 @@ import pytest
 
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import DISTROS_SUPPORTED
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import xdist_adapter
 from robottelo.decorators import tier4
 from robottelo.products import DockerRepository

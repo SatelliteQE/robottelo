@@ -36,7 +36,7 @@ from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade

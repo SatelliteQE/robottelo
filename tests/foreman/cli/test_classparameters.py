@@ -28,7 +28,7 @@ from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1

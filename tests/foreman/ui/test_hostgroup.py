@@ -18,7 +18,7 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.decorators import fixture

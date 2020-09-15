@@ -2,13 +2,6 @@
 """Defines various constants"""
 from nailgun import entities
 
-from robottelo.config import settings
-
-if not settings.configured:
-    settings.configure()
-
-FIXTURES_URL = settings.fixtures_url
-
 LOCALES = (
     'ca',
     'de',
@@ -650,63 +643,16 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     },
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
-
 DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
 DOCKER_UPSTREAM_NAME = 'busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
-CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'
 CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
-
-CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
-
-CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
-
-CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
-
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-
-CUSTOM_MODULE_STREAM_REPO_1 = f'{FIXTURES_URL}/module_stream1'
-CUSTOM_MODULE_STREAM_REPO_2 = f'{FIXTURES_URL}/module_stream2'
-CUSTOM_SWID_TAG_REPO = f'{FIXTURES_URL}/swid_zoo'
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
-FAKE_0_YUM_REPO = f'{FIXTURES_URL}/fake_yum0'
-FAKE_1_YUM_REPO = f'{FIXTURES_URL}/fake_yum1'
-FAKE_2_YUM_REPO = f'{FIXTURES_URL}/fake_yum2'
-FAKE_3_YUM_REPO = f'{FIXTURES_URL}/fake_yum3'
-FAKE_4_YUM_REPO = f'{FIXTURES_URL}/fake_yum4'
-FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = f'{FIXTURES_URL}/needed_errata'
-FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
-FAKE_8_YUM_REPO = f'{FIXTURES_URL}/lots_files'
-FAKE_9_YUM_REPO = f'{FIXTURES_URL}/multiple_errata'
-FAKE_10_YUM_REPO = f'{FIXTURES_URL}/modules_rpms'
-FAKE_11_YUM_REPO = f'{FIXTURES_URL}/rpm_deps'
-FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = f'{FIXTURES_URL}/yum_mixed'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
-CUSTOM_PUPPET_REPO = f'{FIXTURES_URL}/custom_puppet'
-FAKE_0_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet0'
-FAKE_1_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet1'
-FAKE_2_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet2'
-FAKE_3_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet3'
-FAKE_4_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet4'
-FAKE_5_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet5'
-FAKE_6_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet6'
-FAKE_7_PUPPET_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
-FAKE_8_PUPPET_REPO = f'{FIXTURES_URL}/fake_puppet8'
-# Fedora's OSTree repo changed to a single repo at
-#   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
-# With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
-# We will use the archived versions for now, but probably need to revisit this.
-FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
-FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
-REPO_DISCOVERY_URL = 'http://omaciel.fedorapeople.org/'
-FAKE_0_INC_UPD_URL = f'{FIXTURES_URL}/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
@@ -809,14 +755,7 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
 
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
-
-FAKE_PULP_REMOTE_FILEREPO = f'{FIXTURES_URL}/pulp_remote'
-
-FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
-)
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
-
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'

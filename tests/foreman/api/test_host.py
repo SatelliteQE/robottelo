@@ -33,7 +33,7 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_interfaces_list
 from robottelo.datafactory import invalid_values_list

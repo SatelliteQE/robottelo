@@ -25,7 +25,7 @@ from robottelo.api.utils import promote
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_SWID_TAG_REPO
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_RELEASE_VERSION
 from robottelo.constants import DISTRO_RHEL6
@@ -37,11 +37,11 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
-from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_0_RH_PACKAGE

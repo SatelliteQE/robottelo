@@ -23,7 +23,7 @@ from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string

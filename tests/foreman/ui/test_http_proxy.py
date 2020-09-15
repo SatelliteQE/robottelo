@@ -20,8 +20,8 @@ from fauxfactory import gen_url
 from nailgun import entities
 
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2

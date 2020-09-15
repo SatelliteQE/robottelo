@@ -27,7 +27,7 @@ from robottelo.cli.factory import make_repository_with_credentials
 from robottelo.cli.factory import make_user
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
-from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os

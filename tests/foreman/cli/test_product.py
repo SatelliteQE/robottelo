@@ -33,7 +33,7 @@ from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list

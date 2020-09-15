@@ -25,8 +25,8 @@ from robottelo.api.utils import promote
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY

@@ -49,6 +49,8 @@ ssh_key=
 # Webdriver logging options
 # A list of commands to be logged
 # log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo
+# The URL of container hosting repos on SatLab
+# repos_hosting_url=
 
 # browser tells robottelo which browser to use when testing UI. Valid values
 # are:

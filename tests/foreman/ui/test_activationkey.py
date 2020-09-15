@@ -38,8 +38,8 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE

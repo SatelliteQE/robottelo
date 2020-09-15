@@ -19,7 +19,7 @@ from datetime import timedelta
 from fauxfactory import gen_choice
 from nailgun import entities
 
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.constants import VALID_GPG_KEY_FILE

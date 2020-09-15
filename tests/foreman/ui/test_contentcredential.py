@@ -18,9 +18,9 @@
 from nailgun import entities
 
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
-from robottelo.constants import REPO_DISCOVERY_URL
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture

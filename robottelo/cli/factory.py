@@ -79,7 +79,7 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTROS_MAJOR_VERSION
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.constants import PRDS

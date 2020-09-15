@@ -24,8 +24,8 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOCKER_UPSTREAM_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS

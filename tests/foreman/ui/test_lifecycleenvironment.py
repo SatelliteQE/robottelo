@@ -20,12 +20,12 @@ from navmazing import NavigationTriesExceeded
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE

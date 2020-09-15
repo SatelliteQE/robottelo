@@ -29,9 +29,9 @@ from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
-from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
