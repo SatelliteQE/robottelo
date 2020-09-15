@@ -2517,6 +2517,13 @@ class HostSubscriptionTestCase(CLITestCase):
                 'content-view-id': self.content_view['id'],
             }
         )
+        ActivationKey.add_subscription(
+            {
+                'organization-id': self.org['id'],
+                'id': activation_key['id'],
+                'subscription-id': self.default_subscription_id,
+            }
+        )
         # Register a host using the activation key
         self._register_client(activation_key=activation_key, enable_repo=True, auto_attach=True)
         self.assertTrue(self.client.subscribed)
@@ -2559,13 +2566,12 @@ class HostSubscriptionTestCase(CLITestCase):
         self.assertEqual(
             host['subscription-information']['system-purpose']['service-level'], "Self-Support2"
         )
-        # Assert subscriptions present
         host_subscriptions = ActivationKey.subscriptions(
             {'organization-id': self.org['id'], 'id': activation_key['id'], 'host-id': host['id']},
             output_format='json',
         )
         self.assertGreater(len(host_subscriptions), 0)
-        self.assertEqual(self.subscription_name, host_subscriptions[0]['name'])
+        self.assertEqual(host_subscriptions[0]['name'], self.subscription_name)
         # Unregister host
         Host.subscription_unregister({'host': self.client.hostname})
         with self.assertRaises(CLIReturnCodeError):
