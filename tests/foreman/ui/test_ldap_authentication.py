@@ -1361,3 +1361,43 @@ def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
+
+
+@pytest.mark.stubbed
+def test_login_logout_using_cac_card():
+    """Verify Satellite Integration with RHSSO Server Login, Logout using CAC Card from Satellite UI
+
+    :id: e79385ac-f679-11ea-b961-d46d6dd3b5b2
+
+    :CaseImportance: High
+
+    :CaseAutomation: ManualOnly
+
+    :steps:
+        1. configure the Satellite with RH-SSO instance
+        2. configure the firefox to use the CAC card cert, insert the CAC card
+        3. open the satellite url from firefox browser, authenticate using CAC card
+
+    :expectedresults: Satellite login/logout should be successful
+    """
+
+
+@pytest.mark.stubbed
+def test_timeout_and_cac_card_ejection():
+    """Verify CAC card ejection and timeout with Satellite integrated with RHSSO
+
+    :id: 8de96d2a-f67c-11ea-8a63-d46d6dd3b5b2
+
+    :CaseImportance: High
+
+    :CaseAutomation: ManualOnly
+
+    :steps:
+        1. configure the Satellite with RH-SSO instance
+        2. configure the firefox to use the CAC card cert, insert the CAC card
+        3. open the satellite url from firefox browser, authenticate using CAC card
+        4. setup the timeout setting in satellite
+        5. eject the cac card
+
+    :expectedresults: Satellite should terminate the session after mentioned timeout in setting
+    """
