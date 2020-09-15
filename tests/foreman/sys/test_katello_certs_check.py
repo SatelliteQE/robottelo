@@ -111,10 +111,7 @@ class TestKatelloCertsCheck:
         assert result.return_code == 0
         assert cert_data['success_message'] in result.stdout
         # validate all checks passed
-        assert (
-            any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK')
-            == False
-        )
+        assert not any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK')
         # validate options in output
         commands = result.stdout.split('To')
         commands.pop(0)
@@ -511,7 +508,7 @@ class TestCapsuleCertsCheckTestCase:
             with open(file_setup['caps_cert_file'], "r") as file:
                 for line in file:
                     if re.search(r'\bDNS:', line):
-                        match = re.search(r''.format(file_setup['capsule_hostname']), line)
+                        match = re.search(r'{}'.format(file_setup['capsule_hostname']), line)
                         assert match, "No proxy name found."
                         if is_open('BZ:1747581'):
                             DNS_Check = True
