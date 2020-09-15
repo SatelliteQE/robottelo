@@ -8,6 +8,7 @@ pytest_plugins = [
     "pytest_plugins.manual_skipped",
     # Fixtures
     "pytest_fixtures.api_fixtures",
+    "pytest_fixtures.xdist",
     # Component Fixtures
     "pytest_fixtures.satellite_auth",
     "pytest_fixtures.templatesync_fixtures",

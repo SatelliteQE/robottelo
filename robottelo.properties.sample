@@ -2,6 +2,10 @@
 [server]
 # Server hostname
 hostname=
+# Additional satellite hostnames for xdist workers
+# gw0=
+# gw1=
+# gw2=
 
 # Path to private ssh key to be used when connecting via SSH.
 ssh_key=
