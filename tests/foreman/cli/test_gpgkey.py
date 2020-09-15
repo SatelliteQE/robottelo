@@ -17,7 +17,6 @@
 """
 from tempfile import mkstemp
 
-import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_choice
 from fauxfactory import gen_integer
@@ -385,23 +384,6 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_add_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method
-
-        :id: fb12db0f-583f-49f4-9d8f-d19f2d5550ee
-
-        :expectedresults: gpg key is associated with product but not the
-            repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
     @tier2
     def test_positive_add_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -455,23 +437,6 @@ class TestGPGKey(CLITestCase):
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('id'), gpg_key['id'])
-
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_add_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method
-
-        :id: 1e91871c-0298-4cd0-b63b-f02d02622259
-
-        :expectedresults: gpg key is associated with product and all the
-            repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_update_key_for_empty_product(self):
@@ -594,23 +559,6 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), new_name)
 
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_update_key_for_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method then update the key
-
-        :id: 8092bd11-75f3-4657-9309-d327498e7d52
-
-        :expectedresults: gpg key is associated with product before/after
-            update but not the repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -690,23 +638,6 @@ class TestGPGKey(CLITestCase):
         for repo in repos[1:]:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), new_name)
-
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_update_key_for_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method then update the key
-
-        :id: 21dfd9b0-3de9-4876-aeea-c856adb5ed98
-
-        :expectedresults: gpg key is associated with product and all
-            repositories before/after update
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_delete_key_for_empty_product(self):
@@ -815,24 +746,6 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_delete_key_for_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method then delete it
-
-        :id: f8492db8-12f3-4d32-833a-f177734e2253
-
-        :expectedresults: gpg key is associated with product but not the
-            repositories during creation but removed from product after
-            deletion
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
     @tier2
     def test_positive_delete_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
@@ -909,72 +822,6 @@ class TestGPGKey(CLITestCase):
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
-
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_delete_key_for_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method then delete the key
-
-        :id: 8ae226c6-f27c-4fb5-94f2-89792cccda0b
-
-        :expectedresults: gpg key is associated with product and all
-            repositories during creation but removed from product and all
-            repositories after deletion
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    # Content
-
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_consume_content_using_repo(self):
-        """Hosts can install packages using gpg key associated with
-        single custom repository
-
-        :id: 39357649-4c60-4c82-9114-a43dfef81e5b
-
-        :expectedresults: host can install package from custom repository
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @pytest.mark.stubbed
-    @tier2
-    @upgrade
-    def test_positive_consume_content_using_repos(self):
-        """Hosts can install packages using gpg key associated with
-        multiple custom repositories
-
-        :id: fedd6fa2-e28b-468b-8e15-802b52970bb9
-
-        :expectedresults: host can install package from custom repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @pytest.mark.stubbed
-    @tier2
-    def test_positive_consume_content_using_repos_and_different_keys(self):
-        """Hosts can install packages using different gpg keys
-        associated with multiple custom repositories
-
-        :id: ac908aee-0928-4f81-a98b-b60d46b10c90
-
-        :expectedresults: host can install package from custom repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     # Miscelaneous
 
