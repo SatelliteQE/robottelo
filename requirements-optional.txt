@@ -2,7 +2,6 @@
 codecov
 flake8
 pytest-cov
-pytest-xdist
 redis
 tox
 pre-commit
