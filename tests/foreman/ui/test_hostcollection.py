@@ -575,7 +575,7 @@ def test_positive_change_assigned_content(
     new_content_view.publish()
     new_content_view = new_content_view.read()
     new_content_view_version = new_content_view.version[0]
-    new_content_view_version.promote(data={'environment_id': new_lce.id})
+    new_content_view_version.promote(data={'environment_ids': new_lce.id})
     # repository urls listed by command "subscription-manager repos" looks
     # like:
     # Repo URL  : https://{host}/pulp/repos/{org}/{lce}/{cv}/custom
