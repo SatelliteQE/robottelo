@@ -1,116 +1,15 @@
 """Define and instantiate the configuration class for virtwho hypervisors."""
 import logging.config
 import os
-from configparser import ConfigParser
-from configparser import NoOptionError
-from configparser import NoSectionError
 
-from robottelo.config import casts
+from robottelo.config.base import FeatureSettings
+from robottelo.config.base import get_project_root
+from robottelo.config.base import ImproperlyConfigured
+from robottelo.config.base import INIReader
+
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'virtwho.properties'
-
-
-class ImproperlyConfigured(Exception):
-    """Indicates that virtwho hypervisor somehow is improperly configured.
-
-    For example, if settings file can not be found or some required
-    configuration is not defined.
-    """
-
-
-def get_project_root():
-    """Return the path to the Robottelo project root directory.
-
-    :return: A directory path.
-    :rtype: str
-    """
-    return os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-
-
-class INIReader(object):
-    """ConfigParser wrapper able to cast value when reading INI options."""
-
-    # Helper casters
-    cast_boolean = casts.Boolean()
-    cast_dict = casts.Dict()
-    cast_list = casts.List()
-    cast_logging_level = casts.LoggingLevel()
-    cast_tuple = casts.Tuple()
-    cast_webdriver_desired_capabilities = casts.WebdriverDesiredCapabilities()
-
-    def __init__(self, path):
-        self.config_parser = ConfigParser()
-        with open(path) as handler:
-            self.config_parser.read_file(handler)
-
-    def get(self, section, option, default=None, cast=None):
-        """Read an option from a section of a INI file.
-
-        First try to lookup for the value as an environment variable having the
-        following format: ROBOTTELO_{SECTION}_{OPTION}.
-
-        The default value will return if the look up option is not available.
-        The value will be cast using a callable if specified otherwise a string
-        will be returned.
-
-        :param section: Section to look for.
-        :param option: Option to look for.
-        :param default: The value that should be used if the option is not
-            defined.
-        :param cast: If provided the value will be cast using the cast
-            provided.
-        """
-        # First try to read from environment variable.
-        # [bugzilla]
-        # api_key=123456
-        # can be expressed as:
-        # $ export ROBOTTELO_BUGZILLA_API_KEY=123456
-        value = os.environ.get(f'ROBOTTELO_{section.upper()}_{option.upper()}')
-
-        try:
-            # If envvar does not exist then try from .properties file.
-            value = value or self.config_parser.get(section, option)
-            if cast is not None:
-                if cast is bool:
-                    value = self.cast_boolean(value)
-                elif cast is dict:
-                    value = self.cast_dict(value)
-                elif cast is list:
-                    value = self.cast_list(value)
-                elif cast is tuple:
-                    value = self.cast_tuple(value)
-                else:
-                    value = cast(value)
-        except (NoSectionError, NoOptionError):
-            value = default
-        return value
-
-    def has_section(self, section):
-        """Check if section is available."""
-        return self.config_parser.has_section(section)
-
-
-class FeatureSettings(object):
-    """Settings related to a feature.
-
-    Create a instance of this class and assign attributes to map to the feature
-    options.
-    """
-
-    def read(self, reader):
-        """Subclasses must implement this method in order to populate itself
-        with expected settings values.
-
-        :param reader: An INIReader instance to read the settings.
-        """
-        raise NotImplementedError('Subclasses must implement read method.')
-
-    def validate(self):
-        """Subclasses must implement this method in order to validade the
-        settings and raise ``ImproperlyConfigured`` if any issue is found.
-        """
-        raise NotImplementedError('Subclasses must implement validate method.')
 
 
 class SkuSettings(FeatureSettings):
