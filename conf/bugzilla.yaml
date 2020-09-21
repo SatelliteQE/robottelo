@@ -1,3 +1,0 @@
-bugzilla:
-  api_key: "<str>"
-  url: https://bugzilla.redhat.com
