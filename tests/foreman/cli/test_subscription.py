@@ -191,7 +191,7 @@ class SubscriptionTestCase(CLITestCase):
         self._upload_manifest(self.org['id'])
         Subscription.list({'organization-id': self.org['id']}, per_page=None)
         history = Subscription.manifest_history({'organization-id': self.org['id']})
-        self.assertIn('{0} file imported successfully.'.format(self.org['name']), ''.join(history))
+        assert 'file imported successfully' in ''.join(history)
 
     @tier1
     @upgrade
@@ -225,7 +225,7 @@ class SubscriptionTestCase(CLITestCase):
         self._upload_manifest(self.org['id'])
         subscription_list = Subscription.list({'organization-id': self.org['id']}, per_page=False)
         for column in ['start-date', 'end-date']:
-            self.assertIn(column, subscription_list[0].keys())
+            assert column in subscription_list[0].keys()
 
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
@@ -259,7 +259,7 @@ class SubscriptionTestCase(CLITestCase):
         Subscription.with_user(username=user2.login, password=user2_password).delete_manifest(
             {'organization-id': org.id}
         )
-        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+        assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @tier2
     @pytest.mark.stubbed
