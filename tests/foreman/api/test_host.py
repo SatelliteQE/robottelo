@@ -1361,7 +1361,7 @@ class TestHostInterface:
         :id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
 
         :expectedresults: An interface is not created, not updated
-        and primary interface is not deleted
+            and primary interface is not deleted
 
         :CaseImportance: Critical
         """
