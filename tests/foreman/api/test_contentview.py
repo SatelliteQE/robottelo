@@ -101,11 +101,6 @@ def content_view(module_org):
     return entities.ContentView(organization=module_org).create()
 
 
-@pytest.fixture
-def role():
-    return entities.Role().create()
-
-
 class TestContentView:
     @upgrade
     @tier3
@@ -1190,7 +1185,9 @@ class TestContentViewRedHatContent:
 
 class TestContentViewRoles:
     @tier2
-    def test_positive_admin_user_actions(self, content_view, role, module_org, module_lce):
+    def test_positive_admin_user_actions(
+        self, content_view, function_role, module_org, module_lce
+    ):
         """Attempt to manage content views
 
         :id: 75b638af-d132-4b5e-b034-a373565c72b4
@@ -1217,10 +1214,15 @@ class TestContentViewRoles:
             permission = entities.Permission().search(
                 query={'search': f'resource_type="{res_type}"'}
             )
-            entities.Filter(organization=[module_org], permission=permission, role=role).create()
+            entities.Filter(
+                organization=[module_org], permission=permission, role=function_role
+            ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
+            organization=[module_org],
+            role=[function_role],
+            login=user_login,
+            password=user_password,
         ).create()
         cfg = get_nailgun_config()
         cfg.auth = (user_login, user_password)
@@ -1245,7 +1247,7 @@ class TestContentViewRoles:
             content_view.read()
 
     @tier2
-    def test_positive_readonly_user_actions(self, role, content_view, module_org):
+    def test_positive_readonly_user_actions(self, function_role, content_view, module_org):
         """Attempt to view content views
 
         :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
@@ -1272,7 +1274,7 @@ class TestContentViewRoles:
                 filters={'name': 'view_content_views'},
                 query={'search': 'resource_type="Katello::ContentView"'},
             ),
-            role=role,
+            role=function_role,
         ).create()
         # create read only products permissions and assign it to our role
         entities.Filter(
@@ -1281,11 +1283,14 @@ class TestContentViewRoles:
                 filters={'name': 'view_products'},
                 query={'search': 'resource_type="Katello::Product"'},
             ),
-            role=role,
+            role=function_role,
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
+            organization=[module_org],
+            role=[function_role],
+            login=user_login,
+            password=user_password,
         ).create()
         # add repository to the created content view
         product = entities.Product(organization=module_org).create()
@@ -1303,7 +1308,9 @@ class TestContentViewRoles:
         assert content_view.repository[0].read().name == yum_repo.name
 
     @tier2
-    def test_negative_readonly_user_actions(self, role, content_view, module_org, module_lce):
+    def test_negative_readonly_user_actions(
+        self, function_role, content_view, module_org, module_lce
+    ):
         """Attempt to manage content views
 
         :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
@@ -1330,7 +1337,7 @@ class TestContentViewRoles:
                 filters={'name': 'view_content_views'},
                 query={'search': 'resource_type="Katello::ContentView"'},
             ),
-            role=role,
+            role=function_role,
         ).create()
         # create environment permissions and assign it to our role
         entities.Filter(
@@ -1338,11 +1345,14 @@ class TestContentViewRoles:
             permission=entities.Permission().search(
                 query={'search': 'resource_type="Katello::KTEnvironment"'}
             ),
-            role=role,
+            role=function_role,
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
+            organization=[module_org],
+            role=[function_role],
+            login=user_login,
+            password=user_password,
         ).create()
         cfg = get_nailgun_config()
         cfg.auth = (user_login, user_password)
@@ -1371,7 +1381,7 @@ class TestContentViewRoles:
             promote(content_view.version[0], module_lce.id)
 
     @tier2
-    def test_negative_non_readonly_user_actions(self, content_view, role, module_org):
+    def test_negative_non_readonly_user_actions(self, content_view, function_role, module_org):
         """Attempt to view content views
 
         :id: b0a53c38-72f1-4731-881e-192134df6ef3
@@ -1399,11 +1409,14 @@ class TestContentViewRoles:
             entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
         ]
         entities.Filter(
-            organization=[module_org], permission=user_cv_permissions_entities, role=role,
+            organization=[module_org], permission=user_cv_permissions_entities, role=function_role,
         ).create()
         # create a user and assign the above created role
         entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
+            organization=[module_org],
+            role=[function_role],
+            login=user_login,
+            password=user_password,
         ).create()
         cfg = get_nailgun_config()
         cfg.auth = (user_login, user_password)

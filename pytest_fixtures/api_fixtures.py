@@ -70,6 +70,16 @@ def module_host():
     return entities.Host().create()
 
 
+@pytest.fixture(scope='module')
+def module_model():
+    return entities.Model().create()
+
+
+@pytest.fixture(scope='module')
+def module_compute_profile():
+    return entities.ComputeProfile().create()
+
+
 @pytest.fixture(scope='session')
 def default_smart_proxy():
     smart_proxy = (
@@ -110,6 +120,11 @@ def module_subnet(module_org, module_location, default_domain, default_smart_pro
         ipam='DHCP',
     ).create()
     return subnet
+
+
+@pytest.fixture(scope='module')
+def module_default_subnet(module_org, module_location):
+    return entities.Subnet(location=[module_location], organization=[module_org]).create()
 
 
 @pytest.fixture(scope='session')
@@ -194,6 +209,11 @@ def default_os(
     return os
 
 
+@pytest.fixture(scope='module')
+def module_os():
+    return entities.OperatingSystem().create()
+
+
 @pytest.fixture(scope='session')
 def default_puppet_environment(module_org):
     environments = entities.Environment().search(
@@ -209,6 +229,11 @@ def module_puppet_environment(module_org, module_location):
         organization=[module_org], location=[module_location]
     ).create()
     return entities.Environment(id=environment.id).read()
+
+
+@pytest.fixture(scope='module')
+def module_user(module_org, module_location):
+    return entities.User(organization=[module_org], location=[module_location]).create()
 
 
 # Compute resource - Libvirt entities
@@ -402,6 +427,13 @@ def module_cv(module_org):
     return entities.ContentView(organization=module_org).create()
 
 
+@pytest.fixture(scope='module')
+def module_published_cv(module_org):
+    content_view = entities.ContentView(organization=module_org).create()
+    content_view.publish()
+    return content_view.read()
+
+
 @pytest.fixture(scope='session')
 def default_contentview(module_org):
     return entities.ContentView().search(
@@ -444,3 +476,42 @@ def oscap_content_path():
 def default_pxetemplate():
     pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
     return pxe_template[0].read()
+
+
+@pytest.fixture(scope='module')
+def module_env_search(module_org, module_location, module_cv_with_puppet_module):
+    env = (
+        entities.Environment()
+        .search(
+            query={
+                'search': f'content_view={module_cv_with_puppet_module.name} '
+                f'and organization_id={module_org.id}'
+            }
+        )[0]
+        .read()
+    )
+    env.location.append(module_location)
+    env.update(['location'])
+    return env
+
+
+@pytest.fixture(scope='module')
+def module_lce_search(module_org):
+    return (
+        entities.LifecycleEnvironment()
+        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_org.id}'})[0]
+        .read()
+    )
+
+
+@pytest.fixture(scope='module')
+def module_puppet_classes(module_env_search):
+    return entities.PuppetClass().search(
+        query={'search': f'name ~ {"generic_1"} and environment = {module_env_search.name}'}
+    )
+
+
+# function scoped
+@pytest.fixture(scope="function")
+def function_role():
+    return entities.Role().create()

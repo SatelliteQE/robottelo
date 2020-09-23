@@ -23,7 +23,6 @@ import http
 import re
 
 import pytest
-
 from fauxfactory import gen_choice
 from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
@@ -35,7 +34,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_interfaces_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -50,45 +48,6 @@ from robottelo.decorators import upgrade
 
 class TestHost:
     """Tests for ``entities.Host().path()``."""
-
-    @pytest.fixture(scope='module')
-    def module_env_search(self, module_org, module_location, module_cv_with_puppet_module):
-        env = (
-            entities.Environment()
-            .search(
-                query={
-                    'search': 'content_view="{0}" and organization_id={1}'.format(
-                        module_cv_with_puppet_module.name, module_org.id
-                    )
-                }
-            )[0]
-            .read()
-        )
-        env.location.append(module_location)
-        env.update(['location'])
-        return env
-
-    @pytest.fixture(scope='module')
-    def module_lce_search(self, module_org, module_env_search):
-        return (
-            entities.LifecycleEnvironment()
-            .search(
-                query={
-                    'search': 'name={0} and organization_id={1}'.format(ENVIRONMENT, module_org.id)
-                }
-            )[0]
-            .read()
-        )
-
-    @pytest.fixture(scope='module')
-    def module_puppet_classes(self, module_env_search):
-        return entities.PuppetClass().search(
-            query={
-                'search': 'name ~ "{0}" and environment = "{1}"'.format(
-                    'generic_1', module_env_search.name
-                )
-            }
-        )
 
     @tier1
     def test_positive_get_search(self):
@@ -149,7 +108,7 @@ class TestHost:
         host = entities.Host().create()
         # adding org id as GET parameter for correspondence with BZ
         query = entities.Host()
-        query._meta['api_path'] += '?organization_id={}'.format(host.organization.id)
+        query._meta['api_path'] += f'?organization_id={host.organization.id}'
         results = query.search()
         assert len(results) == 1
         assert results[0].id == host.id
@@ -160,6 +119,8 @@ class TestHost:
         """Create a host and specify only ``owner_type``.
 
         :id: cdf9d16f-1c47-498a-be48-901355385dde
+
+        :parametrized: yes
 
         :expectedresults: The host can't be created as ``owner`` is required.
 
@@ -172,10 +133,14 @@ class TestHost:
 
     @tier1
     @pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
-    def test_positive_update_owner_type(self, owner_type, module_org, module_location):
+    def test_positive_update_owner_type(
+        self, owner_type, module_org, module_location, module_user
+    ):
         """Update a host's ``owner_type``.
 
         :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
+
+        :parametrized: yes
 
         :expectedresults: The host's ``owner_type`` attribute is updated as
             requested.
@@ -185,7 +150,7 @@ class TestHost:
         :BZ: 1210001
         """
         owners = {
-            'User': entities.User(organization=[module_org], location=[module_location]).create(),
+            'User': module_user,
             'Usergroup': entities.UserGroup().create(),
         }
         host = entities.Host(organization=module_org, location=module_location).create()
@@ -207,11 +172,11 @@ class TestHost:
         """
         name = gen_choice(valid_hosts_list())
         host = entities.Host(name=name).create()
-        assert host.name == '{0}.{1}'.format(name, host.domain.read().name)
+        assert host.name == f'{name}.{host.domain.read().name}'
         new_name = gen_choice(valid_hosts_list())
         host.name = new_name
         host = host.update(['name'])
-        assert host.name == '{0}.{1}'.format(new_name, host.domain.read().name)
+        assert host.name == f'{new_name}.{host.domain.read().name}'
 
     @tier1
     def test_positive_create_and_update_with_ip(self):
@@ -219,7 +184,7 @@ class TestHost:
 
         :id: 3f266906-c509-42ce-9b20-def448bf8d86
 
-        :expectedresults: A host is created and updated with expected IP address
+        :expectedresults: A host is created and updated with static IP address
 
         :CaseImportance: Critical
         """
@@ -251,7 +216,9 @@ class TestHost:
         assert host.mac == new_mac
 
     @tier2
-    def test_positive_create_and_update_with_hostgroup(self):
+    def test_positive_create_and_update_with_hostgroup(
+        self, module_org, module_location, module_lce, module_published_cv
+    ):
         """Create and update host with hostgroup specified
 
         :id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
@@ -260,21 +227,17 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        org = entities.Organization().create()
-        lce = entities.LifecycleEnvironment(organization=org).create()
-        content_view = entities.ContentView(organization=org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
-        loc = entities.Location(organization=[org]).create()
-        hostgroup = entities.HostGroup(location=[loc], organization=[org]).create()
+        promote(module_published_cv.version[0], environment_id=module_lce.id)
+        hostgroup = entities.HostGroup(
+            location=[module_location], organization=[module_org]
+        ).create()
         host = entities.Host(
             hostgroup=hostgroup,
-            location=loc,
-            organization=org,
+            location=module_location,
+            organization=module_org,
             content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lce.id,
+                'content_view_id': module_published_cv.id,
+                'lifecycle_environment_id': module_lce.id,
             },
         ).create()
         assert host.hostgroup.read().name == hostgroup.name
@@ -283,8 +246,8 @@ class TestHost:
         ).create()
         host.hostgroup = new_hostgroup
         host.content_facet_attributes = {
-            'content_view_id': content_view.id,
-            'lifecycle_environment_id': lce.id,
+            'content_view_id': module_published_cv.id,
+            'lifecycle_environment_id': module_lce.id,
         }
         host = host.update(['hostgroup', 'content_facet_attributes'])
         assert host.hostgroup.read().name == new_hostgroup.name
@@ -318,7 +281,7 @@ class TestHost:
         assert host.content_facet_attributes['content_view_id'] == hostgroup.content_view.id
 
     @tier2
-    def test_positive_create_with_inherited_params(self):
+    def test_positive_create_with_inherited_params(self, module_org, module_location):
         """Create a new Host in organization and location with parameters
 
         :BZ: 1287223
@@ -332,15 +295,14 @@ class TestHost:
 
         :CaseImportance: High
         """
-        org = entities.Organization().create()
-        org_param = entities.Parameter(organization=org).create()
-        loc = entities.Location().create()
-        loc_param = entities.Parameter(location=loc).create()
-        host = entities.Host(location=loc, organization=org).create()
+        org_param = entities.Parameter(organization=module_org).create()
+        loc_param = entities.Parameter(location=module_location).create()
+        host = entities.Host(location=module_location, organization=module_org).create()
         # get global parameters
         glob_param_list = {
             (param.name, param.value) for param in entities.CommonParameter().search()
         }
+        print('global list params', glob_param_list)
         # if there are no global parameters, create one
         if len(glob_param_list) == 0:
             param_name = gen_string('alpha')
@@ -349,9 +311,13 @@ class TestHost:
             glob_param_list = {
                 (param.name, param.value) for param in entities.CommonParameter().search()
             }
+            print('global list params2:', glob_param_list)
         assert len(host.all_parameters) == 2 + len(glob_param_list)
         innerited_params = {(org_param.name, org_param.value), (loc_param.name, loc_param.value)}
+        print('innerited_params', innerited_params)
         expected_params = innerited_params.union(glob_param_list)
+        print('expected params', expected_params)
+        print('AAAAAAA', {(param['name'], param['value']) for param in host.all_parameters})
         assert expected_params == {
             (param['name'], param['value']) for param in host.all_parameters
         }
@@ -368,7 +334,7 @@ class TestHost:
         :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         host = entities.Host(puppet_proxy=proxy).create()
         assert host.puppet_proxy.read().name == proxy.name
@@ -389,7 +355,7 @@ class TestHost:
         :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create()
         assert host.puppet_ca_proxy.read().name == proxy.name
@@ -408,7 +374,7 @@ class TestHost:
         :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
 
         :expectedresults: A host is created with expected puppet classes then puppet classes
-        are removed and the host is updated with same puppet classes
+            are removed and the host is updated with same puppet classes
         """
         host = entities.Host(
             organization=module_org,
@@ -419,8 +385,7 @@ class TestHost:
         assert {puppet_class.id for puppet_class in host.puppetclass} == {
             puppet_class.id for puppet_class in module_puppet_classes
         }
-        host.puppetclass = []
-        host.environment = []
+        host.puppetclass = host.environment = []
         host = host.update(['environment', 'puppetclass'])
         assert len(host.puppetclass) == 0
         host.environment = module_env_search
@@ -431,7 +396,9 @@ class TestHost:
         }
 
     @tier2
-    def test_positive_create_and_update_with_subnet(self):
+    def test_positive_create_and_update_with_subnet(
+        self, module_location, module_org, module_default_subnet
+    ):
         """Create and update a host with subnet specified
 
         :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
@@ -440,18 +407,21 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        subnet = entities.Subnet(location=[loc], organization=[org]).create()
-        host = entities.Host(location=loc, organization=org, subnet=subnet).create()
-        assert host.subnet.read().name == subnet.name
-        new_subnet = entities.Subnet(location=[loc], organization=[org]).create()
+        host = entities.Host(
+            location=module_location, organization=module_org, subnet=module_default_subnet
+        ).create()
+        assert host.subnet.read().name == module_default_subnet.name
+        new_subnet = entities.Subnet(
+            location=[module_location], organization=[module_org]
+        ).create()
         host.subnet = new_subnet
         host = host.update(['subnet'])
         assert host.subnet.read().name == new_subnet.name
 
     @tier2
-    def test_positive_create_and_update_with_compresource(self):
+    def test_positive_create_and_update_with_compresource(
+        self, module_org, module_location, module_cr_libvirt
+    ):
         """Create and update a host with compute resource specified
 
         :id: 53069f2e-67a7-4d57-9846-acf6d8ce03cb
@@ -461,13 +431,10 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        compresource = entities.LibvirtComputeResource(location=[loc], organization=[org]).create()
         host = entities.Host(
-            compute_resource=compresource, location=loc, organization=org
+            compute_resource=module_cr_libvirt, location=module_location, organization=module_org
         ).create()
-        assert host.compute_resource.read().name == compresource.name
+        assert host.compute_resource.read().name == module_cr_libvirt.name
         new_compresource = entities.LibvirtComputeResource(
             location=[host.location], organization=[host.organization]
         ).create()
@@ -476,7 +443,7 @@ class TestHost:
         assert host.compute_resource.read().name == new_compresource.name
 
     @tier2
-    def test_positive_create_and_update_with_model(self):
+    def test_positive_create_and_update_with_model(self, module_model):
         """Create and update a host with model specified
 
         :id: 7a912a19-71e4-4843-87fd-bab98c156f4a
@@ -485,16 +452,15 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        model = entities.Model().create()
-        host = entities.Host(model=model).create()
-        assert host.model.read().name == model.name
+        host = entities.Host(model=module_model).create()
+        assert host.model.read().name == module_model.name
         new_model = entities.Model().create()
         host.model = new_model
         host = host.update(['model'])
         assert host.model.read().name == new_model.name
 
     @tier2
-    def test_positive_create_and_update_with_user(self, module_org, module_location):
+    def test_positive_create_and_update_with_user(self, module_org, module_location, module_user):
         """Create and update host with user specified
 
         :id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
@@ -503,18 +469,19 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        user = entities.User(organization=[module_org], location=[module_location]).create()
         host = entities.Host(
-            owner=user, owner_type='User', organization=module_org, location=module_location
+            owner=module_user, owner_type='User', organization=module_org, location=module_location
         ).create()
-        assert host.owner.read() == user
+        assert host.owner.read() == module_user
         new_user = entities.User(organization=[module_org], location=[module_location]).create()
         host.owner = new_user
         host = host.update(['owner'])
         assert host.owner.read() == new_user
 
     @tier2
-    def test_positive_create_and_update_with_usergroup(self):
+    def test_positive_create_and_update_with_usergroup(
+        self, module_org, module_location, function_role
+    ):
         """Create and update host with user group specified
 
         :id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
@@ -523,16 +490,18 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        role = entities.Role().create()
-        user = entities.User(location=[loc], organization=[org], role=[role]).create()
-        usergroup = entities.UserGroup(role=[role], user=[user]).create()
+        user = entities.User(
+            location=[module_location], organization=[module_org], role=[function_role]
+        ).create()
+        usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
         host = entities.Host(
-            location=loc, organization=org, owner=usergroup, owner_type='Usergroup'
+            location=module_location,
+            organization=module_org,
+            owner=usergroup,
+            owner_type='Usergroup',
         ).create()
         assert host.owner.read().name == usergroup.name
-        new_usergroup = entities.UserGroup(role=[role], user=[user]).create()
+        new_usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
         host.owner = new_usergroup
         host = host.update(['owner'])
         assert host.owner.read().name == new_usergroup.name
@@ -544,6 +513,8 @@ class TestHost:
         Build parameter determines whether to enable the host for provisioning
 
         :id: de30cf62-5036-4247-a5f0-37dd2b4aae23
+
+        :parametrized: yes
 
         :expectedresults: A host is created and updated with expected 'build' parameter
             value
@@ -565,6 +536,8 @@ class TestHost:
 
         :id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
 
+        :parametrized: yes
+
         :expectedresults: A host is created and updated with expected 'enabled' parameter
             value
 
@@ -584,6 +557,8 @@ class TestHost:
         determines whether some extra parameters are required
 
         :id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
+
+        :parametrized: yes
 
         :expectedresults: A host is created and updated with expected managed parameter
             value
@@ -615,7 +590,7 @@ class TestHost:
         assert host.comment == new_comment
 
     @tier2
-    def test_positive_create_and_update_with_compute_profile(self):
+    def test_positive_create_and_update_with_compute_profile(self, module_compute_profile):
         """Create and update a host with a compute profile specified
 
         :id: 94be25e8-035d-42c5-b1f3-3aa20030410d
@@ -625,9 +600,8 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        cprofile = entities.ComputeProfile().create()
-        host = entities.Host(compute_profile=cprofile).create()
-        assert host.compute_profile.read().name == cprofile.name
+        host = entities.Host(compute_profile=module_compute_profile).create()
+        assert host.compute_profile.read().name == module_compute_profile.name
         new_cprofile = entities.ComputeProfile().create()
         host.compute_profile = new_cprofile
         host = host.update(['compute_profile'])
@@ -672,7 +646,7 @@ class TestHost:
         :id: e3af6718-4016-4756-bbb0-e3c24ac1e340
 
         :expectedresults: A host is created with expected host parameters,
-        paramaters are removed and new parameters are updated
+            paramaters are removed and new parameters are updated
 
         :CaseImportance: Critical
         """
@@ -708,7 +682,7 @@ class TestHost:
         :id: 38b17b4d-d9d8-4ea1-aa0f-558496b990fc
 
         :expectedresults: A host is created with expected image, image is removed and
-        host is updated with expected image
+            host is updated with expected image
 
         :CaseLevel: Integration
         """
@@ -736,6 +710,8 @@ class TestHost:
         """Create a host with provision method specified
 
         :id: c2243c30-f70a-4063-a4a4-f67b598a892b
+
+        :parametrized: yes
 
         :expectedresults: A host is created with expected provision method
 
@@ -766,7 +742,7 @@ class TestHost:
             host.read()
 
     @tier2
-    def test_positive_create_and_update_domain(self, module_org, module_location):
+    def test_positive_create_and_update_domain(self, module_org, module_location, module_domain):
         """Create and update a host with a domain
 
         :id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
@@ -775,11 +751,10 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        domain = entities.Domain(organization=[module_org], location=[module_location]).create()
         host = entities.Host(
-            organization=module_org, location=module_location, domain=domain
+            organization=module_org, location=module_location, domain=module_domain
         ).create()
-        assert host.domain.read().name == domain.name
+        assert host.domain.read().name == module_domain.name
 
         new_domain = entities.Domain(
             organization=[module_org], location=[module_location]
@@ -789,7 +764,9 @@ class TestHost:
         assert host.domain.read().name == new_domain.name
 
     @tier2
-    def test_positive_create_and_update_env(self, module_org, module_location):
+    def test_positive_create_and_update_env(
+        self, module_org, module_location, module_puppet_environment
+    ):
         """Create and update a host with an environment
 
         :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
@@ -798,11 +775,12 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        env = entities.Environment(organization=[module_org], location=[module_location],).create()
         host = entities.Host(
-            organization=module_org, location=module_location, environment=env
+            organization=module_org,
+            location=module_location,
+            environment=module_puppet_environment,
         ).create()
-        assert host.environment.read().name == env.name
+        assert host.environment.read().name == module_puppet_environment.name
 
         new_env = entities.Environment(
             organization=[host.organization], location=[host.location]
@@ -812,7 +790,7 @@ class TestHost:
         assert host.environment.read().name == new_env.name
 
     @tier2
-    def test_positive_create_and_update_arch(self):
+    def test_positive_create_and_update_arch(self, module_architecture):
         """Create and update a host with an architecture
 
         :id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
@@ -821,9 +799,8 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        arch = entities.Architecture().create()
-        host = entities.Host(architecture=arch).create()
-        assert host.architecture.read().name == arch.name
+        host = entities.Host(architecture=module_architecture).create()
+        assert host.architecture.read().name == module_architecture.name
 
         new_arch = entities.Architecture(operatingsystem=[host.operatingsystem]).create()
         host.architecture = new_arch
@@ -831,7 +808,7 @@ class TestHost:
         assert host.architecture.read().name == new_arch.name
 
     @tier2
-    def test_positive_create_and_update_os(self):
+    def test_positive_create_and_update_os(self, module_os):
         """Create and update a host with an operating system
 
         :id: 46edced1-8909-4066-b196-b8e22512341f
@@ -840,9 +817,8 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        os = entities.OperatingSystem().create()
-        host = entities.Host(operatingsystem=os).create()
-        assert host.operatingsystem.read().name == os.name
+        host = entities.Host(operatingsystem=module_os).create()
+        assert host.operatingsystem.read().name == module_os.name
 
         new_os = entities.OperatingSystem(
             architecture=[host.architecture], ptable=[host.ptable]
@@ -864,7 +840,7 @@ class TestHost:
 
         :CaseLevel: Integration
         """
-        medium = entities.Media(organization=[module_org], location=[module_location],).create()
+        medium = entities.Media(organization=[module_org], location=[module_location]).create()
         host = entities.Host(medium=medium).create()
         assert host.medium.read().name == medium.name
 
@@ -894,7 +870,7 @@ class TestHost:
         host.name = new_name
         with pytest.raises(HTTPError):
             host.update(['name'])
-        assert host.read().name != '{0}.{1}'.format(new_name, host.domain.read().name).lower()
+        assert host.read().name != f'{new_name}.{host.domain.read().name}'.lower()
 
     @tier1
     def test_negative_update_mac(self, module_host):
@@ -914,7 +890,7 @@ class TestHost:
         assert host.read().mac != new_mac
 
     @tier2
-    def test_negative_update_arch(self):
+    def test_negative_update_arch(self, module_architecture):
         """Attempt to update a host with an architecture, which does not belong
         to host's operating system
 
@@ -925,11 +901,10 @@ class TestHost:
         :CaseLevel: Integration
         """
         host = entities.Host().create()
-        new_arch = entities.Architecture().create()
-        host.architecture = new_arch
+        host.architecture = module_architecture
         with pytest.raises(HTTPError):
             host = host.update(['architecture'])
-        assert host.read().architecture.read().name != new_arch.name
+        assert host.read().architecture.read().name != module_architecture.name
 
     @tier2
     def test_negative_update_os(self):
@@ -952,7 +927,9 @@ class TestHost:
         assert host.read().operatingsystem.read().name != new_os.name
 
     @tier3
-    def test_positive_read_content_source_id(self, module_org, module_location):
+    def test_positive_read_content_source_id(
+        self, module_org, module_location, module_lce, module_published_cv
+    ):
         """Read the host content_source_id attribute from the read request
         response
 
@@ -969,21 +946,17 @@ class TestHost:
         """
         proxy = (
             entities.SmartProxy()
-            .search(query={'url': 'https://{0}:9090'.format(settings.server.hostname)})[0]
+            .search(query={'url': f'https://{settings.server.hostname}:9090'})[0]
             .read()
         )
-        lce = entities.LifecycleEnvironment(organization=module_org).create()
-        content_view = entities.ContentView(organization=module_org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
+        promote(module_published_cv.version[0], environment_id=module_lce.id)
         host = entities.Host(
             organization=module_org,
             location=module_location,
             content_facet_attributes={
                 'content_source_id': proxy.id,
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lce.id,
+                'content_view_id': module_published_cv.id,
+                'lifecycle_environment_id': module_lce.id,
             },
         ).create()
         content_facet_attributes = getattr(host, 'content_facet_attributes')
@@ -993,7 +966,9 @@ class TestHost:
         assert content_source_id == proxy.id
 
     @tier3
-    def test_positive_update_content_source_id(self, module_org, module_location):
+    def test_positive_update_content_source_id(
+        self, module_org, module_location, module_lce, module_published_cv
+    ):
         """Read the host content_source_id attribute from the update request
         response
 
@@ -1009,19 +984,15 @@ class TestHost:
         :CaseLevel: System
         """
         proxy = entities.SmartProxy().search(
-            query={'url': 'https://{0}:9090'.format(settings.server.hostname)}
+            query={'url': f'https://{settings.server.hostname}:9090'}
         )[0]
-        lce = entities.LifecycleEnvironment(organization=module_org).create()
-        content_view = entities.ContentView(organization=module_org).create()
-        content_view.publish()
-        content_view = content_view.read()
-        promote(content_view.version[0], environment_id=lce.id)
+        promote(module_published_cv.version[0], environment_id=module_lce.id)
         host = entities.Host(
             organization=module_org,
             location=module_location,
             content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lce.id,
+                'content_view_id': module_published_cv.id,
+                'lifecycle_environment_id': module_lce.id,
             },
         ).create()
         host.content_facet_attributes['content_source_id'] = proxy.id
@@ -1330,7 +1301,7 @@ class TestHost:
         :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         host = entities.Host(puppet_proxy=proxy).create().read_json()
         assert 'puppet_proxy_name' in host
@@ -1350,7 +1321,7 @@ class TestHost:
         :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
         assert 'puppet_ca_proxy_name' in host
@@ -1384,12 +1355,13 @@ class TestHostInterface:
 
     @tier1
     def test_negative_end_to_end(self, module_host):
-        """Attempt to create update and delete an interface with different invalid entries as
-        names (>255 chars, unsupported string types)
+        """Attempt to create and update an interface with different invalid entries as names
+        (>255 chars, unsupported string types), at the end attempt to remove primary interface
 
         :id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
 
-        :expectedresults: An interface is not created, not updated and not deleted
+        :expectedresults: An interface is not created, not updated
+        and primary interface is not deleted
 
         :CaseImportance: Critical
         """
