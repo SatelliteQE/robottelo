@@ -26,9 +26,11 @@ from robottelo.cli.factory import make_environment
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
+from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -39,6 +41,7 @@ class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(EnvironmentTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()

@@ -20,10 +20,11 @@ from fauxfactory import gen_url
 from nailgun import entities
 
 from robottelo.config import settings
+from robottelo.constants import REPO_TYPE
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants import REPO_TYPE
 from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 
@@ -86,6 +87,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_loc):
     """Assign HTTP Proxy to Products and Repositories.
 

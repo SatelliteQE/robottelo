@@ -26,12 +26,18 @@ from pytest import raises
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
+from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import INVALID_URL
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOSET
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
@@ -39,15 +45,11 @@ from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_8_PUPPET_REPO
 from robottelo.constants.repos import FEDORA26_OSTREE_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.constants import INVALID_URL
 from robottelo.constants.repos import REPO_DISCOVERY_URL
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOSET
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
@@ -67,6 +69,7 @@ def module_prod(module_org):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_in_different_orgs(session, module_org):
     """Create repository in two different orgs with same name
 
@@ -100,6 +103,7 @@ def test_positive_create_in_different_orgs(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_as_non_admin_user(module_org, test_name):
     """Create a repository as a non admin user
 
@@ -156,6 +160,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_puppet_repo_same_url_different_orgs(session, module_prod):
     """Create two repos with the same URL in two different organizations.
 
@@ -192,6 +197,7 @@ def test_positive_create_puppet_repo_same_url_different_orgs(session, module_pro
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name):
     """Create a repository as a non admin user in a product that already
     contain a repository that is used in a published content view.
@@ -265,6 +271,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_discover_repo_via_existing_product(session, module_org):
     """Create repository via repo-discovery under existing product
 
@@ -291,6 +298,7 @@ def test_positive_discover_repo_via_existing_product(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_discover_repo_via_new_product(session, module_org):
     """Create repository via repo discovery under new product
 
@@ -335,6 +343,7 @@ def test_positive_discover_module_stream_repo_via_existing_product(session, modu
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo_yum(session, module_org):
     """Create Custom yum repos and sync it via the repos page.
 
@@ -358,6 +367,7 @@ def test_positive_sync_custom_repo_yum(session, module_org):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo_puppet(session, module_org):
     """Create Custom puppet repos and sync it via the repos page.
 
@@ -399,6 +409,7 @@ def test_positive_sync_custom_repo_docker(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
     """Create Custom yum repo and sync it via the repos page. Then try to
     change repo url to invalid one and re-sync that repository
@@ -432,6 +443,7 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resynchronize_rpm_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -466,6 +478,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resynchronize_puppet_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -501,6 +514,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     """Perform end to end testing for custom yum repository
 
@@ -564,6 +578,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
     """Perform end to end testing for custom module streams yum repository
 
@@ -665,6 +680,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
     """Perform end to end testing for custom ostree repository
 

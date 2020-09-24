@@ -20,6 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
@@ -31,21 +32,22 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
-from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_ERRATA_ID
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -247,6 +249,7 @@ def test_end_to_end(session, module_repos_col, vm):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
 
@@ -706,6 +709,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
 
 @tier3
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_filtered_errata_status_installable_param(session, errata_status_installable):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in

@@ -45,6 +45,7 @@ from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_hostgroups_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -55,6 +56,7 @@ class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(HostGroupTestCase, cls).setUpClass()
         cls.org = make_org()

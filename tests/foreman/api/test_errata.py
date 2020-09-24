@@ -25,7 +25,6 @@ from robottelo.api.utils import promote
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_RELEASE_VERSION
 from robottelo.constants import DISTRO_RHEL6
@@ -37,11 +36,9 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
-from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_0_RH_PACKAGE
@@ -49,7 +46,11 @@ from robottelo.constants import REAL_1_ERRATA_ID
 from robottelo.constants import REAL_2_ERRATA_ID
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -69,6 +70,7 @@ class ErrataTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(ErrataTestCase, cls).setUpClass()
@@ -317,6 +319,7 @@ class ErrataTestCase(APITestCase):
                 )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_list(self):
         """View all errata specific to repository
 
@@ -463,6 +466,7 @@ class ErrataTestCase(APITestCase):
 
     @tier3
     @pytest.mark.skip_if_open("BZ:1682940")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
@@ -514,6 +518,7 @@ class ErrataTestCase(APITestCase):
         self.assertGreater(len(errata_library), len(errata_env))
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_count_for_host(self):
         """Available errata count when retrieving Host
 
@@ -594,6 +599,7 @@ class ErrataTestCase(APITestCase):
 
     @upgrade
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
 
@@ -679,6 +685,7 @@ class ErrataTestCase(APITestCase):
             )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_diff_for_cv_envs(self):
         """Generate a difference in errata between a set of environments
         for a content view
@@ -810,6 +817,7 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(ErrataSwidTagsTestCase, cls).setUpClass()

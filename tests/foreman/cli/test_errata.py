@@ -49,6 +49,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
 from robottelo.constants import FAKE_0_YUM_ERRATUM_COUNT
@@ -56,27 +57,28 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
-from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_ERRATUM
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -98,6 +100,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
@@ -851,6 +854,7 @@ class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create 3 organizations
 

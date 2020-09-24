@@ -15,6 +15,8 @@ from nailgun import entity_mixins
 from nailgun.config import ServerConfig
 
 from robottelo.config import casts
+from robottelo.constants import AZURERM_VALID_REGIONS
+from robottelo.constants import VALID_GCE_ZONES
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -496,8 +498,6 @@ class AzureRMSettings(FeatureSettings):
 
     def validate(self):
         """Validate AzureRM settings."""
-        from robottelo.constants import AZURERM_VALID_REGIONS
-
         validation_errors = []
         if not all(self.__dict__.values()):
             validation_errors.append(
@@ -604,8 +604,6 @@ class GCESettings(FeatureSettings):
 
     def validate(self):
         """Validate GCE settings."""
-        from robottelo.constants import VALID_GCE_ZONES
-
         valid_cert_path = '/usr/share/foreman/'
         validation_errors = []
         if not all(self.__dict__.values()):

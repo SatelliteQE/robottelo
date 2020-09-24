@@ -20,8 +20,10 @@ from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
+from robottelo.config import settings
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -32,6 +34,7 @@ class PuppetModuleTestCase(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(PuppetModuleTestCase, cls).setUpClass()
         cls.org = make_org()
@@ -81,6 +84,7 @@ class PuppetModuleTestCase(CLITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.

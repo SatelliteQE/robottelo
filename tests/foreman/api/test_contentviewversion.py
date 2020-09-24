@@ -22,14 +22,16 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -215,6 +217,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -294,6 +297,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_composite_version(self):
         """Create composite content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -336,6 +340,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @upgrade
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_with_puppet_content(self):
         """Delete content view version with puppet module content
 
@@ -423,6 +428,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -534,6 +540,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -607,6 +614,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -684,6 +692,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -755,6 +764,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments

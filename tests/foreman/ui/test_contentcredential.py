@@ -17,13 +17,15 @@
 """
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
+from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import REPO_DISCOVERY_URL
-from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
@@ -146,6 +148,7 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository
@@ -179,6 +182,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository
@@ -236,6 +240,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -264,6 +269,7 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product using Repo discovery method
@@ -307,6 +313,7 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_product_and_search(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product that has one repository
@@ -343,6 +350,7 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
     using Repo discovery method then update the key
@@ -398,6 +406,7 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg then associate
     it with custom product using Repo discovery method then delete it
@@ -471,6 +480,7 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository then update the key
@@ -501,6 +511,7 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository then update the
@@ -532,6 +543,7 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository then update
@@ -564,6 +576,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -624,6 +637,7 @@ def test_positive_delete_key_for_empty_product(session, module_org, gpg_content)
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has one repository then delete it
@@ -664,6 +678,7 @@ def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_cont
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has more than one repository then
@@ -709,6 +724,7 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has one repository
@@ -744,6 +760,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has more than

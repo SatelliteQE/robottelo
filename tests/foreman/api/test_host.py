@@ -33,13 +33,14 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_interfaces_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.datafactory import valid_interfaces_list
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -53,6 +54,7 @@ class HostTestCase(APITestCase):
 
     @classmethod
     @lock_function
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Setup common entities."""
         super(HostTestCase, cls).setUpClass()

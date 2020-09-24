@@ -18,10 +18,12 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 
 
@@ -142,6 +144,7 @@ def test_create_with_config_group(session, module_org, module_loc):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_create_with_puppet_class(session, module_org, module_loc):
     """Create new host group with assigned puppet class to it
 
