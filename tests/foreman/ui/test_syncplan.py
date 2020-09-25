@@ -137,6 +137,8 @@ def test_positive_end_to_end_custom_cron(session):
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
     with session:
+        # workaround: force session.browser to point to browser object on next line
+        session.contenthost.read_all('current_user')
         startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
         session.syncplan.create(
@@ -218,6 +220,8 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
     with session:
+        # workaround: force session.browser to point to browser object on next line
+        session.contenthost.read_all('current_user')
         start_date = session.browser.get_client_datetime()
         next_sync = 3 * 60
         # forming cron expression sync repo after 3 min
@@ -270,6 +274,8 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
     with session:
+        # workaround: force session.browser to point to browser object on next line
+        session.contenthost.read_all('current_user')
         startdate = session.browser.get_client_datetime() - timedelta(seconds=(interval - delay))
         session.syncplan.create(
             {
