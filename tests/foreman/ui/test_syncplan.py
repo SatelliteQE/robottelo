@@ -81,7 +81,7 @@ def module_org():
 
 
 @tier2
-def test_positive_end_to_end(session):
+def test_positive_end_to_end(session, module_org):
     """Perform end to end scenario for sync plan component
 
     :id: 39c140a6-ca65-4b6a-a640-4a023a2f0f12
@@ -89,11 +89,15 @@ def test_positive_end_to_end(session):
     :expectedresults: All CRUD actions for component finished successfully
 
     :CaseLevel: Integration
+
+    :BZ: 1693795
     """
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
     new_description = gen_string('alpha')
     with session:
+        # workaround: force session.browser to point to browser object on next line
+        session.contenthost.read_all('current_user')
         startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
         session.syncplan.create(
@@ -118,6 +122,13 @@ def test_positive_end_to_end(session):
         session.syncplan.update(plan_name, {'details.description': new_description})
         syncplan_values = session.syncplan.read(plan_name)
         assert syncplan_values['details']['description'] == new_description
+        # Create and add two products to sync plan
+        for _ in range(2):
+            product = entities.Product(organization=module_org).create()
+            session.syncplan.add_product(plan_name, product.name)
+        # Remove a product and assert syncplan still searchable
+        session.syncplan.remove_product(plan_name, product.name)
+        assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         # Delete sync plan
         session.syncplan.delete(plan_name)
         assert plan_name not in session.syncplan.search(plan_name)
