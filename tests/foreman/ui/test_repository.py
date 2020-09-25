@@ -320,9 +320,10 @@ def test_positive_discover_repo_via_new_product(session, module_org):
         assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
 @pytest.mark.upgrade
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+@pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):
     """Create repository with module streams via repo-discovery under an existing product.
 
@@ -336,11 +337,29 @@ def test_positive_discover_module_stream_repo_via_existing_product(session, modu
         1. Create a product.
         2. From Content > Products, click on the Repo Discovery button.
         3. Enter a url containing a yum repository with module streams, e.g.,
-           CUSTOM_MODULE_STREAM_REPO_1.
+           CUSTOM_MODULE_STREAM_REPO_2.
         4. Click the Discover button.
 
     :expectedresults: Repositories are discovered.
     """
+    repo_name = gen_string('alpha')
+    repo_label = gen_string('alpha')
+    product = entities.Product(organization=module_org).create()
+    with session:
+        session.organization.select(org_name=module_org.name)
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'discovered_repos.repos': "/",
+                'create_repo.product_type': 'Existing Product',
+                'create_repo.product_content.product_name': product.name,
+                'create_repo.create_repos_table': [
+                    {"Repository Name": repo_name, "Repository Label": repo_label}
+                ],
+            }
+        )
+        assert repo_name in session.repository.search(product.name, repo_name)[0]['Name']
 
 
 @pytest.mark.tier2
