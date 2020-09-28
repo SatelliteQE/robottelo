@@ -139,6 +139,14 @@ ssh_key=
 # Provide api_key to access Bugzilla REST API
 # api_key=
 
+# For Open Ldap Authentication
+[open_ldap]
+#hostname=
+#username=
+#password=
+#basedn=
+#grpbasedn=
+
 # For LDAP Authentication.
 # [ldap]
 # hostname=

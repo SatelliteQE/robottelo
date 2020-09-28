@@ -308,3 +308,46 @@ class TestIPAAuthSource:
         assert 'Missing one of the required permissions' in error.value.message
         user_group = UserGroup.info({'id': user_group['id']})
         assert len(user_group['users']) == 0
+
+
+@run_in_one_thread
+class TestOpenLdapAuthSource:
+    """Implements OpenLDAP Auth Source tests in CLI"""
+
+    @tier2
+    @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
+    @upgrade
+    def test_positive_end_to_end_with_open_ldap(self, open_ldap_data, server_name):
+        """CRUD LDAP Operations with OpenLDAP
+
+        :id: f84db334-0189-11eb-846c-d46d6dd3b5b2
+
+        :expectedresults: Whether creating/updating/deleting LDAP Auth with OpenLDAP is successful.
+
+        :CaseImportance: High
+        """
+        auth = make_ldap_auth_source(
+            {
+                'name': server_name,
+                'onthefly-register': 'true',
+                'host': open_ldap_data['ldap_hostname'],
+                'server-type': LDAP_SERVER_TYPE['CLI']['posix'],
+                'attr-login': LDAP_ATTR['login_ad'],
+                'attr-firstname': LDAP_ATTR['firstname'],
+                'attr-lastname': LDAP_ATTR['surname'],
+                'attr-mail': LDAP_ATTR['mail'],
+                'account': open_ldap_data['ldap_user_name'],
+                'account-password': open_ldap_data['ldap_user_passwd'],
+                'base-dn': open_ldap_data['base_dn'],
+            }
+        )
+        assert auth['server']['name'] == server_name
+        assert auth['server']['server'] == open_ldap_data['ldap_hostname']
+        assert auth['server']['server-type'] == LDAP_SERVER_TYPE['CLI']['posix']
+        new_name = gen_string('alpha')
+        LDAPAuthSource.update({'name': server_name, 'new-name': new_name})
+        updated_auth = LDAPAuthSource.info({'id': auth['server']['id']})
+        assert updated_auth['server']['name'] == new_name
+        LDAPAuthSource.delete({'name': new_name})
+        with pytest.raises(CLIReturnCodeError):
+            LDAPAuthSource.info({'name': new_name})
