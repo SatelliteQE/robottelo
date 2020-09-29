@@ -29,25 +29,27 @@ from robottelo import ssh
 from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.config import settings
 from robottelo.constants import CUSTOM_REPODATA_PATH
-from robottelo.constants import CUSTOM_RPM_SHA_512
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
-from robottelo.constants import CUSTOM_SWID_TAG_REPO
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_RPM_SHA_512
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
@@ -197,6 +199,7 @@ class TestContentView:
         assert content_view.repository[0].read().name == yum_repo.name
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_custom_module_streams(self, content_view, module_product, module_org):
         """Associate custom content (module streams) in a view
 
@@ -221,6 +224,7 @@ class TestContentView:
         assert repo.content_counts['module_stream'] == 7
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_add_puppet_content(self, module_product, module_org):
         """Attempt to associate puppet repos within a custom content
         view directly
@@ -263,6 +267,7 @@ class TestContentView:
         assert len(content_view.read().repository) == 0
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_add_dupe_modules(self, content_view, module_product, module_org):
         """Attempt to associate duplicate puppet modules within a
         content view
@@ -295,6 +300,7 @@ class TestContentView:
         assert len(content_view.read().puppet_module) == 1
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_sha512_rpm(self, content_view, module_org):
         """Associate sha512 RPM content in a view
 
@@ -419,6 +425,7 @@ class TestContentViewCreate:
 class TestContentViewPublishPromote:
     """Tests for publishing and promoting content views."""
 
+    @skip_if(not settings.repos_hosting_url)
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_product):
         """Set up organization, product and repositories for tests."""
@@ -872,6 +879,7 @@ class TestContentViewPublishPromote:
         assert len(content_view.read().version) == 1
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_composite_content_view_with_same_repos(self, module_org):
         """Create a Composite Content View with content views having same yum repo.
         Add filter on the content views and check the package count for composite content view
@@ -1413,6 +1421,7 @@ class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
     @skip_if_os('RHEL6')
+    @skip_if(not settings.repos_hosting_url)
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_product):
         """Set up organization, product and repositories for tests."""

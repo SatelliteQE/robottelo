@@ -38,12 +38,14 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
@@ -1100,6 +1102,7 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(cvv.split('.')[1], str(minor))
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_export_cv_with_puppet_repo(self):
         """Exporting CV version having non yum(puppet) repo throws error
 

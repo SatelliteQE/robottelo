@@ -38,8 +38,6 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
@@ -53,18 +51,8 @@ from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
-from robottelo.constants import FAKE_0_INC_UPD_URL
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_0_YUM_REPO
-from robottelo.constants import FAKE_10_YUM_REPO
-from robottelo.constants import FAKE_11_YUM_REPO
-from robottelo.constants import FAKE_1_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_4_ERRATA_ID
-from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import FILTER_CONTENT_TYPE
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import FILTER_TYPE
@@ -77,9 +65,22 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_INC_UPD_URL
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_10_YUM_REPO
+from robottelo.constants.repos import FAKE_11_YUM_REPO
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -280,6 +281,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_puppet_module(session, module_org):
     """create content view with puppet repository
 
@@ -312,6 +314,7 @@ def test_positive_add_puppet_module(session, module_org):
 @run_in_one_thread
 @skip_if_not_set('fake_manifest')
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_composite(session):
     # Note: puppet repos cannot/should not be used in this test
     # It shouldn't work - and that is tested in a different case.
@@ -1090,6 +1093,7 @@ def test_positive_publish_with_rh_content(session):
 @run_in_one_thread
 @skip_if_not_set('fake_manifest')
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_publish_composite_with_custom_content(session):
     """Attempt to publish composite content view containing custom content
 
@@ -1318,6 +1322,7 @@ def test_positive_promote_with_rh_content(session):
 @run_in_one_thread
 @skip_if_not_set('fake_manifest')
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_promote_composite_with_custom_content(session):
     """Attempt to promote composite content view containing custom content
 
@@ -1526,6 +1531,7 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
     """Remove promoted content view version from Library environment
 
@@ -1631,6 +1637,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_cv_version_from_env(session, module_org):
     """Remove promoted content view version from environment
 
@@ -1693,6 +1700,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
 
 @upgrade
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
     """Delete published content view with version promoted to multiple
      environments
@@ -2083,6 +2091,7 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_package_from_exclusion_filter(session, module_org):
     """Remove package from content view exclusion filter
 
@@ -2251,6 +2260,7 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
     """Create erratum date range filter to include only security errata and
     publish new content view version
@@ -2406,6 +2416,7 @@ def test_positive_promote_with_rh_custom_spin(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_all_security_errata_by_id_filter(session, module_org):
     """Create erratum filter to include only security errata and publish new
     content view version
@@ -2487,6 +2498,7 @@ def test_positive_add_errata_filter(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_module_stream_filter(session, module_org):
     """add module stream filter in a content view
 
@@ -2561,6 +2573,7 @@ def test_positive_add_package_group_filter(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_update_filter_affected_repos(session, module_org):
     """Update content view package filter affected repos
 
@@ -2646,6 +2659,7 @@ def test_positive_search_composite(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_publish_with_force_puppet_env(session, module_org):
     """Check that puppet environment will be created automatically once
     content view that contains puppet module is published, no matter
@@ -2743,6 +2757,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_publish_promote_with_custom_puppet_module(session, module_org):
     """Ensure that a custom puppet module file can be added to an existent
      puppet repo and it's module added to content view
@@ -2831,6 +2846,7 @@ def test_positive_subscribe_system_with_custom_content(session):
 
 @upgrade
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_subscribe_system_with_puppet_modules(session):
     """Attempt to subscribe a host to content view with puppet modules
 
@@ -3028,6 +3044,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_custom_ostree_end_to_end(session, module_org):
     """Create content view with custom ostree contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
@@ -3142,6 +3159,7 @@ def test_positive_rh_ostree_end_to_end(session):
 @skip_if_os('RHEL6')
 @upgrade
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_mixed_content_end_to_end(session, module_org):
     """Create a CV with ostree as well as yum and puppet type contents and
     publish and promote them to next environment. Remove promoted version afterwards
@@ -3256,6 +3274,7 @@ def test_positive_rh_mixed_content_end_to_end(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_errata_inc_update_list_package(session):
     """Publish incremental update with a new errata for a custom repo
 
@@ -3323,6 +3342,7 @@ def test_positive_errata_inc_update_list_package(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_composite_child_inc_update(session):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
@@ -3419,6 +3439,7 @@ def test_positive_composite_child_inc_update(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_module_stream_end_to_end(session, module_org):
     """Create content view with custom module_stream contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
@@ -3467,6 +3488,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_search_module_streams_in_content_view(session, module_org):
     """Search module streams in content view version
 
@@ -3790,6 +3812,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_conservative_solve_dependencies(session, module_org):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
@@ -3930,6 +3953,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_greedy_solve_dependencies(session, module_org):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
@@ -4007,6 +4031,7 @@ def test_positive_greedy_solve_dependencies(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_org):
     """Performing solve dependencies on a package with multiple versions that is required
     by another package.
@@ -4074,6 +4099,7 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_depsolve_with_module_errata(session, module_org):
     """Allowing users to filter module streams in content views.  This test case does not test
     against RHEL8 repos because it is known that RHEL8 filtering with depsolving creates

@@ -79,7 +79,6 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTROS_MAJOR_VERSION
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.constants import PRDS
@@ -89,6 +88,7 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.constants import TEMPLATE_TYPES
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port

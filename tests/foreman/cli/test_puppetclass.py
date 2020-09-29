@@ -19,7 +19,9 @@ from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -29,6 +31,7 @@ class PuppetClassTestCase(CLITestCase):
     """Implements puppet class tests in CLI."""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import a parametrized puppet class.
         """

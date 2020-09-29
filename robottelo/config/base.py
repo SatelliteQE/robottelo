@@ -1352,6 +1352,7 @@ class Settings(object):
         self.browseroptions = None
         self.webdriver_desired_capabilities = None
         self.command_executor = None
+        self.repos_hosting_url = None
 
         self.bugzilla = BugzillaSettings()
         # Features
@@ -1490,6 +1491,7 @@ class Settings(object):
             'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub'
         )
         self.window_manager_command = self.reader.get('robottelo', 'window_manager_command', None)
+        self.repos_hosting_url = self.reader.get('robottelo', 'repos_hosting_url', None)
 
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""
