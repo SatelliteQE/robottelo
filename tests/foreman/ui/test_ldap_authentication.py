@@ -1029,6 +1029,7 @@ def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
         assert f"https://{settings.server.hostname}/users" in result
         assert f"-{settings.ldap.username}" in result
     finally:
+        # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
         run_command('foreman-maintain service restart', timeout=300)
 
@@ -1462,13 +1463,12 @@ def test_positive_group_sync_open_ldap_authsource(
     :BZ: 1883209
 
     :Steps:
-
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External OpenLDAP UserGroup.
 
-    :expectedresults: Whether a User belonging to User Group is able to
-        access katello entities as per roles.
+    :expectedresults: Whether a User belonging to User Group is able to access katello
+        entities as per roles.
     """
     ak_name = gen_string('alpha')
     auth_source_name = 'LDAP-' + auth_source_open_ldap.name

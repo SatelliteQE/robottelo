@@ -751,7 +751,7 @@ class OpenLDAPSettings(FeatureSettings):
         validation_errors = []
         if not all(vars(self).values()):
             validation_errors.append(
-                'All [OpenLDAP] basedn, grpbasedn, hostname, password, '
+                'All [open_ldap] basedn, grpbasedn, hostname, password, '
                 'username options must be provided.'
             )
         return validation_errors

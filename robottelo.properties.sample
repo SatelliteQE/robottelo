@@ -140,12 +140,12 @@ ssh_key=
 # api_key=
 
 # For Open Ldap Authentication
-[open_ldap]
-#hostname=
-#username=
-#password=
-#basedn=
-#grpbasedn=
+# [open_ldap]
+# hostname=
+# username=
+# password=
+# basedn=
+# grpbasedn=
 
 # For LDAP Authentication.
 # [ldap]
