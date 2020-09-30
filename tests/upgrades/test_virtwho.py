@@ -26,7 +26,6 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
-from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.utils.issue_handlers import is_open
@@ -49,7 +48,6 @@ class scenario_positive_virt_who(APITestCase):
     """
 
     @classmethod
-    @skip_if_not_set('virtwho')
     def setUpClass(cls):
         cls.org_name = 'virtwho_upgrade_org_name'
         cls.satellite_url = settings.server.hostname
