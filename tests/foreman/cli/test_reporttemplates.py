@@ -128,15 +128,15 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
         base = Base().execute('--help')
-        self.assertGreater(len([i for i in base if 'report-template' in i]), 0)
+        assert len([i for i in base if 'report-template' in i]) > 0
         base = Base().execute('report-template --help')
-        self.assertGreater(len([i for i in base if 'hammer report-template' in i]), 0)
-        self.assertGreater(len([i for i in base if 'info' and 'report template' in i]), 0)
-        self.assertGreater(len([i for i in base if 'generate' and 'report' in i]), 0)
+        assert len([i for i in base if 'hammer report-template' in i]) > 0
+        assert len([i for i in base if 'info' and 'report template' in i]) > 0
+        assert len([i for i in base if 'generate' and 'report' in i]) > 0
         base = Base().execute('report-template create --help')
-        self.assertGreater(len([i for i in base if 'hammer report-template create' in i]), 0)
-        self.assertGreater(len([i for i in base if '--audit-comment' in i]), 0)
-        self.assertGreater(len([i for i in base if '--interactive' in i]), 0)
+        assert len([i for i in base if 'hammer report-template create' in i]) > 0
+        assert len([i for i in base if '--audit-comment' in i]) > 0
+        assert len([i for i in base if '--interactive' in i]) > 0
 
     @pytest.mark.tier1
     def test_positive_end_to_end_crud_and_list(self):
@@ -168,28 +168,28 @@ class ReportTemplateTestCase(CLITestCase):
         # create
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
-        self.assertEqual(report_template['name'], name)
+        assert report_template['name'] == name
 
         # list - create second template
         tmp_name = gen_string('alpha')
         tmp_report_template = make_report_template({'name': tmp_name})
         result_list = ReportTemplate.list()
-        self.assertIn(name, [rt['name'] for rt in result_list])
+        assert name in [rt['name'] for rt in result_list]
 
         # info
         result = ReportTemplate.info({'id': report_template['id']})
-        self.assertEqual(result['name'], name)
+        assert name == result['name']
 
         # update
         new_name = gen_string('alpha')
         result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
-        self.assertEqual(result[0]['name'], new_name)
+        assert new_name == result[0]['name']
         rt_list = ReportTemplate.list()
-        self.assertNotIn(name, [rt['name'] for rt in rt_list])
+        assert name not in [rt['name'] for rt in rt_list]
 
         # delete tmp
         ReportTemplate.delete({'name': tmp_report_template['name']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.info({'id': tmp_report_template['id']})
 
     @pytest.mark.tier1
@@ -219,12 +219,15 @@ class ReportTemplateTestCase(CLITestCase):
 
         result_list = ReportTemplate.list()
         self.assertIn('Host - Statuses', [rt['name'] for rt in result_list])
+        assert 'Host - Statuses' in [rt['name'] for rt in result_list]
 
         rt_host_statuses = ReportTemplate.info({'name': 'Host - Statuses'})
         result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
         self.assertIn(host1['name'], [item.split(',')[0] for item in result_no_filter])
         self.assertIn(host2['name'], [item.split(',')[0] for item in result_no_filter])
+        assert host1['name'] in [item.split(',')[0] for item in result_no_filter]
+        assert host2['name'] in [item.split(',')[0] for item in result_no_filter]
 
         result = ReportTemplate.generate(
             {
@@ -238,6 +241,7 @@ class ReportTemplateTestCase(CLITestCase):
         )
         self.assertIn(host1['name'], [item.split(',')[0] for item in result])
         self.assertNotIn(host2['name'], [item.split(',')[0] for item in result])
+        assert host1['name'] in [item.split(',')[0] for item in result_no_filter]
 
     @pytest.mark.tier2
     def test_positive_lock_and_unlock_report(self):

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Unit tests for the ``report_templates`` paths.
 
 :Requirement: Report templates
@@ -29,6 +30,9 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
@@ -54,10 +58,7 @@ def setup_content(request):
     ).create()
     custom_repo.sync()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(
-        organization=org,
-        repository=[rh_repo_id, custom_repo.id],
-    ).create()
+    cv = entities.ContentView(organization=org, repository=[rh_repo_id, custom_repo.id],).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     promote(cvv, lce.id)
@@ -65,7 +66,7 @@ def setup_content(request):
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
     subscription = entities.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     request.cls.org_setup = org
@@ -75,7 +76,7 @@ def setup_content(request):
 class ReportTemplateTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_CRUDL(self):
         """Create, Read, Update, Delete, List
 
@@ -102,23 +103,23 @@ class ReportTemplateTestCase(APITestCase):
         for name in valid_data_list():
             rt = entities.ReportTemplate(name=name, template=template1).create()
         # List
-        res = entities.ReportTemplate().search(query={'search': f'name="{name}"'})
-        self.assertIn(name, list(map(lambda x: x.name, res)))
+        res = entities.ReportTemplate().search(query={'search': 'name="{}"'.format(name)})
+        assert name in list(map(lambda x: x.name, res))
         # Read
         rt = entities.ReportTemplate(id=rt.id).read()
-        self.assertEqual(name, rt.name)
-        self.assertEqual(template1, rt.template)
+        assert name == rt.name
+        assert template1 == rt.template
         # Update
         template2 = gen_string('alpha')
         entities.ReportTemplate(id=rt.id, template=template2).update(['template'])
         rt = entities.ReportTemplate(id=rt.id).read()
-        self.assertEqual(template2, rt.template)
+        assert template2 == rt.template
         # Delete
         entities.ReportTemplate(id=rt.id).delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             rt = entities.ReportTemplate(id=rt.id).read()
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_generate_report_nofilter(self):
         """Generate Host - Statuses report
 
@@ -138,10 +139,10 @@ class ReportTemplateTestCase(APITestCase):
         entities.Host(name=host_name).create()
         rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
         res = rt.generate()
-        self.assertIn("Service Level", res)
-        self.assertIn(host_name, res)
+        assert "Service Level" in res
+        assert host_name in res
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_generate_report_filter(self):
         """Generate Host - Statuses report
 
@@ -163,11 +164,11 @@ class ReportTemplateTestCase(APITestCase):
         entities.Host(name=host2_name).create()
         rt = entities.ReportTemplate().search(query={'search': 'name="Host - Statuses"'})[0].read()
         res = rt.generate(data={"input_values": {"hosts": host2_name}})
-        self.assertIn("Service Level", res)
-        self.assertNotIn(host1_name, res)
-        self.assertIn(host2_name, res)
+        assert "Service Level" in res
+        assert host1_name not in res
+        assert host2_name in res
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_report_add_userinput(self):
         """Add user input to template, use it in template, generate template
 
@@ -187,20 +188,16 @@ class ReportTemplateTestCase(APITestCase):
         input_name = gen_string('alpha').lower()
         input_value = gen_string('alpha').lower()
         template_name = gen_string('alpha').lower()
-        template = f'<%= "value=\\"" %><%= input(\'{input_name}\') %><%= "\\"" %>'
+        template = '<%= "value=\\"" %><%= input(\'{0}\') %><%= "\\"" %>'.format(input_name)
         entities.Host(name=host_name).create()
         rt = entities.ReportTemplate(name=template_name, template=template).create()
-        entities.TemplateInput(
-            name=input_name,
-            input_type="user",
-            template=rt.id,
-        ).create()
+        entities.TemplateInput(name=input_name, input_type="user", template=rt.id,).create()
         ti = entities.TemplateInput(template=rt.id).search()[0].read()
-        self.assertEquals(input_name, ti.name)
+        assert input_name == ti.name
         res = rt.generate(data={"input_values": {input_name: input_value}})
-        self.assertEquals(f'value="{input_value}"', res)
+        assert 'value="{}"'.format(input_value) in res
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_lock_clone_nodelete_unlock_report(self):
         """Lock report template. Check it can be cloned and can't be deleted or edited.
            Unlock. Check it can be deleted and edited.
@@ -235,46 +232,54 @@ class ReportTemplateTestCase(APITestCase):
         # 2. Lock template
         entities.ReportTemplate(id=rt.id, locked=True).update(["locked"])
         rt = rt.read()
-        self.assertTrue(rt.locked)
+        assert rt.locked is True
         # 3. Clone template, check cloned data
         rt.clone(data={'name': template_clone_name})
         cloned_rt = (
             entities.ReportTemplate()
-            .search(query={'search': f'name="{template_clone_name}"'})[0]
+            .search(query={'search': 'name="{}"'.format(template_clone_name)})[0]
             .read()
         )
-        self.assertEquals(template_clone_name, cloned_rt.name)
-        self.assertEquals(template1, cloned_rt.template)
+        assert template_clone_name == cloned_rt.name
+        assert template1 == cloned_rt.template
         # 4. Try to delete template
         if not is_open('BZ:1680458'):
-            with self.assertRaises(HTTPError):
+            with pytest.raises(HTTPError):
                 rt.delete()
             # In BZ1680458, exception is thrown but template is deleted anyway
-            self.assertNotEquals(
-                0,
-                len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})),
+            assert (
+                len(
+                    entities.ReportTemplate().search(
+                        query={'search': 'name="{}"'.format((template_name))}
+                    )
+                )
+                != 0
             )
         # 5. Try to edit template
         with self.assertRaises(HTTPError):
             entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
         rt = rt.read()
-        self.assertEquals(template1, rt.template)
+        assert template1 == rt.template
         # 6. Unlock template
         entities.ReportTemplate(id=rt.id, locked=False).update(["locked"])
         rt = rt.read()
-        self.assertFalse(rt.locked)
+        assert rt.locked is False
         # 7. Edit template
         entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
         rt = rt.read()
-        self.assertEquals(template2, rt.template)
+        assert template2 == rt.template
         # 8. Delete template
         rt.delete()
-        self.assertEquals(
-            0,
-            len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})),
+        assert (
+            len(
+                entities.ReportTemplate().search(
+                    query={'search': 'name="{}"'.format((template_name))}
+                )
+            )
+            == 0
         )
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_export_report(self):
         """Export report template
@@ -292,7 +297,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted which might brake CSV format
@@ -311,7 +316,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
@@ -329,7 +334,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report
@@ -347,7 +352,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_generate_nonblocking(self):
         """Generate an Applied Errata report
@@ -366,7 +371,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
@@ -385,7 +390,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
@@ -405,10 +410,10 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_negative_bad_email(self):
-        """Report can't be generated when incorrectly formed mail specified
+        """ Report can't be generated when incorrectly formed mail specified
 
         :id: a4b577db-164e-4871-a42e-e93887464986
 
@@ -423,10 +428,10 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_positive_cleanup_task_running(self):
-        """Report can't be generated when incorrectly formed mail specified
+        """ Report can't be generated when incorrectly formed mail specified
 
         :id: a4b577db-145e-4871-a42e-e93887464986
 
@@ -441,7 +446,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier2
+    @tier2
     @pytest.mark.stubbed
     def test_negative_nonauthor_of_report_cant_download_it(self):
         """The resulting report should only be downloadable by
@@ -461,7 +466,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @pytest.mark.tier3
+    @tier3
     @pytest.mark.usefixtures("setup_content")
     def test_positive_generate_entitlements_report(self):
         """Generate a report using the Subscription - Entitlement Report template.
@@ -499,7 +504,7 @@ class ReportTemplateTestCase(APITestCase):
             assert res[0]['Host Name'] == vm.hostname
             assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
 
-    @pytest.mark.tier3
+    @tier3
     @pytest.mark.usefixtures("setup_content")
     def test_positive_schedule_entitlements_report(self):
         """Schedule a report using the Subscription - Entitlement Report template.
@@ -529,7 +534,7 @@ class ReportTemplateTestCase(APITestCase):
             )
             scheduled_csv = rt.schedule_report(
                 data={
-                    'id': f'{rt.id}-Subscription - Entitlement Report',
+                    'id': '{}-Subscription - Entitlement Report'.format(rt.id),
                     'organization_id': self.org_setup.id,
                     'report_format': 'csv',
                     "input_values": {"Days from Now": "no limit"},
