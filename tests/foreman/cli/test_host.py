@@ -63,6 +63,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
@@ -2163,6 +2164,35 @@ class HostSubscriptionTestCase(CLITestCase):
                 result = self.client.run('subscription-manager attach --auto')
 
         if attach_to_default:
+
+            # Remove repository-set from SetUpClass to have no repositories available
+            # Firstly the content view needs to be removed
+            default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': self.org['id']})
+            default_lce = LifecycleEnvironment.info(
+                {'name': ENVIRONMENT, 'organization-id': self.org['id']}
+            )
+            ContentView.remove(
+                {
+                    'id': self.content_view['id'],
+                    'lifecycle-environments': f"{ENVIRONMENT},"
+                    + f"{self.env['name']},"
+                    + f"{self.hosts_env['name']}",
+                    'organization-id': self.org['id'],
+                    'system-content-view-id': default_cv['id'],
+                    'system-environment-id': default_lce['id'],
+                    'key-content-view-id': default_cv['id'],
+                    'key-environment-id': default_lce['id'],
+                }
+            )
+            ContentView.delete({'id': self.content_view['id']})
+            RepositorySet.disable(
+                {
+                    'basearch': 'x86_64',
+                    'name': REPOSET['rhst7'],
+                    'organization-id': self.org['id'],
+                    'product': PRDS['rhel'],
+                }
+            )
             result = self.client.run(
                 'subscription-manager list --available --matches "%s" --pool-only'
                 % DEFAULT_SUBSCRIPTION_NAME
