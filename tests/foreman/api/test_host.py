@@ -98,8 +98,8 @@ class TestHost:
 
         :customerscenario: true
 
-        :expectedresults: Search functionality works as expected and correct
-            result is returned
+        :expectedresults: The host was found, when the search with specified host's
+            organization id was done
 
         :BZ: 1447958
 
@@ -1381,12 +1381,6 @@ class TestHostInterface:
         )
         with pytest.raises(HTTPError):
             primary_interface.delete()
-        try:
-            HTTPError
-        except 404:
-            pytest.fail("HTTPError raised value 404 unexpectedly!")
-        else:
-            primary_interface.read()
 
     @upgrade
     @tier1
@@ -1408,9 +1402,3 @@ class TestHostInterface:
         interface.delete()
         with pytest.raises(HTTPError):
             interface.read()
-        try:
-            HTTPError
-        except 404:
-            pytest.fail("HTTPError raised value 404 unexpectedly!")
-        else:
-            host.read()
