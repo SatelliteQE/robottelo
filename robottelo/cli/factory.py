@@ -26,6 +26,7 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
+from robottelo.cli.content_credentials import ContentCredential
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.contentview import ContentViewFilter
 from robottelo.cli.contentview import ContentViewFilterRule
@@ -367,7 +368,7 @@ def make_gpg_key(options=None):
 
     # Create a fake gpg key file if none was provided
     if not options.get('key'):
-        (_, key_filename) = mkstemp(text=True)
+        _, key_filename = mkstemp(text=True)
         os.chmod(key_filename, 0o700)
         with open(key_filename, 'w') as gpg_key_file:
             gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
@@ -388,6 +389,46 @@ def make_gpg_key(options=None):
     ssh.upload_file(local_file=key_filename, remote_file=args['key'])
 
     return create_object(GPGKey, args, options)
+
+
+@cacheable
+def make_content_credential(options=None):
+    """Creates a content credential.
+
+    In Satellite 6.8, only gpg_key option is supported.
+
+    :param options: Check options using `hammer content-credential create --help` on satellite.
+
+    :returns ContentCredential object
+    """
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id'):
+        raise CLIFactoryError('Please provide a valid ORG ID.')
+
+    # Create a fake gpg key file if none was provided
+    if not options.get('key'):
+        (_, key_filename) = mkstemp(text=True)
+        os.chmod(key_filename, 0o700)
+        with open(key_filename, 'w') as gpg_key_file:
+            gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
+    else:
+        # If the key is provided get its local path and remove it from options
+        # to not override the remote path
+        key_filename = options.pop('key')
+
+    args = {
+        'key': f'/tmp/{gen_alphanumeric()}',
+        'content-type': 'gpg_key',
+        'name': gen_alphanumeric(),
+        'organization': None,
+        'organization-id': None,
+        'organization-label': None,
+    }
+
+    # Upload file to server
+    ssh.upload_file(local_file=key_filename, remote_file=args['key'])
+
+    return create_object(ContentCredential, args, options)
 
 
 @cacheable

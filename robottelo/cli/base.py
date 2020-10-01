@@ -61,67 +61,11 @@ class CLIDataBaseError(CLIBaseError):
 class Base:
     """
     @param command_base: base command of hammer.
-    Output of recent `hammer --help`::
-
-        activation-key                Manipulate activation keys.
-        architecture                  Manipulate architectures.
-        auth                          Foreman connection login/logout.
-        auth-source                   Manipulate auth sources.
-        bootdisk                      Download boot disks
-        capsule                       Manipulate capsule
-        compute-resource              Manipulate compute resources.
-        content-host                  Manipulate content hosts on the server
-        content-report                View Content Reports
-        content-view                  Manipulate content views.
-        defaults                      Defaults management
-        docker                        Manipulate docker content
-        domain                        Manipulate domains.
-        environment                   Manipulate environments.
-        erratum                       Manipulate errata
-        fact                          Search facts.
-        filter                        Manage permission filters.
-        global-parameter              Manipulate global parameters.
-        gpg                           Manipulate GPG Key actions on the server
-        host                          Manipulate hosts.
-        host-collection               Manipulate host collections
-        hostgroup                     Manipulate hostgroups.
-        import                        Import data exported from a Red Hat Sat..
-        lifecycle-environment         Manipulate lifecycle_environments
-        location                      Manipulate locations.
-        medium                        Manipulate installation media.
-        model                         Manipulate hardware models.
-        organization                  Manipulate organizations
-        os                            Manipulate operating system.
-        ostree-branch                 Manipulate ostree branches
-        package                       Manipulate packages.
-        package-group                 Manipulate package groups
-        partition-table               Manipulate partition tables.
-        ping                          Get the status of the server
-        product                       Manipulate products.
-        proxy                         Manipulate smart proxies.
-        puppet-class                  Search puppet modules.
-        puppet-module                 View Puppet Module details.
-        report                        Browse and read reports.
-        repository                    Manipulate repositories
-        repository-set                Manipulate repository sets on the server
-        role                          Manage user roles.
-        sc-param                      Manipulate smart class parameters.
-        settings                      Change server settings.
-        shell                         Interactive shell
-        subnet                        Manipulate subnets.
-        subscription                  Manipulate subscriptions.
-        sync-plan                     Manipulate sync plans
-        task                          Tasks related actions.
-        template                      Manipulate provisioning templates.
-        user                          Manipulate users.
-        user-group                    Manage user groups.
-
-
-    @since: 27.Nov.2013
+    See Subcommands section in `hammer --help` output on your Satellite.
     """
 
     command_base = None  # each inherited instance should define this
-    command_sub = None  # specific to instance, like: create, update, etc
+    command_sub = None  # specific to instance, like: create, update, etc.
     command_requires_org = False  # True when command requires organization-id
 
     logger = logging.getLogger('robottelo')

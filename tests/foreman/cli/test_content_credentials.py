@@ -1,15 +1,16 @@
-"""Test class for GPG Key CLI
+# -*- encoding: utf-8 -*-
 """Test class for GPG Key CLI.
 The gpg sub-command was deprecated in favour of content-credential in
 Satellite 6.8
 
-:Requirement: Gpgkey
+:Requirement: ContentCredential
 
 :CaseAutomation: Automated
 
 :CaseLevel: Component
 
 :CaseComponent: ContentCredentials
+
 
 :TestType: Functional
 
@@ -19,7 +20,6 @@ Satellite 6.8
 """
 from tempfile import mkstemp
 
-import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_choice
 from fauxfactory import gen_integer
@@ -27,12 +27,12 @@ from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.content_credentials import ContentCredential
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
-from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -40,6 +40,9 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
@@ -71,18 +74,18 @@ class TestGPGKey(CLITestCase):
         """Create a shared organization for all tests to avoid generating
         hundreds of organizations
         """
-        super().setUpClass()
+        super(TestGPGKey, cls).setUpClass()
         cls.org = make_org(cached=True)
 
     # Bug verification
 
-    @pytest.mark.tier1
+    @tier1
     def test_verify_redmine_4272(self):
-        """gpg info should display key content
+        """content-credentials info should display key content
 
-        :id: 2c6176ca-34dd-4d52-930d-6e79da6b0c15
+        :id: 0ee87ee0-8bf1-4d15-b5f9-0ac364e61155
 
-        :expectedresults: gpg info should display key content
+        :expectedresults: content-credentials info should display key content
 
         :CaseImportance: Critical
         """
@@ -90,16 +93,16 @@ class TestGPGKey(CLITestCase):
         content = gen_alphanumeric()
         gpg_key = create_gpg_key_file(content=content)
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
-        gpg_key = make_gpg_key(
+        gpg_key = make_content_credential(
             {'key': gpg_key, 'name': gen_string('alpha'), 'organization-id': self.org['id']}
         )
         self.assertEqual(gpg_key['content'], content)
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_get_info_by_name(self):
         """Create single gpg key and get its info by name
 
-        :id: be418cf8-8a90-46db-9e8c-8ff349c98401
+        :id: 890456ea-0b31-4386-9231-f47572f26d08
 
         :expectedresults: specific information for GPG key matches the creation
             name
@@ -107,20 +110,22 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        gpg_key = make_gpg_key(
+        gpg_key = make_content_credential(
             {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': self.org['id']}
         )
-        gpg_key = GPGKey.info({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info(
+            {'name': gpg_key['name'], 'organization-id': self.org['id']}
+        )
         self.assertEqual(gpg_key['name'], name)
 
     # Positive Create
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_create_with_default_org(self):
         """Create gpg key with valid name and valid gpg key via file
         import using the default created organization
 
-        :id: c64d4959-e53e-44c0-82da-dc4dd4c89733
+        :id: 4265dfd1-dc64-4119-8a64-8724b09d6fb7
 
         :expectedresults: gpg key is created
 
@@ -129,21 +134,21 @@ class TestGPGKey(CLITestCase):
         org = Org.info({'name': DEFAULT_ORG})
         for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key(
+                gpg_key = make_content_credential(
                     {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': org['id']}
                 )
                 # Can we find the new object?
-                result = GPGKey.exists(
+                result = ContentCredential.exists(
                     {'organization-id': org['id']}, (self.search_key, gpg_key[self.search_key])
                 )
                 self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_create_with_custom_org(self):
         """Create gpg key with valid name and valid gpg key via file
         import using a new organization
 
-        :id: f1bcf748-0890-4b54-8f30-2df4924c80b3
+        :id: 10dd9fc0-e088-4cf1-9fb6-24fe04df2895
 
         :expectedresults: gpg key is created
 
@@ -151,7 +156,7 @@ class TestGPGKey(CLITestCase):
         """
         for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key(
+                gpg_key = make_content_credential(
                     {
                         'key': VALID_GPG_KEY_FILE_PATH,
                         'name': name,
@@ -159,7 +164,7 @@ class TestGPGKey(CLITestCase):
                     }
                 )
                 # Can we find the new object?
-                result = GPGKey.exists(
+                result = ContentCredential.exists(
                     {'organization-id': self.org['id']},
                     (self.search_key, gpg_key[self.search_key]),
                 )
@@ -167,33 +172,33 @@ class TestGPGKey(CLITestCase):
 
     # Negative Create
 
-    @pytest.mark.tier1
+    @tier1
     def test_negative_create_with_same_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
 
-        :id: 3f1423da-bcc1-4320-8b9b-260784eb123c
+        :id: 8751745c-5cf6-42f7-8fbd-6c23119da486
 
         :expectedresults: gpg key is not created
 
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        gpg_key = make_gpg_key({'name': name, 'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'name': name, 'organization-id': self.org['id']})
         # Can we find the new object?
-        result = GPGKey.exists(
+        result = ContentCredential.exists(
             {'organization-id': self.org['id']}, (self.search_key, gpg_key[self.search_key])
         )
         self.assertEqual(gpg_key[self.search_key], result[self.search_key])
         # Try to create a gpg key with the same name
         with self.assertRaises(CLIFactoryError):
-            make_gpg_key({'name': name, 'organization-id': self.org['id']})
+            make_content_credential({'name': name, 'organization-id': self.org['id']})
 
-    @pytest.mark.tier1
+    @tier1
     def test_negative_create_with_no_gpg_key(self):
         """Create gpg key with valid name and no gpg key
 
-        :id: 9440a1a0-eb0d-445e-88d3-3139c2b1d17a
+        :id: bbfd5306-cfe7-40c1-a3a2-35834108163c
 
         :expectedresults: gpg key is not created
 
@@ -202,14 +207,14 @@ class TestGPGKey(CLITestCase):
         for name in valid_data_list().values():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
-                    GPGKey.create({'name': name, 'organization-id': self.org['id']})
+                    ContentCredential.create({'name': name, 'organization-id': self.org['id']})
 
-    @pytest.mark.tier1
+    @tier1
     def test_negative_create_with_invalid_name(self):
         """Create gpg key with invalid name and valid gpg key via
         file import
 
-        :id: 93160f88-b653-42a9-b44f-9b2ba56f38d9
+        :id: fbbaf8a5-1570-4910-9f6a-baa35b15d2ad
 
         :expectedresults: gpg key is not created
 
@@ -219,16 +224,16 @@ class TestGPGKey(CLITestCase):
             with self.subTest(name):
                 with self.assertRaises(CLIFactoryError):
                     # factory will provide a valid key
-                    make_gpg_key({'name': name, 'organization-id': self.org['id']})
+                    make_content_credential({'name': name, 'organization-id': self.org['id']})
 
     # Positive Delete
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
+    @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create gpg key with valid name and valid gpg key via file
         import then delete it
 
-        :id: 5bf72e5c-767a-4321-8781-a5cea9474421
+        :id: 9640cabc-e0c3-41a0-b4de-99b06bf51c02
 
         :expectedresults: gpg key is deleted
 
@@ -236,14 +241,16 @@ class TestGPGKey(CLITestCase):
         """
         for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key({'name': name, 'organization-id': self.org['id']})
-                result = GPGKey.exists(
+                gpg_key = make_content_credential(
+                    {'name': name, 'organization-id': self.org['id']}
+                )
+                result = ContentCredential.exists(
                     {'organization-id': self.org['id']},
                     (self.search_key, gpg_key[self.search_key]),
                 )
                 self.assertEqual(gpg_key[self.search_key], result[self.search_key])
-                GPGKey.delete({'name': name, 'organization-id': self.org['id']})
-                result = GPGKey.exists(
+                ContentCredential.delete({'name': name, 'organization-id': self.org['id']})
+                result = ContentCredential.exists(
                     {'organization-id': self.org['id']},
                     (self.search_key, gpg_key[self.search_key]),
                 )
@@ -251,68 +258,74 @@ class TestGPGKey(CLITestCase):
 
     # Positive Update
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_update_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then update its name
 
-        :id: e18d7cd8-2757-4134-9ed9-7eb68f2872e2
+        :id: f3bb254d-f831-4f86-944a-26d9a36bd906
 
         :expectedresults: gpg key is updated
 
         :CaseImportance: Critical
         """
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         for new_name in valid_data_list().values():
             with self.subTest(new_name):
-                GPGKey.update(
+                ContentCredential.update(
                     {
                         'name': gpg_key['name'],
                         'new-name': new_name,
                         'organization-id': self.org['id'],
                     }
                 )
-                gpg_key = GPGKey.info({'name': new_name, 'organization-id': self.org['id']})
+                gpg_key = ContentCredential.info(
+                    {'name': new_name, 'organization-id': self.org['id']}
+                )
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_update_key(self):
         """Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
-        :id: 58a8ed14-adfc-4046-af63-59a7008ff4d7
+        :id: d3a72892-3414-4178-98b7-e0780d9b6587
 
         :expectedresults: gpg key is updated
 
         :CaseImportance: Critical
         """
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         content = gen_alphanumeric(gen_integer(20, 50))
         self.assertNotEqual(gpg_key['content'], content)
         local_key = create_gpg_key_file(content)
         self.assertIsNotNone(local_key, 'GPG Key file must be created')
         key = '/tmp/%s' % gen_alphanumeric()
         ssh.upload_file(local_file=local_key, remote_file=key)
-        GPGKey.update({'key': key, 'name': gpg_key['name'], 'organization-id': self.org['id']})
-        gpg_key = GPGKey.info({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.update(
+            {'key': key, 'name': gpg_key['name'], 'organization-id': self.org['id']}
+        )
+        gpg_key = ContentCredential.info(
+            {'name': gpg_key['name'], 'organization-id': self.org['id']}
+        )
         self.assertEqual(gpg_key['content'], content)
 
     # Negative Update
-    @pytest.mark.tier1
+    @tier1
     def test_negative_update_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
-        :id: 938d2925-c82c-43b6-8dfc-29c42eca7424
+        :id: 98cda40a-49d0-42ce-91a6-31fa7b7f330b
 
         :expectedresults: gpg key is not updated
 
         :CaseImportance: Critical
         """
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    GPGKey.update(
+                    ContentCredential.update(
                         {
                             'name': gpg_key['name'],
                             'new-name': new_name,
@@ -321,27 +334,27 @@ class TestGPGKey(CLITestCase):
                     )
 
     # Product association
-    @pytest.mark.tier2
+    @tier2
     def test_positive_add_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
 
-        :id: b7477c2f-586c-4593-96c0-1fbc532ce8bf
+        :id: 61c700db-43ab-4b8c-8527-f4cfc085afaa
 
         :expectedresults: gpg key is associated with product
 
         :CaseLevel: Integration
         """
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_add_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
 
-        :id: 5529a852-9ef6-48f8-b2bc-2bbf463657dd
+        :id: f315eadd-e65b-4952-912f-f640867ad656
 
         :expectedresults: gpg key is associated with product as well as with
             the repository
@@ -350,7 +363,7 @@ class TestGPGKey(CLITestCase):
         """
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         Product.update(
             {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
         )
@@ -359,13 +372,13 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_add_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository
 
-        :id: b05c5223-44d5-4a48-9d99-18ca351c84a5
+        :id: 76683f3e-7705-4719-996e-c026839053bb
 
         :expectedresults: gpg key is associated with product as well as with
             the repositories
@@ -374,7 +387,7 @@ class TestGPGKey(CLITestCase):
         """
         product = make_product({'organization-id': self.org['id']})
         repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         Product.update(
             {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
         )
@@ -384,13 +397,13 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_add_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository
 
-        :id: 1427f145-9faf-41ef-ae42-dc91d61ce1f6
+        :id: da568a0e-69b1-498e-a747-6881aac7409e
 
         :expectedresults: gpg key is associated with the repository but not
             with the product
@@ -399,7 +412,7 @@ class TestGPGKey(CLITestCase):
         """
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         Repository.update(
             {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': self.org['id']}
         )
@@ -408,7 +421,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
         self.assertNotEqual(product['gpg'].get('gpg-key-id'), gpg_key['id'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_add_repo_from_product_with_repos(self):
         """Create gpg key via file import and associate with custom repo
 
@@ -416,7 +429,7 @@ class TestGPGKey(CLITestCase):
         to one repository from custom product. Make sure custom product should
         have more than one repository.
 
-        :id: 9796f6f0-e688-4f14-89ec-447feb4e4911
+        :id: e3019a61-ec32-4044-9087-e420b8db4e09
 
         :expectedresults: gpg key is associated with the repository
 
@@ -424,7 +437,7 @@ class TestGPGKey(CLITestCase):
         """
         product = make_product({'organization-id': self.org['id']})
         repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         Repository.update(
             {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': self.org['id']}
         )
@@ -438,13 +451,13 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('id'), gpg_key['id'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_update_key_for_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product then
         update the key
 
-        :id: c0c84c45-21fc-4940-9d52-00babb807ec7
+        :id: 13aa6e0c-4255-483a-af33-ea7e82ee7766
 
         :expectedresults: gpg key is associated with product before/after
             update
@@ -453,7 +466,7 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Associate gpg key with a product
         Product.update(
             {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
@@ -463,23 +476,23 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Update the gpg key
         new_name = gen_choice(list(valid_data_list().values()))
-        GPGKey.update(
+        ContentCredential.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], new_name)
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_update_key_for_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
         then update the key
 
-        :id: 3fb550a7-507e-4988-beb6-35bdfc2e99a8
+        :id: 1f8f943c-a611-4ed2-9d8a-770f60a549a7
 
         :expectedresults: gpg key is associated with product before/after
             update as well as with the repository
@@ -488,7 +501,7 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Create a repository and assign it to the product
         repo = make_repository({'product-id': product['id']})
         # Associate gpg key with a product
@@ -502,11 +515,11 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
         new_name = gen_choice(list(valid_data_list().values()))
-        GPGKey.update(
+        ContentCredential.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
@@ -515,13 +528,13 @@ class TestGPGKey(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['gpg-key'].get('id'), gpg_key['id'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_update_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then update the key
 
-        :id: a95eb51b-4b6b-4c04-bb4d-cbe600431850
+        :id: 8aa3dc75-6257-48ae-b3f9-c617e323b47a
 
         :expectedresults: gpg key is associated with product before/after
             update as well as with the repositories
@@ -530,7 +543,7 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Create repositories and assign them to the product
         repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         # Associate gpg key with a product
@@ -545,11 +558,11 @@ class TestGPGKey(CLITestCase):
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
         new_name = gen_choice(list(valid_data_list().values()))
-        GPGKey.update(
+        ContentCredential.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
@@ -559,13 +572,13 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), new_name)
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then update the key
 
-        :id: 549e2e1e-fd10-4487-a3a5-fdee9b8cfc48
+        :id: 2fee5f35-6e0e-4b7c-8a8a-46ee1e77919d
 
         :expectedresults: gpg key is associated with the repository
             before/after update, but not with the product
@@ -574,18 +587,18 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Create repository, assign product and gpg-key
         repo = make_repository({'gpg-key-id': gpg_key['id'], 'product-id': product['id']})
         # Verify gpg key was associated
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
         new_name = gen_choice(list(valid_data_list().values()))
-        GPGKey.update(
+        ContentCredential.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the repositories
         repo = Repository.info({'id': repo['id']})
@@ -594,13 +607,13 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], new_name)
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_update_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then update the key
 
-        :id: 773a9141-9f04-40ba-b3df-4b6d80db25a6
+        :id: c548ed4f-7f2d-456f-a644-7597644f6457
 
         :expectedresults: gpg key is associated with a single repository
             before/after update and not associated with product or other
@@ -610,7 +623,7 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Create repositories and assign them to the product
         repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         # Associate gpg key with a single repository
@@ -622,11 +635,11 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Update the gpg key
         new_name = gen_choice(list(valid_data_list().values()))
-        GPGKey.update(
+        ContentCredential.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+        gpg_key = ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the associated repository
         repos[0] = Repository.info({'id': repos[0]['id']})
@@ -639,13 +652,13 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), new_name)
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_delete_key_for_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
         then delete it
 
-        :id: da76cada-5ccf-47e1-8c12-24f30c41c8b6
+        :id: 238a80f8-983a-4fd5-a168-6ef9442e2b1c
 
         :expectedresults: gpg key is associated with product during creation
             but removed from product after deletion
@@ -653,27 +666,27 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
         # Create a product and a gpg key
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was associated
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+            ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
+    @tier2
+    @upgrade
     def test_positive_delete_key_for_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
         then delete it
 
-        :id: a5d4ea02-f015-4026-b4dc-7365eaf00049
+        :id: 1e98e588-8b5d-475c-ad84-5d566df5619c
 
         :expectedresults: gpg key is associated with product but and its
             repository during creation but removed from product and repository
@@ -684,7 +697,7 @@ class TestGPGKey(CLITestCase):
         # Create product, repository and gpg key
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Associate gpg key with a product
         Product.update(
             {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
@@ -695,23 +708,23 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+            ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product and its repository
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_delete_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then delete it
 
-        :id: f92d4643-1892-4f95-ae6b-fcea8e726946
+        :id: 3848441f-746a-424c-afc3-4d5a15888af8
 
         :expectedresults: gpg key is associated with product and its
             repositories during creation but removed from the product and the
@@ -722,7 +735,7 @@ class TestGPGKey(CLITestCase):
         # Create product, repositories and gpg key
         product = make_product({'organization-id': self.org['id']})
         repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Associate gpg key with a product
         Product.update(
             {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
@@ -734,10 +747,10 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+            ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product and its
         # repositories
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
@@ -746,13 +759,13 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_delete_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then delete the key
 
-        :id: 3658e04d-fc63-499f-a22d-b512941cc96b
+        :id: 2555b08f-8cee-4e84-8f4d-9b46743f5758
 
         :expectedresults: gpg key is associated with the single repository but
             not the product during creation and was removed from repository
@@ -763,7 +776,7 @@ class TestGPGKey(CLITestCase):
         # Create product, repository and gpg key
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Associate gpg key with a repository
         Repository.update(
             {'gpg-key': gpg_key['name'], 'id': repo['id'], 'organization-id': self.org['id']}
@@ -775,21 +788,21 @@ class TestGPGKey(CLITestCase):
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+            ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the repository
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @pytest.mark.tier2
+    @tier2
     def test_positive_delete_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then delete the key
 
-        :id: e7ed4ed9-ecfe-4954-b806-cdd0668e8822
+        :id: 7d6a278b-1063-4e72-bc32-ca60bd17bb84
 
         :expectedresults: gpg key is associated with a single repository but
             not the product during creation and removed from repository after
@@ -802,7 +815,7 @@ class TestGPGKey(CLITestCase):
         repos = []
         for _ in range(gen_integer(2, 5)):
             repos.append(make_repository({'product-id': product['id']}))
-        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key = make_content_credential({'organization-id': self.org['id']})
         # Associate gpg key with a repository
         Repository.update(
             {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': self.org['id']}
@@ -811,10 +824,10 @@ class TestGPGKey(CLITestCase):
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
+        ContentCredential.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
+            ContentCredential.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key is not associated with any repository or the product
         # itself
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
@@ -825,25 +838,27 @@ class TestGPGKey(CLITestCase):
 
     # Miscelaneous
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_list(self):
         """Create gpg key and list it
 
-        :id: 5da535b3-1728-4edf-bd33-3822c4427ef3
+        :id: ca69e23b-ca96-43dd-89a6-55b0e4ea322d
 
         :expectedresults: gpg key is displayed/listed
 
         :CaseImportance: Critical
         """
-        gpg_key = make_gpg_key({'key': VALID_GPG_KEY_FILE_PATH, 'organization-id': self.org['id']})
-        gpg_keys_list = GPGKey.list({'organization-id': self.org['id']})
+        gpg_key = make_content_credential(
+            {'key': VALID_GPG_KEY_FILE_PATH, 'organization-id': self.org['id']}
+        )
+        gpg_keys_list = ContentCredential.list({'organization-id': self.org['id']})
         self.assertIn(gpg_key['id'], [gpg['id'] for gpg in gpg_keys_list])
 
-    @pytest.mark.tier1
+    @tier1
     def test_positive_search(self):
         """Create gpg key and search/find it
 
-        :id: 9ef15add-b067-4134-b930-aaeda18bddfa
+        :id: f72648f1-b468-4662-9653-3464e7d0c349
 
         :expectedresults: gpg key can be found
 
@@ -851,7 +866,7 @@ class TestGPGKey(CLITestCase):
         """
         for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key(
+                gpg_key = make_content_credential(
                     {
                         'key': VALID_GPG_KEY_FILE_PATH,
                         'name': name,
@@ -859,7 +874,7 @@ class TestGPGKey(CLITestCase):
                     }
                 )
                 # Can we find the new object?
-                result = GPGKey.exists(
+                result = ContentCredential.exists(
                     {'organization-id': self.org['id']}, search=('name', gpg_key['name'])
                 )
                 self.assertEqual(gpg_key['name'], result['name'])
