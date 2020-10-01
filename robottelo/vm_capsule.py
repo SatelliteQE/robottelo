@@ -266,6 +266,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         os.remove(temporary_local_cert_file_path)
 
         installer_cmd = extract_capsule_satellite_installer_command(certs_gen.stdout)
+        installer_cmd += " --verbose"
         result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file
