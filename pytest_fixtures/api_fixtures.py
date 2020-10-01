@@ -15,7 +15,6 @@ from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
@@ -25,6 +24,8 @@ from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.decorators import skip_if
 from robottelo.helpers import download_gce_cert
 from robottelo.helpers import file_downloader
 from robottelo.test import settings
@@ -444,6 +445,7 @@ def default_contentview(module_org):
     )
 
 
+@skip_if(not settings.repos_hosting_url)
 @pytest.fixture(scope='module')
 def module_cv_with_puppet_module(module_org):
     return publish_puppet_module(
