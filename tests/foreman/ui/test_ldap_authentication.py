@@ -1401,3 +1401,59 @@ def test_timeout_and_cac_card_ejection():
 
     :expectedresults: Satellite should terminate the session after mentioned timeout in setting
     """
+
+
+@tier2
+@pytest.mark.skip_if_open("BZ:1670397")
+def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_down):
+    """Verify if attributes of LDAP user are updated upon first login when
+    onthefly is disabled
+
+    :id: 163b346c-03be-11eb-acb9-0c7a158cbff4
+
+    :Steps:
+        1. Create authsource with onthefly disabled
+        2. Create a user manually and select the authsource created
+        3. Attributes of the user (like names and email) should be synced.
+
+    :BZ: 1670397
+
+    :expectedresults: The attributes should be synced.
+    """
+    ldap_auth_name = gen_string('alphanumeric')
+    auth_source_name = 'LDAP-' + ldap_auth_name
+    with session:
+        session.ldapauthentication.create(
+            {
+                'ldap_server.name': ldap_auth_name,
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
+                'account.account_name': ldap_data['ldap_user_name'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'attribute_mappings.login': LDAP_ATTR['login_ad'],
+                'attribute_mappings.first_name': LDAP_ATTR['firstname'],
+                'attribute_mappings.last_name': LDAP_ATTR['surname'],
+                'attribute_mappings.mail': LDAP_ATTR['mail'],
+            }
+        )
+        session.user.create(
+            {
+                'user.login': ldap_data['ldap_user_name'],
+                'user.auth': auth_source_name,
+                'roles.admin': True,
+            }
+        )
+    with Session(
+        user=ldap_data['ldap_user_name'], password=ldap_data['ldap_user_passwd']
+    ) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+    with session:
+        user_values = session.user.read(ldap_data['ldap_user_name'])
+        assert user_values['user']['login'] == ldap_data['ldap_user_name']
+        assert user_values['user']['firstname'] is not None
+        assert user_values['user']['lastname'] is not None
+        assert user_values['user']['mail'] is not None
