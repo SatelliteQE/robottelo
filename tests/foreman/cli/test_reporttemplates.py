@@ -18,6 +18,7 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIReturnCodeError
@@ -39,7 +40,9 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_template_input
 from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.filter import Filter
+from robottelo.cli.host import Host
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.report_template import ReportTemplate
@@ -50,7 +53,12 @@ from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME,\
+        FAKE_1_CUSTOM_PACKAGE, FAKE_1_CUSTOM_PACKAGE_NAME, FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import PRDS
 from robottelo.constants import REPORT_TEMPLATE_FILE
+from robottelo.constants import REPOSET
+from robottelo.constants import REPOS
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -90,6 +98,8 @@ def setup_content(request):
     request.cls.setup_org = org
     request.cls.setup_new_ak = new_ak
     request.cls.setup_subs_id = subs_id
+    request.cls.setup_env = env
+    request.cls.setup_content_view = content_view
 
 
 @pytest.mark.usefixtures("setup_content")
@@ -808,3 +818,110 @@ class ReportTemplateTestCase(CLITestCase):
             )
             assert any(vm.hostname in line for line in data_csv)
             assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
+
+    @tier3
+    def test_positive_generate_hostpkgcompare(self):
+        """Generate 'Host - compare content hosts packages' report
+
+        :id: 572fb387-86f2-40e2-b2df-e8ec26433610
+
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, Subscriptions, and synced fake repo.
+
+        :steps:
+            1. hammer report-template generate --name 'Host - compare content hosts package' ...
+
+        :expectedresults: report is scheduled and generated containing all the expected information
+                          regarding host packages
+
+        :CaseImportance: Medium
+        """
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': self.setup_org['id'],
+                'content-view-id': self.setup_content_view['id'],
+                'lifecycle-environment-id': self.setup_env['id'],
+                'activationkey-id': self.setup_new_ak['id'],
+            }
+        )
+
+        hosts = []
+        for i in [0, 1]:
+            # Create VM and register content host
+            client = VirtualMachine(distro=DISTRO_RHEL7)
+            client.create()
+            self.addCleanup(vm_cleanup, client)
+            client.install_katello_ca()
+            # Register content host, install katello-agent
+            client.register_contenthost(
+                self.setup_org['label'], self.setup_new_ak['name']
+            )
+            self.assertTrue(client.subscribed)
+            hosts.append(Host.info({'name': client.hostname}))
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+        hosts.sort(key=lambda host: host['name'])
+
+        host1 = hosts[0]
+        host2 = hosts[1]
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
+        Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
+
+        result = ReportTemplate.generate({'name': 'Host - compare content hosts packages',
+                                         'inputs': f"Host 1 = {host1['name']}, "
+                                          f"Host 2 = {host2['name']}"})
+        result.remove('')
+
+        self.assertGreater(len(result), 1)
+        self.assertEquals(f'Package,{host1["name"]},{host2["name"]},Architecture,Status',
+                          result[0])
+        items = [item.split(',') for item in result[1:]]
+        self.assertGreater(len(items), 0)
+        for item in items:
+            self.assertEquals(len(item), 5)
+            self.assertGreater(len(item[0]), 0)
+            assert((item[1] == '-' and item[0] in item[2])
+                   or (item[0] in item[1] and item[2] == '-')
+                   or (item[0] in item[1] and item[0] in item[2]))
+            self.assertIn(item[3], ['x86_64', 'i686', 's390x', 'ppc64', 'ppc64le', 'noarch'])
+            assert(item[4] == 'same version'
+                   or item[4] == f'{host1["name"]} only'
+                   or item[4] == f'{host2["name"]} only'
+                   or item[4] == f'lower in {host1["name"]}'
+                   or item[4] == f'greater in {host1["name"]}')
+            # test for specific installed packages
+            if item[0] == FAKE_0_CUSTOM_PACKAGE_NAME:
+                assert(item[4] == f'{host1["name"]} only')
+            if item[0] == FAKE_1_CUSTOM_PACKAGE_NAME:
+                assert(item[4] == f'lower in {host1["name"]}'
+                       or item[4] == f'greater in {host2["name"]}')
+
+    @tier3
+    def test_negative_generate_hostpkgcompare_nonexistent_host(self):
+        """Try to generate 'Host - compare content hosts packages' report
+        with nonexistent hosts inputs
+
+        :id: 572fb387-86e0-40e2-b2df-ef5c26433610
+
+
+        :setup: Installed Satellite
+
+        :steps:
+            1. hammer report-template generate --name 'Host - compare content hosts packages'
+               --inputs 'Host 1 = nonexistent1, Host 2 = nonexistent 2'
+
+        :expectedresults: report is not generated, sane error shown
+
+        :CaseImportance: Medium
+        """
+        with self.assertRaises(CLIReturnCodeError) as cm:
+            ReportTemplate.generate({'name': 'Host - compare content hosts packages',
+                                             'inputs':  'Host 1 = nonexistent1, '
+                                             'Host 2 = nonexistent2'})
+            self.assertIn('At least one of the hosts couldn\'t be found', cm.exception.stderr)
