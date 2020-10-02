@@ -1659,7 +1659,8 @@ class RepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Role.with_user(user_name, user_password).info({'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request', context.exception.stderr
+            'Access denied\nMissing one of the required permissions: view_roles',
+            context.exception.stderr,
         )
         # Create a product
         product = make_product({'organization-id': org['id'], 'name': product_name})
