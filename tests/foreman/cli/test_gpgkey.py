@@ -7,7 +7,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: GPGKeys
+:CaseComponent: ContentCredentials
 
 :TestType: Functional
 
