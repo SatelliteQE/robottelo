@@ -1384,7 +1384,7 @@ class TestHostInterface:
         try:
             primary_interface.read()
         except HTTPError:
-            pytest.fail("HTTPError raised value 404 unexpectedly!")
+            pytest.fail("HTTPError 404 raised unexpectedly!")
 
     @upgrade
     @tier1
@@ -1409,4 +1409,4 @@ class TestHostInterface:
         try:
             host.read()
         except HTTPError:
-            pytest.fail("HTTPError raised value 404 unexpectedly!")
+            pytest.fail("HTTPError 404 raised unexpectedly!")
