@@ -1,8 +1,10 @@
 """Utility module to handle the rhsso-satellite configure UI/CLI/API testing"""
 import json
 import random
+from contextlib import contextmanager
 
 from fauxfactory import gen_string
+from pexpect import pxssh
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -118,3 +120,68 @@ def delete_rhsso_user(username):
     run_command(
         cmd=f"{KEY_CLOAK_CLI} delete -r {realm} users/{user_details['id']}", hostname=rhsso_host,
     )
+
+
+def update_client_configuration(json_content):
+    """Update the client configuration"""
+    client_id = get_rhsso_client_id()
+    upload_rhsso_entity(json_content, "update_client_info")
+    update_cmd = (
+        f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info -s enabled=true --merge"
+    )
+    run_command(cmd=update_cmd, hostname=rhsso_host)
+
+
+def get_oidc_token_endpoint():
+    """getter oidc token endpoint"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/token"
+    )
+
+
+def get_oidc_client_id():
+    """getter for the oidc client_id"""
+    return f"{settings.server.hostname}-foreman-openidc"
+
+
+def get_oidc_authorization_endpoint():
+    """getter for the oidc authorization endpoint"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/auth"
+    )
+
+
+def get_two_factor_token_rh_sso_url():
+    """getter for the two factor token rh_sso url"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/"
+        f"auth?response_type=code&client_id={settings.server.hostname}-foreman-openidc&"
+        f"redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
+    )
+
+
+@contextmanager
+def open_pxssh_session(
+    ssh_key=settings.server.ssh_key,
+    hostname=settings.server.hostname,
+    username=settings.server.ssh_username,
+):
+    ssh_options = {'IdentityAgent': ssh_key}
+    ssh_session = pxssh.pxssh(options=ssh_options)
+    ssh_session.login(hostname, username, sync_multiplier=5)
+    yield ssh_session
+    ssh_session.logout()
+
+
+def set_the_redirect_uri():
+    client_config = {
+        "redirectUris": [
+            "urn:ietf:wg:oauth:2.0:oob",
+            f"https://{settings.server.hostname}/users/extlogin/redirect_uri",
+            f"https://{settings.server.hostname}/users/extlogin",
+        ]
+    }
+    update_client_configuration(client_config)
