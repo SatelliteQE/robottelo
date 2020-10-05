@@ -207,9 +207,9 @@ class CapsuleVirtualMachine(VirtualMachine):
                 if exp.return_code == 70:
                     super(CapsuleVirtualMachine, self).destroy()
                 if is_open('BZ:1622064'):
-                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.warning(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                 else:
-                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.error(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                     raise
             try:
                 # try to delete the capsule if it was added already
