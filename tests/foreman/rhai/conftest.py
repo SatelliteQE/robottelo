@@ -53,7 +53,7 @@ def module_user(request, module_org):
         LOGGER.debug('Deleting session user %r', user.login)
         user.delete(synchronous=False)
     except HTTPError as err:
-        LOGGER.warning('Unable to delete session user: %s', str(err))
+        LOGGER.warning(f'Unable to delete session user: {err}')
 
 
 @fixture()
