@@ -250,7 +250,7 @@ class ReportTemplateTestCase(APITestCase):
             assert (
                 len(
                     entities.ReportTemplate().search(
-                        query={'search': 'name="{}"'.format((template_name))}
+                        query={'search': 'name="{}"'.format(template_name)}
                     )
                 )
                 != 0
@@ -273,7 +273,7 @@ class ReportTemplateTestCase(APITestCase):
         assert (
             len(
                 entities.ReportTemplate().search(
-                    query={'search': 'name="{}"'.format((template_name))}
+                    query={'search': 'name="{}"'.format(template_name)}
                 )
             )
             == 0
