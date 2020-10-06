@@ -27,7 +27,6 @@ from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
-from robottelo.errors import TemplateNotFoundError
 
 
 class TestTemplateSyncTestCase:
@@ -193,7 +192,6 @@ class TestTemplateSyncTestCase:
         )
         assert len(rtemplates) == 1
 
-    @pytest.mark.skip_if_open("BZ:1856287")
     @tier2
     def test_positive_import_and_associate(
         self,
@@ -223,11 +221,10 @@ class TestTemplateSyncTestCase:
             2. with Associate Never, templates are not imported in metadata taxonomies
             3. with Associate New, on reimporting the existing templates, taxonomies
                 are not changed to metadata taxonomies
-            4. with Associate New, new templates are not imported in importing taxonomies
-                if importing taxonomies are not part of metadata taxonomies
-            5. with Associate New, new templates are imported in metadata taxonomies only
-            6. with Associate Always, all the existing and new templates are imported in metadata
-                taxonomies only
+            4. with Associate New, new templates are imported in importing taxonomies
+                even though importing taxonomies are not part of metadata taxonomies
+            5. with Associate Always, all the existing and new templates are imported in importing
+                taxonomies even though importing taxonomies are not part of metadata taxonomies
 
         :CaseImportance: Medium
         """
@@ -252,8 +249,7 @@ class TestTemplateSyncTestCase:
                 'location_id': module_location.id,
             }
         )
-        if not ptemplate:
-            raise TemplateNotFoundError('The template is not associated to the correct taxonomies')
+        assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
         # - Template 1 not imported in metadata taxonomies
         ptemplate = entities.ProvisioningTemplate().search(
@@ -288,26 +284,15 @@ class TestTemplateSyncTestCase:
                 'location_id': module_location.id,
             }
         )
-        if not ptemplate:
-            raise TemplateNotFoundError('The template is not associated to the correct taxonomies')
+        assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
-        # - Template 2 should not imported in Taxonomies X and Y
+        # - Template 2 should be imported in importing taxonomies
         ptemplate = entities.ProvisioningTemplate().search(
             query={
                 'per_page': 10,
                 'search': f'name~{prefix}another_template',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
-            }
-        )
-        assert not ptemplate
-        # - Template 2 imported in metadata taxonomies only
-        ptemplate = entities.ProvisioningTemplate().search(
-            query={
-                'per_page': 10,
-                'search': f'name~{prefix}another_template',
-                'organization_id': default_org.id,
-                'location_id': default_location.id,
             }
         )
         assert ptemplate
@@ -322,29 +307,27 @@ class TestTemplateSyncTestCase:
                 'associate': 'always',
             }
         )
-        # - Template 1 taxonomies are changed to metadata taxonomies only
+        # - Template 1 taxonomies are not changed
         ptemplate = entities.ProvisioningTemplate().search(
             query={
                 'per_page': 10,
                 'search': f'name~{prefix}example_template',
-                'organization_id': default_org.id,
-                'location_id': default_location.id,
+                'organization_id': module_org.id,
+                'location_id': module_location.id,
             }
         )
-        if not ptemplate:
-            raise TemplateNotFoundError('The template is not associated to the correct taxonomies')
+        assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
-        # - Template 2 taxonomies are not changed to X and Y taxonomies
+        # - Template 2 taxonomies are not changed
         ptemplate = entities.ProvisioningTemplate().search(
             query={
                 'per_page': 10,
                 'search': f'name~{prefix}another_template',
-                'organization_id': default_org.id,
-                'location_id': default_location.id,
+                'organization_id': module_org.id,
+                'location_id': module_location.id,
             }
         )
-        if not ptemplate:
-            raise TemplateNotFoundError('The template is not associated to the correct taxonomies')
+        assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
 
     @tier2

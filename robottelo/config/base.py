@@ -178,6 +178,10 @@ class ServerSettings(FeatureSettings):
         """
         return (self.admin_username, self.admin_password)
 
+    def get_hostname(self, key="hostname"):
+        reader = INIReader(os.path.join(get_project_root(), SETTINGS_FILE_NAME))
+        return reader.get('server', key, self.hostname)
+
     def get_url(self):
         """Return the base URL of the Foreman deployment being tested.
 

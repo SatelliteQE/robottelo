@@ -125,3 +125,23 @@ class TestTemplateSyncTestCase:
 
         :CaseAutomation: NotAutomated
         """
+
+    @tier2
+    def test_positive_export_filtered_templates_to_temp_dir(self, module_org):
+        """Assure templates can be exported to /tmp directory without right permissions
+
+        :id: e0427ee8-698e-4868-952f-5f4723ccee87
+
+        :bz: 1778177
+
+        :Steps: Export the templates matching with regex e.g: `ansible` to /tmp directory.
+
+        :expectedresults: The templates are exported /tmp directory
+
+        :CaseImportance: Medium
+        """
+        dir_path = '/tmp'
+        TemplateSync.exports(
+            {'repo': dir_path, 'organization-id': module_org.id, 'filter': 'ansible'}
+        )
+        assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '23'

@@ -108,62 +108,10 @@ def ldap_tear_down():
 
 
 @fixture()
-def rhsso_setting_setup(request):
-    """Update the RHSSO setting and revert it in cleanup"""
-    update_rhsso_settings_in_satellite()
-
-    def rhsso_setting_cleanup():
-        update_rhsso_settings_in_satellite(revert=True)
-
-    request.addfinalizer(rhsso_setting_cleanup)
-
-
-@fixture()
-def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
-    """Update the RHSSO setting with timeout setting and revert it in cleanup"""
-    setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
-    setting_entity.value = 1
-    setting_entity.update({'value'})
-
-    def setting_timeout_cleanup():
-        setting_entity.value = 30
-        setting_entity.update({'value'})
-
-    request.addfinalizer(setting_timeout_cleanup)
-
-
-@fixture()
 def external_user_count():
     """return the external auth source user count"""
     users = entities.User().search()
     yield len([user for user in users if user.auth_source_name == 'External'])
-
-
-def update_rhsso_settings_in_satellite(revert=False):
-    """Update or Revert the RH-SSO settings in satellite"""
-    rhhso_settings = {
-        'authorize_login_delegation': True,
-        'authorize_login_delegation_auth_source_user_autocreate': 'External',
-        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
-        'oidc_algorithm': 'RS256',
-        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
-        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
-        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
-        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
-    }
-    if not revert:
-        for setting_name, setting_value in rhhso_settings.items():
-            setting_entity = entities.Setting().search(
-                query={'search': 'name={}'.format(setting_name)}
-            )[0]
-            setting_entity.value = setting_value
-            setting_entity.update({'value'})
-    else:
-        setting_entity = entities.Setting().search(
-            query={'search': 'name=authorize_login_delegation'}
-        )[0]
-        setting_entity.value = False
-        setting_entity.update({'value'})
 
 
 def generate_otp(secret):
@@ -1431,6 +1379,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
                 'account.account_name': ldap_data['ldap_user_name'],
                 'account.password': ldap_data['ldap_user_passwd'],
                 'account.base_dn': ldap_data['base_dn'],
+                'account.onthefly_register': False,
                 'account.groups_base_dn': ldap_data['group_base_dn'],
                 'attribute_mappings.login': LDAP_ATTR['login_ad'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
@@ -1453,7 +1402,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         assert error.typename == "NavigationTriesExceeded"
     with session:
         user_values = session.user.read(ldap_data['ldap_user_name'])
-        assert user_values['user']['login'] == ldap_data['ldap_user_name']
-        assert user_values['user']['firstname'] is not None
-        assert user_values['user']['lastname'] is not None
-        assert user_values['user']['mail'] is not None
+        assert ldap_data['ldap_user_name'] == user_values['user']['login']
+        assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
+        assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
+        assert ldap_data['ldap_user_name'] in user_values['user']['mail']

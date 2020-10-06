@@ -207,9 +207,9 @@ class CapsuleVirtualMachine(VirtualMachine):
                 if exp.return_code == 70:
                     super(CapsuleVirtualMachine, self).destroy()
                 if is_open('BZ:1622064'):
-                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.warning(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                 else:
-                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.error(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                     raise
             try:
                 # try to delete the capsule if it was added already
@@ -266,6 +266,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         os.remove(temporary_local_cert_file_path)
 
         installer_cmd = extract_capsule_satellite_installer_command(certs_gen.stdout)
+        installer_cmd += " --verbose"
         result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file
