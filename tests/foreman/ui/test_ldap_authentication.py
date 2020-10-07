@@ -108,6 +108,17 @@ def ldap_tear_down():
 
 
 @fixture()
+def groups_teardown():
+    "teardown for groups created for external/remote groups"
+    yield
+    # tear down groups
+    for group_name in ('sat_users', 'sat_admins'):
+        user_groups = entities.UserGroup().search(query={'search': f'name="{group_name}"'})
+        if user_groups:
+            user_groups[0].delete()
+
+
+@fixture()
 def external_user_count():
     """return the external auth source user count"""
     users = entities.User().search()
@@ -1406,3 +1417,65 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
         assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
         assert ldap_data['ldap_user_name'] in user_values['user']['mail']
+
+
+@pytest.mark.skip_if_open("BZ:1812688")
+@tier2
+def test_userlist_with_external_admin(session, auth_source_ipa, ldap_tear_down, groups_teardown):
+    """All the external users should be displayed to all LDAP admins (internal and external).
+
+    :id: 7c7bf34a-06f9-11eb-b174-d46d6dd3b5b2
+
+    :steps:
+        1. Create 2 groups on an IPA server: e.g. sat_admins and sat_users.
+        2. On IPA, create user e.g. "idm_admin" and add to sat_admins.
+        3. On IPA, create user e.g. "idm_user" and add to sat_users.
+        4. Create IPA/IDM auth source
+        5. Create 2 local groups on Satellite: sat_admins and sat_users, link them to their
+            counterparts from IPA.
+        6. Assign non-admin permissions to the sat_users group
+        7. Check the Admin checkbox for the sat_admins group.
+        8. On browser window 1, log into Satellite with user "idm_user"
+            i.e. a member of the remote sat_users group.
+        9. login with both local and remote admin and navigate to Administer > Users.
+
+    :BZ: 1812688
+
+    :expectedresults: show all users, remote or local, regardless of you being logged
+        into Satellite as a local or remote admin.
+    """
+    # step 1, 2, 3 are already done from IDM and gather the data from settings
+    sat_admins, sat_users = settings.ipa.groups
+    idm_admin, idm_user = settings.ipa.group_users
+
+    auth_source_name = f'LDAP-{auth_source_ipa.name}'
+    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+    with session:
+        session.usergroup.create(
+            {
+                'usergroup.name': 'sat_users',
+                'roles.resources.assigned': [katello_role.name],
+                'external_groups.name': sat_users,
+                'external_groups.auth_source': auth_source_name,
+            }
+        )
+        session.usergroup.create(
+            {
+                'usergroup.name': 'sat_admins',
+                'roles.admin': True,
+                'external_groups.name': sat_admins,
+                'external_groups.auth_source': auth_source_name,
+            }
+        )
+    with Session(user=idm_user, password=settings.server.ssh_password) as ldapsession:
+        assert idm_user in ldapsession.task.read_all()['current_user']
+
+    # verify the users count with local admin and remote/external admin
+    with Session(user=idm_admin, password=settings.server.ssh_password) as remote_admin_session:
+        with Session(
+            user=settings.server.admin_username, password=settings.server.admin_password
+        ) as local_admin_session:
+            assert local_admin_session.user.search(idm_user)[0]['Username'] == idm_user
+            assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
