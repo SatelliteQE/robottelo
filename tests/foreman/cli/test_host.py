@@ -2174,9 +2174,9 @@ class HostSubscriptionTestCase(CLITestCase):
             ContentView.remove(
                 {
                     'id': self.content_view['id'],
-                    'lifecycle-environments': f"{ENVIRONMENT},"
-                    + f"{self.env['name']},"
-                    + f"{self.hosts_env['name']}",
+                    'lifecycle-environments': ",".join(
+                        [ENVIRONMENT, self.env['name'], self.hosts_env['name']]
+                    ),
                     'organization-id': self.org['id'],
                     'system-content-view-id': default_cv['id'],
                     'system-environment-id': default_lce['id'],
