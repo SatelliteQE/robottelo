@@ -63,7 +63,7 @@ class TestOpenScap:
         return scap_id, scap_profile_ids
 
     @pytest.fixture(scope="class")
-    def scap_content(self, import_ansible_roles):
+    def scap_content(self, import_ansible_roles, import_puppet_classes):
         title = gen_string('alpha')
         result = [scap['title'] for scap in Scapcontent.list() if scap.get('title') in title]
         if not result:
