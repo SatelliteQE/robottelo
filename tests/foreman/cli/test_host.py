@@ -2122,12 +2122,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self.client.install_katello_ca()
 
     def _register_client(
-        self,
-        activation_key=None,
-        lce=False,
-        enable_repo=False,
-        auto_attach=False,
-        attach_to_default=False,
+        self, activation_key=None, lce=False, enable_repo=False, auto_attach=False,
     ):
         """Register the client as a content host consumer
 
@@ -2139,13 +2134,8 @@ class HostSubscriptionTestCase(CLITestCase):
         :param auto_attach: boolean to indicate whether to register with
             auto-attach option, in case of registration with activation key a
             command is launched
-        :param attach_to_default: boolean to indicate whether to attach to
-            plain RHEL subsctiption
         :return: the registration result
         """
-        assert (
-            not auto_attach or not attach_to_default
-        ), 'Only one of auto_attach or attach_to_default must be set'
 
         if activation_key is None:
             activation_key = self.activation_key
@@ -2162,43 +2152,6 @@ class HostSubscriptionTestCase(CLITestCase):
             )
             if auto_attach and self.client.subscribed:
                 result = self.client.run('subscription-manager attach --auto')
-
-        if attach_to_default:
-
-            # Remove repository-set from SetUpClass to have no repositories available
-            # Firstly the content view needs to be removed
-            default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': self.org['id']})
-            default_lce = LifecycleEnvironment.info(
-                {'name': ENVIRONMENT, 'organization-id': self.org['id']}
-            )
-            ContentView.remove(
-                {
-                    'id': self.content_view['id'],
-                    'lifecycle-environments': ",".join(
-                        [ENVIRONMENT, self.env['name'], self.hosts_env['name']]
-                    ),
-                    'organization-id': self.org['id'],
-                    'system-content-view-id': default_cv['id'],
-                    'system-environment-id': default_lce['id'],
-                    'key-content-view-id': default_cv['id'],
-                    'key-environment-id': default_lce['id'],
-                }
-            )
-            ContentView.delete({'id': self.content_view['id']})
-            RepositorySet.disable(
-                {
-                    'basearch': 'x86_64',
-                    'name': REPOSET['rhst7'],
-                    'organization-id': self.org['id'],
-                    'product': PRDS['rhel'],
-                }
-            )
-            result = self.client.run(
-                'subscription-manager list --available --matches "%s" --pool-only'
-                % DEFAULT_SUBSCRIPTION_NAME
-            )
-            pool_id = result.stdout[0]
-            result = self.client.run('subscription-manager attach --pool "%s"' % pool_id)
 
         if self.client.subscribed and enable_repo:
             self.client.enable_repo(self.repository_id)
@@ -2357,6 +2310,7 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_negative_without_attach_with_lce(self):
         """Attempt to enable a repository of a subscription that was not
         attached to a host
+        This test is not using the setUpClass Entities except subscription_name and repository_id
 
         :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
@@ -2364,7 +2318,81 @@ class HostSubscriptionTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self._register_client(lce=True, attach_to_default=True)
+        # Setup as in Setup Class
+        org = make_org()
+        lce_env = make_lifecycle_environment({'organization-id': org['id']})
+        content_view = make_content_view({'organization-id': org['id']})
+        activation_key = make_activation_key(
+            {'lifecycle-environment-id': lce_env['id'], 'organization-id': org['id']}
+        )
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org['id'],
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lce_env['id'],
+                'activationkey-id': activation_key['id'],
+                'subscription': self.subscription_name,
+            },
+            force_use_cdn=True,
+        )
+        hosts_env = make_lifecycle_environment({'organization-id': org['id']})
+        # refresh content view data
+        content_view = ContentView.info({'id': content_view['id']})
+        content_view_version = content_view['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': org['id'],
+                'to-lifecycle-environment-id': hosts_env['id'],
+            }
+        )
+
+        # register client
+        self.client.register_contenthost(
+            org['name'],
+            lce='{0}/{1}'.format(hosts_env['name'], content_view['name']),
+            auto_attach=False,
+        )
+
+        # disable repository set to
+        default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': org['id']})
+        default_lce = LifecycleEnvironment.info(
+            {'name': ENVIRONMENT, 'organization-id': org['id']}
+        )
+        ContentView.remove(
+            {
+                'id': content_view['id'],
+                'lifecycle-environments': ",".join(
+                    [ENVIRONMENT, lce_env['name'], hosts_env['name']]
+                ),
+                'organization-id': org['id'],
+                'system-content-view-id': default_cv['id'],
+                'system-environment-id': default_lce['id'],
+                'key-content-view-id': default_cv['id'],
+                'key-environment-id': default_lce['id'],
+            }
+        )
+        ContentView.delete({'id': content_view['id']})
+        RepositorySet.disable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhst7'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
+            }
+        )
+
+        # get list of available subscriptions which are matched with default subscription
+        subscriptions = self.client.run(
+            'subscription-manager list --available --matches "%s" --pool-only'
+            % DEFAULT_SUBSCRIPTION_NAME
+        )
+        pool_id = subscriptions.stdout[0]
+        # attach to plain RHEL subsctiption
+        self.client.run('subscription-manager attach --pool "%s"' % pool_id)
         self.assertTrue(self.client.subscribed)
         result = self._client_enable_repo()
         self.assertNotEqual(result.return_code, 0)
