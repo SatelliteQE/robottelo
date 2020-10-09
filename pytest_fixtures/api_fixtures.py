@@ -448,6 +448,9 @@ def default_contentview(module_org):
 @skip_if(not settings.repos_hosting_url)
 @pytest.fixture(scope='module')
 def module_cv_with_puppet_module(module_org):
+    """Returns content view entity created by publish_puppet_module with chosen
+    name and author of puppet module, custom puppet repository and organization.
+    """
     return publish_puppet_module(
         [{'author': 'robottelo', 'name': 'generic_1'}],
         CUSTOM_PUPPET_REPO,
@@ -482,6 +485,11 @@ def default_pxetemplate():
 
 @pytest.fixture(scope='module')
 def module_env_search(module_org, module_location, module_cv_with_puppet_module):
+    """Search for puppet environment according to the following criteria:
+    Content view from module_cv_with_puppet_module and chosen organization.
+
+    Returns the puppet environment with updated location.
+    """
     env = (
         entities.Environment()
         .search(
@@ -499,6 +507,7 @@ def module_env_search(module_org, module_location, module_cv_with_puppet_module)
 
 @pytest.fixture(scope='module')
 def module_lce_search(module_org):
+    """ Returns the Library lifecycle environment from chosen organization """
     return (
         entities.LifecycleEnvironment()
         .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_org.id}'})[0]
@@ -508,6 +517,10 @@ def module_lce_search(module_org):
 
 @pytest.fixture(scope='module')
 def module_puppet_classes(module_env_search):
+    """ Returns puppet class based on following criteria:
+    Puppet environment from module_env_search and puppet class name. The name was set inside
+    module_cv_with_puppet_module.
+    """
     return entities.PuppetClass().search(
         query={'search': f'name ~ {"generic_1"} and environment = {module_env_search.name}'}
     )
