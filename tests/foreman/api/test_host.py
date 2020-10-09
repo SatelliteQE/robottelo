@@ -67,7 +67,7 @@ def test_positive_get_search():
 
 
 @tier1
-def test_positive_get_per_page(self):
+def test_positive_get_per_page():
     """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
     :id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
@@ -89,7 +89,7 @@ def test_positive_get_per_page(self):
 
 
 @tier2
-def test_positive_search_by_org_id(self):
+def test_positive_search_by_org_id():
     """Search for host by specifying host's organization id
 
     :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
@@ -125,8 +125,9 @@ def test_negative_create_with_owner_type(owner_type):
 
     :CaseImportance: Critical
     """
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError) as error:
         entities.Host(owner_type=owner_type).create()
+    assert str(422) in str(error)
 
 
 @tier1
@@ -300,7 +301,6 @@ def test_positive_create_with_inherited_params(module_org, module_location):
     host = entities.Host(location=module_location, organization=module_org).create()
     # get global parameters
     glob_param_list = {(param.name, param.value) for param in entities.CommonParameter().search()}
-    print('global list params', glob_param_list)
     # if there are no global parameters, create one
     if len(glob_param_list) == 0:
         param_name = gen_string('alpha')
@@ -309,13 +309,9 @@ def test_positive_create_with_inherited_params(module_org, module_location):
         glob_param_list = {
             (param.name, param.value) for param in entities.CommonParameter().search()
         }
-        print('global list params2:', glob_param_list)
     assert len(host.all_parameters) == 2 + len(glob_param_list)
     innerited_params = {(org_param.name, org_param.value), (loc_param.name, loc_param.value)}
-    print('innerited_params', innerited_params)
     expected_params = innerited_params.union(glob_param_list)
-    print('expected params', expected_params)
-    print('AAAAAAA', {(param['name'], param['value']) for param in host.all_parameters})
     assert expected_params == {(param['name'], param['value']) for param in host.all_parameters}
 
 
@@ -1389,13 +1385,13 @@ class TestHostInterface:
         name = gen_choice(invalid_interfaces_list())
         with pytest.raises(HTTPError) as error:
             entities.Interface(host=module_host, name=name).create()
-        assert error.exception.response.status_code == 422
+        assert str(422) in str(error)
         interface = entities.Interface(host=module_host).create()
         interface.name = name
         with pytest.raises(HTTPError) as error:
             interface.update(['name'])
         assert interface.read().name != name
-        assert error.exception.response.status_code == 422
+        assert str(422) in str(error)
 
         primary_interface = next(
             interface for interface in module_host.interface if interface.read().primary
