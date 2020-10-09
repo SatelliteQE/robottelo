@@ -29,7 +29,7 @@ PyYAML==5.1.2
 tenacity==6.0.0
 pyotp==2.3.0
 pexpect==4.7.0
-
+pytest-lazy-fixture==0.6.3
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git@stable-satellite#egg=nailgun

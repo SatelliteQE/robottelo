@@ -1406,3 +1406,43 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
         assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
         assert ldap_data['ldap_user_name'] in user_values['user']['mail']
+
+
+@pytest.mark.parametrize(
+    "auth, username, password",
+    [
+        (pytest.lazy_fixture('auth_source_ipa'), settings.ipa.user_ipa, settings.ipa.password_ipa),
+        (pytest.lazy_fixture('auth_source'), settings.ldap.username, settings.ldap.password),
+    ],
+)
+@tier2
+def test_login_failure_if_internal_user_exist_IPA_AD(
+    session, test_name, auth, username, password, ldap_tear_down, module_org, module_loc
+):
+    """Verify the failure of login for the AD/IPA user in case same username
+    internal user exists
+
+    :id: 04ad146e-c2b5-4ec6-980e-327ad4350826
+
+    :CaseImportance: High
+
+    :steps:
+        1. create an internal user with same username user exist in AD/IPA
+        2. add the auth source in satellite and now try login using AD/IPA user
+
+    :expectedresults: external AD/IPA user should not able to login with same username as internal
+    """
+    internal_username = username
+    internal_password = gen_string('alphanumeric')
+    user = entities.User(
+        admin=True,
+        default_organization=module_org,
+        default_location=module_loc,
+        login=internal_username,
+        password=internal_password,
+    ).create()
+    with Session(test_name, internal_username, password) as ldapsession:
+        with raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
+    entities.User(id=user.id).delete()
