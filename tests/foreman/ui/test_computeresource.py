@@ -279,7 +279,7 @@ def test_positive_resource_vm_power_management(
 
         wait_for(
             lambda: (session.browser.refresh(), session.computeresource.vm_status(
-                    name, rhev_data['vm_name']))[1]is not status,
+                    name, rhev_data['vm_name']))[1] is not status,
             timeout=180,
             delay=1,
         )
