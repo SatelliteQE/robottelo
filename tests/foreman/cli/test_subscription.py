@@ -191,7 +191,7 @@ class SubscriptionTestCase(CLITestCase):
         self._upload_manifest(self.org['id'])
         Subscription.list({'organization-id': self.org['id']}, per_page=None)
         history = Subscription.manifest_history({'organization-id': self.org['id']})
-        assert 'file imported successfully' in ''.join(history)
+        assert '{0} file imported successfully.'.format(self.org['name']) in ''.join(history)
 
     @tier1
     @upgrade
