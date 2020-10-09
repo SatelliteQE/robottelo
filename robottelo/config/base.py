@@ -1339,19 +1339,21 @@ class ReportPortalSettings(FeatureSettings):
         self.rp_url = None
         self.rp_project = None
         self.rp_key = None
+        self.fail_threshold = None
 
     def read(self, reader):
         """Read Report portal settings."""
         self.rp_url = reader.get('report_portal', 'portal_url')
         self.rp_project = reader.get('report_portal', 'project')
         self.rp_key = reader.get('report_portal', 'api_key')
+        self.fail_threshold = reader.get('report_portal', 'fail_threshold', 20, int)
 
     def validate(self):
         """Validate Report portal settings."""
         validation_errors = []
-        if not all(self.__dict__.values()):
+        if not all([self.rp_key, self.rp_project, self.rp_url]):
             validation_errors.append(
-                'All [report_portal] {} options must be provided'.format(self.__dict__.keys())
+                'All [report_portal] options must be provided, except fail_threshold'
             )
         return validation_errors
 

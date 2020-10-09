@@ -65,10 +65,11 @@ def _validate_launch(launch, sat_version):
     fail_percent = round(
         (int(launch.statistics['failed']) / int(launch.statistics['total']) * 100)
     )
-    if fail_percent > 20:
+    fail_threshold = settings.report_portal.fail_threshold
+    if fail_percent > fail_threshold:
         raise LaunchError(
             f'The latest launch of Satellite verson {sat_version} has {fail_percent}% tests '
-            'failed. Which is higher than the threshold of 20%. '
+            f'failed. Which is higher than the threshold of {fail_threshold}%. '
             'Examine the failures thoroughly and check for any major issue.'
         )
 
@@ -119,6 +120,7 @@ def pytest_collection_modifyitems(items, config):
     rp = ReportPortal()
     version = settings.server.version
     sat_version = f'{version.base_version}.{version.epoch}'
+    LOGGER.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
     launch = next(iter(rp.launches(sat_version=sat_version).values()))
     _validate_launch(launch, sat_version)
     test_args = {}

@@ -609,6 +609,9 @@ port_range=9091, 14999
 # project=satellite6
 # API key of an user
 # api_key=
+# To skip the rerun, if the failed tests in last run more than fail_threshold %
+# if its not set, 20% by default will be considered
+# fail_threshold=
 
 # Section for Http Proxy Details
 # [http_proxy]
