@@ -3,6 +3,7 @@ import copy
 from nailgun import entities
 from pytest import fixture
 
+from robottelo.api.utils import update_rhsso_settings_in_satellite
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
@@ -12,6 +13,7 @@ from robottelo.datafactory import gen_string
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
+from robottelo.rhsso_utils import set_the_redirect_uri
 
 
 @fixture(scope='session')
@@ -150,6 +152,7 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
         "included.client.audience"
     ].format(rhsso_host=settings.server.hostname)
     create_mapper(audience_mapper, client_id)
+    set_the_redirect_uri()
 
 
 @fixture(scope='session')
@@ -179,6 +182,25 @@ def enroll_idm_and_configure_external_auth():
         f"--server {settings.ipa.hostname_ipa} "
         f"--realm {domain.upper()} -U"
     )
+
+
+@fixture()
+def rhsso_setting_setup(request):
+    """Update the RHSSO setting and revert it in cleanup"""
+    update_rhsso_settings_in_satellite()
+    yield
+    update_rhsso_settings_in_satellite(revert=True)
+
+
+@fixture()
+def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
+    """Update the RHSSO setting with timeout setting and revert it in cleanup"""
+    setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
+    setting_entity.value = 1
+    setting_entity.update({'value'})
+    yield
+    setting_entity.value = 30
+    setting_entity.update({'value'})
 
 
 @fixture(scope='session')

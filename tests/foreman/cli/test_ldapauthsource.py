@@ -14,20 +14,27 @@
 
 :Upstream: No
 """
+from time import sleep
+
 import pytest
+from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
 from robottelo.cli.auth import Auth
+from robottelo.cli.auth import AuthLogin
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_ldap_auth_source
 from robottelo.cli.factory import make_usergroup
 from robottelo.cli.factory import make_usergroup_external
 from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.role import Role
+from robottelo.cli.task import Task
 from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
+from robottelo.config import settings
+from robottelo.constants import HAMMER_CONFIG
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
@@ -37,6 +44,13 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
+from robottelo.rhsso_utils import get_oidc_authorization_endpoint
+from robottelo.rhsso_utils import get_oidc_client_id
+from robottelo.rhsso_utils import get_oidc_token_endpoint
+from robottelo.rhsso_utils import get_two_factor_token_rh_sso_url
+from robottelo.rhsso_utils import open_pxssh_session
+from robottelo.rhsso_utils import run_command
+from robottelo.rhsso_utils import update_client_configuration
 
 
 @run_in_one_thread
@@ -174,7 +188,6 @@ class TestIPAAuthSource:
         self._clean_up_previous_ldap()
         self.ldap_ipa_hostname = ipa_data['ldap_ipa_hostname']
         self.ldap_ipa_user_passwd = ipa_data['ldap_ipa_user_passwd']
-        ldap_ipa_user_name = ipa_data['ldap_ipa_user_name']
         ipa_group_base_dn = ipa_data['ipa_group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
@@ -191,7 +204,7 @@ class TestIPAAuthSource:
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ldap_ipa_user_name,
+                'account': ipa_data['ldap_ipa_user_name'],
                 'account-password': ipa_data['ldap_ipa_user_passwd'],
                 'base-dn': ipa_data['ipa_base_dn'],
                 'groups-base': ipa_group_base_dn,
@@ -251,7 +264,6 @@ class TestIPAAuthSource:
         self._clean_up_previous_ldap()
         self.ldap_ipa_hostname = ipa_data['ldap_ipa_hostname']
         self.ldap_ipa_user_passwd = ipa_data['ldap_ipa_user_passwd']
-        ldap_ipa_user_name = ipa_data['ldap_ipa_user_name']
         ipa_group_base_dn = ipa_data['ipa_group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
@@ -268,7 +280,7 @@ class TestIPAAuthSource:
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ldap_ipa_user_name,
+                'account': ipa_data['ldap_ipa_user_name'],
                 'account-password': ipa_data['ldap_ipa_user_passwd'],
                 'base-dn': ipa_data['ipa_base_dn'],
                 'groups-base': ipa_group_base_dn,
@@ -351,3 +363,127 @@ class TestOpenLdapAuthSource:
         LDAPAuthSource.delete({'name': new_name})
         with pytest.raises(CLIReturnCodeError):
             LDAPAuthSource.info({'name': new_name})
+
+
+class TestRHSSOAuthSource:
+    """Implements RH-SSO auth source tests in CLI"""
+
+    def configure_hammer_session(self, enable=True):
+        """take backup of the hammer config file and enable use_sessions"""
+        run_command(f"cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup")
+        run_command(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
+        run_command(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
+
+    @pytest.fixture()
+    def rh_sso_hammer_auth_setup(self, request):
+        """rh_sso hammer setup before running the auth login tests"""
+        self.configure_hammer_session()
+        client_config = {"publicClient": "true"}
+        update_client_configuration(client_config)
+
+        def rh_sso_hammer_auth_cleanup():
+            """restore the hammer config backup file and rhsso client settings"""
+            run_command(f"mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}")
+            client_config = {"publicClient": "false"}
+            update_client_configuration(client_config)
+
+        request.addfinalizer(rh_sso_hammer_auth_cleanup)
+
+    @tier3
+    def test_rhsso_login_using_hammer(
+        self, enable_external_auth_rhsso, rhsso_setting_setup, rh_sso_hammer_auth_setup
+    ):
+        """verify the hammer auth login using RHSSO auth source
+
+        :id: 56c09a1a-d0e5-11ea-9024-d46d6dd3b5b2
+
+        :expectedresults: hammer auth login should be suceessful for a rhsso user
+
+        :CaseImportance: High
+        """
+        result = AuthLogin.oauth(
+            {
+                'oidc-token-endpoint': get_oidc_token_endpoint(),
+                'oidc-client-id': get_oidc_client_id(),
+                'username': settings.rhsso.rhsso_user,
+                'password': settings.rhsso.password,
+            }
+        )
+        assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
+        result = Auth.with_user(
+            username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+        ).status()
+        assert (
+            f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
+            == result[0]['message']
+        )
+        task_list = Task.with_user(
+            username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+        ).list()
+        assert len(task_list) >= 0
+        with pytest.raises(CLIReturnCodeError) as error:
+            Role.with_user(
+                username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+            ).list()
+        assert 'Missing one of the required permissions' in error.value.message
+
+    @tier3
+    def test_rhsso_timeout_using_hammer(
+        self,
+        enable_external_auth_rhsso,
+        rhsso_setting_setup_with_timeout,
+        rh_sso_hammer_auth_setup,
+    ):
+        """verify the hammer auth timeout using RHSSO auth source
+
+        :id: d014cc98-d198-11ea-b526-d46d6dd3b5b2
+
+        :expectedresults: hammer auth login timeout should be suceessful for a rhsso user
+
+        :CaseImportance: Medium
+        """
+        result = AuthLogin.oauth(
+            {
+                'oidc-token-endpoint': get_oidc_token_endpoint(),
+                'oidc-client-id': get_oidc_client_id(),
+                'username': settings.rhsso.rhsso_user,
+                'password': settings.rhsso.password,
+            }
+        )
+        assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
+        sleep(70)
+        with pytest.raises(CLIReturnCodeError) as error:
+            Task.with_user(
+                username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+            ).list()
+        assert 'Unable to authenticate user sat_admin' in error.value.message
+
+    @tier3
+    def test_rhsso_two_factor_login_using_hammer(
+        self, rhsso_setting_setup, rh_sso_hammer_auth_setup
+    ):
+        """verify the hammer auth login using RHSSO auth source
+
+        :id: 4018c646-cb64-4eae-a422-7d5257ed2756
+
+        :expectedresults: hammer auth login should be suceessful for a rhsso user
+
+        :CaseImportance: Medium
+        """
+        with Session(login=False) as rhsso_session:
+            two_factor_code = rhsso_session.rhsso_login.get_two_factor_login_code(
+                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password},
+                get_two_factor_token_rh_sso_url(),
+            )
+            with open_pxssh_session() as ssh_session:
+                ssh_session.sendline(
+                    f"echo '{two_factor_code['code']}' | hammer auth login oauth "
+                    f"--oidc-token-endpoint {get_oidc_token_endpoint()} "
+                    f"--oidc-authorization-endpoint {get_oidc_authorization_endpoint()} "
+                    f"--oidc-client-id {get_oidc_client_id()} "
+                    f"--oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' "
+                    f"--two-factor "
+                )
+                ssh_session.prompt()  # match the prompt
+                result = ssh_session.before.decode()
+                assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." in result

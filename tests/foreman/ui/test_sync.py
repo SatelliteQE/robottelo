@@ -20,18 +20,20 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOCKER_UPSTREAM_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -59,6 +61,7 @@ def module_org_with_manifest():
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo(session, module_custom_product):
     """Create Content Custom Sync with minimal input parameters
 
@@ -116,6 +119,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 @skip_if_os('RHEL6')
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """Create custom ostree repository and sync it.
 

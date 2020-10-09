@@ -30,15 +30,16 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_RPM_REPO
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import FAKE_0_PUPPET_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
 from robottelo.decorators import tier4
@@ -994,6 +995,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     @skip_if_not_set('compute_resources')
     @tier4
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 

@@ -47,7 +47,6 @@ from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
@@ -59,6 +58,7 @@ from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
@@ -606,6 +606,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 

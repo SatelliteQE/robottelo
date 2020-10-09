@@ -36,7 +36,8 @@ from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -324,6 +325,7 @@ class TestRemoteExecution:
             assert invocation_command['success'] == '2', output_msgs
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_install_multiple_packages_with_a_job_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -672,6 +674,7 @@ class TestAnsibleREX:
 
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job can install packages and start services
 

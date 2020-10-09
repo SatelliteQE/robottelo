@@ -30,12 +30,14 @@ from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import FAKE_1_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.config import settings
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -308,6 +310,7 @@ class ProductTestCase(APITestCase):
                     entities.Product(id=product.id).read()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync(self):
         """Sync product (repository within a product)
 
@@ -327,6 +330,7 @@ class ProductTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_several_repos(self):
         """Sync product (all repositories within a product)
 

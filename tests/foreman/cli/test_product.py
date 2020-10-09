@@ -33,12 +33,13 @@ from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_labels_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -60,6 +61,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_CRUD(self):
         """Check if product can be created, updated, synchronized and deleted
 
@@ -179,6 +181,7 @@ class ProductTestCase(CLITestCase):
 
     @run_in_one_thread
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_product_list_with_default_settings(self):
         """Listing product of an organization apart from default organization using hammer
          does not return output if a defaults settings are applied on org.
@@ -225,6 +228,7 @@ class ProductTestCase(CLITestCase):
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_assign_http_proxy_to_products(self):
         """Assign http_proxy to Products and perform product sync.
 

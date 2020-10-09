@@ -2,6 +2,10 @@
 [server]
 # Server hostname
 hostname=
+# Additional satellite hostnames for xdist workers
+# gw0=
+# gw1=
+# gw2=
 
 # Path to private ssh key to be used when connecting via SSH.
 ssh_key=
@@ -49,6 +53,10 @@ ssh_key=
 # Webdriver logging options
 # A list of commands to be logged
 # log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo
+# - The URL of container hosting repos on SatLab
+# Example url - http://<container_hostname_or_ip>:<port>
+# Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
+# repos_hosting_url=
 
 # browser tells robottelo which browser to use when testing UI. Valid values
 # are:
