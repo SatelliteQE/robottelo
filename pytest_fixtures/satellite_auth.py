@@ -47,9 +47,10 @@ def open_ldap_data():
     return {
         'ldap_user_name': settings.open_ldap.username,
         'ldap_user_passwd': settings.open_ldap.password,
-        'base_dn': settings.open_ldap.basedn,
-        'group_base_dn': settings.open_ldap.grpbasedn,
+        'base_dn': settings.open_ldap.base_dn,
+        'group_base_dn': settings.open_ldap.group_base_dn,
         'ldap_hostname': settings.open_ldap.hostname,
+        'open_ldap_user': settings.open_ldap.open_ldap_user,
     }
 
 
