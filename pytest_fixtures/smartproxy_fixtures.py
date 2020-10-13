@@ -15,10 +15,5 @@ def default_smart_proxy():
 
 
 @pytest.fixture(scope='session')
-def import_puppet_classes():
-    smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
-        .read()
-    )
-    smart_proxy.import_puppetclasses(environment='production')
+def import_puppet_classes(default_smart_proxy):
+    default_smart_proxy.import_puppetclasses(environment='production')

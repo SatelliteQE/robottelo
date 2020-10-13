@@ -62,21 +62,6 @@ class TestOpenScap:
         ]
         return scap_id, scap_profile_ids
 
-    @pytest.fixture(scope="class")
-    def scap_content(self, import_ansible_roles, import_puppet_classes):
-        title = gen_string('alpha')
-        result = [scap['title'] for scap in Scapcontent.list() if scap.get('title') in title]
-        if not result:
-            make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
-        scap_id_rhel7, scap_profile_id_rhel7 = self.fetch_scap_and_profile_id(
-            title, OSCAP_PROFILE['security7']
-        )
-        return {
-            "title": title,
-            "scap_id_rhel7": scap_id_rhel7,
-            "scap_profile_id_rhel7": scap_profile_id_rhel7,
-        }
-
     @tier1
     def test_positive_list_default_content_with_admin(self):
         """List the default scap content with admin account
@@ -200,6 +185,8 @@ class TestOpenScap:
 
         :id: 68e9fbe2-e3c3-48e7-a774-f1260a3b7f4f
 
+        :parametrized: yes
+
         :setup:
 
             1. Oscap should be enabled.
@@ -262,6 +249,8 @@ class TestOpenScap:
 
         :id: 90a2590e-a6ff-41f1-9e0a-67d4b16435c0
 
+        :parametrized: yes
+
         :setup:
 
             1. Oscap should be enabled.
@@ -287,6 +276,8 @@ class TestOpenScap:
         """Create scap-content with valid original file name
 
         :id: 25441174-11cb-4d9b-9ec5-b1c69411b5bc
+
+        :parametrized: yes
 
         :setup:
 
@@ -316,6 +307,8 @@ class TestOpenScap:
 
         :id: 83feb67a-a6bf-4a99-923d-889e8d1013fa
 
+        :parametrized: yes
+
         :setup:
 
             1. Oscap should be enabled.
@@ -343,6 +336,8 @@ class TestOpenScap:
         """Create scap-content without scap data stream xml file
 
         :id: ea811994-12cd-4382-9382-37fa806cc26f
+
+        :parametrized: yes
 
         :setup:
 
@@ -454,6 +449,8 @@ class TestOpenScap:
 
         :id: c9327675-62b2-4e22-933a-02818ef68c11
 
+        :parametrized: yes
+
         :setup:
 
             1. Oscap should be enabled.
@@ -471,8 +468,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
@@ -485,6 +482,8 @@ class TestOpenScap:
         """Create scap policy with invalid name
 
         :id: 0d163968-7759-4cfd-9c4d-98533d8db925
+
+        :parametrized: yes
 
         :setup:
 
@@ -504,8 +503,8 @@ class TestOpenScap:
                 {
                     'name': name,
                     'deploy-by': 'puppet',
-                    'scap-content-id': scap_content["scap_id_rhel7"],
-                    'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                    'scap-content-id': scap_content["scap_id"],
+                    'scap-content-profile-id': scap_content["scap_profile_id"],
                     'period': OSCAP_PERIOD['weekly'].lower(),
                     'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 }
@@ -534,7 +533,7 @@ class TestOpenScap:
             make_scap_policy(
                 {
                     'deploy-by': 'puppet',
-                    'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                    'scap-content-profile-id': scap_content["scap_profile_id"],
                     'period': OSCAP_PERIOD['weekly'].lower(),
                     'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 }
@@ -567,8 +566,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -605,8 +604,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'ansible',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -625,6 +624,8 @@ class TestOpenScap:
 
         :id: d0f9b244-b92d-4889-ba6a-8973ea05bf43
 
+        :parametrized: yes
+
         :steps:
 
             1. Login to hammer shell.
@@ -641,9 +642,9 @@ class TestOpenScap:
 
         scap_policy = make_scap_policy(
             {
-                'scap-content-id': scap_content["scap_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
                 'deploy-by': deploy,
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'tailoring-file': tailoring_file_a['name'],
@@ -671,9 +672,9 @@ class TestOpenScap:
 
         scap_policy = make_scap_policy(
             {
-                'scap-content-id': scap_content["scap_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
                 'deploy-by': deploy,
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'tailoring-file-id': tailoring_file_a['id'],
@@ -707,6 +708,8 @@ class TestOpenScap:
 
         :id: d14ab43e-c7a9-4eee-b61c-420b07ca1da9
 
+        :parametrized: yes
+
         :setup:
 
             1. Oscap should be enabled.
@@ -729,8 +732,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': deploy,
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -782,8 +785,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -826,8 +829,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
@@ -871,13 +874,13 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
         )
-        assert scap_policy['scap-content-id'] == scap_content["scap_id_rhel7"]
+        assert scap_policy['scap-content-id'] == scap_content["scap_id"]
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
             OSCAP_DEFAULT_CONTENT['rhel_firefox'], OSCAP_PROFILE['firefox']
         )
@@ -915,8 +918,8 @@ class TestOpenScap:
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': scap_content["scap_id_rhel7"],
-                'scap-content-profile-id': scap_content["scap_profile_id_rhel7"],
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
