@@ -1429,12 +1429,12 @@ def test_positive_end_to_end_open_ldap_authsource(
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': open_ldap_data['ldap_hostname'],
+                'ldap_server.host': open_ldap_data.hostname,
                 'ldap_server.ldaps': False,
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['posix'],
-                'account.account_name': open_ldap_data['ldap_user_name'],
-                'account.password': open_ldap_data['ldap_user_passwd'],
-                'account.base_dn': open_ldap_data['base_dn'],
+                'account.account_name': open_ldap_data.username,
+                'account.password': open_ldap_data.password,
+                'account.base_dn': open_ldap_data.base_dn,
                 'account.onthefly_register': True,
                 'locations.resources.assigned': [module_loc.name],
                 'organizations.resources.assigned': [module_org.name],
@@ -1445,10 +1445,10 @@ def test_positive_end_to_end_open_ldap_authsource(
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == open_ldap_data['ldap_hostname']
+        assert ldap_source['ldap_server']['host'] == open_ldap_data.hostname
         assert ldap_source['ldap_server']['port'] == '389'
-    user_name = open_ldap_data['open_ldap_user']
-    with Session(test_name, user_name, open_ldap_data['ldap_user_passwd']) as ldapsession:
+    user_name = open_ldap_data.open_ldap_user
+    with Session(test_name, user_name, open_ldap_data.password) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
         assert user_name.capitalize() in ldapsession.task.read_all()['current_user']
@@ -1489,8 +1489,8 @@ def test_positive_group_sync_open_ldap_authsource(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    user_name = open_ldap_data['open_ldap_user']
-    with Session(test_name, user_name, open_ldap_data['ldap_user_passwd']) as session:
+    user_name = open_ldap_data.open_ldap_user
+    with Session(test_name, user_name, open_ldap_data.password) as session:
         with raises(NavigationTriesExceeded):
             session.architecture.search('')
         session.activationkey.create({'name': ak_name})

@@ -44,14 +44,7 @@ def ipa_data():
 
 @fixture(scope='session')
 def open_ldap_data():
-    return {
-        'ldap_user_name': settings.open_ldap.username,
-        'ldap_user_passwd': settings.open_ldap.password,
-        'base_dn': settings.open_ldap.base_dn,
-        'group_base_dn': settings.open_ldap.group_base_dn,
-        'ldap_hostname': settings.open_ldap.hostname,
-        'open_ldap_user': settings.open_ldap.open_ldap_user,
-    }
+    return settings.open_ldap
 
 
 @fixture(scope='function')
@@ -102,16 +95,16 @@ def auth_source_ipa(module_org, module_loc, ipa_data):
 def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=open_ldap_data['ldap_user_name'],
-        account_password=open_ldap_data['ldap_user_passwd'],
-        base_dn=open_ldap_data['base_dn'],
+        account=open_ldap_data.username,
+        account_password=open_ldap_data.password,
+        base_dn=open_ldap_data.base_dn,
         attr_firstname=LDAP_ATTR['firstname'],
         attr_lastname=LDAP_ATTR['surname'],
         attr_login=LDAP_ATTR['login'],
         server_type=LDAP_SERVER_TYPE['API']['posix'],
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
-        host=open_ldap_data['ldap_hostname'],
+        host=open_ldap_data.hostname,
         tls=False,
         port='389',
         organization=[module_org],
