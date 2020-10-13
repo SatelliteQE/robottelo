@@ -1427,22 +1427,25 @@ def test_login_failure_if_internal_user_exist_IPA_AD(
     :CaseImportance: High
 
     :steps:
-        1. create an internal user with same username user exist in AD/IPA
+        1. create an internal user with the same username as user existing in AD/IPA
         2. add the auth source in satellite and now try login using AD/IPA user
 
-    :expectedresults: external AD/IPA user should not able to login with same username as internal
+    :expectedresults: external AD/IPA user should not be able to login with the
+        same username as internal
     """
-    internal_username = username
-    internal_password = gen_string('alphanumeric')
-    user = entities.User(
-        admin=True,
-        default_organization=module_org,
-        default_location=module_loc,
-        login=internal_username,
-        password=internal_password,
-    ).create()
-    with Session(test_name, internal_username, password) as ldapsession:
-        with raises(NavigationTriesExceeded) as error:
-            ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
-    entities.User(id=user.id).delete()
+    try:
+        internal_username = username
+        internal_password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=True,
+            default_organization=module_org,
+            default_location=module_loc,
+            login=internal_username,
+            password=internal_password,
+        ).create()
+        with Session(test_name, internal_username, password) as ldapsession:
+            with raises(NavigationTriesExceeded) as error:
+                ldapsession.user.search('')
+            assert error.typename == "NavigationTriesExceeded"
+    finally:
+        entities.User(id=user.id).delete()

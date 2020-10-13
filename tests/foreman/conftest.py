@@ -40,7 +40,7 @@ def pytest_report_header(config):
         if not scope:
             scope = ''
         storage = settings.shared_function.storage
-    if pytest.config.pluginmanager.hasplugin("junitxml"):
+    if config.pluginmanager.hasplugin("junitxml"):
         junit = getattr(config, "_xml", None)
         if junit is not None:
             now = datetime.datetime.utcnow()
