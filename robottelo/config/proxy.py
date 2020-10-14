@@ -33,6 +33,7 @@ WRAPPER_EXCEPTIONS = (
     'docker.private_registry_password',
     'docker.private_registry_url',
     'docker.private_registry_username',
+    'fake_capsules.port_range',
     'gce.cert_path',
     'gce.cert_path',
     'gce.cert_url',
@@ -94,6 +95,14 @@ class ConfigNodeWrapper(CallableObjectProxy):
 
     def __fspath__(self):
         return str(self.__wrapped__)
+
+    def __repr__(self):
+        return '<{} for "{}" wrapping value of type {}: {}>'.format(
+            type(self).__name__,
+            self._self_full_path,
+            type(self.__wrapped__).__name__,
+            self.__wrapped__,
+        )
 
 
 class ConfigProxy:
