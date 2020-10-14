@@ -5,8 +5,11 @@ from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
+
 from robottelo.api.utils import promote
+from robottelo import manifests
 from robottelo.api.utils import publish_puppet_module
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
@@ -27,6 +30,7 @@ from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.helpers import download_gce_cert
 from robottelo.test import settings
 
+
 # Global Satellite Entities
 
 if not settings.configured:
@@ -46,6 +50,14 @@ def default_location():
 @pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
+
+
+@pytest.fixture(scope='module')
+def module_manifest_org():
+    org = entities.Organization().create()
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    return org
 
 
 @pytest.fixture(scope='module')
@@ -418,6 +430,11 @@ def azurermclient(azurerm_settings):
 
 
 # Katello Entities
+
+
+@pytest.fixture(scope='module')
+def module_activation_key(module_org):
+    return entities.ActivationKey(organization=module_org).create()
 
 
 @pytest.fixture(scope='module')
