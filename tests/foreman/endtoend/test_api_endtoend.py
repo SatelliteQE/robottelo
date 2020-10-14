@@ -46,6 +46,7 @@ from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
+from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
     # flake8:noqa (line-too-long)
@@ -68,8 +69,9 @@ API_PATHS = {
         '/katello/api/ansible_collections/:id',
     ),
     'ansible_inventories': (
-        '/api/ansible_inventories/hosts',
-        '/api/ansible_inventories/schedule',
+        '/ansible/api/ansible_inventories/hosts',
+        '/ansible/api/ansible_inventories/hostgroups',
+        '/ansible/api/ansible_inventories/schedule',
     ),
     'ansible_override_values': (
         '/ansible/api/ansible_override_values',
@@ -193,6 +195,10 @@ API_PATHS = {
         '/api/compute_resources/:id/available_storage_pods',
         '/api/compute_resources/:id/available_zones',
         '/api/compute_resources/:id/refresh_cache',
+        '/api/compute_resources/:id/available_virtual_machines',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id/power',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id',
         '/api/compute_resources/:id/storage_domains/:storage_domain_id',
         '/api/compute_resources/:id/storage_pods/:storage_pod_id',
     ),
@@ -315,7 +321,11 @@ API_PATHS = {
         '/katello/api/docker_manifest_lists/:id',
         '/katello/api/docker_manifest_lists/compare',
     ),
-    'docker_tags': ('/katello/api/docker_tags/compare', '/katello/api/docker_tags/:id'),
+    'docker_tags': (
+        '/katello/api/docker_tags/compare',
+        '/katello/api/docker_tags/:id',
+        '/katello/api/docker_tags/:id/repositories',
+    ),
     'domains': (
         '/api/domains',
         '/api/domains',
@@ -366,6 +376,8 @@ API_PATHS = {
         '/foreman_tasks/api/tasks/:id/details',
         '/foreman_tasks/api/tasks/:id/sub_tasks',
         '/foreman_tasks/api/tasks/bulk_resume',
+        '/foreman_tasks/api/tasks/bulk_cancel',
+        '/foreman_tasks/api/tasks/bulk_stop',
         '/foreman_tasks/api/tasks/bulk_search',
         '/foreman_tasks/api/tasks/callback',
         '/foreman_tasks/api/tasks/summary',
@@ -405,11 +417,10 @@ API_PATHS = {
         '/api/hosts/:host_id/subscriptions/auto_attach',
         '/api/hosts/:host_id/subscriptions/available_release_versions',
         '/api/hosts/:host_id/subscriptions/content_override',
-        '/api/hosts/:host_id/subscriptions/events',
         '/api/hosts/:host_id/subscriptions/product_content',
         '/api/hosts/subscriptions',
     ),
-    'host_tracer': ('/api/hosts/:host_id/traces',),
+    'host_tracer': ('/api/hosts/:host_id/traces', '/api/hosts/:host_id/traces/resolve',),
     'hostgroup_classes': (
         '/api/hostgroups/:hostgroup_id/puppetclass_ids',
         '/api/hostgroups/:hostgroup_id/puppetclass_ids',
@@ -435,7 +446,7 @@ API_PATHS = {
         '/api/hosts/:id',
         '/api/hosts/:id',
         '/api/hosts/:id/enc',
-        '/api/hosts/:id/status',
+        '/api/hosts/:id/status/:type',
         '/api/hosts/:id/status/:type',
         '/api/hosts/:id/vm_compute_attributes',
         '/api/hosts/:id/disassociate',
@@ -469,6 +480,8 @@ API_PATHS = {
         '/api/hosts/bulk/remove_host_collections',
         '/api/hosts/bulk/remove_subscriptions',
         '/api/hosts/bulk/update_content',
+        '/api/hosts/bulk/resolve_traces',
+        '/api/hosts/bulk/traces',
     ),
     'host_errata': (
         '/api/hosts/:host_id/errata',
@@ -537,7 +550,14 @@ API_PATHS = {
         '/api/locations/:id',
         '/api/locations/:id',
     ),
-    'mail_notifications': ('/api/mail_notifications', '/api/mail_notifications/:id'),
+    'mail_notifications': (
+        '/api/mail_notifications',
+        '/api/mail_notifications/:id',
+        '/api/users/:user_id/mail_notifications',
+        '/api/users/:user_id/mail_notifications/:mail_notification_id',
+        '/api/users/:user_id/mail_notifications/:mail_notification_id',
+        '/api/users/:user_id/mail_notifications',
+    ),
     'media': ('/api/media', '/api/media', '/api/media/:id', '/api/media/:id', '/api/media/:id',),
     'models': (
         '/api/models',
@@ -561,7 +581,6 @@ API_PATHS = {
         '/katello/api/organizations/:id',
         '/katello/api/organizations/:id',
         '/katello/api/organizations/:id',
-        '/katello/api/organizations/:id/autoattach_subscriptions',
         '/katello/api/organizations/:id/redhat_provider',
         '/katello/api/organizations/:id/releases',
         '/katello/api/organizations/:id/repo_discover',
@@ -671,19 +690,21 @@ API_PATHS = {
         '/foreman_tasks/api/recurring_logics/:id',
         '/foreman_tasks/api/recurring_logics/:id',
         '/foreman_tasks/api/recurring_logics/:id/cancel',
+        '/foreman_tasks/api/recurring_logics/bulk_destroy',
     ),
     'remote_execution_features': (
         '/api/remote_execution_features',
         '/api/remote_execution_features/:id',
         '/api/remote_execution_features/:id',
     ),
-    'reports': (
-        '/api/hosts/:host_id/reports/last',
-        '/api/reports',
-        '/api/reports',
-        '/api/reports/:id',
-        '/api/reports/:id',
+    'override_values': (
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
     ),
+    'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
     'report_templates': (
         '/api/report_templates',
         '/api/report_templates/:id',
@@ -807,10 +828,12 @@ API_PATHS = {
         '/api/users/:user_id/table_preferences',
         '/api/users/:user_id/table_preferences/:name',
     ),
-    'template': ('/api/templates/export', '/api/templates/import'),
+    'templates': ('/api/templates/export', '/api/templates/import'),
     'template_combinations': (
-        '/api/provisioning_templates/:provisioning_template_id/template_combinations/:id',
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations',
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations',
         '/api/template_combinations/:id',
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations/:id',
         '/api/template_combinations/:id',
     ),
     'template_inputs': (
@@ -828,6 +851,7 @@ API_PATHS = {
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions/ping',
     ),
     'usergroups': (
         '/api/usergroups',
@@ -845,6 +869,12 @@ API_PATHS = {
         '/api/users/:id',
     ),
 }
+
+if is_open('BZ:1887932'):
+    missing = '/katello/api/activation_keys/:activation_key_id/subscriptions'
+    API_PATHS['subscriptions'] = tuple(
+        [subscription for subscription in API_PATHS['subscriptions'] if subscription != missing]
+    )
 
 
 class AvailableURLsTestCase(TestCase):
