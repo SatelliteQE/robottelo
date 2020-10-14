@@ -1,9 +1,14 @@
 import logging
+import os
 from functools import reduce
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 from wrapt import CallableObjectProxy
+
+from robottelo.config.base import get_project_root
+from robottelo.config.base import INIReader
+from robottelo.config.base import SETTINGS_FILE_NAME
 
 logger = logging.getLogger('robottelo.settings.proxy')
 
@@ -52,6 +57,8 @@ WRAPPER_EXCEPTIONS = (
     'ldap.password',
     'ldap.username',
     'rhel8_os',
+    'rhsso.rhsso_user',
+    'rhsso.password',
     'sattools_repo',
     'swid_tools_repo',
     'vlan_networking.netmask',
@@ -195,6 +202,14 @@ class ConfigProxy:
 
         return version
 
+    def __server_get_hostname(self, key="hostname"):
+        try:
+            return self._get_from_configs(f"server.{key}")
+        except AttributeError:
+            default = self._get_from_configs("server.hostname")
+            reader = INIReader(os.path.join(get_project_root(), SETTINGS_FILE_NAME))
+            return reader.get('server', key, default)
+
     def __capsule_hostname(self):
         try:
             instance_name = self.get('capsule.instance_name')
@@ -228,6 +243,8 @@ class ConfigProxy:
             value = self._cached_function(self.__server_get_pub_url)
         elif key == "server.get_cert_rpm_url":
             value = self._cached_function(self.__server_get_cert_rpm_url)
+        elif key == 'server.get_hostname':
+            value = self.__server_get_hostname
         elif key == "server.version":
             value = self.__server_version()
         elif key == "capsule.hostname":
