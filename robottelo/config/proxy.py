@@ -165,11 +165,9 @@ class ConfigProxy:
         """
         scheme = self.get('server.scheme')
         hostname = self.get('server.hostname')
-        try:
-            port = self.get('server.port')
+        port = self.get('server.port')
+        if port is not None:
             hostname = f"{hostname}:{port}"
-        except AttributeError:
-            pass
 
         return urlunsplit((scheme, hostname, '', '', ''))
 
