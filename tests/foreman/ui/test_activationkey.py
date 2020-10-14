@@ -62,7 +62,7 @@ def module_org():
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end_crud(session, module_org):
+def test_positive_end_to_end_crud(session, module_org, default_contentview):
     """Perform end to end testing for activation key component
 
     :id: b6b98c45-e41e-4c7a-9be4-997273b7e24d
