@@ -7,8 +7,8 @@ from robottelo.constants import VALID_GCE_ZONES
 validators = dict(
     server=[
         Validator("server.hostname", must_exist=True),
-        Validator("SERVER.ssh_key", must_exist=True)
-        | Validator("SERVER.ssh_password", must_exist=True),
+        Validator("server.ssh_key", must_exist=True)
+        | Validator("server.ssh_password", must_exist=True),
     ],
     azurerm=[
         Validator(

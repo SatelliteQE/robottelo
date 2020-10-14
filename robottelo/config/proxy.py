@@ -200,7 +200,7 @@ class ConfigProxy:
             instance_name = self.get('capsule.instance_name')
             domain = self.get('capsule.domain')
             return f"{instance_name}.{domain}"
-        except KeyError():
+        except KeyError:
             return None
 
     def __ssh_client_command_timeout(self):

@@ -14,7 +14,7 @@ logger = logging.getLogger('robottelo.config')
 legacy_settings = LegacySettings()
 
 dynaconf_settings = LazySettings(
-    envvar_prefix="SATQE",
+    envvar_prefix="ROBOTTELO",
     core_loaders=["YAML"],
     settings_file="settings.yaml",
     preload=["conf/*.yaml"],
