@@ -37,7 +37,8 @@ validators = dict(
     ],
     clients=[Validator("clients.provisioning_server")],
     compute_resources=[Validator("compute_resources.libvirt_image_dir", must_exist=True)],
-    # FIXME: merge obecnego pliku do struktury dynaconf, dodanie walidacji
+    # FIXME: container_repo is stored in robottelo.yaml, which should be
+    # properly integrated with dynaconf
     container_repo=[
         Validator(
             'container_repo.label',
@@ -65,8 +66,8 @@ validators = dict(
         Validator('ec2.manage_ip', is_in=('Private', 'Public')),
     ],
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
-    # FIXME: że musi być default nie jest sprawdzane
-    # w sumie to yaml, więc można zmienić? - że musi być przynajmniej jeden
+    # FIXME: we don't check if "default" is defined
+    # since that's YAML, could we change API and check for presence of at least one setting?
     fake_manifest=[
         Validator(
             'fake_manifest.cert_url', 'fake_manifest.key_url', 'fake_manifest.url', must_exist=True
@@ -81,7 +82,6 @@ validators = dict(
             "gce.cert_url",
             must_exist=True,
         ),
-        # FIXME: przenieś do constant
         Validator("gce.cert_path", startswith='/usr/share/foreman/'),
         Validator("gce.zone", is_in=VALID_GCE_ZONES),
     ],
@@ -179,38 +179,6 @@ validators = dict(
         | Validator("upgrade.capsule_hostname", must_exist=False),
         Validator("upgrade.rhev_capsule_ak", must_exist=False)
         | Validator("upgrade.capsule_ak", must_exist=False),
-    ],
-    virtwho=[
-        Validator(
-            "virtwho.hypervisor_type",
-            "virtwho.hypervisor_server",
-            "virtwho.guest",
-            "virtwho.guest_username",
-            "virtwho.guest_password",
-            "virtwho.sku_vdc_physical",
-            "virtwho.sku_vdc_virtual",
-            must_exist=True,
-        ),
-        Validator(
-            "virtwho.hypervisor_type",
-            is_in=('esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt'),
-        ),
-        Validator(
-            "virtwho.hypervisor_config_file",
-            must_exist=True,
-            when=Validator("virtwho.hypervisor_type", eq="kubevirt"),
-        ),
-        Validator(
-            "virtwho.hypervisor_username",
-            must_exist=True,
-            when=Validator("virtwho.hypervisor_type", eq="libvirt"),
-        ),
-        Validator(
-            "virtwho.hypervisor_username",
-            "virtwho.hypervisor_password",
-            must_exist=True,
-            when=Validator("virtwho.hypervisor_type", is_in=('esx', 'xen', 'hyperv', 'rhevm')),
-        ),
     ],
     vlan_networking=[
         Validator(
