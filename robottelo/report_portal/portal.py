@@ -27,7 +27,7 @@ class ReportPortal:
         'nailgun_bug': 'ab_t4kkyw0yaaet',
         'airgun_bug': 'ab_u7umbjyvti7a',
         'system_issue': 'SI001',
-        'saucelabs_issue': 'si_rhufdawx03e8',
+        'zalenium_issue': 'si_rhufdawx03e8',
         'to_investigate': 'TI001',
         'no_defect': 'ND001',
     }
@@ -180,7 +180,7 @@ class Launch:
         self.satellite_version = re.search(version_compiler, launch_name).group(1)
         self.snap_version = re.search(version_compiler, launch_name).group(2)
 
-    def _test_params(self, status, defect_type):
+    def _test_params(self, status, defect_type, user):
         """Customise parameters for Test items API request
 
         :returns dict: The parameters dict for API test items request
@@ -209,6 +209,8 @@ class Launch:
                     f'Invalid value \'{status}\' for status parameter, '
                     f'should be one of {rp_statuses}'
                 )
+        if user:
+            params.insert(2, ('filter.eq.tags', user))
         return dict(params)
 
     @retry(
@@ -234,7 +236,7 @@ class Launch:
         pagedata = resp.json().get('content')
         return total_pages, pagedata
 
-    def tests(self, status=None, defect_type=None):
+    def tests(self, status=None, defect_type=None, user=None):
         """Returns tests data customized by kwargs parameters.
 
         This is a main function that will be called to retrieve the tests data
@@ -247,7 +249,7 @@ class Launch:
             ```{'test_name1':test1_properties_dict, 'test_name2':test2_properties_dict}```
         """
         page = 1
-        params = self._test_params(status, defect_type)
+        params = self._test_params(status, defect_type, user)
         total_pages, data = self._test_requester(params=params, page=page)
         while page < total_pages:
             page += 1
