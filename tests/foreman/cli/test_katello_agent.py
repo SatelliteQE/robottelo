@@ -16,8 +16,6 @@
 """
 import time
 
-import pytest
-
 from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
@@ -119,7 +117,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.register_contenthost(
             KatelloAgentTestCase.org['label'], KatelloAgentTestCase.activation_key['name']
         )
-        self.assertTrue(self.client.subscribed)
+        assert self.client.subscribed
         self.host = Host.info({'name': self.client.hostname})
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
@@ -132,13 +130,12 @@ class KatelloAgentTestCase(CLITestCase):
 
         :expectedresults: Errata info was displayed
 
-
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         result = Host.errata_info({'host-id': self.host['id'], 'id': FAKE_1_ERRATA_ID})
-        self.assertEqual(result[0]['errata-id'], FAKE_1_ERRATA_ID)
-        self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
+        assert result[0]['errata-id'] == FAKE_1_ERRATA_ID
+        assert FAKE_2_CUSTOM_PACKAGE in result[0]['packages']
 
     @tier3
     @upgrade
@@ -149,10 +146,9 @@ class KatelloAgentTestCase(CLITestCase):
 
         :expectedresults: Errata is scheduled for installation
 
-
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': self.host['id']})
 
     @tier3
@@ -171,21 +167,21 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.download_install_rpm(FAKE_1_YUM_REPO, FAKE_2_CUSTOM_PACKAGE)
         # Check the system is up to date
         result = self.client.run('yum update --security | grep "No packages needed for security"')
-        self.assertEqual(result.return_code, 0)
+        assert result.return_code == 0
         before_downgrade = int(time.time())
         # Downgrade walrus package
-        self.client.run('yum downgrade -y {0}'.format(FAKE_2_CUSTOM_PACKAGE_NAME))
+        self.client.run(f'yum downgrade -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
         # Wait for errata applicability cache is counted
         wait_for_errata_applicability_task(int(self.host['id']), before_downgrade)
         # Check that host has applicable errata
         host_errata = Host.errata_list({'host-id': self.host['id']})
-        self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
-        self.assertEqual(host_errata[0]['installable'], 'true')
+        assert host_errata[0]['erratum-id'] == FAKE_1_ERRATA_ID
+        assert host_errata[0]['installable'] == 'true'
         # Check the erratum becomes available
         result = self.client.run(
             'yum update --assumeno --security | grep "No packages needed for security"'
         )
-        self.assertEqual(result.return_code, 1)
+        assert result.return_code == 1
 
     @tier3
     @upgrade
@@ -196,12 +192,11 @@ class KatelloAgentTestCase(CLITestCase):
 
         :expectedresults: Package was successfully installed
 
-
         :CaseLevel: System
         """
         Host.package_install({'host-id': self.host['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
-        self.assertEqual(result.return_code, 0)
+        result = self.client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}')
+        assert result.return_code == 0
 
     @tier3
     def test_positive_remove_package(self):
@@ -211,13 +206,12 @@ class KatelloAgentTestCase(CLITestCase):
 
         :expectedresults: Package was successfully removed
 
-
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         Host.package_remove({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME))
-        self.assertNotEqual(result.return_code, 0)
+        result = self.client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
+        assert result.return_code != 0
 
     @tier3
     def test_positive_upgrade_package(self):
@@ -227,13 +221,12 @@ class KatelloAgentTestCase(CLITestCase):
 
         :expectedresults: Package was successfully upgraded
 
-
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         Host.package_upgrade({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
+        result = self.client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        assert result.return_code == 0
 
     @tier3
     def test_positive_upgrade_packages_all(self):
@@ -246,10 +239,10 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         Host.package_upgrade_all({'host-id': self.host['id']})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
+        result = self.client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        assert result.return_code == 0
 
     @tier3
     @upgrade
@@ -266,12 +259,12 @@ class KatelloAgentTestCase(CLITestCase):
         hammer_args = {'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, 'host-id': self.host['id']}
         Host.package_group_install(hammer_args)
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertEqual(result.return_code, 0)
+            result = self.client.run(f'rpm -q {package}')
+            assert result.return_code == 0
         Host.package_group_remove(hammer_args)
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertNotEqual(result.return_code, 0)
+            result = self.client.run(f'rpm -q {package}')
+            assert result.return_code != 0
 
     @tier3
     def test_negative_unregister_and_pull_content(self):
@@ -285,9 +278,9 @@ class KatelloAgentTestCase(CLITestCase):
         :CaseLevel: System
         """
         result = self.client.run('subscription-manager unregister')
-        self.assertEqual(result.return_code, 0)
-        result = self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        self.assertNotEqual(result.return_code, 0)
+        assert result.return_code == 0
+        result = self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        assert result.return_code != 0
 
     @tier3
     @upgrade
@@ -328,12 +321,12 @@ class KatelloAgentTestCase(CLITestCase):
             client.install_katello_ca()
             # register the client host with the current activation key
             client.register_contenthost(self.org['name'], activation_key=activation_key['name'])
-            self.assertTrue(client.subscribed)
+            assert client.subscribed
             # note: when registering the host, it should be automatically added
             # to the host collection
             client_host = Host.info({'name': client.hostname})
             hosts = HostCollection.hosts({'id': hc['id'], 'organization-id': self.org['id']})
-            self.assertEqual(len(hosts), 2)
+            assert len(hosts) == 2
             expected_hosts_ids = {self.host['id'], client_host['id']}
             hosts_ids = {host['id'] for host in hosts}
-            self.assertEqual(hosts_ids, expected_hosts_ids)
+            assert hosts_ids == expected_hosts_ids
