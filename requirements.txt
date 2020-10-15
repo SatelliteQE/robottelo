@@ -29,7 +29,7 @@ PyYAML==5.1.2
 tenacity==6.0.0
 pyotp==2.3.0
 pexpect==4.7.0
-pytest-ibutsu==1.0.34
+pytest-ibutsu==1.1
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git#egg=airgun
