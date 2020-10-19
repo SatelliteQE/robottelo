@@ -1,6 +1,6 @@
 """API Tests for foreman discovery feature
 
-:Requirement: Discoveredhost
+:Requirement: DiscoveredHost
 
 :CaseComponent: DiscoveryPlugin
 
@@ -12,24 +12,34 @@
 
 :Upstream: No
 """
-import time
+import logging
+import re
 from copy import copy
 
 import pytest
+import simplejson
+from fauxfactory import gen_choice
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun import entity_mixins
+from wait_for import TimedOutError
+from wait_for import wait_for
 
 from robottelo import ssh
-from robottelo.api.utils import create_org_admin_user
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
-from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
+
+logger = logging.getLogger('robottelo')
+
+
+class HostNotDiscoveredException(Exception):
+    """Raised when host is not discovered"""
 
 
 def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
@@ -65,561 +75,561 @@ def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
     )
 
 
-class HostNotDiscoveredException(Exception):
-    """Raised when host is not discovered"""
-
-
-class DiscoveryTestCase(APITestCase):
-    """Implements tests for foreman discovery feature"""
-
-    def _assertdiscoveredhost(self, hostname, user_config=None):
-        """Check if host is discovered and information about it can be
-        retrieved back
-
-        Introduced a delay of 300secs by polling every 10 secs to get expected
-        host
-        """
-        default_config = entity_mixins.DEFAULT_SERVER_CONFIG
-        for _ in range(30):
-            discovered_host = entities.DiscoveredHost(user_config or default_config).search(
-                query={'search': f'name={hostname}'}
-            )
-            if discovered_host:
+def _read_log(ch, pattern):
+    """Read a first line from the given channel buffer and return the matching line"""
+    # read lines until the buffer is empty
+    while ch.recv_ready():
+        log_line = ''
+        # read bytes one-by-one until we have a complete log line
+        while ch.recv_ready():
+            char = ch.recv(1).decode('utf-8')
+            if char == '\n':
                 break
-            time.sleep(10)
-        else:
-            raise HostNotDiscoveredException(
-                f"The host {hostname} is not discovered within 300 seconds"
-            )
-        return discovered_host[0]
+            else:
+                log_line += char
+        logger.debug(f'foreman-tail: {log_line}')
+        if re.search(pattern, log_line):
+            return log_line
+    else:
+        return None
 
-    @classmethod
-    @skip_if_not_set('vlan_networking')
-    def setUpClass(cls):
-        """Steps to Configure foreman discovery
 
-        1. Build PXE default template
-        2. Create Organization/Location
-        3. Update Global parameters to set default org and location for
-           discovered hosts.
-        4. Enable auto_provision flag to perform discovery via discovery
-           rules.
-        """
-        super().setUpClass()
+def _wait_for_log(channel, pattern, timeout=5, delay=0.2):
+    """_read_log method enclosed in wait_for method"""
+    matching_log = wait_for(
+        _read_log,
+        func_args=(
+            channel,
+            pattern,
+        ),
+        fail_condition=None,
+        timeout=timeout,
+        delay=delay,
+        logger=logger,
+    )
+    return matching_log
 
-        # Build PXE default template to get default PXE file
-        entities.ProvisioningTemplate().build_pxe_default()
-        # let's just modify the timeouts to speed things up
-        ssh.command(
-            "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
-            "/var/lib/tftpboot/pxelinux.cfg/default"
+
+def _assert_discovered_host(host, channel=None, user_config=None):
+    """Check if host is discovered and information about it can be
+    retrieved back
+
+    Introduced a delay of 300secs by polling every 10 secs to get expected
+    host
+    """
+    # assert that server receives DHCP discover from hosts PXELinux
+    for pattern in [
+        (
+            f"DHCPDISCOVER from {host.mac}",
+            "DHCPDISCOVER",
+        ),
+        (f"DHCPACK on [0-9.]+ to {host.mac}", "DHCPACK"),
+    ]:
+        try:
+            dhcp_pxe = _wait_for_log(channel, pattern[0], timeout=10)
+        except TimedOutError:
+            # raise assertion error
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+
+    groups = re.search('DHCPACK on (\\d.+) to', dhcp_pxe.out)
+    assert len(groups.groups()) == 1, 'Unable to parse bootloader ip address'
+    pxe_ip = groups.groups()[0]
+
+    # assert that server retrieves pxelinux config over TFTP
+    for pattern in [
+        (f'Client {pxe_ip} finished pxelinux.0', 'pxelinux.0'),
+        (f'Client {pxe_ip} finished pxelinux.cfg/default', 'pxelinux.cfg/default'),
+        (f'Client {pxe_ip} finished boot/fdi-image/vmlinuz0', 'fdi-image/vmlinuz0'),
+        (f'Client {pxe_ip} finished boot/fdi-image/initrd0.img', 'fdi-image/initrd0.img'),
+    ]:
+        try:
+            _wait_for_log(channel, pattern[0], timeout=20)
+        except TimedOutError:
+            # raise assertion error
+            raise AssertionError(f'Timed out waiting for VM (tftp) to fetch {pattern[1]}')
+
+    # assert that server receives DHCP discover from FDI
+    for pattern in [
+        (
+            f"DHCPDISCOVER from {host.mac}",
+            "DHCPDISCOVER",
+        ),
+        (f"DHCPACK on [0-9.]+ to {host.mac}", "DHCPACK"),
+    ]:
+        try:
+            dhcp_fdi = _wait_for_log(channel, pattern[0], timeout=30)
+        except TimedOutError:
+            # raise assertion error
+            raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+    groups = re.search('DHCPACK on (\\d.+) to', dhcp_fdi.out)
+    assert len(groups.groups()) == 1, 'Unable to parse FDI ip address'
+    fdi_ip = groups.groups()[0]
+
+    # finally, assert that the FDI successfully uploaded its facts to the server
+    try:
+        facts_fdi = _wait_for_log(
+            channel,
+            f'\\[I\\|app\\|[a-z0-9]+\\] Started POST '
+            f'"/api/v2/discovered_hosts/facts" for {fdi_ip}',
+            timeout=60,
         )
-        ssh.command(
-            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
-            "/var/lib/tftpboot/pxelinux.cfg/default"
-        )
-        # Create Org and location
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location().create()
-        # Get default settings values
-        cls.default_disco_settings = {
-            i.name: i for i in entities.Setting().search(query={'search': 'name~discovery'})
-        }
+    except TimedOutError:
+        # raise assertion error
+        raise AssertionError('Timed out waiting for /facts POST request')
+    groups = re.search('\\[I\\|app\\|([a-z0-9]+)\\]', facts_fdi.out)
+    assert len(groups.groups()) == 1, 'Unable to parse POST request UUID'
+    req_id = groups.groups()[0]
 
-        # Update discovery taxonomies settings
-        cls.discovery_loc = copy(cls.default_disco_settings['discovery_location'])
-        cls.discovery_loc.value = cls.loc.name
-        cls.discovery_loc.update(['value'])
-        cls.discovery_org = copy(cls.default_disco_settings['discovery_organization'])
-        cls.discovery_org.value = cls.org.name
-        cls.discovery_org.update(['value'])
+    try:
+        _wait_for_log(channel, f'\\[I\\|app\\|{req_id}\\] Completed 201 Created')
+    except TimedOutError:
+        # raise assertion error
+        raise AssertionError('Timed out waiting for "/facts" 201 response')
 
-        # Enable flag to auto provision discovered hosts via discovery rules
-        cls.discovery_auto = copy(cls.default_disco_settings['discovery_auto'])
-        cls.discovery_auto.value = 'true'
-        cls.discovery_auto.update(['value'])
+    default_config = entity_mixins.DEFAULT_SERVER_CONFIG
 
-        # Flag which shows whether environment is fully configured for
-        # discovered host provisioning.
-        cls.configured_env = False
-
-    @classmethod
-    def tearDownClass(cls):
-        """Restore default global setting's values"""
-        cls.default_disco_settings['discovery_location'].update(['value'])
-        cls.default_disco_settings['discovery_organization'].update(['value'])
-        cls.default_disco_settings['discovery_auto'].update(['value'])
-        super().tearDownClass()
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_show(self):
-        """Show a specific discovered hosts
-
-        :id: f607838d-bbbb-40d6-b58e-e8eea6ef3d1d
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: GET /api/v2/discovered_hosts/:id
-
-        :expectedresults: Selected host is retrieved
-
-        :CaseAutomation: NotAutomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_create(self):
-        """Create a discovered hosts
-
-        :id: b8f68ff0-6fda-46a0-aaea-ca2e714e3bec
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: POST /api/v2/discovered_hosts
-
-        :expectedresults: Host should be created successfully
-
-        :CaseAutomation: NotAutomated
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.tier2
-    def test_positive_upload_facts(self):
-        """Upload fake facts to create a discovered host
-
-        :id: c1f40204-bbb0-46d0-9b60-e42f00ad1649
-
-        :BZ: 1349364, 1392919
-
-        :Steps:
-
-            1. POST /api/v2/discovered_hosts/facts
-            2. Read the created discovered host
-
-        :expectedresults: Host should be created successfully
-
-        :CaseImportance: High
-
-        :CaseLevel: Integration
-
-        :BZ: 1731112
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                result = _create_discovered_host(name)
-                discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
-                host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
-                self.assertEqual(discovered_host['name'], host_name)
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_pxe_less_host(self):
-        """Provision a pxe-less discovered hosts
-
-        :id: 91bb254b-3c30-4608-b1ba-e18bcc22efb5
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: PUT /api/v2/discovered_hosts/:id
-
-        :expectedresults: Host should be provisioned successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.tier3
-    def test_positive_provision_pxe_host(self):
-        """Provision a pxe-based discovered hosts
-
-        :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: PUT /api/v2/discovered_hosts/:id
-
-        :expectedresults: Host should be provisioned successfully
-
-        :CaseImportance: Critical
-        """
-        if not self.configured_env:
-            self.__class__.configured_env = configure_env_for_provision(
-                org={'id': self.org.id, 'name': self.org.name},
-                loc={'id': self.loc.id, 'name': self.loc.name},
+    try:
+        wait_for(
+            lambda: len(
+                entities.DiscoveredHost(user_config or default_config).search(
+                    query={'search': f'name={host.guest_name}'}
+                )
             )
+            > 0,
+            timeout=20,
+            delay=2,
+            logger=logger,
+        )
+    except TimedOutError:
+        raise AssertionError('Timed out waiting for discovered_host to appear on satellite')
+    discovered_host = entities.DiscoveredHost(user_config or default_config).search(
+        query={'search': f'name={host.guest_name}'}
+    )
+    return discovered_host[0]
+
+
+@pytest.fixture(scope="module", params=['non-admin', 'admin'])
+def _module_user(request, module_org, module_location):
+    if request.param == 'admin':
+        yield None
+    else:
+        # setup a clone of DiscoveryManager role
+        discoman_role = entities.Role().search(query={'search': 'name="Discovery Manager"'})[0]
+        passwd = gen_string('alpha')
+        user = entities.User(
+            organization=[module_org],
+            location=[module_location],
+            password=passwd,
+            role=[discoman_role],
+        ).create()
+        yield (user, passwd)
+
+
+@pytest.fixture(scope="module")
+def discovery_settings(module_org, module_location):
+    """Steps to Configure foreman discovery
+
+    1. Build PXE default template
+    2. Create Organization/Location
+    3. Update Global parameters to set default org and location for
+       discovered hosts.
+    4. Enable auto_provision flag to perform discovery via discovery
+       rules.
+    """
+    # Build PXE default template to get default PXE file
+    entities.ProvisioningTemplate().build_pxe_default()
+    # let's just modify the timeouts to speed things up
+    ssh.command(
+        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
+    )
+    ssh.command(
+        "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
+        "/var/lib/tftpboot/pxelinux.cfg/default"
+    )
+    # Get default settings values
+    default_disco_settings = {
+        i.name: i for i in entities.Setting().search(query={'search': 'name~discovery'})
+    }
+
+    # Update discovery taxonomies settings
+    discovery_loc = copy(default_disco_settings['discovery_location'])
+    discovery_loc.value = module_location.name
+    discovery_loc.update(['value'])
+    discovery_org = copy(default_disco_settings['discovery_organization'])
+    discovery_org.value = module_org.name
+    discovery_org.update(['value'])
+
+    # Enable flag to auto provision discovered hosts via discovery rules
+    discovery_auto = copy(default_disco_settings['discovery_auto'])
+    discovery_auto.value = 'true'
+    discovery_auto.update(['value'])
+
+    yield
+    # Restore default global setting's values
+    default_disco_settings['discovery_location'].update(['value'])
+    default_disco_settings['discovery_organization'].update(['value'])
+    default_disco_settings['discovery_auto'].update(['value'])
+
+
+@pytest.fixture(scope='module')
+def provisioning_env(module_org, module_location):
+    env = configure_env_for_provision(
+        org={'id': module_org.id, 'name': module_org.name},
+        loc={'id': module_location.id, 'name': module_location.name},
+    )
+    yield env
+
+
+@pytest.fixture()
+def discovered_host_cleanup():
+    hosts = entities.DiscoveredHost().search()
+    for host in hosts:
+        host.delete()
+
+
+@pytest.mark.tier2
+def test_positive_upload_facts():
+    """Upload fake facts to create a discovered host
+
+    :id: c1f40204-bbb0-46d0-9b60-e42f00ad1649
+
+    :BZ: 1349364, 1392919
+
+    :Steps:
+
+        1. POST /api/v2/discovered_hosts/facts
+        2. Read the created discovered host
+
+    :expectedresults: Host should be created successfully
+
+    :CaseImportance: High
+
+    :CaseLevel: Integration
+
+    :BZ: 1731112
+    """
+    name = gen_choice(list(valid_data_list().values()))
+    result = _create_discovered_host(name)
+    discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
+    host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
+    assert discovered_host['name'] == host_name
+
+
+@pytest.mark.stubbed
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_provision_pxe_less_host():
+    """Provision a pxe-less discovered hosts
+
+    :id: 91bb254b-3c30-4608-b1ba-e18bcc22efb5
+
+    :Setup: Provisioning should be configured and a host should be
+        discovered
+
+    :Steps: PUT /api/v2/discovered_hosts/:id
+
+    :expectedresults: Host should be provisioned successfully
+
+    :CaseAutomation: notautomated
+
+    :CaseImportance: Critical
+    """
+
+
+@pytest.mark.run_in_one_thread
+@skip_if_not_set('vlan_networking')
+@pytest.mark.tier3
+def test_positive_provision_pxe_host(_module_user, discovery_settings, provisioning_env):
+    """Provision a pxe-based discovered hosts
+
+    :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
+
+    :Setup: Provisioning should be configured and a host should be
+        discovered
+
+    :Steps: PUT /api/v2/discovered_hosts/:id
+
+    :expectedresults: Host should be provisioned successfully
+
+    :CaseImportance: Critical
+    """
+    cfg = get_nailgun_config()
+    if _module_user:
+        cfg.auth = (_module_user[0].login, _module_user[1])
+
+    # open a ssh channel and attach it to foreman-tail output
+    ssh_client = ssh.get_client()
+    with ssh_client.invoke_shell() as channel:
+        channel.send('foreman-tail\r')
+
         with LibvirtGuest() as pxe_host:
-            hostname = pxe_host.guest_name
-            discovered_host = self._assertdiscoveredhost(hostname)
+            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
             # Provision just discovered host
             discovered_host.hostgroup = entities.HostGroup(
-                id=self.configured_env['hostgroup']['id']
+                cfg, id=provisioning_env['hostgroup']['id']
             ).read()
             discovered_host.root_pass = gen_string('alphanumeric')
             discovered_host.update(['hostgroup', 'root_pass'])
             # Assertions
-            provisioned_host = entities.Host().search(
+            provisioned_host = entities.Host(cfg).search(
                 query={
                     'search': 'name={}.{}'.format(
-                        discovered_host.name, self.configured_env['domain']['name']
+                        discovered_host.name, provisioning_env['domain']['name']
                     )
                 }
             )[0]
-            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
             assert (
                 provisioned_host.operatingsystem.read().ptable[0].read().name
-                == self.configured_env['ptable']['name']
+                == provisioning_env['ptable']['name']
             )
-            assert (
-                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
-            )
-            assert not entities.DiscoveredHost().search(
+            assert provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
+            assert not entities.DiscoveredHost(cfg).search(
                 query={'search': f'name={discovered_host.name}'}
             )
 
-    @pytest.mark.tier3
-    def test_positive_provision_pxe_host_non_admin(self):
-        """Provision a pxe-based discovered hosts by non-admin user
 
-        :id: 02144040-6cf6-4251-abaf-b0fad2c83109
+@pytest.mark.tier3
+def test_positive_delete_pxe_host():
+    """Delete a pxe-based discovered hosts
 
-        :Setup: Provisioning should be configured and a host should be
-            discovered
+    :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d675e
 
-        :Steps: PUT /api/v2/discovered_hosts/:id
+    :Setup: Provisioning should be configured and a host should be
+        discovered
 
-        :expectedresults: Host should be provisioned successfully by non admin user
+    :Steps: DELETE /api/v2/discovered_hosts/:id
 
-        :CaseImportance: Critical
+    :expectedresults: Discovered Host should be deleted successfully
 
-        :bz: 1638403
-        """
-        non_admin = create_org_admin_user(orgs=[self.org.id], locs=[self.loc.id])
-        nonadmin_config = get_nailgun_config(non_admin)
-        if not self.configured_env:
-            self.__class__.configured_env = configure_env_for_provision(
-                org={'id': self.org.id, 'name': self.org.name},
-                loc={'id': self.loc.id, 'name': self.loc.name},
-            )
+    :CaseAutomation: Automated
+
+    :CaseImportance: High
+    """
+    name = gen_choice(list(valid_data_list().values()))
+    result = _create_discovered_host(name)
+
+    entities.DiscoveredHost(id=result['id']).delete()
+    search = entities.DiscoveredHost().search(
+        query={'search': 'name == {}'.format(result['name'])}
+    )
+    assert len(search) == 0
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+@skip_if_not_set('vlan_networking')
+def test_positive_auto_provision_pxe_host(
+    _module_user, module_org, module_location, discovery_settings, provisioning_env
+):
+    """Auto provision a pxe-based host by executing discovery rules
+
+    :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
+
+    :Setup: Provisioning should be configured and a host should be
+        discovered
+
+    :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
+
+    :expectedresults: Selected Host should be auto-provisioned successfully
+
+    :CaseAutomation: Automated
+
+    :CaseImportance: Critical
+    """
+    cfg = get_nailgun_config()
+    if _module_user:
+        cfg.auth = (_module_user[0].login, _module_user[1])
+
+    # open a ssh channel and attach it to foreman-tail output
+    ssh_client = ssh.get_client()
+    with ssh_client.invoke_shell() as channel:
+        channel.send('foreman-tail\r')
+
         with LibvirtGuest() as pxe_host:
-            hostname = pxe_host.guest_name
-            discovered_host = self._assertdiscoveredhost(hostname, nonadmin_config)
+            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
             # Provision just discovered host
             discovered_host.hostgroup = entities.HostGroup(
-                nonadmin_config, id=self.configured_env['hostgroup']['id']
+                cfg, id=provisioning_env['hostgroup']['id']
             ).read()
-            discovered_host.root_pass = gen_string('alphanumeric')
-            discovered_host.update(['hostgroup', 'root_pass'])
+
+            # create a discovery rule that will match hosts MAC address
+            entities.DiscoveryRule(
+                name=gen_string('alphanumeric'),
+                search_=f"mac = {discovered_host.mac}",
+                organization=[module_org],
+                location=[module_location],
+                hostgroup=entities.HostGroup(cfg, id=provisioning_env['hostgroup']['id']).read(),
+            ).create()
+            # Auto-provision the host
+            discovered_host.auto_provision()
+
             # Assertions
-            provisioned_host = entities.Host(nonadmin_config).search(
+            provisioned_host = entities.Host(cfg).search(
                 query={
                     'search': 'name={}.{}'.format(
-                        discovered_host.name, self.configured_env['domain']['name']
+                        discovered_host.name, provisioning_env['domain']['name']
                     )
                 }
             )[0]
-            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
             assert (
                 provisioned_host.operatingsystem.read().ptable[0].read().name
-                == self.configured_env['ptable']['name']
+                == provisioning_env['ptable']['name']
             )
-            assert (
-                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
-            )
-            assert not entities.DiscoveredHost(nonadmin_config).search(
+            assert provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
+            assert not entities.DiscoveredHost(cfg).search(
                 query={'search': f'name={discovered_host.name}'}
             )
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_delete_pxe_less_host(self):
-        """Delete a pxe-less discovered hosts
 
-        :id: e8604ee4-04e9-4bb5-9487-18ab37ea271d
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_auto_provision_all():
+    """Auto provision all host by executing discovery rules
 
-        :Setup: Provisioning should be configured and a host should be
-            discovered
+    :id: 954d3688-62d9-47f7-9106-a4fff8825ffa
 
-        :Steps: DELETE /api/v2/discovered_hosts/:id
+    :Setup: Provisioning should be configured and more than one host should
+        be discovered
 
-        :expectedresults: Discovered Host should be deleted successfully
+    :Steps: POST /api/v2/discovered_hosts/auto_provision_all
 
-        :CaseAutomation: notautomated
+    :expectedresults: All discovered hosts should be auto-provisioned
+        successfully
 
-        :CaseImportance: High
-        """
+    :CaseAutomation: notautomated
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_delete_pxe_host(self):
-        """Delete a pxe-based discovered hosts
+    :CaseImportance: High
+    """
 
-        :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d675e
 
-        :Setup: Provisioning should be configured and a host should be
-            discovered
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_refresh_facts_pxe_host():
+    """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
-        :Steps: DELETE /api/v2/discovered_hosts/:id
+    :id: 413fb608-cd5c-441d-af86-fd2d40346d96
 
-        :expectedresults: Discovered Host should be deleted successfully
+    :Setup:
+        1. Provisioning should be configured and more than one host should
+        be discovered
+        2. Add a NIC on discovered host
 
-        :CaseAutomation: notautomated
+    :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
 
-        :CaseImportance: High
-        """
+    :expectedresults: Added Fact should be displayed on refreshing the
+        facts
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_auto_provision_pxe_less_host(self):
-        """Auto provision a pxe-less host by executing discovery rules
+    :CaseAutomation: notautomated
 
-        :id: 80a4be02-517a-4d41-bacc-a3f9dce47bdf
+    :CaseImportance: High
+    """
 
-        :Setup: Provisioning should be configured and a host should be
-            discovered
 
-        :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
-
-        :expectedresults: Selected Host should be auto-provisioned successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_auto_provision_pxe_host(self):
-        """Auto provision a pxe-based host by executing discovery rules
-
-        :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
-
-        :Setup: Provisioning should be configured and a host should be
-            discovered
-
-        :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
-
-        :expectedresults: Selected Host should be auto-provisioned successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_auto_provision_all(self):
-        """Auto provision all host by executing discovery rules
-
-        :id: 954d3688-62d9-47f7-9106-a4fff8825ffa
-
-        :Setup: Provisioning should be configured and more than one host should
-            be discovered
-
-        :Steps: POST /api/v2/discovered_hosts/auto_provision_all
-
-        :expectedresults: All discovered hosts should be auto-provisioned
-            successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_refresh_facts_pxe_less_host(self):
-        """Refreshing the facts of pxe-less discovered host by adding a new NIC.
-
-        :id: c6ef642e-5eb1-4297-bad1-48f88a1660c6
-
-        :Setup:
-
-            1. Provisioning should be configured and more than one host should
-               be discovered via discovery ISO
-            2. Add a NIC on discovered host
-
-        :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
-
-        :expectedresults: Added Fact should be displayed on refreshing the
-            facts
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_refresh_facts_pxe_host(self):
-        """Refresh the facts of pxe based discovered hosts by adding a new NIC
-
-        :id: 413fb608-cd5c-441d-af86-fd2d40346d96
-
-        :Setup:
-            1. Provisioning should be configured and more than one host should
-            be discovered
-            2. Add a NIC on discovered host
-
-        :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
-
-        :expectedresults: Added Fact should be displayed on refreshing the
-            facts
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_reboot_pxe_host(self):
-        """Rebooting a pxe based discovered host
-
-        :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
-
-        :Setup: Provisioning should be configured and more than one host should
-            be discovered via PXE boot.
-
-        :Steps: PUT /api/v2/discovered_hosts/:id/reboot
-
-        :expectedresults: Selected host should be rebooted successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: Medium
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_reboot_pxe_less_host(self):
-        """Rebooting a pxe-less discovered host
-
-        :id: 2e7bdf3c-fb5d-44da-981d-d4ba9ffaba60
-
-        :Setup: Provisioning should be configured and more than one host should
-            be discovered using discovery ISO.
-
-        :Steps: PUT /api/v2/discovered_hosts/:id/reboot
-
-        :expectedresults: Selected host should be rebooted successfully
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_host_with_rule(self):
-        """Create a new discovery rule that applies on host to provision
-
-        Set query as (e.g IP=IP_of_discovered_host)
-
-        :id: a5531225-0b5f-4999-925f-4f40f77e20f8
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: Host should reboot and provision
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_multihost_with_rule(self):
-        """Create a new discovery rule with (host_limit = 0)
-        that applies to multi hosts.
-        Set query as cpu_count = 1 OR mem > 500
-
-        :id: 19ce9ac0-e915-41b3-8c2d-2b17e5fbe42a
-
-        :Setup: Multiple hosts should already be discovered in same subnet
-
-        :expectedresults: All Hosts of same subnet should reboot and provision
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_with_rule_priority(self):
-        """Create multiple discovery rules with different priority and check
-        rule with highest priority executed first
-
-        :id: b91c4979-f8ce-4f6e-9474-9ccd4c3bc793
-
-        :Setup: Multiple hosts should already be discovered
-
-        :expectedresults: Host with lower count have higher priority and that
-            rule should be executed first
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_multi_provision_with_rule_limit(self):
-        """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
-        provision more than one host with same rule
-
-        :id: 553c8ebf-d1c1-4ac2-9948-d3664a5b450b
-
-        :Setup: Host with two CPUs should already be discovered
-
-        :expectedresults: Rule should only be applied to one discovered host
-            and for other rule should already be skipped.
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_with_updated_discovery_rule(self):
-        """Update an existing rule and provision a host with it.
-
-        :id: 3fb20e0f-02e9-4158-9744-f583308c4e89
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: User should be able to update the rule and it should
-            be applied on discovered host
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_provision_with_updated_hostname_in_rule(self):
-        """Update the discovered hostname in existing rule and provision a host
-        with it
-
-        :id: aaa1d6ac-0f52-4b1f-9bfe-853169985621
-
-        :Setup: Host should already be discovered
-
-        :expectedresults: The host name should be updated and host should be
-            provisioned
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """
+@pytest.mark.run_in_one_thread
+@skip_if_not_set('vlan_networking')
+@pytest.mark.tier3
+def test_positive_reboot_pxe_host(_module_user, discovery_settings, provisioning_env):
+    """Rebooting a pxe based discovered host
+
+    :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
+
+    :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
+
+    :Steps: PUT /api/v2/discovered_hosts/:id/reboot
+
+    :expectedresults: Selected host should be rebooted successfully
+
+    :CaseAutomation: Automated
+
+    :CaseImportance: Medium
+    """
+    cfg = get_nailgun_config()
+    if _module_user:
+        cfg.auth = (_module_user[0].login, _module_user[1])
+
+    # open a ssh channel and attach it to foreman-tail output
+    ssh_client = ssh.get_client()
+    with ssh_client.invoke_shell() as channel:
+        channel.send('foreman-tail\r')
+
+        with LibvirtGuest() as pxe_host:
+            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+            discovered_host.reboot()
+
+            # assert that server receives DHCP discover from hosts PXELinux
+            # this means that the host got rebooted
+            for pattern in [
+                (
+                    f"DHCPDISCOVER from {pxe_host.mac}",
+                    "DHCPDISCOVER",
+                ),
+                (f"DHCPACK on [0-9.]+ to {pxe_host.mac}", "DHCPACK"),
+            ]:
+                try:
+                    _wait_for_log(channel, pattern[0], timeout=30)
+                except TimedOutError:
+                    # raise assertion error
+                    raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+
+
+@pytest.mark.run_in_one_thread
+@skip_if_not_set('vlan_networking')
+@pytest.mark.tier3
+def test_positive_reboot_all_pxe_hosts(
+    _module_user, discovered_host_cleanup, discovery_settings, provisioning_env
+):
+    """Rebooting all pxe-based discovered hosts
+
+    :id: 69c807f8-5646-4aa6-8b3c-5ecdb69560ed
+
+    :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
+
+    :Steps: PUT /api/v2/discovered_hosts/reboot_all
+
+    :expectedresults: All disdcovered host should be rebooted successfully
+
+    :CaseAutomation: Automated
+
+    :CaseImportance: Medium
+    """
+    cfg = get_nailgun_config()
+    if _module_user:
+        cfg.auth = (_module_user[0].login, _module_user[1])
+
+    # open ssh channels and attach them to foreman-tail output
+    channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
+    channel_1.send('foreman-tail\r')
+    channel_2.send('foreman-tail\r')
+
+    with LibvirtGuest() as pxe_host_1:
+        _assert_discovered_host(pxe_host_1, channel_1, user_config=cfg)
+        with LibvirtGuest() as pxe_host_2:
+            _assert_discovered_host(pxe_host_2, channel_2, user_config=cfg)
+            # reboot_all method leads to general /discovered_hosts/ path, so it doesn't matter
+            # what DiscoveredHost object we execute this on
+            try:
+                entities.DiscoveredHost().reboot_all()
+            except simplejson.errors.JSONDecodeError as e:
+                if is_open('BZ:1893349'):
+                    pass
+                else:
+                    raise e
+            # assert that server receives DHCP discover from hosts PXELinux
+            # this means that the hosts got rebooted
+            for pxe_host in [(pxe_host_1, channel_1), (pxe_host_2, channel_2)]:
+                for pattern in [
+                    (
+                        f"DHCPDISCOVER from {pxe_host[0].mac}",
+                        "DHCPDISCOVER",
+                    ),
+                    (f"DHCPACK on [0-9.]+ to {pxe_host[0].mac}", "DHCPACK"),
+                ]:
+                    try:
+                        _wait_for_log(pxe_host[1], pattern[0], timeout=30)
+                    except TimedOutError:
+                        # raise assertion error
+                        raise AssertionError(
+                            f'Timed out waiting for {pattern[1]} from ' f'{pxe_host[0].mac}'
+                        )
