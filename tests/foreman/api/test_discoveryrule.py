@@ -114,3 +114,59 @@ def test_negative_create_with_invalid_host_limit_and_priority():
         entities.DiscoveryRule(max_count=gen_string('alpha')).create()
     with pytest.raises(HTTPError):
         entities.DiscoveryRule(priority=gen_string('alpha')).create()
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_provision_with_rule_priority():
+    """Create multiple discovery rules with different priority and check
+    rule with highest priority executed first
+
+    :id: b91c4979-f8ce-4f6e-9474-9ccc4c3bc793
+
+    :Setup: Multiple hosts should already be discovered
+
+    :expectedresults: Host with lower count have higher priority and that
+        rule should be executed first
+
+    :CaseAutomation: notautomated
+
+    :CaseImportance: High
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_multi_provision_with_rule_limit():
+    """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
+    provision more than 2 hosts with same rule
+
+    :id: 553c8ebf-d1c1-4ac2-7948-d3664a5b450b
+
+    :Setup: Hosts with two CPUs should already be discovered
+
+    :expectedresults: Rule should only be applied to 2 discovered hosts
+        and the rule should already be skipped for the 3rd one.
+
+    :CaseAutomation: notautomated
+
+    :CaseImportance: High
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_provision_with_updated_discovery_rule():
+    """Update an existing rule and provision a host with it.
+
+    :id: 3fb20f0f-02e9-4158-9744-f583308c4e89
+
+    :Setup: Host should already be discovered
+
+    :expectedresults: User should be able to update the rule and it should
+        be applied on discovered host
+
+    :CaseAutomation: notautomated
+
+    :CaseImportance: High
+    """

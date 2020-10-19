@@ -56,7 +56,8 @@ class LibvirtGuest:
         libvirt_server=None,
         image_dir=None,
         mac=None,
-        bridge=None,
+        network=None,
+        network_type=None,
     ):
         self.cpu = cpu
         self.ram = ram
@@ -77,16 +78,22 @@ class LibvirtGuest:
             self.image_dir = image_dir
         if mac is None:
             self.mac = _gen_mac_for_libvirt()
-        if bridge is None:
-            self.bridge = settings.vlan_networking.bridge
+        if network is None:
+            if settings.vlan_networking.bridge or settings.vlan_networking.network:
+                if settings.vlan_networking.bridge:
+                    self.network_type = 'bridge'
+                    self.network = settings.vlan_networking.bridge
+                else:
+                    self.network_type = 'network'
+                    self.network = settings.vlan_networking.network
         else:
-            self.bridge = bridge
-        if not self.bridge:
+            self.network_type = network_type
+            self.network = network
+        if not self.network:
             raise LibvirtGuestError(
-                'A bridge name must be provided. Make sure to fill '
-                '"bridge" on vlan_networking section of your robottelo '
-                'configuration. Or provide a not None bridge '
-                'argument.'
+                'A network name must be provided. Make sure to fill "bridge" or "network" on '
+                'vlan_networking section of your robottelo configuration.'
+                'Or provide a not None network and network_type arguments.'
             )
         self.boot_iso = boot_iso
         self.extra_nic = extra_nic
@@ -109,7 +116,7 @@ class LibvirtGuest:
         command_args = [
             'virt-install',
             '--hvm',
-            '--network=bridge:{vm_bridge}',
+            '--network={vm_nw_type}:{vm_network}',
             '--mac={vm_mac}',
             '--name={vm_name}',
             '--ram={vm_ram}',
@@ -118,11 +125,13 @@ class LibvirtGuest:
             '--os-variant=rhel7',
             '--disk path={image_name},size=8',
             '--noautoconsole',
+            '--graphics spice,listen=0.0.0.0',
         ]
 
         if not self.boot_iso:
             # Required for PXE-based host discovery
-            command_args.append('--pxe')
+            command_args.append('--boot network')
+
         else:
             # Required for PXE-less host discovery, where we boot the host
             # with bootable discovery ISO
@@ -132,7 +141,7 @@ class LibvirtGuest:
 
         if self.extra_nic:
             nic_mac = _gen_mac_for_libvirt()
-            command_args.append('--network=bridge:{vm_bridge}')
+            command_args.append('--network={vm_nw_type}:{vm_network}')
             command_args.append(f'--mac={nic_mac}')
 
         if self._domain is None:
@@ -145,7 +154,8 @@ class LibvirtGuest:
 
         self.hostname = f'{self.guest_name}.{self._domain}'
         command = ' '.join(command_args).format(
-            vm_bridge=self.bridge,
+            vm_nw_type=self.network_type,
+            vm_network=self.network,
             vm_mac=self.mac,
             vm_name=self.hostname,
             vm_ram=self.ram,
@@ -181,14 +191,17 @@ class LibvirtGuest:
         command_args = [
             'virsh attach-interface',
             '--domain={vm_name}',
-            '--type=bridge',
-            '--source={vm_bridge}',
+            '--type={vm_nw_type}',
+            '--source={vm_network}',
             '--model=virtio',
             '--mac={vm_mac}',
             '--live',
         ]
         command = ' '.join(command_args).format(
-            vm_name=self.hostname, vm_bridge=self.bridge, vm_mac=nic_mac
+            vm_name=self.hostname,
+            vm_nw_type=self.network_type,
+            vm_network=self.network,
+            vm_mac=nic_mac,
         )
 
         result = ssh.command(command, self.libvirt_server)
