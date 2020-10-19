@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 
 from robottelo.helpers import escape_search
+from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import get_host_info
 from robottelo.helpers import get_server_version
 from robottelo.helpers import HostInfoError
@@ -118,3 +119,15 @@ def test_slugify_component():
     assert slugify_component('File-Management', False) == 'file_management'
     assert slugify_component('File&Management') == 'filemanagement'
     assert slugify_component('File and Management') == 'filemanagement'
+
+
+class TestGetAvailableCapsulePort:
+    """Tests for method ``get_available_capsule_port``."""
+
+    @mock.patch('robottelo.helpers.ssh')
+    def test_return_port(self, ssh):
+        """get_available_capsule_port returns a port number.
+        """
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(['""'], 0))
+        port = get_available_capsule_port()
+        assert port, "No available capsule port found."
