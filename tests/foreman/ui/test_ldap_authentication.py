@@ -28,6 +28,9 @@ from pytest import skip
 
 from robottelo import ssh
 from robottelo.api.utils import create_role_permissions
+from robottelo.cli.factory import make_usergroup
+from robottelo.cli.factory import make_usergroup_external
+from robottelo.cli.ldapauthsource import ExternalAuthSource
 from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
@@ -42,10 +45,14 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
+from robottelo.rhsso_utils import create_group
 from robottelo.rhsso_utils import create_new_rhsso_user
+from robottelo.rhsso_utils import delete_rhsso_group
 from robottelo.rhsso_utils import delete_rhsso_user
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
+from robottelo.rhsso_utils import update_rhsso_user
+
 
 pytestmark = [run_in_one_thread]
 
@@ -123,6 +130,25 @@ def external_user_count():
     """return the external auth source user count"""
     users = entities.User().search()
     yield len([user for user in users if user.auth_source_name == 'External'])
+
+
+@fixture()
+def groups_teardown():
+    """teardown for groups created for external/remote groups"""
+    yield
+    # tier down groups
+    for group_name in ('sat_users', 'sat_admins'):
+        user_groups = entities.UserGroup().search(query={'search': f'name="{group_name}"'})
+        if user_groups:
+            user_groups[0].delete()
+
+
+@fixture()
+def rhsso_groups_teardown():
+    """Teardown the rhsso groups"""
+    yield
+    for group_name in ('sat_users', 'sat_admins'):
+        delete_rhsso_group(group_name)
 
 
 def generate_otp(secret):
@@ -1152,6 +1178,131 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
             rhsso_session.rhsso_login.login(login_details)
             rhsso_session.task.read_all()
         assert error.typename == "NavigationTriesExceeded"
+
+
+@destructive
+def test_user_permissions_rhsso_user_after_group_delete(
+    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_loc,
+):
+    """Verify the rhsso user permissions in satellite should get revoked after the
+        termination of rhsso user's external rhsso group
+
+    :id: 782926c0-d109-41a0-af7a-bffd658f59d7
+
+    :CaseImportance: Medium
+
+    :steps:
+        1. create usergroup with admin permissions respectively
+        2. assigned that group to rhsso user
+        3. verify the permission of the rhsso user in Satellite
+        4. delete the rhsso group
+
+    :expectedresults: external rhsso user's permissions should get revoked after external rhsso
+        group deletion.
+
+    """
+    username = settings.rhsso.rhsso_user
+    location_name = gen_string('alpha')
+    login_details = {
+        'username': username,
+        'password': settings.rhsso.password,
+    }
+
+    group_name = gen_string('alpha')
+    create_group(group_name=group_name)
+    update_rhsso_user(username, group_name=group_name)
+
+    # creating satellite external group
+    user_group = make_usergroup({'admin': 1, 'name': group_name})
+    external_auth_source = ExternalAuthSource.info({'name': "External"})
+    make_usergroup_external(
+        {
+            'auth-source-id': external_auth_source['id'],
+            'user-group-id': user_group['id'],
+            'name': group_name,
+        }
+    )
+
+    # verify the rhsso-user permissions
+    with Session(login=False) as rhsso_session:
+        rhsso_session.rhsso_login.login(login_details)
+        rhsso_session.location.create({'name': location_name})
+        assert rhsso_session.location.search(location_name)[0]['Name'] == location_name
+        current_user = rhsso_session.location.read(location_name, 'current_user')['current_user']
+        assert login_details['username'] in current_user
+
+    # delete the rhsso group and verify the rhsso-user permissions
+    delete_rhsso_group(group_name=group_name)
+    with Session(login=False) as rhsso_session:
+        rhsso_session.rhsso_login.login(login_details)
+        with raises(NavigationTriesExceeded) as error:
+            rhsso_session.location.create({'name': location_name})
+        assert error.typename == "NavigationTriesExceeded"
+
+
+@destructive
+def test_user_permissions_rhsso_user_multiple_group(
+    enable_external_auth_rhsso,
+    rhsso_setting_setup,
+    session,
+    module_org,
+    module_loc,
+    groups_teardown,
+    rhsso_groups_teardown,
+):
+    """Verify the permissions of the rhsso user, if it exists in multiple groups (admin/non-admin).
+        The rhsso user should contain the highest level of permissions from among the
+        multiple groups. In this case, it should contain the admin permissions.
+
+    :id: 311a2180-d5ea-4bbb-a147-25697fdebac7
+
+    :CaseImportance: Medium
+
+    :steps:
+        1. create sat_users and sat_admins usergroups with non-admin and admin
+            permissions respectively
+        2. assigned these groups to rhsso user
+        3. verify the permission of the rhsso user in Satellite
+
+    :expectedresults: external rhsso user have highest level of permissions from among the
+        multiple groups.
+    """
+    username = settings.rhsso.rhsso_user
+    location_name = gen_string('alpha')
+    login_details = {
+        'username': username,
+        'password': settings.rhsso.password,
+    }
+    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+
+    group_names = ['sat_users', 'sat_admins']
+    arguments = [{'role': katello_role}, {'admin': 1}]
+    external_auth_source = ExternalAuthSource.info({'name': "External"})
+    for group_name, argument in zip(group_names, arguments):
+        # adding/creating rhsso groups
+        create_group(group_name=group_name)
+        update_rhsso_user(username, group_name=group_name)
+        argument['name'] = group_name
+
+        # creating satellite external groups
+        user_group = make_usergroup(argument)
+        make_usergroup_external(
+            {
+                'auth-source-id': external_auth_source['id'],
+                'user-group-id': user_group['id'],
+                'name': group_name,
+            }
+        )
+
+    # verify that user has highest level of permission
+    with Session(login=False) as rhsso_session:
+        rhsso_session.rhsso_login.login(login_details)
+        rhsso_session.location.create({'name': location_name})
+        assert rhsso_session.location.search(location_name)[0]['Name'] == location_name
+        current_user = rhsso_session.location.read(location_name, 'current_user')['current_user']
+        assert login_details['username'] in current_user
 
 
 @tier2

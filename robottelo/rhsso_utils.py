@@ -10,8 +10,10 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import KEY_CLOAK_CLI
+from robottelo.constants import RHSSO_NEW_GROUP
 from robottelo.constants import RHSSO_NEW_USER
 from robottelo.constants import RHSSO_RESET_PASSWORD
+from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
 
 satellite = settings.server.hostname
@@ -74,6 +76,16 @@ def get_rhsso_user_details(username):
     return result_json[0]
 
 
+def get_rhsso_groups_details(group_name):
+    """Getter method to receive the group id"""
+    result = run_command(
+        cmd=f"{KEY_CLOAK_CLI} get groups -r {realm} -q group_name={group_name}",
+        hostname=rhsso_host,
+    )
+    result_json = json.loads("[{{{0}".format("".join(result)))
+    return result_json[0]
+
+
 def upload_rhsso_entity(json_content, entity_name):
     """Helper method upload the entity json request as file on RHSSO Server"""
     with open(entity_name, "w") as file:
@@ -114,11 +126,46 @@ def create_new_rhsso_user(client_id, username=None):
     return RHSSO_NEW_USER
 
 
+def update_rhsso_user(username, group_name=None):
+    user_details = get_rhsso_user_details(username)
+    RHSSO_USER_UPDATE["realm"] = f"{realm}"
+    RHSSO_USER_UPDATE["userId"] = f"{user_details['id']}"
+    if group_name:
+        group_details = get_rhsso_groups_details(group_name=group_name)
+        RHSSO_USER_UPDATE["groupId"] = f"{group_details['id']}"
+        upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
+        group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
+        run_command(
+            cmd=f"{KEY_CLOAK_CLI} update -r {realm} {group_path} -f update_user",
+            hostname=rhsso_host,
+        )
+
+
 def delete_rhsso_user(username):
     """Delete the RHSSO user"""
     user_details = get_rhsso_user_details(username)
     run_command(
         cmd=f"{KEY_CLOAK_CLI} delete -r {realm} users/{user_details['id']}", hostname=rhsso_host,
+    )
+
+
+def create_group(group_name=None):
+    """Create the RHSSO group"""
+    if not group_name:
+        group_name = gen_string('alphanumeric')
+    RHSSO_NEW_GROUP['name'] = group_name
+    upload_rhsso_entity(RHSSO_NEW_GROUP, "create_group")
+    result = run_command(
+        cmd=f"{KEY_CLOAK_CLI} create groups -r {realm} -f create_group", hostname=rhsso_host,
+    )
+    return result
+
+
+def delete_rhsso_group(group_name):
+    """Delete the RHSSO group"""
+    group_details = get_rhsso_groups_details(group_name)
+    run_command(
+        cmd=f"{KEY_CLOAK_CLI} delete -r {realm} groups/{group_details['id']}", hostname=rhsso_host,
     )
 
 
