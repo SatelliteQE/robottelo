@@ -1028,6 +1028,26 @@ class HostUpdateTestCase(CLITestCase):
         self.host = Host.info({'id': self.host['id']})
         self.assertNotEqual(self.host['operating-system']['operating-system'], new_os['title'])
 
+    @tier2
+    @run_in_one_thread
+    def test_hammer_host_info_output(self):
+        """Verify re-add of 'owner-id' in `hammer host info` output
+
+        :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
+
+        :Steps:
+            1. Update the host with any owner
+            2. Get host info by running `hammer host info`
+
+        :expectedresults: 'owner-id' should be in `hammer host info` output
+
+        :BZ: 1779093
+        """
+        result_list = User.list()
+        Host.update({'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'})
+        result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
+        assert result_list[0]['id'] == result_info['additional-info']['owner-id']
+
 
 class HostParameterTestCase(CLITestCase):
     """Tests targeting host parameters"""
