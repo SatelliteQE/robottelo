@@ -32,6 +32,7 @@ from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from robottelo.utils.issue_handlers import is_open
 
+
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 
 
