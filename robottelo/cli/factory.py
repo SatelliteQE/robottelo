@@ -1420,6 +1420,7 @@ def make_hostgroup(options=None):
         'query-organization-label': None,
         'realm': None,
         'realm-id': None,
+        'root-password': None,
         'subnet': None,
         'subnet-id': None,
     }
@@ -2153,6 +2154,7 @@ def configure_env_for_provision(org=None, loc=None):
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
             'operatingsystem-id': os['id'],
+            'root-password': gen_string('alphanumeric'),
             'content-source-id': puppet_proxy['id'],
         }
     )
