@@ -328,8 +328,8 @@ def add_remote_execution_ssh_key(hostname, key_path=None, proxy_hostname=None, *
 
 def get_available_capsule_port(port_pool=None):
     """returns a list of unused ports dedicated for fake capsules
-    This calls a fuser command on the server prompting for a port range. fuser
-    commands returns a list of ports which have a PID assigned (a list of ports
+    This calls an ss command on the server prompting for a port range. ss
+    returns a list of ports which have a PID assigned (a list of ports
     which are already used). This function then substracts unavailable ports
     from the other ones and returns one of available ones randomly.
 
@@ -350,21 +350,22 @@ def get_available_capsule_port(port_pool=None):
                 f'got {type(port_pool_range)} instead'
             )
     # returns a list of strings
-    fuser_cmd = ssh.command(
-        f'fuser -n tcp {{{port_pool[0]}..{port_pool[1]}}} 2>&1 | awk -F/ \'{{print$1}}\''
+    ss_cmd = ssh.command(
+        f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
+        " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
     )
-    if fuser_cmd.stderr:
+    if ss_cmd.stderr:
         raise CapsuleTunnelError(
-            f'Failed to create ssh tunnel: Error getting port status: {fuser_cmd.stderr}'
+            f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
         )
     # converts a List of strings to a List of integers
     try:
-        print(fuser_cmd)
-        used_ports = map(int, [val for val in fuser_cmd.stdout[:-1] if val != 'Cannot stat file '])
+        print(ss_cmd)
+        used_ports = map(int, [val for val in ss_cmd.stdout[:-1] if val != 'Cannot stat file '])
 
     except ValueError:
         raise CapsuleTunnelError(
-            f'Failed parsing the port numbers from stdout: {fuser_cmd.stdout[:-1]}'
+            f'Failed parsing the port numbers from stdout: {ss_cmd.stdout[:-1]}'
         )
     try:
         # take the list of available ports and return randomly selected one

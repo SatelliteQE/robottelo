@@ -75,7 +75,7 @@ class CapsuleTestCase(CLITestCase):
 
         :BZ: 1398695
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 proxy = self._make_proxy({'name': name})
                 self.assertEquals(proxy['name'], name)
@@ -93,7 +93,7 @@ class CapsuleTestCase(CLITestCase):
 
         :BZ: 1398695
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 proxy = make_proxy({'name': name})
                 Proxy.delete({'id': proxy['id']})
@@ -114,7 +114,7 @@ class CapsuleTestCase(CLITestCase):
         :BZ: 1398695
         """
         proxy = self._make_proxy({'name': gen_alphanumeric()})
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
                 with default_url_on_new_port(9090, newport) as url:
