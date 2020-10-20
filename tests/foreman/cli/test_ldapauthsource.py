@@ -68,6 +68,8 @@ class TestADAuthSource:
         :expectedresults: Whether creating/upating/deleting LDAP Auth with AD is successful.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {
@@ -146,6 +148,8 @@ class TestIPAAuthSource:
         :expectedresults: Whether creating/updating/deleting LDAP Auth with FreeIPA is successful.
 
         :CaseImportance: High
+
+        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {

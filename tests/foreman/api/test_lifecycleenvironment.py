@@ -55,6 +55,8 @@ def test_positive_create_with_name(name):
     :expectedresults: Lifecycle environment is created and has proper name
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     assert entities.LifecycleEnvironment(name=name).create().name == name
 
@@ -70,6 +72,8 @@ def test_positive_create_with_description(desc):
         description
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     assert entities.LifecycleEnvironment(description=desc).create().description == desc
 
@@ -100,6 +104,8 @@ def test_negative_create_with_invalid_name(name):
     :expectedresults: Lifecycle environment is not created
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         entities.LifecycleEnvironment(name=name).create()
@@ -115,6 +121,7 @@ def test_positive_update_name(module_lce, new_name):
 
     :expectedresults: Lifecycle environment is created and updated properly
 
+    :parametrized: yes
     """
     module_lce.name = new_name
     module_lce.update(['name'])
@@ -135,6 +142,8 @@ def test_positive_update_description(module_lce, new_desc):
     :CaseLevel: Integration
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     module_lce.description = new_desc
     module_lce.update(['description'])
@@ -153,6 +162,8 @@ def test_negative_update_name(module_lce, new_name):
         corresponding error is raised
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         module_lce.name = new_name
@@ -172,6 +183,8 @@ def test_positive_delete(lce, name):
     :expectedresults: Lifecycle environment is deleted successfully
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     lce.delete()
     with pytest.raises(HTTPError):
@@ -195,6 +208,8 @@ def test_positive_search_in_org(name):
         created are in the search results.
 
     :CaseLevel: Integration
+
+    :parametrized: yes
     """
     new_org = entities.Organization().create()
     lc_env = entities.LifecycleEnvironment(organization=new_org).create()
