@@ -4,7 +4,7 @@ from nailgun import entities
 
 
 @pytest.fixture(scope='module')
-def module_viewer_user(module_org, default_location):
+def default_viewer_role(module_org, default_location):
     """Custom user with viewer role for tests validating visibility of entities or fields created
     by some other user. Created only when accessed, unlike `module_user`.
     """

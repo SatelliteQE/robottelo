@@ -5,10 +5,7 @@ from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
-<<<<<<< HEAD
 from robottelo.api.utils import publish_puppet_module
-=======
->>>>>>> Add ansible, oscap, smartproxy and user component fixtures
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
@@ -434,7 +431,6 @@ def default_contentview(module_org):
     )
 
 
-<<<<<<< HEAD
 @skip_if(not settings.repos_hosting_url)
 @pytest.fixture(scope='module')
 def module_cv_with_puppet_module(module_org):
@@ -448,13 +444,10 @@ def module_cv_with_puppet_module(module_org):
     )
 
 
-=======
->>>>>>> Add ansible, oscap, smartproxy and user component fixtures
 @pytest.fixture(scope='session')
 def default_pxetemplate():
     pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
     return pxe_template[0].read()
-<<<<<<< HEAD
 
 
 @pytest.fixture(scope='module')
@@ -504,5 +497,3 @@ def module_puppet_classes(module_env_search):
 @pytest.fixture(scope="function")
 def function_role():
     return entities.Role().create()
-=======
->>>>>>> Add ansible, oscap, smartproxy and user component fixtures

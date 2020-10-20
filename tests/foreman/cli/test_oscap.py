@@ -93,7 +93,7 @@ class TestOpenScap:
 
     @tier1
     def test_negative_list_default_content_with_viewer_role(
-        self, scap_content, module_viewer_user
+        self, scap_content, default_viewer_role
     ):
         """List the default scap content by user with viewer role
 
@@ -117,11 +117,11 @@ class TestOpenScap:
         :CaseImportance: Critical
         """
         result = Scapcontent.with_user(
-            module_viewer_user.login, module_viewer_user.password
+            default_viewer_role.login, default_viewer_role.password
         ).list()
         assert len(result) == 0
         with pytest.raises(CLIReturnCodeError):
-            Scapcontent.with_user(module_viewer_user.login, module_viewer_user.password).info(
+            Scapcontent.with_user(default_viewer_role.login, default_viewer_role.password).info(
                 {'title': scap_content['title']}
             )
 
