@@ -1,5 +1,4 @@
 """Test class for GPG Key CLI
-"""Test class for GPG Key CLI.
 The gpg sub-command was deprecated in favour of content-credential in
 Satellite 6.8
 
@@ -77,7 +76,7 @@ class TestGPGKey(CLITestCase):
     # Bug verification
 
     @pytest.mark.tier1
-    def test_verify_redmine_4272(self):
+    def test_verify_gpg_key_content_displayed(self):
         """gpg info should display key content
 
         :id: 2c6176ca-34dd-4d52-930d-6e79da6b0c15
