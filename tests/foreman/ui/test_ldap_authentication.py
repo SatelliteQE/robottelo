@@ -121,7 +121,7 @@ def generate_otp(secret):
 
 
 @tier2
-def test_positive_end_to_end_ad(session, ldap_tear_down, ldap_data):
+def test_positive_end_to_end_ad(session, ldap_tear_down, ad_data):
     """Perform end to end testing for LDAP authentication component with AD
 
     :id: a6528239-e090-4379-a850-3900ee625b24
@@ -138,12 +138,12 @@ def test_positive_end_to_end_ad(session, ldap_tear_down, ldap_data):
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.host': ad_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-                'account.account_name': ldap_data['ldap_user_name'],
-                'account.password': ldap_data['ldap_user_passwd'],
-                'account.base_dn': ldap_data['base_dn'],
-                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'account.account_name': ad_data['ldap_user_name'],
+                'account.password': ad_data['ldap_user_passwd'],
+                'account.base_dn': ad_data['base_dn'],
+                'account.groups_base_dn': ad_data['group_base_dn'],
                 'attribute_mappings.login': LDAP_ATTR['login_ad'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
@@ -159,7 +159,7 @@ def test_positive_end_to_end_ad(session, ldap_tear_down, ldap_data):
 
 @tier2
 @upgrade
-def test_positive_create_with_ad_org_and_loc(session, ldap_tear_down, ldap_data):
+def test_positive_create_with_ad_org_and_loc(session, ldap_tear_down, ad_data):
     """Create LDAP auth_source for AD with org and loc assigned.
 
     :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
@@ -179,12 +179,12 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_tear_down, ldap_data)
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.host': ad_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-                'account.account_name': ldap_data['ldap_user_name'],
-                'account.password': ldap_data['ldap_user_passwd'],
-                'account.base_dn': ldap_data['base_dn'],
-                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'account.account_name': ad_data['ldap_user_name'],
+                'account.password': ad_data['ldap_user_passwd'],
+                'account.base_dn': ad_data['base_dn'],
+                'account.groups_base_dn': ad_data['group_base_dn'],
                 'attribute_mappings.login': LDAP_ATTR['login_ad'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
@@ -198,12 +198,12 @@ def test_positive_create_with_ad_org_and_loc(session, ldap_tear_down, ldap_data)
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
+        assert ldap_source['ldap_server']['host'] == ad_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
         assert ldap_source['ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ad']
-        assert ldap_source['account']['account_name'] == ldap_data['ldap_user_name']
-        assert ldap_source['account']['base_dn'] == ldap_data['base_dn']
-        assert ldap_source['account']['groups_base_dn'] == ldap_data['group_base_dn']
+        assert ldap_source['account']['account_name'] == ad_data['ldap_user_name']
+        assert ldap_source['account']['base_dn'] == ad_data['base_dn']
+        assert ldap_source['account']['groups_base_dn'] == ad_data['group_base_dn']
         assert not ldap_source['account']['onthefly_register']
         assert ldap_source['account']['usergroup_sync']
         assert ldap_source['attribute_mappings']['login'] == LDAP_ATTR['login_ad']
@@ -234,12 +234,12 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_tear_down, ipa_data)
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_user_name'],
-                'account.password': ipa_data['ldap_ipa_user_passwd'],
-                'account.base_dn': ipa_data['ipa_base_dn'],
-                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.password': ipa_data['ldap_user_passwd'],
+                'account.base_dn': ipa_data['base_dn'],
+                'account.groups_base_dn': ipa_data['group_base_dn'],
                 'attribute_mappings.login': LDAP_ATTR['login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
@@ -253,12 +253,12 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_tear_down, ipa_data)
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
+        assert ldap_source['ldap_server']['host'] == ipa_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
         assert ldap_source['ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ipa']
-        assert ldap_source['account']['account_name'] == ipa_data['ldap_ipa_user_name']
-        assert ldap_source['account']['base_dn'] == ipa_data['ipa_base_dn']
-        assert ldap_source['account']['groups_base_dn'] == ipa_data['ipa_group_base_dn']
+        assert ldap_source['account']['account_name'] == ipa_data['ldap_ipa_cn']
+        assert ldap_source['account']['base_dn'] == ipa_data['base_dn']
+        assert ldap_source['account']['groups_base_dn'] == ipa_data['group_base_dn']
         assert not ldap_source['account']['onthefly_register']
         assert ldap_source['account']['usergroup_sync']
         assert ldap_source['attribute_mappings']['login'] == LDAP_ATTR['login']
@@ -293,13 +293,13 @@ def test_positive_create_with_idm_https(session, test_name, ldap_tear_down, ipa_
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_user_name'],
-                'account.password': ipa_data['ldap_ipa_user_passwd'],
-                'account.base_dn': ipa_data['ipa_base_dn'],
-                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.password': ipa_data['ldap_user_passwd'],
+                'account.base_dn': ipa_data['base_dn'],
+                'account.groups_base_dn': ipa_data['group_base_dn'],
                 'account.onthefly_register': True,
                 'attribute_mappings.login': LDAP_ATTR['login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
@@ -314,18 +314,18 @@ def test_positive_create_with_idm_https(session, test_name, ldap_tear_down, ipa_
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ipa_data['ldap_ipa_hostname']
+        assert ldap_source['ldap_server']['host'] == ipa_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
     username = settings.ipa.user_ipa
     full_name = '{} katello'.format(settings.ipa.user_ipa)
-    with Session(test_name, username, ipa_data['ldap_ipa_user_passwd']) as ldapsession:
+    with Session(test_name, username, ipa_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
         assert ldapsession.task.read_all()['current_user'] == full_name
 
 
 @destructive
-def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ldap_data):
+def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ad_data):
     """Create LDAP auth_source for AD with HTTPS.
 
     :id: 739a82a2-2b01-11ea-93ea-398446a2b98f
@@ -349,13 +349,13 @@ def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ldap_
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.host': ad_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-                'account.account_name': ldap_data['ldap_user_name'],
-                'account.password': ldap_data['ldap_user_passwd'],
-                'account.base_dn': ldap_data['base_dn'],
-                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'account.account_name': ad_data['ldap_user_name'],
+                'account.password': ad_data['ldap_user_passwd'],
+                'account.base_dn': ad_data['base_dn'],
+                'account.groups_base_dn': ad_data['group_base_dn'],
                 'account.onthefly_register': True,
                 'attribute_mappings.login': LDAP_ATTR['login_ad'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
@@ -370,9 +370,9 @@ def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ldap_
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
+        assert ldap_source['ldap_server']['host'] == ad_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-    with Session(test_name, settings.ldap.username, ldap_data['ldap_user_passwd']) as ldapsession:
+    with Session(test_name, settings.ldap.username, ad_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
         assert ldapsession.task.read_all()['current_user'] == settings.ldap.username
@@ -380,7 +380,7 @@ def test_positive_create_with_ad_https(session, test_name, ldap_tear_down, ldap_
 
 @tier2
 def test_positive_add_katello_role(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ad_data
 ):
     """Associate katello roles to User Group.
     [belonging to external AD User Group.]
@@ -412,19 +412,19 @@ def test_positive_add_katello_role(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         with raises(NavigationTriesExceeded):
             session.architecture.search('')
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+        assert current_user == ad_data['ldap_user_name']
 
 
 @upgrade
 @tier2
 def test_positive_update_external_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ad_data
 ):
     """Added AD UserGroup roles get pushed down to user
 
@@ -464,29 +464,29 @@ def test_positive_update_external_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+            test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+            assert current_user == ad_data['ldap_user_name']
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]}
         )
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+        assert current_user == ad_data['ldap_user_name']
 
 
 @tier2
 @upgrade
 def test_positive_delete_external_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ad_data
 ):
     """Deleted AD UserGroup roles get pushed down to user
 
@@ -522,27 +522,25 @@ def test_positive_delete_external_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+            test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+            assert current_user == ad_data['ldap_user_name']
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]}
         )
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
 @tier2
 def test_positive_update_external_user_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ad_data
 ):
     """Assure that user has roles/can access feature areas for
     additional roles assigned outside any roles assigned by his group
@@ -586,27 +584,27 @@ def test_positive_update_external_user_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+            test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ldap_data['ldap_user_name']
+            assert current_user == ad_data['ldap_user_name']
         session.user.update(
-            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
+            ad_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
         )
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         with raises(NavigationTriesExceeded):
             ldapsession.architecture.search('')
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ldap_data['ldap_user_name']
+        assert current_user == ad_data['ldap_user_name']
 
 
 @tier2
 def test_positive_add_admin_role_with_org_loc(
-    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ad_data
 ):
     """Associate Admin role to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -638,11 +636,11 @@ def test_positive_add_admin_role_with_org_loc(
             }
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
-        assert location['current_user'] == ldap_data['ldap_user_name']
+        assert location['current_user'] == ad_data['ldap_user_name']
         assert location['primary']['name'] == location_name
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
@@ -660,7 +658,7 @@ def test_positive_add_foreman_role_with_org_loc(
     module_org,
     module_loc,
     ldap_tear_down,
-    ldap_data,
+    ad_data,
 ):
     """Associate foreman roles to User Group with org and loc set.
     [belonging to external AD User Group.]
@@ -701,7 +699,7 @@ def test_positive_add_foreman_role_with_org_loc(
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
-            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+            test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
@@ -715,7 +713,7 @@ def test_positive_add_foreman_role_with_org_loc(
 
 @tier2
 def test_positive_add_katello_role_with_org(
-    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_usergroup_name, module_org, ldap_tear_down, ad_data
 ):
     """Associate katello roles to User Group with org set.
     [belonging to external AD User Group.]
@@ -755,7 +753,7 @@ def test_positive_add_katello_role_with_org(
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
-            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
+            test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             with raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
@@ -791,7 +789,7 @@ def test_positive_create_user_in_ldap_mode(session, auth_source, ldap_tear_down)
 
 
 @tier2
-def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down, ldap_data):
+def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down, ad_data):
     """Login with LDAP Auth- AD for user with no roles/rights
 
     :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
@@ -803,18 +801,16 @@ def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down,
     :expectedresults: Log in to foreman UI successfully but cannot access
         functional areas of UI
     """
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.user.search('')
-        assert ldapsession.task.read_all()['current_user'] == ldap_data['ldap_user_name']
+        assert ldapsession.task.read_all()['current_user'] == ad_data['ldap_user_name']
 
 
 @tier2
 @upgrade
 def test_positive_login_ad_user_basic_roles(
-    test_name, session, auth_source, ldap_tear_down, ldap_data
+    test_name, session, auth_source, ldap_tear_down, ad_data
 ):
     """Login with LDAP - AD for user with roles/rights
 
@@ -831,16 +827,12 @@ def test_positive_login_ad_user_basic_roles(
     role = entities.Role().create()
     permissions = {'Architecture': PERMISSIONS['Architecture']}
     create_role_permissions(role, permissions)
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
     with session:
-        session.user.update(ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
-    with Session(
-        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
-    ) as ldapsession:
+        session.user.update(ad_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
+    with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
         ldapsession.architecture.create({'name': name})
         assert ldapsession.architecture.search(name)[0]['Name'] == name
 
@@ -860,7 +852,7 @@ def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_
 
     """
     password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'], generate_otp(ipa_data['time_based_secret'])
+        ipa_data['ldap_user_passwd'], generate_otp(ipa_data['time_based_secret'])
     )
     with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
         with raises(NavigationTriesExceeded):
@@ -889,7 +881,7 @@ def test_negative_login_user_with_invalid_password_otp(
 
     """
     password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_ipa_user_passwd'], gen_string(str_type='numeric', length=6)
+        ipa_data['ldap_user_passwd'], gen_string(str_type='numeric', length=6)
     )
     with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
         with raises(NavigationTriesExceeded) as error:
@@ -1144,7 +1136,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
 
 
 @tier2
-def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
+def test_positive_test_connection_functionality(session, ad_data, ipa_data):
     """Verify for a positive test connection response
 
     :id: 5daf3976-9b5c-11ea-96f8-4ceb42ab8dbc
@@ -1154,7 +1146,7 @@ def test_positive_test_connection_functionality(session, ldap_data, ipa_data):
     :expectedresults: Positive test connection of AD and IPA
     """
     with session:
-        for ldap_host in (ldap_data['ldap_hostname'], ipa_data['ldap_ipa_hostname']):
+        for ldap_host in (ad_data['ldap_hostname'], ipa_data['ldap_hostname']):
             session.ldapauthentication.test_connection({'ldap_server.host': ldap_host})
 
 
@@ -1189,7 +1181,7 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
     :expectedresults: Login fails
     """
     with Session(
-        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
+        user=ipa_data['disabled_user_ipa'], password=ipa_data['ldap_user_passwd']
     ) as ldapsession:
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -1220,9 +1212,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
         if 'Email' in line:
             _, result = line.split(': ', 2)
             break
-    with Session(
-        user=ipa_data['user_ipa'], password=ipa_data['ldap_ipa_user_passwd']
-    ) as ldapsession:
+    with Session(user=ipa_data['user_ipa'], password=ipa_data['ldap_user_passwd']) as ldapsession:
         ldapsession.task.read_all()
     with session:
         user_value = session.user.read(ipa_data['user_ipa'])
@@ -1292,12 +1282,12 @@ def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ipa_data['ldap_ipa_hostname'],
+                'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_user_name'],
-                'account.password': ipa_data['ldap_ipa_user_passwd'],
-                'account.base_dn': ipa_data['ipa_base_dn'],
-                'account.groups_base_dn': ipa_data['ipa_group_base_dn'],
+                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.password': ipa_data['ldap_user_passwd'],
+                'account.base_dn': ipa_data['base_dn'],
+                'account.groups_base_dn': ipa_data['group_base_dn'],
                 'account.onthefly_register': False,
                 'attribute_mappings.login': LDAP_ATTR['login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
@@ -1353,7 +1343,7 @@ def test_timeout_and_cac_card_ejection():
 
 @tier2
 @pytest.mark.skip_if_open("BZ:1670397")
-def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_down):
+def test_verify_attribute_of_users_are_updated(session, ad_data, ldap_tear_down):
     """Verify if attributes of LDAP user are updated upon first login when
     onthefly is disabled
 
@@ -1374,13 +1364,13 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.host': ad_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ad'],
-                'account.account_name': ldap_data['ldap_user_name'],
-                'account.password': ldap_data['ldap_user_passwd'],
-                'account.base_dn': ldap_data['base_dn'],
+                'account.account_name': ad_data['ldap_user_name'],
+                'account.password': ad_data['ldap_user_passwd'],
+                'account.base_dn': ad_data['base_dn'],
                 'account.onthefly_register': False,
-                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'account.groups_base_dn': ad_data['group_base_dn'],
                 'attribute_mappings.login': LDAP_ATTR['login_ad'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
@@ -1389,35 +1379,29 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         )
         session.user.create(
             {
-                'user.login': ldap_data['ldap_user_name'],
+                'user.login': ad_data['ldap_user_name'],
                 'user.auth': auth_source_name,
                 'roles.admin': True,
             }
         )
     with Session(
-        user=ldap_data['ldap_user_name'], password=ldap_data['ldap_user_passwd']
+        user=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
     ) as ldapsession:
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
     with session:
-        user_values = session.user.read(ldap_data['ldap_user_name'])
-        assert ldap_data['ldap_user_name'] == user_values['user']['login']
-        assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
-        assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
-        assert ldap_data['ldap_user_name'] in user_values['user']['mail']
+        user_values = session.user.read(ad_data['ldap_user_name'])
+        assert ad_data['ldap_user_name'] == user_values['user']['login']
+        assert ad_data['ldap_user_name'] in user_values['user']['firstname']
+        assert ad_data['ldap_user_name'] in user_values['user']['lastname']
+        assert ad_data['ldap_user_name'] in user_values['user']['mail']
 
 
-@pytest.mark.parametrize(
-    "auth, username, password",
-    [
-        (pytest.lazy_fixture('auth_source_ipa'), settings.ipa.user_ipa, settings.ipa.password_ipa),
-        (pytest.lazy_fixture('auth_source'), settings.ldap.username, settings.ldap.password),
-    ],
-)
+@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
 @tier2
-def test_login_failure_if_internal_user_exist_IPA_AD(
-    session, test_name, auth, username, password, ldap_tear_down, module_org, module_loc
+def test_login_failure_if_internal_user_exist_ipa_ad(
+    session, test_name, ldap_auth_source, module_org, module_loc
 ):
     """Verify the failure of login for the AD/IPA user in case same username
     internal user exists
@@ -1425,6 +1409,8 @@ def test_login_failure_if_internal_user_exist_IPA_AD(
     :id: 04ad146e-c2b5-4ec6-980e-327ad4350826
 
     :CaseImportance: High
+
+    :parametrized: yes
 
     :steps:
         1. create an internal user with the same username as user existing in AD/IPA
@@ -1434,7 +1420,7 @@ def test_login_failure_if_internal_user_exist_IPA_AD(
         same username as internal
     """
     try:
-        internal_username = username
+        internal_username = ldap_auth_source['ldap_user_name']
         internal_password = gen_string('alphanumeric')
         user = entities.User(
             admin=True,
@@ -1443,7 +1429,9 @@ def test_login_failure_if_internal_user_exist_IPA_AD(
             login=internal_username,
             password=internal_password,
         ).create()
-        with Session(test_name, internal_username, password) as ldapsession:
+        with Session(
+            test_name, internal_username, ldap_auth_source['ldap_user_passwd']
+        ) as ldapsession:
             with raises(NavigationTriesExceeded) as error:
                 ldapsession.user.search('')
             assert error.typename == "NavigationTriesExceeded"
