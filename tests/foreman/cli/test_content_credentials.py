@@ -80,8 +80,8 @@ class TestGPGKey(CLITestCase):
     # Bug verification
 
     @tier1
-    def test_verify_redmine_4272(self):
-        """content-credentials info should display key content
+    def test_verify_gpg_key_content_displayed(self):
+        """content-credential info should display key content
 
         :id: 0ee87ee0-8bf1-4d15-b5f9-0ac364e61155
 
