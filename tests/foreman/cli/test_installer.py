@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Tests for Installer
 
 :Requirement: Installer
@@ -63,7 +62,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_installer_check_progress_meter(self):
-        """ Assure progress indicator/meter "works"
+        """Assure progress indicator/meter "works"
 
         :id: c654be1b-d018-4eb4-9867-6ecbb0a8ae5a
 
@@ -75,7 +74,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_server_installer_from_iso(self):
-        """ Can install product from ISO
+        """Can install product from ISO
 
         :id: 38c08646-9f71-48d9-a9c2-66bd94c3e5bb
 
@@ -86,7 +85,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_server_installer_from_repository(self):
-        """ Can install main satellite instance successfully via RPM
+        """Can install main satellite instance successfully via RPM
 
         :id: 4dac99c3-6334-43df-adc4-c26e19f762ce
 
@@ -97,7 +96,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_capsule_installer_from_repository(self):
-        """ Can install capsule successfully via RPM
+        """Can install capsule successfully via RPM
 
         :id: 07b0aaa3-651a-4103-904d-c8bcc632a3d1
 
@@ -108,7 +107,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_disconnected_util_installer(self):
-        """ Can install  satellite disconnected utility successfully
+        """Can install  satellite disconnected utility successfully
         via RPM
 
         :id: b738cf2a-9c5f-4865-b134-102a4688534c
@@ -133,7 +132,7 @@ class InstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_installer_clear_data(self):
-        """ User can run installer to clear existing data
+        """User can run installer to clear existing data
 
         :id: 11ed1ed5-7f72-4310-80df-5cac6547b01a
 

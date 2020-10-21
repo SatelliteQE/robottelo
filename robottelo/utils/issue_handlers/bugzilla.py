@@ -107,9 +107,9 @@ def extract_min_version(bz):
 def try_from_cache(issue, data=None):
     """Try to fetch issue from given data cache or previous loaded on pytest.
 
-   Arguments:
-        issue {str} -- The BZ reference e.g: BZ:123456
-        data {dict} -- Issue data indexed by <handler>:<number> or None
+    Arguments:
+         issue {str} -- The BZ reference e.g: BZ:123456
+         data {dict} -- Issue data indexed by <handler>:<number> or None
     """
     try:
         # issue must be passed in `data` argument or already fetched in pytest

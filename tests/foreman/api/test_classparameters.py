@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Smart/Puppet Class Parameter
 
 :Requirement: Classparameters
@@ -45,7 +44,7 @@ def valid_sc_parameters_data():
         {'sc_type': 'real', 'value': -123.0},
         {
             'sc_type': 'array',
-            'value': "['{0}', '{1}', '{2}']".format(
+            'value': "['{}', '{}', '{}']".format(
                 gen_string('alpha'), gen_integer(), gen_boolean()
             ),
         },
@@ -84,37 +83,35 @@ class SmartClassParametersTestCase(APITestCase):
         Read all available smart class parameters for imported puppet class to
         be able to work with unique entity for each specific test.
         """
-        super(SmartClassParametersTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
         cls.org = entities.Organization().create()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = (
-            entities.Environment()
-            .search(query={'search': 'content_view="{0}"'.format(cv.name)})[0]
-            .read()
+            entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
         )
         cls.puppet_class = entities.PuppetClass().search(
             query={
-                'search': 'name = "{0}" and environment = "{1}"'.format(
+                'search': 'name = "{}" and environment = "{}"'.format(
                     cls.puppet_modules[0]['name'], cls.env.name
                 )
             }
         )[0]
         cls.sc_params_list = entities.SmartClassParameters().search(
-            query={'search': 'puppetclass="{0}"'.format(cls.puppet_class.name), 'per_page': 1000}
+            query={'search': f'puppetclass="{cls.puppet_class.name}"', 'per_page': 1000}
         )
 
     @classmethod
     def tearDownClass(cls):
         """Removes puppet class."""
-        super(SmartClassParametersTestCase, cls).tearDownClass()
+        super().tearDownClass()
         delete_puppet_class(cls.puppet_class.name)
 
     def setUp(self):
         """Checks that there is at least one not overridden
         smart class parameter before executing test.
         """
-        super(SmartClassParametersTestCase, self).setUp()
+        super().setUp()
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please update puppet module.")
 
@@ -493,7 +490,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
         sc_param.parameter_type = 'array'
-        sc_param.default_value = "[{0}, {1}]".format(gen_string('alpha'), gen_string('alpha'))
+        sc_param.default_value = "[{}, {}]".format(gen_string('alpha'), gen_string('alpha'))
         sc_param.merge_overrides = True
         sc_param.merge_default = True
         sc_param.update(
@@ -556,7 +553,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
         sc_param.parameter_type = 'array'
-        sc_param.default_value = "[{0}, {1}]".format(gen_string('alpha'), gen_string('alpha'))
+        sc_param.default_value = "[{}, {}]".format(gen_string('alpha'), gen_string('alpha'))
         sc_param.merge_overrides = True
         sc_param.avoid_duplicates = True
         sc_param.update(
@@ -621,7 +618,7 @@ class SmartClassParametersTestCase(APITestCase):
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')
-        match = 'hostgroup={0}'.format(hostgroup_name)
+        match = f'hostgroup={hostgroup_name}'
         match_value = gen_string('alpha')
         hostgroup = entities.HostGroup(name=hostgroup_name, environment=self.env).create()
         hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})

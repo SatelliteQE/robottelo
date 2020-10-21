@@ -206,13 +206,13 @@ def save_test_data(request):
 def pre_upgrade_data(request):
     """A fixture to allow restoring the saved data in pre_upgrade stage
 
-     Usage::
+    Usage::
 
-        @post_upgrade(depend_on=test_something_pre_upgrade)
-        def test_something_post_upgrade(pre_upgrade_data):
-            # restoring
-            pre_upgrade_key_value = pre_upgrade_data['key']
-     """
+       @post_upgrade(depend_on=test_something_pre_upgrade)
+       def test_something_post_upgrade(pre_upgrade_data):
+           # restoring
+           pre_upgrade_key_value = pre_upgrade_data['key']
+    """
     dependant_on_functions = []
     for marker in request.node.iter_markers(POST_UPGRADE_MARK):
         depend_on = marker.kwargs.get('depend_on')
@@ -238,7 +238,7 @@ def pytest_addoption(parser):
     Note: default location is /var/tmp/robottelo_pre_upgrade_failed_tests.json
     """
     parser.addoption(
-        '--{0}'.format(PRE_UPGRADE_TESTS_FILE_OPTION),
+        f'--{PRE_UPGRADE_TESTS_FILE_OPTION}',
         action='store',
         default=PRE_UPGRADE_TESTS_FILE_PATH,
     )
@@ -274,7 +274,7 @@ def __initiate(config):
         POST_UPGRADE = True
         pre_upgrade_failed_tests = []
         if os.path.exists(PRE_UPGRADE_TESTS_FILE_PATH):
-            with open(PRE_UPGRADE_TESTS_FILE_PATH, 'r') as json_file:
+            with open(PRE_UPGRADE_TESTS_FILE_PATH) as json_file:
                 pre_upgrade_failed_tests = json.load(json_file)
     __initiated = True
 

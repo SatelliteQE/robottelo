@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """"Test for Content Access (Golden Ticket) CLI
 
 :Requirement: Content Access
@@ -81,7 +80,7 @@ class ContentAccessTestCase(CLITestCase):
             5. Create Content Host and assign that gated repos to it.
             6. Sync the gated repository.
         """
-        super(ContentAccessTestCase, cls).setUpClass()
+        super().setUpClass()
         # Create Organization
         cls.org = make_org()
         # upload organization manifest with org environment access enabled
@@ -158,16 +157,16 @@ class ContentAccessTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
             # install the packages that require updates
-            result = vm.run('yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
             self.assertEqual(result.return_code, 0)
-            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
             self.assertEqual(result.return_code, 0)
             for _ in range(30):
                 applicable_packages = Package.list(
                     {
                         'host': vm.hostname,
                         'packages-restrict-applicable': 'true',
-                        'search': 'name={0}'.format(REAL_RHEL7_0_0_PACKAGE_NAME),
+                        'search': f'name={REAL_RHEL7_0_0_PACKAGE_NAME}',
                     }
                 )
                 if applicable_packages:
@@ -204,14 +203,14 @@ class ContentAccessTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
             # install the packages that require updates
-            result = vm.run('yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
             self.assertEqual(result.return_code, 0)
-            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
             self.assertEqual(result.return_code, 0)
             # check that package errata is applicable
             for _ in range(30):
                 erratum = Host.errata_list(
-                    {'host': vm.hostname, 'search': 'id = {0}'.format(REAL_RHEL7_0_ERRATA_ID)}
+                    {'host': vm.hostname, 'search': f'id = {REAL_RHEL7_0_ERRATA_ID}'}
                 )
                 if erratum:
                     break
@@ -240,7 +239,7 @@ class ContentAccessTestCase(CLITestCase):
         # upload organization manifest with org environment access enabled
         manifest = manifests.clone()
         manifests.upload_manifest_locked(org['id'], manifest, interface=manifests.INTERFACE_CLI)
-        result = ssh.command('rct cat-manifest {0}'.format(manifest.filename))
+        result = ssh.command(f'rct cat-manifest {manifest.filename}')
         self.assertEqual(result.return_code, 0)
         self.assertNotIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
 
@@ -262,6 +261,6 @@ class ContentAccessTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        result = ssh.command('rct cat-manifest {0}'.format(self.manifest.filename))
+        result = ssh.command(f'rct cat-manifest {self.manifest.filename}')
         self.assertEqual(result.return_code, 0)
         self.assertIn('Content Access Mode: org_environment', '\n'.join(result.stdout))

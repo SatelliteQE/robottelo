@@ -1,8 +1,7 @@
-# -*- encoding: utf-8 -*-
 import json
 
 
-class BaseStorageHandler(object):
+class BaseStorageHandler:
     @staticmethod
     def encode(data):
         return json.dumps(data)

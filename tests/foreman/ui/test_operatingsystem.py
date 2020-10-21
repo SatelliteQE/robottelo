@@ -46,7 +46,7 @@ def test_positive_update_with_params(session):
         session.operatingsystem.create(
             {'operating_system.name': name, 'operating_system.major': major_version}
         )
-        os_full_name = '{} {}'.format(name, major_version)
+        os_full_name = f'{name} {major_version}'
         assert session.operatingsystem.search(name)[0]['Title'] == os_full_name
         session.operatingsystem.update(
             os_full_name, {'parameters.os_params': {'name': param_name, 'value': param_value}}
@@ -150,7 +150,7 @@ def test_positive_update_template(session, module_org):
         operatingsystem=[os],
     ).create()
     with session:
-        os_full_name = '{} {}'.format(name, major_version)
+        os_full_name = f'{name} {major_version}'
         values = session.operatingsystem.read(os_full_name)
         assert values['templates']['resources']['Provisioning template'] == DEFAULT_TEMPLATE
         session.operatingsystem.update(

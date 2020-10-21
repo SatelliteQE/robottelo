@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Activation key CLI
 
 :Requirement: Activationkey
@@ -70,7 +69,7 @@ class ActivationKeyTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Tests for activation keys via Hammer CLI"""
-        super(ActivationKeyTestCase, cls).setUpClass()
+        super().setUpClass()
         # syspurpose test will use cls org and manifest
         cls.org = make_org(cached=True)
         with manifests.clone() as manifest:
@@ -78,7 +77,7 @@ class ActivationKeyTestCase(CLITestCase):
         try:
             Subscription.upload({'file': manifest.filename, 'organization-id': cls.org['id']})
         except CLIReturnCodeError as err:
-            raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
+            raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 
     @staticmethod
     def get_default_env():
@@ -1511,12 +1510,12 @@ class ActivationKeyTestCase(CLITestCase):
         """
         user_name = gen_alphanumeric()
         user_password = gen_alphanumeric()
-        ak_name_like = 'ak_{0}'.format(gen_string('alpha'))
+        ak_name_like = 'ak_{}'.format(gen_string('alpha'))
         hc_names_like = (
-            'Test_*_{0}'.format(gen_string('alpha')),
-            'Test_*_{0}'.format(gen_string('alpha')),
+            'Test_*_{}'.format(gen_string('alpha')),
+            'Test_*_{}'.format(gen_string('alpha')),
         )
-        ak_name = '{0}_{1}'.format(ak_name_like, gen_string('alpha'))
+        ak_name = '{}_{}'.format(ak_name_like, gen_string('alpha'))
         org = make_org()
         self.upload_manifest(org['id'], manifests.clone())
         available_subscriptions = Subscription.list({'organization-id': org['id']}, per_page=False)
@@ -1542,11 +1541,11 @@ class ActivationKeyTestCase(CLITestCase):
                     'edit_activation_keys',
                     'destroy_activation_keys',
                 ],
-                'search': "name ~ {}".format(ak_name_like),
+                'search': f"name ~ {ak_name_like}",
             },
             'Katello::HostCollection': {
                 'permissions': ['view_host_collections', 'edit_host_collections'],
-                'search': "name ~ {0} || name ~ {1}".format(*hc_names_like),
+                'search': "name ~ {} || name ~ {}".format(*hc_names_like),
             },
             'Organization': {'permissions': ['view_organizations', 'assign_organizations']},
             'Katello::Subscription': {
@@ -1579,7 +1578,7 @@ class ActivationKeyTestCase(CLITestCase):
     @tier3
     @skip_if(not settings.repos_hosting_url)
     def test_positive_subscription_quantity_attached(self):
-        """ Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
+        """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 
         see https://bugzilla.redhat.com/show_bug.cgi?id=1633094
 
@@ -1629,5 +1628,5 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertIn(ak_sub['id'], subs_lookup)
                 self.assertEqual(ak_sub['quantity'], '1')
                 amount = subs_lookup[ak_sub['id']]['quantity']
-                regex = re.compile('1 out of {}'.format(amount))
+                regex = re.compile(f'1 out of {amount}')
                 self.assertRegex(ak_sub['attached'], regex)

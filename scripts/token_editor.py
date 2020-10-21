@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-# coding=utf-8
 """Token editor
 
 Reads Python test modules under test/foreman and edit docstring tokens' prefix
 from ``OLD_TOKEN_PREFIX`` to ``NEW_TOKEN_PREFIX``.
 """
-from __future__ import print_function
-
 import glob
 import os
 import re
@@ -27,13 +24,13 @@ if not match:
 
 valid_tokens = [token.strip() for token in match.group(1).split(',')]
 TOKEN_RE = re.compile(
-    r'{0}({1}):'.format(OLD_TOKEN_PREFIX, '|'.join(valid_tokens)), flags=re.IGNORECASE
+    r'{}({}):'.format(OLD_TOKEN_PREFIX, '|'.join(valid_tokens)), flags=re.IGNORECASE
 )
 
 test_modules = glob.glob(os.path.join(ROOT_PATH, 'tests', 'foreman', '*', 'test_*.py'))
 for test_module in test_modules:
     with open(test_module) as handler:
         content = handler.read()
-    content = TOKEN_RE.sub(r'{0}\1:'.format(NEW_TOKEN_PREFIX), content)
+    content = TOKEN_RE.sub(fr'{NEW_TOKEN_PREFIX}\1:', content)
     with open(test_module, 'w') as handler:
         handler.write(content)

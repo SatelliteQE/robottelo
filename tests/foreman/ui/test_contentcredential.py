@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Content Credentials UI
 
 :Requirement: ContentCredentials
@@ -73,7 +72,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         )
         assert session.contentcredential.search(name)[0]['Name'] == name
         gpg_key = entities.ContentCredential(organization=module_org).search(
-            query={'search': 'name="{}"'.format(name)}
+            query={'search': f'name="{name}"'}
         )[0]
         product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
         repo = entities.Repository(product=product).create()
@@ -120,10 +119,7 @@ def test_positive_search_scoped(session, gpg_content):
                 'content': gpg_content,
             }
         )
-        assert (
-            session.contentcredential.search('organization_id = {}'.format(org.id))[0]['Name']
-            == name
-        )
+        assert session.contentcredential.search(f'organization_id = {org.id}')[0]['Name'] == name
 
 
 @tier2
@@ -204,9 +200,9 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
     with session:
         values = session.contentcredential.read(name)
         assert len(values['repositories']['table']) == 2
-        assert {repo1.name, repo2.name} == set(
-            [repo['Name'] for repo in values['repositories']['table']]
-        )
+        assert {repo1.name, repo2.name} == {
+            repo['Name'] for repo in values['repositories']['table']
+        }
 
 
 @tier2
@@ -537,9 +533,9 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         assert len(values['repositories']['table']) == 2
-        assert {repo1.name, repo2.name} == set(
-            [repo['Name'] for repo in values['repositories']['table']]
-        )
+        assert {repo1.name, repo2.name} == {
+            repo['Name'] for repo in values['repositories']['table']
+        }
 
 
 @tier2
@@ -711,9 +707,9 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
         assert len(values['products']['table']) == 1
         assert values['products']['table'][0]['Name'] == product.name
         assert len(values['repositories']['table']) == 2
-        assert {repo1.name, repo2.name} == set(
-            [repo['Name'] for repo in values['repositories']['table']]
-        )
+        assert {repo1.name, repo2.name} == {
+            repo['Name'] for repo in values['repositories']['table']
+        }
         session.contentcredential.delete(gpg_key.name)
         # Assert GPGKey isn't associated with product and repositories
         product_values = session.product.read(product.name)

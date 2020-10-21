@@ -74,7 +74,8 @@ def setup_content(module_org):
     custom_repo.sync()
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     cv = entities.ContentView(
-        organization=module_org, repository=[rh_repo_id, custom_repo.id],
+        organization=module_org,
+        repository=[rh_repo_id, custom_repo.id],
     ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
@@ -83,7 +84,7 @@ def setup_content(module_org):
         content_view=cv, organization=module_org, environment=lce, auto_attach=True
     ).create()
     subscription = entities.Subscription(organization=module_org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return module_org, ak
@@ -92,7 +93,7 @@ def setup_content(module_org):
 @tier3
 @pytest.mark.stubbed
 def test_negative_create_report_without_name(session):
-    """ A report template with empty name can't be created
+    """A report template with empty name can't be created
 
     :id: 916ec1f8-c42c-4297-9c98-01e8b9f2f075
 
@@ -113,7 +114,7 @@ def test_negative_create_report_without_name(session):
 @tier3
 @pytest.mark.stubbed
 def test_negative_cannot_delete_locked_report(session):
-    """ Edit a report template
+    """Edit a report template
 
     :id: cd19b90d-830f-4efd-8cbc-d5e09a909a67
 
@@ -133,7 +134,7 @@ def test_negative_cannot_delete_locked_report(session):
 @tier3
 @pytest.mark.stubbed
 def test_positive_preview_report(session):
-    """ Preview a report
+    """Preview a report
 
     :id: cd19b90d-836f-4efd-8cbc-d5e09a909a67
 
@@ -296,7 +297,7 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
             ]
             assert res['Name'] == host_name
             # also tests comma in field contents
-            assert res['Operating System'] == '{0} {1}'.format(os_name, os.major)
+            assert res['Operating System'] == f'{os_name} {os.major}'
 
 
 @upgrade
@@ -333,7 +334,7 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
 @tier3
 @pytest.mark.stubbed
 def test_positive_applied_errata(session):
-    """ Generate an Applied Errata report
+    """Generate an Applied Errata report
 
     :id: cd19b90d-836f-4efd-ccbc-d5e09a909a67
     :setup: User with reporting access rights, some host with applied errata
@@ -349,7 +350,7 @@ def test_positive_applied_errata(session):
 @tier2
 @pytest.mark.stubbed
 def test_datetime_picker(session):
-    """ Generate an Applied Errata report with date filled
+    """Generate an Applied Errata report with date filled
 
     :id: cd19b90d-836f-4efd-c1bc-d5e09a909a67
     :setup: User with reporting access rights, some host with applied errata at
@@ -370,7 +371,7 @@ def test_datetime_picker(session):
 @tier3
 @pytest.mark.stubbed
 def test_positive_autocomplete(session):
-    """ Check if host field suggests matching hosts on typing
+    """Check if host field suggests matching hosts on typing
 
     :id: cd19b90d-836f-4efd-c2bc-d5e09a909a67
     :setup: User with reporting access rights, some Host, some report with host input
@@ -388,7 +389,7 @@ def test_positive_autocomplete(session):
 
 @tier2
 def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc):
-    """ Schedule generating a report. Request the result be sent via e-mail.
+    """Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
     :setup: User with reporting access rights, some Host
@@ -418,7 +419,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
                 'email_to': 'root@localhost',
             },
         )
-    file_path = '/tmp/{0}.json'.format(gen_string('alpha'))
+    file_path = '/tmp/{}.json'.format(gen_string('alpha'))
     gzip_path = f'{file_path}.gz'
     expect_script = (
         f'#!/usr/bin/env expect\n'
@@ -450,7 +451,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
 @tier3
 @pytest.mark.stubbed
 def test_negative_bad_email(session):
-    """ Generate a report and request the result be sent to
+    """Generate a report and request the result be sent to
         a wrong formatted e-mail address
 
     :id: cd19b90d-836f-4efd-c4bc-d5e09a909a67
@@ -468,7 +469,7 @@ def test_negative_bad_email(session):
 @tier2
 @pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it(session):
-    """ The resulting report should only be downloadable by
+    """The resulting report should only be downloadable by
         the user that generated it. Check.
 
     :id: cd19b90d-836f-4efd-c6bc-d5e09a909a67
@@ -488,22 +489,22 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 def test_positive_gen_entitlements_reports_multiple_formats(session, setup_content, module_org):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
-        :id: b268663d-c213-4e59-8f81-61bec0838b1e
+    :id: b268663d-c213-4e59-8f81-61bec0838b1e
 
 
-        :setup: Installed Satellite with Organization, Activation key,
-                Content View, Content Host, and Subscriptions.
+    :setup: Installed Satellite with Organization, Activation key,
+            Content View, Content Host, and Subscriptions.
 
-        :steps:
-            1. Monitor -> Report Templates
-            2. Entitlements -> Generate
-            3. Click the dropdown to select output format
-            4. Submit
+    :steps:
+        1. Monitor -> Report Templates
+        2. Entitlements -> Generate
+        3. Click the dropdown to select output format
+        4. Submit
 
-        :expectedresults: reports are generated containing all the expected information
-                          regarding Entitlements for each output format.
+    :expectedresults: reports are generated containing all the expected information
+                      regarding Entitlements for each output format.
 
-        :CaseImportance: High
+    :CaseImportance: High
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.install_katello_ca()

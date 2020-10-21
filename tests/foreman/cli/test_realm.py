@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Realm CLI
 
 :Requirement: Realm
@@ -135,7 +134,7 @@ class TestRealm:
         )
         assert realm['name'] == realm_name
         up = Realm.update({'id': realm['id'], 'new-name': new_realm_name})
-        assert up[0]['message'] == 'Realm [{0}] updated.'.format(new_realm_name)
+        assert up[0]['message'] == f'Realm [{new_realm_name}] updated.'
         info = Realm.info({'id': realm['id']})
         assert info['name'] == new_realm_name
 

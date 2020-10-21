@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test utilities for writing foreman tests
 
 All test cases for foreman tests are defined in this module and have utilities
@@ -18,7 +17,7 @@ from robottelo.constants import INTERFACE_CLI
 LOGGER = logging.getLogger(__name__)
 
 
-class NotRaisesValueHandler(object):
+class NotRaisesValueHandler:
     """Base class for handling exception values for AssertNotRaises. Child
     classes can be used to validate whether specific for interface expected
     value is present in exception.
@@ -74,9 +73,8 @@ class CLINotRaisesValueHandler(NotRaisesValueHandler):
         return 'return code'
 
 
-class _AssertNotRaisesContext(object):
-    """A context manager used to implement :meth:`TestCase.assertNotRaises`.
-    """
+class _AssertNotRaisesContext:
+    """A context manager used to implement :meth:`TestCase.assertNotRaises`."""
 
     def __init__(
         self,
@@ -110,7 +108,7 @@ class _AssertNotRaisesContext(object):
 
         if issubclass(exc_type, self.expected):
             if not any((self.value_handler, self.expected_regex)):
-                raise self.failure_exception("{0} raised".format(exc_name))
+                raise self.failure_exception(f"{exc_name} raised")
             regex = self.expected_regex
             response_code = None
             if self.value_handler:
@@ -120,7 +118,7 @@ class _AssertNotRaisesContext(object):
 
             if response_code and regex:
                 raise self.failure_exception(
-                    "{0} raised with {1} {2} and {3} found in {4}".format(
+                    "{} raised with {} {} and {} found in {}".format(
                         exc_name,
                         self.value_handler.value_name,
                         self.value_handler.expected_value,
@@ -130,13 +128,13 @@ class _AssertNotRaisesContext(object):
                 )
             elif response_code and regex is None:
                 raise self.failure_exception(
-                    "{0} raised with {1} {2}".format(
+                    "{} raised with {} {}".format(
                         exc_name, self.value_handler.value_name, self.value_handler.expected_value
                     )
                 )
             elif regex and response_code is None:
                 raise self.failure_exception(
-                    "{0} raised and {1} found in {2}".format(
+                    "{} raised and {} found in {}".format(
                         exc_name, self.expected_regex.pattern, str(exc_value)
                     )
                 )
@@ -151,7 +149,7 @@ class _AssertNotRaisesContext(object):
 
 class AssertCliNotRaisesContextManager(_AssertNotRaisesContext):
     def __init__(self, expected, expected_regex=None, expected_value=None, value_handler=None):
-        super(AssertCliNotRaisesContextManager, self).__init__(
+        super().__init__(
             expected,
             CLINotRaisesValueHandler,
             AssertionError,
@@ -163,7 +161,7 @@ class AssertCliNotRaisesContextManager(_AssertNotRaisesContext):
 
 class AssertApiNotRaisesContextManager(_AssertNotRaisesContext):
     def __init__(self, expected, expected_regex=None, expected_value=None, value_handler=None):
-        super(AssertApiNotRaisesContextManager, self).__init__(
+        super().__init__(
             expected,
             APINotRaisesValueHandler,
             AssertionError,
@@ -181,11 +179,11 @@ class TestCase(unittest2.TestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        super(TestCase, cls).setUpClass()
+        super().setUpClass()
         if not settings.configured:
             settings.configure()
         cls.logger = logging.getLogger('robottelo')
-        cls.logger.info('Started setUpClass: {0}/{1}'.format(cls.__module__, cls.__name__))
+        cls.logger.info(f'Started setUpClass: {cls.__module__}/{cls.__name__}')
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
@@ -193,7 +191,7 @@ class TestCase(unittest2.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.logger.info('Started tearDownClass: {0}/{1}'.format(cls.__module__, cls.__name__))
+        cls.logger.info(f'Started tearDownClass: {cls.__module__}/{cls.__name__}')
 
     @classmethod
     def upload_manifest(cls, org_id, manifest, interface=None, timeout=None):
@@ -228,7 +226,7 @@ class TestCase(unittest2.TestCase):
         expected_value=None,
         value_handler=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Fail if an exception of class expected_exception is raised by
         callableObj when invoked with specified positional and keyword
@@ -278,7 +276,7 @@ class TestCase(unittest2.TestCase):
         expected_value=None,
         value_handler=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Fail if an exception of class expected_exception is raised and the
         message in the exception matches a regex.

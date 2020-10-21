@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for Compute Resource UI
 
 :Requirement: Computeresource Libvirt
@@ -106,7 +105,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
-        assert '{0} ({1})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
+        assert '{} ({})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
         session.computeresource.update_computeprofile(
             new_cr_name,
             COMPUTE_PROFILE_SMALL,
@@ -116,7 +115,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
             new_cr_name, COMPUTE_PROFILE_SMALL
         )
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_SMALL
-        assert cr_profile_values['compute_resource'] == '{0} ({1})'.format(
+        assert cr_profile_values['compute_resource'] == '{} ({})'.format(
             new_cr_name, FOREMAN_PROVIDERS['libvirt']
         )
         assert cr_profile_values['provider_content']['cpus'] == '16'

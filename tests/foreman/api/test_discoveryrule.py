@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """API Tests for foreman discovery feature
 
 :Requirement: Discoveryrule

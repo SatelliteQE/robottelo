@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Usage::
 
     hammer role [OPTIONS] SUBCOMMAND [ARG] ...

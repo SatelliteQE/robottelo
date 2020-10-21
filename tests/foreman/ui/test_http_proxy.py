@@ -114,8 +114,12 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
         location=[module_loc.id],
     ).create()
     # Create products
-    product_a = entities.Product(organization=module_org.id,).create()
-    product_b = entities.Product(organization=module_org.id,).create()
+    product_a = entities.Product(
+        organization=module_org.id,
+    ).create()
+    product_b = entities.Product(
+        organization=module_org.id,
+    ).create()
     # Create repositories from UI.
     with session:
         repo_a1_name = gen_string('alpha')
@@ -142,7 +146,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             },
         )
         repo_a2_values = session.repository.read(product_a.name, repo_a2_name)
-        expected_policy = 'Use specific HTTP Proxy ({})'.format(http_proxy_a.name)
+        expected_policy = f'Use specific HTTP Proxy ({http_proxy_a.name})'
         assert repo_a2_values['repo_content']['http_proxy_policy'] == expected_policy
         repo_b1_name = gen_string('alpha')
         session.repository.create(

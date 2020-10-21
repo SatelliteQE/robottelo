@@ -8,7 +8,7 @@ import pytest
 from robottelo import ssh
 
 
-class MockChannel(object):
+class MockChannel:
     def __init__(self, ret, status_ready=True):
         self.ret = ret
         self.status_ready = status_ready
@@ -20,7 +20,7 @@ class MockChannel(object):
         return self.status_ready
 
 
-class MockStdout(object):
+class MockStdout:
     def __init__(self, cmd, ret):
         self.cmd = cmd
         self.channel = MockChannel(ret=ret)
@@ -29,7 +29,7 @@ class MockStdout(object):
         return self.cmd
 
 
-class MockSSHClient(object):
+class MockSSHClient:
     """A mock ``paramiko.SSHClient`` object."""
 
     def __init__(self):
@@ -68,7 +68,7 @@ class MockSSHClient(object):
         compress=False,
         sock=None,
     ):
-        """"A stub method that records some of the parameters passed in.
+        """ "A stub method that records some of the parameters passed in.
 
         When this method is called, the following arguments are recorded as
         instance attributes:

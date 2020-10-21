@@ -215,7 +215,7 @@ def test_positive_search_in_org(name):
     lc_env = entities.LifecycleEnvironment(organization=new_org).create()
     lc_envs = lc_env.search({'organization'})
     assert len(lc_envs) == 2
-    assert {lc_env_.name for lc_env_ in lc_envs}, {u'Library', lc_env.name}
+    assert {lc_env_.name for lc_env_ in lc_envs}, {'Library', lc_env.name}
 
 
 @tier2

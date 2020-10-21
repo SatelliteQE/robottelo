@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for capsule installer CLI
 
 :Requirement: Capsule Installer
@@ -62,7 +61,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_option_reverse_proxy(self):
-        """ assure the --reverse-proxy flag can be used in
+        """assure the --reverse-proxy flag can be used in
         capsule-installer to enable katello-agent functionality via
         remote clients
 
@@ -113,7 +112,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
     @pytest.mark.stubbed
     def test_positive_option_parent_reverse_proxy(self):
-        """ valid parameters can be passed to --parent-reverse-proxy
+        """valid parameters can be passed to --parent-reverse-proxy
         (true)
 
         :id: a905f4ca-a729-4efb-84fc-43923737f75b

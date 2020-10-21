@@ -52,7 +52,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
     def setUpClass(cls):
         cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.default_org_id = (
-            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
         )
         cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = settings.vlan_networking.bridge
@@ -60,9 +60,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
         cls.gateway = settings.vlan_networking.gateway
         cls.netmask = settings.vlan_networking.netmask
         cls.vm_domain_name = settings.upgrade.vm_domain
-        cls.vm_domain = entities.Domain().search(
-            query={'search': 'name="{}"'.format(cls.vm_domain_name)}
-        )
+        cls.vm_domain = entities.Domain().search(query={'search': f'name="{cls.vm_domain_name}"'})
         cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
 
     @pre_upgrade
@@ -84,7 +82,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
         """
         try:
             default_loc_id = (
-                entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+                entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
             )
             sn = entities.Subnet(
                 domain=self.vm_domain,
@@ -103,7 +101,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             client.install_capsule_katello_ca(capsule=self.proxy_name)
             client.register_contenthost(org=self.org.label, lce='Library')
             add_remote_execution_ssh_key(hostname=client.ip_addr, proxy_hostname=self.proxy_name)
-            host = entities.Host().search(query={'search': 'name="{}"'.format(client.hostname)})
+            host = entities.Host().search(query={'search': f'name="{client.hostname}"'})
             host[0].subnet = sn
             host[0].update(['subnet'])
             job = entities.JobInvocation().run(
@@ -111,7 +109,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
                     'job_template_id': 89,
                     'inputs': {'command': "ls"},
                     'targeting_type': 'static_query',
-                    'search_query': "name = {0}".format(client.hostname),
+                    'search_query': f"name = {client.hostname}",
                 }
             )
             self.assertEqual(job['output']['success_count'], 1)
@@ -145,7 +143,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
                 'job_template_id': 89,
                 'inputs': {'command': "ls"},
                 'targeting_type': 'static_query',
-                'search_query': "name = {0}".format(client_name),
+                'search_query': f"name = {client_name}",
             }
         )
         self.assertEqual(job['output']['success_count'], 1)
@@ -176,7 +174,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
     def setUpClass(cls):
         cls.libvirt_vm = settings.compute_resources.libvirt_hostname
         cls.default_org_id = (
-            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
         )
         cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = settings.vlan_networking.bridge
@@ -184,9 +182,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
         cls.gateway = settings.vlan_networking.gateway
         cls.netmask = settings.vlan_networking.netmask
         cls.vm_domain_name = settings.upgrade.vm_domain
-        cls.vm_domain = entities.Domain().search(
-            query={'search': 'name="{}"'.format(cls.vm_domain_name)}
-        )
+        cls.vm_domain = entities.Domain().search(query={'search': f'name="{cls.vm_domain_name}"'})
         cls.proxy_name = settings.server.hostname
 
     @pre_upgrade
@@ -208,7 +204,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
         """
         try:
             default_loc_id = (
-                entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+                entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
             )
             sn = entities.Subnet(
                 domain=self.vm_domain,
@@ -227,7 +223,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
             client.install_katello_ca()
             client.register_contenthost(org=self.org.label, lce='Library')
             add_remote_execution_ssh_key(hostname=client.ip_addr)
-            host = entities.Host().search(query={'search': 'name="{}"'.format(client.hostname)})
+            host = entities.Host().search(query={'search': f'name="{client.hostname}"'})
             host[0].subnet = sn
             host[0].update(['subnet'])
             job = entities.JobInvocation().run(
@@ -235,7 +231,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
                     'job_template_id': 89,
                     'inputs': {'command': "ls"},
                     'targeting_type': 'static_query',
-                    'search_query': "name = {0}".format(client.hostname),
+                    'search_query': f"name = {client.hostname}",
                 }
             )
             self.assertEqual(job['output']['success_count'], 1)
@@ -269,7 +265,7 @@ class Scenario_remoteexecution_satellite(APITestCase):
                 'job_template_id': 89,
                 'inputs': {'command': "ls"},
                 'targeting_type': 'static_query',
-                'search_query': "name = {0}".format(client_name),
+                'search_query': f"name = {client_name}",
             }
         )
         self.assertEqual(job['output']['success_count'], 1)

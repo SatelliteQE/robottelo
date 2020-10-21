@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Computeresource EC2
 
@@ -33,7 +32,7 @@ class EC2ComputeResourceTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('ec2')
     def setUpClass(cls):
-        super(EC2ComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
         Org.add_location({'id': cls.org['id'], 'location-id': cls.loc['id']})

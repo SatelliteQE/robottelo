@@ -7,8 +7,6 @@ this script and generate an image all in one go, use the ``graph-entities``
 command provided by the make file in the parent directory.
 
 """
-from __future__ import print_function
-
 import inspect
 
 from nailgun import entities
@@ -31,7 +29,7 @@ def graph():
                 field, entity_mixins.OneToManyField
             ):
                 print(
-                    '{0} -> {1} [label="{2}"{3}]'.format(
+                    '{} -> {} [label="{}"{}]'.format(
                         entity_name,
                         field.entity,
                         field_name,
@@ -40,7 +38,7 @@ def graph():
                 )
         # Make entities that cannot be created less visible.
         if not issubclass(entity, entity_mixins.EntityCreateMixin):
-            print('{0} [style=dotted]'.format(entity_name))
+            print(f'{entity_name} [style=dotted]')
     print('}')
 
 

@@ -31,7 +31,7 @@ def decode_to_utf8(text):  # pragma: no cover
         return text
 
 
-class SSHCommandResult(object):
+class SSHCommandResult:
     """Structure that returns in all ssh commands results."""
 
     def __init__(self, stdout=None, stderr=None, return_code=0, output_format=None):
@@ -151,12 +151,12 @@ def get_connection(
         timeout = settings.ssh_client.connection_timeout
     client = get_client(hostname, username, password, key_filename, timeout, port)
     try:
-        logger.debug('Instantiated Paramiko client {0}'.format(client._id))
+        logger.debug(f'Instantiated Paramiko client {client._id}')
         logger.info('Connected to [%s]', hostname)
         yield client
     finally:
         client.close()
-        logger.debug('Destroyed Paramiko client {0}'.format(client._id))
+        logger.debug(f'Destroyed Paramiko client {client._id}')
 
 
 @contextmanager
@@ -187,7 +187,7 @@ def get_sftp_session(hostname=None, username=None, password=None, key_filename=N
         connecting to the server. If it is ``None`` ``key_filename`` from
         configuration's ``server`` section will be used.
     :param int timeout: Time to wait for establish the connection.
-       """
+    """
     with get_connection(
         hostname=hostname,
         username=username,
@@ -229,7 +229,7 @@ def add_authorized_key(
     elif is_ssh_pub_key(key):  # key is a valid key-string
         key_content = key
     elif os.path.exists(key):  # key is a path to a pub key-file
-        with open(key, 'r') as key_file:  # pragma: no cover
+        with open(key) as key_file:  # pragma: no cover
             key_content = key_file.read()
     else:
         raise AttributeError('Invalid key')
@@ -262,7 +262,7 @@ def add_authorized_key(
         execute_command('chmod 700 %s' % ssh_path, con)
         execute_command('chmod 600 %s' % auth_file, con)
         ssh_user = username or settings.server.ssh_username
-        execute_command('chown -R %s %s' % (ssh_user, ssh_path), con)
+        execute_command(f'chown -R {ssh_user} {ssh_path}', con)
 
         # Restore SELinux context with restorecon, if it's available:
         cmd = 'command -v restorecon && restorecon -RvF %s || true' % ssh_path
@@ -287,7 +287,7 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
 
 
 def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_filename=None):
-    """ Upload all files from directory to a remote directory
+    """Upload all files from directory to a remote directory
 
     :param local_dir: all files from local path to be uploaded.
     :param remote_dir: a remote path where the uploaded files will be
@@ -299,19 +299,19 @@ def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_
         connecting to the server. If it is ``None`` ``key_filename`` from
         configuration's ``server`` section will be used.
     """
-    command("mkdir -p {}".format(remote_dir))
+    command(f"mkdir -p {remote_dir}")
     # making only one SFTP Session to transfer all files
     with get_sftp_session(hostname=hostname, key_filename=key_filename) as sftp:
         for root, dirs, files in os.walk(local_dir):
             for local_filename in files:
                 if fnmatch(local_filename, file_search):
-                    remote_file = "{0}/{1}".format(remote_dir, local_filename)
+                    remote_file = f"{remote_dir}/{local_filename}"
                     local_file = os.path.join(local_dir, local_filename)
                     _upload_file(sftp, local_file, remote_file)
 
 
 def _upload_file(sftp, local_file, remote_file):
-    """ Upload a file using existent sftp session
+    """Upload a file using existent sftp session
 
     :param sftp: sftp session object
     :param local_file: either a file path or a file-like object to be uploaded.
@@ -419,11 +419,11 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
             )
             stdout.channel.close()
             stderr.channel.close()
-            logger.error('[Captured stdout]\n{0}\n-----\n'.format(stdout.read()))
-            logger.error('[Captured stderr]\n{0}\n-----\n'.format(stderr.read()))
+            logger.error(f'[Captured stdout]\n{stdout.read()}\n-----\n')
+            logger.error(f'[Captured stderr]\n{stderr.read()}\n-----\n')
             raise SSHCommandTimeoutError(
-                'ssh command: {0} \n did not respond in the predefined time '
-                '(timeout={1})'.format(cmd, timeout)
+                'ssh command: {} \n did not respond in the predefined time '
+                '(timeout={})'.format(cmd, timeout)
             )
 
     errorcode = stdout.channel.recv_exit_status()

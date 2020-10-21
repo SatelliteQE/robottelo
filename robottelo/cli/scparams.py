@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage::
 
@@ -30,7 +29,7 @@ class SmartClassParameter(Base):
     @classmethod
     def info(cls, options=None):
         """Gets information for smart class parameter"""
-        return super(SmartClassParameter, cls).info(options=options, output_format='json')
+        return super().info(options=options, output_format='json')
 
     @classmethod
     def add_matcher(cls, options=None):

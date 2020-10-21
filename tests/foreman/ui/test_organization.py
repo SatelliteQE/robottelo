@@ -171,9 +171,9 @@ def test_positive_search_scoped(session):
     with session:
         session.organization.create({'name': org_name, 'label': label})
         for query in [
-            'label = {}'.format(label),
+            f'label = {label}',
             'label ~ {}'.format(label[:-5]),
-            'label ^ "{}"'.format(label),
+            f'label ^ "{label}"',
         ]:
             assert session.organization.search(query)[0]['Name'] == org_name
 
@@ -218,7 +218,7 @@ def test_positive_update_compresource(session):
 
     :CaseLevel: Integration
     """
-    url = '{0}{1}'.format(LIBVIRT_RESOURCE_URL, settings.compute_resources.libvirt_hostname)
+    url = f'{LIBVIRT_RESOURCE_URL}{settings.compute_resources.libvirt_hostname}'
     resource = entities.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
     org = entities.Organization().create()

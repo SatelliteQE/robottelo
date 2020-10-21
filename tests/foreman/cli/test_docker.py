@@ -133,7 +133,7 @@ class DockerRepositoryTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org_id = make_org()['id']
 
     @tier1
@@ -173,7 +173,7 @@ class DockerRepositoryTestCase(CLITestCase):
             repo = _make_docker_repo(product['id'])
             repo_names.add(repo['name'])
         product = Product.info({'id': product['id'], 'organization-id': self.org_id})
-        self.assertEqual(repo_names, set([repo_['repo-name'] for repo_ in product['content']]))
+        self.assertEqual(repo_names, {repo_['repo-name'] for repo_ in product['content']})
 
     @tier2
     def test_positive_create_repos_using_multiple_products(self):
@@ -195,7 +195,7 @@ class DockerRepositoryTestCase(CLITestCase):
                 repo = _make_docker_repo(product['id'])
                 repo_names.add(repo['name'])
             product = Product.info({'id': product['id'], 'organization-id': self.org_id})
-            self.assertEqual(repo_names, set([repo_['repo-name'] for repo_ in product['content']]))
+            self.assertEqual(repo_names, {repo_['repo-name'] for repo_ in product['content']})
 
     @tier1
     def test_positive_sync(self):
@@ -402,7 +402,7 @@ class DockerContentViewTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(DockerContentViewTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org_id = make_org()['id']
 
     def _create_and_associate_repo_with_cv(self):
@@ -454,8 +454,8 @@ class DockerContentViewTestCase(CLITestCase):
             ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(
-            set([repo['id'] for repo in repos]),
-            set([repo['id'] for repo in content_view['container-image-repositories']]),
+            {repo['id'] for repo in repos},
+            {repo['id'] for repo in content_view['container-image-repositories']},
         )
 
     @tier2
@@ -1009,7 +1009,7 @@ class DockerActivationKeyTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create necessary objects which can be re-used in tests."""
-        super(DockerActivationKeyTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.lce = make_lifecycle_environment({'organization-id': cls.org['id']})
         cls.product = make_product_wait({'organization-id': cls.org['id']})
@@ -1211,7 +1211,7 @@ class DockerClientTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerClientTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         """Instantiate and setup a docker host VM"""
         cls.logger.info('Creating an external docker host')
@@ -1249,7 +1249,7 @@ class DockerClientTestCase(CLITestCase):
             # publishing takes few seconds sometimes
             result, _ = wait_for(
                 lambda: ssh.command(
-                    'docker pull {0}'.format(repo['published-at']),
+                    'docker pull {}'.format(repo['published-at']),
                     hostname=self.docker_host.ip_addr,
                 ),
                 num_sec=60,
@@ -1260,27 +1260,23 @@ class DockerClientTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
-                    'docker run {0}'.format(repo['published-at']),
+                    'docker run {}'.format(repo['published-at']),
                     hostname=self.docker_host.ip_addr,
                 )
                 self.assertEqual(result.return_code, 0)
             finally:
                 # Stop and remove the container
                 result = ssh.command(
-                    'docker ps -a | grep {0}'.format(repo['published-at']),
+                    'docker ps -a | grep {}'.format(repo['published-at']),
                     hostname=self.docker_host.ip_addr,
                 )
                 container_id = result.stdout[0].split()[0]
-                ssh.command(
-                    'docker stop {0}'.format(container_id), hostname=self.docker_host.ip_addr
-                )
-                ssh.command(
-                    'docker rm {0}'.format(container_id), hostname=self.docker_host.ip_addr
-                )
+                ssh.command(f'docker stop {container_id}', hostname=self.docker_host.ip_addr)
+                ssh.command(f'docker rm {container_id}', hostname=self.docker_host.ip_addr)
         finally:
             # Remove docker image
             ssh.command(
-                'docker rmi {0}'.format(repo['published-at']), hostname=self.docker_host.ip_addr
+                'docker rmi {}'.format(repo['published-at']), hostname=self.docker_host.ip_addr
             )
 
     @skip_if_not_set('docker')
@@ -1341,7 +1337,7 @@ class DockerClientTestCase(CLITestCase):
         ).lower()
 
         # 3. Try to search for docker images on Satellite
-        remote_search_command = 'docker search {0}/{1}'.format(
+        remote_search_command = 'docker search {}/{}'.format(
             settings.server.hostname, docker_upstream_name
         )
         result = ssh.command(remote_search_command, hostname=self.docker_host.ip_addr)
@@ -1366,7 +1362,7 @@ class DockerClientTestCase(CLITestCase):
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-            'docker logout {}'.format(settings.server.hostname), hostname=self.docker_host.ip_addr
+            f'docker logout {settings.server.hostname}', hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
@@ -1447,7 +1443,7 @@ class DockerClientTestCase(CLITestCase):
         ).lower()
 
         # 3. Try to pull in docker image from Satellite
-        docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
+        docker_pull_command = f'docker pull {docker_repo_uri}'
         result = ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 1)
 
@@ -1475,7 +1471,7 @@ class DockerClientTestCase(CLITestCase):
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-            'docker logout {}'.format(settings.server.hostname), hostname=self.docker_host.ip_addr
+            f'docker logout {settings.server.hostname}', hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
@@ -1556,27 +1552,27 @@ class DockerClientTestCase(CLITestCase):
                 self.docker_host.ip_addr,
             )
             self.assertEqual(result.return_code, 0)
-            tar_file = '{0}.tar'.format(repo_name)
+            tar_file = f'{repo_name}.tar'
             ssh.download_file(tar_file, hostname=self.docker_host.ip_addr)
 
             ssh.upload_file(
                 local_file=tar_file,
-                remote_file='/tmp/{0}'.format(tar_file),
+                remote_file=f'/tmp/{tar_file}',
                 hostname=settings.server.hostname,
             )
             # Upload tarred repository
             product = make_product_wait({'organization-id': self.org['id']})
             repo = _make_docker_repo(product['id'])
-            Repository.upload_content({'id': repo['id'], 'path': '/tmp/{0}.tar'.format(repo_name)})
+            Repository.upload_content({'id': repo['id'], 'path': f'/tmp/{repo_name}.tar'})
             # Verify repository was uploaded successfully
             repo = Repository.info({'id': repo['id']})
             self.assertIn(settings.server.hostname, repo['published-at'])
             self.assertIn(
-                '{0}-{1}-{2}'.format(
+                '{}-{}-{}'.format(
                     self.org['label'].lower(), product['label'].lower(), repo['label'].lower()
                 ),
                 repo['published-at'],
             )
         finally:
             # Remove the archive
-            ssh.command('rm -f /tmp/{0}.tar'.format(repo_name))
+            ssh.command(f'rm -f /tmp/{repo_name}.tar')

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """API Tests for foreman discovery feature
 
 :Requirement: Discoveredhost
@@ -85,14 +84,14 @@ class DiscoveryTestCase(APITestCase):
         default_config = entity_mixins.DEFAULT_SERVER_CONFIG
         for _ in range(30):
             discovered_host = entities.DiscoveredHost(user_config or default_config).search(
-                query={'search': 'name={}'.format(hostname)}
+                query={'search': f'name={hostname}'}
             )
             if discovered_host:
                 break
             time.sleep(10)
         else:
             raise HostNotDiscoveredException(
-                "The host {} is not discovered within 300 seconds".format(hostname)
+                f"The host {hostname} is not discovered within 300 seconds"
             )
         return discovered_host[0]
 
@@ -108,7 +107,7 @@ class DiscoveryTestCase(APITestCase):
         4. Enable auto_provision flag to perform discovery via discovery
            rules.
         """
-        super(DiscoveryTestCase, cls).setUpClass()
+        super().setUpClass()
 
         # Build PXE default template to get default PXE file
         entities.ProvisioningTemplate().build_pxe_default()
@@ -152,7 +151,7 @@ class DiscoveryTestCase(APITestCase):
         cls.default_disco_settings['discovery_location'].update(['value'])
         cls.default_disco_settings['discovery_organization'].update(['value'])
         cls.default_disco_settings['discovery_auto'].update(['value'])
-        super(DiscoveryTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     @pytest.mark.stubbed
     @tier3
@@ -217,7 +216,7 @@ class DiscoveryTestCase(APITestCase):
             with self.subTest(name):
                 result = _create_discovered_host(name)
                 discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
-                host_name = 'mac{0}'.format(discovered_host['mac'].replace(':', ''))
+                host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
                 self.assertEqual(discovered_host['name'], host_name)
 
     @pytest.mark.stubbed
@@ -285,7 +284,7 @@ class DiscoveryTestCase(APITestCase):
                 provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
             )
             assert not entities.DiscoveredHost().search(
-                query={'search': 'name={}'.format(discovered_host.name)}
+                query={'search': f'name={discovered_host.name}'}
             )
 
     @tier3
@@ -338,7 +337,7 @@ class DiscoveryTestCase(APITestCase):
                 provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
             )
             assert not entities.DiscoveredHost(nonadmin_config).search(
-                query={'search': 'name={}'.format(discovered_host.name)}
+                query={'search': f'name={discovered_host.name}'}
             )
 
     @pytest.mark.stubbed

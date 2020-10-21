@@ -237,7 +237,7 @@ class ScenarioPerformanceTuning(TestCase):
 
         :expectedresults: Medium tuning parameter should be applied.
 
-         """
+        """
         cmd = (
             'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
             '/etc/foreman-installer/custom-hiera.yaml'
@@ -295,7 +295,7 @@ class ScenarioPerformanceTuning(TestCase):
 
         :expectedresults: medium tune parameter should be unchanged after upgrade.
 
-         """
+        """
         cmd = (
             'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
             '/etc/foreman-installer/custom-hiera.yaml'
@@ -326,7 +326,8 @@ class ScenarioPerformanceTuning(TestCase):
                 remote_file='/etc/foreman-installer/custom-hiera.yaml',
             )
             command_output = ssh.command(
-                'satellite-installer --tuning default -s --disable-system-checks', timeout=1000,
+                'satellite-installer --tuning default -s --disable-system-checks',
+                timeout=1000,
             )
             command_status = [status.strip() for status in command_output.stdout]
             assert 'Success!' in command_status

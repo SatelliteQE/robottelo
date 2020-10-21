@@ -57,7 +57,7 @@ class OpenScapTestCase(CLITestCase):
     @skip_if_not_set('oscap')
     @skip_if_not_set('clients')
     def setUpClass(cls):
-        """ Create an organization, environment, content view and activation key.
+        """Create an organization, environment, content view and activation key.
 
         1. Create new organization and environment
         2. Clone and upload manifest
@@ -68,7 +68,7 @@ class OpenScapTestCase(CLITestCase):
         7. Create an activation-key
         8. Add product to activation-key
         """
-        super(OpenScapTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         cls.rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
         cls.rhel8_content = OSCAP_DEFAULT_CONTENT['rhel8_content']
@@ -97,9 +97,9 @@ class OpenScapTestCase(CLITestCase):
     @classmethod
     def configure_puppet_test(cls):
         """Sets up the whole provisioning environment needed for Puppet based
-         end-to-end tests like OSCAP etc
+        end-to-end tests like OSCAP etc
 
-         :returns: A dict of entities to help with provisioning
+        :returns: A dict of entities to help with provisioning
         """
         cls.rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         cls.rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
@@ -351,7 +351,7 @@ class OpenScapTestCase(CLITestCase):
     @upgrade
     @tier4
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
-        """ End-to-End Oscap run with tailoring files and default capsule via puppet
+        """End-to-End Oscap run with tailoring files and default capsule via puppet
 
         :id: 346946ad-4f62-400e-9390-81817006048c
 
@@ -463,7 +463,7 @@ class OpenScapTestCase(CLITestCase):
     @upgrade
     @tier4
     def test_positive_oscap_run_with_tailoring_file_with_ansible(self):
-        """ End-to-End Oscap run with tailoring files via ansible
+        """End-to-End Oscap run with tailoring files via ansible
 
         :id: c7ea56eb-6cf1-4e79-8d6a-fb872d1bb804
 

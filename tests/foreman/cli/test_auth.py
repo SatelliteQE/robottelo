@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for CLI authentication
 
 :Requirement: Auth
@@ -64,7 +63,7 @@ class HammerAuthTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Creates users to be reused across tests"""
-        super(HammerAuthTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.uname_admin = gen_string('alpha')
         cls.uname_viewer = gen_string('alpha')
         cls.password = gen_string('alpha')
@@ -76,7 +75,7 @@ class HammerAuthTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Making sure sessions are disabled after test run"""
-        super(HammerAuthTestCase, cls).tearDownClass()
+        super().tearDownClass()
         configure_sessions(False)
 
     @tier1
@@ -115,7 +114,7 @@ class HammerAuthTestCase(CLITestCase):
             self.assertIn(LOGEDOFF_MSG.format(self.uname_admin), result[0]['message'])
         finally:
             # reset timeout to default
-            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(idle_timeout)})
+            Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
     @tier1
     @upgrade
@@ -315,7 +314,7 @@ class HammerAuthTestCase(CLITestCase):
             self.assertIn(LOGEDOFF_MSG.format(self.uname_admin), result[0]['message'])
         finally:
             # reset timeout to default
-            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(idle_timeout)})
+            Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
     @tier1
     def test_negative_no_credentials(self):

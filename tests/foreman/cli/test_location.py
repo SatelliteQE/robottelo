@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Location CLI
 
 :Requirement: Location
@@ -46,7 +45,7 @@ class LocationTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Set up reusable entities for tests."""
-        super(LocationTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.subnet = entities.Subnet().create()
         cls.env = entities.Environment().create()
         cls.env2 = entities.Environment().create()
@@ -107,7 +106,7 @@ class LocationTestCase(CLITestCase):
         if self.template.template_kind is None:
             template_search = self.template.name
         else:
-            template_search = '{0} ({1})'.format(
+            template_search = '{} ({})'.format(
                 self.template.name, entities.TemplateKind().search()[0].name
             )
         self.assertIn(template_search, loc['templates'])

@@ -49,7 +49,7 @@ class ContentViewFilterTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
-        super(ContentViewFilterTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.repo = entities.Repository(product=cls.product).create()
@@ -57,7 +57,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     def setUp(self):
         """Init content view with repo per each test"""
-        super(ContentViewFilterTestCase, self).setUp()
+        super().setUp()
         self.content_view = entities.ContentView(organization=self.org).create()
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
@@ -356,7 +356,7 @@ class ContentViewFilterTestCase(APITestCase):
             self.product.name,
             swid_tag_repository.name,
         )
-        result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
+        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
         assert result.return_code == 0
 
     @tier2
@@ -546,9 +546,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.content_view.update(['repository'])
         cvf.repository = repos
         cvf = cvf.update(['repository'])
-        self.assertEqual(
-            set([repo.id for repo in cvf.repository]), set([repo.id for repo in repos])
-        )
+        self.assertEqual({repo.id for repo in cvf.repository}, {repo.id for repo in repos})
 
     @tier2
     def test_positive_update_original_packages(self):
@@ -700,7 +698,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a content view as ``cls.content_view``."""
-        super(ContentViewFilterSearchTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.content_view = entities.ContentView().create()
 
     @tier1
@@ -752,7 +750,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
-        super(ContentViewFilterRuleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.repo = entities.Repository(
@@ -762,7 +760,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
 
     def setUp(self):
         """Init content view with repo per each test"""
-        super(ContentViewFilterRuleTestCase, self).setUp()
+        super().setUp()
         self.content_view = entities.ContentView(organization=self.org).create()
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
@@ -832,7 +830,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view, inclusion=True
         ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
@@ -850,7 +848,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view, inclusion=False
         ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
@@ -877,7 +875,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view, inclusion=True
         ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 

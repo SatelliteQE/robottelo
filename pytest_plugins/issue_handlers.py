@@ -22,7 +22,7 @@ DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 
 
 def pytest_addoption(parser):
-    """ Add CLI options related to issue handlers
+    """Add CLI options related to issue handlers
 
     Add a --bz-cache option to control use of a BZ cache from a local JSON file
     Add a --BZ option for filtering BZ marked testcases
@@ -180,7 +180,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     cached_data = None
     if use_bz_cache:
         try:
-            with open(DEFAULT_BZ_CACHE_FILE, 'r') as bz_cache_file:
+            with open(DEFAULT_BZ_CACHE_FILE) as bz_cache_file:
                 LOGGER.info(f'Using BZ cache file for issue collection: {DEFAULT_BZ_CACHE_FILE}')
                 cached_data = {
                     k: search_version_key(k, v) for k, v in json.load(bz_cache_file).items()

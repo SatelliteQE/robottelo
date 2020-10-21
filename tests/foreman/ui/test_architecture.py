@@ -37,7 +37,7 @@ def test_positive_end_to_end(session):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     os = entities.OperatingSystem().create()
-    os_name = '{} {}'.format(os.name, os.major)
+    os_name = f'{os.name} {os.major}'
     with session:
         # Create new architecture with assigned operating system
         session.architecture.create({'name': name, 'operatingsystems.assigned': [os_name]})

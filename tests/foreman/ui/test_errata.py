@@ -71,7 +71,7 @@ pytestmark = [run_in_one_thread]
 
 def _generate_errata_applicability(host_name):
     """Force host to generate errata applicability"""
-    host = entities.Host().search(query={'search': 'name={0}'.format(host_name)})[0].read()
+    host = entities.Host().search(query={'search': f'name={host_name}'})[0].read()
     host.errata_applicability()
 
 
@@ -83,7 +83,7 @@ def _install_client_package(client, package, errata_applicability=False):
     :param errata_applicability: If True, force host to generate errata applicability.
     :returns: whether package installed successfully
     """
-    result = client.run('yum install -y {0}'.format(package))
+    result = client.run(f'yum install -y {package}')
     if errata_applicability:
         _generate_errata_applicability(client.hostname)
     return not result.return_code
@@ -314,7 +314,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
-        search='name = "{0}"'.format(PRDS['rhel']),
+        search='name = "{}"'.format(PRDS['rhel']),
     ).create()
     user_password = gen_string('alphanumeric')
     user = entities.User(
@@ -390,7 +390,7 @@ def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
     with session:
         errata_values = session.errata.read(RHVA_ERRATA_ID)
         assert errata_values['details']['cves']
-        assert set([cve.strip() for cve in errata_values['details']['cves'].split(',')]) == set(
+        assert {cve.strip() for cve in errata_values['details']['cves'].split(',')} == set(
             RHVA_ERRATA_CVES
         )
         errata_values = session.errata.read(CUSTOM_REPO_ERRATA_ID)
@@ -433,9 +433,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
         lce = content_view_version.environment[-1].read()
         new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
         promote(content_view_version, new_lce.id)
-        host = (
-            entities.Host().search(query={'search': 'name={0}'.format(client1.hostname)})[0].read()
-        )
+        host = entities.Host().search(query={'search': f'name={client1.hostname}'})[0].read()
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
             'lifecycle_environment_id': new_lce.id,
@@ -490,16 +488,14 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
     lce = content_view_version.environment[-1].read()
     new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
     promote(content_view_version, new_lce.id)
-    host = entities.Host().search(query={'search': 'name={0}'.format(host_name)})[0].read()
+    host = entities.Host().search(query={'search': f'name={host_name}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
         'lifecycle_environment_id': new_lce.id,
     }
     host.update(['content_facet_attributes'])
     with session:
-        environment = 'Previous Lifecycle Environment ({0}/{1})'.format(
-            lce.name, content_view.name
-        )
+        environment = f'Previous Lifecycle Environment ({lce.name}/{content_view.name})'
         content_host_erratum = session.contenthost.search_errata(
             host_name, CUSTOM_REPO_ERRATA_ID, environment=environment
         )
@@ -535,7 +531,7 @@ def test_positive_content_host_library(session, module_org, vm):
 
 @tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
-    """ Search for errata on a content host's errata tab by type.
+    """Search for errata on a content host's errata tab by type.
 
     :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
 
@@ -593,7 +589,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 @pytest.mark.skip_if_open("BZ:1655130")
 @tier3
 def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
-    """ Read for errata details on a content_host by user with only viewer permission
+    """Read for errata details on a content_host by user with only viewer permission
 
     :id: 236de56f-8035-4072-b0fa-03abbf3fc692
 
@@ -612,9 +608,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
     login = gen_string('alpha')
     password = gen_string('alpha')
     viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})
-    default_loc_id = (
-        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    )
+    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     default_loc = entities.Location(id=default_loc_id).read()
 
     entities.User(
@@ -765,7 +759,7 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
             content_view=content_view, inclusion=False
         ).create()
         errata = entities.Errata(content_view_version=content_view.version[-1]).search(
-            query=dict(search='errata_id="{0}"'.format(CUSTOM_REPO_ERRATA_ID))
+            query=dict(search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"')
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
         content_view.publish()
@@ -808,7 +802,7 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
 
 @tier3
 def test_content_host_errata_search_commands(session, module_org, module_repos_col):
-    """ View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
+    """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
     Library, but Installability is calculated using the attached CV, and is subject to the
     CV's own filtering.

@@ -57,7 +57,7 @@ def virtwho_config(form_data):
 class TestVirtWhoConfigforHyperv:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config deploy"
+        """Verify " hammer virt-who-config deploy"
 
         :id: 7cc0ad4f-e185-4d63-a2f5-1cb0245faa6c
 
@@ -96,7 +96,7 @@ class TestVirtWhoConfigforHyperv:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config fetch"
+        """Verify " hammer virt-who-config fetch"
 
         :id: 22dc8068-c843-4ca0-acbe-0b2aef8ece31
 
@@ -135,7 +135,7 @@ class TestVirtWhoConfigforHyperv:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by hammer virt-who-config update"
+        """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: 8e234492-33cb-4523-abb3-582626ad704c
 

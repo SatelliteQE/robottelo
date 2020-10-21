@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for SSO (CLI)
 
 :Requirement: Sso

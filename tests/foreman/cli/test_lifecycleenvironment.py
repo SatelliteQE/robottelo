@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Host CLI
 
 :Requirement: Lifecycleenvironment
@@ -184,16 +183,15 @@ class LifeCycleEnvironmentPaginationTestCase:
 
     @classmethod
     def setUpClass(cls):
-        """Create organization and lifecycle environments to reuse in tests
-        """
-        super(LifeCycleEnvironmentPaginationTestCase, cls).setUpClass()
+        """Create organization and lifecycle environments to reuse in tests"""
+        super().setUpClass()
         cls.lces_count = 25
         cls.org = make_org()
         env_base_name = gen_string('alpha')
         last_env_name = ENVIRONMENT
         cls.env_names = [last_env_name]
         for env_index in range(cls.lces_count):
-            env_name = '{0}-{1}'.format(env_base_name, env_index)
+            env_name = f'{env_base_name}-{env_index}'
             make_lifecycle_environment(
                 {'name': env_name, 'organization-id': cls.org['id'], 'prior': last_env_name}
             )

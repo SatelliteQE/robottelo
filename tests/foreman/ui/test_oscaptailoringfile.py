@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Tailoring Files
 
 :Requirement: tailoringfiles
@@ -71,7 +70,7 @@ def test_positive_end_to_end(session, tailoring_file_path):
 @tier2
 @pytest.mark.stubbed
 def test_positive_download_tailoring_file():
-    """ Download the tailoring file from satellite
+    """Download the tailoring file from satellite
 
     :id: 906ab1f8-c02c-4197-9c98-01e8b9f2f075
 
@@ -91,7 +90,7 @@ def test_positive_download_tailoring_file():
 @pytest.mark.stubbed
 @tier4
 def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
-    """ End-to-End Oscap run with tailoring files and external capsule
+    """End-to-End Oscap run with tailoring files and external capsule
 
     :id: 5e6e87b1-5f7d-4bbb-9603-eb3a34521d31
 
@@ -119,7 +118,7 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
 @pytest.mark.stubbed
 @tier4
 def test_positive_fetch_tailoring_file_information_from_arfreports():
-    """ Fetch Tailoring file Information from Arf-reports
+    """Fetch Tailoring file Information from Arf-reports
 
     :id: 7412cf34-8271-4c8b-b369-304529e8ee28
 

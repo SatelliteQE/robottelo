@@ -146,29 +146,25 @@ def delete_puppet_class(
     """
     # Find puppet class
     puppet_classes = entities.PuppetClass().search(
-        query={'search': 'name = "{0}"'.format(puppetclass_name)}
+        query={'search': f'name = "{puppetclass_name}"'}
     )
     # And all subclasses
     puppet_classes.extend(
-        entities.PuppetClass().search(query={'search': 'name ~ "{0}::"'.format(puppetclass_name)})
+        entities.PuppetClass().search(query={'search': f'name ~ "{puppetclass_name}::"'})
     )
     for puppet_class in puppet_classes:
         # Search and remove puppet class from affected hostgroups
         for hostgroup in puppet_class.read().hostgroup:
             hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
         # Search and remove puppet class from affected hosts
-        for host in entities.Host().search(
-            query={'search': 'class={0}'.format(puppet_class.name)}
-        ):
+        for host in entities.Host().search(query={'search': f'class={puppet_class.name}'}):
             host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
         # Remove puppet class entity
         puppet_class.delete()
     # And remove puppet module from the system if puppet_module name provided
     if puppet_module and proxy_hostname and environment_name:
-        ssh.command('puppet module uninstall --force {0}'.format(puppet_module))
-        env = entities.Environment().search(
-            query={'search': 'name="{0}"'.format(environment_name)}
-        )[0]
+        ssh.command(f'puppet module uninstall --force {puppet_module}')
+        env = entities.Environment().search(query={'search': f'name="{environment_name}"'})[0]
         proxy = entities.SmartProxy(name=proxy_hostname).search()[0]
         proxy.import_puppetclasses(environment=env)
 
@@ -251,7 +247,7 @@ def one_to_one_names(name):
     :returns: A set including both ``name`` and variations on ``name``.
 
     """
-    return set((name + '_name', name + '_id'))
+    return {name + '_name', name + '_id'}
 
 
 def one_to_many_names(name):
@@ -266,7 +262,7 @@ def one_to_many_names(name):
     :returns: A set including both ``name`` and variations on ``name``.
 
     """
-    return set((name, name + '_ids', Inflector().pluralize(name)))
+    return {name, name + '_ids', Inflector().pluralize(name)}
 
 
 def configure_provisioning(org=None, loc=None, compute=False, os=None):
@@ -316,9 +312,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         entity_mixins.TASK_TIMEOUT = old_task_timeout
     # Search for existing organization puppet environment, otherwise create a
     # new one, associate organization and location where it is appropriate.
-    environments = entities.Environment().search(
-        query=dict(search='organization_id={0}'.format(org.id))
-    )
+    environments = entities.Environment().search(query=dict(search=f'organization_id={org.id}'))
     if len(environments) > 0:
         environment = environments[0].read()
         environment.location.append(loc)
@@ -327,9 +321,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         environment = entities.Environment(organization=[org], location=[loc]).create()
 
     # Search for SmartProxy, and associate location
-    proxy = entities.SmartProxy().search(
-        query={'search': 'name={0}'.format(settings.server.hostname)}
-    )
+    proxy = entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})
     proxy = proxy[0].read()
     proxy.location.append(loc)
     proxy.organization.append(org)
@@ -338,7 +330,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(domain)})
+    domain = entities.Domain().search(query={'search': f'name="{domain}"'})
     if len(domain) == 1:
         domain = domain[0].read()
         domain.location.append(loc)
@@ -352,7 +344,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(query={'search': 'network={0}'.format(network)})
+    subnet = entities.Subnet().search(query={'search': f'network={network}'})
     if len(subnet) == 1:
         subnet = subnet[0].read()
         subnet.domain = [domain]
@@ -387,7 +379,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # compute boolean is added to not block existing test's that depend on
     # Libvirt resource and use this same functionality to all CR's.
     if compute is False:
-        resource_url = 'qemu+ssh://root@{0}/system'.format(
+        resource_url = 'qemu+ssh://root@{}/system'.format(
             settings.compute_resources.libvirt_hostname
         )
         comp_res = [
@@ -413,9 +405,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the Partition table ID
     ptable = (
-        entities.PartitionTable()
-        .search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[0]
-        .read()
+        entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0].read()
     )
     ptable.location.append(loc)
     ptable.organization.append(org)
@@ -427,7 +417,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             entities.OperatingSystem()
             .search(
                 query={
-                    'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                    'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
                         RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
                     )
                 }
@@ -440,8 +430,8 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             .search(
                 query={
                     'search': 'family="Redhat" '
-                    'AND major="{0}" '
-                    'AND minor="{1}")'.format(
+                    'AND major="{}" '
+                    'AND minor="{}")'.format(
                         os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
                     )
                 }
@@ -451,7 +441,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the Provisioning template_ID and update with OS, Org, Location
     provisioning_template = entities.ProvisioningTemplate().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
+        query={'search': f'name="{DEFAULT_TEMPLATE}"'}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.operatingsystem.append(os)
@@ -463,7 +453,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the PXE template ID and update with OS, Org, location
     pxe_template = entities.ProvisioningTemplate().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
+        query={'search': f'name="{DEFAULT_PXE_TEMPLATE}"'}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.operatingsystem.append(os)
@@ -474,7 +464,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Get the arch ID
     arch = (
         entities.Architecture()
-        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
         .read()
     )
 
@@ -551,16 +541,16 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             for name in permissions_name:
                 result = entities.Permission().search(query={'search': f'name="{name}"'})
                 if not result:
-                    raise entities.APIResponseError('permission "{}" not found'.format(name))
+                    raise entities.APIResponseError(f'permission "{name}" not found')
                 if len(result) > 1:
                     raise entities.APIResponseError(
-                        'found more than one entity for permission "{}"'.format(name)
+                        f'found more than one entity for permission "{name}"'
                     )
                 entity_permission = result[0]
                 if entity_permission.name != name:
                     raise entities.APIResponseError(
                         'the returned permission is different from the'
-                        ' requested one "{0} != {1}"'.format(entity_permission.name, name)
+                        ' requested one "{} != {}"'.format(entity_permission.name, name)
                     )
                 permissions_entities.append(entity_permission)
         else:
@@ -575,7 +565,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             )
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(
-                    'resource type "{}" permissions not found'.format(resource_type)
+                    f'resource type "{resource_type}" permissions not found'
                 )
 
             permissions_entities = [
@@ -589,7 +579,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
             not_found_names = set(permissions_name).difference(permissions_entities_names)
             if not_found_names:
                 raise entities.APIResponseError(
-                    'permissions names entities not found "{}"'.format(not_found_names)
+                    f'permissions names entities not found "{not_found_names}"'
                 )
         entities.Filter(permission=permissions_entities, role=role, search=search).create()
 
@@ -618,7 +608,7 @@ def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None, po
         else:
             time.sleep(search_rate)
     else:
-        raise AssertionError("No task was found using query '{}'".format(search_query))
+        raise AssertionError(f"No task was found using query '{search_query}'")
     return tasks
 
 
@@ -634,7 +624,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     if repo_name:
         repo_backend_id = (
             entities.Repository()
-            .search(query={'search': 'name="{0}"'.format(repo_name), 'per_page': 1000})[0]
+            .search(query={'search': f'name="{repo_name}"', 'per_page': 1000})[0]
             .backend_identifier
         )
     # Fetch the Pulp password
@@ -647,30 +637,26 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     filtered_req = {
         'criteria': {
             'filters': {
-                'tags': {'$in': ["pulp:repository:{0}".format(repo_backend_id)]},
+                'tags': {'$in': [f"pulp:repository:{repo_backend_id}"]},
                 'task_type': {'$in': ["pulp.server.managers.repo.sync.sync"]},
             }
         }
     }
     while True:
         if time.time() > timeup:
-            raise entities.APIResponseError(
-                'Pulp task with repo_id {0} not found'.format(repo_backend_id)
-            )
+            raise entities.APIResponseError(f'Pulp task with repo_id {repo_backend_id} not found')
         # Send request to pulp API to get the task info
         req = request(
             'POST',
-            '{0}/pulp/api/v2/tasks/search/'.format(settings.server.get_url()),
+            f'{settings.server.get_url()}/pulp/api/v2/tasks/search/',
             verify=False,
-            auth=('admin', '{0}'.format(pulp_pass)),
+            auth=('admin', f'{pulp_pass}'),
             headers={'content-type': 'application/json'},
             data=filtered_req,
         )
         # Check Status code of response
         if req.status_code != 200:
-            raise entities.APIResponseError(
-                'Pulp task with repo_id {0} not found'.format(repo_backend_id)
-            )
+            raise entities.APIResponseError(f'Pulp task with repo_id {repo_backend_id} not found')
         # Check content of response
         # It is '[]' string for empty content when backend_identifier is wrong
         if len(req.content) > 2:
@@ -678,8 +664,8 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
                 return True
             elif req.json()[0].get('error'):
                 raise AssertionError(
-                    "Pulp task with repo_id {0} errored or not "
-                    "found: '{1}'".format(repo_backend_id, req.json().get('error'))
+                    "Pulp task with repo_id {} errored or not "
+                    "found: '{}'".format(repo_backend_id, req.json().get('error'))
                 )
         time.sleep(2)
 
@@ -733,7 +719,7 @@ def wait_for_errata_applicability_task(
         time.sleep(search_rate)
     else:
         raise AssertionError(
-            "No task was found using query '{}' for host '{}'".format(search_query, host_id)
+            f"No task was found using query '{search_query}' for host '{host_id}'"
         )
 
 
@@ -774,7 +760,7 @@ def update_vm_host_location(vm_client, location_id):
     :param vm_client: A subscribed Virtual Machine client instance.
     :param location_id: The location id to update the vm_client host with.
     """
-    host = entities.Host().search(query={'search': 'name={0}'.format(vm_client.hostname)})[0]
+    host = entities.Host().search(query={'search': f'name={vm_client.hostname}'})[0]
     host.location = entities.Location(id=location_id)
     host.update(['location'])
 
@@ -786,7 +772,7 @@ def check_create_os_with_title(os_title):
     :return: Created or found OS
     """
     # Check if OS that image needs is present or no, If not create the OS
-    result = entities.OperatingSystem().search(query={'search': 'title="{0}"'.format(os_title)})
+    result = entities.OperatingSystem().search(query={'search': f'title="{os_title}"'})
     if result:
         os = result[0]
     else:
@@ -803,10 +789,8 @@ def attach_custom_product_subscription(prod_name=None, host_name=None):
     :param str prod_name: custom product name
     :param str host_name: client host name
     """
-    host = entities.Host().search(query={'search': '{0}'.format(host_name)})[0]
-    product_subscription = entities.Subscription().search(
-        query={'search': 'name={0}'.format(prod_name)}
-    )[0]
+    host = entities.Host().search(query={'search': f'{host_name}'})[0]
+    product_subscription = entities.Subscription().search(query={'search': f'name={prod_name}'})[0]
     entities.HostSubscription(host=host.id).add_subscriptions(
         data={'subscriptions': [{'id': product_subscription.id, 'quantity': 1}]}
     )
@@ -852,7 +836,7 @@ def update_provisioning_template(name=None, old=None, new=None):
     """
     temp = (
         entities.ProvisioningTemplate()
-        .search(query={'per_page': 1000, 'search': 'name="{}"'.format(name)})[0]
+        .search(query={'per_page': 1000, 'search': f'name="{name}"'})[0]
         .read()
     )
     if old in temp.template:
@@ -863,7 +847,7 @@ def update_provisioning_template(name=None, old=None, new=None):
     elif new in temp.template:
         return True
     else:
-        raise ValueError('{} does not exists in template {}'.format(old, name))
+        raise ValueError(f'{old} does not exists in template {name}')
 
 
 def apply_package_filter(content_view, repo, package, inclusion=True):
@@ -955,7 +939,7 @@ def set_hammer_api_timeout(timeout=-1, reverse=False):
     :return: ssh.command
     """
     default_timeout = ':request_timeout: {}'.format(120)
-    new_timeout = ':request_timeout: {}'.format(timeout)
+    new_timeout = f':request_timeout: {timeout}'
     if not reverse:
         return ssh.command(
             "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(

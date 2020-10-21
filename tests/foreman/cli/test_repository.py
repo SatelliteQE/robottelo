@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Repository CLI
 
 :Requirement: Repository
@@ -98,7 +97,7 @@ class RepositoryTestCase(CLITestCase):
     def setUp(self):
         """Tests for Repository via Hammer CLI"""
 
-        super(RepositoryTestCase, self).setUp()
+        super().setUp()
 
         if RepositoryTestCase.org is None:
             RepositoryTestCase.org = make_org(cached=True)
@@ -1493,19 +1492,17 @@ class RepositoryTestCase(CLITestCase):
         """
         new_repo = self._make_repository({'name': gen_string('alpha')})
         ssh.upload_file(
-            local_file=get_data_file(RPM_TO_UPLOAD), remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+            local_file=get_data_file(RPM_TO_UPLOAD), remote_file=f"/tmp/{RPM_TO_UPLOAD}"
         )
         result = Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+                'path': f"/tmp/{RPM_TO_UPLOAD}",
                 'product-id': new_repo['product']['id'],
             }
         )
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD), result[0]['message']
-        )
+        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
 
     @tier1
     def test_positive_upload_content_to_file_repo(self):
@@ -1528,18 +1525,18 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(int(new_repo['content-counts']['files']), CUSTOM_FILE_REPO_FILES_COUNT)
         ssh.upload_file(
             local_file=get_data_file(OS_TEMPLATE_DATA_FILE),
-            remote_file="/tmp/{0}".format(OS_TEMPLATE_DATA_FILE),
+            remote_file=f"/tmp/{OS_TEMPLATE_DATA_FILE}",
         )
         result = Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(OS_TEMPLATE_DATA_FILE),
+                'path': f"/tmp/{OS_TEMPLATE_DATA_FILE}",
                 'product-id': new_repo['product']['id'],
             }
         )
         self.assertIn(
-            "Successfully uploaded file '{0}'".format(OS_TEMPLATE_DATA_FILE), result[0]['message']
+            f"Successfully uploaded file '{OS_TEMPLATE_DATA_FILE}'", result[0]['message']
         )
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(
@@ -1612,9 +1609,9 @@ class RepositoryTestCase(CLITestCase):
         user_name = gen_alphanumeric()
         user_password = gen_alphanumeric()
         # Generate a product name that is not like Test_* or rhel7*
-        product_name = 'zoo_{0}'.format(gen_string('alpha', 20))
+        product_name = 'zoo_{}'.format(gen_string('alpha', 20))
         # Generate a content view name like Test_*
-        content_view_name = 'Test_{0}'.format(gen_string('alpha', 20))
+        content_view_name = 'Test_{}'.format(gen_string('alpha', 20))
         # Create an organization
         org = make_org()
         # Create a non admin user, for the moment without any permissions
@@ -1711,19 +1708,19 @@ class RepositoryTestCase(CLITestCase):
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(
-            local_file=get_data_file(SRPM_TO_UPLOAD), remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
+            local_file=get_data_file(SRPM_TO_UPLOAD), remote_file=f"/tmp/{SRPM_TO_UPLOAD}"
         )
         # Upload SRPM
         result = Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
+                'path': f"/tmp/{SRPM_TO_UPLOAD}",
                 'product-id': new_repo['product']['id'],
                 'content-type': 'srpm',
             }
         )
-        assert "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD) in result[0]['message']
+        assert f"Successfully uploaded file '{SRPM_TO_UPLOAD}'" in result[0]['message']
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 1
 
         # Remove uploaded SRPM
@@ -1754,14 +1751,14 @@ class RepositoryTestCase(CLITestCase):
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(
-            local_file=get_data_file(SRPM_TO_UPLOAD), remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
+            local_file=get_data_file(SRPM_TO_UPLOAD), remote_file=f"/tmp/{SRPM_TO_UPLOAD}"
         )
         # Upload SRPM
         Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
+                'path': f"/tmp/{SRPM_TO_UPLOAD}",
                 'product-id': new_repo['product']['id'],
                 'content-type': 'srpm',
             }
@@ -1889,19 +1886,19 @@ class RepositoryTestCase(CLITestCase):
     def test_module_stream_list_validation(self):
         """Check module-stream get with list on hammer.
 
-         :id: 9842a0c3-8532-4b16-a00a-534fc3b0a776ff89f23e-cd00-4d20-84d3-add0ea24abf8
+        :id: 9842a0c3-8532-4b16-a00a-534fc3b0a776ff89f23e-cd00-4d20-84d3-add0ea24abf8
 
-         :Setup:
-             1. valid yum repo with Module Streams.
-         :Steps:
-             1. Create Yum Repositories with url contain module-streams and Products
-             2. Initialize synchronization
-             3. Verify the module-stream list with various inputs options
+        :Setup:
+            1. valid yum repo with Module Streams.
+        :Steps:
+            1. Create Yum Repositories with url contain module-streams and Products
+            2. Initialize synchronization
+            3. Verify the module-stream list with various inputs options
 
-         :expectedresults: Verify the module-stream list response.
+        :expectedresults: Verify the module-stream list response.
 
-         :CaseAutomation: automated
-         """
+        :CaseAutomation: automated
+        """
         repo1 = self._make_repository({'content-type': 'yum', 'url': CUSTOM_MODULE_STREAM_REPO_1})
         Repository.synchronize({'id': repo1['id']})
         product2 = make_product_wait({'organization-id': self.org['id']})
@@ -1922,19 +1919,19 @@ class RepositoryTestCase(CLITestCase):
     def test_module_stream_info_validation(self):
         """Check module-stream get with info on hammer.
 
-         :id: ddbeb49e-d292-4dc4-8fb9-e9b768acc441a2c2e797-02b7-4b12-9f95-cffc93254198
+        :id: ddbeb49e-d292-4dc4-8fb9-e9b768acc441a2c2e797-02b7-4b12-9f95-cffc93254198
 
-         :Setup:
-             1. valid yum repo with Module Streams.
-         :Steps:
-             1. Create Yum Repositories with url contain module-streams
-             2. Initialize synchronization
-             3. Verify the module-stream info with various inputs options
+        :Setup:
+            1. valid yum repo with Module Streams.
+        :Steps:
+            1. Create Yum Repositories with url contain module-streams
+            2. Initialize synchronization
+            3. Verify the module-stream info with various inputs options
 
-         :expectedresults: Verify the module-stream info response.
+        :expectedresults: Verify the module-stream info response.
 
-         :CaseAutomation: automated
-         """
+        :CaseAutomation: automated
+        """
         product2 = make_product_wait({'organization-id': self.org['id']})
         repo2 = self._make_repository(
             {
@@ -1966,7 +1963,7 @@ class OstreeRepositoryTestCase(CLITestCase):
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(OstreeRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
@@ -2126,7 +2123,7 @@ class SRPMRepositoryTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(SRPMRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
@@ -2212,7 +2209,7 @@ class DRPMRepositoryTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(DRPMRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
@@ -2515,7 +2512,7 @@ class FileRepositoryTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(FileRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
@@ -2539,23 +2536,21 @@ class FileRepositoryTestCase(CLITestCase):
             {'content-type': 'file', 'product-id': self.product['id'], 'url': CUSTOM_FILE_REPO}
         )
         ssh.upload_file(
-            local_file=get_data_file(RPM_TO_UPLOAD), remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+            local_file=get_data_file(RPM_TO_UPLOAD), remote_file=f"/tmp/{RPM_TO_UPLOAD}"
         )
         result = Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+                'path': f"/tmp/{RPM_TO_UPLOAD}",
                 'product-id': new_repo['product']['id'],
             }
         )
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD), result[0]['message']
-        )
+        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
         repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(repo['content-counts']['files'], '1')
         filesearch = entities.File().search(
-            query={"search": "name={0} and repository={1}".format(RPM_TO_UPLOAD, new_repo['name'])}
+            query={"search": "name={} and repository={}".format(RPM_TO_UPLOAD, new_repo['name'])}
         )
         self.assertEqual(RPM_TO_UPLOAD, filesearch[0].name)
 
@@ -2601,19 +2596,17 @@ class FileRepositoryTestCase(CLITestCase):
             {'content-type': 'file', 'product-id': self.product['id'], 'url': CUSTOM_FILE_REPO}
         )
         ssh.upload_file(
-            local_file=get_data_file(RPM_TO_UPLOAD), remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+            local_file=get_data_file(RPM_TO_UPLOAD), remote_file=f"/tmp/{RPM_TO_UPLOAD}"
         )
         result = Repository.upload_content(
             {
                 'name': new_repo['name'],
                 'organization': new_repo['organization'],
-                'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
+                'path': f"/tmp/{RPM_TO_UPLOAD}",
                 'product-id': new_repo['product']['id'],
             }
         )
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD), result[0]['message']
-        )
+        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
         repo = Repository.info({'id': new_repo['id']})
         self.assertGreater(int(repo['content-counts']['files']), 0)
         files = File.list({'repository-id': repo['id']})
@@ -2675,16 +2668,16 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # Making Setup For Creating Local Directory using Pulp Manifest
-        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command(f"mkdir -p {CUSTOM_LOCAL_FOLDER}")
         ssh.command(
-            'wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
-            '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO)
+            'wget -P {} -r -np -nH --cut-dirs=5 -R "index.html*" '
+            '{}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO)
         )
         repo = make_repository(
             {
                 'content-type': 'file',
                 'product-id': self.product['id'],
-                'url': 'file://{0}'.format(CUSTOM_LOCAL_FOLDER),
+                'url': f'file://{CUSTOM_LOCAL_FOLDER}',
             }
         )
         Repository.synchronize({'id': repo['id']})
@@ -2713,18 +2706,18 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseAutomation: automated
         """
         # Downloading the pulp repository into Satellite Host
-        ssh.command("mkdir -p {}".format(CUSTOM_LOCAL_FOLDER))
+        ssh.command(f"mkdir -p {CUSTOM_LOCAL_FOLDER}")
         ssh.command(
-            'wget -P {0} -r -np -nH --cut-dirs=5 -R "index.html*" '
-            '{1}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO)
+            'wget -P {} -r -np -nH --cut-dirs=5 -R "index.html*" '
+            '{}'.format(CUSTOM_LOCAL_FOLDER, CUSTOM_FILE_REPO)
         )
-        ssh.command("ln -s {0} /{1}".format(CUSTOM_LOCAL_FOLDER, gen_string('alpha')))
+        ssh.command("ln -s {} /{}".format(CUSTOM_LOCAL_FOLDER, gen_string('alpha')))
 
         repo = make_repository(
             {
                 'content-type': 'file',
                 'product-id': self.product['id'],
-                'url': 'file://{0}'.format(CUSTOM_LOCAL_FOLDER),
+                'url': f'file://{CUSTOM_LOCAL_FOLDER}',
             }
         )
         Repository.synchronize({'id': repo['id']})

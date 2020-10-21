@@ -86,9 +86,7 @@ class BaseCliTestCase(unittest2.TestCase):
         response.return_code = 0
         response.stderr = ['not empty']
         assert response.stdout == base._handle_response(response)
-        warning.assert_called_once_with(
-            'stderr contains following message:\n{}'.format(response.stderr)
-        )
+        warning.assert_called_once_with(f'stderr contains following message:\n{response.stderr}')
         warning.reset_mock()
         assert response.stdout == base._handle_response(response, True)
         assert not warning.called, 'Should not be called when ignore_stderr is True'

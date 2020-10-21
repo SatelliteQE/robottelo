@@ -92,13 +92,13 @@ class SyncPlanTestCase(APITestCase):
         org = entities.Organization().create()
         entities.SyncPlan(organization=org).create()
         response1 = client.get(
-            '{0}/katello/api/v2/sync_plans'.format(settings.server.get_url()),
+            f'{settings.server.get_url()}/katello/api/v2/sync_plans',
             auth=settings.server.get_credentials(),
             data={'organization_id': org.id},
             verify=False,
         )
         response2 = client.get(
-            '{0}/katello/api/v2/organizations/{1}/sync_plans'.format(
+            '{}/katello/api/v2/organizations/{}/sync_plans'.format(
                 settings.server.get_url(), org.id
             ),
             auth=settings.server.get_credentials(),
@@ -115,7 +115,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(SyncPlanCreateTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -182,7 +182,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 description=gen_string('alpha'), organization=self.org, interval=interval
             )
             if interval == SYNC_INTERVAL['custom']:
-                sync_plan.cron_expression = gen_choice((valid_cron_expressions()))
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
             sync_plan = sync_plan.create()
             self.assertEqual(sync_plan.interval, interval)
 
@@ -257,7 +257,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(SyncPlanUpdateTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -430,7 +430,7 @@ class SyncPlanProductTestCase(APITestCase):
         """Create an organization and products which can be re-used in
         tests.
         """
-        super(SyncPlanProductTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier2
@@ -470,8 +470,8 @@ class SyncPlanProductTestCase(APITestCase):
         syncplan = syncplan.read()
         self.assertEqual(len(syncplan.product), 2)
         self.assertEqual(
-            set((product.id for product in products)),
-            set((product.id for product in syncplan.product)),
+            {product.id for product in products},
+            {product.id for product in syncplan.product},
         )
 
     @tier2
@@ -541,14 +541,14 @@ class SyncPlanProductTestCase(APITestCase):
     @tier2
     def test_positive_add_remove_products_custom_cron(self):
         """Create a sync plan with two products having custom cron interval
-         and then remove both products from it.
+        and then remove both products from it.
 
-         :id: 5ce34eaa-3574-49ba-ab02-aa25515394aa
+        :id: 5ce34eaa-3574-49ba-ab02-aa25515394aa
 
-         :expectedresults: A sync plan can be created and both products can be
-            removed from it.
+        :expectedresults: A sync plan can be created and both products can be
+           removed from it.
 
-         :CaseLevel: Integration
+        :CaseLevel: Integration
         """
         cron_expression = gen_choice(valid_cron_expressions())
 
@@ -568,7 +568,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(SyncPlanSynchronizeTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @staticmethod
@@ -672,7 +672,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -682,7 +682,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait until the next recurrence
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -722,7 +722,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -732,7 +732,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -774,14 +774,14 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         ).create()
         sync_plan.add_products(data={'product_ids': [product.id for product in products]})
         # Wait quarter of expected time
-        self.logger.info('Waiting {0} seconds to check products were not synced'.format(delay / 4))
+        self.logger.info('Waiting {} seconds to check products were not synced'.format(delay / 4))
         sleep(delay / 4)
         # Verify products has not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
                 self.validate_task_status(repo.id, max_tries=1)
         # Wait the rest of expected time
-        self.logger.info('Waiting {0} seconds to check products were synced'.format(delay * 3 / 4))
+        self.logger.info('Waiting {} seconds to check products were synced'.format(delay * 3 / 4))
         sleep(delay * 3 / 4)
         # Verify product was synced successfully
         for repo in repos:
@@ -830,7 +830,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -840,7 +840,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait until the next recurrence
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -893,7 +893,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -903,7 +903,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -936,7 +936,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -946,7 +946,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -981,7 +981,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait quarter of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was not synced'.format(delay / 4, product.name)
         )
         sleep(delay / 4)
@@ -991,7 +991,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info(
-            'Waiting {0} seconds to check product {1}'
+            'Waiting {} seconds to check product {}'
             ' was synced'.format((delay * 3 / 4), product.name)
         )
         sleep(delay * 3 / 4)
@@ -1006,7 +1006,7 @@ class SyncPlanDeleteTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(SyncPlanDeleteTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier2
@@ -1082,7 +1082,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         sync_plan = entities.SyncPlan(
             organization=self.org,
             interval='custom cron',
-            cron_expression=gen_choice((valid_cron_expressions())),
+            cron_expression=gen_choice(valid_cron_expressions()),
         ).create()
         product = entities.Product(organization=self.org).create()
         entities.Repository(product=product).create()

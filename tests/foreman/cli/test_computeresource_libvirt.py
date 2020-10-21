@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Usage::
 
     hammer compute_resource [OPTIONS] SUBCOMMAND [ARG] ...
@@ -59,8 +58,8 @@ def valid_name_desc_data():
         {'name': gen_string('alphanumeric'), 'description': gen_string('alphanumeric', 255)},
         {'name': gen_string('utf8'), 'description': gen_string('utf8')},
         {
-            'name': '<html>{0}</html>'.format(gen_string('alpha')),
-            'description': '<html>{0}</html>'.format(gen_string('alpha')),
+            'name': '<html>{}</html>'.format(gen_string('alpha')),
+            'description': '<html>{}</html>'.format(gen_string('alpha')),
         },
         {
             'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
@@ -108,7 +107,7 @@ class ComputeResourceTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('compute_resources')
     def setUpClass(cls):
-        super(ComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.current_libvirt_url = (
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
@@ -127,7 +126,7 @@ class ComputeResourceTestCase(CLITestCase):
         """
         ComputeResource.create(
             {
-                'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+                'name': 'cr {}'.format(gen_string(str_type='alpha')),
                 'provider': 'Libvirt',
                 'url': self.current_libvirt_url,
             }

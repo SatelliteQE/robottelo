@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Users CLI
 
 :Requirement: Myaccount
@@ -75,13 +74,13 @@ class MyAccountTestCase(CLITestCase):
         """Create a new user for all myaccount tests to not impact the default
         user.
         """
-        super(MyAccountTestCase, cls).setUpClass()
+        super().setUpClass()
         _create_test_user(cls)
 
     @classmethod
     def tearDownClass(cls):
         """Delete user created for tests"""
-        super(MyAccountTestCase, cls).tearDownClass()
+        super().tearDownClass()
         _delete_test_user(cls)
 
     @classmethod
@@ -136,7 +135,7 @@ class MyAccountTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        email = '{0}@example.com'.format(gen_string('alphanumeric'))
+        email = '{}@example.com'.format(gen_string('alphanumeric'))
         self.update_user({'mail': email})
         result = self.user_info()
         self.assertEqual(result['email'], email)
@@ -230,12 +229,12 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
         """Create a new user for each test to not impact the default
         user.
         """
-        super(MyAccountEphemeralUserTestCase, self).setUp()
+        super().setUp()
         _create_test_user(self)
 
     def tearDown(self):
         """Delete user created on each test"""
-        super(MyAccountEphemeralUserTestCase, self).tearDown()
+        super().tearDown()
         _delete_test_user(self)
 
     def update_user(self, options=None):

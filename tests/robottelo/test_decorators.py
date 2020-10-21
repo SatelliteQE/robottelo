@@ -130,7 +130,7 @@ class TestSkipIfNotSet:
         """Skip setUp method if configuration is missing."""
         settings.clients.validate.side_effect = ['Validation error']
 
-        class MyTestCase(object):
+        class MyTestCase:
             @decorators.skip_if_not_set('clients')
             def setUp(self):
                 pass
@@ -143,7 +143,7 @@ class TestSkipIfNotSet:
         """Skip setUpClass method if configuration is missing."""
         settings.clients.validate.side_effect = ['Validation error']
 
-        class MyTestCase(object):
+        class MyTestCase:
             @classmethod
             @decorators.skip_if_not_set('clients')
             def setUpClass(cls):

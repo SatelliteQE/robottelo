@@ -208,10 +208,7 @@ def test_positive_search_scoped(session):
     with session:
         session.organization.select(org.name)
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:
-            assert (
-                session.syncplan.search('{} = {}'.format(query_type, query_value))[0]['Name']
-                == name
-            )
+            assert session.syncplan.search(f'{query_type} = {query_value}')[0]['Name'] == name
         assert name not in session.syncplan.search('enabled = false')
 
 
@@ -237,7 +234,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         next_sync = 3 * 60
         # forming cron expression sync repo after 3 min
         expected_next_run_time = start_date + timedelta(seconds=next_sync)
-        cron_expression = '{} * * * *'.format(expected_next_run_time.minute)
+        cron_expression = f'{expected_next_run_time.minute} * * * *'
         session.syncplan.create(
             {
                 'name': plan_name,

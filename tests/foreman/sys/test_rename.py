@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for ``katello-change-hostname``
 
 :Requirement: katello-change-hostname
@@ -71,13 +70,13 @@ class TestRenameHost:
         password = settings.server.admin_password
         with get_connection() as connection:
             old_hostname = connection.run('hostname').stdout[0]
-            new_hostname = 'new-{0}'.format(old_hostname)
+            new_hostname = f'new-{old_hostname}'
             # create installation medium with hostname in path
-            medium_path = 'http://{0}/testpath-{1}/os/'.format(old_hostname, gen_string('alpha'))
+            medium_path = 'http://{}/testpath-{}/os/'.format(old_hostname, gen_string('alpha'))
             medium = entities.Media(organization=[module_org], path_=medium_path).create()
             repo = entities.Repository(product=module_product, name='testrepo').create()
             result = connection.run(
-                'satellite-change-hostname {0} -y -u {1} -p {2}'.format(
+                'satellite-change-hostname {} -y -u {} -p {}'.format(
                     new_hostname, username, password
                 ),
                 timeout=1200,
@@ -100,12 +99,12 @@ class TestRenameHost:
                 output_format='json',
             )
             assert result.return_code == 0, 'internal capsule not renamed correctly'
-            assert result.stdout['url'] == "https://{}:9090".format(new_hostname)
+            assert result.stdout['url'] == f"https://{new_hostname}:9090"
             # check old consumer certs were deleted
-            result = connection.run('rpm -qa | grep ^{}'.format(old_hostname))
+            result = connection.run(f'rpm -qa | grep ^{old_hostname}')
             assert result.return_code == 1, 'old consumer certificates not removed'
             # check new consumer certs were created
-            result = connection.run('rpm -qa | grep ^{}'.format(new_hostname))
+            result = connection.run(f'rpm -qa | grep ^{new_hostname}')
             assert result.return_code == 0, 'new consumer certificates not created'
             # check if installation media paths were updated
             result = connection.run(
@@ -119,7 +118,7 @@ class TestRenameHost:
             assert new_hostname in result.stdout['path'], 'medium path not updated correctly'
             # check answer file for instances of old hostname
             ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-            result = connection.run('grep " {0}" {1}'.format(old_hostname, ans_f))
+            result = connection.run(f'grep " {old_hostname}" {ans_f}')
             assert (
                 result.return_code == 1
             ), 'old hostname was not correctly replaced in answers.yml'
@@ -162,7 +161,7 @@ class TestRenameHost:
             hostname = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y \
-                        {0} -u {1} -p {2}'.format(
+                        {} -u {} -p {}'.format(
                     hostname, username, password
                 ),
                 output_format='plain',
@@ -189,7 +188,7 @@ class TestRenameHost:
             original_name = connection.run('hostname').stdout[0]
             hostname = gen_string('alpha')
             result = connection.run(
-                'satellite-change-hostname -y {0}'.format(hostname), output_format='plain'
+                f'satellite-change-hostname -y {hostname}', output_format='plain'
             )
             assert result.return_code == 1
             assert NO_CREDS_MSG in result.stdout
@@ -212,11 +211,11 @@ class TestRenameHost:
         username = settings.server.admin_username
         with get_connection() as connection:
             original_name = connection.run('hostname').stdout[0]
-            new_hostname = 'new-{0}'.format(original_name)
+            new_hostname = f'new-{original_name}'
             password = gen_string('alpha')
             result = connection.run(
                 'satellite-change-hostname -y \
-                        {0} -u {1} -p {2}'.format(
+                        {} -u {} -p {}'.format(
                     new_hostname, username, password
                 ),
                 output_format='plain',
@@ -260,9 +259,9 @@ class TestRenameHost:
         with get_connection() as connection:
             hostname = gen_string('alpha')
             result = connection.run(
-                'satellite-change-hostname -y -u {0} -p {1}\
+                'satellite-change-hostname -y -u {} -p {}\
                         --disable-system-checks\
-                        --scenario capsule {2}'.format(
+                        --scenario capsule {}'.format(
                     username, password, hostname
                 ),
                 output_format='plain',

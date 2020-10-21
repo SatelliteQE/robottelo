@@ -77,7 +77,7 @@ def test_cli_repository_method_called(mocker, command_sub):
 @pytest.mark.parametrize('command_sub', ['info', 'create'])
 def test_cli_repository_info_and_create(mocker, command_sub):
     """Check Repository info and create are called"""
-    execute = mocker.patch('robottelo.cli.base.Base.{0}'.format(command_sub))
+    execute = mocker.patch(f'robottelo.cli.base.Base.{command_sub}')
     options = {'foo': 'bar'}
     assert execute.return_value == getattr(Repository, command_sub.replace('-', '_'))(options)
 

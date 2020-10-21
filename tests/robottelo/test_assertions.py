@@ -192,8 +192,7 @@ class APIAssertNotRaisesTestCase(APITestCase):
 
 
 class CLIAssertNotRaisesTestCase(CLITestCase):
-    """CLI specific tests for :meth:`robottelo.test.TestCase.assertNotRaises`.
-    """
+    """CLI specific tests for :meth:`robottelo.test.TestCase.assertNotRaises`."""
 
     @classmethod
     def setUpClass(cls):

@@ -141,7 +141,7 @@ class TestAzureRMComputeResourceTestCase:
         ],
     )
     def test_positive_image_crud(self, default_architecture, module_azurerm_cr, default_os, image):
-        """ Finish template/Cloud_init image along with username is being Create, Read, Update and
+        """Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
@@ -301,9 +301,7 @@ class TestAzureRMComputeResourceTestCase:
 
 @run_in_one_thread
 class TestAzureRm_FinishTemplate_Provisioning:
-    """ AzureRM Host Provisioning Tests
-
-    """
+    """AzureRM Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_finishimg):
@@ -426,9 +424,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
 
 @run_in_one_thread
 class TestAzureRm_UserData_Provisioning:
-    """ AzureRM Host Provisioning Tests
-
-    """
+    """AzureRM Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_cloudimg):
@@ -555,9 +551,7 @@ class TestAzureRm_UserData_Provisioning:
 
 @run_in_one_thread
 class TestAzureRm_BYOS_FinishTemplate_Provisioning:
-    """ AzureRM Host Provisioning Test with BYOS Image
-
-    """
+    """AzureRM Host Provisioning Test with BYOS Image"""
 
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(

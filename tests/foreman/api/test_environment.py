@@ -32,8 +32,7 @@ from robottelo.test import APITestCase
 
 @filtered_datapoint
 def valid_data_list():
-    """Return a list of various kinds of valid strings for Environment entity
-    """
+    """Return a list of various kinds of valid strings for Environment entity"""
     return [gen_string('alpha'), gen_string('numeric'), gen_string('alphanumeric')]
 
 
@@ -42,7 +41,7 @@ class EnvironmentTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(EnvironmentTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
 
@@ -185,7 +184,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an ``Environment``."""
-        super(MissingAttrEnvironmentTestCase, cls).setUpClass()
+        super().setUpClass()
         env = entities.Environment().create()
         cls.env_attrs = set(env.update_json([]).keys())
 
@@ -204,7 +203,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         """
         names = one_to_many_names('location')
         self.assertGreaterEqual(
-            len(names & self.env_attrs), 1, 'None of {0} are in {1}'.format(names, self.env_attrs)
+            len(names & self.env_attrs), 1, f'None of {names} are in {self.env_attrs}'
         )
 
     @tier2
@@ -222,5 +221,5 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         """
         names = one_to_many_names('organization')
         self.assertGreaterEqual(
-            len(names & self.env_attrs), 1, 'None of {0} are in {1}'.format(names, self.env_attrs)
+            len(names & self.env_attrs), 1, f'None of {names} are in {self.env_attrs}'
         )

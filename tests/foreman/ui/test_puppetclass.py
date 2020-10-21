@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Puppet Classes UI
 
 :Requirement: Puppetclass
@@ -67,9 +66,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # Make an attempt to delete puppet class that associated with host group
         with raises(AssertionError) as context:
             session.puppetclass.delete(name)
-        assert "error: '{} is used by {}'".format(puppet_class.name, hostgroup.name) in str(
-            context.value
-        )
+        assert f"error: '{puppet_class.name} is used by {hostgroup.name}'" in str(context.value)
         # Unassign puppet class from host group
         session.puppetclass.update(
             puppet_class.name, {'puppet_class.host_group.unassigned': [hostgroup.name]}

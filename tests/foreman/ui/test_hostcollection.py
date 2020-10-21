@@ -121,7 +121,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
             update_vm_host_location(client, module_loc.id)
         smart_proxy = (
             entities.SmartProxy()
-            .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+            .search(query={'search': f'name={settings.server.hostname}'})[0]
             .read()
         )
         smart_proxy.location.append(entities.Location(id=module_loc.id))
@@ -132,7 +132,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
 @fixture
 def vm_host_collection(module_org, vm_content_hosts):
     host_ids = [
-        entities.Host().search(query={'search': 'name={0}'.format(host.hostname)})[0].id
+        entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts
     ]
     host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
@@ -142,7 +142,7 @@ def vm_host_collection(module_org, vm_content_hosts):
 @fixture
 def vm_host_collection_module_stream(module_org, vm_content_hosts_module_stream):
     host_ids = [
-        entities.Host().search(query={'search': 'name={0}'.format(host.hostname)})[0].id
+        entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
         for host in vm_content_hosts_module_stream
     ]
     host_collection = entities.HostCollection(host=host_ids, organization=module_org).create()
@@ -168,7 +168,7 @@ def _is_package_installed(
         installed = len(vm_clients)
     for vm_client in vm_clients:
         for ind in range(retries):
-            result = vm_client.run('rpm -q {0}'.format(package_name))
+            result = vm_client.run(f'rpm -q {package_name}')
             if result.return_code == 0 and expect_installed:
                 installed += 1
                 break
@@ -189,7 +189,7 @@ def _is_package_installed(
 def _install_package_with_assertion(vm_clients, package_name):
     """Install package in Virtual machine clients and assert installed"""
     for client in vm_clients:
-        result = client.run('yum install -y {0}'.format(package_name))
+        result = client.run(f'yum install -y {package_name}')
         assert result.return_code == 0
     assert _is_package_installed(vm_clients, package_name)
 
@@ -480,7 +480,7 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
     :CaseLevel: System
     """
     for client in vm_content_hosts:
-        result = client.run('yum groups install -y {0}'.format(FAKE_0_CUSTOM_PACKAGE_GROUP_NAME))
+        result = client.run(f'yum groups install -y {FAKE_0_CUSTOM_PACKAGE_GROUP_NAME}')
         assert result.return_code == 0
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
         assert _is_package_installed(vm_content_hosts, package)

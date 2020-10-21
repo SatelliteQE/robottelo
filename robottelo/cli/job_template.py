@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage:
     hammer job-template [OPTIONS] SUBCOMMAND [ARG] ...

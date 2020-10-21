@@ -45,12 +45,11 @@ class scenario_positive_hostgroup(APITestCase):
         cls.os_name = 'pre_upgrade_hostgrp_os'
         cls.domain_name = 'pre_upgrade_hostgrp_domain'
         cls.proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
 
     def setupScenario(self):
-        """Create hostgroup and its dependant entities
-        """
+        """Create hostgroup and its dependant entities"""
         self.org = entities.Organization().create()
         self.loc = entities.Location(organization=[self.org]).create()
         self.parent_hostgroup = entities.HostGroup(
@@ -116,13 +115,11 @@ class scenario_positive_hostgroup(APITestCase):
         :expectedresults: Hostgroup should update, clone and delete successfully.
         """
         # verify hostgroup is intact after upgrade
-        hostgrp = entities.HostGroup().search(
-            query={'search': 'name={0}'.format(self.hostgroup_name)}
-        )
-        domain = entities.Domain().search(query={'search': 'name={0}'.format(self.domain_name)})
-        subnet = entities.Subnet().search(query={'search': 'name={0}'.format(self.subnet_name)})
-        parent = entities.HostGroup().search(query={'search': 'name={0}'.format(self.parent_name)})
-        os = entities.OperatingSystem().search(query={'search': 'name={0}'.format(self.os_name)})
+        hostgrp = entities.HostGroup().search(query={'search': f'name={self.hostgroup_name}'})
+        domain = entities.Domain().search(query={'search': f'name={self.domain_name}'})
+        subnet = entities.Subnet().search(query={'search': f'name={self.subnet_name}'})
+        parent = entities.HostGroup().search(query={'search': f'name={self.parent_name}'})
+        os = entities.OperatingSystem().search(query={'search': f'name={self.os_name}'})
         self.assertEqual(self.hostgroup_name, hostgrp[0].name)
         self.assertEqual(domain[0].id, hostgrp[0].domain.id)
         self.assertEqual(subnet[0].id, hostgrp[0].subnet.id)

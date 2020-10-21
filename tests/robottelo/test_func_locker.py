@@ -23,18 +23,18 @@ POOL_SIZE = 8
 func_locker.set_default_scope(NAMESPACE_SCOPE)
 
 
-class TmpCountFile(object):
+class TmpCountFile:
     def __init__(self):
         tmp_root_path = os.path.join(func_locker.get_temp_dir(), func_locker.TEMP_ROOT_DIR)
         if not os.path.exists(tmp_root_path):
             os.mkdir(tmp_root_path)
         self.file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
         self.file_name = self.file.name
-        self.file.write('0'.encode('utf-8'))
+        self.file.write(b'0')
         self.file.close()
 
     def read(self):
-        with open(self.file_name, 'r') as cf:
+        with open(self.file_name) as cf:
             content = cf.read()
 
         return content
@@ -74,7 +74,7 @@ def simple_locked_function(index=None):
     """Read the lock file and return it"""
     global counter_file
     time.sleep(0.05)
-    with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
+    with open(_get_function_lock_path('simple_locked_function')) as rf:
         content = rf.read()
 
     if index is not None:
@@ -118,7 +118,7 @@ def simple_recursive_combined_function():
 def simple_function_to_lock():
     """Read the lock file and return it"""
 
-    with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
+    with open(_get_function_lock_path('simple_locked_function')) as rf:
         content = rf.read()
     return os.getpid(), content
 
@@ -127,7 +127,7 @@ def simple_with_locking_function(index=None):
     global counter_file
     time.sleep(0.05)
     with func_locker.locking_function(simple_locked_function):
-        with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
+        with open(_get_function_lock_path('simple_locked_function')) as rf:
             content = rf.read()
 
     if index is not None:
@@ -138,13 +138,13 @@ def simple_with_locking_function(index=None):
     return os.getpid(), content
 
 
-class SimpleClass(object):
-    class SubClass(object):
+class SimpleClass:
+    class SubClass:
         @classmethod
         @func_locker.lock_function
         def simple_function_to_lock_cls(cls, file_path=None):
             """Return process id and file content"""
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
             return os.getpid(), content
 
@@ -152,14 +152,14 @@ class SimpleClass(object):
     @func_locker.lock_function
     def simple_function_to_lock_cls(cls, file_path=None):
         """Return process id and file content"""
-        with open(file_path, 'r') as rf:
+        with open(file_path) as rf:
             content = rf.read()
         return os.getpid(), content
 
     @func_locker.lock_function
     def simple_function_to_lock(self, file_path=None):
         """Return process id and file content"""
-        with open(file_path, 'r') as rf:
+        with open(file_path) as rf:
             content = rf.read()
         return os.getpid(), content
 
@@ -210,7 +210,7 @@ class TestFuncLocker:
 
     def test_simple_with(self):
         with func_locker.locking_function(simple_function_to_lock):
-            with open(_get_function_lock_path('simple_function_to_lock'), 'r') as rf:
+            with open(_get_function_lock_path('simple_function_to_lock')) as rf:
                 content = rf.read()
 
             assert str(os.getpid()) == content
@@ -218,7 +218,7 @@ class TestFuncLocker:
     def test_simple_with_lock_function(self):
         """lock a function that is already decorated by lock_function"""
         with func_locker.locking_function(simple_locked_function):
-            with open(_get_function_lock_path('simple_locked_function'), 'r') as rf:
+            with open(_get_function_lock_path('simple_locked_function')) as rf:
                 content = rf.read()
 
             assert str(os.getpid()) == content
@@ -228,14 +228,14 @@ class TestFuncLocker:
 
         file_path = _get_function_lock_path('simple_function_to_lock', class_name='SimpleClass')
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
         assert str(os.getpid()) != content
 
         with func_locker.locking_function(SimpleClass.simple_function_to_lock):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
 
         assert str(os.getpid()) == content
@@ -244,14 +244,14 @@ class TestFuncLocker:
             'simple_function_to_lock_cls', class_name='SimpleClass'
         )
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
         assert str(os.getpid()) != content
 
         with func_locker.locking_function(SimpleClass.simple_function_to_lock_cls):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
 
         assert str(os.getpid()) == content
@@ -260,7 +260,7 @@ class TestFuncLocker:
             'simple_function_to_lock_cls', class_name='SimpleClass'
         )
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
@@ -271,7 +271,7 @@ class TestFuncLocker:
         simple = SimpleClass()
         file_path = _get_function_lock_path('simple_function_to_lock', class_name='SimpleClass')
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
@@ -283,7 +283,7 @@ class TestFuncLocker:
             'simple_function_to_lock_cls', class_name='SimpleClass.SubClass'
         )
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
@@ -293,13 +293,13 @@ class TestFuncLocker:
         assert str(os.getpid()) == content
 
         if os.path.exists(file_path):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
         else:
             content = ''
         assert str(os.getpid()) != content
         with func_locker.locking_function(SimpleClass.SubClass.simple_function_to_lock_cls):
-            with open(file_path, 'r') as rf:
+            with open(file_path) as rf:
                 content = rf.read()
 
         assert str(os.getpid()) == content

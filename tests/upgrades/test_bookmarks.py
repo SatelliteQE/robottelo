@@ -96,9 +96,7 @@ class ScenarioPositivePublicDisableBookmark(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark().search(query={'search': 'name="{0}"'.format(book_mark_name)})[
-                0
-            ]
+            bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
             assert bm.controller == entity['controller']
             assert bm.name == book_mark_name
             assert bm.query == f"name={book_mark_name}"
@@ -180,9 +178,7 @@ class ScenarioPositivePublicEnableBookmark(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark().search(query={'search': 'name="{0}"'.format(book_mark_name)})[
-                0
-            ]
+            bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
             assert bm.controller == entity['controller']
             assert bm.name == book_mark_name
             assert bm.query == f"name={book_mark_name}"

@@ -55,7 +55,7 @@ class Scenario_contentview_upgrade(CLITestCase):
         10. Remove puppet module which was added to content-view before upgrade.
         11. Add another puppet module to content-view
         12. Publish content-view
-     """
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -71,8 +71,7 @@ class Scenario_contentview_upgrade(CLITestCase):
         cls.puppet_repo_name = 'puppet_repo_' + cls.cls_name
 
     def setupScenario(self):
-        """ Create yum, puppet repositories and synchronize them.
-        """
+        """Create yum, puppet repositories and synchronize them."""
         self.org = make_org({'name': self.org_name})
         self.product = make_product({'name': self.product_name, 'organization-id': self.org['id']})
         self.yum_repo1 = make_repository(
@@ -111,7 +110,7 @@ class Scenario_contentview_upgrade(CLITestCase):
         if not options.get('content-type'):
             raise CLIFactoryError('Please provide a valid Content Type.')
         file_repo = make_repository(options)
-        remote_path = "/tmp/{0}".format(RPM_TO_UPLOAD)
+        remote_path = f"/tmp/{RPM_TO_UPLOAD}"
         if 'multi_upload' not in options or not options['multi_upload']:
             ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
         else:
@@ -126,9 +125,7 @@ class Scenario_contentview_upgrade(CLITestCase):
                 'product-id': file_repo['product']['id'],
             }
         )
-        self.assertIn(
-            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD), result[0]['message']
-        )
+        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
         file_repo = Repository.info({'id': file_repo['id']})
         self.assertGreater(int(file_repo['content-counts']['files']), 0)
         return file_repo
@@ -136,18 +133,18 @@ class Scenario_contentview_upgrade(CLITestCase):
     @pre_upgrade
     def test_cv_preupgrade_scenario(self):
         """This is pre-upgrade scenario test to verify if we can create a
-         content-view with various repositories.
+        content-view with various repositories.
 
-         :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
 
-         :steps:
-           1. Create custom yum, puppet and file repositories.
-           2. Create content-view.
-           3. Add yum, file repositories and puppet module to content view.
-           4. Publish content-view.
+        :steps:
+          1. Create custom yum, puppet and file repositories.
+          2. Create content-view.
+          3. Add yum, file repositories and puppet module to content view.
+          4. Publish content-view.
 
-         :expectedresults: content-view created with various repositories.
-         """
+        :expectedresults: content-view created with various repositories.
+        """
         self.setupScenario()
         file_repo = self.make_file_repository_upload_contents()
         content_view = make_content_view(
@@ -179,18 +176,18 @@ class Scenario_contentview_upgrade(CLITestCase):
     @post_upgrade(depend_on=test_cv_preupgrade_scenario)
     def test_cv_postupgrade_scenario(self):
         """This is post-upgrade scenario test to verify if we can update
-         content-view created in pre-upgrade scenario with various repositories.
+        content-view created in pre-upgrade scenario with various repositories.
 
-         :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
 
-         :steps:
-           1. Remove yum repository which was added to content-view before upgrade.
-           2. Create new yum repository and add it to content-view.
-           3. Remove puppet module which was added to content-view before upgrade.
-           4. Add another puppet module to content-view
-           5. Publish content-view
+        :steps:
+          1. Remove yum repository which was added to content-view before upgrade.
+          2. Create new yum repository and add it to content-view.
+          3. Remove puppet module which was added to content-view before upgrade.
+          4. Add another puppet module to content-view
+          5. Publish content-view
 
-         :expectedresults: content-view updated with various repositories.
+        :expectedresults: content-view updated with various repositories.
         """
         product_id = Repository.info(
             {

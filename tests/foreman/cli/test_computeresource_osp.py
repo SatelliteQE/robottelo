@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Computeresource
 
@@ -35,7 +34,7 @@ class OSPComputeResourceTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('osp')
     def setUpClass(cls):
-        super(OSPComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.current_osp_url = settings.osp.hostname
         cls.username = settings.osp.username
         cls.password = settings.osp.password

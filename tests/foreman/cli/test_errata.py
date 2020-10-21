@@ -107,7 +107,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         :BZ: 1405428, 1418026, 1457977
         """
-        super(HostCollectionErrataInstallTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
         cls.content_view = make_content_view({'organization-id': cls.org['id']})
@@ -139,7 +139,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     def setUp(self):
         """Create and setup host collection, hosts and virtual machines."""
-        super(HostCollectionErrataInstallTestCase, self).setUp()
+        super().setUp()
         self.virtual_machines = []
         self.host_collection = make_host_collection({'organization-id': self.org['id']})
         for _ in range(self.VIRTUAL_MACHINES_COUNT):
@@ -858,14 +858,14 @@ class ErrataTestCase(CLITestCase):
     def setUpClass(cls):
         """Create 3 organizations
 
-           1. Create an org with one custom product & repository
-           2. Create an other org with an other custom product & repository
-           3. Create a multi products org with two other products, each
-              containing one custom repository
+        1. Create an org with one custom product & repository
+        2. Create an other org with an other custom product & repository
+        3. Create a multi products org with two other products, each
+           containing one custom repository
 
-           note: all products repositories contain erratum
-           """
-        super(ErrataTestCase, cls).setUpClass()
+        note: all products repositories contain erratum
+        """
+        super().setUpClass()
         cls.org = make_org()
         cls.org_product = make_product(options={'organization-id': cls.org['id']})
         repo = make_repository(
@@ -1369,9 +1369,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(errata_org_product_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_product_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_product_errata_ids)
-        self.assertEqual(
-            org_product_errata_ids.intersection(errata_org_product_errata_ids), set([])
-        )
+        self.assertEqual(org_product_errata_ids.intersection(errata_org_product_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_product_id_and_org_id(self):
@@ -1416,9 +1414,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_product_id_and_org_name(self):
@@ -1463,9 +1461,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_product_id_and_org_label(self):
@@ -1510,9 +1508,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_negative_list_filter_by_product_name(self):
@@ -1578,9 +1576,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_name(self):
@@ -1624,9 +1622,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_label(self):
@@ -1671,9 +1669,9 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_product_errata_id, product_errata_ids)
         self.assertIn(self.org_multi_product_small_errata_id, product_small_errata_ids)
         self.assertIn(self.org_multi_product_big_errata_id, product_big_errata_ids)
-        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set([]))
-        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set([]))
-        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set([]))
+        self.assertEqual(product_errata_ids.intersection(product_small_errata_ids), set())
+        self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
+        self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_org_id(self):
@@ -1697,7 +1695,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_org_name(self):
@@ -1721,7 +1719,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
     @tier3
     def test_positive_list_filter_by_org_label(self):
@@ -1747,7 +1745,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(errata_org_errata_ids), self.errata_org_product_erratum_count)
         self.assertIn(self.org_product_errata_id, org_errata_ids)
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
-        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set([]))
+        self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
     @run_in_one_thread
     @tier3

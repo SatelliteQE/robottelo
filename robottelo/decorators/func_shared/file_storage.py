@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 import logging
 import os
 import tempfile
@@ -67,7 +66,7 @@ class FileStorageHandler(BaseStorageHandler):
 
     def lock(self, key):
         """Return the storage locker context manager"""
-        lock_key = '{}.lock'.format(key)
+        lock_key = f'{key}.lock'
         return file_lock(
             self.get_key_file_path(lock_key), remove=False, timeout=self._lock_timeout
         )
@@ -86,7 +85,7 @@ class FileStorageHandler(BaseStorageHandler):
         value = None
         key_file_path = self.get_key_file_path(key)
         if os.path.exists(key_file_path):
-            with open(key_file_path, 'r') as file_handler:
+            with open(key_file_path) as file_handler:
                 value = file_handler.read()
 
         if value is not None:

@@ -30,22 +30,22 @@ from robottelo.test import CLITestCase
 class scenario_preversion_cv_exports_imports(CLITestCase):
     """Test Content-view created before upgrade can be exported and imported after upgrade
 
-        Test Steps:
+    Test Steps:
 
-        1. Before upgrade, Create a ContentView
-        2. Publish and promote the CV
-        3. Upgrade the satellite
-        4. Post upgrade, Export and Import the Content Views version created before upgrade
+    1. Before upgrade, Create a ContentView
+    2. Publish and promote the CV
+    3. Upgrade the satellite
+    4. Post upgrade, Export and Import the Content Views version created before upgrade
 
-        :expectedresults: Content-view created before upgrade should be exported and imported
-            after upgrade
-     """
+    :expectedresults: Content-view created before upgrade should be exported and imported
+        after upgrade
+    """
 
     export_base = '/var/lib/pulp/katello-export/'
 
     def tearDownScenario(self):
         """Removes CV export file/directory from export base directory"""
-        ssh.command('rm -rf {}/*'.format(self.export_base))
+        ssh.command(f'rm -rf {self.export_base}/*')
 
     def set_importing_org(self, product, repo, cv):
         """Sets same CV, product and repository in importing organization as
@@ -120,20 +120,18 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
 
         :expectedresults: Content-view created before upgrade should be exported and imported
             after upgrade
-         """
+        """
         prescene_dict = get_entity_data(self.__class__.__name__)
         exporting_cv = entities.ContentView(organization=prescene_dict['exporting_orgid']).search(
             query={'search': 'name={}'.format(prescene_dict['exporting_cvname'])}
         )[0]
         exporting_cvv_id = max([cvv.id for cvv in exporting_cv.version])
         exporting_cvv_version = entities.ContentViewVersion(id=exporting_cvv_id).read().version
-        ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_base), 'id': exporting_cvv_id}
-        )
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        ContentView.version_export({'export-dir': f'{self.export_base}', 'id': exporting_cvv_id})
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_base, exporting_cv.name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)

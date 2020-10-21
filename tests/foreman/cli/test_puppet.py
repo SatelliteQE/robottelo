@@ -31,7 +31,7 @@ class PuppetTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):
-        super(PuppetTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
     @pytest.mark.stubbed
@@ -78,7 +78,7 @@ class PuppetCapsuleTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):
-        super(PuppetCapsuleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.sat6_hostname = settings.server.hostname
 
     @pytest.mark.stubbed

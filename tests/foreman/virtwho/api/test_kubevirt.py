@@ -58,7 +58,8 @@ def virtwho_config(form_data):
 
 
 @skipif(
-    condition=(is_open('BZ:1735540')), reason='We have not supported kubevirt hypervisor yet',
+    condition=(is_open('BZ:1735540')),
+    reason='We have not supported kubevirt hypervisor yet',
 )
 class TestVirtWhoConfigforKubevirt:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
@@ -80,7 +81,7 @@ class TestVirtWhoConfigforKubevirt:
 
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
+        """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: 97f776af-cbd0-4885-9a74-603a3bc01157
 
@@ -102,8 +103,14 @@ class TestVirtWhoConfigforKubevirt:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -128,7 +135,7 @@ class TestVirtWhoConfigforKubevirt:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify "GET /foreman_virt_who_configure/api/
+        """Verify "GET /foreman_virt_who_configure/api/
 
         v2/configs/:id/deploy_script"
 
@@ -152,8 +159,14 @@ class TestVirtWhoConfigforKubevirt:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -178,7 +191,7 @@ class TestVirtWhoConfigforKubevirt:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by "PUT
+        """Verify hypervisor_id option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 

@@ -434,7 +434,7 @@ class TestUserRole:
         chosen_roles = make_roles[:number_of_roles]
         user = entities.User(role=chosen_roles).create()
         assert len(user.role) == number_of_roles
-        assert set([role.id for role in user.role]) == set([role.id for role in chosen_roles])
+        assert {role.id for role in user.role} == {role.id for role in chosen_roles}
 
     @tier1
     @upgrade
@@ -455,7 +455,7 @@ class TestUserRole:
         chosen_roles = make_roles[:number_of_roles]
         create_user.role = chosen_roles
         user = create_user.update(['role'])
-        assert set([role.id for role in user.role]) == set([role.id for role in chosen_roles])
+        assert {role.id for role in user.role} == {role.id for role in chosen_roles}
 
 
 class TestSshKeyInUser:
@@ -628,9 +628,7 @@ class TestSshKeyInUser:
         host = entities.Host(
             owner=user, owner_type='User', organization=org, location=loc
         ).create()
-        sshkey_updated_for_host = '{0} {1}@{2}'.format(
-            ssh_key, user.login, settings.server.hostname
-        )
+        sshkey_updated_for_host = f'{ssh_key} {user.login}@{settings.server.hostname}'
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
         assert sshkey_updated_for_host == host_enc_key[0]
 
@@ -648,7 +646,7 @@ class TestActiveDirectoryUser:
         yield dict(
             org=org,
             loc=loc,
-            sat_url='https://{}'.format(settings.server.hostname),
+            sat_url=f'https://{settings.server.hostname}',
             ldap_user_name=settings.ldap.username,
             ldap_user_passwd=settings.ldap.password,
             authsource=entities.AuthSourceLDAP(
@@ -670,9 +668,7 @@ class TestActiveDirectoryUser:
                 organization=[org],
             ).create(),
         )
-        for user in entities.User().search(
-            query={'search': 'login={}'.format(settings.ldap.username)}
-        ):
+        for user in entities.User().search(query={'search': f'login={settings.ldap.username}'}):
             user.delete()
         org.delete()
         loc.delete()
@@ -796,7 +792,7 @@ class TestFreeIPAUser:
             loc=loc,
             ldap_user_name=ldap_user_name,
             ldap_user_passwd=ldap_user_passwd,
-            sat_url='https://{}'.format(settings.server.hostname),
+            sat_url=f'https://{settings.server.hostname}',
             username=username,
             authsource=entities.AuthSourceLDAP(
                 onthefly_register=True,
@@ -817,7 +813,7 @@ class TestFreeIPAUser:
                 organization=[org],
             ).create(),
         )
-        for user in entities.User().search(query={'search': 'login={}'.format(username)}):
+        for user in entities.User().search(query={'search': f'login={username}'}):
             user.delete()
 
     @tier3

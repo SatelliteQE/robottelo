@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for bootstrap script (bootstrap.py)
 
 :Requirement: Bootstrap Script
@@ -28,7 +27,7 @@ class BootstrapScriptTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """create VM for testing """
-        super(BootstrapScriptTestCase, cls).setUpClass()
+        super().setUpClass()
 
     @tier1
     @pytest.mark.stubbed

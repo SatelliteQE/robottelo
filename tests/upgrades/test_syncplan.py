@@ -53,9 +53,9 @@ class ScenarioSyncPlan(APITestCase):
 
         :expectedresults: Run sync plan create, get, assign and verify it should pass
 
-         """
+        """
         org = entities.Organization().create()
-        sync_plan_name = "Test_Sync_plan_Migration_{0}".format(gen_string('alpha'))
+        sync_plan_name = "Test_Sync_plan_Migration_{}".format(gen_string('alpha'))
         sync_plan = entities.SyncPlan(organization=org, name=sync_plan_name).create()
         product = entities.Product(organization=org).create()
         entities.Repository(product=product).create()
@@ -88,7 +88,7 @@ class ScenarioSyncPlan(APITestCase):
 
         :expectedresults: Post Upgrade, Sync plans exists and works as earlier.
 
-         """
+        """
         beforeupgrade_data = get_entity_data(self.__class__.__name__)
         org = entities.Organization(id=beforeupgrade_data.get('org_id'))
         product = entities.Product(id=beforeupgrade_data.get("product_id")).read()

@@ -1,4 +1,3 @@
-# coding=utf-8
 """Smoke tests for the ``CLI`` end-to-end scenario.
 
 :Requirement: Cli Endtoend
@@ -64,7 +63,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        super(EndToEndTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
     @tier1
@@ -340,7 +339,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             {
                 'name': gen_alphanumeric(),
                 'provider': 'Libvirt',
-                'url': 'qemu+ssh://root@{0}/system'.format(
+                'url': 'qemu+ssh://root@{}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
             },

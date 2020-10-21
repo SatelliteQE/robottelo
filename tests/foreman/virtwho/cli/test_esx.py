@@ -66,7 +66,7 @@ def virtwho_config(form_data):
 class TestVirtWhoConfigforEsx:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config deploy"
+        """Verify " hammer virt-who-config deploy"
 
         :id: 1885dd56-e3f9-43a7-af27-e496967b6256
 
@@ -86,8 +86,14 @@ class TestVirtWhoConfigforEsx:
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -105,7 +111,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config fetch"
+        """Verify " hammer virt-who-config fetch"
 
         :id: 6aaffaeb-aaf2-42cf-b0dc-ca41a53d42a6
 
@@ -125,8 +131,14 @@ class TestVirtWhoConfigforEsx:
         ]['status']
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -144,7 +156,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_debug_option(self, form_data, virtwho_config):
-        """ Verify debug option by hammer virt-who-config update"
+        """Verify debug option by hammer virt-who-config update"
 
         :id: c98bc518-828c-49ba-a644-542db3190263
 
@@ -172,7 +184,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_interval_option(self, form_data, virtwho_config):
-        """ Verify interval option by hammer virt-who-config update"
+        """Verify interval option by hammer virt-who-config update"
 
         :id: 5d558bca-534c-4bd4-b401-a0c362033c57
 
@@ -202,7 +214,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by hammer virt-who-config update"
+        """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: 4e6bad11-2019-458b-a368-26ea95afc7f5
 
@@ -227,7 +239,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_filter_option(self, form_data, virtwho_config):
-        """ Verify filter option by hammer virt-who-config update"
+        """Verify filter option by hammer virt-who-config update"
 
         :id: aaf45c5e-9504-47ce-8f25-b8073c2de036
 
@@ -268,7 +280,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_proxy_option(self, form_data, virtwho_config):
-        """ Verify http_proxy option by hammer virt-who-config update"
+        """Verify http_proxy option by hammer virt-who-config update"
 
         :id: 409d108e-e814-482b-93ed-09db89d21dda
 
@@ -295,7 +307,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_rhsm_option(self, form_data, virtwho_config):
-        """ Verify rhsm options in the configure file"
+        """Verify rhsm options in the configure file"
 
         :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
 
@@ -319,7 +331,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_post_hypervisors(self):
-        """ Post large json file to /rhsm/hypervisors"
+        """Post large json file to /rhsm/hypervisors"
 
         :id: e344c9d2-3538-4432-9a74-b025e9ef852d
 

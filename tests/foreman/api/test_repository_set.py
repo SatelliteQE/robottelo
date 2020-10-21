@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``repository_sets`` paths.
 
 A full API reference for products can be found here:

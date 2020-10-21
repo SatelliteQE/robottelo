@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Users CLI
 
 When testing email validation [1] and [2] should be taken into consideration.
@@ -59,7 +58,7 @@ class UserTestCase(CLITestCase):
         the role itself
         """
 
-        super(UserTestCase, cls).setUpClass()
+        super().setUpClass()
         settings.configure()
         include_list = [gen_string("alphanumeric", 100)]
 
@@ -75,7 +74,7 @@ class UserTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove all roles created during tests"""
-        super(UserTestCase, cls).tearDownClass()
+        super().tearDownClass()
         for role_id in cls.stubbed_roles:
             Role.delete({'id': role_id})
 
@@ -106,17 +105,17 @@ class UserTestCase(CLITestCase):
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
-                    user_params[key], user[key], 'values for key "{}" do not match'.format(key)
+                    user_params[key], user[key], f'values for key "{key}" do not match'
                 )
 
         # list by firstname and lastname
-        result = User.list({'search': 'firstname = {0}'.format(user_params['firstname'])})
+        result = User.list({'search': 'firstname = {}'.format(user_params['firstname'])})
         # make sure user is in list result
         self.assertEqual(
             {user['id'], user['login'], user['name']},
             {result[0]['id'], result[0]['login'], result[0]['name']},
         )
-        result = User.list({'search': 'lastname = {0}'.format(user_params['lastname'])})
+        result = User.list({'search': 'lastname = {}'.format(user_params['lastname'])})
         # make sure user is in list result
         self.assertEqual(
             {user['id'], user['login'], user['name']},
@@ -140,7 +139,7 @@ class UserTestCase(CLITestCase):
         for key in user_params:
             with self.subTest(key):
                 self.assertEqual(
-                    user_params[key], user[key], 'values for key "{}" do not match'.format(key)
+                    user_params[key], user[key], f'values for key "{key}" do not match'
                 )
 
         # delete
@@ -276,7 +275,7 @@ class UserTestCase(CLITestCase):
 
         make_user({'login': login, 'password': password})
         User.add_role({'login': login, 'role': 'System admin'})
-        result_before_login = User.list({'search': 'login = {0}'.format(login)})
+        result_before_login = User.list({'search': f'login = {login}'})
 
         # this is because satellite uses the UTC timezone
         before_login_time = datetime.datetime.utcnow()
@@ -284,7 +283,7 @@ class UserTestCase(CLITestCase):
         assert result_before_login[0]['last-login'] == ""
 
         Org.with_user(username=login, password=password).create({'name': org_name})
-        result_after_login = User.list({'search': 'login = {0}'.format(login)})
+        result_after_login = User.list({'search': f'login = {login}'})
 
         # checking user last login should not be empty
         assert result_after_login[0]['last-login'] != ""
@@ -332,8 +331,7 @@ class UserTestCase(CLITestCase):
 
 
 class SshKeyInUserTestCase(CLITestCase):
-    """Implements the SSH Key in User Tests
-    """
+    """Implements the SSH Key in User Tests"""
 
     def gen_ssh_rsakey(self):
         """Generates RSA type ssh key using ssh module
@@ -345,7 +343,7 @@ class SshKeyInUserTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an user and import different keys from data json file"""
-        super(SshKeyInUserTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.user = entities.User().create()
 
     @tier1
@@ -384,7 +382,7 @@ class SshKeyInUserTestCase(CLITestCase):
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
         with get_connection() as connection:
-            result = connection.run('''echo '{}' > test_key.pub'''.format(ssh_key))
+            result = connection.run(f'''echo '{ssh_key}' > test_key.pub''')
         self.assertEqual(result.return_code, 0, 'key file not created')
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})

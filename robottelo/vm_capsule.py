@@ -69,13 +69,11 @@ class CapsuleVirtualMachine(VirtualMachine):
             raise CapsuleVirtualMachineError('capsule configuration not set')
 
         name_prefix = gen_alphanumeric(4).lower()
-        self._capsule_instance_name = '{0}-{1}'.format(name_prefix, settings.capsule.instance_name)
+        self._capsule_instance_name = f'{name_prefix}-{settings.capsule.instance_name}'
         self._capsule_domain = settings.clients.provisioning_server.split('.', 1)[1]
-        self._capsule_hostname = '{0}.{1}'.format(
-            self._capsule_instance_name, self._capsule_domain
-        )
+        self._capsule_hostname = f'{self._capsule_instance_name}.{self._capsule_domain}'
 
-        super(CapsuleVirtualMachine, self).__init__(
+        super().__init__(
             cpu=cpu,
             ram=ram,
             distro=distro,
@@ -101,7 +99,7 @@ class CapsuleVirtualMachine(VirtualMachine):
     @property
     def hostname_local(self):
         """The virtual machine local hostname from provisioning server"""
-        return '{0}.local'.format(self._target_image)
+        return f'{self._target_image}.local'
 
     @property
     def capsule_org(self):
@@ -128,7 +126,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         are resolvable
         """
         self.run(
-            'echo "{0} {1} {2}" >> /etc/hosts'.format(
+            'echo "{} {} {}" >> /etc/hosts'.format(
                 self.ip_addr, self._capsule_hostname, self._capsule_instance_name
             )
         )
@@ -139,17 +137,15 @@ class CapsuleVirtualMachine(VirtualMachine):
             ' echo "{1} {0}" >> /etc/hosts'.format(self._capsule_hostname, self.ip_addr),
             hostname=settings.server.hostname,
         )
-        self.run('hostnamectl set-hostname {}'.format(self._capsule_hostname))
+        self.run(f'hostnamectl set-hostname {self._capsule_hostname}')
 
         def ensure_host_resolved(ssh_func, host_to_ping, ip_addr, time_sleep=60, retries=10):
             resolved = False
             retry_max_index = retries - 1
             for retry_index in range(retries):
-                ssh_func_result = ssh_func('ping -c 1 {}'.format(host_to_ping))
+                ssh_func_result = ssh_func(f'ping -c 1 {host_to_ping}')
                 ssh_func_output = ''.join(ssh_func_result.stdout)
-                if ssh_func_result.return_code == 0 and (
-                    '({})'.format(ip_addr) in ssh_func_output
-                ):
+                if ssh_func_result.return_code == 0 and (f'({ip_addr})' in ssh_func_output):
                     resolved = True
                     break
 
@@ -175,9 +171,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         '''
 
         # Add RH-Satellite-6 service to firewall public zone
-        self.run(
-            'firewall-cmd --zone=public --add-service={}'.format(SATELLITE_FIREWALL_SERVICE_NAME)
-        )
+        self.run(f'firewall-cmd --zone=public --add-service={SATELLITE_FIREWALL_SERVICE_NAME}')
 
     def _capsule_cleanup(self):
         """make the necessary cleanup in case of a crash"""
@@ -188,7 +182,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             try:
                 self.unregister()
             except Exception as exp:
-                logger.error('Failed to unregister the host: {0}\n{1}'.format(self.hostname, exp))
+                logger.error(f'Failed to unregister the host: {self.hostname}\n{exp}')
 
         if self._capsule_hostname:
             # do cleanup as using a static hostname that can be reused by
@@ -206,7 +200,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # Destroys the Capsule VM on the provisioning server if
                 # exception has 'return_code=70(Error: host not found)'
                 if exp.return_code == 70:
-                    super(CapsuleVirtualMachine, self).destroy()
+                    super().destroy()
                 if is_open('BZ:1622064'):
                     logger.warning(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                 else:
@@ -216,7 +210,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                 # try to delete the capsule if it was added already
                 Capsule.delete({'name': self._capsule_hostname})
             except Exception as exp:
-                logger.error('Failed to cleanup the capsule: {0}\n{1}'.format(self.hostname, exp))
+                logger.error(f'Failed to cleanup the capsule: {self.hostname}\n{exp}')
                 raise
 
     def _setup_capsule(self):
@@ -237,35 +231,33 @@ class CapsuleVirtualMachine(VirtualMachine):
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
             raise CapsuleVirtualMachineError(
-                'Failed to install satellite-capsule package\n{}'.format(result.stderr)
+                f'Failed to install satellite-capsule package\n{result.stderr}'
             )
         # update http proxy except list
         result = Settings.list({'search': 'http_proxy_except_list'})[0]
         if result["value"] == "[]":
-            except_list = '[{0}]'.format(self.hostname)
+            except_list = f'[{self.hostname}]'
         else:
-            except_list = result["value"][:-1] + ', {0}]'.format(self.hostname)
+            except_list = result["value"][:-1] + f', {self.hostname}]'
         Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
         # generate certificate
-        cert_file_path = '/root/{0}-certs.tar'.format(self.hostname)
+        cert_file_path = f'/root/{self.hostname}-certs.tar'
         certs_gen = ssh.command(
             'capsule-certs-generate '
-            '--foreman-proxy-fqdn {0} '
-            '--certs-tar {1}'.format(self.hostname, cert_file_path)
+            '--foreman-proxy-fqdn {} '
+            '--certs-tar {}'.format(self.hostname, cert_file_path)
         )
         if certs_gen.return_code != 0:
-            raise CapsuleVirtualMachineError(
-                'Unable to generate certificate\n{}'.format(certs_gen.stderr)
-            )
+            raise CapsuleVirtualMachineError(f'Unable to generate certificate\n{certs_gen.stderr}')
         # copy the certificate to capsule vm
         _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
-        logger.info('downloading the certs file: {0}'.format(cert_file_path))
+        logger.info(f'downloading the certs file: {cert_file_path}')
         download_file(
             remote_file=cert_file_path,
             local_file=temporary_local_cert_file_path,
             hostname=settings.server.hostname,
         )
-        logger.info('uploading the certs file: {0}'.format(cert_file_path))
+        logger.info(f'uploading the certs file: {cert_file_path}')
         upload_file(
             key_filename=settings.server.ssh_key,
             local_file=temporary_local_cert_file_path,
@@ -293,13 +285,13 @@ class CapsuleVirtualMachine(VirtualMachine):
                 result = self.run('systemctl start pulp_celerybeat.service')
                 if result.return_code != 0:
                     raise CapsuleVirtualMachineError(
-                        'Failed to start pulp_celerybeat service\n{}'.format(result.stderr)
+                        f'Failed to start pulp_celerybeat service\n{result.stderr}'
                     )
             else:
                 raise CapsuleVirtualMachineError('pulp_celerybeat service not running')
 
     def create(self):
-        super(CapsuleVirtualMachine, self).create()
+        super().create()
         try:
             self._setup_capsule()
         except Exception:
@@ -325,7 +317,7 @@ class CapsuleVirtualMachine(VirtualMachine):
            resume.
         """
         result = ssh.command(
-            'virsh suspend {0}'.format(self._target_image),
+            f'virsh suspend {self._target_image}',
             hostname=self.provisioning_server,
             timeout=timeout,
             connection_timeout=connection_timeout,
@@ -334,7 +326,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         if suspended and ensure:
             # ping one time the virtual machine to ensure that it's unreachable
             result = ssh.command(
-                'ping -c 1 {}'.format(self.hostname),
+                f'ping -c 1 {self.hostname}',
                 hostname=self.provisioning_server,
                 connection_timeout=connection_timeout,
             )
@@ -353,7 +345,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         Note: This operation is immediate
         """
         result = ssh.command(
-            'virsh resume {0}'.format(self._target_image),
+            f'virsh resume {self._target_image}',
             hostname=self.provisioning_server,
             timeout=timeout,
             connection_timeout=connection_timeout,
@@ -362,7 +354,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         if resumed and ensure:
             # ping one time the virtual machine to ensure that it's reachable
             result = ssh.command(
-                'ping -c 1 {}'.format(self.ip_addr),
+                f'ping -c 1 {self.ip_addr}',
                 hostname=self.provisioning_server,
                 connection_timeout=connection_timeout,
             )
@@ -373,4 +365,4 @@ class CapsuleVirtualMachine(VirtualMachine):
     def destroy(self):
         """Destroys the virtual machine on the provisioning server"""
         self._capsule_cleanup()
-        super(CapsuleVirtualMachine, self).destroy()
+        super().destroy()

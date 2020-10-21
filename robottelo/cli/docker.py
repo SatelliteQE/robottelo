@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Docker related hammer commands"""
 from robottelo.cli.base import Base
 
@@ -40,7 +39,7 @@ class DockerManifest(Base):
             --repository-id REPOSITORY_ID repository ID
 
         """
-        return super(DockerManifest, cls).info(options)
+        return super().info(options)
 
     @classmethod
     def list(cls, options=None, per_page=True):
@@ -95,7 +94,7 @@ class DockerManifest(Base):
          --search SEARCH                                     Search string
 
         """
-        return super(DockerManifest, cls).list(options, per_page)
+        return super().list(options, per_page)
 
 
 class DockerTag(Base):
@@ -135,7 +134,7 @@ class DockerTag(Base):
             --repository-id REPOSITORY_ID repository ID
 
         """
-        return super(DockerTag, cls).info(options)
+        return super().info(options)
 
     @classmethod
     def list(cls, options=None, per_page=True):
@@ -180,7 +179,7 @@ class DockerTag(Base):
             --repository-id REPOSITORY_ID                       repository ID
 
         """
-        return super(DockerTag, cls).list(options, per_page)
+        return super().list(options, per_page)
 
 
 class Docker(Base):

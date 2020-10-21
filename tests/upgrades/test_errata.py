@@ -42,16 +42,16 @@ from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd
 
 
-class ScenarioErrataAbstract(object):
-    """ This is an Abstract Class whose methods are inherited by others errata
+class ScenarioErrataAbstract:
+    """This is an Abstract Class whose methods are inherited by others errata
     scenarios"""
 
     def _errata_count(self, ak):
-        """ fetch the content host details.
+        """fetch the content host details.
         :param: str ak: The activation key name
         :return: int installable_errata_count : installable_errata count
         """
-        host = entities.Host().search(query={'search': 'activation_key={0}'.format(ak)})[0]
+        host = entities.Host().search(query={'search': f'activation_key={ak}'})[0]
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         return installable_errata_count
 
@@ -72,7 +72,7 @@ class ScenarioErrataAbstract(object):
         return tools_repo, rhel_repo
 
     def _get_rh_rhel_tools_repos(self):
-        """ Get list of RHEL7 and tools repos
+        """Get list of RHEL7 and tools repos
 
         :return: nailgun.entities.Repository: repository
         """
@@ -157,7 +157,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             content_view=content_view, organization=org.id, environment=environment
         ).create()
         subscription = entities.Subscription(organization=org).search(
-            query={'search': 'name={}'.format(product.name)}
+            query={'search': f'name={product.name}'}
         )[0]
 
         ak.add_subscriptions(data={'subscription_id': subscription.id})
@@ -185,7 +185,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
             install_or_update_package(client_hostname=client_container_id, package=package)
 
-        host = entities.Host().search(query={'search': 'activation_key={0}'.format(ak.name)})[0]
+        host = entities.Host().search(query={'search': f'activation_key={ak.name}'})[0]
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)
         erratum_list = entities.Errata(repository=custom_yum_repo).search(
@@ -224,7 +224,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         :expectedresults:
             1. errata count, erratum list should same after satellite upgrade
             2. Installation of errata should be pass successfully
-         """
+        """
         entity_data = get_entity_data(self.__class__.__name__)
         client = entity_data.get('rhel_client')
         client_container_id = list(client.values())[0]
@@ -235,9 +235,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
         content_view = entities.ContentView(id=conten_view_id).read()
         custom_yum_repo = entities.Repository(id=custom_repo_id).read()
         activation_key = entity_data.get('activation_key')
-        host = entities.Host().search(
-            query={'search': 'activation_key={0}'.format(activation_key)}
-        )[0]
+        host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         tools_repo, rhel_repo = self._create_custom_rhel_tools_repos(product)
@@ -271,9 +269,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             delay=2,
             logger=self.logger,
         )
-        host = entities.Host().search(
-            query={'search': 'activation_key={0}'.format(activation_key)}
-        )[0]
+        host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
         self.assertEqual(host.content_facet_attributes['errata_counts']['total'], 0)
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
             install_or_update_package(client_hostname=client_container_id, package=package)
@@ -301,10 +297,8 @@ class Scenario_errata_count_with_previous_version_katello_agent(
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
         cls.client_os = DISTRO_RHEL7
-        cls.org = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)}
-        )[0]
-        cls.loc = entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
+        cls.org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+        cls.loc = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
     @pre_upgrade
     def test_pre_scenario_generate_errata_with_previous_version_katello_agent_client(self):
@@ -344,10 +338,10 @@ class Scenario_errata_count_with_previous_version_katello_agent(
         repos.append(custom_yum_repo)
         content_view = publish_content_view(org=self.org, repolist=repos)
         custom_sub = entities.Subscription(organization=self.org).search(
-            query={'search': 'name={}'.format(product.name)}
+            query={'search': f'name={product.name}'}
         )[0]
         rh_sub = entities.Subscription(organization=1).search(
-            query={'search': '{}'.format(DEFAULT_SUBSCRIPTION_NAME)}
+            query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
         )[0]
 
         ak = entities.ActivationKey(
@@ -392,7 +386,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(
 
         for package in FAKE_9_YUM_OUTDATED_PACKAGES:
             install_or_update_package(client_hostname=client_container_id, package=package)
-        host = entities.Host().search(query={'search': 'activation_key={0}'.format(ak.name)})[0]
+        host = entities.Host().search(query={'search': f'activation_key={ak.name}'})[0]
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)
@@ -435,7 +429,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(
             1. errata count, erratum list should same after satellite upgrade.
             2. Installation of errata should be pass successfully and check errata counts
                 is 0.
-         """
+        """
 
         entity_data = get_entity_data(self.__class__.__name__)
         client = entity_data.get('rhel_client')
@@ -443,9 +437,7 @@ class Scenario_errata_count_with_previous_version_katello_agent(
         custom_repo_id = entity_data.get('custom_repo_id')
         custom_yum_repo = entities.Repository(id=custom_repo_id).read()
         activation_key = entity_data.get('activation_key')
-        host = entities.Host().search(
-            query={'search': 'activation_key={0}'.format(activation_key)}
-        )[0]
+        host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
 
         installable_errata_count = host.content_facet_attributes['errata_counts']['total']
         self.assertGreater(installable_errata_count, 1)

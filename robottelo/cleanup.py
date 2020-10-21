@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Cleanup module for different entities"""
 import logging
 
@@ -37,7 +36,7 @@ def host_cleanup(host_id=None):
 
 def setting_cleanup(setting_name=None, setting_value=None):
     """Put necessary value for a specified setting"""
-    setting_entity = entities.Setting().search(query={'search': 'name={}'.format(setting_name)})[0]
+    setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
     setting_entity.value = setting_value
     setting_entity.update({'value'})
 
@@ -51,7 +50,7 @@ def vm_cleanup(vm):
 
 
 def cleanup_of_provisioned_server(hostname=None, provisioning_server=None, distro=None):
-    """ Cleanup the VM from provisioning server
+    """Cleanup the VM from provisioning server
 
     :param: str hostname: The content host hostname
     :param: str provisioning_server: provision server name

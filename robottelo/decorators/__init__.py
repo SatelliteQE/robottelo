@@ -121,7 +121,7 @@ def skip_if_not_set(*options):
     if not options_set.issubset(settings.all_features):
         invalid = options_set.difference(settings.all_features)
         raise ValueError(
-            'Feature(s): "{0}" not found. Available ones are: "{1}".'.format(
+            'Feature(s): "{}" not found. Available ones are: "{}".'.format(
                 ', '.join(invalid), ', '.join(settings.all_features)
             )
         )
@@ -137,7 +137,7 @@ def skip_if_not_set(*options):
                     missing.append(option)
             if not missing:
                 return func(*args, **kwargs)
-            raise unittest2.SkipTest('Missing configuration for: {0}.'.format(', '.join(missing)))
+            raise unittest2.SkipTest('Missing configuration for: {}.'.format(', '.join(missing)))
 
         return wrapper
 
@@ -221,24 +221,24 @@ def run_only_on(project):
 
             if project not in allowed_project_modes:
                 raise ProjectModeError(
-                    '"{0}" is not a project mode. The allowed project modes '
-                    'are: {1}'.format(project, allowed_project_modes)
+                    '"{}" is not a project mode. The allowed project modes '
+                    'are: {}'.format(project, allowed_project_modes)
                 )
 
             # If robottelo.properties not present or does not specify a project
             # use sat
             if settings_project not in allowed_project_modes:
                 raise ProjectModeError(
-                    '"{0}" is not an acceptable "[robottelo] project" value '
+                    '"{}" is not an acceptable "[robottelo] project" value '
                     'in robottelo.properties file. The allowed project modes '
-                    'are: {1}'.format(settings_project, allowed_project_modes)
+                    'are: {}'.format(settings_project, allowed_project_modes)
                 )
 
             # Preconditions PASS.  Now skip the test if modes does not match
             if project != settings_project:
                 raise unittest2.SkipTest(
-                    'Server runs in "{0}" mode and this test will run '
-                    'only on "{1}" mode.'.format(settings_project, project)
+                    'Server runs in "{}" mode and this test will run '
+                    'only on "{}" mode.'.format(settings_project, project)
                 )
             else:
                 return func(*args, **kwargs)

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for Environment  CLI
 
 :Requirement: Environment
@@ -43,7 +42,7 @@ class EnvironmentTestCase(CLITestCase):
     @classmethod
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
-        super(EnvironmentTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
         cls.loc2 = entities.Location().create()
@@ -51,7 +50,7 @@ class EnvironmentTestCase(CLITestCase):
         # Setup for puppet class related tests
         puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
         cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org.id)
-        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{}"'.format(cls.cv['name'])})[0]
         cls.puppet_class = Puppet.info(
             {'name': puppet_modules[0]['name'], 'environment': cls.env['name']}
         )
@@ -126,7 +125,7 @@ class EnvironmentTestCase(CLITestCase):
         self.assertEqual(env_name, environment['name'])
 
         # List by name
-        result = Environment.list({'search': 'name={0}'.format(env_name)})
+        result = Environment.list({'search': f'name={env_name}'})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['name'], env_name)
         # List by org loc id
@@ -207,7 +206,7 @@ class EnvironmentTestCase(CLITestCase):
         sc_params_list = SmartClassParameter.list(
             {
                 'environment': self.env['name'],
-                'search': 'puppetclass="{0}"'.format(self.puppet_class['name']),
+                'search': 'puppetclass="{}"'.format(self.puppet_class['name']),
             }
         )
         scp_id = choice(sc_params_list)['id']

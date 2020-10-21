@@ -250,9 +250,9 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         Every Satellite has a built-in smart proxy, so searching for an
         existing smart proxy should always succeed.
         """
-        super(SmartProxyMissingAttrTestCase, cls).setUpClass()
+        super().setUpClass()
         smart_proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0, "No smart proxy is found"
@@ -279,7 +279,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         self.assertGreaterEqual(
             len(names & self.smart_proxy_attrs),
             1,
-            'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
+            f'None of {names} are in {self.smart_proxy_attrs}',
         )
 
     @tier1
@@ -302,5 +302,5 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         self.assertGreaterEqual(
             len(names & self.smart_proxy_attrs),
             1,
-            'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
+            f'None of {names} are in {self.smart_proxy_attrs}',
         )

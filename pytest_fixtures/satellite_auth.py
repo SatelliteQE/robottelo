@@ -205,7 +205,8 @@ def enroll_idm_and_configure_external_auth():
     run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
 
     run_command(
-        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa,
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin",
+        hostname=settings.ipa.hostname_ipa,
     )
     result = run_command(
         cmd=f"ipa host-add --random {settings.server.hostname}",
@@ -217,7 +218,8 @@ def enroll_idm_and_configure_external_auth():
             _, password = line.split(': ', 2)
             break
     run_command(
-        cmd=f"ipa service-add HTTP/{settings.server.hostname}", hostname=settings.ipa.hostname_ipa,
+        cmd=f"ipa service-add HTTP/{settings.server.hostname}",
+        hostname=settings.ipa.hostname_ipa,
     )
     _, domain = settings.ipa.hostname_ipa.split('.', 1)
     run_command(

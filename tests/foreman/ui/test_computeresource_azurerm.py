@@ -121,7 +121,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
+    fqdn = f'{hostname}.{module_domain.name}'.lower()
 
     with session:
         session.organization.select(org_name=module_org.name)
@@ -161,7 +161,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             assert not azurecloud_vm.exists
 
         except Exception as error:
-            azure_vm = entities.Host().search(query={'search': 'name={}'.format(fqdn)})
+            azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
             raise error
@@ -200,7 +200,7 @@ def test_positive_azurerm_host_provision_ud(
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
+    fqdn = f'{hostname}.{module_domain.name}'.lower()
 
     with session:
         session.organization.select(org_name=module_org.name)
@@ -236,6 +236,6 @@ def test_positive_azurerm_host_provision_ud(
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True
             )
-            azure_vm = entities.Host().search(query={'search': 'name={}'.format(fqdn)})
+            azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)

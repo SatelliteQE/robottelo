@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for InterSatellite Sync
 
 :Requirement: Satellitesync
@@ -72,44 +71,40 @@ class RepositoryExportTestCase(CLITestCase):
         """Create a directory for export, configure permissions and satellite
         settings
         """
-        super(RepositoryExportTestCase, self).setUp()
+        super().setUp()
 
         if not RepositoryExportTestCase.is_set_up:
             RepositoryExportTestCase.export_dir = gen_string('alphanumeric')
 
             # Create a new 'export' directory on the Satellite system
-            result = ssh.command('mkdir /mnt/{0}'.format(self.export_dir))
+            result = ssh.command(f'mkdir /mnt/{self.export_dir}')
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command('chown foreman.foreman /mnt/{0}'.format(self.export_dir))
+            result = ssh.command(f'chown foreman.foreman /mnt/{self.export_dir}')
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command('ls -Z /mnt/ | grep {0}'.format(self.export_dir))
+            result = ssh.command(f'ls -Z /mnt/ | grep {self.export_dir}')
             self.assertEqual(result.return_code, 0)
             self.assertGreaterEqual(len(result.stdout), 1)
             self.assertIn('unconfined_u:object_r:mnt_t:s0', result.stdout[0])
 
             # Fix SELinux policy for new directory
             result = ssh.command(
-                'semanage fcontext -a -t foreman_var_run_t "/mnt/{0}(/.*)?"'.format(
-                    self.export_dir
-                )
+                f'semanage fcontext -a -t foreman_var_run_t "/mnt/{self.export_dir}(/.*)?"'
             )
             self.assertEqual(result.return_code, 0)
 
-            result = ssh.command('restorecon -Rv /mnt/{0}'.format(self.export_dir))
+            result = ssh.command(f'restorecon -Rv /mnt/{self.export_dir}')
             self.assertEqual(result.return_code, 0)
 
             # Assert that we have the correct policy
-            result = ssh.command('ls -Z /mnt/ | grep {0}'.format(self.export_dir))
+            result = ssh.command(f'ls -Z /mnt/ | grep {self.export_dir}')
             self.assertEqual(result.return_code, 0)
             self.assertGreaterEqual(len(result.stdout), 1)
             self.assertIn('unconfined_u:object_r:foreman_var_run_t:s0', result.stdout[0])
 
             # Update the 'pulp_export_destination' settings to new directory
-            Settings.set(
-                {'name': 'pulp_export_destination', 'value': '/mnt/{0}'.format(self.export_dir)}
-            )
+            Settings.set({'name': 'pulp_export_destination', 'value': f'/mnt/{self.export_dir}'})
             # Create an organization to reuse in tests
             RepositoryExportTestCase.org = make_org()
 
@@ -118,8 +113,8 @@ class RepositoryExportTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove the export directory with all exported repository archives"""
-        ssh.command('rm -rf /mnt/{0}'.format(RepositoryExportTestCase.export_dir))
-        super(RepositoryExportTestCase, cls).tearDownClass()
+        ssh.command(f'rm -rf /mnt/{RepositoryExportTestCase.export_dir}')
+        super().tearDownClass()
 
     @tier3
     def test_positive_export_custom_product(self):
@@ -142,7 +137,7 @@ class RepositoryExportTestCase(CLITestCase):
             }
         )
         backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
-        repo_export_dir = '/mnt/{0}/{1}/{2}/{3}/custom/{4}/{5}'.format(
+        repo_export_dir = '/mnt/{}/{}/{}/{}/custom/{}/{}'.format(
             self.export_dir,
             backend_identifier,
             self.org['label'],
@@ -155,7 +150,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
+        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
         self.assertEqual(len(result.stdout), 0)
 
         # Synchronize the repository
@@ -165,7 +160,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
+        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
@@ -204,7 +199,7 @@ class RepositoryExportTestCase(CLITestCase):
         )
         backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
         repo_export_dir = (
-            '/mnt/{0}/{1}/{2}/{3}/content/dist/rhel/server/6/6Server/'
+            '/mnt/{}/{}/{}/{}/content/dist/rhel/server/6/6Server/'
             'x86_64/rhev-agent/3/os'.format(
                 self.export_dir, backend_identifier, self.org['label'], ENVIRONMENT
             )
@@ -217,7 +212,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
+        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
         self.assertEqual(len(result.stdout), 0)
 
         # Synchronize the repository
@@ -227,7 +222,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
+        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
@@ -316,18 +311,12 @@ class ContentViewSync(CLITestCase):
         """
         new_major = gen_integer(2, 1000)
         new_minor = gen_integer(2, 1000)
-        result = ssh.command('[ -f {} ]'.format(json_path))
+        result = ssh.command(f'[ -f {json_path} ]')
         if result.return_code == 0:
-            ssh.command(
-                'sed -i \'s/\"major\": [0-9]\\+/\"major\": {0}/\' {1}'.format(new_major, json_path)
-            )
-            ssh.command(
-                'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {0}/\' {1}'.format(new_minor, json_path)
-            )
+            ssh.command(f'sed -i \'s/\"major\": [0-9]\\+/\"major\": {new_major}/\' {json_path}')
+            ssh.command(f'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {new_minor}/\' {json_path}')
             return new_major, new_minor
-        raise IOError(
-            'Json File {} not found to alternate the major/minor versions'.format(json_path)
-        )
+        raise OSError(f'Json File {json_path} not found to alternate the major/minor versions')
 
     def set_importing_org(self, product, repo, cv, mos='no'):
         """Sets same CV, product and repository in importing organization as
@@ -364,11 +353,9 @@ class ContentViewSync(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create Directory for all CV Sync Tests in export_base directory"""
-        super(ContentViewSync, cls).setUpClass()
-        if ssh.command('[ -d {} ]'.format(cls.export_base)).return_code == 1:
-            raise ExportDirectoryNotSet(
-                'Export Directory "{}" is not set/found.'.format(cls.export_base)
-            )
+        super().setUpClass()
+        if ssh.command(f'[ -d {cls.export_base} ]').return_code == 1:
+            raise ExportDirectoryNotSet(f'Export Directory "{cls.export_base}" is not set/found.')
         cls.exporting_org = make_org()
         cls.exporting_prod_name = gen_string('alpha')
         product = make_product(
@@ -393,22 +380,22 @@ class ContentViewSync(CLITestCase):
         """Create Directory for CV export"""
         super().setUp()
         self.export_dir = "{}/{}".format(self.export_base, gen_string('alpha'))
-        ssh.command('mkdir {}'.format(self.export_dir))
+        ssh.command(f'mkdir {self.export_dir}')
 
     def tearDown(self):
         """Deletes Directory created for CV export Test during setUp"""
-        super(ContentViewSync, self).tearDown()
-        ssh.command('rm -rf {}'.format(self.export_dir))
+        super().tearDown()
+        ssh.command(f'rm -rf {self.export_dir}')
 
     def assert_exported_cvv_exists(self, content_view_name, content_view_version):
         """Verify an exported tar exists
 
         :return: The path to the tar (if it exists).
         """
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, content_view_name, content_view_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         return exported_tar
 
@@ -532,13 +519,11 @@ class ContentViewSync(CLITestCase):
         exporting_cv = ContentView.info({'id': exporting_cv['id']})
         exporting_cvv_id = exporting_cv['versions'][0]['id']
         exporting_cvv_version = exporting_cv['versions'][0]['version']
-        ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
-        )
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        ContentView.version_export({'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id})
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) == 1)
@@ -581,13 +566,13 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: System
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
@@ -643,14 +628,12 @@ class ContentViewSync(CLITestCase):
         rhva_cv, exporting_cvv_id = ContentViewSync._create_cv(
             rhva_cv_name, rhva_repo, self.exporting_org
         )
-        ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
-        )
+        ContentView.version_export({'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id})
         exporting_cvv_version = rhva_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, rhva_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
@@ -710,13 +693,13 @@ class ContentViewSync(CLITestCase):
             rhel_cv_name, rhel_repo, self.exporting_org
         )
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}, timeout=7200
+            {'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id}, timeout=7200
         )
         exporting_cvv_version = rhel_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, rhel_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
@@ -757,24 +740,24 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: Integration
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
-        result = ssh.command("tar -t -f {}".format(exported_tar))
+        result = ssh.command(f"tar -t -f {exported_tar}")
         contents_tar = 'export-{0}-{1}/export-{0}-{1}-repos.tar'.format(
             self.exporting_cv_name, exporting_cvv_version
         )
         self.assertIn(contents_tar, result.stdout)
         cvv_packages = Package.list({'content-view-version-id': self.exporting_cvv_id})
         self.assertTrue(len(cvv_packages) > 0)
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
+        ssh.command(f"tar -xf {exported_tar} -C {self.export_dir}")
         exported_packages = ssh.command(
-            "tar -tf {0}/{1} | grep .rpm | wc -l".format(self.export_dir, contents_tar)
+            f"tar -tf {self.export_dir}/{contents_tar} | grep .rpm | wc -l"
         )
         self.assertEqual(len(cvv_packages), int(exported_packages.stdout[0]))
 
@@ -807,14 +790,12 @@ class ContentViewSync(CLITestCase):
             {'id': self.exporting_cvv_id, 'to-lifecycle-environment-id': env['id']}
         )
         promoted_cvv_id = ContentView.info({'id': self.exporting_cv['id']})['versions'][-1]['id']
-        ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': promoted_cvv_id}
-        )
+        ContentView.version_export({'export-dir': f'{self.export_dir}', 'id': promoted_cvv_id})
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         self.set_importing_org(
@@ -849,10 +830,10 @@ class ContentViewSync(CLITestCase):
         :CaseLevel: Integration
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
         self.set_importing_org(
@@ -893,13 +874,13 @@ class ContentViewSync(CLITestCase):
                 minor version'
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
@@ -913,7 +894,7 @@ class ContentViewSync(CLITestCase):
             )
         self.assert_error_msg(
             error,
-            "the Content View '{0}' is greater or equal to the version you "
+            "the Content View '{}' is greater or equal to the version you "
             "are trying to import".format(self.exporting_cv_name),
         )
 
@@ -938,10 +919,10 @@ class ContentViewSync(CLITestCase):
                 displayed
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
         importing_org = make_org()
@@ -978,10 +959,10 @@ class ContentViewSync(CLITestCase):
                 displayed
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
         importing_org = make_org()
@@ -1025,7 +1006,7 @@ class ContentViewSync(CLITestCase):
         cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export(
-                {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+                {'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id}
             )
         self.assert_error_msg(
             error,
@@ -1070,7 +1051,7 @@ class ContentViewSync(CLITestCase):
         cv_version = cv_dict['versions'][0]['version']
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export(
-                {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
+                {'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id}
             )
         self.assert_error_msg(
             error,
@@ -1116,11 +1097,9 @@ class ContentViewSync(CLITestCase):
         exporting_cv, exporting_cvv_id = ContentViewSync._create_cv(
             exporting_cv_name, repo, self.exporting_org
         )
-        ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': exporting_cvv_id}
-        )
+        ContentView.version_export({'export-dir': f'{self.export_dir}', 'id': exporting_cvv_id})
         exporting_cvv_version = exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, exporting_cv_name, exporting_cvv_version
         )
         self.set_importing_org(
@@ -1215,7 +1194,7 @@ class ContentViewSync(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as error:
             ContentView.version_export(
                 {
-                    'export-dir': '{}'.format(self.export_dir),
+                    'export-dir': f'{self.export_dir}',
                     'id': ContentView.info({'id': content_view['id']})['versions'][0]['id'],
                 }
             )
@@ -1285,7 +1264,7 @@ class ContentViewSync(CLITestCase):
         ContentView.publish({'id': content_view['id']})
         export_cvv_info = ContentView.info({'id': content_view['id']})['versions'][0]
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': export_cvv_info['id']}
+            {'export-dir': f'{self.export_dir}', 'id': export_cvv_info['id']}
         )
         self.assert_exported_cvv_exists(content_view['name'], export_cvv_info['version'])
 
@@ -1312,30 +1291,26 @@ class ContentViewSync(CLITestCase):
             2. The Imported CV version has major and minor updated in exported tar json
         """
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         self.set_importing_org(
             self.exporting_prod_name, self.exporting_repo_name, self.exporting_cv_name
         )
         # Updating the json in exported tar
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
-        extracted_directory_name = 'export-{0}-{1}'.format(
+        ssh.command(f"tar -xf {exported_tar} -C {self.export_dir}")
+        extracted_directory_name = 'export-{}-{}'.format(
             self.exporting_cv_name, exporting_cvv_version
         )
         json_path = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
         new_major, new_minor = self._update_json(json_path)
-        custom_cvv_tar = '{0}/{1}.tar'.format(self.export_dir, extracted_directory_name)
-        ssh.command(
-            "tar -cvf {0} {1}/{2}".format(
-                custom_cvv_tar, self.export_dir, extracted_directory_name
-            )
-        )
+        custom_cvv_tar = f'{self.export_dir}/{extracted_directory_name}.tar'
+        ssh.command(f"tar -cvf {custom_cvv_tar} {self.export_dir}/{extracted_directory_name}")
         # Importing the updated tar
         ContentView.version_import(
             {'export-tar': custom_cvv_tar, 'organization-id': self.importing_org['id']}
@@ -1380,21 +1355,21 @@ class ContentViewSync(CLITestCase):
         exporting_repo = Repository.info({'id': self.exporting_repo['id']})
         exporting_cv = ContentView.info({'id': self.exporting_cv['id']})
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_dir), 'id': self.exporting_cvv_id}
+            {'export-dir': f'{self.export_dir}', 'id': self.exporting_cvv_id}
         )
         exporting_cvv_version = self.exporting_cv['versions'][0]['version']
-        exported_tar = '{0}/export-{1}-{2}.tar'.format(
+        exported_tar = '{}/export-{}-{}.tar'.format(
             self.export_dir, self.exporting_cv_name, exporting_cvv_version
         )
-        result = ssh.command("[ -f {0} ]".format(exported_tar))
+        result = ssh.command(f"[ -f {exported_tar} ]")
         self.assertEqual(result.return_code, 0)
         # Updating the json in exported tar
-        ssh.command("tar -xf {0} -C {1}".format(exported_tar, self.export_dir))
-        extracted_directory_name = 'export-{0}-{1}'.format(
+        ssh.command(f"tar -xf {exported_tar} -C {self.export_dir}")
+        extracted_directory_name = 'export-{}-{}'.format(
             self.exporting_cv_name, exporting_cvv_version
         )
         json_path_server = '{0}/{1}/{1}.json'.format(self.export_dir, extracted_directory_name)
-        json_path_local = '/tmp/{}.json'.format(extracted_directory_name)
+        json_path_local = f'/tmp/{extracted_directory_name}.json'
         ssh.download_file(json_path_server, json_path_local)
         with open(json_path_local) as metafile:
             metadata = json.load(metafile)

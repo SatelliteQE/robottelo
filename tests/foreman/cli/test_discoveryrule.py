@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery Rules
 
 :Requirement: Discoveryrule
@@ -45,7 +44,7 @@ class DiscoveryRuleTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Tests for discovery rules via Hammer CLI"""
-        super(DiscoveryRuleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
         cls.hostgroup = make_hostgroup(
@@ -226,7 +225,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - {r['priority'] for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         rule = self._make_discoveryrule({'priority': rule_priority[0]})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
@@ -479,11 +478,11 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - {r['priority'] for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         rule = self._make_discoveryrule({'priority': rule_priority[0]})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
-        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - {r['priority'] for r in DiscoveryRule.list()}
         rule_priority = random.sample(available, 1)
         DiscoveryRule.update({'id': rule['id'], 'priority': rule_priority[0]})
         rule = DiscoveryRule.info({'id': rule['id']})
@@ -580,7 +579,7 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Tests for discovery rules via Hammer CLI"""
-        super(DiscoveryRuleRoleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
         cls.hostgroup = make_hostgroup(

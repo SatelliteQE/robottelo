@@ -172,13 +172,13 @@ class CapsuleContentManagementTestCase(APITestCase):
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def setUpClass(cls):
         """Create a separate capsule for tests"""
-        super(CapsuleContentManagementTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.capsule_vm = CapsuleVirtualMachine()
         cls.capsule_vm.create()
         # for debugging purposes. you may replace these 3 variables with your
         # capsule values and comment lines above to speed up test execution
         cls.capsule_vm._capsule = entities.Capsule().search(
-            query={'search': 'name={0}'.format(cls.capsule_vm.hostname)}
+            query={'search': f'name={cls.capsule_vm.hostname}'}
         )[0]
 
         cls.capsule_id = cls.capsule_vm._capsule.id
@@ -189,7 +189,7 @@ class CapsuleContentManagementTestCase(APITestCase):
     def tearDownClass(cls):
         """Destroy the capsule"""
         cls.capsule_vm.destroy()
-        super(CapsuleContentManagementTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     def update_capsule_download_policy(self, capsule_id, download_policy):
         """Updates capsule's download policy to desired value"""
@@ -217,12 +217,10 @@ class CapsuleContentManagementTestCase(APITestCase):
         :CaseLevel: System
         """
         package_name = 'redhat-access-insights-puppet'
-        result = ssh.command(
-            'yum list {0} | grep @capsule'.format(package_name), hostname=self.capsule_ip
-        )
+        result = ssh.command(f'yum list {package_name} | grep @capsule', hostname=self.capsule_ip)
         if result.return_code != 0:
             result = ssh.command(
-                'yum list available | grep {0}'.format(package_name), hostname=self.capsule_ip
+                f'yum list available | grep {package_name}', hostname=self.capsule_ip
             )
         self.assertEqual(result.return_code, 0)
 
@@ -247,11 +245,11 @@ class CapsuleContentManagementTestCase(APITestCase):
         product = entities.Product(organization=org).create()
         repo = entities.Repository(product=product, url=None).create()
         capsule = entities.Capsule(id=self.capsule_id).search(
-            query={'search': 'name={0}'.format(self.capsule_hostname)}
+            query={'search': f'name={self.capsule_hostname}'}
         )[0]
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': 'name={}'.format(ENVIRONMENT)}
+            query={'search': f'name={ENVIRONMENT}'}
         )[0]
         # Associate the lifecycle environment with the capsule
         capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
@@ -358,13 +356,13 @@ class CapsuleContentManagementTestCase(APITestCase):
             org=org.label, lce=lce.label, cv=cv.label, prod=product.label, repo=repo.label
         )
         result = ssh.command(
-            'grep -o \'checksum type="sha1"\' {}/{}'.format(lce_repo_path, repomd_path),
+            f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{repomd_path}',
             hostname=self.capsule_ip,
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
-            'grep -o \'checksum type="sha256"\' {}/{}'.format(lce_repo_path, repomd_path),
+            f'grep -o \'checksum type="sha256"\' {lce_repo_path}/{repomd_path}',
             hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
@@ -392,13 +390,13 @@ class CapsuleContentManagementTestCase(APITestCase):
             entities.ForemanTask(id=task['id']).poll()
         # Verify repodata's checksum type has updated to sha1 on capsule
         result = ssh.command(
-            'grep -o \'checksum type="sha256"\' {}/{}'.format(lce_repo_path, repomd_path),
+            f'grep -o \'checksum type="sha256"\' {lce_repo_path}/{repomd_path}',
             hostname=self.capsule_ip,
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
-            'grep -o \'checksum type="sha1"\' {}/{}'.format(lce_repo_path, repomd_path),
+            f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{repomd_path}',
             hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
@@ -609,7 +607,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         capsule = entities.Capsule(id=self.capsule_id).read()
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': 'name={}'.format(ENVIRONMENT)}
+            query={'search': f'name={ENVIRONMENT}'}
         )[0]
         # Associate the lifecycle environment with the capsule
         capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
@@ -702,17 +700,15 @@ class CapsuleContentManagementTestCase(APITestCase):
         cvv_repo_path = form_repo_path(
             org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
         )
-        result = ssh.command('find {}/ -type l'.format(cvv_repo_path))
+        result = ssh.command(f'find {cvv_repo_path}/ -type l')
         self.assertEqual(result.return_code, 0)
-        links = set(link for link in result.stdout if link)
+        links = {link for link in result.stdout if link}
         self.assertEqual(len(links), packages_count)
         # Ensure all the symlinks on satellite are broken (pointing to
         # nonexistent files)
-        result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(cvv_repo_path)
-        )
+        result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
         self.assertEqual(result.return_code, 0)
-        broken_links = set(link for link in result.stdout if link)
+        broken_links = {link for link in result.stdout if link}
         self.assertEqual(len(broken_links), packages_count)
         self.assertEqual(broken_links, links)
         # Wait till capsule sync finishes
@@ -723,29 +719,29 @@ class CapsuleContentManagementTestCase(APITestCase):
         )
         # Check whether the symlinks for all the packages were created on
         # capsule
-        result = ssh.command('find {}/ -type l'.format(lce_repo_path), hostname=self.capsule_ip)
+        result = ssh.command(f'find {lce_repo_path}/ -type l', hostname=self.capsule_ip)
         self.assertEqual(result.return_code, 0)
-        links = set(link for link in result.stdout if link)
+        links = {link for link in result.stdout if link}
         self.assertEqual(len(links), packages_count)
         # Ensure all the symlinks on capsule are broken (pointing to
         # nonexistent files)
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(lce_repo_path),
+            f'find {lce_repo_path}/ -type l ! -exec test -e {{}} \\; -print',
             hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
-        broken_links = set(link for link in result.stdout if link)
+        broken_links = {link for link in result.stdout if link}
         self.assertEqual(len(broken_links), packages_count)
         self.assertEqual(broken_links, links)
         # Download package from satellite and get its md5 checksum
         published_repo_url = 'http://{}{}/pulp/{}/'.format(
             settings.server.hostname,
-            ':{}'.format(settings.server.port) if settings.server.port else '',
+            f':{settings.server.port}' if settings.server.port else '',
             lce_repo_path.split('http/')[1],
         )
-        package_md5 = md5_by_url('{}{}'.format(repo_url, package))
+        package_md5 = md5_by_url(f'{repo_url}{package}')
         # Get md5 checksum of source package
-        published_package_md5 = md5_by_url('{}{}'.format(published_repo_url, package))
+        published_package_md5 = md5_by_url(f'{published_repo_url}{package}')
         # Assert checksums are matching
         self.assertEqual(package_md5, published_package_md5)
 
@@ -855,7 +851,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             content_view=cv2, environment=lce2, organization=org
         ).create()
         subscription = entities.Subscription(organization=org).search(
-            query={'search': 'name={}'.format(prod2.name)}
+            query={'search': f'name={prod2.name}'}
         )[0]
         activation_key.add_subscriptions(data={'subscription_id': subscription.id})
         # Subscribe a host with activation key
@@ -864,10 +860,10 @@ class CapsuleContentManagementTestCase(APITestCase):
             client.register_contenthost(org.label, activation_key.name)
             # Install the package
             package_name = FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
-            result = client.run('yum install -y {}'.format(package_name))
+            result = client.run(f'yum install -y {package_name}')
             self.assertEqual(result.return_code, 0)
             # Ensure package installed
-            result = client.run('rpm -qa | grep {}'.format(package_name))
+            result = client.run(f'rpm -qa | grep {package_name}')
             self.assertEqual(result.return_code, 0)
             self.assertIn(package_name, result.stdout[0])
 
@@ -963,17 +959,15 @@ class CapsuleContentManagementTestCase(APITestCase):
         cvv_repo_path = form_repo_path(
             org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
         )
-        result = ssh.command('find {}/ -type l'.format(cvv_repo_path))
+        result = ssh.command(f'find {cvv_repo_path}/ -type l')
         self.assertEqual(result.return_code, 0)
-        links = set(link for link in result.stdout if link)
+        links = {link for link in result.stdout if link}
         self.assertEqual(len(links), packages_count)
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # satellite
-        result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(cvv_repo_path)
-        )
+        result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
         self.assertEqual(result.return_code, 0)
-        broken_links = set(link for link in result.stdout if link)
+        broken_links = {link for link in result.stdout if link}
         self.assertEqual(len(broken_links), 0)
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -983,18 +977,18 @@ class CapsuleContentManagementTestCase(APITestCase):
         )
         # Check whether the symlinks for all the packages were created on
         # capsule
-        result = ssh.command('find {}/ -type l'.format(lce_repo_path), hostname=self.capsule_ip)
+        result = ssh.command(f'find {lce_repo_path}/ -type l', hostname=self.capsule_ip)
         self.assertEqual(result.return_code, 0)
-        links = set(link for link in result.stdout if link)
+        links = {link for link in result.stdout if link}
         self.assertEqual(len(links), packages_count)
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # capsule
         result = ssh.command(
-            'find {}/ -type l ! -exec test -e {{}} \\; -print'.format(lce_repo_path),
+            f'find {lce_repo_path}/ -type l ! -exec test -e {{}} \\; -print',
             hostname=self.capsule_ip,
         )
         self.assertEqual(result.return_code, 0)
-        broken_links = set(link for link in result.stdout if link)
+        broken_links = {link for link in result.stdout if link}
         self.assertEqual(len(broken_links), 0)
 
     @tier4
@@ -1118,8 +1112,8 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        https_pub_url = 'https://{0}/pub'.format(self.capsule_ip)
-        http_pub_url = 'http://{0}/pub'.format(self.capsule_ip)
+        https_pub_url = f'https://{self.capsule_ip}/pub'
+        http_pub_url = f'http://{self.capsule_ip}/pub'
         for url in [http_pub_url, https_pub_url]:
             response = client.get(url, verify=False)
             self.assertEqual(response.status_code, 200)

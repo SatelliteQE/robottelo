@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Remote Execution Management UI
 
 :Requirement: Remoteexecution
@@ -42,10 +41,10 @@ class JobTemplateTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization to be reused in tests."""
-        super(JobTemplateTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.organization = make_org()
-        ssh.command('''echo '<%= input("command") %>' > {0}'''.format(TEMPLATE_FILE))
-        ssh.command('touch {0}'.format(TEMPLATE_FILE_EMPTY))
+        ssh.command(f'''echo '<%= input("command") %>' > {TEMPLATE_FILE}''')
+        ssh.command(f'touch {TEMPLATE_FILE_EMPTY}')
 
     @tier1
     def test_positive_create_job_template(self):

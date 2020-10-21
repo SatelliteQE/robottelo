@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Domain  CLI
 
 :Requirement: Domain
@@ -37,7 +36,7 @@ def valid_create_params():
     """Returns a list of valid domain create parameters"""
     return [
         {
-            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
             'description': gen_string(str_type='alpha'),
         },
         {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
@@ -61,7 +60,7 @@ def valid_update_params():
     """Returns a list of valid domain update parameters"""
     return [
         {
-            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
             'description': gen_string(str_type='alpha'),
         },
         {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
@@ -96,7 +95,7 @@ def invalid_set_params():
     """Returns a list of invalid domain set parameters"""
     return [
         {
-            'name': 'white spaces {0}'.format(gen_string(str_type='utf8')),
+            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
             'value': gen_string(str_type='utf8'),
         },
         {'name': '', 'value': gen_string(str_type='utf8')},

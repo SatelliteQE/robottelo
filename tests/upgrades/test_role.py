@@ -186,7 +186,7 @@ class scenario_positive_default_role_added_permission(APITestCase):
         """
         defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         subnetfilt = entities.Filter().search(
-            query={'search': 'role_id={} and permission="view_subnets"'.format(defaultrole.id)}
+            query={'search': f'role_id={defaultrole.id} and permission="view_subnets"'}
         )
         self.assertTrue(subnetfilt)
         # Teardown
@@ -242,7 +242,7 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
         """
         defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         domainfilt = entities.Filter().search(
-            query={'search': 'role_id={} and permission="view_domains"'.format(defaultrole.id)}
+            query={'search': f'role_id={defaultrole.id} and permission="view_domains"'}
         )
         self.assertTrue(domainfilt)
         self.assertEqual(domainfilt[0].search, 'name ~ a')

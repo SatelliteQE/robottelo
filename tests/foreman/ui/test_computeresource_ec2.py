@@ -40,9 +40,7 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    default_loc_id = (
-        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    )
+    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     return entities.Location(id=default_loc_id).read()
 
 
@@ -154,9 +152,9 @@ def test_positive_default_end_to_end_with_custom_profile(
         cr_profile_values = session.computeresource.read_computeprofile(
             new_cr_name, COMPUTE_PROFILE_LARGE
         )
-        assert cr_profile_values['breadcrumb'] == 'Edit {0}'.format(COMPUTE_PROFILE_LARGE)
+        assert cr_profile_values['breadcrumb'] == f'Edit {COMPUTE_PROFILE_LARGE}'
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_LARGE
-        assert cr_profile_values['compute_resource'] == '{0} ({1}-{2})'.format(
+        assert cr_profile_values['compute_resource'] == '{} ({}-{})'.format(
             new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2']
         )
         assert (

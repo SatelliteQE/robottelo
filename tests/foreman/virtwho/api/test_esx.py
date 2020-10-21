@@ -78,7 +78,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
+        """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: 72d74c05-2580-4f38-b6c0-999ff470d4d6
 
@@ -100,8 +100,14 @@ class TestVirtWhoConfigforEsx:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -126,7 +132,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify "GET /foreman_virt_who_configure/api/
+        """Verify "GET /foreman_virt_who_configure/api/
 
         v2/configs/:id/deploy_script"
 
@@ -150,8 +156,14 @@ class TestVirtWhoConfigforEsx:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -176,7 +188,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_debug_option(self, form_data, virtwho_config):
-        """ Verify debug option by "PUT
+        """Verify debug option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
@@ -200,7 +212,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_interval_option(self, form_data, virtwho_config):
-        """ Verify interval option by "PUT
+        """Verify interval option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
@@ -233,7 +245,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by "PUT
+        """Verify hypervisor_id option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
@@ -259,7 +271,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_filter_option(self, form_data, virtwho_config):
-        """ Verify filter option by "PUT
+        """Verify filter option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 
@@ -307,7 +319,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_proxy_option(self, form_data, virtwho_config):
-        """ Verify http_proxy option by "PUT
+        """Verify http_proxy option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id""
 
@@ -336,7 +348,7 @@ class TestVirtWhoConfigforEsx:
 
     @tier2
     def test_positive_configure_organization_list(self, form_data, virtwho_config):
-        """ Verify "GET /foreman_virt_who_configure/
+        """Verify "GET /foreman_virt_who_configure/
 
         api/v2/organizations/:organization_id/configs"
 

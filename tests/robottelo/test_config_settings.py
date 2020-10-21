@@ -56,7 +56,7 @@ class TestSettings:
             assert settings.server.ssh_password == '1234'
 
 
-class FakeOpen(object):
+class FakeOpen:
     def __init__(self, lines, *args, **kwargs):
         self.lines = (line for line in lines)
 

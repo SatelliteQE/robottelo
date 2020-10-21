@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the Docker feature.
 
 :Requirement: Docker
@@ -69,7 +68,7 @@ class DockerRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -299,7 +298,7 @@ class DockerContentViewTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(DockerContentViewTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier2
@@ -763,7 +762,7 @@ class DockerContentViewTestCase(APITestCase):
         prod.update(['name'])
         repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
 
-        expected_pattern = "{}/{}".format(self.org.label, old_prod_name).lower()
+        expected_pattern = f"{self.org.label}/{old_prod_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
         content_view.publish()
@@ -771,7 +770,7 @@ class DockerContentViewTestCase(APITestCase):
         promote(cvv, lce.id)
         repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
 
-        expected_pattern = "{}/{}".format(self.org.label, new_prod_name).lower()
+        expected_pattern = f"{self.org.label}/{new_prod_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
     @tier2
@@ -809,7 +808,7 @@ class DockerContentViewTestCase(APITestCase):
         repo.update(['name'])
         repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
 
-        expected_pattern = "{}/{}".format(self.org.label, old_repo_name).lower()
+        expected_pattern = f"{self.org.label}/{old_repo_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
         content_view.publish()
@@ -817,7 +816,7 @@ class DockerContentViewTestCase(APITestCase):
         promote(cvv, lce.id)
         repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
 
-        expected_pattern = "{}/{}".format(self.org.label, new_repo_name).lower()
+        expected_pattern = f"{self.org.label}/{new_repo_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
     @tier2
@@ -893,7 +892,7 @@ class DockerActivationKeyTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create necessary objects which can be re-used in tests."""
-        super(DockerActivationKeyTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.repo = _create_repository(entities.Product(organization=cls.org).create())

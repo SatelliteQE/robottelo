@@ -113,7 +113,7 @@ class TestLocation:
 
         :expectedresults: Location created successfully and has expected name
         """
-        name = '{0}, {1}'.format(gen_string('alpha'), gen_string('alpha'))
+        name = '{}, {}'.format(gen_string('alpha'), gen_string('alpha'))
         location = entities.Location(name=name).create()
         assert location.name == name
         location.delete()
@@ -138,7 +138,7 @@ class TestLocation:
         orgs = [make_orgs['org'], make_orgs['org2']]
         location.organization = orgs
         location = location.update(['organization'])
-        assert set([org.id for org in orgs]) == set([org.id for org in location.organization])
+        assert {org.id for org in orgs} == {org.id for org in location.organization}
 
     @tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -300,6 +300,6 @@ class TestLocation:
 
         """
         default_loc_id = (
-            entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
         assert default_loc_id == 2

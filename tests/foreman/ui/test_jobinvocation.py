@@ -59,7 +59,7 @@ def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
         entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .search(query={'search': f'name={settings.server.hostname}'})[0]
         .read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
@@ -103,7 +103,7 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_
             {
                 'job_category': 'Commands',
                 'job_template': 'Run Command - SSH Default',
-                'search_query': 'name ^ {}'.format(hostname),
+                'search_query': f'name ^ {hostname}',
                 'template_content.command': 'ls',
             }
         )
@@ -150,13 +150,11 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, module_vm_c
             {
                 'job_category': 'Miscellaneous',
                 'job_template': job_template_name,
-                'search_query': 'name ^ {}'.format(hostname),
+                'search_query': f'name ^ {hostname}',
                 'template_content.command': 'ls',
             }
         )
-        job_description = '{0} with inputs command="ls"'.format(
-            camelize(job_template_name.lower())
-        )
+        job_description = '{} with inputs command="ls"'.format(camelize(job_template_name.lower()))
         session.jobinvocation.wait_job_invocation_state(
             entity_name=job_description, host_name=hostname
         )

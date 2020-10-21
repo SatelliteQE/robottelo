@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Reports CLI.
 
 :Requirement: Report
@@ -29,7 +28,7 @@ class ReportTestCase(CLITestCase):
     """Test class for Reports CLI. """
 
     def setUp(self):
-        super(ReportTestCase, self).setUp()
+        super().setUp()
         self.run_puppet_agent()
 
     def run_puppet_agent(self):

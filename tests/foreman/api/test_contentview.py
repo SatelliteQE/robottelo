@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``content_views`` paths.
 
 :Requirement: Contentview
@@ -85,7 +84,7 @@ def class_promoted_cv(class_published_cv, module_lce):
 @pytest.fixture(scope='class')
 def class_cloned_cv(class_cv):
     copied_cv_id = entities.ContentView(id=class_cv.id).copy(
-        data={u'name': gen_string('alpha', gen_integer(3, 30))}
+        data={'name': gen_string('alpha', gen_integer(3, 30))}
     )['id']
     return entities.ContentView(id=copied_cv_id).read()
 
@@ -234,11 +233,16 @@ class TestContentView:
         :CaseImportance: Low
         """
         puppet_repo = entities.Repository(
-            content_type='puppet', product=module_product, url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=module_product,
+            url=FAKE_0_PUPPET_REPO,
         ).create()
         puppet_repo.sync()
         with pytest.raises(HTTPError):
-            entities.ContentView(organization=module_org, repository=[puppet_repo.id],).create()
+            entities.ContentView(
+                organization=module_org,
+                repository=[puppet_repo.id],
+            ).create()
 
     @tier2
     def test_negative_add_dupe_repos(self, content_view, module_product, module_org):
@@ -277,7 +281,9 @@ class TestContentView:
         :CaseImportance: Low
         """
         puppet_repo = entities.Repository(
-            content_type='puppet', product=module_product, url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=module_product,
+            url=FAKE_0_PUPPET_REPO,
         ).create()
         puppet_repo.sync()
         puppet_module = random.choice(content_view.available_puppet_modules()['results'])
@@ -391,7 +397,7 @@ class TestContentViewCreate:
         :CaseImportance: Critical
         """
         cloned_cv = entities.ContentView(
-            id=content_view.copy(data={u'name': gen_string('alpha', gen_integer(3, 30))})['id']
+            id=content_view.copy(data={'name': gen_string('alpha', gen_integer(3, 30))})['id']
         ).read_json()
         cv_origin = content_view.read_json()
         uniqe_keys = ('label', 'id', 'name', 'updated_at', 'created_at')
@@ -431,7 +437,9 @@ class TestContentViewPublishPromote:
         ).create()
         self.swid_repo.sync()
         request.cls.puppet_repo = entities.Repository(
-            content_type='puppet', product=module_product.id, url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=module_product.id,
+            url=FAKE_0_PUPPET_REPO,
         ).create()
         self.puppet_repo.sync()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
@@ -494,7 +502,10 @@ class TestContentViewPublishPromote:
 
         :CaseImportance: Critical
         """
-        composite_cv = entities.ContentView(composite=True, organization=module_org,).create()
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
         composite_cv.publish()
         assert len(composite_cv.read().version) == 1
@@ -514,7 +525,10 @@ class TestContentViewPublishPromote:
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(composite=True, organization=module_org,).create()
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
 
         for i in range(random.randint(2, 3)):
@@ -589,7 +603,7 @@ class TestContentViewPublishPromote:
             module_product.name,
             self.swid_repo.name,
         )
-        result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
+        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
         assert result.return_code == 0
 
     @tier2
@@ -630,7 +644,7 @@ class TestContentViewPublishPromote:
             module_product.name,
             self.swid_repo.name,
         )
-        result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
+        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
         assert result.return_code == 0
 
     @tier2
@@ -725,7 +739,10 @@ class TestContentViewPublishPromote:
         content_view.publish()
         content_view = content_view.read()
 
-        composite_cv = entities.ContentView(composite=True, organization=module_org,).create()
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         composite_cv.component = content_view.version  # list of one CV version
         composite_cv = composite_cv.update(['component'])
 
@@ -751,7 +768,10 @@ class TestContentViewPublishPromote:
         content_view.update(['repository'])
         content_view.publish()
         content_view = content_view.read()
-        non_composite_cv = entities.ContentView(composite=False, organization=module_org,).create()
+        non_composite_cv = entities.ContentView(
+            composite=False,
+            organization=module_org,
+        ).create()
         non_composite_cv.component = content_view.version  # list of one cvv
         with pytest.raises(HTTPError):
             non_composite_cv.update(['component'])
@@ -773,7 +793,10 @@ class TestContentViewPublishPromote:
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(composite=True, organization=module_org,).create()
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
         composite_cv.publish()
         promote(composite_cv.read().version[0], module_lce.id)
@@ -797,7 +820,10 @@ class TestContentViewPublishPromote:
 
         :CaseImportance: High
         """
-        composite_cv = entities.ContentView(composite=True, organization=module_org,).create()
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         self.add_content_views_to_composite(composite_cv, module_org, random.randint(2, 3))
         composite_cv.publish()
         composite_cv = composite_cv.read()
@@ -905,7 +931,10 @@ class TestContentViewPublishPromote:
             assert content_view_info.package_count == 35
 
         # create composite content view with these two published content views
-        comp_content_view = entities.ContentView(composite=True, organization=module_org,).create()
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=module_org,
+        ).create()
         content_view_1 = content_view_1.read()
         content_view_2 = content_view_2.read()
         for content_view_version in [content_view_1.version[-1], content_view_2.version[-1]]:
@@ -1021,7 +1050,8 @@ class TestContentViewRedHatContent:
 
         with manifests.clone() as manifest:
             entities.Subscription().upload(
-                data={'organization_id': module_org.id}, files={'content': manifest.content},
+                data={'organization_id': module_org.id},
+                files={'content': manifest.content},
             )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1067,7 +1097,9 @@ class TestContentViewRedHatContent:
         """
         # content_view ← cv_filter
         cv_filter = entities.RPMContentViewFilter(
-            content_view=self.yumcv, inclusion='true', name=gen_string('alphanumeric'),
+            content_view=self.yumcv,
+            inclusion='true',
+            name=gen_string('alphanumeric'),
         ).create()
         assert self.yumcv.id == cv_filter.content_view.id
 
@@ -1091,7 +1123,9 @@ class TestContentViewRedHatContent:
 
         :CaseImportance: High
         """
-        cvf = entities.ErratumContentViewFilter(content_view=self.yumcv,).create()
+        cvf = entities.ErratumContentViewFilter(
+            content_view=self.yumcv,
+        ).create()
         assert self.yumcv.id == cvf.content_view.id
 
         cv_filter_rule = entities.ContentViewFilterRule(
@@ -1214,7 +1248,10 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
         ).create()
     # create a user and assign the above created role
     entities.User(
-        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+        organization=[module_org],
+        role=[function_role],
+        login=user_login,
+        password=user_password,
     ).create()
     cfg = get_nailgun_config()
     cfg.auth = (user_login, user_password)
@@ -1280,7 +1317,10 @@ def test_positive_readonly_user_actions(function_role, content_view, module_org)
     ).create()
     # create a user and assign the above created role
     entities.User(
-        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+        organization=[module_org],
+        role=[function_role],
+        login=user_login,
+        password=user_password,
     ).create()
     # add repository to the created content view
     product = entities.Product(organization=module_org).create()
@@ -1338,7 +1378,10 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
     ).create()
     # create a user and assign the above created role
     entities.User(
-        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+        organization=[module_org],
+        role=[function_role],
+        login=user_login,
+        password=user_password,
     ).create()
     cfg = get_nailgun_config()
     cfg.auth = (user_login, user_password)
@@ -1394,11 +1437,16 @@ def test_negative_non_readonly_user_actions(content_view, function_role, module_
         entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
     ]
     entities.Filter(
-        organization=[module_org], permission=user_cv_permissions_entities, role=function_role,
+        organization=[module_org],
+        permission=user_cv_permissions_entities,
+        role=function_role,
     ).create()
     # create a user and assign the above created role
     entities.User(
-        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+        organization=[module_org],
+        role=[function_role],
+        login=user_login,
+        password=user_password,
     ).create()
     cfg = get_nailgun_config()
     cfg.auth = (user_login, user_password)
@@ -1429,18 +1477,21 @@ class TestOstreeContentView:
         self.ostree_repo.sync()
         # Create new yum repository
         request.cls.yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO, product=module_product,
+            url=FAKE_1_YUM_REPO,
+            product=module_product,
         ).create()
         self.yum_repo.sync()
         # Create new Puppet repository
         request.cls.puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=module_product,
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=module_product,
         ).create()
         self.puppet_repo.sync()
         # Create new docker repository
         request.cls.docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=module_product,
             url=DOCKER_REGISTRY_HUB,
         ).create()
@@ -1543,7 +1594,8 @@ class TestContentViewRedHatOstreeContent:
 
         with manifests.clone() as manifest:
             entities.Subscription().upload(
-                data={'organization_id': module_org.id}, files={'content': manifest.content},
+                data={'organization_id': module_org.id},
+                files={'content': manifest.content},
             )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=None,

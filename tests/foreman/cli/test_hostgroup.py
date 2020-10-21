@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI.
 
 :Requirement: Hostgroup
@@ -58,7 +57,7 @@ class HostGroupTestCase(CLITestCase):
     @classmethod
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
-        super(HostGroupTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         # Setup for puppet class related tests
         puppet_modules = [
@@ -66,13 +65,13 @@ class HostGroupTestCase(CLITestCase):
             {'author': 'robottelo', 'name': 'generic_2'},
         ]
         cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{}"'.format(cls.cv['name'])})[0]
         cls.puppet_classes = [
             Puppet.info({'name': mod['name'], 'puppet-environment': cls.env['name']})
             for mod in puppet_modules
         ]
         cls.content_source = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            {'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         cls.hostgroup = make_hostgroup(
             {'content-source-id': cls.content_source['id'], 'organization-ids': cls.org['id']}
@@ -128,7 +127,7 @@ class HostGroupTestCase(CLITestCase):
         arch = make_architecture()
         ptable = make_partition_table({'location-ids': loc['id'], 'organization-ids': org['id']})
         os = make_os({'architecture-ids': arch['id'], 'partition-table-ids': ptable['id']})
-        os_full_name = "{0} {1}.{2}".format(os['name'], os['major-version'], os['minor-version'])
+        os_full_name = "{} {}.{}".format(os['name'], os['major-version'], os['minor-version'])
         media = make_medium(
             {
                 'operatingsystem-ids': os['id'],
@@ -159,7 +158,7 @@ class HostGroupTestCase(CLITestCase):
         }
         hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertEqual(hostgroup['name'], name)
-        self.assertEqual(set(org['name'] for org in orgs), set(hostgroup['organizations']))
+        self.assertEqual({org['name'] for org in orgs}, set(hostgroup['organizations']))
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['puppet-environment'])
         self.assertEqual(self.content_source['name'], hostgroup['puppet-master-proxy'])

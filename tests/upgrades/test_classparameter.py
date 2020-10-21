@@ -69,19 +69,17 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
         self.org = entities.Organization().create()
         cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
         self.env = (
-            entities.Environment()
-            .search(query={'search': 'content_view="{0}"'.format(cv.name)})[0]
-            .read()
+            entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
         )
         self.puppet_class = entities.PuppetClass().search(
             query={
-                'search': 'name = "{0}" and environment = "{1}"'.format(
+                'search': 'name = "{}" and environment = "{}"'.format(
                     self.puppet_modules[0]['name'], self.env.name
                 )
             }
         )[0]
         self.sc_params_list = entities.SmartClassParameters().search(
-            query={'search': 'puppetclass="{0}"'.format(self.puppet_class.name), 'per_page': 1000}
+            query={'search': f'puppetclass="{self.puppet_class.name}"', 'per_page': 1000}
         )
         scenario_ents = {self.__class__.__name__: {'puppet_class': self.puppet_class.name}}
         create_dict(scenario_ents)
@@ -124,7 +122,7 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
             with self.subTest(count):
                 data = _valid_sc_parameters_data()[count - 1]
                 sc_param = entities.SmartClassParameters().search(
-                    query={'search': 'parameter="api_classparameters_scp_00{}"'.format(count)}
+                    query={'search': f'parameter="api_classparameters_scp_00{count}"'}
                 )[0]
                 sc_param.override = True
                 sc_param.parameter_type = data['sc_type']
@@ -147,7 +145,7 @@ class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
             with self.subTest(count):
                 data = _valid_sc_parameters_data()[count - 1]
                 sc_param = entities.SmartClassParameters().search(
-                    query={'search': 'parameter="api_classparameters_scp_00{}"'.format(count)}
+                    query={'search': f'parameter="api_classparameters_scp_00{count}"'}
                 )[0]
                 self.assertEqual(sc_param.parameter_type, data['sc_type'])
                 self._validate_value(data, sc_param)

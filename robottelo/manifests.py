@@ -20,7 +20,7 @@ from robottelo.decorators.func_locker import lock_function
 from robottelo.ssh import upload_file
 
 
-class ManifestCloner(object):
+class ManifestCloner:
     """Manifest clonning utility class."""
 
     def __init__(self, template=None, private_key=None, signing_key=None):
@@ -121,7 +121,7 @@ class ManifestCloner(object):
 _manifest_cloner = ManifestCloner()
 
 
-class Manifest(object):
+class Manifest:
     """Class that holds the contents of a manifest with a generated filename
     based on ``time.time``.
 
@@ -141,7 +141,7 @@ class Manifest(object):
                 org_environment_access=org_environment_access, name=name
             )
         if self.filename is None:
-            self.filename = '/var/tmp/manifest-{0}.zip'.format(int(time.time()))
+            self.filename = '/var/tmp/manifest-{}.zip'.format(int(time.time()))
 
     @property
     def content(self):
@@ -224,7 +224,7 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
     """
 
     if interface not in [INTERFACE_API, INTERFACE_CLI]:
-        raise ValueError('upload manifest with interface "{0}" not supported'.format(interface))
+        raise ValueError(f'upload manifest with interface "{interface}" not supported')
     if manifest is None:
         manifest = clone()
     if timeout is None:

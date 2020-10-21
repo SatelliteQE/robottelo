@@ -16,7 +16,7 @@ class SkuSettings(FeatureSettings):
     """Sku settings definitions"""
 
     def __init__(self, *args, **kwargs):
-        super(SkuSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # SKU Information
         self.vdc_physical = None
         self.vdc_virtual = None
@@ -43,7 +43,7 @@ class EsxSettings(FeatureSettings):
     """Esx settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(EsxSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -91,7 +91,7 @@ class XenSettings(FeatureSettings):
     """Xen settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(XenSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -139,7 +139,7 @@ class HypervSettings(FeatureSettings):
     """Hyperv settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(HypervSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -187,7 +187,7 @@ class RhevmSettings(FeatureSettings):
     """Rhevm settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(RhevmSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -235,7 +235,7 @@ class LibvirtSettings(FeatureSettings):
     """Libvirt settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(LibvirtSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -279,7 +279,7 @@ class KubevirtSettings(FeatureSettings):
     """Kubevirt settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(KubevirtSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Hypervisor Information
         self.hypervisor_type = None
         self.hypervisor_server = None
@@ -320,7 +320,7 @@ class KubevirtSettings(FeatureSettings):
         return validation_errors
 
 
-class VirtwhoSettings(object):
+class VirtwhoSettings:
     """Virtwho's settings representation."""
 
     def __init__(self):
@@ -349,9 +349,7 @@ class VirtwhoSettings(object):
             settings_path = os.path.join(get_project_root(), SETTINGS_FILE_NAME)
 
         if not os.path.isfile(settings_path):
-            raise ImproperlyConfigured(
-                'Not able to find settings file at {}'.format(settings_path)
-            )
+            raise ImproperlyConfigured(f'Not able to find settings file at {settings_path}')
 
         self.reader = INIReader(settings_path)
         attrs = map(lambda attr_name: (attr_name, getattr(self, attr_name)), dir(self))

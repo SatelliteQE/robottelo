@@ -122,7 +122,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         valid_separators = [',', '/', '-', '|']
         valid_names = []
         for separator in valid_separators:
-            valid_names.append('{}'.format(separator).join(generate_strings_list()))
+            valid_names.append(f'{separator}'.join(generate_strings_list()))
         value = gen_string('utf8')
         for name in valid_names:
             with self.subTest(name):

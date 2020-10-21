@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``products`` paths.
 
 An API reference for products can be found on your Satellite:
@@ -51,7 +50,7 @@ class ProductTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Set up organization for tests."""
-        super(ProductTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -358,7 +357,7 @@ class ProductTestCase(APITestCase):
 
     @tier2
     def test_positive_filter_product_list(self):
-        """ Filter products based on param 'custom/redhat_only'
+        """Filter products based on param 'custom/redhat_only'
 
         :id: e61fb63a-4552-4915-b13d-23ab80138249
 
@@ -442,5 +441,5 @@ class ProductTestCase(APITestCase):
         assert repo_b2.read().http_proxy_id == http_proxy_b.id
         # check if proxy fqdn is present in log during sync
         product_a.sync({'async': True})
-        result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
+        result = ssh.command(f'grep -F {proxy_fqdn} /var/log/messages')
         assert result.return_code == 0

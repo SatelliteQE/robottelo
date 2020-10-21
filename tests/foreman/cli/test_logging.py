@@ -32,7 +32,7 @@ from robottelo.test import CLITestCase
 def line_count(file, connection=None):
     """Get number of lines in a file."""
     connection = connection or ssh.get_connection()
-    result = connection.run('wc -l < {0}'.format(file), output_format='plain')
+    result = connection.run(f'wc -l < {file}', output_format='plain')
     count = result.stdout.strip('\n')
     return count
 
@@ -56,7 +56,7 @@ class SimpleLoggingTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Tests for logging to files"""
-        super(SimpleLoggingTestCase, cls).setUpClass()
+        super().setUpClass()
 
         # need own org for the manifest refresh test
 
@@ -100,7 +100,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # use same location on remote and local for log file extract
         ssh.download_file(test_logfile)
         # search the log file extract for the line with GET to host API
-        with open(test_logfile, "r") as logfile:
+        with open(test_logfile) as logfile:
             for line in logfile:
                 if re.search(r'Started GET \"\/api/hosts\?page=1', line):
                     self.logger.info('Found the line with GET to hosts API')
@@ -152,7 +152,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # use same location on remote and local for log file extract
         ssh.download_file(test_logfile_2)
         # search the log file extract for the line with PUT to host API
-        with open(test_logfile_1, "r") as logfile:
+        with open(test_logfile_1) as logfile:
             for line in logfile:
                 if re.search(r'Started PUT \"\/api\/smart_proxies\/1\/refresh', line):
                     self.logger.info('Found the line with PUT to foreman proxy API')
@@ -167,7 +167,7 @@ class SimpleLoggingTestCase(CLITestCase):
                     break
         assert PUT_line_found, "The PUT command to refresh proxies was not found in logs."
         # search the local copy of proxy.log file for the same request ID
-        with open(test_logfile_2, "r") as logfile:
+        with open(test_logfile_2) as logfile:
             for line in logfile:
                 # Confirm request ID was logged in proxy.log
                 match = line.find(request_id)
@@ -205,7 +205,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # use same location on remote and local for log file extract
         ssh.download_file(test_logfile)
         # search the log file extract for the line with POST to candlepin API
-        with open(test_logfile, "r") as logfile:
+        with open(test_logfile) as logfile:
             for line in logfile:
                 if re.search(
                     r'verb=POST, uri=/candlepin/owners/{0}', line.format(self.org['name'])
@@ -239,7 +239,7 @@ class SimpleLoggingTestCase(CLITestCase):
             line_count_start = line_count(source_log, connection)
             # command for this test
             new_repo = self._make_repository({'name': gen_string('alpha')})
-            self.logger.info('Created Repo {0} for dynflow log test'.format(new_repo['name']))
+            self.logger.info('Created Repo {} for dynflow log test'.format(new_repo['name']))
             # get the number of lines in the source log after the test
             line_count_end = line_count(source_log, connection)
             # get the log lines of interest, put them in test_logfile
@@ -247,7 +247,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # use same location on remote and local for log file extract
         ssh.download_file(test_logfile)
         # search the log file extract for the line with POST to to repositories API
-        with open(test_logfile, "r") as logfile:
+        with open(test_logfile) as logfile:
             for line in logfile:
                 if re.search(r'Started POST \"/katello\/api\/repositories', line):
                     self.logger.info('Found the line with POST to repositories API.')

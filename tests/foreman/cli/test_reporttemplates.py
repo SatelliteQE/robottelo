@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Report templates
 
@@ -110,7 +109,7 @@ class ReportTemplateTestCase(CLITestCase):
 
     @tier2
     def test_positive_report_help(self):
-        """ hammer level of help included in test:
+        """hammer level of help included in test:
          Base level hammer help includes report-templates,
          Command level hammer help contains usage details,
          Subcommand level hammer help contains usage details
@@ -236,7 +235,7 @@ class ReportTemplateTestCase(CLITestCase):
                 'inputs': (
                     rt_host_statuses['template-inputs'][0]['name']
                     + "="
-                    + 'name={0}'.format(host1['name'])
+                    + 'name={}'.format(host1['name'])
                 ),
             }
         )
@@ -393,7 +392,7 @@ class ReportTemplateTestCase(CLITestCase):
         result = ReportTemplate.generate({'name': report_template['name']})
         self.assertIn('Name,Operating System', result)  # verify header of custom template
         self.assertIn(
-            '{0},"{1}"'.format(host['name'], host['operating-system']['operating-system']), result
+            '{},"{}"'.format(host['name'], host['operating-system']['operating-system']), result
         )
 
     @tier3
@@ -507,7 +506,7 @@ class ReportTemplateTestCase(CLITestCase):
 
     @tier2
     def test_negative_bad_email(self):
-        """ Report can't be generated when incorrectly formed mail specified
+        """Report can't be generated when incorrectly formed mail specified
 
         :id: a4ba77db-144e-4871-a42e-e93887464986
 
@@ -674,7 +673,7 @@ class ReportTemplateTestCase(CLITestCase):
     @tier2
     @pytest.mark.skip_if_open('BZ:1782807')
     def test_positive_generate_ansible_template(self):
-        """ Report template named 'Ansible Inventory' (default name is specified in settings)
+        """Report template named 'Ansible Inventory' (default name is specified in settings)
         must be present in Satellite 6.7 and later in order to provide enhanced functionality
         for Ansible Tower inventory synchronization with Satellite.
 

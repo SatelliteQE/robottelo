@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage:
     hammer virt-who-config [OPTIONS] SUBCOMMAND [ARG] ...

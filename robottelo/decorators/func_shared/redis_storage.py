@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 try:
     import redis
 except ImportError:
@@ -37,7 +36,7 @@ class RedisStorageHandler(BaseStorageHandler):
         if timeout is None:
             timeout = self._lock_timeout
 
-        lock_key = '{}.lock'.format(key)
+        lock_key = f'{key}.lock'
         # If acquired the lock will be acquired until release
         return self.client.lock(lock_key, timeout=None, blocking_timeout=timeout)
 

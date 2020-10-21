@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Organization CLI
 
 :Requirement: Organization
@@ -60,8 +59,8 @@ def valid_labels_list():
         gen_string('alpha'),
         gen_string('alphanumeric'),
         gen_string('numeric'),
-        '{0}-{1}'.format(gen_string('alpha', 5), gen_string('alpha', 5)),
-        '{0}_{1}'.format(gen_string('alpha', 5), gen_string('alpha', 5)),
+        '{}-{}'.format(gen_string('alpha', 5), gen_string('alpha', 5)),
+        '{}_{}'.format(gen_string('alpha', 5), gen_string('alpha', 5)),
     ]
 
 
@@ -78,7 +77,7 @@ class OrganizationTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization."""
-        super(OrganizationTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
 
     @tier2
@@ -135,7 +134,7 @@ class OrganizationTestCase(CLITestCase):
 
         # Search scoped
         for query in [
-            'label = {}'.format(label),
+            f'label = {label}',
             'description ~ {}'.format(desc[:-5]),
             'name ^ "{}"'.format(org['name']),
         ]:
@@ -315,7 +314,7 @@ class OrganizationTestCase(CLITestCase):
         compute_res_a = make_compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': 'qemu+ssh://root@{0}/system'.format(
+                'url': 'qemu+ssh://root@{}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
             }
@@ -323,7 +322,7 @@ class OrganizationTestCase(CLITestCase):
         compute_res_b = make_compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': 'qemu+ssh://root@{0}/system'.format(
+                'url': 'qemu+ssh://root@{}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
             }
@@ -414,7 +413,7 @@ class OrganizationTestCase(CLITestCase):
         )
         org_info = Org.info({'name': self.org['name']})
         self.assertIn(
-            '{0} ({1})'.format(template['name'], template['type']),
+            '{} ({})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
@@ -424,7 +423,7 @@ class OrganizationTestCase(CLITestCase):
         )
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(
-            '{0} ({1})'.format(template['name'], template['type']),
+            '{} ({})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to remove template by name",
         )
@@ -436,7 +435,7 @@ class OrganizationTestCase(CLITestCase):
         )
         org_info = Org.info({'id': self.org['id']})
         self.assertIn(
-            '{0} ({1})'.format(template['name'], template['type']),
+            '{} ({})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
@@ -446,7 +445,7 @@ class OrganizationTestCase(CLITestCase):
         )
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
-            '{0} ({1})'.format(template['name'], template['type']),
+            '{} ({})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to remove template by id",
         )

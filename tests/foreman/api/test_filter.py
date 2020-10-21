@@ -30,9 +30,8 @@ class FilterTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Search for provisioning template permissions. Set ``cls.ct_perms``.
-        """
-        super(FilterTestCase, cls).setUpClass()
+        """Search for provisioning template permissions. Set ``cls.ct_perms``."""
+        super().setUpClass()
         cls.ct_perms = entities.Permission().search(
             query={'search': 'resource_type="ProvisioningTemplate"'}
         )

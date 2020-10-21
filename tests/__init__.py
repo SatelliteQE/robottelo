@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 This module contains tests both for Foreman and Robottelo itself.
 

@@ -79,17 +79,14 @@ def test_positive_clone(session, clone_setup):
                 'association.applicable_os.assigned': clone_setup['os_list'],
             },
         )
-        pt = entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(clone_name)}
-        )
+        pt = entities.ProvisioningTemplate().search(query={'search': f'name=={clone_name}'})
         assigned_oses = [os.read() for os in pt[0].read().operatingsystem]
-        assert pt, (
-            'Template {0} expected to exist but is not included in the search'
-            'results'.format(clone_name)
+        assert (
+            pt
+        ), 'Template {} expected to exist but is not included in the search' 'results'.format(
+            clone_name
         )
-        assert set(clone_setup['os_list']) == set(
-            '{0} {1}'.format(os.name, os.major) for os in assigned_oses
-        )
+        assert set(clone_setup['os_list']) == {f'{os.name} {os.major}' for os in assigned_oses}
 
 
 @tier2
@@ -138,10 +135,8 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
                 'locations.resources.assigned': [module_loc.name],
             }
         )
-        assert entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(name)}
-        ), (
-            'Provisioning template {0} expected to exist but is not included in the search'
+        assert entities.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
+            'Provisioning template {} expected to exist but is not included in the search'
             'results'.format(name)
         )
         pt = session.provisioningtemplate.read(name)
@@ -164,24 +159,20 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         session.provisioningtemplate.update(
             name, {'template.name': new_name, 'type.snippet': True}
         )
-        updated_pt = entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(new_name)}
-        )
+        updated_pt = entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'})
         assert updated_pt, (
-            'Provisioning template {0} expected to exist but is not included in the search'
+            'Provisioning template {} expected to exist but is not included in the search'
             'results'.format(new_name)
         )
         updated_pt = updated_pt[0].read()
         assert (
             updated_pt.snippet is True
         ), 'Snippet attribute not updated for Provisioning Template'
-        assert not updated_pt.template_kind, 'Snippet template is {0}'.format(
+        assert not updated_pt.template_kind, 'Snippet template is {}'.format(
             updated_pt.template_kind
         )
         session.provisioningtemplate.delete(new_name)
-        assert not entities.ProvisioningTemplate().search(
-            query={'search': 'name=={0}'.format(new_name)}
-        ), (
-            'Provisioning template {0} expected to be removed but is included in the search '
+        assert not entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'}), (
+            'Provisioning template {} expected to be removed but is included in the search '
             'results'.format(new_name)
         )

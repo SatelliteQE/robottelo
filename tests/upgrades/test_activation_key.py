@@ -86,12 +86,12 @@ class scenario_positive_activation_key(APITestCase):
 
         :expectedresults: Activation key should update and delete successfully.
         """
-        org = entities.Organization().search(query={'search': 'name={0}'.format(self.org_name)})
+        org = entities.Organization().search(query={'search': f'name={self.org_name}'})
         ak = entities.ActivationKey(organization=org[0]).search(
-            query={'search': 'name={0}'.format(self.ak_name)}
+            query={'search': f'name={self.ak_name}'}
         )
         cv = entities.ContentView(organization=org[0]).search(
-            query={'search': 'name={0}'.format(self.cv_name)}
+            query={'search': f'name={self.cv_name}'}
         )
 
         # verify activation key is intact after upgrade

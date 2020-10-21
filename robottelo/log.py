@@ -8,7 +8,7 @@ from robottelo.config.base import get_project_root
 LOGS_DATA_DIR = os.path.join(get_project_root(), 'data', 'logs')
 
 
-class LogFile(object):
+class LogFile:
     """
     References a remote log file. The log file will be downloaded to allow
     operate on it using python

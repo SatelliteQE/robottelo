@@ -176,7 +176,7 @@ def test_positive_end_to_end(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, env_name)
-        assert 'Promoted to {}'.format(env_name) in result['Status']
+        assert f'Promoted to {env_name}' in result['Status']
 
 
 @tier2
@@ -269,7 +269,7 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
             assert session.contentview.search(cv_name)[0]['Repositories'] == '1'
             # Promote content view
             result = session.contentview.promote(cv_name, VERSION, lce.name)
-            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert f'Promoted to {lce.name}' in result['Status']
             # Add content view to composite one
             session.contentview.add_cv(ccv_name, cv_name)
         # Publish composite content view
@@ -364,9 +364,9 @@ def test_positive_create_composite(session):
         for cv_name in (cv_name1, cv_name2):
             session.contentview.add_cv(composite_name, cv_name)
         composite_cv = session.contentview.read(composite_name)
-        assert {cv_name1, cv_name2} == set(
-            [cv['Name'] for cv in composite_cv['content_views']['resources']['assigned']]
-        )
+        assert {cv_name1, cv_name2} == {
+            cv['Name'] for cv in composite_cv['content_views']['resources']['assigned']
+        }
 
 
 @run_in_one_thread
@@ -681,7 +681,7 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
     content_view.publish()
     with session:
         result = session.contentview.promote(content_view.name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         assert lce.name in result['Environments']
 
 
@@ -710,7 +710,7 @@ def test_positive_promote_multiple_with_docker_repo(session, module_org, module_
         for _ in range(randint(2, 3)):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
             result = session.contentview.promote(content_view.name, VERSION, lce.name)
-            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert f'Promoted to {lce.name}' in result['Status']
             assert lce.name in result['Environments']
 
 
@@ -743,7 +743,7 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
     composite_cv.publish()
     with session:
         result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         assert lce.name in result['Environments']
 
 
@@ -778,7 +778,7 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
         for _ in range(randint(2, 3)):
             lce = entities.LifecycleEnvironment(organization=module_org).create()
             result = session.contentview.promote(composite_cv.name, VERSION, lce.name)
-            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert f'Promoted to {lce.name}' in result['Status']
             assert lce.name in result['Environments']
 
 
@@ -1227,7 +1227,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
             assert lce.name not in result['Environments']
             # promote content view environment to this version
             result = session.contentview.promote(cv_name, version, lce.name)
-            assert 'Promoted to {}'.format(lce.name) in result['Status']
+            assert f'Promoted to {lce.name}' in result['Status']
             # assert that Library is still in environments of this version
             assert ENVIRONMENT in result['Environments']
             # assert that env_name is in environments of this version
@@ -1262,19 +1262,19 @@ def test_positive_promote_with_custom_content(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # dashboard
         values = session.dashboard.read('ContentViews')
         assert cv_name in values['content_views'][0]['Content View']
-        assert values['content_views'][0]['Task'] == 'Promoted to {0}'.format(lce.name)
+        assert values['content_views'][0]['Task'] == f'Promoted to {lce.name}'
         assert 'Success' in values['content_views'][0]['Status']
         assert cv_name in values['content_views'][1]['Content View']
         assert values['content_views'][1]['Task'] == 'Published new version'
         assert 'Success' in values['content_views'][1]['Status']
-        values = session.dashboard.search('lifecycle_environment={}'.format(lce.name))
+        values = session.dashboard.search(f'lifecycle_environment={lce.name}')
         assert cv_name in values['ContentViews']['content_views'][0]['Content View']
         entities.LifecycleEnvironment(id=lce.id).delete()
-        values = session.dashboard.search('lifecycle_environment={}'.format(lce.name))
+        values = session.dashboard.search(f'lifecycle_environment={lce.name}')
         assert cv_name in values['ContentViews']['content_views'][0]['Content View']
 
 
@@ -1315,7 +1315,7 @@ def test_positive_promote_with_rh_content(session):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
 
 
 @run_in_one_thread
@@ -1405,7 +1405,7 @@ def test_positive_promote_composite_with_custom_content(session):
         assert result['Version'] == VERSION
         # promote the composite content view
         result = session.contentview.promote(cv_composite_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
 
 
 @run_in_one_thread
@@ -1689,7 +1689,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert ' '.join((ENVIRONMENT, dev_lce.name)) == cvv['Environments']
         # promote again to QE
         result = session.contentview.promote(cv['name'], VERSION, qe_lce.name)
-        assert 'Promoted to {}'.format(qe_lce.name) in result['Status']
+        assert f'Promoted to {qe_lce.name}' in result['Status']
         cvv = session.contentview.read_version(cv['name'], VERSION)
         assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
@@ -1804,7 +1804,7 @@ def test_positive_delete_non_default_version(session):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv.name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         cvv = session.contentview.search_version(cv.name, VERSION)[0]
         assert lce.name in cvv['Environments']
         # remove the content view version from new custom lifecycle environment
@@ -1913,7 +1913,7 @@ def test_positive_clone_within_diff_env(session, module_org):
         assert result['Version'] == VERSION
         # promote the content view
         result = session.contentview.promote(cv.name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # Copy the CV
         session.contentview.copy(cv.name, copy_cv_name)
         assert session.contentview.search(copy_cv_name)[0]['Name'] == copy_cv_name
@@ -1924,7 +1924,7 @@ def test_positive_clone_within_diff_env(session, module_org):
         assert result['Version'] == VERSION
         # promote cloned content view to different environment
         result = session.contentview.promote(copy_cv_name, VERSION, copy_lce.name)
-        assert 'Promoted to {}'.format(copy_lce.name) in result['Status']
+        assert f'Promoted to {copy_lce.name}' in result['Status']
         assert lce.name not in result['Environments']
 
 
@@ -2034,12 +2034,12 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}"'.format(package1_name)
+            cv.name, VERSION, f'name = "{package1_name}"'
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package1_name
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}"'.format(package2_name)
+            cv.name, VERSION, f'name = "{package2_name}"'
         )
         assert not packages[0]['Name']
 
@@ -2079,12 +2079,12 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}"'.format(package2_name)
+            cv.name, VERSION, f'name = "{package2_name}"'
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package2_name
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}"'.format(package1_name)
+            cv.name, VERSION, f'name = "{package1_name}"'
         )
         assert not packages[0]['Name']
 
@@ -2123,14 +2123,14 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
         result = session.contentview.publish(cv['name'])
         assert result['Version'] == 'Version 2.0'
         packages = session.contentview.search_version_package(
-            cv['name'], 'Version 2.0', 'name = "{}"'.format(package_name)
+            cv['name'], 'Version 2.0', f'name = "{package_name}"'
         )
         assert not packages[0]['Name']
         session.contentviewfilter.remove_package_rule(cv['name'], filter_name, package_name)
         result = session.contentview.publish(cv['name'])
         assert result['Version'] == 'Version 3.0'
         packages = session.contentview.search_version_package(
-            cv['name'], 'Version 3.0', 'name = "{}"'.format(package_name)
+            cv['name'], 'Version 3.0', f'name = "{package_name}"'
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package_name
@@ -2411,7 +2411,7 @@ def test_positive_promote_with_rh_custom_spin(session):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == 'Version 2.0'
         result = session.contentview.promote(cv.name, 'Version 2.0', lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
 
 
 @tier3
@@ -2528,7 +2528,7 @@ def test_positive_add_module_stream_filter(session, module_org):
         )
         for ms_name, ms_version in [('duck', '0'), ('walrus', '5.21')]:
             session.contentviewfilter.add_module_stream(
-                cv.name, filter_name, 'name = {} and stream = {}'.format(ms_name, ms_version)
+                cv.name, filter_name, f'name = {ms_name} and stream = {ms_version}'
             )
         cv.publish()
         cvv = session.contentview.read_version(cv.name, VERSION)
@@ -2694,7 +2694,7 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
                     session.contentview.add_puppet_module(cv_name, puppet_module)
                 result = session.contentview.publish(cv_name)
                 assert result['Version'] == VERSION
-                env_name = 'KT_{0}_{1}_{2}_{3}'.format(
+                env_name = 'KT_{}_{}_{}_{}'.format(
                     module_org.name,
                     ENVIRONMENT,
                     cv_name,
@@ -2809,7 +2809,7 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, env.name)
-        assert 'Promoted to {}'.format(env.name) in result['Status']
+        assert f'Promoted to {env.name}' in result['Status']
 
 
 @upgrade
@@ -2918,19 +2918,17 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     promote(content_view.version[0], lc_env.id)
     cv_name = content_view.name
     # Get the Partition table ID
-    ptable = entities.PartitionTable().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)}
-    )[0]
+    ptable = entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
     # Get the arch ID
     arch = (
         entities.Architecture()
-        .search(query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
         .read()
     )
     # Get the OS ID
     os = entities.OperatingSystem().search(
         query={
-            'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+            'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
                 RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
             )
         }
@@ -3018,7 +3016,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # Remove repository from content view
         session.contentview.remove_ostree_repo(cv_name, repo_name)
         cv = session.contentview.read(cv_name)
@@ -3076,7 +3074,7 @@ def test_positive_rh_ostree_end_to_end(session):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # Remove repository from content view
         session.contentview.remove_ostree_repo(cv_name, repo_name)
         cv = session.contentview.read(cv_name)
@@ -3141,7 +3139,7 @@ def test_positive_mixed_content_end_to_end(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
@@ -3196,7 +3194,7 @@ def test_positive_rh_mixed_content_end_to_end(session):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
@@ -3223,9 +3221,7 @@ def test_positive_errata_inc_update_list_package(session):
     # Create and publish a repo with 1 outdated package and some errata
     repo_name = gen_string('alphanumeric')
     repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(
-        repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
-    )
+    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}')
     assert result.return_code == 0
     # Create org, product, repo, sync & publish it
     org = entities.Organization().create()
@@ -3238,9 +3234,7 @@ def test_positive_errata_inc_update_list_package(session):
     cvv = cvvs[0].read()
     # Add updated package to the repo and errata for the outdated package
     create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
-    result = repo_add_updateinfo(
-        repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
-    )
+    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}')
     assert result.return_code == 0
     # Sync the repo
     entities.Repository(id=custom_repo_id).sync()
@@ -3260,13 +3254,13 @@ def test_positive_errata_inc_update_list_package(session):
     # Verify the package and the errata are shown on UI
     with session:
         session.organization.select(org.name)
-        version = session.contentview.read_version(cv.name, 'Version {}'.format(cvv.version))
+        version = session.contentview.read_version(cv.name, f'Version {cvv.version}')
         errata = version['errata']['table']
         assert len(errata) == 2
         assert FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata}
         packages = version['rpm_packages']['table']
         assert len(packages) == 2
-        packages = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
+        packages = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
         assert packages == {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
 
 
@@ -3318,9 +3312,7 @@ def test_positive_composite_child_inc_update(session):
     """
     repo_name = gen_string('alphanumeric')
     repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(
-        repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
-    )
+    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}')
     assert result.return_code == 0
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -3340,13 +3332,13 @@ def test_positive_composite_child_inc_update(session):
     ).update(['content_view'])
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         repos_collection.setup_virtual_machine(vm)
-        result = vm.run('yum -y install {0}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')))
+        result = vm.run('yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')))
         assert result.return_code == 0
         create_repo(
             repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
         )
         assert result.return_code == 0
         entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
@@ -3363,7 +3355,7 @@ def test_positive_composite_child_inc_update(session):
             packages = session.contentview.search_version_package(
                 composite_cv.name, expected_version, nvra1['name']
             )
-            packages_data = set('{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages)
+            packages_data = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
 
 
@@ -3407,7 +3399,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_name, VERSION, env_name)
-        assert 'Promoted to {}'.format(env_name) in result['Status']
+        assert f'Promoted to {env_name}' in result['Status']
         assert '7 Module Streams' in result['Content']
         # remove the content view version
         session.contentview.remove_version(cv_name, VERSION)
@@ -3444,7 +3436,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
             module_streams = session.contentview.search_version_module_stream(
                 cv.name,
                 VERSION,
-                'name = "{}" and stream = "{}"'.format(module_stream, module_version),
+                f'name = "{module_stream}" and stream = "{module_version}"',
             )
             assert len(module_streams) == 1
             assert (
@@ -3496,7 +3488,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
                 'view_lifecycle_environments',
             ]
         },
-        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name),
+        search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
     entities.User(
@@ -3547,7 +3539,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         result = session.contentview.publish(cv_new_name)
         assert result['Version'] == VERSION
         result = session.contentview.promote(cv_new_name, VERSION, lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
+        assert f'Promoted to {lce.name}' in result['Status']
 
 
 @tier2
@@ -3634,7 +3626,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
                 'view_lifecycle_environments',
             ]
         },
-        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name),
+        search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
     entities.User(
@@ -3714,7 +3706,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
                 'view_lifecycle_environments',
             ]
         },
-        search='name = {0} or name = {1}'.format(ENVIRONMENT, lce.name),
+        search=f'name = {ENVIRONMENT} or name = {lce.name}',
     )
     # create a user and assign the above created role
     entities.User(
@@ -3777,7 +3769,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
     arch = 'noarch'
     create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
     with session:
-        session.settings.update('name = {}'.format(property_name), param_value)
+        session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
         session.contentview.add_yum_repo(cv_name, repo_name)
         filter_name = gen_string('alpha')
@@ -3795,12 +3787,12 @@ def test_positive_conservative_solve_dependencies(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package2_name)
+            cv_name, VERSION, f'name = "{package2_name}"'
         )
         assert len(package) == 1
         assert package[0]['Name'] == package2_name
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package1_name)
+            cv_name, VERSION, f'name = "{package1_name}"'
         )
         assert package[0]['Name'] == package1_name
         session.contentviewfilter.add_package_rule(
@@ -3810,7 +3802,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
         assert result['Version'] == 'Version 2.0'
         for package_names in ['duck', 'cockateel']:
             package = session.contentview.search_version_package(
-                cv_name, 'Version 2.0', 'name = "{}"'.format(package_names)
+                cv_name, 'Version 2.0', f'name = "{package_names}"'
             )
             assert not package[0]['Name']
 
@@ -3846,7 +3838,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
     arch = 'noarch'
     create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
     with session:
-        session.settings.update('name = {}'.format(property_name), param_value)
+        session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
         session.contentview.add_yum_repo(cv_name, repo_name)
         filter_name = gen_string('alpha')
@@ -3864,7 +3856,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package_name)
+            cv_name, VERSION, f'name = "{package_name}"'
         )
         assert len(package) == 1
         assert package[0]['Name'] == package_name
@@ -3874,7 +3866,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
         )
         session.contentview.publish(cv_name)
         package = session.contentview.search_version_package(
-            cv_name, 'Version 2.0', 'name = "{}"'.format(package_name)
+            cv_name, 'Version 2.0', f'name = "{package_name}"'
         )
         assert len(package) == 1
         assert package[0]['Name'] == package_name
@@ -3919,7 +3911,7 @@ def test_positive_greedy_solve_dependencies(session, module_org):
     arch = 'noarch'
     create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
     with session:
-        session.settings.update('name = {}'.format(property_name), greedy_param_value)
+        session.settings.update(f'name = {property_name}', greedy_param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
         session.contentview.add_yum_repo(cv_name, repo_name)
         filter_name = gen_string('alpha')
@@ -3937,12 +3929,12 @@ def test_positive_greedy_solve_dependencies(session, module_org):
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package2_name)
+            cv_name, VERSION, f'name = "{package2_name}"'
         )
         assert len(package) == 1
         assert package[0]['Name'] == package2_name
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package1_name)
+            cv_name, VERSION, f'name = "{package1_name}"'
         )
         # Making sure 'duck' is not negatively impacted and it should still be in the list
         assert package[0]['Name'] == package1_name
@@ -3953,10 +3945,10 @@ def test_positive_greedy_solve_dependencies(session, module_org):
         assert result['Version'] == 'Version 2.0'
         for package_names in ['duck', 'cockateel']:
             package = session.contentview.search_version_package(
-                cv_name, 'Version 2.0', 'name = "{}"'.format(package_names)
+                cv_name, 'Version 2.0', f'name = "{package_names}"'
             )
             assert not package[0]['Name']
-        session.settings.update('name = {}'.format(property_name), conserve_param_value)
+        session.settings.update(f'name = {property_name}', conserve_param_value)
 
 
 @tier2
@@ -3991,7 +3983,7 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
     arch = 'noarch'
     create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
     with session:
-        session.settings.update('name = {}'.format(property_name), greedy_param_value)
+        session.settings.update(f'name = {property_name}', greedy_param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
         session.contentview.add_yum_repo(cv_name, repo_name)
         filter_name = gen_string('alpha')
@@ -4009,7 +4001,7 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
         result = session.contentview.publish(cv_name)
         assert result['Version'] == VERSION
         package = session.contentview.search_version_package(
-            cv_name, VERSION, 'name = "{}"'.format(package_name)
+            cv_name, VERSION, f'name = "{package_name}"'
         )
         assert package[0]['Name'] == package_name
         assert package[0]['Version'] == '5.21'
@@ -4018,13 +4010,13 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
         )
         session.contentview.publish(cv_name)
         package = session.contentview.search_version_package(
-            cv_name, 'Version 2.0', 'name = "{}"'.format(package_name)
+            cv_name, 'Version 2.0', f'name = "{package_name}"'
         )
         assert package[0]['Name'] == package_name
         assert package[0]['Version'] == '0.71'
         assert package[1]['Name'] == package_name
         assert package[1]['Version'] == '5.21'
-        session.settings.update('name = {}'.format(property_name), conserve_param_value)
+        session.settings.update(f'name = {property_name}', conserve_param_value)
 
 
 @tier2
@@ -4075,7 +4067,7 @@ def test_positive_depsolve_with_module_errata(session, module_org):
             },
         )
         session.contentviewfilter.add_module_stream(
-            cv_name, include_filter_name, 'name = {} and stream = {}'.format(ms_name, ms_version)
+            cv_name, include_filter_name, f'name = {ms_name} and stream = {ms_version}'
         )
         session.contentviewfilter.create(
             cv_name,

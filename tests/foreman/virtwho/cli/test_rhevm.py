@@ -57,7 +57,7 @@ def virtwho_config(form_data):
 class TestVirtWhoConfigforRhevm:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config deploy"
+        """Verify " hammer virt-who-config deploy"
 
         :id: f8508ceb-229a-487d-be4b-fd622b431e36
 
@@ -96,7 +96,7 @@ class TestVirtWhoConfigforRhevm:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config fetch"
+        """Verify " hammer virt-who-config fetch"
 
         :id: 4c7c3159-8bd3-4fe8-a330-2211bfbcfa11
 
@@ -135,7 +135,7 @@ class TestVirtWhoConfigforRhevm:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by hammer virt-who-config update"
+        """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: d8428508-3149-4558-8173-4386db5e3760
 

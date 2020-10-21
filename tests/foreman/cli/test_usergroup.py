@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for User Group CLI
 
 :Requirement: Usergroup
@@ -79,7 +78,7 @@ class UserGroupTestCase(CLITestCase):
         self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
         # List
-        result_list = UserGroup.list({'search': 'name={0}'.format(user_group['name'])})
+        result_list = UserGroup.list({'search': 'name={}'.format(user_group['name'])})
         self.assertTrue(len(result_list) > 0)
         self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 
@@ -116,7 +115,8 @@ class UserGroupTestCase(CLITestCase):
         self.assertEqual(sorted(users), sorted(user_group['users']))
         self.assertEqual(sorted(roles), sorted(user_group['roles']))
         self.assertEqual(
-            sorted(sub_user_groups), sorted([ug['usergroup'] for ug in user_group['user-groups']]),
+            sorted(sub_user_groups),
+            sorted([ug['usergroup'] for ug in user_group['user-groups']]),
         )
 
     @tier2
@@ -189,7 +189,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
     def setUpClass(cls):
         """Read settings and create LDAP auth source that can be re-used in
         tests."""
-        super(ActiveDirectoryUserGroupTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.ldap_user_name = settings.ldap.username
         cls.ldap_user_passwd = settings.ldap.password
         cls.base_dn = settings.ldap.basedn
@@ -214,7 +214,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
     def setUp(self):
         """Create new usergroup per each test"""
-        super(ActiveDirectoryUserGroupTestCase, self).setUp()
+        super().setUp()
         self.user_group = make_usergroup()
 
     def tearDown(self):
@@ -222,14 +222,14 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         for dict in UserGroup.list():
             if UserGroup.info({'id': dict['id']})['external-user-groups']:
                 UserGroup.delete({'id': dict['id']})
-        super(ActiveDirectoryUserGroupTestCase, self).tearDown()
+        super().tearDown()
 
     @classmethod
     @skip_if_not_set('ldap')
     def tearDownClass(cls):
         """Delete the AD auth-source afterwards"""
         LDAPAuthSource.delete({'id': cls.auth['server']['id']})
-        super(ActiveDirectoryUserGroupTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     @tier2
     @upgrade
@@ -342,7 +342,7 @@ class FreeIPAUserGroupTestCase(CLITestCase):
     def setUpClass(cls):
         """Read settings and create LDAP auth source that can be re-used in
         tests."""
-        super(FreeIPAUserGroupTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.ldap_user_name = settings.ipa.username_ipa
         cls.ldap_user_passwd = settings.ipa.password_ipa
         cls.base_dn = settings.ipa.basedn_ipa
@@ -367,7 +367,7 @@ class FreeIPAUserGroupTestCase(CLITestCase):
 
     def setUp(self):
         """Create new usergroup per each test"""
-        super(FreeIPAUserGroupTestCase, self).setUp()
+        super().setUp()
         self.user_group = make_usergroup()
 
     def tearDown(self):
@@ -375,14 +375,14 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         for dict in UserGroup.list():
             if UserGroup.info({'id': dict['id']})['external-user-groups']:
                 UserGroup.delete({'id': dict['id']})
-        super(FreeIPAUserGroupTestCase, self).tearDown()
+        super().tearDown()
 
     @classmethod
     @skip_if_not_set('ipa')
     def tearDownClass(cls):
         """Delete the IPA auth-source afterwards"""
         LDAPAuthSource.delete({'id': cls.auth['server']['id']})
-        super(FreeIPAUserGroupTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     @tier2
     @upgrade

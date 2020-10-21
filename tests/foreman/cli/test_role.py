@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for Roles CLI
 
 :Requirement: Role
@@ -1281,7 +1280,7 @@ class TestSystemAdmin:
                 'firstname': gen_string('alpha'),
                 'lastname': gen_string('alpha'),
                 'login': gen_string('alpha'),
-                'mail': '{0}@example.com'.format(gen_string('alpha')),
+                'mail': '{}@example.com'.format(gen_string('alpha')),
                 'password': common_pass,
                 'organizations': org['name'],
                 'role-ids': role['id'],
@@ -1303,7 +1302,7 @@ class TestSystemAdmin:
                 'firstname': gen_string('alpha'),
                 'lastname': gen_string('alpha'),
                 'login': gen_string('alpha'),
-                'mail': '{0}@example.com'.format(gen_string('alpha')),
+                'mail': '{}@example.com'.format(gen_string('alpha')),
                 'password': common_pass,
                 'organizations': org['name'],
                 'role-ids': org_role['id'],

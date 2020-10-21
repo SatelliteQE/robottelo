@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Foreman Hooks
 
 :Requirement: Foreman Hooks
@@ -38,22 +37,22 @@ class ForemanHooksTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         """Create logger script to be executed via hooks"""
-        super(ForemanHooksTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = 1  # using Default_Organization
-        cls.script_path = "{}/logger.sh".format(HOOKS_DIR)
+        cls.script_path = f"{HOOKS_DIR}/logger.sh"
         ssh.command(
             '''printf '#!/bin/sh\necho "$(date): Executed $1 hook'''
-            + ''' on object $2" > {0}' > {1}'''.format(LOGS_DIR, cls.script_path)
+            + f''' on object $2" > {LOGS_DIR}' > {cls.script_path}'''
         )
-        ssh.command("chmod 774 {}".format(cls.script_path))
-        ssh.command("chown foreman:foreman {}".format(cls.script_path))
-        ssh.command("restorecon -RvF {}".format(HOOKS_DIR))
+        ssh.command(f"chmod 774 {cls.script_path}")
+        ssh.command(f"chown foreman:foreman {cls.script_path}")
+        ssh.command(f"restorecon -RvF {HOOKS_DIR}")
 
     @classmethod
     def tearDownClass(cls):
         """clean up hook files"""
-        super(ForemanHooksTestCase, cls).tearDownClass()
-        ssh.command("rm -rf {}/*".format(HOOKS_DIR))
+        super().tearDownClass()
+        ssh.command(f"rm -rf {HOOKS_DIR}/*")
 
     @destructive
     def test_positive_host_hooks(self):
@@ -77,16 +76,16 @@ class ForemanHooksTestCase(TestCase):
         update_event = "update"
         destroy_event = "destroy"
         for event in [create_event, destroy_event, update_event]:
-            hook_dir = "{0}/host/managed/{1}".format(HOOKS_DIR, event)
-            ssh.command('''mkdir -p {}'''.format(hook_dir))
-            ssh.command('''ln -sf {0} {1}/'''.format(self.script_path, hook_dir))
+            hook_dir = f"{HOOKS_DIR}/host/managed/{event}"
+            ssh.command(f'''mkdir -p {hook_dir}''')
+            ssh.command(f'''ln -sf {self.script_path} {hook_dir}/''')
         result = ssh.command("systemctl restart httpd")
         self.assertEqual(result.return_code, 0)
 
         # delete host, check logs for hook activity
         host = entities.Host(name=host_name).create()
-        self.assertEqual(host.name, '{0}.{1}'.format(host_name, host.domain.read().name))
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        self.assertEqual(host.name, f'{host_name}.{host.domain.read().name}')
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(create_event, host_name), result.stdout[0])
 
@@ -95,7 +94,7 @@ class ForemanHooksTestCase(TestCase):
         host.ip = new_ip
         host = host.update(['ip'])
         self.assertEqual(host.ip, new_ip)
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(update_event, host_name), result.stdout[0])
 
@@ -103,7 +102,7 @@ class ForemanHooksTestCase(TestCase):
         host.delete()
         with self.assertRaises(HTTPError):
             host.read()
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(destroy_event, host_name), result.stdout[0])
 
@@ -130,16 +129,16 @@ class ForemanHooksTestCase(TestCase):
         update_event = "before_update"
         destroy_event = "before_destroy"
         for event in [create_event, update_event, destroy_event]:
-            hook_dir = "{0}/hostgroup/{1}".format(HOOKS_DIR, event)
-            ssh.command('''mkdir -p {}'''.format(hook_dir))
-            ssh.command('''ln -sf {0} {1}/'''.format(self.script_path, hook_dir))
+            hook_dir = f"{HOOKS_DIR}/hostgroup/{event}"
+            ssh.command(f'''mkdir -p {hook_dir}''')
+            ssh.command(f'''ln -sf {self.script_path} {hook_dir}/''')
         result = ssh.command("systemctl restart httpd")
         self.assertEqual(result.return_code, 0)
 
         # create hg, check logs for hook activity
         hg = entities.HostGroup(name=hg_name, organization=[self.org]).create()
         self.assertEqual(hg.name, hg_name)
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(create_event, hg_name), result.stdout[0])
 
@@ -148,7 +147,7 @@ class ForemanHooksTestCase(TestCase):
         hg.architecture = new_arch
         hg = hg.update(['architecture'])
         self.assertEqual(hg.architecture.read().name, new_arch.name)
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(update_event, hg_name), result.stdout[0])
 
@@ -156,6 +155,6 @@ class ForemanHooksTestCase(TestCase):
         hg.delete()
         with self.assertRaises(HTTPError):
             hg.read()
-        result = ssh.command('cat {}'.format(LOGS_DIR))
+        result = ssh.command(f'cat {LOGS_DIR}')
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(destroy_event, hg_name), result.stdout[0])

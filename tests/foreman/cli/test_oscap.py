@@ -926,7 +926,7 @@ class TestOpenScap:
         )
         host_name = host.name + "." + host.domain.name
         Scappolicy.update({'id': scap_policy['id'], 'hosts': host_name})
-        hosts = Host.list({'search': 'compliance_policy_id = {0}'.format(scap_policy['id'])})
+        hosts = Host.list({'search': 'compliance_policy_id = {}'.format(scap_policy['id'])})
         assert host_name in [host['name'] for host in hosts]
 
     @pytest.mark.stubbed

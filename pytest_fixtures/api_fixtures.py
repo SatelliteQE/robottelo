@@ -80,7 +80,7 @@ def module_compute_profile():
 @pytest.fixture(scope='session')
 def default_domain(default_smart_proxy):
     domain_name = settings.server.hostname.partition('.')[-1]
-    dom = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})[0]
+    dom = entities.Domain().search(query={'search': f'name={domain_name}'})[0]
     dom.dns = default_smart_proxy
     dom.update(['dns'])
     return entities.Domain(id=dom.id).read()
@@ -124,7 +124,7 @@ def default_partitiontable():
 @pytest.fixture(scope='module')
 def module_provisioningtemplate_default(module_org, module_location):
     provisioning_template = entities.ProvisioningTemplate().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
+        query={'search': f'name="{DEFAULT_TEMPLATE}"'}
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.organization.append(module_org)
@@ -137,7 +137,7 @@ def module_provisioningtemplate_default(module_org, module_location):
 @pytest.fixture(scope='module')
 def module_provisioningtemplate_pxe(module_org, module_location):
     pxe_template = entities.ProvisioningTemplate().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
+        query={'search': f'name="{DEFAULT_PXE_TEMPLATE}"'}
     )
     pxe_template = pxe_template[0].read()
     pxe_template.organization.append(module_org)
@@ -164,14 +164,17 @@ def module_architecture():
 
 @pytest.fixture(scope='session')
 def default_os(
-    default_architecture, default_partitiontable, default_pxetemplate, os=None,
+    default_architecture,
+    default_partitiontable,
+    default_pxetemplate,
+    os=None,
 ):
     if os is None:
         os = (
             entities.OperatingSystem()
             .search(
                 query={
-                    'search': 'name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                    'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
                         RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
                     )
                 }
@@ -204,7 +207,7 @@ def module_os():
 @pytest.fixture(scope='session')
 def default_puppet_environment(module_org):
     environments = entities.Environment().search(
-        query=dict(search='organization_id={0}'.format(module_org.id))
+        query=dict(search=f'organization_id={module_org.id}')
     )
     if environments:
         return environments[0].read()
@@ -424,10 +427,7 @@ def module_published_cv(module_org):
 @pytest.fixture(scope='session')
 def default_contentview(module_org):
     return entities.ContentView().search(
-        query={
-            'search': 'label=Default_Organization_View',
-            'organization_id': '{}'.format(module_org.id),
-        }
+        query={'search': 'label=Default_Organization_View', 'organization_id': f'{module_org.id}'}
     )
 
 
@@ -484,7 +484,7 @@ def module_lce_search(module_org):
 
 @pytest.fixture(scope='module')
 def module_puppet_classes(module_env_search):
-    """ Returns puppet class based on following criteria:
+    """Returns puppet class based on following criteria:
     Puppet environment from module_env_search and puppet class name. The name was set inside
     module_cv_with_puppet_module.
     """

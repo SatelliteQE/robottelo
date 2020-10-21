@@ -92,5 +92,5 @@ def test_vm_install_package(value, module_org, module_lce):
         # install katello-agent
         repos_collection.setup_virtual_machine(vm, enable_custom_repos=True)
         # install a package
-        result = vm.run('yum -y install {0}'.format(FAKE_0_CUSTOM_PACKAGE))
+        result = vm.run(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
         assert result.return_code == 0

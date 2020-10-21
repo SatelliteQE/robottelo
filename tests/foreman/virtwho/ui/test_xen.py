@@ -44,7 +44,7 @@ def form_data():
 class TestVirtwhoConfigforXen:
     @tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
-        """ Verify configure created and deployed with id.
+        """Verify configure created and deployed with id.
 
         :id: c5385f69-aa7e-4fc0-b126-08aacb14bfb8
 
@@ -70,8 +70,8 @@ class TestVirtwhoConfigforXen:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
+            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -81,7 +81,7 @@ class TestVirtwhoConfigforXen:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, session, form_data):
-        """ Verify configure created and deployed with script.
+        """Verify configure created and deployed with script.
 
         :id: cae3671c-a583-4e67-a0de-95d191d2174c
 
@@ -107,8 +107,8 @@ class TestVirtwhoConfigforXen:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
+            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -118,7 +118,7 @@ class TestVirtwhoConfigforXen:
 
     @tier2
     def test_positive_hypervisor_id_option(self, session, form_data):
-        """ Verify Hypervisor ID dropdown options.
+        """Verify Hypervisor ID dropdown options.
 
         :id: 0c8e4407-601f-464a-9ac1-f8599a320106
 

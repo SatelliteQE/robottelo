@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for Roles CLI
 
 :Requirement: Filter
@@ -31,7 +30,7 @@ class FilterTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Search for Organization permissions. Set ``cls.perms``."""
-        super(FilterTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.perms = [
             permission['name']
             for permission in Filter.available_permissions({"search": "resource_type=User"})
@@ -39,7 +38,7 @@ class FilterTestCase(CLITestCase):
 
     def setUp(self):
         """Create a role that a filter would be assigned """
-        super(FilterTestCase, self).setUp()
+        super().setUp()
         self.role = make_role()
 
     @tier1
@@ -182,14 +181,14 @@ class FilterTestCase(CLITestCase):
     def test_positive_update_org_loc(self):
         """Create a filter and assign it to another organization and location.
 
-         :id: 9bb59109-9701-4ef3-95c6-81f387d372da
+        :id: 9bb59109-9701-4ef3-95c6-81f387d372da
 
-         :expectedresults: Filter is created and assigned to new org and loc.
+        :expectedresults: Filter is created and assigned to new org and loc.
 
-         :BZ: 1401469
+        :BZ: 1401469
 
-         :CaseImportance: Critical
-         """
+        :CaseImportance: Critical
+        """
         org = make_org()
         loc = make_location()
         filter_ = make_filter(

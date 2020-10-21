@@ -109,7 +109,7 @@ def test_positive_end_to_end(session, test_name, module_org, module_loc):
         newsession.activationkey.create({'name': ak_name})
         assert newsession.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = newsession.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == '{} {}'.format(firstname, lastname)
+        assert current_user == f'{firstname} {lastname}'
         # Delete user
         session.user.delete(new_name)
         assert not session.user.search(new_name)

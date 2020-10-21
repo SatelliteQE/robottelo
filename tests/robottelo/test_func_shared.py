@@ -1,4 +1,3 @@
-# coding: utf-8
 import multiprocessing
 import os
 import time
@@ -24,10 +23,10 @@ _this_module_name = 'tests.robottelo.test_func_shared'
 _set_configured(True)
 
 
-class MainCounter(object):
+class MainCounter:
     """Basic class that contain a counter function"""
 
-    class SubCounter(object):
+    class SubCounter:
         """Basic sub class that contain a counter function"""
 
         @classmethod
@@ -138,7 +137,7 @@ def basic_shared_counter_string(prefix='', suffix='', counter=0, increment_by=1)
     """basic function that increment a counter and return a string with
     prefix
     """
-    return '{0}_{1}_{2}'.format(prefix, counter + increment_by, suffix)
+    return '{}_{}_{}'.format(prefix, counter + increment_by, suffix)
 
 
 class NotRestorableException(Exception):
@@ -504,8 +503,8 @@ class FunctionSharedTestCase(TestCase):
             related to the prefix and suffix kwargs, for each prefix, suffix
             values a new key storage is created.
         """
-        prefixes = ['pre_{0}'.format(i) for i in range(10)]
-        suffixes = ['suf_{0}'.format(i) for i in range(10)]
+        prefixes = [f'pre_{i}' for i in range(10)]
+        suffixes = [f'suf_{i}' for i in range(10)]
         for prefix, suffix in zip(prefixes, suffixes):
             counter_value = gen_integer(min_value=2, max_value=10000)
             inc_string = basic_shared_counter_string(

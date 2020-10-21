@@ -105,21 +105,21 @@ class TestIPAAuthSource:
 
     def _add_user_in_IPA_usergroup(self, member_username, member_group):
         ssh.command(
-            'echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
+            f'echo {self.ldap_ipa_user_passwd} | kinit admin',
             hostname=self.ldap_ipa_hostname,
         )
         ssh.command(
-            'ipa group-add-member {} --users={}'.format(member_group, member_username),
+            f'ipa group-add-member {member_group} --users={member_username}',
             hostname=self.ldap_ipa_hostname,
         )
 
     def _remove_user_in_IPA_usergroup(self, member_username, member_group):
         ssh.command(
-            'echo {0} | kinit admin'.format(self.ldap_ipa_user_passwd),
+            f'echo {self.ldap_ipa_user_passwd} | kinit admin',
             hostname=self.ldap_ipa_hostname,
         )
         result = ssh.command(
-            'ipa group-remove-member {} --users={}'.format(member_group, member_username),
+            f'ipa group-remove-member {member_group} --users={member_username}',
             hostname=self.ldap_ipa_hostname,
         )
         if result.return_code != 0:

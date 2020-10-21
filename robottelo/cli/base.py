@@ -27,7 +27,7 @@ class CLIBaseError(Exception):
         self.return_code = return_code
         self.stderr = stderr
         self.msg = msg
-        super(CLIBaseError, self).__init__(msg)
+        super().__init__(msg)
         self.message = msg
 
     def __str__(self):
@@ -59,7 +59,7 @@ class CLIDataBaseError(CLIBaseError):
     """
 
 
-class Base(object):
+class Base:
     """
     @param command_base: base command of hammer.
     Output of recent `hammer --help`::
@@ -144,8 +144,8 @@ class Base(object):
         """
         if response.return_code != 0:
             full_msg = (
-                'Command "{0} {1}" finished with return_code {2}\n'
-                'stderr contains following message:\n{3}'.format(
+                'Command "{} {}" finished with return_code {}\n'
+                'stderr contains following message:\n{}'.format(
                     cls.command_base, cls.command_sub, response.return_code, response.stderr
                 )
             )
@@ -154,7 +154,7 @@ class Base(object):
                 raise CLIDataBaseError(*error_data)
             raise CLIReturnCodeError(*error_data)
         if len(response.stderr) != 0 and not ignore_stderr:
-            cls.logger.warning('stderr contains following message:\n{0}'.format(response.stderr))
+            cls.logger.warning(f'stderr contains following message:\n{response.stderr}')
         return response.stdout
 
     @classmethod
@@ -288,12 +288,12 @@ class Base(object):
             time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = 'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
+        cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
             settings.locale,
             'time -p' if time_hammer else '',
-            '-u {0}'.format(user) if user is not None else '--interactive no',
-            '-p {0}'.format(password) if password is not None else '',
-            '--output={0}'.format(output_format) if output_format else '',
+            f'-u {user}' if user is not None else '--interactive no',
+            f'-p {password}' if password is not None else '',
+            f'--output={output_format}' if output_format else '',
             command,
         )
         response = ssh.command(
@@ -323,7 +323,7 @@ class Base(object):
             options = {}
 
         if search is not None and 'search' not in options:
-            options.update({'search': '{0}=\\"{1}\\"'.format(search[0], search[1])})
+            options.update({'search': '{}=\\"{}\\"'.format(search[0], search[1])})
 
         result = cls.list(options)
         if result:
@@ -340,7 +340,7 @@ class Base(object):
             options = {}
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise CLIError('organization-id option is required for {0}.info'.format(cls.__name__))
+            raise CLIError(f'organization-id option is required for {cls.__name__}.info')
 
         result = cls.execute(
             command=cls._construct_command(options),
@@ -367,7 +367,7 @@ class Base(object):
             options['per-page'] = 10000
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise CLIError('organization-id option is required for {0}.list'.format(cls.__name__))
+            raise CLIError(f'organization-id option is required for {cls.__name__}.list')
 
         result = cls.execute(cls._construct_command(options), output_format=output_format)
 
@@ -464,11 +464,11 @@ class Base(object):
             if val is None:
                 continue
             if val is True:
-                tail += ' --{0}'.format(key)
+                tail += f' --{key}'
             elif val is not False:
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
-                tail += ' --{0}="{1}"'.format(key, val)
+                tail += f' --{key}="{val}"'
         cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()}"
 
         return cmd

@@ -1,4 +1,3 @@
-# coding=utf-8
 """Smoke tests for the ``API`` end-to-end scenario.
 
 :Requirement: Api Endtoend
@@ -420,7 +419,10 @@ API_PATHS = {
         '/api/hosts/:host_id/subscriptions/product_content',
         '/api/hosts/subscriptions',
     ),
-    'host_tracer': ('/api/hosts/:host_id/traces', '/api/hosts/:host_id/traces/resolve',),
+    'host_tracer': (
+        '/api/hosts/:host_id/traces',
+        '/api/hosts/:host_id/traces/resolve',
+    ),
     'hostgroup_classes': (
         '/api/hostgroups/:hostgroup_id/puppetclass_ids',
         '/api/hostgroups/:hostgroup_id/puppetclass_ids',
@@ -558,7 +560,13 @@ API_PATHS = {
         '/api/users/:user_id/mail_notifications/:mail_notification_id',
         '/api/users/:user_id/mail_notifications',
     ),
-    'media': ('/api/media', '/api/media', '/api/media/:id', '/api/media/:id', '/api/media/:id',),
+    'media': (
+        '/api/media',
+        '/api/media',
+        '/api/media/:id',
+        '/api/media/:id',
+        '/api/media/:id',
+    ),
     'models': (
         '/api/models',
         '/api/models',
@@ -566,7 +574,10 @@ API_PATHS = {
         '/api/models/:id',
         '/api/models/:id',
     ),
-    'module_streams': ('/katello/api/module_streams/compare', '/katello/api/module_streams/:id',),
+    'module_streams': (
+        '/katello/api/module_streams/compare',
+        '/katello/api/module_streams/:id',
+    ),
     'operatingsystems': (
         '/api/operatingsystems',
         '/api/operatingsystems',
@@ -677,7 +688,10 @@ API_PATHS = {
         '/api/puppetclasses/:id',
     ),
     'puppet_hosts': ('/api/hosts/:id/puppetrun',),
-    'puppet_modules': ('/katello/api/puppet_modules/compare', '/katello/api/puppet_modules/:id',),
+    'puppet_modules': (
+        '/katello/api/puppet_modules/compare',
+        '/katello/api/puppet_modules/:id',
+    ),
     'realms': (
         '/api/realms',
         '/api/realms',
@@ -885,7 +899,7 @@ class AvailableURLsTestCase(TestCase):
 
     def setUp(self):
         """Define commonly-used variables."""
-        self.path = '{0}/api/v2'.format(settings.server.get_url())
+        self.path = f'{settings.server.get_url()}/api/v2'
 
     @tier1
     @upgrade
@@ -948,7 +962,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        super(EndToEndTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
     @tier1
@@ -961,9 +975,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         :expectedresults: 'Default Organization' is found
 
         """
-        results = entities.Organization().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_ORG)}
-        )
+        results = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_ORG)
 
@@ -977,7 +989,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         :expectedresults: 'Default Location' is found
 
         """
-        results = entities.Location().search(query={'search': 'name="{0}"'.format(DEFAULT_LOC)})
+        results = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
@@ -1175,7 +1187,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url='qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname),
+            url=f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
         ).create()
 
         # step 2.17: Create a new subnet

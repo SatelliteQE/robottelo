@@ -39,9 +39,7 @@ class PingTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        result = ssh.command(
-            'hammer -u {0} -p {1} ping'.format(self.foreman_user, self.foreman_password)
-        )
+        result = ssh.command(f'hammer -u {self.foreman_user} -p {self.foreman_password} ping')
         self.assertEqual(len(result.stderr), 0)
 
         status_count = 0

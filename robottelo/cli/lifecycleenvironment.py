@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage::
 
@@ -30,7 +29,7 @@ class LifecycleEnvironment(Base):
 
     @classmethod
     def list(cls, options=None, per_page=False):
-        result = super(LifecycleEnvironment, cls).list(options, per_page=per_page)
+        result = super().list(options, per_page=per_page)
 
         return result
 
