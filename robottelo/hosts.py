@@ -55,7 +55,7 @@ class ContentHost(Host):
         elif repo in (REPOS['rhsc6']['id'], REPOS['rhsc7']['id']):
             downstream_repo = settings.capsule_repo
         if force or settings.cdn or not downstream_repo:
-            self.execute('subscription-manager repos --enable {0}'.format(repo))
+            self.execute(f'subscription-manager repos --enable {repo}')
 
     def subscription_manager_list_repos(self):
         return self.execute("subscription-manager repos --list")
@@ -271,12 +271,12 @@ class ContentHost(Host):
                 'awk -F "/" \'/download_path/ {print $4}\' /etc/foreman_scap_client/config.yaml'
             )
             policy_id = result.stdout[0]
-        result = self.execute('foreman_scap_client {0}'.format(policy_id))
+        result = self.execute(f'foreman_scap_client {policy_id}')
         if not result.status:
             raise ContentHostError('Failed to execute foreman_scap_client run.')
 
     def configure_rhai_client(self, activation_key, org, rhel_distro):
-        """ Configures a Red Hat Access Insights service on the system by
+        """Configures a Red Hat Access Insights service on the system by
         installing the redhat-access-insights package and registering to the
         service.
 

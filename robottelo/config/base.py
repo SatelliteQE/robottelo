@@ -240,7 +240,7 @@ class BrokerSettings(FeatureSettings):
     """Broker settings definitions."""
 
     def __init__(self, *args, **kwargs):
-        super(BrokerSettings, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.broker_directory = None
 
     def read(self, reader):
