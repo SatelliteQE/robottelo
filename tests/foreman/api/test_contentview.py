@@ -101,11 +101,6 @@ def content_view(module_org):
     return entities.ContentView(organization=module_org).create()
 
 
-@pytest.fixture
-def role():
-    return entities.Role().create()
-
-
 class TestContentView:
     @upgrade
     @tier3
@@ -1188,232 +1183,232 @@ class TestContentViewRedHatContent:
         assert len(content_view.read().version[0].read().environment) == 2
 
 
-class TestContentViewRoles:
-    @tier2
-    def test_positive_admin_user_actions(self, content_view, role, module_org, module_lce):
-        """Attempt to manage content views
+@tier2
+def test_positive_admin_user_actions(content_view, function_role, module_org, module_lce):
+    """Attempt to manage content views
 
-        :id: 75b638af-d132-4b5e-b034-a373565c72b4
+    :id: 75b638af-d132-4b5e-b034-a373565c72b4
 
-        :steps: with global admin account:
+    :steps: with global admin account:
 
-            1. create a user with all content views permissions
-            2. create lifecycle environment
-            3. create 2 content views (one to delete, the other to manage)
+        1. create a user with all content views permissions
+        2. create lifecycle environment
+        3. create 2 content views (one to delete, the other to manage)
 
-        :setup: create a user with all content views permissions
+    :setup: create a user with all content views permissions
 
-        :expectedresults: The user can Read, Modify, Delete, Publish, Promote
-            the content views
+    :expectedresults: The user can Read, Modify, Delete, Publish, Promote
+        the content views
 
-        :CaseLevel: Integration
+    :CaseLevel: Integration
 
-        :CaseImportance: Critical
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        # create a role with all content views permissions
-        for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
-            permission = entities.Permission().search(
-                query={'search': f'resource_type="{res_type}"'}
-            )
-            entities.Filter(organization=[module_org], permission=permission, role=role).create()
-        # create a user and assign the above created role
-        entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
+    :CaseImportance: Critical
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with all content views permissions
+    for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
+        permission = entities.Permission().search(query={'search': f'resource_type="{res_type}"'})
+        entities.Filter(
+            organization=[module_org], permission=permission, role=function_role
         ).create()
-        cfg = get_nailgun_config()
-        cfg.auth = (user_login, user_password)
-        # Check that we cannot create random entity due permission restriction
-        with pytest.raises(HTTPError):
-            entities.Domain(cfg).create()
-        # Check Read functionality
-        content_view = entities.ContentView(cfg, id=content_view.id).read()
-        # Check Modify functionality
+    # create a user and assign the above created role
+    entities.User(
+        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+    ).create()
+    cfg = get_nailgun_config()
+    cfg.auth = (user_login, user_password)
+    # Check that we cannot create random entity due permission restriction
+    with pytest.raises(HTTPError):
+        entities.Domain(cfg).create()
+    # Check Read functionality
+    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    # Check Modify functionality
+    entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+    # Publish the content view.
+    content_view.publish()
+    content_view = content_view.read()
+    assert len(content_view.version) == 1
+    # Promote the content view version.
+    promote(content_view.version[0], module_lce.id)
+    # Check Delete functionality
+    content_view = entities.ContentView(organization=module_org).create()
+    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    content_view.delete()
+    with pytest.raises(HTTPError):
+        content_view.read()
+
+
+@tier2
+def test_positive_readonly_user_actions(function_role, content_view, module_org):
+    """Attempt to view content views
+
+    :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
+
+    :setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+    :expectedresults: User with read-only role for content view can view
+        the repository in the content view
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with content views read only permissions
+    entities.Filter(
+        organization=[module_org],
+        permission=entities.Permission().search(
+            filters={'name': 'view_content_views'},
+            query={'search': 'resource_type="Katello::ContentView"'},
+        ),
+        role=function_role,
+    ).create()
+    # create read only products permissions and assign it to our role
+    entities.Filter(
+        organization=[module_org],
+        permission=entities.Permission().search(
+            filters={'name': 'view_products'},
+            query={'search': 'resource_type="Katello::Product"'},
+        ),
+        role=function_role,
+    ).create()
+    # create a user and assign the above created role
+    entities.User(
+        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+    ).create()
+    # add repository to the created content view
+    product = entities.Product(organization=module_org).create()
+    yum_repo = entities.Repository(product=product).create()
+    yum_repo.sync()
+    content_view.repository = [yum_repo]
+    content_view = content_view.update(['repository'])
+    assert len(content_view.repository) == 1
+    cfg = get_nailgun_config()
+    cfg.auth = (user_login, user_password)
+    # Check that we can read content view repository information using user
+    # with read only permissions
+    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    assert len(content_view.repository) == 1
+    assert content_view.repository[0].read().name == yum_repo.name
+
+
+@tier2
+def test_negative_readonly_user_actions(function_role, content_view, module_org, module_lce):
+    """Attempt to manage content views
+
+    :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
+
+    :setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+    :expectedresults: User with read only role for content view cannot
+        Modify, Delete, Publish, Promote the content views
+
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with content views read only permissions
+    entities.Filter(
+        organization=[module_org],
+        permission=entities.Permission().search(
+            filters={'name': 'view_content_views'},
+            query={'search': 'resource_type="Katello::ContentView"'},
+        ),
+        role=function_role,
+    ).create()
+    # create environment permissions and assign it to our role
+    entities.Filter(
+        organization=[module_org],
+        permission=entities.Permission().search(
+            query={'search': 'resource_type="Katello::KTEnvironment"'}
+        ),
+        role=function_role,
+    ).create()
+    # create a user and assign the above created role
+    entities.User(
+        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+    ).create()
+    cfg = get_nailgun_config()
+    cfg.auth = (user_login, user_password)
+    # Check that we cannot create content view due read-only permission
+    with pytest.raises(HTTPError):
+        entities.ContentView(cfg, organization=module_org).create()
+    # Check that we can read our content view with custom user
+    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    # Check that we cannot modify content view with custom user
+    with pytest.raises(HTTPError):
         entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
-        # Publish the content view.
-        content_view.publish()
-        content_view = content_view.read()
-        assert len(content_view.version) == 1
-        # Promote the content view version.
-        promote(content_view.version[0], module_lce.id)
-        # Check Delete functionality
-        content_view = entities.ContentView(organization=module_org).create()
-        content_view = entities.ContentView(cfg, id=content_view.id).read()
+    # Check that we cannot delete content view due read-only permission
+    with pytest.raises(HTTPError):
         content_view.delete()
-        with pytest.raises(HTTPError):
-            content_view.read()
-
-    @tier2
-    def test_positive_readonly_user_actions(self, role, content_view, module_org):
-        """Attempt to view content views
-
-        :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
-
-        :setup:
-
-            1. create a user with the Content View read-only role
-            2. create content view
-            3. add a custom repository to content view
-
-        :expectedresults: User with read-only role for content view can view
-            the repository in the content view
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        # create a role with content views read only permissions
-        entities.Filter(
-            organization=[module_org],
-            permission=entities.Permission().search(
-                filters={'name': 'view_content_views'},
-                query={'search': 'resource_type="Katello::ContentView"'},
-            ),
-            role=role,
-        ).create()
-        # create read only products permissions and assign it to our role
-        entities.Filter(
-            organization=[module_org],
-            permission=entities.Permission().search(
-                filters={'name': 'view_products'},
-                query={'search': 'resource_type="Katello::Product"'},
-            ),
-            role=role,
-        ).create()
-        # create a user and assign the above created role
-        entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
-        ).create()
-        # add repository to the created content view
-        product = entities.Product(organization=module_org).create()
-        yum_repo = entities.Repository(product=product).create()
-        yum_repo.sync()
-        content_view.repository = [yum_repo]
-        content_view = content_view.update(['repository'])
-        assert len(content_view.repository) == 1
-        cfg = get_nailgun_config()
-        cfg.auth = (user_login, user_password)
-        # Check that we can read content view repository information using user
-        # with read only permissions
-        content_view = entities.ContentView(cfg, id=content_view.id).read()
-        assert len(content_view.repository) == 1
-        assert content_view.repository[0].read().name == yum_repo.name
-
-    @tier2
-    def test_negative_readonly_user_actions(self, role, content_view, module_org, module_lce):
-        """Attempt to manage content views
-
-        :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
-
-        :setup:
-
-            1. create a user with the Content View read-only role
-            2. create content view
-            3. add a custom repository to content view
-
-        :expectedresults: User with read only role for content view cannot
-            Modify, Delete, Publish, Promote the content views
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Critical
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        # create a role with content views read only permissions
-        entities.Filter(
-            organization=[module_org],
-            permission=entities.Permission().search(
-                filters={'name': 'view_content_views'},
-                query={'search': 'resource_type="Katello::ContentView"'},
-            ),
-            role=role,
-        ).create()
-        # create environment permissions and assign it to our role
-        entities.Filter(
-            organization=[module_org],
-            permission=entities.Permission().search(
-                query={'search': 'resource_type="Katello::KTEnvironment"'}
-            ),
-            role=role,
-        ).create()
-        # create a user and assign the above created role
-        entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
-        ).create()
-        cfg = get_nailgun_config()
-        cfg.auth = (user_login, user_password)
-        # Check that we cannot create content view due read-only permission
-        with pytest.raises(HTTPError):
-            entities.ContentView(cfg, organization=module_org).create()
-        # Check that we can read our content view with custom user
-        content_view = entities.ContentView(cfg, id=content_view.id).read()
-        # Check that we cannot modify content view with custom user
-        with pytest.raises(HTTPError):
-            entities.ContentView(cfg, id=content_view.id, name=gen_string('alpha')).update(
-                ['name']
-            )
-        # Check that we cannot delete content view due read-only permission
-        with pytest.raises(HTTPError):
-            content_view.delete()
-        # Check that we cannot publish content view
-        with pytest.raises(HTTPError):
-            content_view.publish()
-        # Check that we cannot promote content view
-        content_view = entities.ContentView(id=content_view.id).read()
+    # Check that we cannot publish content view
+    with pytest.raises(HTTPError):
         content_view.publish()
-        content_view = entities.ContentView(cfg, id=content_view.id).read()
-        assert len(content_view.version), 1
-        with pytest.raises(HTTPError):
-            promote(content_view.version[0], module_lce.id)
+    # Check that we cannot promote content view
+    content_view = entities.ContentView(id=content_view.id).read()
+    content_view.publish()
+    content_view = entities.ContentView(cfg, id=content_view.id).read()
+    assert len(content_view.version), 1
+    with pytest.raises(HTTPError):
+        promote(content_view.version[0], module_lce.id)
 
-    @tier2
-    def test_negative_non_readonly_user_actions(self, content_view, role, module_org):
-        """Attempt to view content views
 
-        :id: b0a53c38-72f1-4731-881e-192134df6ef3
+@tier2
+def test_negative_non_readonly_user_actions(content_view, function_role, module_org):
+    """Attempt to view content views
 
-        :setup: create a user with all Content View permissions except 'view'
-            role
+    :id: b0a53c38-72f1-4731-881e-192134df6ef3
 
-        :expectedresults: the user can perform different operations against
-            content view, but not read it
+    :setup: create a user with all Content View permissions except 'view'
+        role
 
-        :CaseLevel: Integration
+    :expectedresults: the user can perform different operations against
+        content view, but not read it
 
-        :CaseImportance: Critical
-        """
-        user_login = gen_string('alpha')
-        user_password = gen_string('alphanumeric')
-        # create a role with all content views permissions except
-        # view_content_views
-        cv_permissions_entities = entities.Permission().search(
-            query={'search': 'resource_type="Katello::ContentView"'}
-        )
-        user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
-        user_cv_permissions.remove('view_content_views')
-        user_cv_permissions_entities = [
-            entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
-        ]
-        entities.Filter(
-            organization=[module_org], permission=user_cv_permissions_entities, role=role,
-        ).create()
-        # create a user and assign the above created role
-        entities.User(
-            organization=[module_org], role=[role], login=user_login, password=user_password
-        ).create()
-        cfg = get_nailgun_config()
-        cfg.auth = (user_login, user_password)
-        # Check that we cannot read our content view with custom user
-        with pytest.raises(HTTPError):
-            entities.ContentView(cfg, id=content_view.id).read()
-        # Check that we have permission to remove the entity
-        entities.ContentView(cfg, id=content_view.id).delete()
-        with pytest.raises(HTTPError):
-            entities.ContentView(id=content_view.id).read()
+    :CaseLevel: Integration
+
+    :CaseImportance: Critical
+    """
+    user_login = gen_string('alpha')
+    user_password = gen_string('alphanumeric')
+    # create a role with all content views permissions except
+    # view_content_views
+    cv_permissions_entities = entities.Permission().search(
+        query={'search': 'resource_type="Katello::ContentView"'}
+    )
+    user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
+    user_cv_permissions.remove('view_content_views')
+    user_cv_permissions_entities = [
+        entity for entity in cv_permissions_entities if entity.name in user_cv_permissions
+    ]
+    entities.Filter(
+        organization=[module_org], permission=user_cv_permissions_entities, role=function_role,
+    ).create()
+    # create a user and assign the above created role
+    entities.User(
+        organization=[module_org], role=[function_role], login=user_login, password=user_password,
+    ).create()
+    cfg = get_nailgun_config()
+    cfg.auth = (user_login, user_password)
+    # Check that we cannot read our content view with custom user
+    with pytest.raises(HTTPError):
+        entities.ContentView(cfg, id=content_view.id).read()
+    # Check that we have permission to remove the entity
+    entities.ContentView(cfg, id=content_view.id).delete()
+    with pytest.raises(HTTPError):
+        entities.ContentView(id=content_view.id).read()
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
