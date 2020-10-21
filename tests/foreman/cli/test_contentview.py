@@ -175,7 +175,7 @@ class ContentViewTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization, a life cycle environment,
         and a product."""
-        super(ContentViewTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org(cached=True)
         cls.environment = make_lifecycle_environment({'organization-id': cls.org['id']})
         cls.product = make_product({'organization-id': cls.org['id']})
@@ -262,7 +262,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
         result = ssh.command(
-            'find /var/lib/pulp/published -name "*{0}*"'.format(content_view['name'])
+            'find /var/lib/pulp/published -name "*{}*"'.format(content_view['name'])
         )
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
@@ -422,7 +422,7 @@ class ContentViewTestCase(CLITestCase):
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
-        result = ssh.command('find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
         self.assertEqual(result.return_code, 0)
         self.assertNotEqual(len(result.stdout), 0)
         self.assertEqual(len(content_view['versions']), 1)
@@ -442,7 +442,7 @@ class ContentViewTestCase(CLITestCase):
         )
         ContentView.delete({'id': content_view['id']})
         # Check content view files presence after deletion
-        result = ssh.command('find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
 
@@ -2490,7 +2490,7 @@ class ContentViewTestCase(CLITestCase):
         components = ContentView.component_list({'composite-content-view-id': composite_cv['id']})
         self.assertEqual(len(components), 1)
         component_id = components[0]['id']
-        self.assertEqual(components[0]['version-id'], '{0} (Latest)'.format(version_1_id))
+        self.assertEqual(components[0]['version-id'], f'{version_1_id} (Latest)')
         self.assertEqual(components[0]['current-version'], '1.0')
         # Publish the content view a second time
         ContentView.publish({'id': content_view['id']})
@@ -2505,7 +2505,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(components), 1)
         # Ensure that this is the same component that is updated
         self.assertEqual(component_id, components[0]['id'])
-        self.assertEqual(components[0]['version-id'], '{0} (Latest)'.format(version_2_id))
+        self.assertEqual(components[0]['version-id'], f'{version_2_id} (Latest)')
         self.assertEqual(components[0]['current-version'], '2.0')
 
     @tier3
@@ -2935,7 +2935,7 @@ class ContentViewTestCase(CLITestCase):
             host_client.install_katello_ca()
             host_client.register_contenthost(
                 org['label'],
-                lce='{0}/{1}'.format(env['name'], content_view['name']),
+                lce='{}/{}'.format(env['name'], content_view['name']),
                 username=user_name,
                 password=user_password,
             )
@@ -3087,7 +3087,7 @@ class ContentViewTestCase(CLITestCase):
             host_client.install_katello_ca()
             host_client.register_contenthost(
                 org['label'],
-                lce='{0}/{1}'.format(env['name'], content_view['name']),
+                lce='{}/{}'.format(env['name'], content_view['name']),
                 username=user_name,
                 password=user_password,
             )
@@ -4363,7 +4363,7 @@ class ContentViewTestCase(CLITestCase):
         repo_name = gen_string('alphanumeric')
         repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
         result = repo_add_updateinfo(
-            repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
         )
         self.assertEqual(result.return_code, 0)
         repo = make_repository({'product-id': self.product['id'], 'url': repo_url})
@@ -4379,7 +4379,7 @@ class ContentViewTestCase(CLITestCase):
             repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'.format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
         )
         self.assertEqual(result.return_code, 0)
         Repository.synchronize({'id': repo['id']})
@@ -4492,7 +4492,7 @@ class OstreeContentViewTestCase(CLITestCase):
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create an organization, product, and repo with all content-types."""
-        super(OstreeContentViewTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
         # Create new custom ostree repo
@@ -4688,7 +4688,7 @@ class ContentViewRedHatOstreeContent(CLITestCase):
     @skip_if_not_set('fake_manifest')
     def setUpClass(cls):
         """Set up organization, product and RH atomic repository for tests."""
-        super(ContentViewRedHatOstreeContent, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
@@ -4874,19 +4874,19 @@ class ContentViewFileRepoTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(ContentViewFileRepoTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
     def _make_file_repository_upload_contents(self, options=None):
         """Makes a new File repository, Upload File/Multiple Files
-        and asserts its success """
+        and asserts its success"""
         if options is None:
             options = {'product-id': self.product['id'], 'content-type': 'file'}
         if not options.get('content-type'):
             raise CLIFactoryError('Please provide a valid Content Type.')
         new_repo = make_repository(options)
-        remote_path = "/tmp/{0}".format(RPM_TO_UPLOAD)
+        remote_path = f"/tmp/{RPM_TO_UPLOAD}"
         if 'multi_upload' not in options or not options['multi_upload']:
             ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
         else:

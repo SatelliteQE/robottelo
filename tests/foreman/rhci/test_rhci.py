@@ -40,7 +40,7 @@ class RHCIDeploymentTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """ Setup the base entities for all tests. """
-        super(RHCIDeploymentTestCase, cls).setUpClass()
+        super().setUpClass()
         org_id = entities.Organization().create_json()['organization']['id']
         cls.org = entities.Organization(id=org_id)
         cls.lc_env = entities.LifecycleEnvironment(organization=cls.org).create()
@@ -50,7 +50,7 @@ class RHCIDeploymentTestCase(APITestCase):
     @classmethod
     def tearDownClass(cls):
         """ Delete deployments designated during testing. """
-        super(RHCIDeploymentTestCase, cls).tearDownClass()
+        super().tearDownClass()
         for deployment in cls.to_delete:
             deployment.delete()
 

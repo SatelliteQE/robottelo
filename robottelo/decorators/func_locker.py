@@ -158,7 +158,7 @@ def _get_function_name_lock_path(function_name, scope=None, scope_kwargs=None, s
     """Return the path of the file to lock"""
     return os.path.join(
         _get_scope_path(scope, scope_kwargs=scope_kwargs, scope_context=scope_context),
-        '{0}.{1}'.format(function_name, LOCK_FILE_NAME_EXT),
+        f'{function_name}.{LOCK_FILE_NAME_EXT}',
     )
 
 
@@ -173,9 +173,9 @@ def _check_deadlock(lock_file_path, process_id):
     """
     if os.path.exists(lock_file_path):
         try:
-            lock_file_handler = open(lock_file_path, 'r')
+            lock_file_handler = open(lock_file_path)
             lock_file_content = lock_file_handler.read()
-        except (OSError, IOError) as exp:
+        except OSError as exp:
             # do nothing, but anyway log the exception
             logger.exception(exp)
             lock_file_content = None
@@ -248,7 +248,7 @@ def lock_function(
 
             with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
                 logger.info(
-                    'process id: {0} lock function using file path: {1}'.format(
+                    'process id: {} lock function using file path: {}'.format(
                         process_id, lock_file_path
                     )
                 )
@@ -312,7 +312,7 @@ def locking_function(
 
     with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
         logger.info(
-            'process id: {0} - lock function name:{1}  - using file path: {2}'.format(
+            'process id: {} - lock function name:{}  - using file path: {}'.format(
                 process_id, function_name, lock_file_path
             )
         )

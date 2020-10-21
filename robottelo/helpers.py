@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
 import contextlib
 import logging
@@ -49,7 +48,7 @@ class DownloadFileError(Exception):
     """Indicates an error when failure in downloading file from server."""
 
 
-class ServerFileDownloader(object):
+class ServerFileDownloader:
     """Downloads file from given fileurl to local /temp dirctory."""
 
     def __init__(self):
@@ -68,7 +67,7 @@ class ServerFileDownloader(object):
         :returns: Returns complete file path with name of downloaded file.
         """
         if not self.file_downloaded:  # pragma: no cover
-            self.fd, self.file_path = mkstemp(suffix='.{}'.format(extention))
+            self.fd, self.file_path = mkstemp(suffix=f'.{extention}')
             fileobj = os.fdopen(self.fd, 'wb')
             fileobj.write(requests.get(fileurl).content)
             fileobj.close()
@@ -104,21 +103,19 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
 
     # download on localhost
     if hostname is None:
-        with open('{}{}'.format(local_path, file_name), 'wb') as fileobj:
+        with open(f'{local_path}{file_name}', 'wb') as fileobj:
             r = requests.get(file_url)
             r.raise_for_status()
             fileobj.write(r.content)
             fileobj.close()
-        if not os.path.exists("{}{}".format(local_path, file_name)):
-            raise DownloadFileError('Unable to download {}'.format(file_name))
+        if not os.path.exists(f"{local_path}{file_name}"):
+            raise DownloadFileError(f'Unable to download {file_name}')
     # download on any server.
     else:
-        result = ssh.command(
-            'wget -O {}{} {}'.format(local_path, file_name, file_url), hostname=hostname
-        )
+        result = ssh.command(f'wget -O {local_path}{file_name} {file_url}', hostname=hostname)
         if result.return_code != 0:
-            raise DownloadFileError('Unable to download {}'.format(file_name))
-    return ['{}{}'.format(local_path, file_name), file_name]
+            raise DownloadFileError(f'Unable to download {file_name}')
+    return [f'{local_path}{file_name}', file_name]
 
 
 def get_server_software():
@@ -164,10 +161,10 @@ def get_host_info(hostname=None):
     """
     result = ssh.command('cat /etc/redhat-release', hostname)
     if result.return_code != 0:
-        raise HostInfoError('Not able to cat /etc/redhat-release "{0}"'.format(result.stderr))
+        raise HostInfoError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
     match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout[0])
     if match is None:
-        raise HostInfoError('Not able to parse release string "{0}"'.format(result.stdout[0]))
+        raise HostInfoError('Not able to parse release string "{}"'.format(result.stdout[0]))
     groups = match.groupdict()
     return (
         groups['distro'],
@@ -223,7 +220,7 @@ def get_data_file(filename):
     if os.path.isfile(data_file):
         return data_file
     else:
-        raise DataFileError('Could not locate the data file "{0}"'.format(data_file))
+        raise DataFileError(f'Could not locate the data file "{data_file}"')
 
 
 def read_data_file(filename):
@@ -231,7 +228,7 @@ def read_data_file(filename):
     Read the contents of data file
     """
     absolute_file_path = get_data_file(filename)
-    with open(absolute_file_path, 'r') as file_contents:
+    with open(absolute_file_path) as file_contents:
         return file_contents.read()
 
 
@@ -244,12 +241,10 @@ def install_katello_ca(hostname=None):
     :raises: AssertionError: If katello-ca wasn't installed.
 
     """
-    ssh.command('rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
+    ssh.command(f'rpm -Uvh {settings.server.get_cert_rpm_url()}', hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
-    result = ssh.command(
-        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
-    )
+    result = ssh.command(f'rpm -q katello-ca-consumer-{settings.server.hostname}', hostname)
     # Checking the return_code here to verify katello-ca rpm is actually
     # present in the system
     if result.return_code != 0:
@@ -270,9 +265,7 @@ def remove_katello_ca(hostname=None):
     ssh.command('yum erase -y $(rpm -qa |grep katello-ca-consumer)', hostname)
     # Checking the return_code here to verify katello-ca rpm is actually
     # not present in the system
-    result = ssh.command(
-        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
-    )
+    result = ssh.command(f'rpm -q katello-ca-consumer-{settings.server.hostname}', hostname)
     if result.return_code == 0:
         raise AssertionError('Failed to remove the katello-ca rpm')
     # Resetting rhsm.conf to point to cdn
@@ -283,7 +276,7 @@ def remove_katello_ca(hostname=None):
         's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
     ]
     for command in rhsm_updates:
-        result = ssh.command('sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command), hostname)
+        result = ssh.command(f'sed -i -e "{command}" /etc/rhsm/rhsm.conf', hostname)
         if result.return_code != 0:
             raise AssertionError('Failed to reset the rhsm.conf')
 
@@ -302,11 +295,11 @@ def md5_by_url(url, hostname=None):
     """
     filename = url.split('/')[-1]
     result = ssh.command(
-        'wget -qO - {} | tee {} | md5sum | awk \'{{print $1}}\''.format(url, filename),
+        f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'',
         hostname=hostname,
     )
     if result.return_code != 0:
-        raise AssertionError('Failed to calculate md5 checksum of {}'.format(filename))
+        raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
     return result.stdout[0]
 
 
@@ -354,7 +347,7 @@ def get_available_capsule_port(port_pool=None):
         else:
             raise TypeError(
                 '''Expected type of port_range is a tuple of 2 elements,
-                got {0} instead'''.format(
+                got {} instead'''.format(
                     type(port_pool_range)
                 )
             )
@@ -366,7 +359,7 @@ def get_available_capsule_port(port_pool=None):
     )
     if fuser_cmd.stderr:
         raise CapsuleTunnelError(
-            'Failed to create ssh tunnel: Error getting port status: {0}'.format(fuser_cmd.stderr)
+            f'Failed to create ssh tunnel: Error getting port status: {fuser_cmd.stderr}'
         )
     # converts a List of strings to a List of integers
     try:
@@ -375,7 +368,7 @@ def get_available_capsule_port(port_pool=None):
 
     except ValueError:
         raise CapsuleTunnelError(
-            'Failed parsing the port numbers from stdout: {0}'.format(fuser_cmd.stdout[:-1])
+            'Failed parsing the port numbers from stdout: {}'.format(fuser_cmd.stdout[:-1])
         )
     try:
         # take the list of available ports and return randomly selected one
@@ -401,8 +394,8 @@ def default_url_on_new_port(oldport, newport):
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:
-        command = ('ncat -kl -p {0} -c "ncat {1} {2}"').format(newport, domain, oldport)
-        logger.debug('Creating tunnel: {0}'.format(command))
+        command = ('ncat -kl -p {} -c "ncat {} {}"').format(newport, domain, oldport)
+        logger.debug(f'Creating tunnel: {command}')
         transport = connection.get_transport()
         channel = transport.open_session()
         channel.get_pty()
@@ -413,13 +406,13 @@ def default_url_on_new_port(oldport, newport):
                 stderr = ''
                 while channel.recv_stderr_ready():
                     stderr += channel.recv_stderr(1)
-                logger.debug('Tunnel failed: {0}'.format(stderr))
+                logger.debug(f'Tunnel failed: {stderr}')
                 # Something failed, so raise an exception.
                 raise CapsuleTunnelError(stderr)
-        yield 'https://{0}:{1}'.format(domain, newport)
+        yield f'https://{domain}:{newport}'
 
 
-class Storage(object):
+class Storage:
     """Turns a dict into an attribute based object.
 
     Example::
@@ -432,7 +425,7 @@ class Storage(object):
 
     def __init__(self, *args, **kwargs):
         """takes a dict or attrs and sets as attrs"""
-        super(Storage, self).__init__()
+        super().__init__()
         for item in args:
             kwargs.update(item)
         for key, value in kwargs.items():
@@ -511,11 +504,11 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, 
         raise ValueError('Either `lce` or `cvv` is required')
 
     if lce and capsule:
-        repo_path = '{}/{}/custom/{}/{}'.format(org, lce, prod, repo)
+        repo_path = f'{org}/{lce}/custom/{prod}/{repo}'
     elif lce:
-        repo_path = '{}/{}/{}/custom/{}/{}'.format(org, lce, cv, prod, repo)
+        repo_path = f'{org}/{lce}/{cv}/custom/{prod}/{repo}'
     elif cvv:
-        repo_path = '{}/content_views/{}/{}/custom/{}/{}'.format(org, cv, cvv, prod, repo)
+        repo_path = f'{org}/content_views/{cv}/{cvv}/custom/{prod}/{repo}'
 
     return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
@@ -533,8 +526,8 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
     :return: URL where the repository can be accessed
     :rtype: str
     """
-    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
-    result = ssh.command('sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
+    repo_path = f'{PULP_PUBLISHED_YUM_REPOS_PATH}/{name}'
+    result = ssh.command(f'sudo -u apache mkdir -p {repo_path}', hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(result.return_code, result.stderr, 'Unable to create repo dir')
     if repo_fetch_url:
@@ -550,7 +543,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
                 raise CLIReturnCodeError(
                     result.return_code,
                     result.stderr,
-                    'Unable to download package {}'.format(package),
+                    f'Unable to download package {package}',
                 )
     if wipe_repodata:
         result = ssh.command('rm -rf {}/{}'.format(repo_path, 'repodata/'), hostname=hostname)
@@ -558,7 +551,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
             raise CLIReturnCodeError(
                 result.return_code, result.stderr, 'Unable to delete repodata folder'
             )
-    result = ssh.command('createrepo {}'.format(repo_path), hostname=hostname)
+    result = ssh.command(f'createrepo {repo_path}', hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(
             result.return_code,
@@ -570,7 +563,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
 
     published_url = 'http://{}{}/pulp/repos/{}/'.format(
         settings.server.hostname,
-        ':{}'.format(settings.server.port) if settings.server.port else '',
+        f':{settings.server.port}' if settings.server.port else '',
         name,
     )
 
@@ -589,26 +582,24 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     :return: result of executing `modifyrepo` command
     """
     updatefile = 'updateinfo.xml'
-    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
-    updatefile_path = '{}/{}'.format(repo_path, updatefile)
+    repo_path = f'{PULP_PUBLISHED_YUM_REPOS_PATH}/{name}'
+    updatefile_path = f'{repo_path}/{updatefile}'
     if updateinfo_url:
-        result = ssh.command('find {}'.format(updatefile_path), hostname=hostname)
+        result = ssh.command(f'find {updatefile_path}', hostname=hostname)
         if result.return_code == 0 and updatefile in result.stdout[0]:
             result = ssh.command(
-                'mv -f {} {}.bak'.format(updatefile_path, updatefile_path), hostname=hostname
+                f'mv -f {updatefile_path} {updatefile_path}.bak', hostname=hostname
             )
             if result.return_code != 0:
                 raise CLIReturnCodeError(
                     result.return_code,
                     result.stderr,
-                    'Unable to backup existing {}'.format(updatefile),
+                    f'Unable to backup existing {updatefile}',
                 )
-        result = ssh.command(
-            'wget -O {} {}'.format(updatefile_path, updateinfo_url), hostname=hostname
-        )
+        result = ssh.command(f'wget -O {updatefile_path} {updateinfo_url}', hostname=hostname)
         if result.return_code != 0:
             raise CLIReturnCodeError(
-                result.return_code, result.stderr, 'Unable to download {}'.format(updateinfo_url)
+                result.return_code, result.stderr, f'Unable to download {updateinfo_url}'
             )
 
     result = ssh.command('modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/'))
@@ -658,11 +649,11 @@ def extract_ui_token(input):
 def get_web_session():
     """Logs in as admin user and returns the valid requests.Session object"""
     sat_session = requests.Session()
-    url = 'https://{0}'.format(settings.server.hostname)
+    url = f'https://{settings.server.hostname}'
 
     init_request = sat_session.get(url, verify=False)
     login_request = sat_session.post(
-        '{0}/users/login'.format(url),
+        f'{url}/users/login',
         data={
             'authenticity_token': extract_ui_token(init_request.text),
             'login[login]': settings.server.admin_username,
@@ -685,12 +676,10 @@ def host_provisioning_check(ip_addr):
     :return: ssh command return code and stdout
     """
     result = ssh.command(
-        'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20; done; exit 1'.format(ip_addr)
+        f'for i in {{1..60}}; do ping -c1 {ip_addr} && exit 0; sleep 20; done; exit 1'
     )
     if result.return_code != 0:
-        raise ProvisioningCheckError(
-            'Failed to ping virtual machine Error:{0}'.format(result.stdout)
-        )
+        raise ProvisioningCheckError(f'Failed to ping virtual machine Error:{result.stdout}')
 
 
 def slugify_component(string, keep_hyphens=True):
@@ -713,8 +702,8 @@ def slugify_component(string, keep_hyphens=True):
 
 
 def download_gce_cert():
-    ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
-    if ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code != 0:
+    ssh.command(f'curl {settings.gce.cert_url} -o {settings.gce.cert_path}')
+    if ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code != 0:
         raise GCECertNotFoundError(
             "The GCE certificate in path {} is not found in satellite.".format(
                 settings.gce.cert_path

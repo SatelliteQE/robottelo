@@ -31,7 +31,7 @@ from robottelo.decorators import upgrade
 @fixture(scope='module')
 def oscap_content_path():
     _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = "/tmp/{}".format(file_name)
+    local_file = f"/tmp/{file_name}"
     ssh.download_file(settings.oscap.content_path, local_file)
     return local_file
 

@@ -81,7 +81,7 @@ def golden_ticket_host_setup():
         auto_attach=True,
     ).create()
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return org, ak
@@ -214,9 +214,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
     ).create()
     with Session(test_name, user=user.login, password=user_password) as session:
         assert (
-            session.subscription.search('name = "{0}"'.format(DEFAULT_SUBSCRIPTION_NAME))[0][
-                'Name'
-            ]
+            session.subscription.search(f'name = "{DEFAULT_SUBSCRIPTION_NAME}"')[0]['Name']
             == DEFAULT_SUBSCRIPTION_NAME
         )
 
@@ -362,7 +360,7 @@ def test_positive_view_vdc_guest_subscription_products(session):
         {
             'organization-id': org.id,
             'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
-            'hypervisor-server': 'qemu+ssh://{0}/system'.format(provisioning_server),
+            'hypervisor-server': f'qemu+ssh://{provisioning_server}/system',
             'hypervisor-username': 'root',
         }
     )
@@ -384,7 +382,7 @@ def test_positive_view_vdc_guest_subscription_products(session):
             session.organization.select(org.name)
             # ensure that VDS subscription is assigned to virt-who hypervisor
             content_hosts = session.contenthost.search(
-                'subscription_name = "{0}" and name = "{1}"'.format(
+                'subscription_name = "{}" and name = "{}"'.format(
                     VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name']
                 )
             )

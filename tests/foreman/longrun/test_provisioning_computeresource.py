@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :CaseLevel: Acceptance
 
@@ -37,7 +36,7 @@ class ComputeResourceHostTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('rhev')
     def setUpClass(cls):
-        super(ComputeResourceHostTestCase, cls).setUpClass()
+        super().setUpClass()
         bridge = settings.vlan_networking.bridge
         # RHV Settings
         cls.rhev_url = settings.rhev.hostname
@@ -61,15 +60,10 @@ class ComputeResourceHostTestCase(CLITestCase):
         cls.cluster_id = cls.rhv_api.get_cluster(cls.rhev_datacenter).id
         cls.storage_id = cls.rhv_api.get_storage_domain(cls.rhev_storage_domain).id
         cls.network_id = (
-            cls.rhv_api.api.system_service()
-            .networks_service()
-            .list(search='name={0}'.format(bridge))[0]
-            .id
+            cls.rhv_api.api.system_service().networks_service().list(search=f'name={bridge}')[0].id
         )
         if is_open('BZ:1685949'):
-            dc = cls.rhv_api._data_centers_service.list(
-                search='name={0}'.format(cls.rhev_datacenter)
-            )[0]
+            dc = cls.rhv_api._data_centers_service.list(search=f'name={cls.rhev_datacenter}')[0]
             dc = cls.rhv_api._data_centers_service.data_center_service(dc.id)
             cls.quota = dc.quotas_service().list()[0].id
         else:
@@ -104,7 +98,7 @@ class ComputeResourceHostTestCase(CLITestCase):
 
     def tearDown(self):
         """Delete the host to free the resources"""
-        super(ComputeResourceHostTestCase, self).tearDown()
+        super().tearDown()
         hosts = Host.list({'organization': self.org_name})
         for host in hosts:
             Host.delete({'id': host['id']})
@@ -152,27 +146,27 @@ class ComputeResourceHostTestCase(CLITestCase):
         host_name = gen_string('alpha').lower()
         host = make_host(
             {
-                'name': '{0}'.format(host_name),
+                'name': f'{host_name}',
                 'root-password': gen_string('alpha'),
                 'organization': self.org_name,
                 'location': self.loc_name,
                 'pxe-loader': 'PXELinux BIOS',
                 'hostgroup': self.config_env['host_group'],
                 'compute-resource-id': rhv_cr.get('id'),
-                'compute-attributes': "cluster={0},"
+                'compute-attributes': "cluster={},"
                 "cores=1,"
                 "memory=1073741824,"
                 "start=1".format(self.cluster_id),
                 'ip': None,
                 'mac': None,
-                'interface': "compute_name=nic1, compute_network={0}".format(self.network_id),
+                'interface': f"compute_name=nic1, compute_network={self.network_id}",
                 'volume': "size_gb=10,"
-                "storage_domain={0},"
+                "storage_domain={},"
                 "bootable=True".format(self.storage_id),
                 'provision-method': 'build',
             }
         )
-        hostname = '{0}.{1}'.format(host_name, self.config_env['domain'])
+        hostname = '{}.{}'.format(host_name, self.config_env['domain'])
         self.assertEquals(hostname, host['name'])
         host_info = Host.info({'name': hostname})
         host_ip = host_info.get('network').get('ipv4-address')
@@ -188,7 +182,7 @@ class ComputeResourceHostTestCase(CLITestCase):
 
     @tier3
     def test_positive_provision_vmware_with_host_group(self):
-        """ Provision a host on vmware compute resource with
+        """Provision a host on vmware compute resource with
         the help of hostgroup.
 
         :Requirement: Computeresource Vmware
@@ -233,7 +227,7 @@ class ComputeResourceHostTestCase(CLITestCase):
         host_name = gen_string('alpha').lower()
         host = make_host(
             {
-                'name': '{0}'.format(host_name),
+                'name': f'{host_name}',
                 'root-password': gen_string('alpha'),
                 'organization': self.org_name,
                 'location': self.loc_name,
@@ -243,25 +237,25 @@ class ComputeResourceHostTestCase(CLITestCase):
                 'compute-attributes': "cpus=2,"
                 "corespersocket=2,"
                 "memory_mb=4028,"
-                "cluster={0},"
-                "path=/Datacenters/{1}/vm/QE,"
+                "cluster={},"
+                "path=/Datacenters/{}/vm/QE,"
                 "guest_id=rhel7_64Guest,"
                 "scsi_controller_type=VirtualLsiLogicController,"
                 "hardware_version=Default,"
                 "start=1".format(VMWARE_CONSTANTS['cluster'], self.vmware_datacenter),
                 'ip': None,
                 'mac': None,
-                'interface': "compute_network={0},"
+                'interface': "compute_network={},"
                 "compute_type=VirtualVmxnet3".format(self.vmware_net_id),
                 'volume': "name=Hard disk,"
                 "size_gb=10,"
                 "thin=true,"
                 "eager_zero=false,"
-                "datastore={0}".format(VMWARE_CONSTANTS['datastore'].split()[0]),
+                "datastore={}".format(VMWARE_CONSTANTS['datastore'].split()[0]),
                 'provision-method': 'build',
             }
         )
-        hostname = '{0}.{1}'.format(host_name, self.config_env['domain'])
+        hostname = '{}.{}'.format(host_name, self.config_env['domain'])
         self.assertEquals(hostname, host['name'])
         # Check on Vmware, if VM exists
         self.assertTrue(self.vmware_api.does_vm_exist(hostname))

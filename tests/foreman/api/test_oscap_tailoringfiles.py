@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Tailoring Files
 
 :Requirement: tailoringfiles

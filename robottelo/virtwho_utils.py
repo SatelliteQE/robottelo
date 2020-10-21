@@ -63,7 +63,7 @@ def get_guest_info(hypervisor_type):
     _, guest_name = runcmd('hostname', system=get_system(hypervisor_type))
     _, guest_uuid = runcmd('dmidecode -s system-uuid', system=get_system(hypervisor_type))
     if not guest_uuid or not guest_name:
-        raise VirtWhoError('Failed to get the guest info for {}'.format(hypervisor_type))
+        raise VirtWhoError(f'Failed to get the guest info for {hypervisor_type}')
     # Different UUID for vcenter by dmidecode and vcenter MOB
     if hypervisor_type == 'esx':
         guest_uuid = guest_uuid.split('-')[-1]
@@ -106,9 +106,9 @@ def register_system(system, activation_key=None, org='Default_Organization', env
         ),
         system,
     )
-    cmd = 'subscription-manager register --org={} --environment={} '.format(org, env)
+    cmd = f'subscription-manager register --org={org} --environment={env} '
     if activation_key is not None:
-        cmd += '--activationkey={}'.format(activation_key)
+        cmd += f'--activationkey={activation_key}'
     else:
         cmd += '--username={} --password={}'.format(
             settings.server.admin_username, settings.server.admin_password
@@ -117,7 +117,7 @@ def register_system(system, activation_key=None, org='Default_Organization', env
     if ret == 0 or "system has been registered" in stdout:
         return True
     else:
-        raise VirtWhoError('Failed to register system: {}'.format(system))
+        raise VirtWhoError(f'Failed to register system: {system}')
 
 
 def virtwho_cleanup():
@@ -165,7 +165,7 @@ def get_configure_id(name):
     if 'id' in config['general-information']:
         return config['general-information']['id']
     else:
-        raise VirtWhoError("No configure id found for {}".format(name))
+        raise VirtWhoError(f"No configure id found for {name}")
 
 
 def get_configure_command(config_id, org=DEFAULT_ORG):
@@ -183,7 +183,7 @@ def get_configure_file(config_id):
     """Return the configuration file full name in /etc/virt-who.d
     :param str config_id: the unique id of the configuration file you have created.
     """
-    return "/etc/virt-who.d/virt-who-config-{}.conf".format(config_id)
+    return f"/etc/virt-who.d/virt-who-config-{config_id}.conf"
 
 
 def get_configure_option(option, filename):
@@ -195,15 +195,13 @@ def get_configure_option(option, filename):
         /etc/virt-who.d/virt-who-config-{}.conf
     :raises: VirtWhoError: If this option name not in the file.
     """
-    cmd = "grep -v '^#' {} | grep ^{}".format(filename, option)
+    cmd = f"grep -v '^#' {filename} | grep ^{option}"
     ret, stdout = runcmd(cmd)
     if ret == 0 and option in stdout:
         value = stdout.split('=')[1].strip()
         return value
     else:
-        raise VirtWhoError(
-            "option {} is not exist or not be enabled in {}".format(option, filename)
-        )
+        raise VirtWhoError(f"option {option} is not exist or not be enabled in {filename}")
 
 
 def _get_hypervisor_mapping(logs, hypervisor_type):
@@ -239,7 +237,7 @@ def _get_hypervisor_mapping(logs, hypervisor_type):
     if hypervisor_name:
         return hypervisor_name, guest_name
     else:
-        raise VirtWhoError("Failed to get the hypervisor_name for guest {}".format(guest_name))
+        raise VirtWhoError(f"Failed to get the hypervisor_name for guest {guest_name}")
 
 
 def deploy_validation(hypervisor_type):
@@ -272,7 +270,7 @@ def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Defa
     register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
-        raise VirtWhoError("Failed to deploy configure by {}".format(command))
+        raise VirtWhoError(f"Failed to deploy configure by {command}")
     if debug:
         return deploy_validation(hypervisor_type)
 
@@ -290,9 +288,9 @@ def deploy_configure_by_script(script_content, hypervisor_type, debug=False):
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)
-    ret, stdout = runcmd('sh {}'.format(script_filename))
+    ret, stdout = runcmd(f'sh {script_filename}')
     if ret != 0 or 'Finished successfully' not in stdout:
-        raise VirtWhoError("Failed to deploy configure by {}".format(script_filename))
+        raise VirtWhoError(f"Failed to deploy configure by {script_filename}")
     if debug:
         return deploy_validation(hypervisor_type)
 
@@ -317,7 +315,7 @@ def update_configure_option(option, value, config_file):
     cmd = 'sed -i "s|^{0}.*|{0}={1}|g" {2}'.format(option, value, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
-        raise VirtWhoError("Failed to set option {0} value to {1}".format(option, value))
+        raise VirtWhoError(f"Failed to set option {option} value to {value}")
 
 
 def delete_configure_option(option, config_file):
@@ -329,7 +327,7 @@ def delete_configure_option(option, config_file):
     cmd = 'sed -i "/^{0}/d" {1}; sed -i "/^#{0}/d" {1}'.format(option, config_file)
     ret, output = runcmd(cmd)
     if ret != 0:
-        raise VirtWhoError("Failed to delete option {}".format(option))
+        raise VirtWhoError(f"Failed to delete option {option}")
 
 
 def add_configure_option(option, value, config_file):
@@ -342,12 +340,12 @@ def add_configure_option(option, value, config_file):
     try:
         get_configure_option(option, config_file)
     except Exception:
-        cmd = 'echo -e "\n{0}={1}" >> {2}'.format(option, value, config_file)
+        cmd = f'echo -e "\n{option}={value}" >> {config_file}'
         ret, output = runcmd(cmd)
         if ret != 0:
-            raise VirtWhoError("Failed to add option {0}={1}".format(option, value))
+            raise VirtWhoError(f"Failed to add option {option}={value}")
     else:
-        raise VirtWhoError("option {} is already exist in {}".format(option, config_file))
+        raise VirtWhoError(f"option {option} is already exist in {config_file}")
 
 
 def hypervisor_json_create(hypervisors, guests):

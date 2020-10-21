@@ -214,7 +214,8 @@ class Launch:
         return dict(params)
 
     @retry(
-        stop=stop_after_attempt(4), wait=wait_fixed(10),
+        stop=stop_after_attempt(4),
+        wait=wait_fixed(10),
     )
     def _test_requester(self, params, page):
         """The Test Items GET requester to fetch the data on a page

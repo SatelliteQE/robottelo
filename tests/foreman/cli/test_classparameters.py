@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Smart/Puppet Class Parameter
 
 :Requirement: Classparameters
@@ -50,12 +49,12 @@ class SmartClassParametersTestCase(CLITestCase):
         Read all available smart class parameters for imported puppet class to
         be able to work with unique entity for each specific test.
         """
-        super(SmartClassParametersTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
         cls.org = make_org()
         cls.loc = make_location()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
         Environment.update(
             {
                 'name': cls.env['name'],
@@ -69,7 +68,7 @@ class SmartClassParametersTestCase(CLITestCase):
         cls.sc_params_list = SmartClassParameter.list(
             {
                 'environment': cls.env['name'],
-                'search': 'puppetclass="{0}"'.format(cls.puppet_class['name']),
+                'search': 'puppetclass="{}"'.format(cls.puppet_class['name']),
             }
         )
         cls.sc_params_ids_list = [sc_param['id'] for sc_param in cls.sc_params_list]
@@ -84,14 +83,14 @@ class SmartClassParametersTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Removes puppet class."""
-        super(SmartClassParametersTestCase, cls).tearDownClass()
+        super().tearDownClass()
         delete_puppet_class(cls.puppet_class['name'])
 
     def setUp(self):
         """Checks that there is at least one not overridden
         smart class parameter before executing test.
         """
-        super(SmartClassParametersTestCase, self).setUp()
+        super().setUp()
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please update puppet module.")
 
@@ -131,7 +130,7 @@ class SmartClassParametersTestCase(CLITestCase):
             with self.subTest(query):
                 sc_params = SmartClassParameter.list(query)
                 self.assertGreater(
-                    len(sc_params), 0, "Failed to list parameters for query: {}".format(query)
+                    len(sc_params), 0, f"Failed to list parameters for query: {query}"
                 )
 
                 self.assertIn(sc_param_id, [scp['id'] for scp in sc_params])
@@ -140,7 +139,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 self.assertEqual(
                     len(sc_params),
                     len({scp['id'] for scp in sc_params}),
-                    "Not only unique resutls returned for query: {}".format(query),
+                    f"Not only unique resutls returned for query: {query}",
                 )
 
     @tier1
@@ -194,7 +193,7 @@ class SmartClassParametersTestCase(CLITestCase):
         :CaseImportance: Low
         """
         cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
-        env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
+        env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
         puppet_class = Puppet.info(
             {'name': self.puppet_modules[0]['name'], 'environment': env['name']}
         )

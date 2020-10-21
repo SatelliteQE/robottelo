@@ -63,7 +63,7 @@ def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
         entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .search(query={'search': f'name={settings.server.hostname}'})[0]
         .read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
@@ -196,9 +196,9 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
             update_vm_host_location(client, location_id=module_loc.id)
         with session:
             hosts = session.host.search(
-                ' or '.join(['name="{0}"'.format(hostname) for hostname in host_names])
+                ' or '.join([f'name="{hostname}"' for hostname in host_names])
             )
-            assert set(host['Name'] for host in hosts) == set(host_names)
+            assert {host['Name'] for host in hosts} == set(host_names)
             job_status = session.host.schedule_remote_job(
                 host_names,
                 {
@@ -209,9 +209,9 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
                 },
             )
             assert job_status['overview']['job_status'] == 'Success'
-            assert set(
-                host_job['Host'] for host_job in job_status['overview']['hosts_table']
-            ) == set(host_names)
+            assert {host_job['Host'] for host_job in job_status['overview']['hosts_table']} == set(
+                host_names
+            )
             assert all(
                 host_job['Status'] == 'success'
                 for host_job in job_status['overview']['hosts_table']

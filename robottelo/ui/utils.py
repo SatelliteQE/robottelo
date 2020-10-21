@@ -14,7 +14,7 @@ def create_fake_host(
 ):
     if extra_values is None:
         extra_values = {}
-    os_name = '{0} {1}'.format(host.operatingsystem.name, host.operatingsystem.major)
+    os_name = f'{host.operatingsystem.name} {host.operatingsystem.major}'
     name = host.name if host.name is not None else gen_string('alpha').lower()
     values = {
         'host.name': name,
@@ -41,4 +41,4 @@ def create_fake_host(
     }
     values.update(extra_values)
     session.host.create(values)
-    return '{0}.{1}'.format(name, host.domain.name)
+    return f'{name}.{host.domain.name}'

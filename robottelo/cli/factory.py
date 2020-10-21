@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Factory object creation for all CLI methods
 """
@@ -126,7 +125,7 @@ def create_object(cli_object, options, values):
         diff = set(values.keys()).difference(set(options.keys()))
         if diff:
             logger.debug(
-                "Option(s) {0} not supported by CLI factory. Please check for "
+                "Option(s) {} not supported by CLI factory. Please check for "
                 "a typo or update default options".format(diff)
             )
     update_dictionary(options, values)
@@ -135,7 +134,7 @@ def create_object(cli_object, options, values):
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            'Failed to create {0} with data:\n{1}\n{2}'.format(
+            'Failed to create {} with data:\n{}\n{}'.format(
                 cli_object.__name__, json.dumps(options, indent=2, sort_keys=True), err.msg
             )
         )
@@ -378,7 +377,7 @@ def make_gpg_key(options=None):
         key_filename = options.pop('key')
 
     args = {
-        'key': '/tmp/{0}'.format(gen_alphanumeric()),
+        'key': f'/tmp/{gen_alphanumeric()}',
         'name': gen_alphanumeric(),
         'organization': None,
         'organization-id': None,
@@ -458,7 +457,7 @@ def make_partition_table(options=None):
         ptable.write(options.get('content', 'default ptable content'))
 
     args = {
-        'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        'file': f'/tmp/{gen_alphanumeric()}',
         'location-ids': None,
         'locations': None,
         'name': gen_alphanumeric(),
@@ -558,7 +557,7 @@ def make_proxy(options=None):
                 args['url'] = url
                 return create_object(Proxy, args, options)
         except CapsuleTunnelError as err:
-            raise CLIFactoryError('Failed to create ssh tunnel: {0}'.format(err))
+            raise CLIFactoryError(f'Failed to create ssh tunnel: {err}')
     args['url'] = options['url']
     return create_object(Proxy, args, options)
 
@@ -884,7 +883,7 @@ def make_fake_host(options=None):
         try:
             options['operatingsystem-id'] = OperatingSys.list(
                 {
-                    'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+                    'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
                         RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
                     )
                 }
@@ -1039,14 +1038,12 @@ def make_user(options=None):
         'lastname': gen_alphanumeric(),
         'location-ids': None,
         'login': login,
-        'mail': '{0}@example.com'.format(login),
+        'mail': f'{login}@example.com',
         'organization-ids': None,
         'password': gen_alphanumeric(),
     }
     logger.debug(
-        'User "{0}" password not provided {1} was generated'.format(
-            args['login'], args['password']
-        )
+        'User "{}" password not provided {} was generated'.format(args['login'], args['password'])
     )
 
     return create_object(User, args, options)
@@ -1445,7 +1442,7 @@ def make_medium(options=None):
         'organization-ids': None,
         'organizations': None,
         'os-family': None,
-        'path': 'http://{0}'.format((gen_string('alpha', 6))),
+        'path': 'http://{}'.format(gen_string('alpha', 6)),
     }
 
     return create_object(Medium, args, options)
@@ -1540,7 +1537,7 @@ def make_template(options=None):
     # Assigning default values for attribute
     args = {
         'audit-comment': None,
-        'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        'file': f'/tmp/{gen_alphanumeric()}',
         'location-ids': None,
         'locked': None,
         'name': gen_alphanumeric(6),
@@ -1651,7 +1648,7 @@ def activationkey_add_subscription_to_repo(options=None):
     # Add subscription to activation-key
     if options['subscription'] not in (sub['name'] for sub in subscriptions):
         raise CLIFactoryError(
-            'Subscription {0} not found in the given org'.format(options['subscription'])
+            'Subscription {} not found in the given org'.format(options['subscription'])
         )
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
@@ -1666,9 +1663,7 @@ def activationkey_add_subscription_to_repo(options=None):
                     }
                 )
             except CLIReturnCodeError as err:
-                raise CLIFactoryError(
-                    'Failed to add subscription to activation key\n{0}'.format(err.msg)
-                )
+                raise CLIFactoryError(f'Failed to add subscription to activation key\n{err.msg}')
 
 
 def setup_org_for_a_custom_repo(options=None):
@@ -1709,7 +1704,7 @@ def setup_org_for_a_custom_repo(options=None):
     try:
         Repository.synchronize({'id': custom_repo['id']})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to synchronize repository\n{err.msg}')
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({'organization-id': org_id})['id']
@@ -1720,12 +1715,12 @@ def setup_org_for_a_custom_repo(options=None):
             {'id': cv_id, 'organization-id': org_id, 'repository-id': custom_repo['id']}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to add repository to content view\n{err.msg}')
     # Publish a new version of CV
     try:
         ContentView.publish({'id': cv_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to publish new version of content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
     # Get the version id
     cvv = ContentView.info({'id': cv_id})['versions'][-1]
     # Promote version to next env
@@ -1734,7 +1729,7 @@ def setup_org_for_a_custom_repo(options=None):
             {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to promote version to next environment\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to promote version to next environment\n{err.msg}')
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key(
@@ -1753,9 +1748,7 @@ def setup_org_for_a_custom_repo(options=None):
                 {'content-view-id': cv_id, 'id': activationkey_id, 'organization-id': org_id}
             )
         except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                'Failed to associate activation-key with CV\n{0}'.format(err.msg)
-            )
+            raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo(
         {
@@ -1818,7 +1811,7 @@ def _setup_org_for_a_rh_repo(options=None):
     try:
         Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
     # Enable repo from Repository Set
     try:
         RepositorySet.enable(
@@ -1831,7 +1824,7 @@ def _setup_org_for_a_rh_repo(options=None):
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to enable repository set\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to enable repository set\n{err.msg}')
     # Fetch repository info
     try:
         rhel_repo = Repository.info(
@@ -1842,7 +1835,7 @@ def _setup_org_for_a_rh_repo(options=None):
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to fetch repository info\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to fetch repository info\n{err.msg}')
     # Synchronize the RH repository
     try:
         Repository.synchronize(
@@ -1853,7 +1846,7 @@ def _setup_org_for_a_rh_repo(options=None):
             }
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to synchronize repository\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to synchronize repository\n{err.msg}')
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({'organization-id': org_id})['id']
@@ -1864,24 +1857,24 @@ def _setup_org_for_a_rh_repo(options=None):
             {'id': cv_id, 'organization-id': org_id, 'repository-id': rhel_repo['id']}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to add repository to content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to add repository to content view\n{err.msg}')
     # Publish a new version of CV
     try:
         ContentView.publish({'id': cv_id})
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to publish new version of content view\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to publish new version of content view\n{err.msg}')
     # Get the version id
     try:
         cvv = ContentView.info({'id': cv_id})['versions'][-1]
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to fetch content view info\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to fetch content view info\n{err.msg}')
     # Promote version1 to next env
     try:
         ContentView.version_promote(
             {'id': cvv['id'], 'organization-id': org_id, 'to-lifecycle-environment-id': env_id}
         )
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to promote version to next environment\n{0}'.format(err.msg))
+        raise CLIFactoryError(f'Failed to promote version to next environment\n{err.msg}')
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key(
@@ -1900,9 +1893,7 @@ def _setup_org_for_a_rh_repo(options=None):
                 {'id': activationkey_id, 'organization-id': org_id, 'content-view-id': cv_id}
             )
         except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                'Failed to associate activation-key with CV\n{0}'.format(err.msg)
-            )
+            raise CLIFactoryError(f'Failed to associate activation-key with CV\n{err.msg}')
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo(
         {
@@ -1956,7 +1947,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
                     {'file': manifest.filename, 'organization-id': result.get('organization-id')}
                 )
             except CLIReturnCodeError as err:
-                raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
+                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
             # attach the default subscription to activation key
             activationkey_add_subscription_to_repo(
                 {
@@ -2007,7 +1998,7 @@ def configure_env_for_provision(org=None, loc=None):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain_name = settings.server.hostname.partition('.')
-    domain = Domain.list({'search': 'name={0}'.format(domain_name)})
+    domain = Domain.list({'search': f'name={domain_name}'})
     if len(domain) == 1:
         domain = Domain.info({'id': domain[0]['id']})
         Domain.update(
@@ -2031,7 +2022,7 @@ def configure_env_for_provision(org=None, loc=None):
     # Search if subnet is defined with given network. If so, just update its
     # relevant fields otherwise create new subnet
     network = settings.vlan_networking.subnet
-    subnet = Subnet.list({'search': 'network={0}'.format(network)})
+    subnet = Subnet.list({'search': f'network={network}'})
     if len(subnet) >= 1:
         subnet = Subnet.info({'id': subnet[0]['id']})
         Subnet.update(
@@ -2067,7 +2058,7 @@ def configure_env_for_provision(org=None, loc=None):
     # Get the OS entity
     os = OperatingSys.list(
         {
-            'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+            'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
                 RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
             )
         }
@@ -2092,11 +2083,11 @@ def configure_env_for_provision(org=None, loc=None):
             )
 
     # Get the architecture entity
-    arch = Architecture.list({'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
+    arch = Architecture.list({'search': f'name={DEFAULT_ARCHITECTURE}'})[0]
 
     os = OperatingSys.info({'id': os['id']})
     # Get the media and update its location
-    medium = Medium.list({'search': 'path={0}'.format(settings.rhel7_os)})
+    medium = Medium.list({'search': f'path={settings.rhel7_os}'})
     if medium:
         media = Medium.info({'id': medium[0]['id']})
         Medium.update(
@@ -2236,13 +2227,11 @@ def setup_virtual_machine(
         # Enable custom repositories
         for repo_label in repos_label:
             result = vm.run(
-                'yum-config-manager --enable {0}_{1}_{2}'.format(
-                    org_label, product_label, repo_label
-                )
+                f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
             )
             if result.return_code != 0:
                 raise CLIFactoryError(
-                    'Failed to enable custom repository "{0}"\n{1}'.format(
+                    'Failed to enable custom repository "{}"\n{}'.format(
                         repos_label, result.stderr
                     )
                 )
@@ -2292,7 +2281,7 @@ def _get_capsule_vm_distro_repos(distro):
             }
         )
     else:
-        raise CLIFactoryError('distro "{}" not supported'.format(distro))
+        raise CLIFactoryError(f'distro "{distro}" not supported')
 
     return rh_product_arch, rh_product_releasever, rh_repos
 
@@ -2332,13 +2321,11 @@ def add_role_permissions(role_id, resource_permissions):
     for resource_type, permission_data in resource_permissions.items():
         permission_names = permission_data.get('permissions')
         if permission_names is None:
-            raise CLIFactoryError(
-                'Permissions not provided for resource: {0}'.format(resource_type)
-            )
+            raise CLIFactoryError(f'Permissions not provided for resource: {resource_type}')
         # ensure  that the required resource type is available
         if resource_type not in available_rc_permissions:
             raise CLIFactoryError(
-                'Resource "{0}" not in the list of available resources'.format(resource_type)
+                f'Resource "{resource_type}" not in the list of available resources'
             )
         available_permission_names = [
             permission['name']
@@ -2349,7 +2336,7 @@ def add_role_permissions(role_id, resource_permissions):
         missing_permissions = set(permission_names).difference(set(available_permission_names))
         if missing_permissions:
             raise CLIFactoryError(
-                'Permissions "{0}" are not available in Resource "{1}"'.format(
+                'Permissions "{}" are not available in Resource "{}"'.format(
                     list(missing_permissions), resource_type
                 )
             )
@@ -2448,7 +2435,7 @@ def setup_cdn_and_custom_repos_content(
                 org_id, manifests.clone(), interface=manifests.INTERFACE_CLI
             )
         except CLIReturnCodeError as err:
-            raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
+            raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
 
     custom_product, repos_info = setup_cdn_and_custom_repositories(
         org_id=org_id, repos=repos, download_policy=download_policy
@@ -2514,7 +2501,7 @@ def setup_cdn_and_custom_repos_content(
         set(added_subscription_names)
     )
     if missing_subscription_names:
-        raise CLIFactoryError('Missing subscriptions: {0}'.format(missing_subscription_names))
+        raise CLIFactoryError(f'Missing subscriptions: {missing_subscription_names}')
     data = dict(
         activation_key=activation_key,
         content_view=content_view,
@@ -2541,24 +2528,22 @@ def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
     if user is None:
         user = 'root'
     ssh_path = '/root/.ssh'
-    ssh_key_file_path = '{0}/{1}'.format(ssh_path, ssh_key_name)
+    ssh_key_file_path = f'{ssh_path}/{ssh_key_name}'
     # setup the config file
-    ssh_config_file_path = '{0}/config'.format(ssh_path)
-    result = vm.run('touch {0}'.format(ssh_config_file_path))
+    ssh_config_file_path = f'{ssh_path}/config'
+    result = vm.run(f'touch {ssh_config_file_path}')
     if result.return_code != 0:
-        raise CLIFactoryError('Failed to create ssh config file:\n{}'.format(result.stderr))
+        raise CLIFactoryError(f'Failed to create ssh config file:\n{result.stderr}')
     result = vm.run(
         'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
         '\tIdentityFile {2}\n" >> {3}'.format(host, user, ssh_key_file_path, ssh_config_file_path)
     )
     if result.return_code != 0:
-        raise CLIFactoryError('Failed to write to ssh config file:\n{}'.format(result.stderr))
+        raise CLIFactoryError(f'Failed to write to ssh config file:\n{result.stderr}')
     # add host entry to ssh known_hosts
-    result = vm.run('ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
+    result = vm.run(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
     if result.return_code != 0:
-        raise CLIFactoryError(
-            'Failed to put hostname in ssh known_hosts files:\n{}'.format(result.stderr)
-        )
+        raise CLIFactoryError(f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}')
 
 
 def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
@@ -2569,11 +2554,11 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
     :param source_key_path: The ssh key file path to copy to vm
     :param destination_key_name: The ssh key file name when copied to vm
     """
-    destination_key_path = '/root/.ssh/{0}'.format(destination_key_name)
+    destination_key_path = f'/root/.ssh/{destination_key_name}'
     upload_file(local_file=source_key_path, remote_file=destination_key_path, hostname=vm.ip_addr)
-    result = vm.run('chmod 600 {0}'.format(destination_key_path))
+    result = vm.run(f'chmod 600 {destination_key_path}')
     if result.return_code != 0:
-        raise CLIFactoryError('Failed to chmod ssh key file:\n{}'.format(result.stderr))
+        raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
 
 def virt_who_hypervisor_config(
@@ -2650,18 +2635,18 @@ def virt_who_hypervisor_config(
     )
     # configure manually RHEL custom repo url as sync time is very big
     # (more than 2 hours for RHEL 7Server) and not critical in this context.
-    rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
+    rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
     rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
     if not rhel_repo_url:
         raise ValueError(
-            'Settings option "{0}" is whether not set or does not exist'.format(
+            'Settings option "{}" is whether not set or does not exist'.format(
                 rhel_repo_option_name
             )
         )
     virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
-        hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(gen_string('alpha').lower())
+        hypervisor_ssh_key_name = 'hypervisor-{}.key'.format(gen_string('alpha').lower())
         # upload the ssh key
         vm_upload_ssh_key(virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
         # setup the ssh config and known_hosts files
@@ -2671,7 +2656,7 @@ def virt_who_hypervisor_config(
 
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
-        suffix='-virt_who_deploy-{0}'.format(config_id), dir=settings.tmp_dir
+        suffix=f'-virt_who_deploy-{config_id}', dir=settings.tmp_dir
     )
     VirtWhoConfig.fetch({'id': config_id, 'output': temp_virt_who_deploy_file_path})
     download_file(
@@ -2685,15 +2670,13 @@ def virt_who_hypervisor_config(
         hostname=virt_who_vm.ip_addr,
     )
     # ensure the virt-who config deploy script is executable
-    result = virt_who_vm.run('chmod +x {0}'.format(temp_virt_who_deploy_file_path))
+    result = virt_who_vm.run(f'chmod +x {temp_virt_who_deploy_file_path}')
     if result.return_code != 0:
-        raise CLIFactoryError(
-            'Failed to set deployment script as executable:\n{}'.format(result.stderr)
-        )
+        raise CLIFactoryError(f'Failed to set deployment script as executable:\n{result.stderr}')
     # execute the deployment script
-    result = virt_who_vm.run('{0}'.format(temp_virt_who_deploy_file_path))
+    result = virt_who_vm.run(f'{temp_virt_who_deploy_file_path}')
     if result.return_code != 0:
-        raise CLIFactoryError('Deployment script failure:\n{}'.format(result.stderr))
+        raise CLIFactoryError(f'Deployment script failure:\n{result.stderr}')
     # after this step, we should have virt-who service installed and started
     if exec_one_shot:
         # usually to be sure that the virt-who generated the report we need
@@ -2701,17 +2684,13 @@ def virt_who_hypervisor_config(
         # service
         result = virt_who_vm.run('service virt-who stop')
         if result.return_code != 0:
-            raise CLIFactoryError('Failed to stop the virt-who service:\n{}'.format(result.stderr))
+            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
         result = virt_who_vm.run('virt-who --one-shot', timeout=900)
         if result.return_code != 0:
-            raise CLIFactoryError(
-                'Failed when executing virt-who --one-shot:\n{}'.format(result.stderr)
-            )
+            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
         result = virt_who_vm.run('service virt-who start')
         if result.return_code != 0:
-            raise CLIFactoryError(
-                'Failed to start the virt-who service:\n{}'.format(result.stderr)
-            )
+            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
     # after this step the hypervisor as a content host should be created
     # do not confuse virt-who host with hypervisor host as they can be
     # diffrent hosts and as per this setup we have only registered the virt-who
@@ -2719,10 +2698,10 @@ def virt_who_hypervisor_config(
     # first report when started or with one shot command
     # the virt-who hypervisor will be registered to satellite with host name
     # like "virt-who-{hypervisor_hostname}-{organization_id}"
-    virt_who_hypervisor_hostname = 'virt-who-{0}-{1}'.format(hypervisor_hostname, org['id'])
+    virt_who_hypervisor_hostname = 'virt-who-{}-{}'.format(hypervisor_hostname, org['id'])
     # find the registered virt-who hypervisor host
     org_hosts = Host.list(
-        {'organization-id': org['id'], 'search': 'name={0}'.format(virt_who_hypervisor_hostname)}
+        {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
     )
     # Note: if one shot command was executed the report is immediately
     # generated, and the server must have already registered the virt-who
@@ -2735,16 +2714,13 @@ def virt_who_hypervisor_config(
         while time.time() <= max_time:
             time.sleep(5)
             org_hosts = Host.list(
-                {
-                    'organization-id': org['id'],
-                    'search': 'name={0}'.format(virt_who_hypervisor_hostname),
-                }
+                {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
             )
             if org_hosts:
                 break
 
     if len(org_hosts) == 0:
-        raise CLIFactoryError('Failed to find hypervisor host:\n{}'.format(result.stderr))
+        raise CLIFactoryError(f'Failed to find hypervisor host:\n{result.stderr}')
     virt_who_hypervisor_host = org_hosts[0]
     subscription_id = None
     if hypervisor_hostname and subscription_name:

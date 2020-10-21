@@ -155,9 +155,9 @@ def test_positive_default_end_to_end_with_custom_profile(
         cr_profile_values = session.computeresource.read_computeprofile(
             new_cr_name, COMPUTE_PROFILE_SMALL
         )
-        assert cr_profile_values['breadcrumb'] == 'Edit {0}'.format(COMPUTE_PROFILE_SMALL)
+        assert cr_profile_values['breadcrumb'] == f'Edit {COMPUTE_PROFILE_SMALL}'
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_SMALL
-        assert cr_profile_values['compute_resource'] == '{0} ({1}-{2})'.format(
+        assert cr_profile_values['compute_resource'] == '{} ({}-{})'.format(
             new_cr_name, module_gce_settings['zone'], FOREMAN_PROVIDERS['google']
         )
         assert cr_profile_values['provider_content']['machine_type'] == GCE_MACHINE_TYPE_DEFAULT

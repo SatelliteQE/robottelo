@@ -36,7 +36,7 @@ class LDAPAuthSourceTestCase(APITestCase):
         """Fetch necessary properties from settings which can be re-used in
         tests.
         """
-        super(LDAPAuthSourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
         cls.ldap_user_name = settings.ldap.username
@@ -96,7 +96,7 @@ class IPAAuthSourceTestCase(APITestCase):
         """Fetch necessary properties from settings which can be re-used in
         tests.
         """
-        super(IPAAuthSourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
         cls.ldap_ipa_user_name = settings.ipa.username_ipa

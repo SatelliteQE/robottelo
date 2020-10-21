@@ -11,7 +11,7 @@ from robottelo.helpers import slugify_component
 from robottelo.helpers import Storage
 
 
-class FakeSSHResult(object):
+class FakeSSHResult:
     def __init__(self, stdout=None, return_code=None, stderr=None):
         self.stdout = stdout
         self.stderr = stderr

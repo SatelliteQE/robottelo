@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Remote Execution Management UI
 
 :Requirement: Remoteexecution
@@ -53,7 +52,7 @@ distros = [DISTRO_DEFAULT]
 @pytest.fixture(scope="module")
 def fixture_org():
     org = entities.Organization().create()
-    ssh.command('''echo 'echo Enforcing' > {0}'''.format(TEMPLATE_FILE))
+    ssh.command(f'''echo 'echo Enforcing' > {TEMPLATE_FILE}''')
     # needed to work around BZ#1656480
     ssh.command('''sed -i '/ProxyCommand/s/^/#/g' /etc/ssh/ssh_config''')
     return org
@@ -135,19 +134,19 @@ class TestRemoteExecution:
                 'value': 'True',
             }
         )
-        command = "echo {0}".format(gen_string('alpha'))
+        command = "echo {}".format(gen_string('alpha'))
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
-                'inputs': 'command={0}'.format(command),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'inputs': f'command={command}',
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
 
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -157,7 +156,7 @@ class TestRemoteExecution:
             raise AssertionError(result)
 
         task = Task.list_tasks({"search": command})[0]
-        search = Task.list_tasks({"search": 'id={0}'.format(task["id"])})
+        search = Task.list_tasks({"search": 'id={}'.format(task["id"])})
         assert search[0]["action"] == task["action"]
 
     @pytest.mark.skip_if_open('BZ:1804685')
@@ -190,14 +189,14 @@ class TestRemoteExecution:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
-                'inputs': "command='useradd -m {0}'".format(username),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'inputs': f"command='useradd -m {username}'",
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         try:
             assert make_user_job['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': make_user_job['id'], 'host': self.client.hostname}
@@ -209,15 +208,15 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
-                'inputs': "command='touch /home/{0}/{1}'".format(username, filename),
-                'search-query': "name ~ {0}".format(self.client.hostname),
-                'effective-user': '{0}'.format(username),
+                'inputs': f"command='touch /home/{username}/{filename}'",
+                'search-query': f"name ~ {self.client.hostname}",
+                'effective-user': f'{username}',
             }
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -227,7 +226,7 @@ class TestRemoteExecution:
             raise AssertionError(result)
         # check the file owner
         result = ssh.command(
-            '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
+            f'''stat -c '%U' /home/{username}/{filename}''',
             hostname=self.client.ip_addr,
         )
         # assert the file is owned by the effective user
@@ -258,15 +257,12 @@ class TestRemoteExecution:
             {'organizations': self.org.name, 'name': template_name, 'file': TEMPLATE_FILE}
         )
         invocation_command = make_job_invocation(
-            {
-                'job-template': template_name,
-                'search-query': "name ~ {0}".format(self.client.hostname),
-            }
+            {'job-template': template_name, 'search-query': f"name ~ {self.client.hostname}"}
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -312,7 +308,7 @@ class TestRemoteExecution:
                 {
                     'job-template': 'Run Command - SSH Default',
                     'inputs': 'command="ls"',
-                    'search-query': "name ~ {0} or name ~ {1}".format(
+                    'search-query': "name ~ {} or name ~ {}".format(
                         self.client.hostname, client2.hostname
                     ),
                 }
@@ -321,7 +317,7 @@ class TestRemoteExecution:
             output_msgs = []
             for vm in self.client, client2:
                 output_msgs.append(
-                    'host output from {0}: {1}'.format(
+                    'host output from {}: {}'.format(
                         vm.hostname,
                         ' '.join(
                             JobInvocation.get_output(
@@ -365,7 +361,7 @@ class TestRemoteExecution:
         ).create()
         repo.sync()
         prod = repo.product.read()
-        subs = entities.Subscription().search(query={'search': 'name={0}'.format(prod.name)})
+        subs = entities.Subscription().search(query={'search': f'name={prod.name}'})
         assert len(subs) > 0, 'No subscriptions matching the product returned'
 
         ak = entities.ActivationKey(
@@ -379,14 +375,14 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Install Package - Katello SSH Default',
-                'inputs': 'package={0} {1} {2}'.format(*packages),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'inputs': 'package={} {} {}'.format(*packages),
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -394,7 +390,7 @@ class TestRemoteExecution:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {0}".format(" ".join(packages)), hostname=self.client.ip_addr)
+        result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
     @tier3
@@ -424,7 +420,7 @@ class TestRemoteExecution:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': 'command="ls"',
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'search-query': f"name ~ {self.client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
             }
@@ -434,7 +430,7 @@ class TestRemoteExecution:
         try:
             assert invocation_command['status'] == 'queued'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -476,7 +472,7 @@ class TestRemoteExecution:
                 'job-template': 'Run Command - SSH Default',
                 'inputs': 'command="ls"',
                 'start-at': plan_time,
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         # Wait until the job runs
@@ -489,7 +485,7 @@ class TestRemoteExecution:
         try:
             assert invocation_info['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -516,10 +512,10 @@ class TestRemoteExecution:
             {
                 'async': True,
                 'job-template': template_name,
-                'inputs': 'satellite_user="{0}",satellite_password="{1}"'.format(
+                'inputs': 'satellite_user="{}",satellite_password="{}"'.format(
                     settings.server.admin_username, settings.server.admin_password
                 ),
-                'search-query': "name ~ {0}".format(settings.server.hostname),
+                'search-query': f"name ~ {settings.server.hostname}",
             }
         )
         invocation_id = invocation['id']
@@ -588,14 +584,14 @@ class TestAnsibleREX:
         make_user_job = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': "command='useradd -m {0}'".format(username),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'inputs': f"command='useradd -m {username}'",
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         try:
             assert make_user_job['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': make_user_job['id'], 'host': self.client.hostname}
@@ -607,15 +603,15 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
-                'inputs': "command='touch /home/{0}/{1}'".format(username, filename),
-                'search-query': "name ~ {0}".format(self.client.hostname),
-                'effective-user': '{0}'.format(username),
+                'inputs': f"command='touch /home/{username}/{filename}'",
+                'search-query': f"name ~ {self.client.hostname}",
+                'effective-user': f'{username}',
             }
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -625,7 +621,7 @@ class TestAnsibleREX:
             raise AssertionError(result)
         # check the file owner
         result = ssh.command(
-            '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
+            f'''stat -c '%U' /home/{username}/{filename}''',
             hostname=self.client.ip_addr,
         )
         # assert the file is owned by the effective user
@@ -668,7 +664,7 @@ class TestAnsibleREX:
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': 'command="ls"',
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'search-query': f"name ~ {self.client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
             }
@@ -677,7 +673,7 @@ class TestAnsibleREX:
         try:
             assert invocation_command['status'] == 'queued'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -737,7 +733,7 @@ class TestAnsibleREX:
         ).create()
         repo.sync()
         prod = repo.product.read()
-        subs = entities.Subscription().search(query={'search': 'name={0}'.format(prod.name)})
+        subs = entities.Subscription().search(query={'search': f'name={prod.name}'})
         assert len(subs) > 0, 'No subscriptions matching the product returned'
         ak = entities.ActivationKey(
             organization=self.org,
@@ -752,13 +748,13 @@ class TestAnsibleREX:
             {
                 'job-template': 'Package Action - Ansible Default',
                 'inputs': 'state=latest, name={}'.format(*packages),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -766,7 +762,7 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {0}".format(*packages), hostname=self.client.ip_addr)
+        result = ssh.command("rpm -q {}".format(*packages), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
         # start a service
@@ -778,14 +774,14 @@ class TestAnsibleREX:
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
-                'inputs': 'state=started, name={}'.format(service),
-                'search-query': "name ~ {0}".format(self.client.hostname),
+                'inputs': f'state=started, name={service}',
+                'search-query': f"name ~ {self.client.hostname}",
             }
         )
         try:
             assert invocation_command['success'] == '1'
         except AssertionError:
-            result = 'host output: {0}'.format(
+            result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
                         {'id': invocation_command['id'], 'host': self.client.hostname}
@@ -793,7 +789,7 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("systemctl status {0}".format(service), hostname=self.client.ip_addr)
+        result = ssh.command(f"systemctl status {service}", hostname=self.client.ip_addr)
         assert result.return_code == 0
 
     @pytest.mark.stubbed
@@ -897,7 +893,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):
-        super(AnsibleREXProvisionedTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.sat6_hostname = settings.server.hostname
         # provision host here and tests will share the host, step 0. in tests
 

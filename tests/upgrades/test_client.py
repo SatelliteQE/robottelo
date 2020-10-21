@@ -47,7 +47,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     client_os = client_os.upper()
     from_ver = settings.upgrade.from_version
     rhel_prod_name = 'scenarios_rhel{}_prod'.format(client_os[-1])
-    rhel_repo_name = '{}_repo'.format(rhel_prod_name)
+    rhel_repo_name = f'{rhel_prod_name}_repo'
     rhel_url = settings.rhel7_os
     if rhel_url is None:
         raise ValueError(
@@ -70,14 +70,14 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
     if sat_state.lower() == 'pre':
         product_name = 'Red Hat Enterprise Linux Server'
-        repo_name = 'Red Hat Satellite Tools {0} for RHEL {1} Server RPMs x86_64'.format(
+        repo_name = 'Red Hat Satellite Tools {} for RHEL {} Server RPMs x86_64'.format(
             from_ver, client_os[-1]
         )
         tools_prod = entities.Product(organization=org.id).search(
-            query={'per_page': 1000, 'search': 'name="{}"'.format(product_name)}
+            query={'per_page': 1000, 'search': f'name="{product_name}"'}
         )[0]
         tools_repo = entities.Repository(organization=org.id, product=tools_prod).search(
-            query={'per_page': 1000, 'search': 'name="{}"'.format(repo_name)}
+            query={'per_page': 1000, 'search': f'name="{repo_name}"'}
         )[0]
     elif sat_state.lower() == 'post':
         product_name = 'scenarios_tools_product'
@@ -87,9 +87,9 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
                 'The Tools Repo URL environment variable for '
                 'OS {} is not provided!'.format(client_os.lower())
             )
-        repo_name = '{}_repo'.format(product_name)
+        repo_name = f'{product_name}_repo'
         tools_prod = entities.Product(organization=org.id).search(
-            query={'search': 'name={}'.format(product_name)}
+            query={'search': f'name={product_name}'}
         )
         if not tools_prod:
             tools_prod = entities.Product(name=product_name, organization=org.id).create()
@@ -99,7 +99,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
             tools_repo.sync()
         else:
             tools_repo = entities.Repository(organization=org.id, product=tools_prod).search(
-                query={'search': 'name={}'.format(repo_name)}
+                query={'search': f'name={repo_name}'}
             )
     tools_cv = entities.ContentView(
         name=ak_name + '_cv', label=ak_name + '_cv', organization=org.id
@@ -116,14 +116,14 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     ).create()
     if sat_state == 'pre':
         tools_sub = 'Red Hat Satellite Employee Subscription'
-        tools_content = 'rhel-{0}-server-satellite-tools-{1}-rpms'.format(client_os[-1], from_ver)
+        tools_content = 'rhel-{}-server-satellite-tools-{}-rpms'.format(client_os[-1], from_ver)
     else:
         tools_sub = tools_prod.name
     tools_subscription = entities.Subscription(organization=org.id).search(
-        query={'search': 'name="{}"'.format(tools_sub), 'per_page': 1000}
+        query={'search': f'name="{tools_sub}"', 'per_page': 1000}
     )[0]
     rhel_subscription = entities.Subscription(organization=org.id).search(
-        query={'search': 'name={}'.format(rhel_prod.name), 'per_page': 1000}
+        query={'search': f'name={rhel_prod.name}', 'per_page': 1000}
     )[0]
     tools_ak.add_subscriptions(data={'subscription_id': tools_subscription.id})
     if sat_state == 'pre':
@@ -145,14 +145,14 @@ def create_yum_test_repo(product_name, repo_url, org):
     """
     product = entities.Product(name=product_name, organization=org).create()
     yum_repo = entities.Repository(
-        name='{}_repo'.format(product_name), product=product, url=repo_url, content_type='yum'
+        name=f'{product_name}_repo', product=product, url=repo_url, content_type='yum'
     ).create()
     yum_repo.sync()
     return product, yum_repo
 
 
 def update_product_subscription_in_ak(product, yum_repo, ak, org):
-    """ Updates given products subscription in given AK
+    """Updates given products subscription in given AK
 
     :param nailgun.entities.Product product: products name to calculate
         subscription id
@@ -169,13 +169,13 @@ def update_product_subscription_in_ak(product, yum_repo, ak, org):
     # Promote CV
     environment = (
         entities.ActivationKey(organization=org)
-        .search(query={'search': 'name={}'.format(ak.name)})[0]
+        .search(query={'search': f'name={ak.name}'})[0]
         .environment
     )
     cvv = entities.ContentViewVersion(id=max([cvv.id for cvv in cv.version])).read()
     cvv.promote(data={'environment_id': environment.id, 'force': False})
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name={}'.format(product.name)}
+        query={'search': f'name={product.name}'}
     )[0]
     ak.add_subscriptions(data={'subscription_id': subscription.id})
 
@@ -197,13 +197,13 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
         cls.default_org_id = (
-            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
         )
         cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.ak_name = 'scenario_old_client_package_install'
         cls.package_name = 'shark'
         cls.prod_name = 'preclient_scenario_product'
-        cls.le_lable = cls.le_name = '{}_le'.format(cls.prod_name)
+        cls.le_lable = cls.le_name = f'{cls.prod_name}_le'
 
     @pre_upgrade
     def test_pre_scenario_preclient_package_installation(self):
@@ -275,10 +275,10 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         :steps: Install package on a pre-upgrade client
 
         :expectedresults: The package is installed in client
-         """
+        """
         client = get_entity_data(self.__class__.__name__)
         client_name = str(list(client.keys())[0]).lower()
-        client_id = entities.Host().search(query={'search': 'name={}'.format(client_name)})[0].id
+        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
         entities.Host().install_content(
             data={
                 'organization_id': self.org.id,
@@ -291,7 +291,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         installed_package = execute(
             docker_execute_command,
             list(client.values())[0],
-            'rpm -q {}'.format(self.package_name),
+            f'rpm -q {self.package_name}',
             host=self.docker_vm,
         )[self.docker_vm]
         self.assertIn(self.package_name, installed_package)
@@ -379,7 +379,7 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
         self.assertIn('goferd', status)
         # Holding on for 30 seconds wihle goferd starts
         time.sleep(30)
-        client_id = entities.Host().search(query={'search': 'name={}'.format(client_name)})[0].id
+        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
         entities.Host().install_content(
             data={
                 'organization_id': org.id,
@@ -392,7 +392,7 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
         installed_package = execute(
             docker_execute_command,
             client_container_id,
-            'rpm -q {}'.format(self.package_name),
+            f'rpm -q {self.package_name}',
             host=self.docker_vm,
         )[self.docker_vm]
         self.assertIn(self.package_name, installed_package)

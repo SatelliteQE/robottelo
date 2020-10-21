@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This script adds ':customerscenario: true' to all tests by uuid
 depends on `pip install https://github.com/facebook/codemod/tarball/master`
@@ -33,8 +32,8 @@ query_options = {'root_directory': 'tests/foreman'}
 query_options['path_filter'] = path_filter(['py'], None)
 
 for uid in uids:
-    match = ':id: {0}'.format(uid)
-    subst = ':id: {0}\n\n        :customerscenario: true'.format(uid)
+    match = f':id: {uid}'
+    subst = f':id: {uid}\n\n        :customerscenario: true'
     case_i = True
     query_options['suggestor'] = regex_suggestor(match, subst, ignore_case=True)
     run_interactive(query=Query(**query_options))

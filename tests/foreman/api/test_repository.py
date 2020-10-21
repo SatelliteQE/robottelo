@@ -82,7 +82,7 @@ class RepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(RepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.http_proxy = entities.HTTPProxy(
@@ -1222,16 +1222,14 @@ class RepositoryTestCase(APITestCase):
         repository.sync()
         repo_data_file_url = urljoin(repository.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
-        self.assertTrue(
-            repo_data_file_url.startswith('https://{0}'.format(settings.server.hostname))
-        )
+        self.assertTrue(repo_data_file_url.startswith(f'https://{settings.server.hostname}'))
         # try to access repository data without organization debug certificate
         with self.assertRaises(SSLError):
             client.get(repo_data_file_url, verify=False)
         # get the organization debug certificate
         cert_content = self.org.download_debug_certificate()
         # save the organization debug certificate to file
-        cert_file_path = '{0}/{1}.pem'.format(tempfile.gettempdir(), self.org.label)
+        cert_file_path = f'{tempfile.gettempdir()}/{self.org.label}.pem'
         with open(cert_file_path, 'w') as cert_file:
             cert_file.write(cert_content)
         # access repository data with organization debug certificate
@@ -1276,7 +1274,7 @@ class RepositorySyncTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(RepositorySyncTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
@@ -1351,7 +1349,7 @@ class DockerRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -1663,7 +1661,7 @@ class OstreeRepositoryTestCase(APITestCase):
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(OstreeRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
@@ -1788,7 +1786,7 @@ class SRPMRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(SRPMRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
@@ -1865,7 +1863,7 @@ class DRPMRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
-        super(DRPMRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
@@ -2166,7 +2164,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TokenAuthContainerRepositoryTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier2

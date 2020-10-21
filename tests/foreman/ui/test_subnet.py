@@ -70,8 +70,8 @@ def test_positive_end_to_end(session, module_dom):
                 'domains.resources.assigned': [module_dom.name],
             }
         )
-        sn = entities.Subnet().search(query={'search': 'name={0}'.format(name)})
-        assert sn, 'Subnet {0} expected to exist, but it is not listed'.format(sn)
+        sn = entities.Subnet().search(query={'search': f'name={name}'})
+        assert sn, f'Subnet {sn} expected to exist, but it is not listed'
         sn = sn[0]
         subnet_values = session.subnet.read(name, widget_names=['subnet', 'domains'])
         assert subnet_values['subnet']['name'] == name
@@ -90,5 +90,5 @@ def test_positive_end_to_end(session, module_dom):
         sn.update(['domain'])
         session.subnet.delete(new_name)
         assert not entities.Subnet().search(
-            query={'search': 'name={0}'.format(new_name)}
+            query={'search': f'name={new_name}'}
         ), 'The subnet was supposed to be deleted'

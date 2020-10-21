@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Tests for the GCE ``compute_resource`` paths.
 
 A full API reference for compute resources can be found here:
@@ -80,7 +79,7 @@ def module_gce_finishimg(
 def gce_domain(module_org, module_location, default_smart_proxy):
     """Sets Domain for GCE Host Provisioning"""
     _, _, dom = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(dom)})
+    domain = entities.Domain().search(query={'search': f'name="{dom}"'})
     domain = domain[0].read()
     domain.location.append(module_location)
     domain.organization.append(module_org)
@@ -162,9 +161,7 @@ class TestGCEComputeResourceTestCases:
         assert updated.zone == new_zone
         # Testing Delete
         updated.delete()
-        assert not entities.GCEComputeResource().search(
-            query={'search': 'name={}'.format(new_name)}
-        )
+        assert not entities.GCEComputeResource().search(query={'search': f'name={new_name}'})
 
     @pytest.mark.skip_if_open("BZ:1794744")
     @tier3
@@ -271,7 +268,7 @@ class TestGCEHostProvisioningTestCase:
         request.cls.volsize = '13'
         request.cls.hostname = gen_string('alpha')
 
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, gce_domain.name).lower()
+        request.cls.fullhostname = f'{self.hostname}.{gce_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             'image_id': gce_latest_rhel_uuid,

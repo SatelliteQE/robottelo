@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Tailoring Files
 
 :Requirement: tailoringfiles
@@ -139,7 +138,8 @@ class TestTailoringFiles:
         :CaseImportance: Critical
         """
         ssh.upload_file(
-            local_file=get_data_file(SNIPPET_DATA_FILE), remote_file=f'/tmp/{SNIPPET_DATA_FILE}',
+            local_file=get_data_file(SNIPPET_DATA_FILE),
+            remote_file=f'/tmp/{SNIPPET_DATA_FILE}',
         )
         name = gen_string('alphanumeric')
         with pytest.raises(CLIFactoryError):
@@ -168,7 +168,7 @@ class TestTailoringFiles:
     @pytest.mark.stubbed
     @tier2
     def test_negative_associate_tailoring_file_with_different_scap(self):
-        """ Associate a tailoring file with different scap content
+        """Associate a tailoring file with different scap content
 
         :id: f36be738-eaa1-4f6b-aa6c-9924be5f1e96
 
@@ -189,7 +189,7 @@ class TestTailoringFiles:
     @tier2
     def test_positive_download_tailoring_file(self, tailoring_file_path):
 
-        """ Download the tailoring file from satellite
+        """Download the tailoring file from satellite
 
         :id: 75d8c810-19a7-4285-bc3a-a1fb1a0e9088
 
@@ -219,7 +219,7 @@ class TestTailoringFiles:
     @tier1
     @upgrade
     def test_positive_delete_tailoring_file(self, tailoring_file_path):
-        """ Delete tailoring file
+        """Delete tailoring file
 
         :id: 8bab5478-1ef1-484f-aafd-98e5cba7b1e7
 
@@ -241,7 +241,7 @@ class TestTailoringFiles:
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
-        """ End-to-End Oscap run with tailoring files and default capsule
+        """End-to-End Oscap run with tailoring files and default capsule
 
         :id: 91fd3ccd-6177-4efd-8842-73fd14f53a85
 
@@ -268,7 +268,7 @@ class TestTailoringFiles:
     @tier4
     @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
-        """ End-to-End Oscap run with tailoring files and external capsule
+        """End-to-End Oscap run with tailoring files and external capsule
 
         :id: 39d2e690-8410-4cc7-b873-bb5f658148cc
 
@@ -295,7 +295,7 @@ class TestTailoringFiles:
     @tier4
     @upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):
-        """ Fetch Tailoring file Information from Arf-reports
+        """Fetch Tailoring file Information from Arf-reports
 
         :id: d8fa1a05-db99-47a9-b1f5-12712a0b1378
 

@@ -72,14 +72,13 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
     @classmethod
     def tearDownClass(cls):
         if cls.fullhost:
-            hst = entities.Host().search(query={'search': 'name={}'.format(cls.fullhost)})
+            hst = entities.Host().search(query={'search': f'name={cls.fullhost}'})
             if hst:
                 entities.Host(id=hst[0].id).delete()
 
     @pre_upgrade
     def test_pre_create_gce_cr_and_host(self):
-        """
-        """
+        """"""
         cr_name = gen_string('alpha')
         org = entities.Organization().create()
         loc = entities.Location().create()
@@ -97,9 +96,7 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
                     'locations.resources.assigned': [loc.name],
                 }
             )
-        gce_cr = entities.AbstractComputeResource().search(
-            query={'search': 'name={}'.format(cr_name)}
-        )[0]
+        gce_cr = entities.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
         gce_img = entities.Image(
             architecture=self.arch,
             compute_resource=gce_cr,
@@ -116,10 +113,9 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
 
     @post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
     def test_post_create_gce_cr_and_host(self):
-        """
-        """
+        """"""
         hostname = gen_string('alpha')
-        self.__class__.fullhost = '{}.{}'.format(hostname, self.domain_name).lower()
+        self.__class__.fullhost = f'{hostname}.{self.domain_name}'.lower()
         preentities = get_entity_data(self.__class__.__name__)
         gce_cr = entities.GCEComputeResource().search(
             query={'search': 'name={}'.format(preentities['cr_name'])}
@@ -145,9 +141,7 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
                 root_pass=gen_string('alphanumeric'),
                 architecture=self.arch,
                 compute_resource=gce_cr,
-                domain=entities.Domain().search(
-                    query={'search': 'name={}'.format(self.domain_name)}
-                )[0],
+                domain=entities.Domain().search(query={'search': f'name={self.domain_name}'})[0],
                 compute_attributes=compute_attrs,
                 operatingsystem=self.os,
                 provision_method='image',
@@ -156,7 +150,7 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
         wait_for(
             lambda: entities.Host()
-            .search(query={'search': 'name={}'.format(self.fullhost)})[0]
+            .search(query={'search': f'name={self.fullhost}'})[0]
             .build_status_label
             == 'Installed',
             timeout=400,

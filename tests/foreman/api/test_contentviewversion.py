@@ -46,12 +46,12 @@ class ContentViewVersionCreateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Single organization for all tests"""
-        super(ContentViewVersionCreateTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     def setUp(self):
         """Init content view with repo per each test"""
-        super(ContentViewVersionCreateTestCase, self).setUp()
+        super().setUp()
         self.content_view = entities.ContentView(organization=self.org).create()
 
     @tier2
@@ -103,7 +103,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create some entities for all tests."""
-        super(ContentViewVersionPromoteTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.lce1 = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.lce2 = entities.LifecycleEnvironment(organization=cls.org, prior=cls.lce1).create()

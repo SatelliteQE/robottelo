@@ -73,7 +73,7 @@ class ErrataTestCase(APITestCase):
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
-        super(ErrataTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.env = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.content_view = entities.ContentView(organization=cls.org).create()
@@ -110,9 +110,9 @@ class ErrataTestCase(APITestCase):
         """
         if via_ssh:
             for client in clients:
-                result = client.run('yum install -y {}'.format(package_name))
+                result = client.run(f'yum install -y {package_name}')
                 self.assertEqual(result.return_code, 0)
-                result = client.run('rpm -q {}'.format(package_name))
+                result = client.run(f'rpm -q {package_name}')
                 self.assertEqual(result.return_code, 0)
         else:
             entities.Host().install_content(
@@ -131,7 +131,7 @@ class ErrataTestCase(APITestCase):
         """Check whether package was installed on the list of hosts."""
         for host in hosts:
             for _ in range(timeout // 15):
-                result = host.run('rpm -q {0}'.format(package_name))
+                result = host.run(f'rpm -q {package_name}')
                 if (
                     result.return_code == 0
                     and expected_installed
@@ -142,7 +142,7 @@ class ErrataTestCase(APITestCase):
                 sleep(15)
             else:
                 self.fail(
-                    'Package {0} was not {1} host {2}'.format(
+                    'Package {} was not {} host {}'.format(
                         package_name,
                         'installed on' if expected_installed else 'removed from',
                         host.hostname,
@@ -158,8 +158,8 @@ class ErrataTestCase(APITestCase):
             sleep(5)
         else:
             self.fail(
-                'Host {0} contains {1} {2} errata, but expected to contain '
-                '{3} of them'.format(
+                'Host {} contains {} {} errata, but expected to contain '
+                '{} of them'.format(
                     host.name,
                     host.content_facet_attributes['errata_counts'][errata_type],
                     errata_type,
@@ -177,8 +177,8 @@ class ErrataTestCase(APITestCase):
             errata = host.errata()
         else:
             self.fail(
-                'Host {0} contains {1} available errata, but expected to '
-                'contain {2} of them'.format(host.name, len(errata['results']), expected_amount)
+                'Host {} contains {} available errata, but expected to '
+                'contain {} of them'.format(host.name, len(errata['results']), expected_amount)
             )
 
     @upgrade
@@ -202,9 +202,7 @@ class ErrataTestCase(APITestCase):
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host_id = (
-                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
-            )
+            host_id = entities.Host().search(query={'search': f'name={client.hostname}'})[0].id
             self._install_package(
                 [client],
                 [host_id],
@@ -239,7 +237,7 @@ class ErrataTestCase(APITestCase):
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
             host_ids = [
-                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
+                entities.Host().search(query={'search': f'name={client.hostname}'})[0].id
                 for client in clients
             ]
             self._install_package(clients, host_ids, FAKE_1_CUSTOM_PACKAGE)
@@ -273,9 +271,7 @@ class ErrataTestCase(APITestCase):
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host_id = (
-                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
-            )
+            host_id = entities.Host().search(query={'search': f'name={client.hostname}'})[0].id
             self._install_package([client], [host_id], FAKE_1_CUSTOM_PACKAGE)
             entities.Host(id=host_id).errata_apply(data={'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
             self._validate_package_installed([client], FAKE_2_CUSTOM_PACKAGE)
@@ -303,7 +299,7 @@ class ErrataTestCase(APITestCase):
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host = entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0]
+            host = entities.Host().search(query={'search': f'name={client.hostname}'})[0]
             for package in FAKE_9_YUM_OUTDATED_PACKAGES:
                 self._install_package([client], [host.id], package)
             host = host.read()
@@ -584,16 +580,12 @@ class ErrataTestCase(APITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            host = (
-                entities.Host()
-                .search(query={'search': 'name={0}'.format(client.hostname)})[0]
-                .read()
-            )
+            host = entities.Host().search(query={'search': f'name={client.hostname}'})[0].read()
             for errata in ('security', 'bugfix', 'enhancement'):
                 self._validate_errata_counts(host, errata, 0)
-            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
             self._validate_errata_counts(host, 'security', 1)
-            client.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
+            client.run(f'yum install -y {REAL_0_RH_PACKAGE}')
             for errata in ('bugfix', 'enhancement'):
                 self._validate_errata_counts(host, errata, 1)
 
@@ -664,18 +656,14 @@ class ErrataTestCase(APITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            host = (
-                entities.Host()
-                .search(query={'search': 'name={0}'.format(client.hostname)})[0]
-                .read()
-            )
+            host = entities.Host().search(query={'search': f'name={client.hostname}'})[0].read()
             erratum = self._fetch_available_errata(host, 0)
             self.assertEqual(len(erratum), 0)
-            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
             erratum = self._fetch_available_errata(host, 1)
             self.assertEqual(len(erratum), 1)
             self.assertIn(CUSTOM_REPO_ERRATA_ID, [errata['errata_id'] for errata in erratum])
-            client.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
+            client.run(f'yum install -y {REAL_0_RH_PACKAGE}')
             erratum = self._fetch_available_errata(host, 3)
             self.assertEqual(len(erratum), 3)
             self.assertTrue(
@@ -742,7 +730,7 @@ class ErrataTestCase(APITestCase):
         both_cvvs_errata = next(
             errata for errata in result['results'] if errata['errata_id'] == REAL_0_ERRATA_ID
         )
-        self.assertEqual(set(cvv.id for cvv in cvvs), set(both_cvvs_errata['comparison']))
+        self.assertEqual({cvv.id for cvv in cvvs}, set(both_cvvs_errata['comparison']))
 
     @tier3
     def test_positive_incremental_update_required(self):
@@ -828,7 +816,7 @@ class ErrataSwidTagsTestCase(APITestCase):
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
-        super(ErrataSwidTagsTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.repos_collection = RepositoryCollection(
@@ -844,7 +832,7 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     def _set_prerequisites_for_swid_repos(self, vm):
         self._run_remote_command_on_content_host(
-            "wget --no-check-certificate {}".format(settings.swid_tools_repo), vm
+            f"wget --no-check-certificate {settings.swid_tools_repo}", vm
         )
         self._run_remote_command_on_content_host("mv *swid*.repo /etc/yum.repos.d", vm)
         self._run_remote_command_on_content_host("yum install -y swid-tools", vm)
@@ -852,7 +840,7 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     def _validate_swid_tags_installed(self, vm, module_name):
         result = self._run_remote_command_on_content_host(
-            "swidq -i -n {} | grep 'Name'".format(module_name), vm, return_result=True
+            f"swidq -i -n {module_name} | grep 'Name'", vm, return_result=True
         )
         self.assertIn(module_name, result)
 
@@ -901,25 +889,23 @@ class ErrataSwidTagsTestCase(APITestCase):
             add_remote_execution_ssh_key(vm.ip_addr)
             self._set_prerequisites_for_swid_repos(vm=vm)
             self._run_remote_command_on_content_host(
-                'dnf -y module install {}:0:{}'.format(module_name, version), vm
+                f'dnf -y module install {module_name}:0:{version}', vm
             )
 
             # validate swid tags Installed
             before_errata_apply_result = self._run_remote_command_on_content_host(
-                "swidq -i -n {} | grep 'File' | grep -o 'rpm-.*.swidtag'".format(module_name),
+                f"swidq -i -n {module_name} | grep 'File' | grep -o 'rpm-.*.swidtag'",
                 vm,
                 return_result=True,
             )
             self.assertNotEqual(before_errata_apply_result, '')
-            host = entities.Host().search(query={'search': 'name={0}'.format(vm.hostname)})[0]
+            host = entities.Host().search(query={'search': f'name={vm.hostname}'})[0]
             host = host.read()
             applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
             self.assertEquals(applicable_errata_count, 1)
 
             # apply modular errata
-            self._run_remote_command_on_content_host(
-                'dnf -y module update {}'.format(module_name), vm
-            )
+            self._run_remote_command_on_content_host(f'dnf -y module update {module_name}', vm)
             self._run_remote_command_on_content_host('dnf -y upload-profile', vm)
             host = host.read()
             applicable_errata_count -= 1
@@ -927,7 +913,7 @@ class ErrataSwidTagsTestCase(APITestCase):
                 host.content_facet_attributes['errata_counts']['total'], applicable_errata_count
             )
             after_errata_apply_result = self._run_remote_command_on_content_host(
-                "swidq -i -n {} | grep 'File'| grep -o 'rpm-.*.swidtag'".format(module_name),
+                f"swidq -i -n {module_name} | grep 'File'| grep -o 'rpm-.*.swidtag'",
                 vm,
                 return_result=True,
             )

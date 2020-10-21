@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Puppet Classes CLI
 
 :Requirement: Puppetclass
@@ -33,13 +32,12 @@ class PuppetClassTestCase(CLITestCase):
     @classmethod
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
-        """Import a parametrized puppet class.
-        """
-        super(PuppetClassTestCase, cls).setUpClass()
+        """Import a parametrized puppet class."""
+        super().setUpClass()
         cls.puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
         cls.org = make_org()
         cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cv['name'])})[0]
+        cls.env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
         cls.puppet = Puppet.info(
             {'name': cls.puppet_modules[0]['name'], 'environment': cls.env['name']}
         )

@@ -75,7 +75,7 @@ class OperatingSystemTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(OperatingSystemTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
 
     @tier1
@@ -213,7 +213,7 @@ class OperatingSystemTestCase(APITestCase):
         operating_sys = entities.OperatingSystem(architecture=archs).create()
         self.assertEqual(len(operating_sys.architecture), len(amount))
         self.assertEqual(
-            set([arch.id for arch in operating_sys.architecture]), set([arch.id for arch in archs])
+            {arch.id for arch in operating_sys.architecture}, {arch.id for arch in archs}
         )
 
     @tier2
@@ -249,8 +249,8 @@ class OperatingSystemTestCase(APITestCase):
         operating_sys = entities.OperatingSystem(ptable=ptables).create()
         self.assertEqual(len(operating_sys.ptable), len(amount))
         self.assertEqual(
-            set([ptable.id for ptable in operating_sys.ptable]),
-            set([ptable.id for ptable in ptables]),
+            {ptable.id for ptable in operating_sys.ptable},
+            {ptable.id for ptable in ptables},
         )
 
     @tier2
@@ -568,9 +568,7 @@ class OperatingSystemTestCase(APITestCase):
         medias = [entities.Media().create() for _ in amount]
         os = entities.OperatingSystem(id=os.id, medium=medias).update(['medium'])
         self.assertEqual(len(os.medium), len(amount))
-        self.assertEqual(
-            set([medium.id for medium in os.medium]), set([medium.id for medium in medias])
-        )
+        self.assertEqual({medium.id for medium in os.medium}, {medium.id for medium in medias})
 
     @tier2
     @upgrade

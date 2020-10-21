@@ -40,7 +40,7 @@ from robottelo.upgrade_utility import publish_content_view
 
 
 class Scenario_repository_upstream_authorization_check(APITestCase):
-    """ This test scenario is to verify the upstream username in post-upgrade for a custom
+    """This test scenario is to verify the upstream username in post-upgrade for a custom
     repository which does have a upstream username but not password set on it in pre-upgrade.
 
     Test Steps:
@@ -57,7 +57,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
 
     @pre_upgrade
     def test_pre_repository_scenario_upstream_authorization(self):
-        """ Create a custom repository and set the upstream username on it.
+        """Create a custom repository and set the upstream username on it.
 
         :id: preupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
 
@@ -73,14 +73,10 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
 
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
-        rake_repo = 'repo = Katello::Repository.find_by_id({0})'.format(custom_repo)
-        rake_username = '; repo.root.upstream_username = "{0}"'.format(self.upstream_username)
+        rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
+        rake_username = f'; repo.root.upstream_username = "{self.upstream_username}"'
         rake_repo_save = '; repo.save!(validate: false)'
-        result = run(
-            "echo '{0}{1}{2}'|foreman-rake console".format(
-                rake_repo, rake_username, rake_repo_save
-            )
-        )
+        result = run(f"echo '{rake_repo}{rake_username}{rake_repo_save}'|foreman-rake console")
         self.assertIn('true', result)
 
         global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
@@ -88,7 +84,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
 
     @post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
     def test_post_repository_scenario_upstream_authorization(self):
-        """ Verify upstream username for pre-upgrade created repository.
+        """Verify upstream username for pre-upgrade created repository.
 
         :id: postupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
 
@@ -103,9 +99,9 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         """
 
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
-        rake_repo = 'repo = Katello::RootRepository.find_by_id({0})'.format(repo_id)
+        rake_repo = f'repo = Katello::RootRepository.find_by_id({repo_id})'
         rake_username = '; repo.root.upstream_username'
-        result = run("echo '{0}{1}'|foreman-rake console".format(rake_repo, rake_username))
+        result = run(f"echo '{rake_repo}{rake_username}'|foreman-rake console")
         self.assertNotIn(self.upstream_username, result)
 
 
@@ -134,7 +130,7 @@ class Scenario_custom_repo_check(APITestCase):
         cls.sat_host = settings.server.hostname
         cls.docker_vm = settings.upgrade.docker_vm
         cls.file_path = '/var/www/html/pub/custom_repo/'
-        cls.custom_repo = 'https://{0}{1}'.format(cls.sat_host, '/pub/custom_repo/')
+        cls.custom_repo = 'https://{}{}'.format(cls.sat_host, '/pub/custom_repo/')
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 
@@ -181,7 +177,7 @@ class Scenario_custom_repo_check(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
         subscription = entities.Subscription(organization=org).search(
-            query={'search': 'name={}'.format(product.name)}
+            query={'search': f'name={product.name}'}
         )[0]
         ak = entities.ActivationKey(
             content_view=content_view, organization=org.id, environment=lce

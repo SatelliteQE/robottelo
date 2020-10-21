@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Implementing the repository-set hammer command
 

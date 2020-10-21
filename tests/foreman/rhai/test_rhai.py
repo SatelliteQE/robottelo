@@ -42,7 +42,7 @@ NAV_ITEMS = [
 
 @fixture(scope="module")
 def module_org():
-    org = entities.Organization(name="insights_{0}".format(gen_string("alpha", 6))).create()
+    org = entities.Organization(name="insights_{}".format(gen_string("alpha", 6))).create()
     with manifests.clone() as manifest:
         up_man(org.id, manifest.content)
     yield org
@@ -73,7 +73,7 @@ def attach_subscription(module_org, activation_key):
             activation_key.add_subscriptions(data={"quantity": 1, "subscription_id": subs.id})
             break
     else:
-        raise Exception("{} organization doesn't have any subscription".format(module_org.name))
+        raise Exception(f"{module_org.name} organization doesn't have any subscription")
 
 
 @fixture

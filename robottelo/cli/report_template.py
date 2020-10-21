@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage::
 
@@ -66,7 +65,7 @@ class ReportTemplate(Base):
                 rt.write(options['file'])
             # End - Special handling of temporary file
         else:
-            with open(local_path, 'r') as file:
+            with open(local_path) as file:
                 file_data = file.read()
             with open(layout, 'w') as rt:
                 rt.write(file_data)

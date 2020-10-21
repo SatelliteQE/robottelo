@@ -62,9 +62,7 @@ def _validate_launch(launch, sat_version):
     """Stop session based on RP Launch statistics and info"""
     if launch.info['isProcessing']:
         raise LaunchError(f'The launch of satellite version {sat_version} is not finished yet')
-    fail_percent = round(
-        (int(launch.statistics['failed']) / int(launch.statistics['total']) * 100)
-    )
+    fail_percent = round(int(launch.statistics['failed']) / int(launch.statistics['total']) * 100)
     fail_threshold = settings.report_portal.fail_threshold
     if fail_percent > fail_threshold:
         raise LaunchError(

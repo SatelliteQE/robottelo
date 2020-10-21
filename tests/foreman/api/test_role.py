@@ -197,8 +197,8 @@ class CannedRoleTestCases(APITestCase):
         """Creates two orgs and locations that will be used by all the
         underlying tests
         """
-        super(CannedRoleTestCases, cls).setUpClass()
-        cls.sat_url = 'https://{}'.format(settings.server.hostname)
+        super().setUpClass()
+        cls.sat_url = f'https://{settings.server.hostname}'
         # These two will be used as role taxonomies
         cls.role_org = entities.Organization().create()
         cls.role_loc = entities.Location().create()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Computeresource Vmware
 
@@ -33,7 +32,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('vmware')
     def setUpClass(cls):
-        super(VMWareComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
         Org.add_location({'id': cls.org['id'], 'location-id': cls.loc['id']})

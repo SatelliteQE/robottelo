@@ -74,7 +74,7 @@ class SubscriptionTestCase(CLITestCase):
 
     def setUp(self):
         """Tests for content-view via Hammer CLI"""
-        super(SubscriptionTestCase, self).setUp()
+        super().setUp()
         self.org = make_org()
 
     def _upload_manifest(self, org_id, manifest=None):
@@ -95,7 +95,7 @@ class SubscriptionTestCase(CLITestCase):
         :returns a tuple (list, list[dict]) that represent field_names, data
         """
         csv_data = []
-        with open(file_path, 'r') as csv_file:
+        with open(file_path) as csv_file:
             csv_reader = csv.DictReader(csv_file, delimiter=',')
             field_names = csv_reader.fieldnames
             for csv_row in csv_reader:
@@ -191,7 +191,7 @@ class SubscriptionTestCase(CLITestCase):
         self._upload_manifest(self.org['id'])
         Subscription.list({'organization-id': self.org['id']}, per_page=None)
         history = Subscription.manifest_history({'organization-id': self.org['id']})
-        assert '{0} file imported successfully.'.format(self.org['name']) in ''.join(history)
+        assert '{} file imported successfully.'.format(self.org['name']) in ''.join(history)
 
     @tier1
     @upgrade

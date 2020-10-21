@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Locations UI
 
 :Requirement: Location
@@ -50,7 +49,7 @@ def test_positive_end_to_end(session):
     # create entities
     ip_addres = gen_ipaddr(ip3=True)
     subnet = entities.Subnet(network=ip_addres, mask='255.255.255.0').create()
-    subnet_name = '{0} ({1}/{2})'.format(subnet.name, subnet.network, subnet.cidr)
+    subnet_name = f'{subnet.name} ({subnet.network}/{subnet.cidr})'
     domain = entities.Domain().create()
     user = entities.User().create()
     env = entities.Environment().create()
@@ -66,7 +65,7 @@ def test_positive_end_to_end(session):
                 'description': description,
             }
         )
-        location_name = "{}/{}".format(loc_parent.name, loc_child_name)
+        location_name = f"{loc_parent.name}/{loc_child_name}"
         loc_values = session.location.read(location_name)
         assert loc_values['primary']['parent_location'] == loc_parent.name
         assert loc_values['primary']['name'] == loc_child_name
@@ -84,7 +83,7 @@ def test_positive_end_to_end(session):
                 'media.resources.assigned': [media.name],
             },
         )
-        location_name = "{}/{}".format(loc_parent.name, updated_name)
+        location_name = f"{loc_parent.name}/{updated_name}"
         loc_values = session.location.read(location_name)
         assert loc_values['subnets']['resources']['assigned'][0] == subnet_name
         assert loc_values['domains']['resources']['assigned'][0] == domain.name

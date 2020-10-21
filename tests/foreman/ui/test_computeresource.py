@@ -326,9 +326,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
     :BZ: 1636067
     """
     # create entities for hostgroup
-    default_loc_id = (
-        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    )
+    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     entities.SmartProxy(id=1, location=[default_loc_id, module_loc.id]).update()
     domain = entities.Domain(organization=[module_org.id], location=[module_loc]).create()
     subnet = entities.Subnet(
@@ -510,7 +508,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
 @skip_if_not_set('vlan_networking')
 @tier2
 def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_cert):
-    """"Associate custom default (3-Large) compute profile to RHV compute resource.
+    """ "Associate custom default (3-Large) compute profile to RHV compute resource.
 
     :id: e7698154-62ff-492b-8e56-c5dc70f0c9df
 
@@ -566,7 +564,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
         session.computeresource.update_computeprofile(
             cr_name,
             COMPUTE_PROFILE_LARGE,
-            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()},
+            {f'provider_content.{key}': value for key, value in cr_profile_data.items()},
         )
         provider_content_values = session.computeresource.read_computeprofile(
             cr_name, COMPUTE_PROFILE_LARGE
@@ -621,7 +619,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
     cr_name = gen_string('alpha')
     cr_profile_data = dict(
         cluster=rhev_data['datacenter'],
-        template='{0} (base version)'.format(rhev_data['image_name']),
+        template='{} (base version)'.format(rhev_data['image_name']),
         cores='2',
         memory='1 GB',
     )
@@ -641,7 +639,7 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
         session.computeresource.update_computeprofile(
             cr_name,
             COMPUTE_PROFILE_LARGE,
-            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()},
+            {f'provider_content.{key}': value for key, value in cr_profile_data.items()},
         )
         values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_LARGE)
         assert cr_profile_data == {

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Product CLI
 
 :Requirement: Product
@@ -54,7 +53,7 @@ class ProductTestCase(CLITestCase):
     def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 
-        super(ProductTestCase, self).setUp()
+        super().setUp()
 
         if ProductTestCase.org is None:
             ProductTestCase.org = make_org(cached=True)

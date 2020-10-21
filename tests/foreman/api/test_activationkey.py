@@ -510,7 +510,7 @@ class ActivationKeySearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and an activation key belonging to it."""
-        super(ActivationKeySearchTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.act_key = entities.ActivationKey(organization=cls.org).create()
 

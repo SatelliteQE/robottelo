@@ -36,7 +36,7 @@ class HostCollectionTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create hosts that can be shared by tests."""
-        super(HostCollectionTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.hosts = [entities.Host(organization=cls.org).create() for _ in range(2)]
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
@@ -243,8 +243,8 @@ class HostCollectionTestCase(APITestCase):
         """
         host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(
-            frozenset((host.id for host in host_collection.host)),
-            frozenset((host.id for host in self.hosts)),
+            frozenset(host.id for host in host_collection.host),
+            frozenset(host.id for host in self.hosts),
         )
 
     @tier1

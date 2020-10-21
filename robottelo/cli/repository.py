@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage::
 
@@ -38,7 +37,7 @@ class Repository(Base):
         cls.command_requires_org = False
 
         try:
-            result = super(Repository, cls).create(options)
+            result = super().create(options)
         finally:
             cls.command_requires_org = True
 
@@ -58,7 +57,7 @@ class Repository(Base):
         cls.command_requires_org = False
 
         try:
-            result = super(Repository, cls).info(options)
+            result = super().info(options)
         finally:
             cls.command_requires_org = True
 

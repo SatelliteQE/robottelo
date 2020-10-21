@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Ostree Branch CLI.
 
 :Requirement: Ostreebranch
@@ -45,7 +44,7 @@ class OstreeBranchTestCase(CLITestCase):
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create an organization, product and ostree repo."""
-        super(OstreeBranchTestCase, cls).setUpClass()
+        super().setUpClass()
         password = 'password'
         cls.user = make_user({'admin': 'true', 'password': password})
         cls.user['password'] = password

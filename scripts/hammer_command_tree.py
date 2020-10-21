@@ -14,11 +14,11 @@ def generate_command_tree(command):
     their help. Return a dictionary with the contents.
 
     """
-    output = ssh.command('{0} --help'.format(command)).stdout
+    output = ssh.command(f'{command} --help').stdout
     contents = hammer.parse_help(output)
     if len(contents['subcommands']) > 0:
         for subcommand in contents['subcommands']:
-            subcommand.update(generate_command_tree('{0} {1}'.format(command, subcommand['name'])))
+            subcommand.update(generate_command_tree('{} {}'.format(command, subcommand['name'])))
     return contents
 
 

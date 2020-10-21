@@ -55,7 +55,7 @@ class IncrementalUpdateTestCase(TestCase):
     def setUpClass(cls):
         """Creates the pre-requisites for the Incremental updates that used in
         all test"""
-        super(IncrementalUpdateTestCase, cls).setUpClass()
+        super().setUpClass()
         # Create a new Organization
         cls.org = entities.Organization(name=gen_alpha()).create()
 
@@ -104,7 +104,7 @@ class IncrementalUpdateTestCase(TestCase):
     def setUp(self):
         """Creates the pre-requisites for the Incremental updates that used per
         each test"""
-        super(IncrementalUpdateTestCase, self).setUp()
+        super().setUp()
         # Create content view that will be used filtered erratas
         self.rhel_6_partial_cv = entities.ContentView(
             organization=self.org,
@@ -151,7 +151,7 @@ class IncrementalUpdateTestCase(TestCase):
             name=gen_alpha(),
             content_view=self.rhel_6_partial_cv,
             host_collection=[self.rhel_6_partial_hc],
-            **kwargs
+            **kwargs,
         ).create()
 
         # Fetch available subscriptions
@@ -178,11 +178,11 @@ class IncrementalUpdateTestCase(TestCase):
         self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
         self.vm.enable_repo(REPOS['rhva6']['id'])
         timestamp = datetime.utcnow()
-        self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
+        self.vm.run(f'yum install -y {REAL_0_RH_PACKAGE}')
 
         # Find the content host and ensure that tasks started by package
         # installation has finished
-        host = entities.Host().search(query={'search': 'name={}'.format(self.vm.hostname)})
+        host = entities.Host().search(query={'search': f'name={self.vm.hostname}'})
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadPackageProfile'
             ' and resource_id = {}'

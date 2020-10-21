@@ -129,7 +129,7 @@ def test_positive_end_to_end_register(session):
         with session:
             session.organization.select(org.name)
             chost = session.contenthost.read(vm.hostname, widget_names='details')
-            assert chost['details']['registered_by'] == 'Activation Key {}'.format(ak_name)
+            assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
             ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
             assert len(ak_values['content_hosts']['table']) == 1
             assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
@@ -199,10 +199,7 @@ def test_positive_search_scoped(session, module_org):
             ('environment', env_name),
             ('description', description),
         ]:
-            assert (
-                session.activationkey.search('{} = {}'.format(query_type, query_value))[0]['Name']
-                == name
-            )
+            assert session.activationkey.search(f'{query_type} = {query_value}')[0]['Name'] == name
 
 
 @tier2
@@ -724,7 +721,7 @@ def test_positive_access_non_admin_user(session, test_name):
         organization=[org],
         permission=entities.Permission(name='view_activation_keys').search(),
         role=role,
-        search='name ~ {} and ({})'.format(ak_name, envs_condition),
+        search=f'name ~ {ak_name} and ({envs_condition})',
     ).create()
 
     # Add permissions for Organization and Location
@@ -738,7 +735,7 @@ def test_positive_access_non_admin_user(session, test_name):
     ).create()
 
     # Create new user with a configured role
-    default_loc = entities.Location().search(query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+    default_loc = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
     entities.User(
@@ -981,9 +978,7 @@ def test_negative_usage_limit(session, module_org):
             result = vm2.register_contenthost(module_org.label, name)
             assert not vm2.subscribed
             assert len(result.stderr) > 0
-            assert (
-                'Max Hosts ({0}) reached for activation key'.format(hosts_limit) in result.stderr
-            )
+            assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stderr
 
 
 @skip_if_not_set('clients')
@@ -1033,7 +1028,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
         # Create VM
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
-            vm.register_contenthost(module_org.label, '{0},{1}'.format(key_1_name, key_2_name))
+            vm.register_contenthost(module_org.label, f'{key_1_name},{key_2_name}')
             assert vm.subscribed
             # Assert the content-host association with activation keys
             for key_name in [key_1_name, key_2_name]:
@@ -1122,7 +1117,7 @@ def test_positive_service_level_subscription_with_custom_product(session):
     activation_key = entities.ActivationKey(id=entities_ids['activationkey-id']).read()
     # add the default RH subscription
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     # ensure all the needed subscriptions are attached to activation key
@@ -1139,7 +1134,7 @@ def test_positive_service_level_subscription_with_custom_product(session):
         assert vm.subscribed
         result = vm.run('subscription-manager list --consumed')
         assert result.return_code == 0
-        assert 'Subscription Name:   {0}'.format(product.name) in '\n'.join(result.stdout)
+        assert f'Subscription Name:   {product.name}' in '\n'.join(result.stdout)
         with session:
             session.organization.select(org.name)
             chost = session.contenthost.read(vm.hostname, widget_names='subscriptions')
@@ -1175,7 +1170,7 @@ def test_positive_delete_manifest(session):
     activation_key = entities.ActivationKey(organization=org).create()
     # Associate a manifest to the activation key
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     with session:

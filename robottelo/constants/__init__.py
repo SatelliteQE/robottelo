@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Defines various constants"""
 from nailgun import entities
 

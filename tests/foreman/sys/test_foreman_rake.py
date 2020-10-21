@@ -22,7 +22,7 @@ from robottelo.decorators import tier3
 @run_in_one_thread
 @tier3
 def test_positive_katello_reimport():
-    """ Close loop bug for running katello:reimport.  Making sure
+    """Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.
 
     :CaseComponent: contentManagement

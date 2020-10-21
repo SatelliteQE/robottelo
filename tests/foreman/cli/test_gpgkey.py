@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for GPG Key CLI
 
 :Requirement: Gpgkey
@@ -71,7 +70,7 @@ class TestGPGKey(CLITestCase):
         """Create a shared organization for all tests to avoid generating
         hundreds of organizations
         """
-        super(TestGPGKey, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org(cached=True)
 
     # Bug verification

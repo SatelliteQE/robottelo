@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test for Model CLI
 
 :Requirement: Model

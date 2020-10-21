@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Repository UI
 
 :Requirement: Repository
@@ -655,7 +654,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
+        assert repo_values['repo_content']['upstream_authorization'] == '{} / {}'.format(
             upstream_username, hidden_password
         )
         session.repository.update(
@@ -668,7 +667,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
             },
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
+        assert repo_values['repo_content']['upstream_authorization'] == '{} / {}'.format(
             new_upstream_username, hidden_password
         )
         session.repository.update(
@@ -741,7 +740,7 @@ def test_positive_reposet_disable(session):
             version=sat_tools_repo.data['releasever'],
         )
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled'
+            f'name = "{repository_name}"', category='Enabled'
         )
         assert results[0]['name'] == repository_name
         results = session.sync_status.synchronize(
@@ -757,7 +756,7 @@ def test_positive_reposet_disable(session):
         assert results and all([result == 'Syncing Complete.' for result in results])
         session.redhatrepository.disable(repository_name)
         assert not session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled'
+            f'name = "{repository_name}"', category='Enabled'
         )
 
 
@@ -782,7 +781,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
     sub = entities.Subscription(organization=org)
     sat_tools_repo = SatelliteToolsRepository(distro=DISTRO_RHEL7, cdn=True)
     repository_name = sat_tools_repo.data['repository']
-    repository_name_orphaned = '{0} (Orphaned)'.format(repository_name)
+    repository_name_orphaned = f'{repository_name} (Orphaned)'
     with session:
         session.organization.select(org.name)
         # Enable RH repository
@@ -792,7 +791,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
             version=sat_tools_repo.data['releasever'],
         )
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled'
+            f'name = "{repository_name}"', category='Enabled'
         )
         assert results[0]['name'] == repository_name
         # Sync the repo and verify sync was successful
@@ -811,13 +810,13 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled'
+            f'name = "{repository_name}"', category='Enabled'
         )
         assert results[0]['name'] == repository_name_orphaned
         # Disable the orphaned repository
         session.redhatrepository.disable(repository_name, orphaned=True)
         assert not session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled'
+            f'name = "{repository_name}"', category='Enabled'
         )
 
 

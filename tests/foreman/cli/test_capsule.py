@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for the capsule CLI.
 
 :Requirement: Capsule
@@ -56,11 +55,11 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
-       """
+        """
         # Create a random proxy
         with self.assertRaisesRegex(CLIFactoryError, 'Could not create the proxy:'):
             make_proxy(
-                {'url': 'http://{0}:{1}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
+                {'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
             )
 
     @skip_if_not_set('fake_capsules')

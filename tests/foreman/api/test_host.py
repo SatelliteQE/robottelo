@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``hosts`` paths.
 
 An API reference can be found here:
@@ -491,7 +490,10 @@ def test_positive_create_and_update_with_usergroup(module_org, module_location, 
     ).create()
     usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
     host = entities.Host(
-        location=module_location, organization=module_org, owner=usergroup, owner_type='Usergroup',
+        location=module_location,
+        organization=module_org,
+        owner=usergroup,
+        owner_type='Usergroup',
     ).create()
     assert host.owner.read().name == usergroup.name
     new_usergroup = entities.UserGroup(role=[function_role], user=[user]).create()
@@ -652,7 +654,9 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location):
     """
     parameters = [{'name': gen_string('alpha'), 'value': gen_string('alpha')}]
     host = entities.Host(
-        organization=module_org, location=module_location, host_parameters_attributes=parameters,
+        organization=module_org,
+        location=module_location,
+        host_parameters_attributes=parameters,
     ).create()
     assert host.host_parameters_attributes[0]['name'] == parameters[0]['name']
     assert host.host_parameters_attributes[0]['value'] == parameters[0]['value']
@@ -775,7 +779,9 @@ def test_positive_create_and_update_env(module_org, module_location, module_pupp
     :CaseLevel: Integration
     """
     host = entities.Host(
-        organization=module_org, location=module_location, environment=module_puppet_environment,
+        organization=module_org,
+        location=module_location,
+        environment=module_puppet_environment,
     ).create()
     assert host.environment.read().name == module_puppet_environment.name
 

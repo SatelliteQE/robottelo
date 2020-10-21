@@ -43,7 +43,7 @@ class TestFilteredDataPoint:
             assert len(datafactory.valid_names_list()) == 1
             assert len(datafactory.valid_org_names_list()) == 1
             assert len(datafactory.valid_usernames_list()) == 1
-            assert len((datafactory.valid_cron_expressions())) == 1
+            assert len(datafactory.valid_cron_expressions()) == 1
         else:
             assert len(datafactory.generate_strings_list()) == 7
             assert len(datafactory.invalid_emails_list()) == 8
@@ -62,7 +62,7 @@ class TestFilteredDataPoint:
             assert len(datafactory.valid_names_list()) == 15
             assert len(datafactory.valid_org_names_list()) == 7
             assert len(datafactory.valid_usernames_list()) == 6
-            assert len((datafactory.valid_cron_expressions())) == 4
+            assert len(datafactory.valid_cron_expressions()) == 4
             assert len(datafactory.valid_docker_repository_names()) == 7
 
     @mock.patch('robottelo.datafactory.gen_string')

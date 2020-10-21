@@ -74,7 +74,7 @@ def test_positive_create_event(session, module_org, module_loc):
         assert summary.get('Name') == host.name
         assert summary.get('Architecture') == host.architecture.read().name
         os = host.operatingsystem.read()
-        assert summary.get('Operatingsystem') == '{} {}'.format(os.name, os.major)
+        assert summary.get('Operatingsystem') == f'{os.name} {os.major}'
         assert summary.get('Environment') == host.environment.read().name
         assert summary.get('Ptable') == host.ptable.read().name
         assert summary.get('Medium') == host.medium.read().name
@@ -113,7 +113,7 @@ def test_positive_audit_comment(session, module_org):
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
         current_user = session.partitiontable.read(name, 'current_user')['current_user']
-        values = session.audit.search('type=ptable and username={}'.format(current_user))
+        values = session.audit.search(f'type=ptable and username={current_user}')
         assert values['user'] == current_user
         assert values['action_type'] == 'create'
         assert values['resource_type'] == 'PARTITION TABLE'
@@ -199,11 +199,11 @@ def test_positive_add_event(session, module_org):
     cv.publish()
     with session:
         values = session.audit.search(
-            'type=katello/content_view_environment and organization={}'.format(module_org.name)
+            f'type=katello/content_view_environment and organization={module_org.name}'
         )
         assert values['action_type'] == 'add'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW ENVIRONMENT'
-        assert values['resource_name'] == '{}/{} / {}'.format(ENVIRONMENT, cv.name, cv.name)
+        assert values['resource_name'] == f'{ENVIRONMENT}/{cv.name} / {cv.name}'
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {}/{} to {}'.format(
             ENVIRONMENT, cv.name, cv.name
@@ -235,7 +235,7 @@ def test_positive_create_role_filter(session, module_org):
     role = entities.Role(organization=[module_org]).create()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
-        values = session.audit.search('type=role and organization={}'.format(module_org.name))
+        values = session.audit.search(f'type=role and organization={module_org.name}')
         assert values['action_type'] == 'create'
         assert values['resource_type'] == 'ROLE'
         assert values['resource_name'] == role.name

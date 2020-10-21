@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage::
      hammer filter [OPTIONS] SUBCOMMAND [ARG] ...

@@ -54,7 +54,7 @@ def form_data():
 class TestVirtwhoConfigforEsx:
     @tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
-        """ Verify configure created and deployed with id.
+        """Verify configure created and deployed with id.
 
         :id: 44f93ec8-a59a-42a4-ab30-edc554b022b2
 
@@ -80,8 +80,8 @@ class TestVirtwhoConfigforEsx:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
+            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -91,7 +91,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, session, form_data):
-        """ Verify configure created and deployed with script.
+        """Verify configure created and deployed with script.
 
         :id: d64332fb-a6e0-4864-9f8b-2406223fcdcc
 
@@ -117,8 +117,8 @@ class TestVirtwhoConfigforEsx:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = 'product_id = {} and type=NORMAL'.format(virtwho.sku.vdc_physical)
-            vdc_virtual = 'product_id = {} and type=STACK_DERIVED'.format(virtwho.sku.vdc_physical)
+            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -128,7 +128,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_debug_option(self, session, form_data):
-        """ Verify debug checkbox and the value changes of VIRTWHO_DEBUG
+        """Verify debug checkbox and the value changes of VIRTWHO_DEBUG
 
         :id: adb435c4-d02b-47b6-89f5-dce9a4ff7939
 
@@ -158,7 +158,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_interval_option(self, session, form_data):
-        """ Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
+        """Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
 
         :id: 731f8361-38d4-40b9-9530-8d785d61eaab
 
@@ -197,7 +197,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_hypervisor_id_option(self, session, form_data):
-        """ Verify Hypervisor ID dropdown options.
+        """Verify Hypervisor ID dropdown options.
 
         :id: cc494bd9-51d9-452a-bfa9-5cdcafef5197
 
@@ -229,7 +229,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_filtering_option(self, session, form_data):
-        """ Verify Filtering dropdown options.
+        """Verify Filtering dropdown options.
 
         :id: e17dda14-79cd-4cd2-8f29-60970b24a905
 
@@ -277,7 +277,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_proxy_option(self, session, form_data):
-        """ Verify 'HTTP Proxy' and 'Ignore Proxy' options.
+        """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
         :id: 6659d577-0135-4bf0-81af-14b930011536
 
@@ -308,7 +308,7 @@ class TestVirtwhoConfigforEsx:
 
     @tier2
     def test_positive_virtwho_roles(self, session):
-        """ Verify the default roles for virtwho configure
+        """Verify the default roles for virtwho configure
 
         :id: cd6a5363-f9ba-4b52-892c-905634168fc5
 

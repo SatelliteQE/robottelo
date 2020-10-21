@@ -249,7 +249,7 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
         repos_collection.setup_content(org.id, lce.id)
         with VirtualMachine(distro=repos_collection.distro) as client:
             repos_collection.setup_virtual_machine(client)
-            result = client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            result = client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
             assert result.return_code == 0
             hostname = client.hostname
             # Check UI for values

@@ -29,7 +29,7 @@ class RepositorySearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product. Make it available as ``cls.product``."""
-        super(RepositorySearchTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.product = entities.Product().create()
 
     def setUp(self):
@@ -37,7 +37,7 @@ class RepositorySearchTestCase(APITestCase):
 
         The repository belongs to ``cls.product``.
         """
-        super(RepositorySearchTestCase, self).setUp()
+        super().setUp()
         self.repository = entities.Repository(content_type='puppet', product=self.product).create()
 
     @tier1
@@ -77,7 +77,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product. Make it available as ``cls.product``."""
-        super(ContentViewVersionSearchTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.product = entities.Product().create()
         repository = entities.Repository(content_type='puppet', product=cls.product).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
@@ -88,7 +88,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         The content view belongs to organization ``cls.product.organization``.
         """
-        super(ContentViewVersionSearchTestCase, self).setUp()
+        super().setUp()
         self.content_view = entities.ContentView(organization=self.product.organization).create()
 
     @tier1

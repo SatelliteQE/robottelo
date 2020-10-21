@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for PuppetModule CLI
 
 :Requirement: Puppetmodule
@@ -36,7 +35,7 @@ class PuppetModuleTestCase(CLITestCase):
     @classmethod
     @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
-        super(PuppetModuleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
         cls.repo = make_repository(

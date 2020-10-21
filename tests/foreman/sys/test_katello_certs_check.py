@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for ``katello-certs-check``.
 
 :Requirement: katello-certs-check
@@ -68,14 +67,16 @@ class TestKatelloCertsCheck:
     def cert_setup(self, cert_data):
         # Need a subdirectory under ssl-build with same name as Capsule name
         with get_connection(timeout=100) as connection:
-            connection.run('mkdir ssl-build/{0}'.format(cert_data['capsule_hostname']))
+            connection.run('mkdir ssl-build/{}'.format(cert_data['capsule_hostname']))
             # Ignore creation error, but assert directory exists
-            assert connection.run('test -e ssl-build/{0}'.format(cert_data['capsule_hostname']))
+            assert connection.run('test -e ssl-build/{}'.format(cert_data['capsule_hostname']))
         upload_file(
-            local_file=get_data_file('generate-ca.sh'), remote_file="generate-ca.sh",
+            local_file=get_data_file('generate-ca.sh'),
+            remote_file="generate-ca.sh",
         )
         upload_file(
-            local_file=get_data_file('generate-crt.sh'), remote_file="generate-crt.sh",
+            local_file=get_data_file('generate-crt.sh'),
+            remote_file="generate-crt.sh",
         )
         upload_file(local_file=get_data_file('openssl.cnf'), remote_file="openssl.cnf")
         # create the CA cert.
@@ -98,16 +99,14 @@ class TestKatelloCertsCheck:
         "satellite-installer --scenario satellite" part of output should be printed.
         If FQDN doesn't match CN of Subject, just "capsule-certs-generate" part should be printed.
         """
-        expected_result = set(
-            [
-                '--scenario',
-                '--certs-server-cert',
-                '--certs-server-key',
-                '--certs-server-ca-cert',
-                '--certs-update-server',
-                '--certs-update-server-ca',
-            ]
-        )
+        expected_result = {
+            '--scenario',
+            '--certs-server-cert',
+            '--certs-server-key',
+            '--certs-server-ca-cert',
+            '--certs-update-server',
+            '--certs-update-server-ca',
+        }
         assert result.return_code == 0
         assert cert_data['success_message'] in result.stdout
         # validate all checks passed
@@ -228,15 +227,15 @@ class TestKatelloCertsCheck:
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
-                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(
+                'cp "{}" /root/capsule_cert/ca_cert_bundle.pem'.format(
                     cert_data['ca_bundle_file_name']
                 )
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
+                'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(
+                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
                     cert_data['key_file_name']
                 )
             )
@@ -277,15 +276,15 @@ class TestKatelloCertsCheck:
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
-                'cp "{0}" /root/capsule_cert/ca_cert_bundle.pem'.format(
+                'cp "{}" /root/capsule_cert/ca_cert_bundle.pem'.format(
                     cert_data['ca_bundle_file_name']
                 )
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
+                'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{0}" /root/capsule_cert/capsule_cert_key.pem'.format(
+                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
                     cert_data['key_file_name']
                 )
             )
@@ -440,20 +439,18 @@ class TestCapsuleCertsCheckTestCase:
     def file_setup(self):
         """Create working directory and file."""
         capsule_hostname = 'capsule.example.com'
-        tmp_dir = '/var/tmp/{0}'.format(gen_string('alpha', 6))
-        caps_cert_file = '{0}/ssl-build/capsule.example.com/cert-data'.format(tmp_dir)
+        tmp_dir = '/var/tmp/{}'.format(gen_string('alpha', 6))
+        caps_cert_file = f'{tmp_dir}/ssl-build/capsule.example.com/cert-data'
         # Use same path locally as on remote for storing files
-        Path('{0}/ssl-build/capsule.example.com/'.format(tmp_dir)).mkdir(
-            parents=True, exist_ok=True
-        )
+        Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
         with get_connection(timeout=200) as connection:
-            result = ssh.command('mkdir {0}'.format(tmp_dir))
+            result = ssh.command(f'mkdir {tmp_dir}')
             assert result.return_code == 0, 'Create working directory failed.'
             # Generate a Capsule cert for capsule.example.com
             result = connection.run(
                 'capsule-certs-generate '
                 '--foreman-proxy-fqdn capsule.example.com '
-                '--certs-tar {0}/capsule_certs.tar '.format(tmp_dir),
+                '--certs-tar {}/capsule_certs.tar '.format(tmp_dir),
                 timeout=100,
             )
         return {
@@ -505,7 +502,7 @@ class TestCapsuleCertsCheckTestCase:
             # use same location on remote and local for cert_file
             download_file(file_setup['caps_cert_file'])
             # search the file for the line with DNS
-            with open(file_setup['caps_cert_file'], "r") as file:
+            with open(file_setup['caps_cert_file']) as file:
                 for line in file:
                     if re.search(r'\bDNS:', line):
                         match = re.search(r'{}'.format(file_setup['capsule_hostname']), line)

@@ -55,12 +55,13 @@ def virtwho_config(form_data):
 
 
 @skipif(
-    condition=(is_open('BZ:1735540')), reason='We have not supported kubevirt hypervisor yet',
+    condition=(is_open('BZ:1735540')),
+    reason='We have not supported kubevirt hypervisor yet',
 )
 class TestVirtWhoConfigforKubevirt:
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config deploy"
+        """Verify " hammer virt-who-config deploy"
 
         :id: d0b109f5-2699-43e4-a6cd-d682204d97a7
 
@@ -99,7 +100,7 @@ class TestVirtWhoConfigforKubevirt:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify " hammer virt-who-config fetch"
+        """Verify " hammer virt-who-config fetch"
 
         :id: 273df8e0-5ef5-47d9-9567-543157be7dd8
 
@@ -138,7 +139,7 @@ class TestVirtWhoConfigforKubevirt:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by hammer virt-who-config update"
+        """Verify hypervisor_id option by hammer virt-who-config update"
 
         :id: 57b89c7e-538e-4ab8-98b5-af4b9f587792
 

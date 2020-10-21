@@ -3,7 +3,7 @@ import logging
 from shlex import shlex
 
 
-class Boolean(object):
+class Boolean:
     """Cast a string to boolean.
 
     String values 1, yes, true, on will result in python's ``True``.
@@ -27,11 +27,11 @@ class Boolean(object):
     def __call__(self, value):
         value = value.lower()
         if value not in self._booleans:
-            raise ValueError('Not a boolean: {}'.format(value))
+            raise ValueError(f'Not a boolean: {value}')
         return self._booleans[value]
 
 
-class List(object):
+class List:
     """Cast a comma separated string to a list.
 
     :param str value: A comma separated string to cast to a list.
@@ -45,7 +45,7 @@ class List(object):
         return [item.strip() for item in lexer]
 
 
-class LoggingLevel(object):
+class LoggingLevel:
     """Cast a string to a logging level.
 
     :param str value: A string to cast to a logging level.
@@ -77,7 +77,7 @@ class Tuple(List):
     """
 
     def __call__(self, value):
-        return tuple(super(Tuple, self).__call__(value))
+        return tuple(super().__call__(value))
 
 
 class Dict(List):
@@ -101,7 +101,7 @@ class WebdriverDesiredCapabilities(Dict):
     """
 
     def __call__(self, value):
-        desired_capabilities = super(WebdriverDesiredCapabilities, self).__call__(value)
+        desired_capabilities = super().__call__(value)
         for k, v in desired_capabilities.items():
             v = v.lower()
             if v in ('true', 'false'):

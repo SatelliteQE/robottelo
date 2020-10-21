@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``report_templates`` paths.
 
 :Requirement: Report templates
@@ -58,7 +57,10 @@ def setup_content(request):
     ).create()
     custom_repo.sync()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    cv = entities.ContentView(organization=org, repository=[rh_repo_id, custom_repo.id],).create()
+    cv = entities.ContentView(
+        organization=org,
+        repository=[rh_repo_id, custom_repo.id],
+    ).create()
     cv.publish()
     cvv = cv.read().version[0].read()
     promote(cvv, lce.id)
@@ -66,7 +68,7 @@ def setup_content(request):
         content_view=cv, max_hosts=100, organization=org, environment=lce, auto_attach=True
     ).create()
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     request.cls.org_setup = org
@@ -103,7 +105,7 @@ class ReportTemplateTestCase(APITestCase):
         for name in valid_data_list():
             rt = entities.ReportTemplate(name=name, template=template1).create()
         # List
-        res = entities.ReportTemplate().search(query={'search': 'name="{}"'.format(name)})
+        res = entities.ReportTemplate().search(query={'search': f'name="{name}"'})
         self.assertIn(name, list(map(lambda x: x.name, res)))
         # Read
         rt = entities.ReportTemplate(id=rt.id).read()
@@ -188,14 +190,18 @@ class ReportTemplateTestCase(APITestCase):
         input_name = gen_string('alpha').lower()
         input_value = gen_string('alpha').lower()
         template_name = gen_string('alpha').lower()
-        template = '<%= "value=\\"" %><%= input(\'{0}\') %><%= "\\"" %>'.format(input_name)
+        template = f'<%= "value=\\"" %><%= input(\'{input_name}\') %><%= "\\"" %>'
         entities.Host(name=host_name).create()
         rt = entities.ReportTemplate(name=template_name, template=template).create()
-        entities.TemplateInput(name=input_name, input_type="user", template=rt.id,).create()
+        entities.TemplateInput(
+            name=input_name,
+            input_type="user",
+            template=rt.id,
+        ).create()
         ti = entities.TemplateInput(template=rt.id).search()[0].read()
         self.assertEquals(input_name, ti.name)
         res = rt.generate(data={"input_values": {input_name: input_value}})
-        self.assertEquals('value="{}"'.format(input_value), res)
+        self.assertEquals(f'value="{input_value}"', res)
 
     @tier2
     def test_positive_lock_clone_nodelete_unlock_report(self):
@@ -237,7 +243,7 @@ class ReportTemplateTestCase(APITestCase):
         rt.clone(data={'name': template_clone_name})
         cloned_rt = (
             entities.ReportTemplate()
-            .search(query={'search': 'name="{}"'.format(template_clone_name)})[0]
+            .search(query={'search': f'name="{template_clone_name}"'})[0]
             .read()
         )
         self.assertEquals(template_clone_name, cloned_rt.name)
@@ -249,11 +255,7 @@ class ReportTemplateTestCase(APITestCase):
             # In BZ1680458, exception is thrown but template is deleted anyway
             self.assertNotEquals(
                 0,
-                len(
-                    entities.ReportTemplate().search(
-                        query={'search': 'name="{}"'.format(template_name)}
-                    )
-                ),
+                len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})),
             )
         # 5. Try to edit template
         with self.assertRaises(HTTPError):
@@ -272,11 +274,7 @@ class ReportTemplateTestCase(APITestCase):
         rt.delete()
         self.assertEquals(
             0,
-            len(
-                entities.ReportTemplate().search(
-                    query={'search': 'name="{}"'.format(template_name)}
-                )
-            ),
+            len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})),
         )
 
     @tier2
@@ -413,7 +411,7 @@ class ReportTemplateTestCase(APITestCase):
     @tier2
     @pytest.mark.stubbed
     def test_negative_bad_email(self):
-        """ Report can't be generated when incorrectly formed mail specified
+        """Report can't be generated when incorrectly formed mail specified
 
         :id: a4b577db-164e-4871-a42e-e93887464986
 
@@ -431,7 +429,7 @@ class ReportTemplateTestCase(APITestCase):
     @tier2
     @pytest.mark.stubbed
     def test_positive_cleanup_task_running(self):
-        """ Report can't be generated when incorrectly formed mail specified
+        """Report can't be generated when incorrectly formed mail specified
 
         :id: a4b577db-145e-4871-a42e-e93887464986
 
@@ -534,7 +532,7 @@ class ReportTemplateTestCase(APITestCase):
             )
             scheduled_csv = rt.schedule_report(
                 data={
-                    'id': '{}-Subscription - Entitlement Report'.format(rt.id),
+                    'id': f'{rt.id}-Subscription - Entitlement Report',
                     'organization_id': self.org_setup.id,
                     'report_format': 'csv',
                     "input_values": {"Days from Now": "no limit"},

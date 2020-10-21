@@ -77,27 +77,26 @@ def set_certificate_in_satellite(server_type):
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
         ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
         result = ssh.command(
-            'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {}'.format(CERT_PATH)
+            f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
         )
         if result.return_code != 0:
             raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = ssh.command('update-ca-trust extract && restorecon -R {}'.format(CERT_PATH))
+    result = ssh.command(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
     if result.return_code != 0:
         raise AssertionError('Failed to update and trust the certificate')
     result = ssh.command('systemctl restart httpd')
     if result.return_code != 0:
-        raise AssertionError(
-            'Failed to restart the httpd after applying {} cert'.format(server_type)
-        )
+        raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
 @fixture()
 def ldap_usergroup_name():
-    """Return some random usergroup name, and attempt to delete such usergroup when test finishes.
+    """Return some random usergroup name,
+    and attempt to delete such usergroup when test finishes.
     """
     usergroup_name = gen_string('alphanumeric')
     yield usergroup_name
-    user_groups = entities.UserGroup().search(query={'search': 'name="{}"'.format(usergroup_name)})
+    user_groups = entities.UserGroup().search(query={'search': f'name="{usergroup_name}"'})
     if user_groups:
         user_groups[0].delete()
 
@@ -358,7 +357,7 @@ def test_positive_create_with_idm_https(session, test_name, ldap_tear_down, ipa_
         assert ldap_source['ldap_server']['host'] == ipa_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
     username = settings.ipa.user_ipa
-    full_name = '{} katello'.format(settings.ipa.user_ipa)
+    full_name = f'{settings.ipa.user_ipa} katello'
     with Session(test_name, username, ipa_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
@@ -805,7 +804,7 @@ def test_positive_add_katello_role_with_org(
         assert not session.activationkey.search(ak_name)[0]['Name'] == ak_name
     ak = (
         entities.ActivationKey(organization=module_org)
-        .search(query={'search': 'name={}'.format(ak_name)})[0]
+        .search(query={'search': f'name={ak_name}'})[0]
         .read()
     )
     assert ak.organization.id == module_org.id
@@ -892,10 +891,9 @@ def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_
     :expectedresults: Log in to foreman UI successfully
 
     """
-    password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_user_passwd'], generate_otp(ipa_data['time_based_secret'])
-    )
-    with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
+
+    otp_pass = f"{ipa_data['ldap_user_passwd']}{generate_otp(ipa_data['time_based_secret'])}"
+    with Session(test_name, ipa_data['ipa_otp_username'], otp_pass) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.user.search('')
         expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
@@ -921,9 +919,8 @@ def test_negative_login_user_with_invalid_password_otp(
     :expectedresults: Log in to foreman UI should be failed
 
     """
-    password_with_otp = "{0}{1}".format(
-        ipa_data['ldap_user_passwd'], gen_string(str_type='numeric', length=6)
-    )
+
+    password_with_otp = "{ipa_data['ldap_user_passwd']}{gen_string(str_type='numeric', length=6)}"
     with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
         with raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -956,18 +953,18 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
         )
         result = ''.join(result)
         assert 'redirected' in result
-        assert 'https://{}/hosts'.format(settings.server.hostname) in result
+        assert f'https://{settings.server.hostname}/hosts' in result
         assert 'You are being' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
         run_command('foreman-maintain service restart', timeout=300)
         run_command(
-            cmd='ipa service-del HTTP/{}'.format(settings.server.hostname),
+            cmd=f'ipa service-del HTTP/{settings.server.hostname}',
             hostname=settings.ipa.hostname_ipa,
         )
         run_command(
-            cmd='ipa host-del {}'.format(settings.server.hostname),
+            cmd=f'ipa host-del {settings.server.hostname}',
             hostname=settings.ipa.hostname_ipa,
         )
 
@@ -1178,7 +1175,11 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
 
 @destructive
 def test_user_permissions_rhsso_user_after_group_delete(
-    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_loc,
+    enable_external_auth_rhsso,
+    rhsso_setting_setup,
+    session,
+    module_org,
+    module_loc,
 ):
     """Verify the rhsso user permissions in satellite should get revoked after the
         termination of rhsso user's external rhsso group
@@ -1417,7 +1418,8 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
             _, group = line.split('=')
             break
     result = ssh.command(
-        cmd=f"ipa group-add-member {group} --user={test_user}", hostname=settings.ipa.hostname_ipa,
+        cmd=f"ipa group-add-member {group} --user={test_user}",
+        hostname=settings.ipa.hostname_ipa,
     )
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:

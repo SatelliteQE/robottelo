@@ -34,7 +34,7 @@ class LibvirtGuestError(Exception):
     """Exception raised for failed virtual guests on external libvirt"""
 
 
-class LibvirtGuest(object):
+class LibvirtGuest:
     """Manages a Libvirt guests to allow host discovery and provisioning
 
     It expects that Libvirt host is defined with image path.
@@ -94,7 +94,7 @@ class LibvirtGuest(object):
         self.ip_addr = None
         self._domain = None
         self._created = False
-        self.guest_name = 'mac{0}'.format(self.mac.replace(':', ""))
+        self.guest_name = 'mac{}'.format(self.mac.replace(':', ""))
 
     def create(self):
         """Creates a virtual machine on the libvirt server using
@@ -127,36 +127,36 @@ class LibvirtGuest(object):
             # Required for PXE-less host discovery, where we boot the host
             # with bootable discovery ISO
             self.boot_iso_name = settings.discovery.discovery_iso
-            boot_iso_dir = '{0}/{1}'.format(self.image_dir, self.boot_iso_name)
-            command_args.append('--cdrom={0}'.format(boot_iso_dir))
+            boot_iso_dir = f'{self.image_dir}/{self.boot_iso_name}'
+            command_args.append(f'--cdrom={boot_iso_dir}')
 
         if self.extra_nic:
             nic_mac = _gen_mac_for_libvirt()
             command_args.append('--network=bridge:{vm_bridge}')
-            command_args.append('--mac={0}'.format(nic_mac))
+            command_args.append(f'--mac={nic_mac}')
 
         if self._domain is None:
             try:
                 self._domain = self.libvirt_server.split('.', 1)[1]
             except IndexError:
                 raise LibvirtGuestError(
-                    "Failed to fetch domain from libvirt server: {0} ".format(self.libvirt_server)
+                    f"Failed to fetch domain from libvirt server: {self.libvirt_server} "
                 )
 
-        self.hostname = '{0}.{1}'.format(self.guest_name, self._domain)
+        self.hostname = f'{self.guest_name}.{self._domain}'
         command = ' '.join(command_args).format(
             vm_bridge=self.bridge,
             vm_mac=self.mac,
             vm_name=self.hostname,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
-            image_name='{0}/{1}.img'.format(self.image_dir, self.hostname),
+            image_name=f'{self.image_dir}/{self.hostname}.img',
         )
 
         result = ssh.command(command, self.libvirt_server)
 
         if result.return_code != 0:
-            raise LibvirtGuestError('Failed to run virt-install: {0}'.format(result.stderr))
+            raise LibvirtGuestError(f'Failed to run virt-install: {result.stderr}')
 
         self._created = True
 
@@ -165,11 +165,11 @@ class LibvirtGuest(object):
         if not self._created:
             return
 
-        ssh.command('virsh destroy {0}'.format(self.hostname), hostname=self.libvirt_server)
-        ssh.command('virsh undefine {0}'.format(self.hostname), hostname=self.libvirt_server)
-        image_name = '{0}.img'.format(self.hostname)
+        ssh.command(f'virsh destroy {self.hostname}', hostname=self.libvirt_server)
+        ssh.command(f'virsh undefine {self.hostname}', hostname=self.libvirt_server)
+        image_name = f'{self.hostname}.img'
         ssh.command(
-            'rm {0}'.format(os.path.join(self.image_dir, image_name)),
+            'rm {}'.format(os.path.join(self.image_dir, image_name)),
             hostname=self.libvirt_server,
         )
 
@@ -194,9 +194,7 @@ class LibvirtGuest(object):
         result = ssh.command(command, self.libvirt_server)
 
         if result.return_code != 0:
-            raise LibvirtGuestError(
-                'Failed to run virsh attach-interface: {0}'.format(result.stderr)
-            )
+            raise LibvirtGuestError(f'Failed to run virsh attach-interface: {result.stderr}')
 
     def __enter__(self):
         self.create()

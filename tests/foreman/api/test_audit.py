@@ -104,11 +104,11 @@ class AuditTestCase(APITestCase):
             entity_type = entity_item.get('entity_type', created_entity.__class__.__name__.lower())
             value_template = entity_item.get('value_template', '{entity.name}')
             entity_value = value_template.format(entity=created_entity)
-            audits = entities.Audit().search(query={'search': 'type={0}'.format(entity_type)})
+            audits = entities.Audit().search(query={'search': f'type={entity_type}'})
             entity_audits = [entry for entry in audits if entry.auditable_name == entity_value]
             if not entity_audits:
                 self.fail(
-                    'audit not found by name "{0}" for entity: {1}'.format(
+                    'audit not found by name "{}" for entity: {}'.format(
                         entity_value, created_entity.__class__.__name__.lower()
                     )
                 )
@@ -146,11 +146,11 @@ class AuditTestCase(APITestCase):
             created_entity.name = new_name
             created_entity = created_entity.update(['name'])
             audits = entities.Audit().search(
-                query={'search': 'type={0}'.format(created_entity.__class__.__name__.lower())}
+                query={'search': f'type={created_entity.__class__.__name__.lower()}'}
             )
             entity_audits = [entry for entry in audits if entry.auditable_name == name]
             if not entity_audits:
-                self.fail('audit not found by name "{}"'.format(name))
+                self.fail(f'audit not found by name "{name}"')
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.audited_changes['name'], [name, new_name])
@@ -184,13 +184,13 @@ class AuditTestCase(APITestCase):
             created_entity = entity.create()
             created_entity.delete()
             audits = entities.Audit().search(
-                query={'search': 'type={0}'.format(created_entity.__class__.__name__.lower())}
+                query={'search': f'type={created_entity.__class__.__name__.lower()}'}
             )
             entity_audits = [
                 entry for entry in audits if entry.auditable_name == created_entity.name
             ]
             if not entity_audits:
-                self.fail('audit not found by name "{}"'.format(created_entity.name))
+                self.fail(f'audit not found by name "{created_entity.name}"')
             audit = entity_audits[0]
             self.assertEqual(audit.auditable_id, created_entity.id)
             self.assertEqual(audit.action, 'destroy')

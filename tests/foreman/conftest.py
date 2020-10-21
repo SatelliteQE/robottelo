@@ -1,4 +1,3 @@
-# coding: utf-8
 """Configurations for py.test runner"""
 import datetime
 import logging
@@ -41,7 +40,7 @@ def pytest_report_header(config):
             scope = ''
         storage = settings.shared_function.storage
     messages.append(
-        'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
+        'shared_function enabled - {} - scope: {} - storage: {}'.format(
             shared_function_enabled, scope, storage
         )
     )
@@ -51,8 +50,7 @@ def pytest_report_header(config):
 
 @pytest.fixture(scope="session")
 def worker_id(request):
-    """Gets the worker ID when running in multi-threading with xdist
-    """
+    """Gets the worker ID when running in multi-threading with xdist"""
     if hasattr(request.config, 'slaveinput'):
         # return gw+(0..n)
         return request.config.slaveinput['slaveid']
@@ -79,15 +77,15 @@ def robottelo_logger(request, worker_id):
         and request.session.config._reportportal_configured
     ):
         logging.setLoggerClass(RPLogger)
-    if '{0}'.format(worker_id) not in [h.get_name() for h in logger.handlers]:
+    if f'{worker_id}' not in [h.get_name() for h in logger.handlers]:
         if worker_id != 'master':
             formatter = logging.Formatter(
-                fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
+                fmt='%(asctime)s - {} - %(name)s - %(levelname)s -'
                 ' %(message)s'.format(worker_id),
                 datefmt='%Y-%m-%d %H:%M:%S',
             )
-            handler = logging.FileHandler('robottelo_{0}.log'.format(worker_id))
-            handler.set_name('{0}'.format(worker_id))
+            handler = logging.FileHandler(f'robottelo_{worker_id}.log')
+            handler.set_name(f'{worker_id}')
             handler.setFormatter(formatter)
             logger.addHandler(handler)
             # Nailgun HTTP logs should also be included in gw* logs
@@ -97,7 +95,7 @@ def robottelo_logger(request, worker_id):
                 and request.session.config._reportportal_configured
             ):
                 rp_handler = RPLogHandler(request.node.config.py_test_service)
-                rp_handler.set_name('{0}'.format(worker_id))
+                rp_handler.set_name(f'{worker_id}')
                 rp_handler.setFormatter(formatter)
                 logger.addHandler(rp_handler)
                 logging.getLogger('nailgun').addHandler(rp_handler)
@@ -108,10 +106,10 @@ def robottelo_logger(request, worker_id):
 def log_test_execution(robottelo_logger, request):
     test_name = request.node.name
     parent_name = request.node.parent.name
-    test_full_name = '{}/{}'.format(parent_name, test_name)
-    robottelo_logger.debug('Started Test: {}'.format(test_full_name))
+    test_full_name = f'{parent_name}/{test_name}'
+    robottelo_logger.debug(f'Started Test: {test_full_name}')
     yield None
-    robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
+    robottelo_logger.debug(f'Finished Test: {test_full_name}')
 
 
 def pytest_collection_modifyitems(session, items, config):

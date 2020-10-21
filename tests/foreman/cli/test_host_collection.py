@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Host Collection CLI
 
 :Requirement: Host collection
@@ -42,7 +41,7 @@ class HostCollectionTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Prepare some data to be used in tests"""
-        super(HostCollectionTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.organization = make_org()
         cls.library = LifecycleEnvironment.info(
             {'organization-id': cls.organization['id'], 'name': ENVIRONMENT}

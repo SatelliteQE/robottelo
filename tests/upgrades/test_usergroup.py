@@ -53,7 +53,7 @@ class scenario_positive_verify_usergroup_membership(APITestCase):
         cls.base_dn = settings.ldap.basedn
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
-        cls.sat_url = 'https://{}'.format(settings.server.hostname)
+        cls.sat_url = f'https://{settings.server.hostname}'
 
     @pre_upgrade
     def test_pre_create_usergroup_with_ldap_user(self):
@@ -89,7 +89,7 @@ class scenario_positive_verify_usergroup_membership(APITestCase):
         with self.assertRaises(HTTPError):
             entities.User(sc).search()
         user_group = entities.UserGroup(name=self.preupgrade_usergroup).create()
-        user = entities.User().search(query={'search': 'login={}'.format(self.ldap_user_name)})[0]
+        user = entities.User().search(query={'search': f'login={self.ldap_user_name}'})[0]
         user_group.user = [user]
         user_group = user_group.update(['user'])
         self.assertEqual(user.login, user_group.user[0].read().login)
@@ -105,7 +105,7 @@ class scenario_positive_verify_usergroup_membership(APITestCase):
         :expectedresults: Usergroup membership should not lost post upgrade.
         """
         user_group = entities.UserGroup().search(
-            query={'search': 'name={}'.format(self.preupgrade_usergroup)}
+            query={'search': f'name={self.preupgrade_usergroup}'}
         )[0]
-        user = entities.User().search(query={'search': 'login={}'.format(self.ldap_user_name)})[0]
+        user = entities.User().search(query={'search': f'login={self.ldap_user_name}'})[0]
         self.assertEqual(user.read().id, user_group.read().user[0].id)

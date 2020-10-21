@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Packages UI
 
 :Requirement: Packages
@@ -189,7 +188,7 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'filename = {0}'.format(RPM_TO_UPLOAD), repository=module_yum_repo.name
+            f'filename = {RPM_TO_UPLOAD}', repository=module_yum_repo.name
         )[0]['RPM'] == RPM_TO_UPLOAD.replace('.rpm', '')
         repo_details = session.package.read(
             RPM_TO_UPLOAD.split('-')[0], repository=module_yum_repo.name
@@ -214,10 +213,10 @@ def test_positive_rh_repo_search_and_check_file_list(session, module_org, module
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search(
-            'name = {0}'.format('puppet-agent'), repository=module_rh_repo.name
+            'name = {}'.format('puppet-agent'), repository=module_rh_repo.name
         )[0]['RPM'].startswith('puppet-agent')
         assert session.package.search(
-            'name = {0}'.format('katello-host-tools'), repository=module_rh_repo.name
+            'name = {}'.format('katello-host-tools'), repository=module_rh_repo.name
         )[0]['RPM'].startswith('katello-host-tools')
         package_details = session.package.read('tracer-common', repository=module_rh_repo.name)
         assert {

@@ -63,19 +63,19 @@ def _format_commands_diff(commands_diff):
         if value.get('added_subcommands'):
             output.write('  Added subcommands:\n')
             for subcommand in value.get('added_subcommands'):
-                output.write('    * {}\n'.format(subcommand))
+                output.write(f'    * {subcommand}\n')
         if value.get('added_options'):
             output.write('  Added options:\n')
             for option in value.get('added_options'):
-                output.write('    * {}\n'.format(option))
+                output.write(f'    * {option}\n')
         if value.get('removed_subcommands'):
             output.write('  Removed subcommands:')
             for subcommand in value.get('removed_subcommands'):
-                output.write('    * {}'.format(subcommand))
+                output.write(f'    * {subcommand}')
         if value.get('removed_options'):
             output.write('  Removed options:\n')
             for option in value.get('removed_options'):
-                output.write('    * {}\n'.format(option))
+                output.write(f'    * {option}\n')
         output.write('\n')
     output_value = output.getvalue()
     output.close()
@@ -89,7 +89,7 @@ class HammerCommandsTestCase(CLITestCase):
     """
 
     def __init__(self, *args, **kwargs):
-        super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.differences = {}
 
     def _traverse_command_tree(self):
@@ -104,17 +104,17 @@ class HammerCommandsTestCase(CLITestCase):
             raw_command = raw_command.splitlines()
             command = raw_command.pop(0).replace(' >', '')
             output = hammer.parse_help(raw_command)
-            command_options = set([option['name'] for option in output['options']])
-            command_subcommands = set([subcommand['name'] for subcommand in output['subcommands']])
+            command_options = {option['name'] for option in output['options']}
+            command_subcommands = {subcommand['name'] for subcommand in output['subcommands']}
             expected = _fetch_command_info(command)
             expected_options = set()
             expected_subcommands = set()
 
             if expected is not None:
-                expected_options = set([option['name'] for option in expected['options']])
-                expected_subcommands = set(
-                    [subcommand['name'] for subcommand in expected['subcommands']]
-                )
+                expected_options = {option['name'] for option in expected['options']}
+                expected_subcommands = {
+                    subcommand['name'] for subcommand in expected['subcommands']
+                }
             if is_open('BZ:1666687'):
                 cmds = ['hammer report-template create', 'hammer report-template update']
                 if command in cmds:

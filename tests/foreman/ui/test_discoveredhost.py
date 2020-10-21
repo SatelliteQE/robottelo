@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery
 
 :Requirement: Discoveredhost
@@ -64,7 +63,7 @@ def provisioning_env(module_org, module_loc):
     return configure_provisioning(
         org=module_org,
         loc=module_loc,
-        os='Redhat {0}'.format(RHELRepository().repo_data['version']),
+        os='Redhat {}'.format(RHELRepository().repo_data['version']),
     )
 
 
@@ -188,14 +187,14 @@ def test_positive_provision_using_quick_host_button(
     """
     discovered_host_name = discovered_host['name']
     domain_name = module_host_group.domain.read().name
-    host_name = '{0}.{1}'.format(discovered_host_name, domain_name)
+    host_name = f'{discovered_host_name}.{domain_name}'
     with session:
         session.discoveredhosts.provision(
             discovered_host_name, module_host_group.name, module_org.name, module_loc.name
         )
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
+        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @tier3
@@ -216,7 +215,7 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
     discovered_host_name = discovered_host['name']
     domain_name = module_host_group.domain.read().name
     new_name = gen_string('alpha').lower()
-    new_host_name = '{0}.{1}'.format(new_name, domain_name)
+    new_host_name = f'{new_name}.{domain_name}'
     with session:
         discovered_host_values = session.discoveredhosts.wait_for_entity(discovered_host_name)
         assert discovered_host_values['Name'] == discovered_host_name
@@ -231,7 +230,7 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         values = session.host.get_details(new_host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
+        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @tier3
@@ -260,21 +259,22 @@ def test_positive_auto_provision_host_with_rule(
     discovery_rule = entities.DiscoveryRule(
         max_count=1,
         hostgroup=module_host_group,
-        search_='ip = {0}'.format(host_ip),
+        search_=f'ip = {host_ip}',
         location=[module_loc],
         organization=[module_org],
     ).create()
     with session:
         session.discoveredhosts.apply_action('Auto Provision', [discovered_host_name])
-        host_name = '{0}.{1}'.format(discovered_host_name, domain.name)
+        host_name = f'{discovered_host_name}.{domain.name}'
         assert session.host.search(host_name)[0]['Name'] == host_name
         host_values = session.host.get_details(host_name)
         assert host_values['properties']['properties_table']['Status'] == 'OK'
         assert host_values['properties']['properties_table']['IP Address'] == host_ip
-        assert host_values['properties']['properties_table'][
-            'Comment'
-        ] == "Auto-discovered and provisioned via rule '{0}'".format(discovery_rule.name)
-        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
+        assert (
+            host_values['properties']['properties_table']['Comment']
+            == f"Auto-discovered and provisioned via rule '{discovery_rule.name}'"
+        )
+        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @tier3
@@ -294,7 +294,7 @@ def test_positive_delete(session, discovered_host):
     discovered_host_name = discovered_host['name']
     with session:
         session.discoveredhosts.delete(discovered_host_name)
-        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
+        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @tier3
@@ -319,25 +319,21 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
     module_loc.update(['organization'])
     new_loc = entities.Location(organization=[module_org]).create()
     with session:
-        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
+        values = session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         session.discoveredhosts.apply_action(
             'Assign Organization', host_names, values=dict(organization=new_org.name)
         )
-        assert not session.discoveredhosts.search(
-            'name = "{0}" or name = "{1}"'.format(*host_names)
-        )
+        assert not session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         session.organization.select(org_name=new_org.name)
-        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
+        values = session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         session.discoveredhosts.apply_action(
             'Assign Location', host_names, values=dict(location=new_loc.name)
         )
-        assert not session.discoveredhosts.search(
-            'name = "{0}" or name = "{1}"'.format(*host_names)
-        )
+        assert not session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         session.location.select(loc_name=new_loc.name)
-        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
+        values = session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         values = session.dashboard.read('DiscoveredHosts')
         assert len(values['hosts']) == 2

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Content View Filters
 
 :Requirement: Contentviewfilter
@@ -44,7 +43,7 @@ class ContentViewFilterTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
-        super(ContentViewFilterTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.product = make_product_wait({'organization-id': cls.org['id']})
         cls.content_view = make_content_view({'organization-id': cls.org['id']})

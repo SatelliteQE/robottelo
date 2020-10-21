@@ -143,7 +143,7 @@ class TestOrganization:
         :CaseImportance: Critical
         """
         org = entities.Organization().create()
-        orgs = entities.Organization().search(query={'search': 'name="{0}"'.format(org.name)})
+        orgs = entities.Organization().search(query={'search': f'name="{org.name}"'})
         assert len(orgs) == 1
         assert orgs[0].id == org.id
         assert orgs[0].name == org.name
@@ -182,7 +182,7 @@ class TestOrganization:
         :CaseImportance: Low
         """
         default_org_id = (
-            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
         )
         assert default_org_id == 1
 
@@ -297,7 +297,7 @@ class TestOrganizationUpdate:
         """
         # Every Satellite has a built-in smart proxy, so let's find it
         smart_proxy = entities.SmartProxy().search(
-            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            query={'search': f'url = https://{settings.server.hostname}:9090'}
         )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0

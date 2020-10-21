@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Puppet Environment UI
 
 :Requirement: Environment
@@ -104,7 +103,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(session, 
             assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
             host = entities.Host(location=module_loc, organization=org)
             host.create_missing()
-            os_name = '{0} {1}'.format(host.operatingsystem.name, host.operatingsystem.major)
+            os_name = f'{host.operatingsystem.name} {host.operatingsystem.major}'
             session.host.create(
                 {
                     'host.name': host.name,
@@ -126,7 +125,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(session, 
                     'interfaces.interface.primary': True,
                 }
             )
-            host_name = '{0}.{1}'.format(host.name, host.domain.name)
+            host_name = f'{host.name}.{host.domain.name}'
             values = session.host.get_details(host_name, widget_names='properties')
             assert values['properties']['properties_table']['Puppet Environment'] == env_name
             assert values['properties']['properties_table']['Organization'] == org.name

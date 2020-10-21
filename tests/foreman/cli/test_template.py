@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Template CLI
 
 :Requirement: Template
@@ -165,7 +164,7 @@ class TemplateTestCase(CLITestCase):
             {'id': new_template['id'], 'operatingsystem-id': new_os['id']}
         )
         new_template = Template.info({'id': new_template['id']})
-        os_string = '{0} {1}.{2}'.format(
+        os_string = '{} {}.{}'.format(
             new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertIn(os_string, new_template['operating-systems'])
@@ -188,7 +187,7 @@ class TemplateTestCase(CLITestCase):
         new_os = make_os()
         Template.add_operatingsystem({'id': template['id'], 'operatingsystem-id': new_os['id']})
         template = Template.info({'id': template['id']})
-        os_string = '{0} {1}.{2}'.format(
+        os_string = '{} {}.{}'.format(
             new_os['name'], new_os['major-version'], new_os['minor-version']
         )
         self.assertIn(os_string, template['operating-systems'])

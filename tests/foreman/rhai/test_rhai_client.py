@@ -32,9 +32,9 @@ class RHAIClientTestCase(TestCase):
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):  # noqa
-        super(RHAIClientTestCase, cls).setUpClass()
+        super().setUpClass()
         # Create a new organization with prefix 'insights'
-        org = entities.Organization(name='insights_{0}'.format(gen_string('alpha', 6))).create()
+        org = entities.Organization(name='insights_{}'.format(gen_string('alpha', 6))).create()
 
         # Upload manifest
         with manifests.clone() as manifest:
@@ -77,9 +77,7 @@ class RHAIClientTestCase(TestCase):
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.configure_rhai_client(self.ak_name, self.org_label, DISTRO_RHEL6)
             test_connection = vm.run('redhat-access-insights --test-connection')
-            self.logger.info(
-                'Return code for --test-connection {0}'.format(test_connection.return_code)
-            )
+            self.logger.info(f'Return code for --test-connection {test_connection.return_code}')
             self.assertEqual(
                 test_connection.return_code, 0, '--test-connection check was not successful'
             )

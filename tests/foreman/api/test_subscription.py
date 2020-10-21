@@ -69,7 +69,7 @@ def golden_ticket_host_setup(request):
         auto_attach=True,
     ).create()
     subscription = entities.Subscription(organization=org).search(
-        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     request.cls.org_setup = org
@@ -201,7 +201,7 @@ class SubscriptionsTestCase(APITestCase):
         ).create()
         sc1 = ServerConfig(
             auth=(user1.login, user1_password),
-            url='https://{}'.format(settings.server.hostname),
+            url=f'https://{settings.server.hostname}',
             verify=False,
         )
         user2_password = gen_string('alphanumeric')
@@ -210,7 +210,7 @@ class SubscriptionsTestCase(APITestCase):
         ).create()
         sc2 = ServerConfig(
             auth=(user2.login, user2_password),
-            url='https://{}'.format(settings.server.hostname),
+            url=f'https://{settings.server.hostname}',
             verify=False,
         )
         # use the first admin to upload a manifest
@@ -242,7 +242,7 @@ class SubscriptionsTestCase(APITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
             assert vm.subscribed
-            host = entities.Host().search(query={'search': 'name={}'.format(vm.hostname)})
+            host = entities.Host().search(query={'search': f'name={vm.hostname}'})
             host_id = host[0].id
             host_content = entities.Host(id=host_id).read_raw().content
             assert "Disabled" in str(host_content)

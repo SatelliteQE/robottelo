@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Manage RH products repositories and custom repositories.
 
 The main purpose of this feature is to manage product repositories especially
@@ -272,7 +271,7 @@ def get_server_distro():  # type: () -> str
     return _server_distro
 
 
-class BaseRepository(object):
+class BaseRepository:
     """Base repository class for custom and RH repositories"""
 
     _url = None  # type: Optional[str]
@@ -317,7 +316,7 @@ class BaseRepository(object):
         return self._type
 
     def __repr__(self):
-        return '<Repo type: {0}, url: {1}, object: {2}>'.format(
+        return '<Repo type: {}, url: {}, object: {}>'.format(
             self.content_type, self.url, hex(id(self))
         )
 
@@ -378,7 +377,7 @@ class DockerRepository(BaseRepository):
 
     def __init__(self, url=None, distro=None, upstream_name=None):
         self._upstream_name = upstream_name
-        super(DockerRepository, self).__init__(url=url, distro=distro)
+        super().__init__(url=url, distro=distro)
 
     @property
     def upstream_name(self):
@@ -407,7 +406,7 @@ class PuppetRepository(BaseRepository):
     def __init__(self, url=None, distro=None, modules=None):
         # type: (str, Optional[str], List[Dict[str, str]]) -> None
         self._puppet_modules = modules
-        super(PuppetRepository, self).__init__(url=url, distro=distro)
+        super().__init__(url=url, distro=distro)
 
     @property
     def puppet_modules(self):
@@ -439,7 +438,7 @@ class GenericRHRepository(BaseRepository):
     _url = None  # type: Optional[str]
 
     def __init__(self, distro=None, key=None, cdn=False, url=None):
-        super(GenericRHRepository, self).__init__()
+        super().__init__()
 
         if key is not None and self.key:
             raise RepositoryAlreadyDefinedError('Repository key already defined')
@@ -477,12 +476,12 @@ class GenericRHRepository(BaseRepository):
         """
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise DistroNotSupportedError('distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError(f'distro "{distro}" not supported')
         if distro is None:
             distro = self._distro
         repo_data = self._get_repo_data(distro)
         if repo_data is None:
-            raise RepositoryDataNotFound('Repository data not found for distro {}'.format(distro))
+            raise RepositoryDataNotFound(f'Repository data not found for distro {distro}')
         self._distro = distro
         self._repo_data = repo_data
 
@@ -579,11 +578,11 @@ class GenericRHRepository(BaseRepository):
 
     def __repr__(self):
         if self.cdn:
-            return '<RH cdn Repo: {0} within distro:{1}, object: {2}>'.format(
+            return '<RH cdn Repo: {} within distro:{}, object: {}>'.format(
                 self.data['repository'], self.distro, hex(id(self))
             )
         else:
-            return '<RH custom Repo url: {0} object: {1}>'.format(self.url, hex(id(self)))
+            return '<RH custom Repo url: {} object: {}>'.format(self.url, hex(id(self)))
 
     def create(
         self,
@@ -621,7 +620,7 @@ class GenericRHRepository(BaseRepository):
             if synchronize:
                 self.synchronize()
         else:
-            repo_info = super(GenericRHRepository, self).create(
+            repo_info = super().create(
                 organization_id, product_id, download_policy=download_policy
             )
         return repo_info
@@ -634,7 +633,7 @@ class RHELRepository(GenericRHRepository):
 
     @property
     def url(self):
-        return getattr(settings, 'rhel{0}_os'.format(self.distro_major_version))
+        return getattr(settings, f'rhel{self.distro_major_version}_os')
 
 
 class SatelliteToolsRepository(GenericRHRepository):
@@ -644,7 +643,7 @@ class SatelliteToolsRepository(GenericRHRepository):
 
     @property
     def url(self):
-        return settings.sattools_repo['{0}{1}'.format(PRODUCT_KEY_RHEL, self.distro_major_version)]
+        return settings.sattools_repo[f'{PRODUCT_KEY_RHEL}{self.distro_major_version}']
 
 
 class SatelliteCapsuleRepository(GenericRHRepository):
@@ -677,7 +676,7 @@ class RHELAnsibleEngineRepository(GenericRHRepository):
     _key = PRODUCT_KEY_ANSIBLE_ENGINE
 
 
-class RepositoryCollection(object):
+class RepositoryCollection:
     """Repository collection"""
 
     _distro = None  # type: str
@@ -693,7 +692,7 @@ class RepositoryCollection(object):
         self._items = []
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise DistroNotSupportedError('distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError(f'distro "{distro}" not supported')
         if distro is not None:
             self._distro = distro
 
@@ -722,7 +721,7 @@ class RepositoryCollection(object):
         if self.os_repo is not None:
             raise OnlyOneOSRepositoryAllowed('OS repo already added.(Only one OS repo allowed)')
         if not isinstance(repo, RHELRepository):
-            raise ValueError('repo: "{0}" is not an RHEL repo'.format(repo))
+            raise ValueError(f'repo: "{repo}" is not an RHEL repo')
         self._os_repo = repo
 
     @property
@@ -773,7 +772,7 @@ class RepositoryCollection(object):
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not add more')
         if not isinstance(item, BaseRepository):
-            raise ValueError('item "{0}" is not a repository'.format(item))
+            raise ValueError(f'item "{item}" is not a repository')
         if self.distro is not None:
             item.distro = self.distro
         self._items.append(item)
@@ -791,8 +790,7 @@ class RepositoryCollection(object):
             self.add_item(item)
 
     def __iter__(self):
-        for item in self._items:
-            yield item
+        yield from self._items
 
     def setup(self, org_id, download_policy=DOWNLOAD_POLICY_ON_DEMAND, synchronize=True):
         # type: (int, str, bool) -> Tuple[Dict, List[Dict]]
@@ -882,7 +880,7 @@ class RepositoryCollection(object):
             set(added_subscription_names)
         )
         if missing_subscription_names:
-            raise ValueError('Missing subscriptions: {0}'.format(missing_subscription_names))
+            raise ValueError(f'Missing subscriptions: {missing_subscription_names}')
         return activation_key
 
     @staticmethod
@@ -990,11 +988,11 @@ class RepositoryCollection(object):
             install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
-            rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[self.distro])
+            rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[self.distro])
             rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
             if not rhel_repo_url:
                 raise ValueError(
-                    'Settings option "{0}" is whether not set or does not exist'.format(
+                    'Settings option "{}" is whether not set or does not exist'.format(
                         rhel_repo_option_name
                     )
                 )

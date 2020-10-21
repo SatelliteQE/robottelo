@@ -77,7 +77,7 @@ class TestVirtWhoConfigforHyperv:
 
     @tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
-        """ Verify "POST /foreman_virt_who_configure/api/v2/configs"
+        """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: f5228e01-bb8d-4c8e-877e-cd8bc494f00e
 
@@ -99,8 +99,14 @@ class TestVirtWhoConfigforHyperv:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -125,7 +131,7 @@ class TestVirtWhoConfigforHyperv:
 
     @tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
-        """ Verify "GET /foreman_virt_who_configure/api/
+        """Verify "GET /foreman_virt_who_configure/api/
 
         v2/configs/:id/deploy_script"
 
@@ -149,8 +155,14 @@ class TestVirtWhoConfigforHyperv:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',),
+            (
+                hypervisor_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+            ),
+            (
+                guest_name,
+                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+            ),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -175,7 +187,7 @@ class TestVirtWhoConfigforHyperv:
 
     @tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
-        """ Verify hypervisor_id option by "PUT
+        """Verify hypervisor_id option by "PUT
 
         /foreman_virt_who_configure/api/v2/configs/:id"
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for the ``permissions`` paths.
 
 Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
@@ -42,7 +41,7 @@ class PermissionTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(PermissionTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.permissions = PERMISSIONS.copy()
         if get_server_software() == 'upstream':
             cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
@@ -183,14 +182,14 @@ def _permission_name(entity, which_perm):
     ]
     perm_names = []
     permissions = PERMISSIONS.get(entity.__name__) or PERMISSIONS.get(
-        'Katello::{0}'.format(entity.__name__)
+        f'Katello::{entity.__name__}'
     )
     for permission in permissions:
         match = re.match(pattern, permission)
         if match is not None:
             perm_names.append(permission)
     if len(perm_names) != 1:
-        raise LookupError('Could not find the requested permission. Found: {0}'.format(perm_names))
+        raise LookupError(f'Could not find the requested permission. Found: {perm_names}')
     return perm_names[0]
 
 
@@ -201,13 +200,13 @@ class UserRoleTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create common entities"""
-        super(UserRoleTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
 
     def setUp(self):  # noqa
         """Create a set of credentials and a user."""
-        super(UserRoleTestCase, self).setUp()
+        super().setUp()
         self.cfg = get_nailgun_config()
         self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
         self.user = entities.User(
@@ -287,7 +286,7 @@ class UserRoleTestCase(APITestCase):
                 entity = self.set_taxonomies(entity_cls(self.cfg), self.org, self.loc)
                 # Entities with both org and loc require
                 # additional permissions to set them.
-                fields = set(['organization', 'location'])
+                fields = {'organization', 'location'}
                 if fields.issubset(set(entity.get_fields())):
                     self.give_user_permission('assign_organizations')
                     self.give_user_permission('assign_locations')

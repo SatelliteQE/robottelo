@@ -89,7 +89,7 @@ class scenario_positive_virt_who(APITestCase):
             4. Virtual sku can be generated and attached.
         """
         default_loc_id = (
-            entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
         default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=self.org_name).create()
@@ -107,13 +107,13 @@ class scenario_positive_virt_who(APITestCase):
         )
         self.assertEqual(
             entities.VirtWhoConfig(organization_id=org.id)
-            .search(query={'search': 'name={}'.format(self.name)})[0]
+            .search(query={'search': f'name={self.name}'})[0]
             .status,
             'ok',
         )
         hosts = [
-            (hypervisor_name, 'product_id={} and type=NORMAL'.format(self.vdc_physical)),
-            (guest_name, 'product_id={} and type=STACK_DERIVED'.format(self.vdc_physical)),
+            (hypervisor_name, f'product_id={self.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={self.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -169,11 +169,11 @@ class scenario_positive_virt_who(APITestCase):
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = entities.Organization().search(query={'search': 'name={0}'.format(self.org_name)})[0]
+        org = entities.Organization().search(query={'search': f'name={self.org_name}'})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': 'name={}'.format(self.name)}
+            query={'search': f'name={self.name}'}
         )[0]
         if not is_open('BZ:1802395'):
             self.assertEqual(vhd.status, 'ok')
@@ -209,6 +209,6 @@ class scenario_positive_virt_who(APITestCase):
         vhd.delete()
         self.assertFalse(
             entities.VirtWhoConfig(organization_id=org.id).search(
-                query={'search': 'name={}'.format(modify_name)}
+                query={'search': f'name={modify_name}'}
             )
         )

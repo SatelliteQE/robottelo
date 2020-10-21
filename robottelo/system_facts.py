@@ -40,33 +40,33 @@ DISTRO_IDS = [
     },
     {
         'id': 'Santiago',
-        'version': '6.{0}'.format(gen_integer(1, 5)),
+        'version': '6.{}'.format(gen_integer(1, 5)),
         'architecture': gen_choice(ARCHITECTURES),
         'kernel': '2.6.32-431.el6',
     },
     {
         'id': 'Tikanga',
-        'version': '5.{0}'.format(gen_integer(1, 10)),
+        'version': '5.{}'.format(gen_integer(1, 10)),
         'architecture': gen_choice(ARCHITECTURES),
         'kernel': '2.6.18-371.el5',
     },
     {
         'id': 'Nahant',
-        'version': '4.{0}'.format(gen_integer(1, 9)),
+        'version': '4.{}'.format(gen_integer(1, 9)),
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.6.9-100.el4',
     },
     {
         'id': 'Taroon',
-        'version': '3.{0}'.format(gen_integer(1, 9)),
+        'version': '3.{}'.format(gen_integer(1, 9)),
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.4.21-50.el3',
     },
     {
         'id': 'Pensacola',
-        'version': '2.{0}'.format(gen_integer(1, 7)),
+        'version': '2.{}'.format(gen_integer(1, 7)),
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.4.9-e.57.el2',
@@ -185,7 +185,7 @@ def generate_system_facts(name=None):
     :rtype: dict
     """
     if name is None:
-        name = '{0}.example.net'.format(gen_alpha().lower())
+        name = f'{gen_alpha().lower()}.example.net'
 
     # Make a copy of the system facts 'template'
     new_facts = copy.deepcopy(SYSTEM_FACTS)

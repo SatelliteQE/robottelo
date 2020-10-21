@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test classes for Bookmark tests
 
 :Requirement: Bookmarks
@@ -35,7 +34,7 @@ class BookmarkTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Filter entities list if affected by BZ"""
-        super(BookmarkTestCase, cls).setUpClass()
+        super().setUpClass()
 
     # CREATE TESTS
     @tier1
@@ -141,9 +140,7 @@ class BookmarkTestCase(APITestCase):
                             entities.Bookmark(
                                 controller=entity['controller'], name=name, public=False
                             ).create()
-                        result = entities.Bookmark().search(
-                            query={'search': 'name="{0}"'.format(name)}
-                        )
+                        result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                         self.assertEqual(len(result), 0)
 
     @tier1
@@ -169,7 +166,7 @@ class BookmarkTestCase(APITestCase):
                     entities.Bookmark(
                         controller=entity['controller'], name=name, query=''
                     ).create()
-                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                 self.assertEqual(len(result), 0)
 
     @tier1
@@ -199,7 +196,7 @@ class BookmarkTestCase(APITestCase):
                 entities.Bookmark(controller=entity['controller'], name=name).create()
                 with self.assertRaises(HTTPError):
                     entities.Bookmark(controller=entity['controller'], name=name).create()
-                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                 self.assertEqual(len(result), 1)
 
     @tier1
@@ -228,7 +225,7 @@ class BookmarkTestCase(APITestCase):
                     entities.Bookmark(
                         controller=entity['controller'], name=name, public=None
                     ).create()
-                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                 self.assertEqual(len(result), 0)
 
     # UPDATE TESTS

@@ -33,7 +33,7 @@ class GPGKeyTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        super(GPGKeyTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.key_content = read_data_file(VALID_GPG_KEY_FILE)
 

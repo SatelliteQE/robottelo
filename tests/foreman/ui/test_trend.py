@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Trend UI
 
 :Requirement: Trend

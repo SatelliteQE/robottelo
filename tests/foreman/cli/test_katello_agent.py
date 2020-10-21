@@ -61,10 +61,8 @@ class KatelloAgentTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
-        """Create Org, Lifecycle Environment, Content View, Activation key
-
-        """
-        super(KatelloAgentTestCase, cls).setUpClass()
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super().setUpClass()
         # Create new org, environment, CV and activation key
         KatelloAgentTestCase.org = make_org()
         KatelloAgentTestCase.env = make_lifecycle_environment(
@@ -107,7 +105,7 @@ class KatelloAgentTestCase(CLITestCase):
         and katello-agent packages
 
         """
-        super(KatelloAgentTestCase, self).setUp()
+        super().setUp()
         # Create VM and register content host
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()

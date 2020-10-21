@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Host Group UI
 
 :Requirement: Hostgroup
@@ -54,7 +53,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     description = gen_string('alpha')
     architecture = entities.Architecture().create()
     os = entities.OperatingSystem(architecture=[architecture]).create()
-    os_name = '{0} {1}'.format(os.name, os.major)
+    os_name = f'{os.name} {os.major}'
     domain = entities.Domain(organization=[module_org], location=[module_loc]).create()
     with session:
         # Create host group with some data
@@ -163,13 +162,9 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     )
     env = (
         entities.Environment()
-        .search(
-            query={
-                'search': 'content_view="{0}" and organization_id={1}'.format(
-                    cv.name, module_org.id
-                )
-            }
-        )[0]
+        .search(query={'search': f'content_view="{cv.name}" and organization_id={module_org.id}'})[
+            0
+        ]
         .read()
     )
     env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])

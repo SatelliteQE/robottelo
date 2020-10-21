@@ -1,4 +1,3 @@
-# coding=utf-8
 """Module that aggregates common bits of the end to end tests."""
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.decorators import setting_is_set
@@ -7,7 +6,7 @@ from robottelo.vm import VirtualMachine
 AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
-class ClientProvisioningMixin(object):
+class ClientProvisioningMixin:
     def client_provisioning(
         self, activation_key_name, organization_label, package_name='python-kitchen'
     ):
@@ -33,8 +32,8 @@ class ClientProvisioningMixin(object):
             vm.register_contenthost(organization_label, activation_key_name)
             self.assertTrue(vm.subscribed)
             # Install rpm on client
-            result = vm.run('yum install -y {0}'.format(package_name))
+            result = vm.run(f'yum install -y {package_name}')
             self.assertEqual(result.return_code, 0)
             # Verify that the package is installed by querying it
-            result = vm.run('rpm -q {0}'.format(package_name))
+            result = vm.run(f'rpm -q {package_name}')
             self.assertEqual(result.return_code, 0)

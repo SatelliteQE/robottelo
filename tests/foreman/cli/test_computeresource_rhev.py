@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Computeresource RHV
 
@@ -37,7 +36,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
     @classmethod
     @skip_if_not_set('rhev')
     def setUpClass(cls):
-        super(RHEVComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.current_rhev_url = settings.rhev.hostname
         cls.username = settings.rhev.username
         cls.password = settings.rhev.password
@@ -60,7 +59,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
         ComputeResource.create(
             {
-                'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+                'name': 'cr {}'.format(gen_string(str_type='alpha')),
                 'provider': 'Ovirt',
                 'user': self.username,
                 'password': self.password,
@@ -254,7 +253,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                compute-resource image create
 
         :expectedresults: The image is added to the CR successfully
-         """
+        """
         if self.image_uuid is None:
             self.skipTest('Missing configuration for rhev.image_uuid')
 
@@ -271,7 +270,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         ComputeResource.image_create(
             {
                 'compute-resource': comp_res['name'],
-                'name': 'img {0}'.format(gen_string(str_type='alpha')),
+                'name': 'img {}'.format(gen_string(str_type='alpha')),
                 'uuid': self.image_uuid,
                 'operatingsystem': self.os['title'],
                 'architecture': self.image_arch,
@@ -315,8 +314,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
             ComputeResource.image_create(
                 {
                     'compute-resource': comp_res['name'],
-                    'name': 'img {0}'.format(gen_string(str_type='alpha')),
-                    'uuid': 'invalidimguuid {0}'.format(gen_string(str_type='alpha')),
+                    'name': 'img {}'.format(gen_string(str_type='alpha')),
+                    'uuid': 'invalidimguuid {}'.format(gen_string(str_type='alpha')),
                     'operatingsystem': self.os['title'],
                     'architecture': self.image_arch,
                     'username': "root",
@@ -360,7 +359,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 {
                     'compute-resource': comp_res['name'],
                     # too long string (>255 chars)
-                    'name': 'img {0}'.format(gen_string(str_type='alphanumeric', length=256)),
+                    'name': 'img {}'.format(gen_string(str_type='alphanumeric', length=256)),
                     'uuid': self.image_uuid,
                     'operatingsystem': self.os['title'],
                     'architecture': self.image_arch,

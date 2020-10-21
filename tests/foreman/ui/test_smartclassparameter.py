@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Smart/Puppet Class Parameter
 
 :Requirement: Classparameters
@@ -44,9 +43,7 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc():
-    default_loc_id = (
-        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    )
+    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     return entities.Location(id=default_loc_id).read()
 
 
@@ -59,7 +56,7 @@ def content_view(module_org):
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
         query={
-            'search': 'content_view="{0}" and organization_id={1}'.format(
+            'search': 'content_view="{}" and organization_id={}'.format(
                 content_view.name, module_org.id
             )
         }
@@ -70,7 +67,7 @@ def puppet_env(content_view, module_org):
 def puppet_class(puppet_env):
     puppet_class_entity = entities.PuppetClass().search(
         query={
-            'search': 'name = "{0}" and environment = "{1}"'.format(
+            'search': 'name = "{}" and environment = "{}"'.format(
                 PUPPET_MODULES[0]['name'], puppet_env.name
             )
         }
@@ -82,14 +79,14 @@ def puppet_class(puppet_env):
 @fixture(scope='module')
 def sc_params_list(puppet_class):
     return entities.SmartClassParameters().search(
-        query={'search': 'puppetclass="{0}"'.format(puppet_class.name), 'per_page': 1000}
+        query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': 1000}
     )
 
 
 @fixture(scope='module')
 def module_host(module_org, module_loc, content_view, puppet_env, puppet_class):
     lce = entities.LifecycleEnvironment().search(
-        query={'search': 'organization_id="{0}" and name="{1}"'.format(module_org.id, ENVIRONMENT)}
+        query={'search': f'organization_id="{module_org.id}" and name="{ENVIRONMENT}"'}
     )[0]
     host = entities.Host(
         organization=module_org,
@@ -134,12 +131,12 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
         {'sc_type': 'real', 'value': str(uniform(-1000, 1000))},
         {
             'sc_type': 'array',
-            'value': '["{0}","{1}","{2}"]'.format(
+            'value': '["{}","{}","{}"]'.format(
                 gen_string('alpha'), gen_string('numeric').lstrip('0'), gen_string('html')
             ),
         },
-        {'sc_type': 'hash', 'value': '{0}: {1}'.format(gen_string('alpha'), gen_string('alpha'))},
-        {'sc_type': 'yaml', 'value': '{0}: {1}'.format(gen_string('alpha'), gen_string('alpha'))},
+        {'sc_type': 'hash', 'value': '{}: {}'.format(gen_string('alpha'), gen_string('alpha'))},
+        {'sc_type': 'yaml', 'value': '{}: {}'.format(gen_string('alpha'), gen_string('alpha'))},
         {
             'sc_type': 'json',
             'value': '{{"{0}":"{1}","{2}":"{3}"}}'.format(

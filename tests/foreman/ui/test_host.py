@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Hosts UI
 
 :Requirement: Host
@@ -103,7 +102,7 @@ def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
         entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .search(query={'search': f'name={settings.server.hostname}'})[0]
         .read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
@@ -137,17 +136,13 @@ def module_host_template(module_org, module_loc):
 @pytest.fixture(scope='module')
 def default_partition_table():
     # Get the Partition table ID
-    return entities.PartitionTable().search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[
-        0
-    ]
+    return entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
 
 
 @pytest.fixture(scope='module')
 def default_architecture():
     # Get the architecture ID
-    return entities.Architecture().search(
-        query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
-    )[0]
+    return entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
 
 
 @pytest.fixture(scope='module')
@@ -175,7 +170,7 @@ def module_os(default_architecture, default_partition_table, module_org, module_
     ]:
         template = (
             entities.ProvisioningTemplate()
-            .search(query={'search': 'name="{}"'.format(template_name)})[0]
+            .search(query={'search': f'name="{template_name}"'})[0]
             .read()
         )
         template.operatingsystem.append(os)
@@ -208,7 +203,7 @@ def module_proxy(module_org, module_loc):
     # Search for SmartProxy, and associate organization/location
     proxy = (
         entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .search(query={'search': f'name={settings.server.hostname}'})[0]
         .read()
     )
     proxy.location.append(module_loc)
@@ -222,7 +217,7 @@ def module_libvirt_resource(module_org, module_loc):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
-    resource_url = 'qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname)
+    resource_url = f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system'
     comp_res = [
         res
         for res in entities.LibvirtComputeResource().search()
@@ -243,7 +238,7 @@ def module_libvirt_resource(module_org, module_loc):
             location=[module_loc],
             organization=[module_org],
         ).create()
-    return '{0} (Libvirt)'.format(computeresource.name)
+    return f'{computeresource.name} (Libvirt)'
 
 
 @pytest.fixture(scope='module')
@@ -251,7 +246,7 @@ def module_libvirt_domain(module_org, module_loc, module_proxy):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(domain)})
+    domain = entities.Domain().search(query={'search': f'name="{domain}"'})
     if len(domain) > 0:
         domain = domain[0].read()
         domain.location.append(module_loc)
@@ -271,7 +266,7 @@ def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(query={'search': 'network={0}'.format(network)})
+    subnet = entities.Subnet().search(query={'search': f'network={network}'})
     if len(subnet) > 0:
         subnet = subnet[0].read()
         subnet.domain.append(module_libvirt_domain)
@@ -321,7 +316,7 @@ def module_repository(os_path, module_product):
 
 @pytest.fixture(scope='module')
 def module_libvirt_media(module_org, module_loc, os_path, module_os):
-    media = entities.Media().search(query={'search': 'path="{0}"'.format(os_path)})
+    media = entities.Media().search(query={'search': f'path="{os_path}"'})
     if len(media) > 0:
         # Media with this path already exist, make sure it is correct
         media = media[0].read()
@@ -421,8 +416,8 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             global_param['overridden'] = False
 
     config_group = entities.ConfigGroup().create()
-    new_name = 'new{0}'.format(gen_string("alpha").lower())
-    new_host_name = '{0}.{1}'.format(new_name, module_host_template.domain.name)
+    new_name = 'new{}'.format(gen_string("alpha").lower())
+    new_host_name = f'{new_name}.{module_host_template.domain.name}'
     with session:
         host_name = create_fake_host(
             session,
@@ -445,7 +440,7 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
-        os_name = '{0} {1}'.format(
+        os_name = '{} {}'.format(
             module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
         )
         assert os_name in displayed_host['Operating System']
@@ -469,7 +464,7 @@ def test_positive_read_from_details_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = '{0} {1}'.format(
+    os_name = '{} {}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
@@ -513,7 +508,7 @@ def test_positive_read_from_edit_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = '{0} {1}'.format(
+    os_name = '{} {}'.format(
         module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
     )
     interface_id = gen_string('alpha')
@@ -604,13 +599,9 @@ def test_positive_create_with_puppet_class(session, module_host_template, module
     )
     env = (
         entities.Environment()
-        .search(
-            query={
-                'search': 'content_view="{0}" and organization_id={1}'.format(
-                    cv.name, module_org.id
-                )
-            }
-        )[0]
+        .search(query={'search': f'content_view="{cv.name}" and organization_id={module_org.id}'})[
+            0
+        ]
         .read()
     )
     env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
@@ -742,10 +733,10 @@ def test_positive_export(session):
     org = entities.Organization().create()
     loc = entities.Location().create()
     hosts = [entities.Host(organization=org, location=loc).create() for _ in range(3)]
-    expected_fields = set(
+    expected_fields = {
         (host.name, host.operatingsystem.read().title, host.environment.read().name)
         for host in hosts
-    )
+    }
     with session:
         session.organization.select(org.name)
         session.location.select(loc.name)
@@ -777,7 +768,7 @@ def test_positive_create_with_inherited_params(session):
     loc_param = dict(name=gen_string('alphanumeric'), value=gen_string('alphanumeric'))
     host_template = entities.Host(organization=org, location=loc)
     host_template.create_missing()
-    host_name = '{0}.{1}'.format(host_template.name, host_template.domain.name)
+    host_name = f'{host_template.name}.{host_template.domain.name}'
     with session:
         session.organization.update(org.name, {'parameters.resources': org_param})
         session.location.update(loc.name, {'parameters.resources': loc_param})
@@ -998,7 +989,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             ]
         },
         # allow access only to the mentioned here environment
-        search='name = {0}'.format(filter_lc_env.name),
+        search=f'name = {filter_lc_env.name}',
     )
     # Add necessary permissions for content view as we did for lce
     create_role_permissions(
@@ -1011,21 +1002,21 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             ]
         },
         # allow access only to the mentioned here cv
-        search='name = {0}'.format(filter_cv.name),
+        search=f'name = {filter_cv.name}',
     )
     # Add necessary permissions for hosts as we did for lce
     create_role_permissions(
         role,
         {'Host': ['create_hosts', 'view_hosts']},
         # allow access only to the mentioned here host group
-        search='hostgroup_fullname = {0}'.format(filter_hg.name),
+        search=f'hostgroup_fullname = {filter_hg.name}',
     )
     # Add necessary permissions for host groups as we did for lce
     create_role_permissions(
         role,
         {'Hostgroup': ['view_hostgroups']},
         # allow access only to the mentioned here host group
-        search='name = {0}'.format(filter_hg.name),
+        search=f'name = {filter_hg.name}',
     )
     # Add permissions for Organization and Location
     create_role_permissions(
@@ -1100,7 +1091,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
-        values = session.host.search('params.{0} = {1}'.format(param_name, param_value))
+        values = session.host.search(f'params.{param_name} = {param_value}')
         assert len(values) == 1
         assert values[0]['Name'] == param_host.name
 
@@ -1133,7 +1124,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter returns only one host in the list
         for param_value, host in zip(param_values, hosts):
-            values = session.host.search('params.{0} = {1}'.format(param_name, param_value))
+            values = session.host.search(f'params.{param_name} = {param_value}')
             assert len(values) == 1
             assert values[0]['Name'] == host.name
 
@@ -1166,7 +1157,7 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter with 'not' prefix returns both hosts
-        values = session.host.search('not params.{0} = {1}'.format(param_name, search_param_value))
+        values = session.host.search(f'not params.{param_name} = {search_param_value}')
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
@@ -1202,7 +1193,7 @@ def test_positive_search_by_parameter_with_operator(session, module_loc):
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
         # Check that search by parameter with '<>' operator returns both hosts
-        values = session.host.search('params.{0} <> {1}'.format(param_name, search_param_value))
+        values = session.host.search(f'params.{param_name} <> {search_param_value}')
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
@@ -1228,7 +1219,7 @@ def test_positive_search_with_org_and_loc_context(session):
         session.location.update(loc.name, {'capsules.all_capsules': True})
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert session.host.search('name = "{0}"'.format(host.name))[0]['Name'] == host.name
+        assert session.host.search(f'name = "{host.name}"')[0]['Name'] == host.name
         assert session.host.search(host.name)[0]['Name'] == host.name
 
 
@@ -1251,7 +1242,7 @@ def test_positive_search_by_org(session, module_loc):
     org = host.organization.read()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
-        assert session.host.search('organization = "{0}"'.format(org.name))[0]['Name'] == host.name
+        assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
 @tier2
@@ -1287,7 +1278,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
             'organization-ids': module_host_template.organization.id,
         }
     )
-    puppet_proxy = Proxy.list({'search': 'name = {0}'.format(settings.server.hostname)})[0]
+    puppet_proxy = Proxy.list({'search': f'name = {settings.server.hostname}'})[0]
     host = make_host(
         {
             'architecture-id': module_host_template.architecture.id,
@@ -1378,7 +1369,7 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
         published_puppet_env = [
             env.name
             for env in entities.Environment().search(
-                query=dict(search='organization_id={0}'.format(module_org.id), per_page=1000)
+                query=dict(search=f'organization_id={module_org.id}', per_page=1000)
             )
             if content_view in env.name
         ][0]
@@ -1543,7 +1534,7 @@ def test_positive_provision_end_to_end(
                 'additional_information.comment': 'Libvirt provision using valid data',
             }
         )
-        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        name = f'{hostname}.{module_libvirt_domain.name}'
         assert session.host.search(name)[0]['Name'] == name
         wait_for(
             lambda: session.host.get_details(name)['properties']['properties_table']['Build']
@@ -1554,9 +1545,7 @@ def test_positive_provision_end_to_end(
             silent_failure=True,
             handle_exception=True,
         )
-        entities.Host(
-            id=entities.Host().search(query={'search': 'name={}'.format(name)})[0].id
-        ).delete()
+        entities.Host(id=entities.Host().search(query={'search': f'name={name}'})[0].id).delete()
         assert (
             session.host.get_details(name)['properties']['properties_table']['Build']
             == 'Installed'
@@ -1607,7 +1596,7 @@ def test_positive_delete_libvirt(
                 'additional_information.comment': 'Delete host that provisioned on Libvirt',
             }
         )
-        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        name = f'{hostname}.{module_libvirt_domain.name}'
         assert session.host.search(name)[0]['Name'] == name
         message = session.host.delete(name)
         assert (
@@ -1643,8 +1632,8 @@ def gce_cloudinit_template(gce_client):
 
 @pytest.fixture
 def gce_domain(module_org, module_loc):
-    domain_name = '{}.c.{}.internal'.format(settings.gce.zone, settings.gce.project_id)
-    domain = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})
+    domain_name = f'{settings.gce.zone}.c.{settings.gce.project_id}.internal'
+    domain = entities.Domain().search(query={'search': f'name={domain_name}'})
     if domain:
         domain = domain[0]
         domain.organization = [module_org]
@@ -1659,10 +1648,10 @@ def gce_domain(module_org, module_loc):
 
 @pytest.fixture
 def download_cert():
-    ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
-    if not ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code == 0:
+    ssh.command(f'curl {settings.gce.cert_url} -o {settings.gce.cert_path}')
+    if not ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code == 0:
         raise FileNotFoundError(
-            "The GCE certificate {} is not found in satellite.".format(settings.gce.cert_path)
+            f"The GCE certificate {settings.gce.cert_path} is not found in satellite."
         )
     return download_server_file('json', settings.gce.cert_url)
 
@@ -1694,9 +1683,7 @@ def gce_resource_with_image(
                 'locations.resources.assigned': [module_loc.name],
             }
         )
-    gce_cr = entities.AbstractComputeResource().search(
-        query={'search': 'name={}'.format(cr_name)}
-    )[0]
+    gce_cr = entities.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
     # Finish Image
     entities.Image(
         architecture=default_architecture,
@@ -1764,7 +1751,7 @@ def test_positive_gce_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = '{0}.{1}'.format(name, gce_domain.name)
+    hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
     storage = [{'size': 20}]
@@ -1789,7 +1776,7 @@ def test_positive_gce_provision_end_to_end(
             )
             wait_for(
                 lambda: entities.Host()
-                .search(query={'search': 'name={}'.format(hostname)})[0]
+                .search(query={'search': f'name={hostname}'})[0]
                 .build_status_label
                 != 'Pending installation',
                 timeout=600,
@@ -1823,7 +1810,7 @@ def test_positive_gce_provision_end_to_end(
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
-            gcehost = entities.Host().search(query={'search': 'name={}'.format(hostname)})
+            gcehost = entities.Host().search(query={'search': f'name={hostname}'})
             if gcehost:
                 gcehost[0].delete()
             raise error
@@ -1847,7 +1834,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = '{0}.{1}'.format(name, gce_domain.name)
+    hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     storage = [{'size': 20}]
     root_pwd = gen_string('alpha', random.choice([8, 15]))
@@ -1896,7 +1883,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
-            gcehost = entities.Host().search(query={'search': 'name={}'.format(hostname)})
+            gcehost = entities.Host().search(query={'search': f'name={hostname}'})
             if gcehost:
                 gcehost[0].delete()
             raise error
@@ -1927,6 +1914,6 @@ def test_positive_cockpit(session):
         )
         assert (
             hostname_inside_cockpit == settings.server.hostname
-        ), 'cockpit page shows hostname {0} instead of {1}'.format(
+        ), 'cockpit page shows hostname {} instead of {}'.format(
             hostname_inside_cockpit, settings.server.hostname
         )

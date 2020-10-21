@@ -58,7 +58,7 @@ def _get_normalized_size(size):
         size = round(size, 2)
     if size == int(size):
         size = int(size)
-    return '{0} {1}'.format(size, suffixes[suffix_index])
+    return '{} {}'.format(size, suffixes[suffix_index])
 
 
 def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):
@@ -67,7 +67,7 @@ def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datas
     For "Local-Ironforge" datastore the string looks Like:
 
         "Local-Ironforge (free: 1.66 TB, prov: 2.29 TB, total: 2.72 TB)"
-     """
+    """
     system = VMWareSystem(
         hostname=settings.vmware.vcenter,
         username=settings.vmware.username,
@@ -82,9 +82,7 @@ def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datas
     prov = _get_normalized_size(
         data_store_summary.capacity + uncommitted - data_store_summary.freeSpace
     )
-    return '{0} (free: {1}, prov: {2}, total: {3})'.format(
-        data_store_name, free_space, prov, capacity
-    )
+    return f'{data_store_name} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
 @fixture(scope='module')
@@ -180,7 +178,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_LARGE)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
-        assert '{0} ({1})'.format(new_cr_name, FOREMAN_PROVIDERS['vmware']) in profile_cr_names
+        assert '{} ({})'.format(new_cr_name, FOREMAN_PROVIDERS['vmware']) in profile_cr_names
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
 
@@ -454,7 +452,7 @@ def test_positive_access_vmware_with_custom_profile(session, module_vmware_setti
         session.computeresource.update_computeprofile(
             cr_name,
             COMPUTE_PROFILE_LARGE,
-            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()},
+            {f'provider_content.{key}': value for key, value in cr_profile_data.items()},
         )
         values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_LARGE)
         provider_content = values['provider_content']

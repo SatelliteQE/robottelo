@@ -93,7 +93,7 @@ class ScenarioForemanMaintain(TestCase):
         zstream_version = ''
         if upgrade_stage == "pre-upgrade":
             major_version.append(str(y_version + 1))
-            zstream_version = ".".join((satellite_version.split('.')[0:2])) + ".z"
+            zstream_version = ".".join(satellite_version.split('.')[0:2]) + ".z"
         else:
             major_version.append(str(y_version))
             major_version.append("z")
@@ -102,7 +102,7 @@ class ScenarioForemanMaintain(TestCase):
 
     @pre_upgrade
     def test_pre_foreman_maintain_upgrade_list_versions(self):
-        """ Pre-upgrade sceanrio that tests list of satellite version
+        """Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
         :id: preupgrade-fc2c54b2-2663-11ea-b47c-48f17f1fc2e1
@@ -112,7 +112,7 @@ class ScenarioForemanMaintain(TestCase):
 
         :expectedresults: Versions should be current z-stream.
 
-         """
+        """
         (
             satellite_version,
             upgradable_version,
@@ -142,7 +142,7 @@ class ScenarioForemanMaintain(TestCase):
 
         :expectedresults: Versions should be next z-stream.
 
-         """
+        """
         (
             satellite_version,
             upgradable_version,

@@ -51,8 +51,7 @@ def module_org(module_org):
 
 @pytest.fixture(scope="module")
 def module_user(module_org, module_location):
-    """Creates an org admin role and user
-    """
+    """Creates an org admin role and user"""
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
     # Create user with Manager role
@@ -117,7 +116,7 @@ def tftpboot(module_org):
     kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
 
     # clean the already-deployed default pxe configs
-    ssh.command('rm {0}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    ssh.command('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
 
     # create custom Templates per kind
     for template in default_templates.values():
@@ -138,7 +137,7 @@ def tftpboot(module_org):
     yield default_templates
 
     # delete the deployed tftp files
-    ssh.command('rm {0}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    ssh.command('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
     # set the settings back to defaults
     for setting in default_settings:
         if setting.value is None:

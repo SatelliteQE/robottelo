@@ -27,13 +27,11 @@ def _csv_reader(output):
     data = '\n'.join(output)
     handler = io.StringIO(data)
 
-    for row in csv.reader(handler):  # pragma: no cover
-        yield row
+    yield from csv.reader(handler)
 
 
 def _normalize(header):
-    """Replace empty spaces with '-' and lower all chars
-    """
+    """Replace empty spaces with '-' and lower all chars"""
     return header.replace(' ', '-').lower()
 
 
@@ -110,7 +108,7 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['subcommands'][-1]['description'] += ' {0}'.format(
+                contents['subcommands'][-1]['description'] += ' {}'.format(
                     match.group('description')
                 )
             else:
@@ -122,7 +120,7 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['options'][-1]['help'] += ' {0}'.format(match.group('help'))
+                contents['options'][-1]['help'] += ' {}'.format(match.group('help'))
             else:
                 contents['options'].append(
                     {

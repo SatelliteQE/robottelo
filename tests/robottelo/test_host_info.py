@@ -66,8 +66,7 @@ class TestGetHostOsVersion:
 
     @mock.patch('robottelo.host_info.LOGGER')
     def test_command_error(self, logger, ssh_result):
-        """Check returns 'Not Available' on error
-        """
+        """Check returns 'Not Available' on error"""
         cmd = SSHCommandResult(
             stdout=[],
             stderr='bash: generate: command not found\n',
@@ -147,8 +146,7 @@ class TestGetHostSatVersion:
 
     @mock.patch('robottelo.host_info.LOGGER')
     def test_command_error(self, logger, ssh_result):
-        """Check returns 'Not Available' on error
-        """
+        """Check returns 'Not Available' on error"""
         ssh_result.return_value = self.SSH_RESULT_ERROR
 
         sat_version = host_info.get_host_sat_version.__wrapped__()
@@ -188,8 +186,7 @@ class TestSatVersionDependentValues:
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_init(self, get_host_sat_version, dep_versions_data):
-        """Test __init__ and check the is no call to get os Satellite version
-        """
+        """Test __init__ and check the is no call to get os Satellite version"""
         assert dep_versions_data.sat_dep_values._versioned_values == {
             "6.1": dep_versions_data.d_6_1,
             "6.2": dep_versions_data.d_6_2,

@@ -34,7 +34,7 @@ def check_package_installed(client_hostname=None, package=None):
 
     kwargs = {'host': settings.upgrade.docker_vm}
     installed_package = execute(
-        docker_execute_command, client_hostname, 'rpm -q {}'.format(package), **kwargs
+        docker_execute_command, client_hostname, f'rpm -q {package}', **kwargs
     )[settings.upgrade.docker_vm]
     return installed_package
 
@@ -51,19 +51,19 @@ def install_or_update_package(client_hostname=None, update=False, package=None):
         docker_execute_command,
         client_hostname,
         'subscription-manager repos --enable=*;yum clean all',
-        **kwargs
+        **kwargs,
     )[settings.upgrade.docker_vm]
     if update:
-        command = 'yum update -y {}'.format(package)
+        command = f'yum update -y {package}'
     else:
-        command = 'yum install -y {}'.format(package)
+        command = f'yum install -y {package}'
 
     execute(docker_execute_command, client_hostname, command, **kwargs)[settings.upgrade.docker_vm]
     assert package in check_package_installed(client_hostname=client_hostname, package=package)
 
 
 def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
-    """ Creates a custom yum repository, that will be synced to satellite
+    """Creates a custom yum repository, that will be synced to satellite
     and later to capsule from satellite
     :param: str rpm_name : rpm name, required to create a repository.
     :param: str repo_path: Name of the repository path
@@ -72,28 +72,28 @@ def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
     latest then we pass other rpm.
     """
     if post_upgrade:
-        run('wget {0} -P {1}'.format(rpm_name, repo_path))
-        run('rm -rf {0}'.format(repo_path + other_rpm))
-        run('createrepo --update {0}'.format(repo_path))
+        run(f'wget {rpm_name} -P {repo_path}')
+        run('rm -rf {}'.format(repo_path + other_rpm))
+        run(f'createrepo --update {repo_path}')
     else:
-        run('rm -rf {}'.format(repo_path))
-        run('mkdir {}'.format(repo_path))
-        run('wget {0} -P {1}'.format(rpm_name, repo_path))
+        run(f'rm -rf {repo_path}')
+        run(f'mkdir {repo_path}')
+        run(f'wget {rpm_name} -P {repo_path}')
         # Renaming custom rpm to preRepoSync.rpm
-        run('createrepo --database {0}'.format(repo_path))
+        run(f'createrepo --database {repo_path}')
 
 
 def host_status(client_container_name=None):
-    """ fetch the content host details.
+    """fetch the content host details.
     :param: str client_container_name: The content host hostname
     :return: nailgun.entity.host: host
     """
-    host = entities.Host().search(query={'search': '{0}'.format(client_container_name)})
+    host = entities.Host().search(query={'search': f'{client_container_name}'})
     return host
 
 
 def host_location_update(client_container_name=None, logger_obj=None, loc=None):
-    """ Check the content host status (as package profile update task does
+    """Check the content host status (as package profile update task does
     take time to upload) and update location.
 
     :param: str client_container_name: The content host hostname

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Global parameters CLI
 
 :Requirement: Globalparam
@@ -38,7 +37,7 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
         GlobalParameter().set({'name': name, 'value': value})
 
     @tier1
@@ -53,7 +52,7 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
         GlobalParameter().set({'name': name, 'value': value})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 1)
@@ -72,7 +71,7 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
         GlobalParameter().set({'name': name, 'value': value})
         GlobalParameter().delete({'name': name})
         result = GlobalParameter().list({'search': name})

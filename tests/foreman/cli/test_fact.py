@@ -39,7 +39,7 @@ class FactTestCase(CLITestCase):
         """
         for fact in ('uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress'):
             with self.subTest(fact):
-                args = {'search': "fact={0}".format(fact)}
+                args = {'search': f"fact={fact}"}
                 facts = Fact().list(args)
                 self.assertEqual(facts[0]['fact'], fact)
 
@@ -55,5 +55,5 @@ class FactTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         fact = gen_string('alpha')
-        args = {'search': "fact={0}".format(fact)}
+        args = {'search': f"fact={fact}"}
         self.assertEqual(Fact().list(args), [], 'No records should be returned')

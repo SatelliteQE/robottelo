@@ -106,7 +106,7 @@ class HostCreateTestCase(CLITestCase):
         """Create organization, lifecycle environment, content view, publish
         and promote new version to re-use in tests.
         """
-        super(HostCreateTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.new_org = make_org()
         cls.new_loc = make_location()
         cls.new_lce = make_lifecycle_environment({'organization-id': cls.new_org['id']})
@@ -133,7 +133,7 @@ class HostCreateTestCase(CLITestCase):
             puppet_modules, CUSTOM_PUPPET_REPO, cls.new_org['id']
         )
         cls.puppet_env = Environment.list(
-            {'search': 'content_view="{0}"'.format(cls.puppet_cv['name'])}
+            {'search': 'content_view="{}"'.format(cls.puppet_cv['name'])}
         )[0]
         cls.puppet_class = Puppet.info(
             {'name': puppet_modules[0]['name'], 'puppet-environment': cls.puppet_env['name']}
@@ -152,10 +152,10 @@ class HostCreateTestCase(CLITestCase):
 
         Record information about this puppet proxy as ``self.puppet_proxy``.
         """
-        super(HostCreateTestCase, self).setUp()
+        super().setUp()
         # Use the default installation smart proxy
         self.puppet_proxy = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            {'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
 
     @tier1
@@ -175,8 +175,8 @@ class HostCreateTestCase(CLITestCase):
         host = entities.Host()
         host.create_missing()
         interface = (
-            "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
-            "ip={3},primary=true,provision=true"
+            "type=interface,mac={},identifier=eth0,name={},domain_id={},"
+            "ip={},primary=true,provision=true"
         ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
         new_host = make_host(
             {
@@ -196,7 +196,7 @@ class HostCreateTestCase(CLITestCase):
                 'root-password': host.root_pass,
             }
         )
-        self.assertEqual('{0}.{1}'.format(name, host.domain.read().name), new_host['name'])
+        self.assertEqual(f'{name}.{host.domain.read().name}', new_host['name'])
         self.assertEqual(new_host['organization'], host.organization.name)
         self.assertEqual(
             new_host['content-information']['content-view']['name'], self.DEFAULT_CV['name']
@@ -261,9 +261,9 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        content_source = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
-        )[0]
+        content_source = Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[
+            0
+        ]
         host = make_fake_host(
             {
                 'content-source-id': content_source['id'],
@@ -319,9 +319,9 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        content_source = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
-        )[0]
+        content_source = Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[
+            0
+        ]
         host = make_fake_host(
             {
                 'content-source-id': content_source['id'],
@@ -395,9 +395,9 @@ class HostCreateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        openscap_proxy = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
-        )[0]
+        openscap_proxy = Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[
+            0
+        ]
 
         host = make_fake_host(
             {'organization-id': self.new_org['id'], 'openscap-proxy-id': openscap_proxy['id']}
@@ -469,8 +469,8 @@ class HostCreateTestCase(CLITestCase):
         help_output = Host.execute('host update --help')
         for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
             assert any(
-                ('--{}'.format(arg) in line for line in help_output)
-            ), "--{} not supported by update subcommand".format(arg)
+                f'--{arg}' in line for line in help_output
+            ), f"--{arg} not supported by update subcommand"
 
     @tier3
     @upgrade
@@ -545,7 +545,7 @@ class HostCreateTestCase(CLITestCase):
         sc_params_list = SmartClassParameter.list(
             {
                 'environment': self.puppet_env['name'],
-                'search': 'puppetclass="{0}"'.format(self.puppet_class['name']),
+                'search': 'puppetclass="{}"'.format(self.puppet_class['name']),
             }
         )
         scp_id = choice(sc_params_list)['id']
@@ -654,7 +654,7 @@ class HostCreateTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         compute_resource = entities.LibvirtComputeResource(
-            url='qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname),
+            url=f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
             organization=[self.new_org['id']],
             location=[self.new_loc['id']],
         ).create()
@@ -768,7 +768,7 @@ class HostCreateTestCase(CLITestCase):
                 'name': host_name,
             }
         )
-        self.assertEqual('{0}.{1}'.format(host_name, options.domain.read().name), host['name'])
+        self.assertEqual(f'{host_name}.{options.domain.read().name}', host['name'])
 
     @tier3
     def test_positive_list_with_nested_hostgroup(self):
@@ -821,7 +821,7 @@ class HostCreateTestCase(CLITestCase):
             }
         )
         hosts = Host.list({'organization-id': options.organization.id})
-        self.assertEqual('{0}/{1}'.format(parent_hg_name, nested_hg_name), hosts[0]['host-group'])
+        self.assertEqual(f'{parent_hg_name}/{nested_hg_name}', hosts[0]['host-group'])
 
     @pytest.mark.stubbed
     @tier3
@@ -859,9 +859,9 @@ class HostUpdateTestCase(CLITestCase):
 
     def setUp(self):
         """Create a host to reuse later"""
-        super(HostUpdateTestCase, self).setUp()
+        super().setUp()
         self.puppet_proxy = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            {'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         # using nailgun to create dependencies
         self.host_args = entities.Host()
@@ -935,7 +935,7 @@ class HostUpdateTestCase(CLITestCase):
         )
         self.host = Host.info({'id': self.host['id']})
         self.assertEqual(
-            '{0}.{1}'.format(new_name, self.host['network']['domain']), self.host['name']
+            '{}.{}'.format(new_name, self.host['network']['domain']), self.host['name']
         )
         self.assertEqual(self.host['location'], new_loc['name'])
         self.assertEqual(self.host['network']['mac'], new_mac)
@@ -961,7 +961,7 @@ class HostUpdateTestCase(CLITestCase):
                     Host.update({'id': self.host['id'], 'new-name': new_name})
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotEqual(
-                    '{0}.{1}'.format(new_name, self.host['network']['domain']).lower(),
+                    '{}.{}'.format(new_name, self.host['network']['domain']).lower(),
                     self.host['name'],
                 )
 
@@ -1055,9 +1055,9 @@ class HostParameterTestCase(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Create host to tests parameters for"""
-        super(HostParameterTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.puppet_proxy = Proxy.list(
-            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+            {'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         # using nailgun to create dependencies
         cls.host_template = entities.Host()
@@ -1562,7 +1562,7 @@ class KatelloHostToolsTestCase(CLITestCase):
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
-        super(KatelloHostToolsTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
         cls.content_view = make_content_view({'organization-id': cls.org['id']})
@@ -1596,7 +1596,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         """Create VM, install katello-ca package, subscribe vm host, enable
         satellite-tools repository, and install katello-host-tools package
         """
-        super(KatelloHostToolsTestCase, self).setUp()
+        super().setUp()
         # Create VM and register content host
         self.client = VirtualMachine()
         self.client.create()
@@ -1633,24 +1633,18 @@ class KatelloHostToolsTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_0_CUSTOM_PACKAGE))
-        result = self.client.run('rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE}')
+        result = self.client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE}')
         self.assertEqual(result.return_code, 0)
         installed_packages = Host.package_list(
-            {
-                'host-id': self.host_info['id'],
-                'search': 'name={0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME),
-            }
+            {'host-id': self.host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
         )
         self.assertEqual(len(installed_packages), 1)
         self.assertEqual(installed_packages[0]['nvra'], FAKE_0_CUSTOM_PACKAGE)
-        result = self.client.run('yum remove -y {0}'.format(FAKE_0_CUSTOM_PACKAGE))
+        result = self.client.run(f'yum remove -y {FAKE_0_CUSTOM_PACKAGE}')
         self.assertEqual(result.return_code, 0)
         installed_packages = Host.package_list(
-            {
-                'host-id': self.host_info['id'],
-                'search': 'name={0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME),
-            }
+            {'host-id': self.host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
         )
         self.assertEqual(len(installed_packages), 0)
 
@@ -1679,27 +1673,27 @@ class KatelloHostToolsTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        result = self.client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
         self.assertEqual(result.return_code, 0)
         applicable_packages = Package.list(
             {
                 'host-id': self.host_info['id'],
                 'packages-restrict-applicable': 'true',
-                'search': 'name={0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME),
+                'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
             }
         )
         self.assertEqual(len(applicable_packages), 1)
         self.assertIn(FAKE_2_CUSTOM_PACKAGE, applicable_packages[0]['filename'])
         # install package update
-        self.client.run('yum install -y {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
+        result = self.client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
         self.assertEqual(result.return_code, 0)
         applicable_packages = Package.list(
             {
                 'host-id': self.host_info['id'],
                 'packages-restrict-applicable': 'true',
-                'search': 'name={0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME),
+                'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
             }
         )
         self.assertEqual(len(applicable_packages), 0)
@@ -1730,8 +1724,8 @@ class KatelloHostToolsTestCase(CLITestCase):
         :CaseLevel: System
         """
         before_install = int(time.time())
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        result = self.client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
         self.assertEqual(result.return_code, 0)
         wait_for_errata_applicability_task(int(self.host_info['id']), before_install)
         applicable_erratum = Host.errata_list({'host-id': self.host_info['id']})
@@ -1743,7 +1737,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.assertIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
         before_upgrade = int(time.time())
         # apply errata
-        result = self.client.run('yum update -y --advisory {0}'.format(FAKE_2_ERRATA_ID))
+        result = self.client.run(f'yum update -y --advisory {FAKE_2_ERRATA_ID}')
         self.assertEqual(result.return_code, 0)
         wait_for_errata_applicability_task(int(self.host_info['id']), before_upgrade)
         applicable_erratum = Host.errata_list({'host-id': self.host_info['id']})
@@ -1794,7 +1788,7 @@ class HostSubscriptionTestCase(CLITestCase):
 
         :BZ: 1444886
         """
-        super(HostSubscriptionTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = make_org()
         cls.env = make_lifecycle_environment({'organization-id': cls.org['id']})
         cls.content_view = make_content_view({'organization-id': cls.org['id']})
@@ -1839,14 +1833,18 @@ class HostSubscriptionTestCase(CLITestCase):
 
     def setUp(self):
         """Create  a virtual machine without registration"""
-        super(HostSubscriptionTestCase, self).setUp()
+        super().setUp()
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()
         self.addCleanup(vm_cleanup, self.client)
         self.client.install_katello_ca()
 
     def _register_client(
-        self, activation_key=None, lce=False, enable_repo=False, auto_attach=False,
+        self,
+        activation_key=None,
+        lce=False,
+        enable_repo=False,
+        auto_attach=False,
     ):
         """Register the client as a content host consumer
 
@@ -1867,7 +1865,7 @@ class HostSubscriptionTestCase(CLITestCase):
         if lce:
             result = self.client.register_contenthost(
                 self.org['name'],
-                lce='{0}/{1}'.format(self.hosts_env['name'], self.content_view['name']),
+                lce='{}/{}'.format(self.hosts_env['name'], self.content_view['name']),
                 auto_attach=auto_attach,
             )
         else:
@@ -1884,9 +1882,7 @@ class HostSubscriptionTestCase(CLITestCase):
 
     def _client_enable_repo(self):
         """Enable the client default repository"""
-        result = self.client.run(
-            'subscription-manager repos --enable {0}'.format(self.repository_id)
-        )
+        result = self.client.run(f'subscription-manager repos --enable {self.repository_id}')
         return result
 
     def _make_activation_key(self, add_subscription=False):
@@ -2010,7 +2006,7 @@ class HostSubscriptionTestCase(CLITestCase):
 
     @tier3
     def test_negative_without_attach(self):
-        """ Register content host from satellite, register client to uuid
+        """Register content host from satellite, register client to uuid
         of that content host, as there was no attach on the client,
         Test if the list of the repository subscriptions is empty
 
@@ -2077,7 +2073,7 @@ class HostSubscriptionTestCase(CLITestCase):
         # register client
         self.client.register_contenthost(
             org['name'],
-            lce='{0}/{1}'.format(hosts_env['name'], content_view['name']),
+            lce='{}/{}'.format(hosts_env['name'], content_view['name']),
             auto_attach=False,
         )
 

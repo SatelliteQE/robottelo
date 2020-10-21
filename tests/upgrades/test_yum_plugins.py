@@ -62,10 +62,8 @@ class Scenario_yum_plugins_count(APITestCase):
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
         cls.client_os = DISTRO_RHEL7
-        cls.org = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)}
-        )[0]
-        cls.loc = entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
+        cls.org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+        cls.loc = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
     def _check_yum_plugins_count(self, client_container_id):
         """Check yum loaded plugins counts """
@@ -78,7 +76,7 @@ class Scenario_yum_plugins_count(APITestCase):
             docker_execute_command,
             client_container_id,
             'yum repolist|grep "Loaded plugins"|wc -l',
-            **kwargs
+            **kwargs,
         )[self.docker_vm]
         self.assertEqual(int(plugins_count), 2)
 
@@ -87,7 +85,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         tools_repo_url = settings.sattools_repo[DISTRO_RHEL7]
         if None in [tools_repo_url]:
-            raise ValueError('The Tools Repo URL {} is not provided!'.format(self.client_os))
+            raise ValueError(f'The Tools Repo URL {self.client_os} is not provided!')
 
         tools_repo = entities.Repository(
             product=product, content_type='yum', url=tools_repo_url
@@ -96,7 +94,7 @@ class Scenario_yum_plugins_count(APITestCase):
         return tools_repo
 
     def _get_rh_rhel_tools_repos(self):
-        """ Get list of RHEL7 and tools repos
+        """Get list of RHEL7 and tools repos
 
         :return: nailgun.entities.Repository: repository
         """
@@ -191,7 +189,7 @@ class Scenario_yum_plugins_count(APITestCase):
 
         :expectedresults:
             1. Loaded yum plugins should not load more than two times.
-         """
+        """
 
         entity_data = get_entity_data(self.__class__.__name__)
         client = entity_data.get('rhel_client')

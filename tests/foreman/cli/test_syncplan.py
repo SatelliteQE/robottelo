@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for Sync Plan CLI
 
 :Requirement: Syncplan
@@ -803,3 +802,4 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     # Verify product was synced successfully
     validate_task_status(repo['id'], repo_name=repo['name'])
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+

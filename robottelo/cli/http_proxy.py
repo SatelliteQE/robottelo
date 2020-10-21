@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage:
      http-proxy [OPTIONS] SUBCOMMAND [ARG] ...

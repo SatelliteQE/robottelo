@@ -24,10 +24,10 @@ def get_host_os_version():
         result = re.search(version_re, version_description)
         if result:
             host_os_version = 'RHEL{}'.format(result.group('version'))
-            LOGGER.debug('Host version: {}'.format(host_os_version))
+            LOGGER.debug(f'Host version: {host_os_version}')
             return host_os_version
 
-    LOGGER.warning('Host version not available: {!r}'.format(cmd))
+    LOGGER.warning(f'Host version not available: {cmd!r}')
     return 'Not Available'
 
 
@@ -47,10 +47,10 @@ def get_host_sat_version():
     )
     for version, ssh_result in commands:
         if version != 'Not Available':
-            LOGGER.debug('Host Satellite version: {}'.format(version))
+            LOGGER.debug(f'Host Satellite version: {version}')
             return version
 
-    LOGGER.warning('Host Satellite version not available: {!r}'.format(ssh_result))
+    LOGGER.warning(f'Host Satellite version not available: {ssh_result!r}')
     return version
 
 
@@ -87,13 +87,11 @@ def get_repo_files(repo_path, extension='rpm', hostname=None):
     if not repo_path.endswith('/'):
         repo_path += '/'
     result = ssh.command(
-        "find {} -name '*.{}' | awk -F/ '{{print $NF}}'".format(repo_path, extension),
+        f"find {repo_path} -name '*.{extension}' | awk -F/ '{{print $NF}}'",
         hostname=hostname,
     )
     if result.return_code != 0:
-        raise CLIReturnCodeError(
-            result.return_code, result.stderr, 'No .{} found'.format(extension)
-        )
+        raise CLIReturnCodeError(result.return_code, result.stderr, f'No .{extension} found')
     # strip empty lines and sort alphabetically (as order may be wrong because
     # of different paths)
     return sorted([repo_file for repo_file in result.stdout if repo_file])
@@ -110,7 +108,7 @@ def get_repomd_revision(repo_path, hostname=None):
     """
     repomd_path = 'repodata/repomd.xml'
     result = ssh.command(
-        "grep -oP '(?<=<revision>).*?(?=</revision>)' {}/{}".format(repo_path, repomd_path),
+        f"grep -oP '(?<=<revision>).*?(?=</revision>)' {repo_path}/{repomd_path}",
         hostname=hostname,
     )
     # strip empty lines
@@ -125,7 +123,7 @@ def get_repomd_revision(repo_path, hostname=None):
     return stdout[0]
 
 
-class SatVersionDependentValues(object):
+class SatVersionDependentValues:
     """Class which return values depending on Satellite host version"""
 
     def __init__(self, *dcts, **kwargs):

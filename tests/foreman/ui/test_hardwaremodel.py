@@ -70,7 +70,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # Make an attempt to delete hardware model that associated with host
         with raises(AssertionError) as context:
             session.hardwaremodel.delete(new_name)
-        assert "error: '{} is used by {}'".format(new_name, host_name) in str(context.value)
+        assert f"error: '{new_name} is used by {host_name}'" in str(context.value)
         session.host.update(host_name, {'additional_information.hardware_model': ''})
         # Delete hardware model
         session.hardwaremodel.delete(new_name)

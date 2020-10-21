@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the Compute Profile feature.
 
 :Requirement: Computeprofile

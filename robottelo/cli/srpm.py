@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Usage:
     hammer srpm [OPTIONS] SUBCOMMAND [ARG] ...

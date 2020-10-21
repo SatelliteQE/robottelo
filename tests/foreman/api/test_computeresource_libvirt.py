@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Unit tests for the ``compute_resource`` paths.
 
 A full API reference for compute resources can be found here:
@@ -42,7 +41,7 @@ class ComputeResourceTestCase(APITestCase):
     @skip_if_not_set('compute_resources')
     def setUpClass(cls):
         """Set up organization and location for tests."""
-        super(ComputeResourceTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
         cls.current_libvirt_url = (
@@ -155,7 +154,7 @@ class ComputeResourceTestCase(APITestCase):
             location=locs, organization=[self.org], url=self.current_libvirt_url
         ).create()
         self.assertEqual(
-            set(loc.name for loc in locs), set(loc.read().name for loc in compresource.location)
+            {loc.name for loc in locs}, {loc.read().name for loc in compresource.location}
         )
 
     @tier2
@@ -176,8 +175,8 @@ class ComputeResourceTestCase(APITestCase):
             organization=orgs, url=self.current_libvirt_url
         ).create()
         self.assertEqual(
-            set(org.name for org in orgs),
-            set(org.read().name for org in compresource.organization),
+            {org.name for org in orgs},
+            {org.read().name for org in compresource.organization},
         )
 
     @tier1
@@ -315,8 +314,8 @@ class ComputeResourceTestCase(APITestCase):
         compresource.location = new_locs
         compresource = compresource.update(['location'])
         self.assertEqual(
-            set(location.id for location in compresource.location),
-            set(location.id for location in new_locs),
+            {location.id for location in compresource.location},
+            {location.id for location in new_locs},
         )
 
     @tier2
@@ -361,8 +360,8 @@ class ComputeResourceTestCase(APITestCase):
         compresource.organization = new_orgs
         compresource = compresource.update(['organization'])
         self.assertEqual(
-            set(organization.id for organization in compresource.organization),
-            set(organization.id for organization in new_orgs),
+            {organization.id for organization in compresource.organization},
+            {organization.id for organization in new_orgs},
         )
 
     @tier1

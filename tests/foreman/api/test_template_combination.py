@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for template combination
 
 :Requirement: TemplateCombination
@@ -29,7 +28,7 @@ class TemplateCombinationTestCase(APITestCase):
         """Create hostgroup and environment to be used on
         TemplateCombination creation
         """
-        super(TemplateCombinationTestCase, cls).setUpClass()
+        super().setUpClass()
         cls.hostgroup = entities.HostGroup().create()
         cls.env = entities.Environment().create()
 
@@ -38,13 +37,13 @@ class TemplateCombinationTestCase(APITestCase):
         """Delete hostgroup and environment used on
         TemplateCombination creation
         """
-        super(TemplateCombinationTestCase, cls).tearDownClass()
+        super().tearDownClass()
         for entity in (cls.hostgroup, cls.env):
             entity.delete()
 
     def setUp(self):
         """Create ProvisioningTemplate and TemplateConfiguration for each test"""
-        super(TemplateCombinationTestCase, self).setUp()
+        super().setUp()
         self.template = entities.ProvisioningTemplate(
             snippet=False,
             template_combinations=[
@@ -62,7 +61,7 @@ class TemplateCombinationTestCase(APITestCase):
 
     def tearDown(self):
         """Delete ProvisioningTemplate used on tests"""
-        super(TemplateCombinationTestCase, self).tearDown()
+        super().tearDown()
         # Clean combination if it is not already deleted
         try:
             self.template_combination.delete()

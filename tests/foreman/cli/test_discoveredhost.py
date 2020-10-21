@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Test class for CLI Foreman Discovery
 
 :Requirement: Discoveredhost
@@ -66,7 +65,7 @@ class DiscoveredTestCase(CLITestCase):
         4. Enable auto_provision flag to perform discovery via discovery
            rules.
         """
-        super(DiscoveredTestCase, cls).setUpClass()
+        super().setUpClass()
 
         # Build PXE default template to get default PXE file
         Template.build_pxe_default()
@@ -110,7 +109,7 @@ class DiscoveredTestCase(CLITestCase):
             {'name': 'discovery_organization', 'value': cls.default_discovery_org['value']}
         )
         Settings.set({'name': 'discovery_auto', 'value': cls.default_discovery_auto['value']})
-        super(DiscoveredTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     @tier3
     def test_positive_pxe_based_discovery(self):
@@ -254,7 +253,7 @@ class DiscoveredTestCase(CLITestCase):
             # fixme: assertion #2-5
             provisioned_host = Host.info(
                 {
-                    'name': '{0}.{1}'.format(
+                    'name': '{}.{}'.format(
                         discovered_host['name'], self.configured_env['domain']['name']
                     )
                 }
@@ -458,7 +457,7 @@ class DiscoveredTestCase(CLITestCase):
             # fixme: assertion #5-8
             provisioned_host = Host.info(
                 {
-                    'name': '{0}.{1}'.format(
+                    'name': '{}.{}'.format(
                         discovered_host['name'], self.configured_env['domain']['name']
                     )
                 }
@@ -854,7 +853,7 @@ class DiscoveredTestCase(CLITestCase):
         """
         param1_key, param1_value = gen_string('alpha'), gen_string('alphanumeric')
         param2_key, param2_value = gen_string('alpha'), gen_string('alphanumeric')
-        host_params = ['{}={}, {}={}'.format(param1_key, param1_value, param2_key, param2_value)]
+        host_params = [f'{param1_key}={param1_value}, {param2_key}={param2_value}']
         if not self.configured_env:
             self.__class__.configured_env = configure_env_for_provision(org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
