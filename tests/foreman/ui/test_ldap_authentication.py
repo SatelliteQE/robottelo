@@ -1355,7 +1355,7 @@ def test_timeout_and_cac_card_ejection():
 @pytest.mark.skip_if_open("BZ:1670397")
 def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_down):
     """Verify if attributes of LDAP user are updated upon first login when
-    onthefly is disabled
+        onthefly is disabled
 
     :id: 163b346c-03be-11eb-acb9-0c7a158cbff4
 
@@ -1406,3 +1406,94 @@ def test_verify_attribute_of_users_are_updated(session, ldap_data, ldap_tear_dow
         assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
         assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
         assert ldap_data['ldap_user_name'] in user_values['user']['mail']
+
+
+@tier2
+def test_positive_end_to_end_open_ldap_authsource(
+    test_name, session, ldap_tear_down, open_ldap_data, module_org, module_loc
+):
+    """Create OpenLDAP auth_source with org and loc assigned.
+
+    :id: f2fa0678-ff2f-11ea-b081-d46d6dd3b5b2
+
+    :steps:
+        1. Create a new LDAP Auth source with OpenLDAP, provide organization and
+           location information.
+        2. Fill in all the fields appropriately for OpenLDAP.
+
+    :expectedresults: Whether creating LDAP Auth source with OpenLDAP and
+        associating org and loc is successful.
+    """
+    ldap_auth_name = gen_string('alphanumeric')
+    with session:
+        session.ldapauthentication.create(
+            {
+                'ldap_server.name': ldap_auth_name,
+                'ldap_server.host': open_ldap_data.hostname,
+                'ldap_server.ldaps': False,
+                'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['posix'],
+                'account.account_name': open_ldap_data.username,
+                'account.password': open_ldap_data.password,
+                'account.base_dn': open_ldap_data.base_dn,
+                'account.onthefly_register': True,
+                'locations.resources.assigned': [module_loc.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
+        )
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_loc.name)
+        assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
+        ldap_source = session.ldapauthentication.read(ldap_auth_name)
+        assert ldap_source['ldap_server']['name'] == ldap_auth_name
+        assert ldap_source['ldap_server']['host'] == open_ldap_data.hostname
+        assert ldap_source['ldap_server']['port'] == '389'
+    user_name = open_ldap_data.open_ldap_user
+    with Session(test_name, user_name, open_ldap_data.password) as ldapsession:
+        with raises(NavigationTriesExceeded):
+            ldapsession.usergroup.search('')
+        assert user_name.capitalize() in ldapsession.task.read_all()['current_user']
+
+
+@pytest.mark.skip_if_open("BZ:1883209")
+@tier2
+def test_positive_group_sync_open_ldap_authsource(
+    test_name, session, auth_source_open_ldap, ldap_usergroup_name, ldap_tear_down, open_ldap_data
+):
+    """Associate katello roles to User Group. [belonging to external OpenLDAP User Group.]
+
+    :id: 11d148bc-015c-11eb-8043-d46d6dd3b5b2
+
+    :BZ: 1883209
+
+    :Steps:
+        1. Create an UserGroup.
+        2. Assign some foreman roles to UserGroup.
+        3. Create and associate an External OpenLDAP UserGroup.
+
+    :expectedresults: Whether a User belonging to User Group is able to access katello
+        entities as per roles.
+    """
+    ak_name = gen_string('alpha')
+    auth_source_name = 'LDAP-' + auth_source_open_ldap.name
+    user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+    with session:
+        session.usergroup.create(
+            {
+                'usergroup.name': ldap_usergroup_name,
+                'roles.resources.assigned': [katello_role.name],
+                'external_groups.name': EXTERNAL_GROUP_NAME,
+                'external_groups.auth_source': auth_source_name,
+            }
+        )
+        assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
+        session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
+    user_name = open_ldap_data.open_ldap_user
+    with Session(test_name, user_name, open_ldap_data.password) as session:
+        with raises(NavigationTriesExceeded):
+            session.architecture.search('')
+        session.activationkey.create({'name': ak_name})
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
+        current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
+        assert user_name.capitalize() in current_user

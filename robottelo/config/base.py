@@ -731,6 +731,38 @@ class LDAPIPASettings(FeatureSettings):
         return validation_errors
 
 
+class OpenLDAPSettings(FeatureSettings):
+    """Open LDAP settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(OpenLDAPSettings, self).__init__(*args, **kwargs)
+        self.base_dn = None
+        self.group_base_dn = None
+        self.hostname = None
+        self.password = None
+        self.username = None
+        self.open_ldap_user = None
+
+    def read(self, reader):
+        """Read Open LDAP settings."""
+        self.base_dn = reader.get('open_ldap', 'base_dn')
+        self.group_base_dn = reader.get('open_ldap', 'group_base_dn')
+        self.hostname = reader.get('open_ldap', 'hostname')
+        self.password = reader.get('open_ldap', 'password')
+        self.username = reader.get('open_ldap', 'username')
+        self.open_ldap_user = reader.get('open_ldap', 'open_ldap_user')
+
+    def validate(self):
+        """Validate Open LDAP settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [open_ldap] base_dn, group_base_dn, hostname, password, '
+                'username, open_ldap_user options must be provided.'
+            )
+        return validation_errors
+
+
 class LibvirtHostSettings(FeatureSettings):
     """Libvirt host settings definitions."""
 
@@ -1375,6 +1407,7 @@ class Settings(object):
         self.gce = GCESettings()
         self.ldap = LDAPSettings()
         self.ipa = LDAPIPASettings()
+        self.open_ldap = OpenLDAPSettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
         self.osp = OSPSettings()
