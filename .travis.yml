@@ -1,9 +1,11 @@
-sudo: false
+os: linux
+dist: xenial
 language: python
 env:
     - PYCURL_SSL_LIBRARY=gnutls
 python:
     - "3.8"
+    - "3.9"
 before_install:
     - sudo apt-get install -y libgnutls-dev
     - wget https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example

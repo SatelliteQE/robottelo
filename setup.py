@@ -17,6 +17,7 @@ setup(
     include_package_data=True,
     license='GNU GPL v3.0',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    python_requires="~=3.6",  # We run on 3.8, relaxed lower limit
     classifiers=(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -24,6 +25,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
     ),
 )
