@@ -530,3 +530,17 @@ def module_puppet_classes(module_env_search):
 @pytest.fixture(scope="function")
 def function_role():
     return entities.Role().create()
+
+
+@pytest.fixture(scope="function")
+def setting_update(request):
+    """
+    This fixture is used to create an object of the provided settings parameter that we use in
+    each test case to update their attributes and once the test case gets completed it helps to
+    restore their default value
+    """
+    setting_object = entities.Setting().search(query={'search': f'name={request.param}'})[0]
+    default_setting_value = setting_object.value
+    yield setting_object
+    setting_object.value = default_setting_value
+    setting_object.update({'value'})
