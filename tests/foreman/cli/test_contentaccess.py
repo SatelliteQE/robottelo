@@ -24,7 +24,6 @@ from robottelo.cli.factory import setup_cdn_and_custom_repositories
 from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
-from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
@@ -92,40 +91,28 @@ class ContentAccessTestCase(CLITestCase):
         )
         # Create repositories
         cls.repos = [
-            # Red Hat Enterprise Linux 7
-            {
-                'product': PRDS['rhel'],
-                'repository-set': REPOSET['rhel7'],
-                'repository': REPOS['rhel7']['name'],
-                'repository-id': REPOS['rhel7']['id'],
-                'releasever': REPOS['rhel7']['releasever'],
-                'arch': REPOS['rhel7']['arch'],
-                'cdn': True,
-            },
-            # Red Hat Satellite Tools
+            # Red Hat Satellite Tools from CDN
             {
                 'product': PRDS['rhel'],
                 'repository-set': REPOSET['rhst7'],
                 'repository': REPOS['rhst7']['name'],
                 'repository-id': REPOS['rhst7']['id'],
-                'url': settings.sattools_repo['rhel7'],
-                'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
+                'releasever': REPOS['rhel7']['releasever'],
+                'arch': REPOS['rhel7']['arch'],
+                'cdn': True,
             },
         ]
-        cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
-            cls.org['id'], cls.repos
-        )
+        cls.repos_info = setup_cdn_and_custom_repositories(cls.org['id'], cls.repos)
         # Create a content view
         content_view = make_content_view({'organization-id': cls.org['id']})
         # Add repositories to content view
-        for repo_info in cls.repos_info:
-            ContentView.add_repository(
-                {
-                    'id': content_view['id'],
-                    'organization-id': cls.org['id'],
-                    'repository-id': repo_info['id'],
-                }
-            )
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': cls.org['id'],
+                'repository-id': cls.repos_info[1][0]['id'],
+            }
+        )
         # Publish the content view
         ContentView.publish({'id': content_view['id']})
         cls.content_view = ContentView.info({'id': content_view['id']})
@@ -139,10 +126,7 @@ class ContentAccessTestCase(CLITestCase):
             vm,
             self.org['label'],
             rh_repos_id=[repo['repository-id'] for repo in self.repos if repo['cdn']],
-            product_label=self.custom_product['label'],
-            repos_label=[
-                repo['label'] for repo in self.repos_info if repo['red-hat-repository'] == 'no'
-            ],
+            repos_label=self.repos_info[1][0]['label'],
             lce=ENVIRONMENT,
             patch_os_release_distro=DISTRO_RHEL7,
             install_katello_agent=True,
@@ -173,7 +157,7 @@ class ContentAccessTestCase(CLITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
-            # install a the packages that has updates
+            # install the packages that require updates
             result = vm.run('yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
@@ -219,7 +203,7 @@ class ContentAccessTestCase(CLITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
-            # install a the packages that has updates with errata
+            # install the packages that require updates
             result = vm.run('yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))

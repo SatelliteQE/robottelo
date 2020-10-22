@@ -9,6 +9,7 @@ from fauxfactory import gen_alphanumeric
 from robottelo import ssh
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
+from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
 from robottelo.decorators import setting_is_set
@@ -231,12 +232,21 @@ class CapsuleVirtualMachine(VirtualMachine):
         )
         self.configure_rhel_repo(settings.__dict__[self.distro + '_repo'])
         self.run('yum repolist')
+        self.run('yum -y update')
         self.run('yum -y install satellite-capsule', timeout=1200)
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
             raise CapsuleVirtualMachineError(
                 'Failed to install satellite-capsule package\n{}'.format(result.stderr)
             )
+        # update http proxy except list
+        result = Settings.list({'search': 'http_proxy_except_list'})[0]
+        if result["value"] == "[]":
+            except_list = '[{0}]'.format(self.hostname)
+        else:
+            except_list = result["value"][:-1] + ', {0}]'.format(self.hostname)
+        Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
+        # generate certificate
         cert_file_path = '/root/{0}-certs.tar'.format(self.hostname)
         certs_gen = ssh.command(
             'capsule-certs-generate '
