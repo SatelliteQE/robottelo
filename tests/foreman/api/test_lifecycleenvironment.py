@@ -180,11 +180,12 @@ def test_positive_delete(lce, name):
 
     :id: cd5a97ca-c1e8-41c7-8d6b-f908916b24e1
 
+    :parametrized: yes
+
     :expectedresults: Lifecycle environment is deleted successfully
 
     :CaseImportance: Critical
 
-    :parametrized: yes
     """
     lce.delete()
     with pytest.raises(HTTPError):
