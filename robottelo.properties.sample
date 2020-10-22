@@ -177,6 +177,8 @@ ssh_key=
 # disabled_user_ipa=
 # otp_user=otp_user
 # time_based_secret=
+# group_users =
+# groups =
 
 # Fake manifest testing.
 # [fake_manifest]

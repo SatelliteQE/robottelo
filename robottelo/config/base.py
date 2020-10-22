@@ -706,6 +706,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = None
         self.time_based_secret = None
         self.disabled_user_ipa = None
+        self.group_users = None
+        self.groups = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -718,6 +720,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = reader.get('ipa', 'otp_user')
         self.time_based_secret = reader.get('ipa', 'time_based_secret')
         self.disabled_user_ipa = reader.get('ipa', 'disabled_user_ipa')
+        self.group_users = reader.get('ipa', 'group_users', cast=list)
+        self.groups = reader.get('ipa', 'groups', cast=list)
 
     def validate(self):
         """Validate LDAP freeIPA settings."""
@@ -726,7 +730,8 @@ class LDAPIPASettings(FeatureSettings):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
                 ' password_ipa, username_ipa, user_ipa,'
-                ' otp_user, time_based_secret and disabled_user_ipa options must be provided.'
+                ' otp_user, time_based_secret, disabled_user_ipa, '
+                'group_users and groups options must be provided.'
             )
         return validation_errors
 
