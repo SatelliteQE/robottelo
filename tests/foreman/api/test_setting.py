@@ -201,3 +201,45 @@ class SettingTestCase(APITestCase):
 
         :CaseAutomation: notautomated
         """
+
+    @run_in_one_thread
+    @tier2
+    def test_positive_custom_repo_download_policy(self):
+        """ Check the set custom repository download policy for newly created custom repository.
+
+        :id: d5150cce-ba85-4ea0-a8d1-6a54d0d29571
+
+        :Steps:
+            1. Create a product, Organization
+            2. Update the Default Custom Repository download policy in the setting.
+            3. Create a custom repo under the created organization.
+            4. Check the set policy of new created repository.
+            5. Repeat steps 2 to 4 for both download policy.
+
+        :expectedresults: The set download policy should be the default policy in the newly created
+         repository.
+
+        :CaseImportance: Medium
+
+        :CaseLevel: Acceptance
+        """
+        download_policy_id = "default_download_policy"
+        download_policies = ["immediate", "on_demand"]
+        download_policy_property = entities.Setting().search(
+            query={'search': f'name={download_policy_id}'}
+        )[0]
+        default_property_value = download_policy_property.value
+        org = entities.Organization().create()
+        prod = entities.Product(organization=org).create()
+        try:
+            for download_policy in download_policies:
+                download_policy_property.value = download_policy
+                download_policy_property.update({'value'})
+                repo = entities.Repository(
+                    product=prod, content_type='yum', organization=org
+                ).create()
+                assert repo.download_policy == download_policy
+                repo.delete()
+        finally:
+            prod.delete()
+            setting_cleanup(setting_name=download_policy_id, setting_value=default_property_value)

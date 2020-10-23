@@ -42,6 +42,11 @@ def ipa_data():
     }
 
 
+@fixture(scope='session')
+def open_ldap_data():
+    return settings.open_ldap
+
+
 @fixture(scope='function')
 def auth_source(module_org, module_loc, ad_data):
     return entities.AuthSourceLDAP(
@@ -134,6 +139,27 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
         # default auth server settings
         raise Exception('Incorrect auth source parameter used')
     yield ldap_data
+
+
+@fixture(scope='function')
+def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
+    return entities.AuthSourceLDAP(
+        onthefly_register=True,
+        account=open_ldap_data.username,
+        account_password=open_ldap_data.password,
+        base_dn=open_ldap_data.base_dn,
+        attr_firstname=LDAP_ATTR['firstname'],
+        attr_lastname=LDAP_ATTR['surname'],
+        attr_login=LDAP_ATTR['login'],
+        server_type=LDAP_SERVER_TYPE['API']['posix'],
+        attr_mail=LDAP_ATTR['mail'],
+        name=gen_string('alpha'),
+        host=open_ldap_data.hostname,
+        tls=False,
+        port='389',
+        organization=[module_org],
+        location=[module_loc],
+    ).create()
 
 
 @fixture(scope='session')

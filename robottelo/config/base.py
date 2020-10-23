@@ -706,6 +706,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = None
         self.time_based_secret = None
         self.disabled_user_ipa = None
+        self.group_users = None
+        self.groups = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -718,6 +720,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = reader.get('ipa', 'otp_user')
         self.time_based_secret = reader.get('ipa', 'time_based_secret')
         self.disabled_user_ipa = reader.get('ipa', 'disabled_user_ipa')
+        self.group_users = reader.get('ipa', 'group_users', cast=list)
+        self.groups = reader.get('ipa', 'groups', cast=list)
 
     def validate(self):
         """Validate LDAP freeIPA settings."""
@@ -726,7 +730,40 @@ class LDAPIPASettings(FeatureSettings):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
                 ' password_ipa, username_ipa, user_ipa,'
-                ' otp_user, time_based_secret and disabled_user_ipa options must be provided.'
+                ' otp_user, time_based_secret, disabled_user_ipa, '
+                'group_users and groups options must be provided.'
+            )
+        return validation_errors
+
+
+class OpenLDAPSettings(FeatureSettings):
+    """Open LDAP settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(OpenLDAPSettings, self).__init__(*args, **kwargs)
+        self.base_dn = None
+        self.group_base_dn = None
+        self.hostname = None
+        self.password = None
+        self.username = None
+        self.open_ldap_user = None
+
+    def read(self, reader):
+        """Read Open LDAP settings."""
+        self.base_dn = reader.get('open_ldap', 'base_dn')
+        self.group_base_dn = reader.get('open_ldap', 'group_base_dn')
+        self.hostname = reader.get('open_ldap', 'hostname')
+        self.password = reader.get('open_ldap', 'password')
+        self.username = reader.get('open_ldap', 'username')
+        self.open_ldap_user = reader.get('open_ldap', 'open_ldap_user')
+
+    def validate(self):
+        """Validate Open LDAP settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [open_ldap] base_dn, group_base_dn, hostname, password, '
+                'username, open_ldap_user options must be provided.'
             )
         return validation_errors
 
@@ -1375,6 +1412,7 @@ class Settings(object):
         self.gce = GCESettings()
         self.ldap = LDAPSettings()
         self.ipa = LDAPIPASettings()
+        self.open_ldap = OpenLDAPSettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
         self.osp = OSPSettings()

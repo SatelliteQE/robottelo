@@ -112,7 +112,7 @@ class SubscriptionsTestCase(APITestCase):
             upload_manifest(org.id, manifest.content)
         try:
             sub.refresh_manifest(data={'organization_id': org.id})
-            self.assertGreater(len(sub.search()), 0)
+            assert len(sub.search()) > 0
         finally:
             sub.delete_manifest(data={'organization_id': org.id})
 
@@ -139,9 +139,9 @@ class SubscriptionsTestCase(APITestCase):
         self.upload_manifest(org.id, manifests.original_manifest())
         try:
             org_sub.refresh_manifest(data={'organization_id': org.id})
-            self.assertGreater(len(org_sub.search()), 0)
+            assert len(org_sub.search()) > 0
             self.upload_manifest(new_org.id, manifests.clone())
-            self.assertGreater(len(new_org_sub.search()), 0)
+            assert len(new_org_sub.search()) > 0
         finally:
             org_sub.delete_manifest(data={'organization_id': org.id})
 
@@ -160,9 +160,9 @@ class SubscriptionsTestCase(APITestCase):
         sub = entities.Subscription(organization=org)
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        self.assertGreater(len(sub.search()), 0)
+        assert len(sub.search()) > 0
         sub.delete_manifest(data={'organization_id': org.id})
-        self.assertEqual(len(sub.search()), 0)
+        assert len(sub.search()) == 0
 
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -177,9 +177,9 @@ class SubscriptionsTestCase(APITestCase):
         orgs = [entities.Organization().create() for _ in range(2)]
         with manifests.clone() as manifest:
             upload_manifest(orgs[0].id, manifest.content)
-            with self.assertRaises(TaskFailedError):
+            with pytest.raises(TaskFailedError):
                 upload_manifest(orgs[1].id, manifest.content)
-        self.assertEqual(len(entities.Subscription(organization=orgs[1]).search()), 0)
+        assert len(entities.Subscription(organization=orgs[1]).search()) == 0
 
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
@@ -222,7 +222,7 @@ class SubscriptionsTestCase(APITestCase):
         entities.Subscription(sc2, organization=org).delete_manifest(
             data={'organization_id': org.id}
         )
-        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+        assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @tier2
     @pytest.mark.usefixtures("golden_ticket_host_setup")
