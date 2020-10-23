@@ -67,9 +67,9 @@ WRAPPER_EXCEPTIONS = (
 )
 
 
-class ConfigNodeWrapper(CallableObjectProxy):
+class SettingsNodeWrapper(CallableObjectProxy):
     def __init__(self, wrapped, config_provider=None, full_path=None):
-        super(ConfigNodeWrapper, self).__init__(wrapped)
+        super(SettingsNodeWrapper, self).__init__(wrapped)
         if config_provider is None:
             config_provider = wrapped
         self._self_config_provider = config_provider
@@ -82,10 +82,10 @@ class ConfigNodeWrapper(CallableObjectProxy):
         config_value = self._self_config_provider.get(new_path)
         if new_path in WRAPPER_EXCEPTIONS:
             logger.debug(
-                f"Found '{new_path}' in exceptions list - will not wrap in ConfigNodeWrapper"
+                f"Found '{new_path}' in exceptions list - will not wrap in SettingsNodeWrapper"
             )
             return config_value
-        return ConfigNodeWrapper(config_value, self._self_config_provider, new_path)
+        return SettingsNodeWrapper(config_value, self._self_config_provider, new_path)
 
     def __dir__(self):
         if self._self_full_path is None:
@@ -105,7 +105,7 @@ class ConfigNodeWrapper(CallableObjectProxy):
         )
 
 
-class ConfigProxy:
+class SettingsFacade:
     _cache = {}
     _configs = []
 

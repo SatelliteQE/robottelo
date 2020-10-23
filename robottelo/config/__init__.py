@@ -6,8 +6,8 @@ from dynaconf.validator import ValidationError
 from .validators import validators
 from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import Settings as LegacySettings
-from robottelo.config.proxy import ConfigNodeWrapper
-from robottelo.config.proxy import ConfigProxy
+from robottelo.config.facade import SettingsFacade
+from robottelo.config.facade import SettingsNodeWrapper
 
 logger = logging.getLogger('robottelo.config')
 
@@ -42,7 +42,7 @@ except ValidationError:
         "Dynaconf validation failed, continuing for the sake of unit tests", exc_info=True
     )
 
-settings_proxy = ConfigProxy()
+settings_proxy = SettingsFacade()
 settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 
-settings = ConfigNodeWrapper(settings_proxy)
+settings = SettingsNodeWrapper(settings_proxy)
