@@ -1486,7 +1486,7 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: upload content is successful
 
-        :BZ: 1343006
+        :BZ: 1343006, 1421298
 
         :CaseImportance: Critical
         """
@@ -1502,7 +1502,8 @@ class RepositoryTestCase(CLITestCase):
                 'product-id': new_repo['product']['id'],
             }
         )
-        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
+        assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
+        assert int(Repository.info({'id': new_repo['id']})['content-counts']['packages']) == 1
 
     @tier1
     def test_positive_upload_content_to_file_repo(self):
@@ -1514,7 +1515,7 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: upload content operation is successful
 
-        :BZ: 1446975
+        :BZ: 1446975, 1421298
 
         :CaseImportance: Critical
         """
@@ -1522,7 +1523,7 @@ class RepositoryTestCase(CLITestCase):
         Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
-        self.assertEqual(int(new_repo['content-counts']['files']), CUSTOM_FILE_REPO_FILES_COUNT)
+        assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT
         ssh.upload_file(
             local_file=get_data_file(OS_TEMPLATE_DATA_FILE),
             remote_file=f"/tmp/{OS_TEMPLATE_DATA_FILE}",
@@ -1535,13 +1536,9 @@ class RepositoryTestCase(CLITestCase):
                 'product-id': new_repo['product']['id'],
             }
         )
-        self.assertIn(
-            f"Successfully uploaded file '{OS_TEMPLATE_DATA_FILE}'", result[0]['message']
-        )
+        assert f"Successfully uploaded file '{OS_TEMPLATE_DATA_FILE}'" in result[0]['message']
         new_repo = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            int(new_repo['content-counts']['files']), CUSTOM_FILE_REPO_FILES_COUNT + 1
-        )
+        assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
     @pytest.mark.skip_if_open("BZ:1410916")
     @tier2
