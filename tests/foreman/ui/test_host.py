@@ -41,7 +41,6 @@ from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_scap_policy
-from robottelo.cli.factory import make_scapcontent
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
@@ -53,7 +52,6 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
@@ -81,31 +79,13 @@ def _get_set_from_list_of_dict(value):
 
 
 @pytest.fixture
-def scap_content():
-    title = 'rhel-content-{0}'.format(gen_string('alpha'))
-    scap_info = make_scapcontent(
-        {'title': title, 'scap-file': '{0}'.format(settings.oscap.content_path)}
-    )
-    scap_id = scap_info['id']
-    scap_info = Scapcontent.info({'id': scap_id}, output_format='json')
-
-    scap_profile_id = [
-        profile['id']
-        for profile in scap_info['scap-content-profiles']
-        if OSCAP_PROFILE['security7'] in profile['title']
-    ][0]
-    return scap_id, scap_profile_id
-
-
-@pytest.fixture
 def scap_policy(scap_content):
-    scap_id, scap_profile_id = scap_content
     scap_policy = make_scap_policy(
         {
             'name': gen_string('alpha'),
             'deploy-by': 'puppet',
-            'scap-content-id': scap_id,
-            'scap-content-profile-id': scap_profile_id,
+            'scap-content-id': scap_content["scap_id"],
+            'scap-content-profile-id': scap_content["scap_profile_id"],
             'period': OSCAP_PERIOD['weekly'].lower(),
             'weekday': OSCAP_WEEKDAY['friday'].lower(),
         }

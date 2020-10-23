@@ -1,13 +1,10 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
-import os
-
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
-from robottelo import ssh
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
@@ -27,7 +24,6 @@ from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.decorators import skip_if
 from robottelo.helpers import download_gce_cert
-from robottelo.helpers import file_downloader
 from robottelo.test import settings
 
 # Global Satellite Entities
@@ -79,16 +75,6 @@ def module_model():
 @pytest.fixture(scope='module')
 def module_compute_profile():
     return entities.ComputeProfile().create()
-
-
-@pytest.fixture(scope='session')
-def default_smart_proxy():
-    smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
-        .read()
-    )
-    return entities.SmartProxy(id=smart_proxy.id).read()
 
 
 @pytest.fixture(scope='session')
@@ -456,25 +442,6 @@ def module_cv_with_puppet_module(module_org):
         CUSTOM_PUPPET_REPO,
         organization_id=module_org.id,
     )
-
-
-@pytest.fixture(scope="session")
-def tailoring_file_path():
-    """ Return Tailoring file path."""
-    local = file_downloader(file_url=settings.oscap.tailoring_path)[0]
-    satellite = file_downloader(
-        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
-    )[0]
-    return {'local': local, 'satellite': satellite}
-
-
-@pytest.fixture(scope="session")
-def oscap_content_path():
-    """ Download scap content from satellite and return local path of it."""
-    _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = f"/tmp/{file_name}"
-    ssh.download_file(settings.oscap.content_path, local_file)
-    return local_file
 
 
 @pytest.fixture(scope='session')
