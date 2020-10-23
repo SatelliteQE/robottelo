@@ -22,6 +22,7 @@ from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.cli import hammer
+from robottelo.cli.admin import Admin
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
@@ -184,16 +185,40 @@ class HammerTestCase(CLITestCase):
             Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
             # Verify --organization-id is not required to pass if defaults are set
             result = ssh.command('hammer product list')
-            self.assertEqual(result.return_code, 0)
+            assert result.return_code == 0
             # Verify product list fail without using defaults
             result = ssh.command('hammer --no-use-defaults product list')
-            self.assertNotEqual(result.return_code, 0)
-            self.assertFalse(default_product_name in "".join(result.stdout))
+            assert result.return_code != 0
+            assert default_product_name not in "".join(result.stdout)
             # Verify --organization-id is not required to pass if defaults are set
             result = ssh.command('hammer --use-defaults product list')
-            self.assertEqual(result.return_code, 0)
-            self.assertTrue(default_product_name in "".join(result.stdout))
+            assert result.return_code == 0
+            assert default_product_name in "".join(result.stdout)
         finally:
             Defaults.delete({'param-name': 'organization_id'})
             result = ssh.command('hammer defaults list')
-            self.assertTrue(default_org['id'] not in "".join(result.stdout))
+            assert default_org['id'] not in "".join(result.stdout)
+
+    @tier1
+    def test_positive_check_debug_log_levels(self):
+        """Enabling debug log level in candlepin via hammer logging
+
+        :id: 029c80f1-2bc5-494e-a04a-7d6beb0f769a
+
+        :expectedresults: Verify enabled debug log level
+
+        :CaseImportance: Medium
+
+        :BZ: 1760773
+        """
+        Admin.logging({"all": True, "level-debug": True})
+        # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
+        result = ssh.command("grep DEBUG /etc/candlepin/candlepin.conf")
+        assert result.return_code == 0
+        assert 'log4j.logger.org.candlepin = DEBUG' in result.stdout
+
+        Admin.logging({"all": True, "level-production": True})
+        # Verify value of `log4j.logger.org.candlepin` as `WARN`
+        result = ssh.command("grep WARN /etc/candlepin/candlepin.conf")
+        assert result.return_code == 0
+        assert 'log4j.logger.org.candlepin = WARN' in result.stdout
