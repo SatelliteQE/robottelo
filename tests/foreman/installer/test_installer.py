@@ -1381,10 +1381,11 @@ class SELinuxTestCase(TestCase):
 
         :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
-        :expectedresults: All services {'elasticsearch', 'foreman-proxy',
-            'foreman-tasks', 'httpd', 'rh-mongodb34-mongod', 'postgresql',
-            'pulp_celerybeat', 'pulp_resource_manager', 'pulp_workers',
-            'qdrouterd', 'qpidd', 'tomcat'} are started
+        :expectedresults: All services {'elasticsearch', 'foreman-proxy', 'httpd',
+
+        'rh-mongodb34-mongod', 'postgresql', 'pulp_celerybeat', 'pulp_resource_manager',
+
+        'pulp_workers', 'qdrouterd', 'qpidd', 'tomcat'} are started
         """
         major_version = get_host_info()[1]
         services = (
@@ -1392,7 +1393,6 @@ class SELinuxTestCase(TestCase):
             'dynflow-sidekiq@worker',
             'dynflow-sidekiq@worker-hosts-queue',
             'foreman-proxy',
-            'foreman',
             'httpd',
             'rh-mongodb34-mongod',
             'postgresql',
