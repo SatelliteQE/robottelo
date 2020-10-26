@@ -115,17 +115,6 @@ def ldap_tear_down():
 
 
 @fixture()
-def groups_teardown():
-    "teardown for groups created for external/remote groups"
-    yield
-    # tear down groups
-    for group_name in ('sat_users', 'sat_admins'):
-        user_groups = entities.UserGroup().search(query={'search': f'name="{group_name}"'})
-        if user_groups:
-            user_groups[0].delete()
-
-
-@fixture()
 def external_user_count():
     """return the external auth source user count"""
     users = entities.User().search()
