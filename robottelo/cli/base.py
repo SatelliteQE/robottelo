@@ -38,8 +38,7 @@ class CLIBaseError(Exception):
         return repr(self)
 
     def __repr__(self):
-        """Include class name return_code, stderr and msg to improve logging
-        """
+        """Include class name return_code, stderr and msg to improve logging"""
         return '{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
             type(self).__name__, self.return_code, self.stderr, self.msg
         )
@@ -144,10 +143,9 @@ class Base:
         """
         if response.return_code != 0:
             full_msg = (
-                'Command "{} {}" finished with return_code {}\n'
-                'stderr contains following message:\n{}'.format(
-                    cls.command_base, cls.command_sub, response.return_code, response.stderr
-                )
+                f'Command "{cls.command_base} {cls.command_sub}" '
+                f'finished with return_code {response.return_code}\n'
+                f'stderr contains:\n{response.stderr}'
             )
             error_data = (response.return_code, response.stderr, full_msg)
             if cls._db_error_regex.search(full_msg):
@@ -291,9 +289,9 @@ class Base:
         cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
             settings.locale,
             'time -p' if time_hammer else '',
-            f'-u {user}' if user is not None else '--interactive no',
-            f'-p {password}' if password is not None else '',
-            f'--output={output_format}' if output_format else '',
+            f'-u {user}' if user else "--interactive no",
+            f'-p {password}' if password else "",
+            f'--output={output_format}' if output_format else "",
             command,
         )
         response = ssh.command(

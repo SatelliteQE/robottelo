@@ -174,9 +174,8 @@ def default_os(
             entities.OperatingSystem()
             .search(
                 query={
-                    'search': 'name="RedHat" AND (major="{}" OR major="{}")'.format(
-                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-                    )
+                    'search': f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
+                    f'OR major="{RHEL_7_MAJOR_VERSION}")'
                 }
             )[0]
             .read()

@@ -2935,7 +2935,7 @@ class ContentViewTestCase(CLITestCase):
             host_client.install_katello_ca()
             host_client.register_contenthost(
                 org['label'],
-                lce='{}/{}'.format(env['name'], content_view['name']),
+                lce=f'{env["name"]}/{content_view["name"]}',
                 username=user_name,
                 password=user_password,
             )

@@ -178,7 +178,7 @@ def test_negative_discover_host_with_invalid_prefix():
 @pytest.mark.parametrize('download_policy', ["immediate", "on_demand"])
 @pytest.mark.parametrize('setting_update', ['default_download_policy'], indirect=True)
 def test_positive_custom_repo_download_policy(setting_update, download_policy):
-    """ Check the set custom repository download policy for newly created custom repository.
+    """Check the set custom repository download policy for newly created custom repository.
 
     :id: d5150cce-ba85-4ea0-a8d1-6a54d0d29571
 

@@ -164,7 +164,7 @@ def get_host_info(hostname=None):
         raise HostInfoError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
     match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout[0])
     if match is None:
-        raise HostInfoError('Not able to parse release string "{}"'.format(result.stdout[0]))
+        raise HostInfoError(f'Not able to parse release string "{result.stdout[0]}"')
     groups = match.groupdict()
     return (
         groups['distro'],
@@ -346,16 +346,12 @@ def get_available_capsule_port(port_pool=None):
             port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
         else:
             raise TypeError(
-                '''Expected type of port_range is a tuple of 2 elements,
-                got {} instead'''.format(
-                    type(port_pool_range)
-                )
+                'Expected type of port_range is a tuple of 2 elements,'
+                f'got {type(port_pool_range)} instead'
             )
     # returns a list of strings
     fuser_cmd = ssh.command(
-        'fuser -n tcp {{{0}..{1}}} 2>&1 | awk -F/ \'{{print$1}}\''.format(
-            port_pool[0], port_pool[-1]
-        )
+        f'fuser -n tcp {{{port_pool[0]}..{port_pool[1]}}} 2>&1 | awk -F/ \'{{print$1}}\''
     )
     if fuser_cmd.stderr:
         raise CapsuleTunnelError(
@@ -368,7 +364,7 @@ def get_available_capsule_port(port_pool=None):
 
     except ValueError:
         raise CapsuleTunnelError(
-            'Failed parsing the port numbers from stdout: {}'.format(fuser_cmd.stdout[:-1])
+            f'Failed parsing the port numbers from stdout: {fuser_cmd.stdout[:-1]}'
         )
     try:
         # take the list of available ports and return randomly selected one
@@ -394,7 +390,7 @@ def default_url_on_new_port(oldport, newport):
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:
-        command = ('ncat -kl -p {} -c "ncat {} {}"').format(newport, domain, oldport)
+        command = f'ncat -kl -p {newport} -c "ncat {domain} {oldport}"'
         logger.debug(f'Creating tunnel: {command}')
         transport = connection.get_transport()
         channel = transport.open_session()
@@ -536,7 +532,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
             repo_fetch_url += '/'
         for package in packages:
             result = ssh.command(
-                'wget -P {} {}'.format(repo_path, urljoin(repo_fetch_url, package)),
+                f'wget -P {repo_path} {urljoin(repo_fetch_url, package)}',
                 hostname=hostname,
             )
             if result.return_code != 0:
@@ -546,7 +542,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
                     f'Unable to download package {package}',
                 )
     if wipe_repodata:
-        result = ssh.command('rm -rf {}/{}'.format(repo_path, 'repodata/'), hostname=hostname)
+        result = ssh.command(f'rm -rf {repo_path}/repodata/', hostname=hostname)
         if result.return_code != 0:
             raise CLIReturnCodeError(
                 result.return_code, result.stderr, 'Unable to delete repodata folder'
@@ -556,9 +552,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
         raise CLIReturnCodeError(
             result.return_code,
             result.stderr,
-            'Unable to create repository. stderr contains following info:\n{}'.format(
-                result.stderr
-            ),
+            f'Unable to create repository. stderr contains following info:\n{result.stderr}',
         )
 
     published_url = 'http://{}{}/pulp/repos/{}/'.format(
@@ -602,7 +596,7 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
                 result.return_code, result.stderr, f'Unable to download {updateinfo_url}'
             )
 
-    result = ssh.command('modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/'))
+    result = ssh.command(f'modifyrepo {updatefile_path} {repo_path}/repodata/')
 
     return result
 
@@ -705,9 +699,7 @@ def download_gce_cert():
     ssh.command(f'curl {settings.gce.cert_url} -o {settings.gce.cert_path}')
     if ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code != 0:
         raise GCECertNotFoundError(
-            "The GCE certificate in path {} is not found in satellite.".format(
-                settings.gce.cert_path
-            )
+            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )
     return download_server_file('json', settings.gce.cert_url)
 

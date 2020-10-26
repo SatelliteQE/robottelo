@@ -23,6 +23,7 @@ Linting
 * In the root of the **Robottelo** directory, run :code:`flake8 .`
 * If flake8 returns errors, make corrections before submitting a pull request.
 * pre-commit configuration is available, and its use is strongly encouraged in local development.
+* pre-commit will apply flake, Black, and pyupgrade to lint and auto-format code.
 
 Docstrings
 
@@ -39,9 +40,9 @@ Docstrings
 Strings
 
 * Use string methods instead of the string module.
-* Use the :code:`.format()` method to `properly format strings`_::
+* Use the :code:`f''` f-string syntax to `properly format strings`_::
 
-    formatted_string = 'I {0} a {1} string.'.format('am', 'formatted')
+    formatted_string = f'I {key} a {value}.'
 
 Naming
 

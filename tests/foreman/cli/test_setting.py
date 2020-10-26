@@ -412,29 +412,29 @@ def test_negative_update_send_welcome_email(value):
 def test_positive_failed_login_attempts_limit(setting_update):
     """automate brute force protection limit configurable function
 
-     :id: f95407ed-451b-4387-ac9b-2959ae2f51ae
+    :id: f95407ed-451b-4387-ac9b-2959ae2f51ae
 
-     :steps:
-        1. Make sure login works.
-        2. Save current value and set it to some lower value:
-        3. Try to login with wrong password till failed_login_attempts_limit
-        4. Make sure login now does not work:
-        5. Wait timeout - 5 minutes + 1 second
-        6. Verify you can now login fine
-        7. Return the setting to previous value
+    :steps:
+       1. Make sure login works.
+       2. Save current value and set it to some lower value:
+       3. Try to login with wrong password till failed_login_attempts_limit
+       4. Make sure login now does not work:
+       5. Wait timeout - 5 minutes + 1 second
+       6. Verify you can now login fine
+       7. Return the setting to previous value
 
-     :CaseImportance: Critical
+    :CaseImportance: Critical
 
-     :CaseLevel: System
+    :CaseLevel: System
 
-     :parametrized: yes
+    :parametrized: yes
 
-     :expectedresults: failed_login_attempts_limit works as expected
+    :expectedresults: failed_login_attempts_limit works as expected
 
-     :CaseAutomation: automated
+    :CaseAutomation: automated
 
-     :BZ: 1778599
-     """
+    :BZ: 1778599
+    """
 
     username = settings.server.admin_username
     password = settings.server.admin_password
