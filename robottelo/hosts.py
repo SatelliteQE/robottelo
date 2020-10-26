@@ -9,6 +9,7 @@ from broker.hosts import Host
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
@@ -285,7 +286,7 @@ class ContentHost(Host):
         # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests as they are huge(in GB's)
         # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
-        self.execute(f'curl -O /etc/yum.repos.d/rhel.repo {rhel_repo}')
+        self.execute(f'curl -o /etc/yum.repos.d/rhel.repo {rhel_repo}')
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
@@ -303,7 +304,7 @@ class ContentHost(Host):
         if not result.status:
             raise ContentHostError('Failed to execute foreman_scap_client run.')
 
-    def configure_rhai_client(self, activation_key, org, rhel_distro):
+    def configure_rhai_client(self, activation_key, org, rhel_distro, register=True):
         """Configures a Red Hat Access Insights service on the system by
         installing the redhat-access-insights package and registering to the
         service.
@@ -312,51 +313,45 @@ class ContentHost(Host):
             system to satellite
         :param org: The org to which the system is required to be registered
         :param rhel_distro: rhel distribution used by the vm
+        :param register: Whether to register client to insights
         :return: None
         """
         # Download and Install ketello-ca rpm
         self.install_katello_ca()
         self.register_contenthost(org, activation_key)
 
-        # Red Hat Access Insights requires RHEL 6 or 7 repo and it is not
-        # possible to sync the repo during the tests; therefore, adding repo file.
-        if rhel_distro == DISTRO_RHEL6:
-            rhel_repo = settings.rhel6_repo
-            insights_repo = settings.rhai.insights_client_el6repo
-        if rhel_distro == DISTRO_RHEL7:
-            rhel_repo = settings.rhel7_repo
-            insights_repo = settings.rhai.insights_client_el7repo
+        # Red Hat Access Insights requires RHEL 6/7/8 repo and it is not
+        # possible to sync the repo during the tests, Adding repo file.
+        distro_repo_map = {
+            DISTRO_RHEL6: settings.rhel6_repo,
+            DISTRO_RHEL7: settings.rhel7_repo,
+            DISTRO_RHEL8: settings.rhel8_repo,
+        }
+        rhel_repo = distro_repo_map.get(rhel_distro)
 
-        missing_repos = []
-        if insights_repo is None:
-            missing_repos.append('RHAI client')
         if rhel_repo is None:
-            missing_repos.append('RHEL')
-        if missing_repos:
-            raise ContentHostError(
-                f'Missing {" and ".join(missing_repos)} '
-                f'repository configuration for {rhel_distro}.'
-            )
+            raise ContentHostError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
         self.configure_rhel_repo(rhel_repo)
-
-        self.execute(f'curl -O /etc/yum.repos.d/insights.repo {insights_repo}')
 
         # Install redhat-access-insights package
         package_name = 'insights-client'
         result = self.execute(f'yum install -y {package_name}')
-        if not result.status:
+        if result.status != 0:
             raise ContentHostError('Unable to install redhat-access-insights package')
 
         # Verify if package is installed by rpm query
         result = self.execute(f'rpm -qi {package_name}')
         logger.info(f'Insights client rpm version: {result.stdout}')
-        if not result.status:
+        if result.status != 0:
             raise ContentHostError('Unable to install redhat-access-insights package')
+
+        if not register:
+            return
 
         # Register client with Red Hat Access Insights
         result = self.execute('insights-client --register')
-        if not result.status:
+        if result.status != 0:
             raise ContentHostError(
                 'Unable to register client to Access Insights through Satellite'
             )
@@ -387,6 +382,11 @@ class ContentHost(Host):
         else:
             raise ContentHostError('No distro package available to retrieve release version')
         return self.execute(f"echo '{rh_product_os_releasever}' > /etc/yum/vars/releasever")
+
+    @property
+    def ip_addr(self):
+        ipv4, ipv6 = self.execute("hostname -I").stdout.split()
+        return ipv4
 
 
 class Capsule(ContentHost):

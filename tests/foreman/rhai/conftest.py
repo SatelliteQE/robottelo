@@ -3,6 +3,7 @@ import logging
 import nailgun.entities
 import pytest
 from airgun.session import Session
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
@@ -11,17 +12,20 @@ from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
-from robottelo.decorators import fixture
-from robottelo.vm import VirtualMachine
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.hosts import ContentHost
 
 
 LOGGER = logging.getLogger('robottelo')
 
 
-@fixture(scope="module")
+@pytest.fixture(scope='module')
 def module_org():
-    org_name = f"insights_{gen_string('alpha', 6)}"
-    org = nailgun.entities.Organization(name=f"{org_name}").create()
+    org_name = f'insights_{gen_string("alpha", 6)}'
+    org = nailgun.entities.Organization(name=org_name).create()
+    nailgun.entities.Parameter(
+        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+    ).create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
     yield org
@@ -75,20 +79,20 @@ def autosession(test_name, module_user):
         yield started_session
 
 
-@fixture(scope="module")
+@pytest.fixture(scope='module')
 def activation_key(module_org):
     ak = nailgun.entities.ActivationKey(
         auto_attach=True,
         content_view=module_org.default_content_view.id,
         environment=module_org.library.id,
-        name=gen_string("alpha"),
+        name=gen_string('alpha'),
         organization=module_org,
     ).create()
     yield ak
     ak.delete()
 
 
-@fixture(scope="module")
+@pytest.fixture(scope='module')
 def attach_subscription(module_org, activation_key):
     for subs in nailgun.entities.Subscription(organization=module_org).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
@@ -96,25 +100,36 @@ def attach_subscription(module_org, activation_key):
             # values produce this error: "RuntimeError: Error: Only pools
             # with multi-entitlement product subscriptions can be added to
             # the activation key with a quantity greater than one."
-            activation_key.add_subscriptions(data={"quantity": 1, "subscription_id": subs.id})
+            activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subs.id})
             break
     else:
         raise Exception(f"{module_org.name} organization doesn't have {DEFAULT_SUBSCRIPTION_NAME}")
 
 
-@fixture
+@pytest.fixture
 def vm(activation_key, module_org):
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         vm.configure_rhai_client(
             activation_key=activation_key.name, org=module_org.label, rhel_distro=DISTRO_RHEL7
         )
         yield vm
 
 
-@fixture
+@pytest.fixture
 def vm_rhel8(activation_key, module_org):
-    with VirtualMachine(distro=DISTRO_RHEL8) as vm:
+    with VMBroker(nick='rhel8', host_classes={'host': ContentHost}) as vm:
         vm.configure_rhai_client(
-            activation_key=activation_key.name, org=module_org.label, rhel_distro=DISTRO_RHEL8
+            activation_key=activation_key.name,
+            org=module_org.label,
+            rhel_distro=DISTRO_RHEL8,
+            register=False,
         )
+        add_remote_execution_ssh_key(vm.ip_addr)
         yield vm
+
+
+@pytest.fixture
+def ansible_fixable_vm(vm_rhel8):
+    vm_rhel8.run('dnf update -y dnf')
+    vm_rhel8.run("sed -i -e '/^best/d' /etc/dnf/dnf.conf")
+    vm_rhel8.run('insights-client --register')
