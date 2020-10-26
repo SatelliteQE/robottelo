@@ -25,13 +25,13 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
     """Call Entity callable with a custom timeout
 
-        :param entity_callable, the entity method object to call
-        :param timeout: the time to wait for the method call to finish
-        :param kwargs: the kwargs to pass to the entity callable
+    :param entity_callable, the entity method object to call
+    :param timeout: the time to wait for the method call to finish
+    :param kwargs: the kwargs to pass to the entity callable
 
-        Usage:
-            call_entity_method_with_timeout(
-                entities.Repository(id=repo_id).sync, timeout=1500)
+    Usage:
+        call_entity_method_with_timeout(
+            entities.Repository(id=repo_id).sync, timeout=1500)
     """
     original_task_timeout = entity_mixins.TASK_TIMEOUT
     entity_mixins.TASK_TIMEOUT = timeout
@@ -425,15 +425,12 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
             .read()
         )
     else:
+        os_ver = os.split(' ')[1].split('.')
         os = (
             entities.OperatingSystem()
             .search(
                 query={
-                    'search': 'family="Redhat" '
-                    'AND major="{}" '
-                    'AND minor="{}")'.format(
-                        os.split(' ')[1].split('.')[0], os.split(' ')[1].split('.')[1]
-                    )
+                    'search': f'family="Redhat" AND major="{os_ver[0]}" AND minor="{os_ver[1]}")'
                 }
             )[0]
             .read()
@@ -664,8 +661,8 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
                 return True
             elif req.json()[0].get('error'):
                 raise AssertionError(
-                    "Pulp task with repo_id {} errored or not "
-                    "found: '{}'".format(repo_backend_id, req.json().get('error'))
+                    f"Pulp task with repo_id {repo_backend_id} error or not found: "
+                    f"'{req.json().get('error')}'"
                 )
         time.sleep(2)
 
@@ -785,7 +782,7 @@ def check_create_os_with_title(os_title):
 
 
 def attach_custom_product_subscription(prod_name=None, host_name=None):
-    """ Attach custom product subscription to client host
+    """Attach custom product subscription to client host
     :param str prod_name: custom product name
     :param str host_name: client host name
     """
@@ -826,7 +823,7 @@ class templateupdate:
 
 
 def update_provisioning_template(name=None, old=None, new=None):
-    """ Update provisioning template content
+    """Update provisioning template content
 
     :param str name: template provisioning name
     :param str old: current content
@@ -851,7 +848,7 @@ def update_provisioning_template(name=None, old=None, new=None):
 
 
 def apply_package_filter(content_view, repo, package, inclusion=True):
-    """ Apply package filter on content view
+    """Apply package filter on content view
 
     :param content_view: entity content view
     :param repo: entity repository

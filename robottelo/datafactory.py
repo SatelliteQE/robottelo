@@ -136,8 +136,8 @@ def invalid_emails_list():
         'Abc.example.com',
         'A@b@c@example.com',
         # total length 255:
-        '{}@example.com'.format(gen_string('alpha', 243)),
-        '{}@example.com'.format(gen_string('html')),
+        f'{gen_string("alpha", 243)}@example.com',
+        f'{gen_string("html")}@example.com',
         's p a c e s@example.com',
     ]
 
@@ -224,7 +224,7 @@ def invalid_domain_names(interface=None):
 def invalid_usernames_list():
     return [
         '',
-        'space {}'.format(gen_string('alpha')),
+        'space {gen_string("alpha")}',
         gen_string('alpha', 101),
         gen_string('html'),
     ]
@@ -243,7 +243,7 @@ def invalid_values_list(interface=None):
 
     """
     if interface not in ['api', 'cli', 'ui', None]:
-        raise InvalidArgumentError('Valid interface values are {}'.format('api, cli, ui only'))
+        raise InvalidArgumentError('Valid interface values are api, cli, ui only')
     if interface == 'ui':
         return ['', ' '] + invalid_names_list()
     else:  # interface = api or cli or None
@@ -293,12 +293,12 @@ def valid_docker_repository_names():
 def valid_emails_list():
     """Returns a list of valid emails."""
     return [
-        '{}@example.com'.format(gen_string('alpha')),
-        '{}@example.com'.format(gen_string('alphanumeric')),
-        '{}@example.com'.format(gen_string('numeric')),
-        '{}@example.com'.format(gen_string('alphanumeric', 48)),
-        '{}+{}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
-        '{}.{}@example.com'.format(gen_string('alphanumeric'), gen_string('alphanumeric')),
+        f'{gen_string("alpha")}@example.com',
+        f'{gen_string("alphanumeric")}@example.com',
+        f'{gen_string("numeric")}@example.com',
+        f'{gen_string("alphanumeric", 48)}@example.com',
+        f'{gen_string("alphanumeric")}+{gen_string("alphanumeric")}@example.com',
+        f'{gen_string("alphanumeric")}.{gen_string("alphanumeric")}@example.com',
         '"():;"@example.com',
         '!#$%&*+-/=?^`{|}~@example.com',
     ]
@@ -372,19 +372,19 @@ def valid_names_list():
     return [
         gen_string('utf8', 5),
         gen_string('utf8', 255),
-        "{}-{}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        "{}.{}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        "նոր օգտվող-{}".format(gen_string('utf8', 2)),
-        "新用戶-{}".format(gen_string('utf8', 2)),
-        "नए उपयोगकर्ता-{}".format(gen_string('utf8', 2)),
-        "нового пользователя-{}".format(gen_string('utf8', 2)),
-        "uusi käyttäjä-{}".format(gen_string('utf8', 2)),
-        "νέος χρήστης-{}".format(gen_string('utf8', 2)),
-        "foo@!#$^&*( ) {}".format(gen_string('utf8')),
-        "<blink>{}</blink>".format(gen_string('utf8')),
-        "bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
-        ' {}'.format(gen_string('utf8')),
-        '{} '.format(gen_string('utf8')),
+        f"{gen_string('utf8', 4)}-{gen_string('utf8', 4)}",
+        f"{gen_string('utf8', 4)}.{gen_string('utf8', 4)}",
+        f"նոր օգտվող-{gen_string('utf8', 2)}",
+        f"新用戶-{gen_string('utf8', 2)}",
+        f"नए उपयोगकर्ता-{gen_string('utf8', 2)}",
+        f"нового пользователя-{gen_string('utf8', 2)}",
+        f"uusi käyttäjä-{gen_string('utf8', 2)}",
+        f"νέος χρήστης-{gen_string('utf8', 2)}",
+        f"foo@!#$^&*( ) {gen_string('utf8')}",
+        f"<blink>{gen_string('utf8')}</blink>",
+        f"bar+{{}}|\"?hi {gen_string('utf8')}",
+        f" {gen_string('utf8')}",
+        f"{gen_string('utf8')} ",
     ]
 
 
@@ -537,19 +537,23 @@ def invalid_docker_upstream_names():
         # boundaries
         add_uppercase_char_into_string(gen_string('alphanumeric', 2)),
         gen_string('alphanumeric', 256).lower(),
-        '{}/{}'.format(
-            add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
-            gen_string('alphanumeric', 3),
+        '/'.join(
+            [
+                add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
+                gen_string('alphanumeric', 3),
+            ]
         ),
-        '{}/{}'.format(
-            gen_string('alphanumeric', 4),
-            add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
+        '/'.join(
+            [
+                gen_string('alphanumeric', 4),
+                add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
+            ]
         ),
-        '{}/{}'.format(
-            gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 128).lower()
+        '/'.join(
+            [gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 128).lower()]
         ),
-        '{}/{}'.format(
-            gen_string('alphanumeric', 128).lower(), gen_string('alphanumeric', 127).lower()
+        '/'.join(
+            [gen_string('alphanumeric', 128).lower(), gen_string('alphanumeric', 127).lower()]
         ),
         # not allowed non alphanumeric character
         '{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
@@ -576,11 +580,9 @@ def valid_docker_upstream_names():
         # boundaries
         gen_string('alphanumeric', 1).lower(),
         gen_string('alphanumeric', 255).lower(),
-        '{}/{}'.format(
-            gen_string('alphanumeric', 1).lower(), gen_string('alphanumeric', 1).lower()
-        ),
-        '{}/{}'.format(
-            gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 127).lower()
+        '/'.join([gen_string('alphanumeric', 1).lower(), gen_string('alphanumeric', 1).lower()]),
+        '/'.join(
+            [gen_string('alphanumeric', 127).lower(), gen_string('alphanumeric', 127).lower()]
         ),
         # allowed non alphanumeric character
         '{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(

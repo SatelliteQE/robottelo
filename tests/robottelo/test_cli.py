@@ -246,7 +246,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.ssh.command')
     @mock.patch('robottelo.cli.base.settings')
     def test_execute_with_raw_response(self, settings, command):
-        """Check excuted build ssh method and returns raw response"""
+        """Check executed build ssh method and returns raw response"""
         settings.locale = 'en_US'
         settings.performance = False
         settings.server.admin_username = 'admin'
@@ -262,7 +262,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.ssh.command')
     @mock.patch('robottelo.cli.base.settings')
     def test_execute_with_performance(self, settings, command, handle_resp):
-        """Check excuted build ssh method and delegate response handling"""
+        """Check executed build ssh method and delegate response handling"""
         settings.locale = 'en_US'
         settings.performance.timer_hammer = True
         settings.server.admin_username = 'admin'

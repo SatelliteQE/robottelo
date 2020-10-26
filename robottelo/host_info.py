@@ -23,7 +23,7 @@ def get_host_os_version():
         version_re = r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*)'
         result = re.search(version_re, version_description)
         if result:
-            host_os_version = 'RHEL{}'.format(result.group('version'))
+            host_os_version = f'RHEL{result.group("version")}'
             LOGGER.debug(f'Host version: {host_os_version}')
             return host_os_version
 
@@ -117,8 +117,8 @@ def get_repomd_revision(repo_path, hostname=None):
         raise CLIReturnCodeError(
             result.return_code,
             result.stderr,
-            'Unable to fetch revision for {}. Please double check your '
-            'hostname, path and contents of repomd.xml'.format(repo_path),
+            f'Unable to fetch revision for {repo_path}. Please double check your '
+            'hostname, path and contents of repomd.xml',
         )
     return stdout[0]
 

@@ -1249,7 +1249,7 @@ class DockerClientTestCase(CLITestCase):
             # publishing takes few seconds sometimes
             result, _ = wait_for(
                 lambda: ssh.command(
-                    'docker pull {}'.format(repo['published-at']),
+                    f'docker pull {repo["published-at"]}',
                     hostname=self.docker_host.ip_addr,
                 ),
                 num_sec=60,
