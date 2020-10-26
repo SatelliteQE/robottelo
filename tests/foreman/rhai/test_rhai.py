@@ -14,13 +14,17 @@
 
 :Upstream: No
 """
+import csv
+
 import pytest
+import yaml
 from airgun.entities.rhai.base import InsightsOrganizationPageError
+from fauxfactory import gen_string
 
 from robottelo.constants import ANY_CONTEXT
 
 
-pytestmark = pytest.mark.usefixtures("attach_subscription")
+pytestmark = pytest.mark.usefixtures('attach_subscription')
 
 NAV_ITEMS = [
     ("insightsaction", "Details"),
@@ -116,8 +120,7 @@ def test_positive_rule_disable_enable():
     """
 
 
-@pytest.mark.stubbed
-def test_positive_playbook_run():
+def test_positive_playbook_run(vm_rhel8, autosession, test_name, ansible_fixable_vm):
     """Tests Planner playbook runs successfully
 
     :id: b4cce0dc-c98e-4e1a-9dac-cdee3be05227
@@ -145,10 +148,15 @@ def test_positive_playbook_run():
 
     :CaseLevel: System
     """
+    plan_name = f'{test_name}_{gen_string("alpha", 6)}'
+    autosession.insightsplan.create(plan_name, ['/etc/dnf/dnf.conf'])
+    result = autosession.insightsplan.run_playbook(plan_name)
+
+    assert result['overview']['job_status'] == 'Success'
+    assert result['overview']['job_status_progress'] == '100%'
 
 
-@pytest.mark.stubbed
-def test_positive_playbook_customized_run():
+def test_positive_playbook_customized_run(vm_rhel8, autosession, test_name, ansible_fixable_vm):
     """Tests Planner playbook customized run is successful
 
     :id: eee4556d-69b9-4e89-88b7-3cc34a3fe3b2
@@ -174,14 +182,22 @@ def test_positive_playbook_customized_run():
 
     :expectedresults: customized playbook run finished successfully
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseLevel: System
     """
+    customize_values = {'advanced_options.execution_order': 'Randomized'}
+    plan_name = f'{test_name}_{gen_string("alpha", 6)}'
+    autosession.insightsplan.create(plan_name, ['/etc/dnf/dnf.conf'])
+    result = autosession.insightsplan.run_playbook(
+        plan_name, customize=True, customize_values=customize_values
+    )
+
+    assert result['overview']['job_status'] == 'Success'
+    assert result['overview']['job_status_progress'] == '100%'
 
 
-@pytest.mark.stubbed
-def test_positive_playbook_download():
+def test_positive_playbook_download(vm_rhel8, autosession, test_name, ansible_fixable_vm):
     """Tests Planner playbook download is successful
 
     :id: 7e9ed852-3f23-4256-862c-1d05058e8a95
@@ -204,14 +220,27 @@ def test_positive_playbook_download():
 
     :expectedresults: sane playbook downloaded
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseLevel: System
     """
+    plan_name = f'{test_name}_{gen_string("alpha", 6)}'
+    autosession.insightsplan.create(plan_name, ['/etc/dnf/dnf.conf'])
+    file_path = autosession.insightsplan.download_playbook(plan_name)
+
+    with open(file_path) as yamlfile:
+        yaml_content = yaml.load(yamlfile, Loader=yaml.SafeLoader)
+
+    assert len(yaml_content) >= 2
+    for rule in yaml_content:
+        assert vm_rhel8.hostname in rule['hosts'].split(',')
+
+    dnf_rule = next(rule for rule in yaml_content if '/etc/dnf/dnf.conf' in rule['name'])
+    task_names = [task['name'] for task in dnf_rule['tasks']]
+    assert 'Set best option in file /etc/dnf/dnf.conf' in task_names
 
 
-@pytest.mark.stubbed
-def test_positive_plan_export_csv():
+def test_positive_plan_export_csv(vm_rhel8, autosession, test_name, ansible_fixable_vm):
     """Tests Insights plan is exported to csv successfully
 
     :id: 4bf67758-e07a-41de-974f-9eda753d28e1
@@ -235,10 +264,39 @@ def test_positive_plan_export_csv():
 
     :expectedresults: plan exported to sane csv file
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseLevel: System
     """
+    expected_keys = {
+        'Hostname',
+        'Machine ID',
+        'Description',
+        'Category',
+        'Severity',
+        'Article',
+        'Completed',
+        'Scheduled start (UTC)',
+        'Scheduled end (UTC)',
+    }
+    rule_description = (
+        'The dnf installs lower versions of packages when the "best" option '
+        'is not present in the /etc/dnf/dnf.conf'
+    )
+    plan_name = f'{test_name}_{gen_string("alpha", 6)}'
+    autosession.insightsplan.create(plan_name, ['/etc/dnf/dnf.conf'])
+    file_path = autosession.insightsplan.export_csv(plan_name)
+
+    with open(file_path) as csvfile:
+        reader = csv.DictReader(csvfile)
+        csv_content = [line for line in reader]
+
+    assert len(csv_content) >= 1
+    assert set(csv_content[0].keys()) == expected_keys
+    hostnames = [entry['Hostname'] for entry in csv_content]
+    assert vm_rhel8.hostname in hostnames
+    vm_row = hostnames.index(vm_rhel8.hostname)
+    assert csv_content[vm_row]['Description'] == rule_description
 
 
 @pytest.mark.stubbed
