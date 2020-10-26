@@ -659,6 +659,14 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
+        # make sure the template is in the default org
+        org_names = ReportTemplate.info({'name': 'Host - Statuses'})['organizations']
+        orgs = [Org.info({'name': org_name})['id'] for org_name in org_names]
+        default_org_id = Org.info({'name': DEFAULT_ORG})['id']
+        if default_org_id not in orgs:
+            orgs.append(default_org_id)
+        ReportTemplate.update({'name': 'Host - Statuses', 'organization-ids': orgs})
+
         result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
         self.assertIn(host['name'], [item.split(',')[0] for item in result])
