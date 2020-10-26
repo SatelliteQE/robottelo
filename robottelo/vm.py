@@ -700,7 +700,7 @@ gpgcheck=0'''.format(
         if result.return_code != 0:
             raise VirtualMachineError('Failed to execute foreman_scap_client run.')
 
-    def configure_rhai_client(self, activation_key, org, rhel_distro):
+    def configure_rhai_client(self, activation_key, org, rhel_distro, register=True):
         """Configures a Red Hat Access Insights service on the system by
         installing the redhat-access-insights package and registering to the
         service.
@@ -709,36 +709,26 @@ gpgcheck=0'''.format(
             system to satellite
         :param org: The org to which the system is required to be registered
         :param rhel_distro: rhel distribution for
+        :param register: Whether to register client to insights
         :return: None
         """
         # Download and Install ketello-ca rpm
         self.install_katello_ca()
         self.register_contenthost(org, activation_key)
 
-        # Red Hat Access Insights requires RHEL 6/7 repo and it is not
+        # Red Hat Access Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
-        if rhel_distro == DISTRO_RHEL6:
-            rhel_repo = settings.rhel6_repo
-            insights_repo = settings.rhai.insights_client_el6repo
-        if rhel_distro == DISTRO_RHEL7:
-            rhel_repo = settings.rhel7_repo
-            insights_repo = settings.rhai.insights_client_el7repo
+        distro_repo_map = {
+            DISTRO_RHEL6: settings.rhel6_repo,
+            DISTRO_RHEL7: settings.rhel7_repo,
+            DISTRO_RHEL8: settings.rhel8_repo,
+        }
+        rhel_repo = distro_repo_map.get(rhel_distro)
 
-        missing_repos = []
-        if insights_repo is None:
-            missing_repos.append('RHAI client')
         if rhel_repo is None:
-            missing_repos.append('RHEL')
-        if missing_repos:
-            raise VirtualMachineError(
-                'Missing {} repository configuration for {}.'.format(
-                    ' and '.join(missing_repos), rhel_distro
-                )
-            )
+            raise VirtualMachineError(f'Missing RHEL repository configuration for {rhel_distro}.')
 
         self.configure_rhel_repo(rhel_repo)
-
-        self.run(f'wget -O /etc/yum.repos.d/insights.repo {insights_repo}')
 
         # Install redhat-access-insights package
         package_name = 'insights-client'
@@ -751,6 +741,9 @@ gpgcheck=0'''.format(
         logger.info(f'Insights client rpm version: {result.stdout}')
         if result.return_code != 0:
             raise VirtualMachineError('Unable to install redhat-access-insights package')
+
+        if not register:
+            return
 
         # Register client with Red Hat Access Insights
         result = self.run('insights-client --register')

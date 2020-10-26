@@ -1073,24 +1073,6 @@ class PerformanceSettings(FeatureSettings):
         return validation_errors
 
 
-class RHAISettings(FeatureSettings):
-    """RHAI settings definitions."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.insights_client_el6repo = None
-        self.insights_client_el7repo = None
-
-    def read(self, reader):
-        """Read RHAI settings."""
-        self.insights_client_el6repo = reader.get('rhai', 'insights_client_el6repo')
-        self.insights_client_el7repo = reader.get('rhai', 'insights_client_el7repo')
-
-    def validate(self):
-        """Validate RHAI settings."""
-        return []
-
-
 class SSHClientSettings(FeatureSettings):
     """SSHClient settings definitions."""
 
@@ -1435,7 +1417,6 @@ class Settings:
         self.ostree = OstreeSettings()
         self.osp = OSPSettings()
         self.performance = PerformanceSettings()
-        self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
         self.rhsso = RHSSOSettings()
         self.ssh_client = SSHClientSettings()
