@@ -14,15 +14,16 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo import ssh
-from robottelo.decorators import tier2
 from robottelo.test import TestCase
 
 
 class DynflowTestCase(TestCase):
     """Dynflow tests"""
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_setup_dynflow(self):
         """Set dynflow parameters, restart it and check it adheres to them
 

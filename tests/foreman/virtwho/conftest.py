@@ -1,19 +1,19 @@
 import logging
 
 import nailgun.entities
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import fixture
 
 
 LOGGER = logging.getLogger('robottelo')
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     """Shares the same organization for all tests in specific test module.
     Returns 'Default Organization' by default, override this fixture on
@@ -26,7 +26,7 @@ def module_org():
     return nailgun.entities.Organization(id=default_org_id).read()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     """Shares the same location for all tests in specific test module.
     Returns 'Default Location' by default, override this fixture on
@@ -39,7 +39,7 @@ def module_loc():
     return nailgun.entities.Location(id=default_loc_id).read()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_user(request, module_org, module_loc):
     """Creates admin user with default org set to module org and shares that
     user for all tests in the same test module. User's login contains test
@@ -69,7 +69,7 @@ def module_user(request, module_org, module_loc):
         LOGGER.warning('Unable to delete session user: %s', str(err))
 
 
-@fixture()
+@pytest.fixture()
 def test_name(request):
     """Returns current test full name, prefixed by module name and test class
     name (if present).
@@ -90,7 +90,7 @@ def test_name(request):
     return '.'.join(name)
 
 
-@fixture()
+@pytest.fixture()
 def session(test_name, module_user):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared

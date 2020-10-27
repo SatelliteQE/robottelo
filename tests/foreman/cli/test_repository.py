@@ -78,9 +78,6 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.host_info import get_host_os_version
@@ -137,8 +134,8 @@ class RepositoryTestCase(CLITestCase):
         )
         return self._get_image_tags_count(repo=repo)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_info_docker_upstream_name(self):
         """Check if repository docker-upstream-name is shown
         in repository info
@@ -162,7 +159,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertIn('upstream-repository-name', repository)
         self.assertEqual(repository['upstream-repository-name'], 'fedora/rabbitmq')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Check if repository can be created with random names
 
@@ -177,7 +174,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = self._make_repository({'name': name})
                 self.assertEqual(new_repo['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name_label(self):
         """Check if repository can be created with random names and
         labels
@@ -196,7 +193,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
                 self.assertEqual(new_repo['label'], label)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_yum_repo(self):
         """Create YUM repository
 
@@ -218,8 +215,8 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['url'], url)
                 self.assertEqual(new_repo['content-type'], 'yum')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_puppet_repo(self):
         """Create Puppet repository
 
@@ -241,8 +238,8 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['url'], url)
                 self.assertEqual(new_repo['content-type'], 'puppet')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_file_repo(self):
         """Create file repository
 
@@ -256,7 +253,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['url'], CUSTOM_FILE_REPO)
         self.assertEqual(new_repo['content-type'], 'file')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_auth_yum_repo(self):
         """Create YUM repository with basic HTTP authentication
 
@@ -274,8 +271,8 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['url'], url_encoded)
                 self.assertEqual(new_repo['content-type'], 'yum')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
@@ -292,8 +289,8 @@ class RepositoryTestCase(CLITestCase):
                 )
                 self.assertEqual(new_repo['download-policy'], policy)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_mirror_on_sync(self):
         """Create YUM repositories with available mirror on sync rule
 
@@ -311,7 +308,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = self._make_repository({'content-type': 'yum', 'mirror-on-sync': value})
                 self.assertEqual(new_repo['mirror-on-sync'], value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_download_policy(self):
         """Verify if the default download policy is assigned when creating a
         YUM repo without `--download-policy`
@@ -327,7 +324,7 @@ class RepositoryTestCase(CLITestCase):
         new_repo = self._make_repository({'content-type': 'yum'})
         self.assertEqual(new_repo['download-policy'], default_dl_policy[0]['value'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_immediate_update_to_on_demand(self):
         """Update `immediate` download policy to `on_demand` for a newly
         created YUM repository
@@ -346,7 +343,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'on_demand')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_immediate_update_to_background(self):
         """Update `immediate` download policy to `background` for a newly
         created YUM repository
@@ -362,7 +359,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'background')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_on_demand_update_to_immediate(self):
         """Update `on_demand` download policy to `immediate` for a newly
         created YUM repository
@@ -378,7 +375,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'immediate')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_on_demand_update_to_background(self):
         """Update `on_demand` download policy to `background` for a newly
         created YUM repository
@@ -394,7 +391,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'background')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_background_update_to_immediate(self):
         """Update `background` download policy to `immediate` for a newly
         created YUM repository
@@ -410,7 +407,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'immediate')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_background_update_to_on_demand(self):
         """Update `background` download policy to `on_demand` for a newly
         created YUM repository
@@ -426,7 +423,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['download-policy'], 'on_demand')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
@@ -444,8 +441,8 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['url'], url_encoded)
                 self.assertEqual(new_repo['content-type'], 'puppet')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_gpg_key_by_id(self):
         """Check if repository can be created with gpg key ID
 
@@ -463,7 +460,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_gpg_key_by_name(self):
         """Check if repository can be created with gpg key name
 
@@ -484,7 +481,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_publish_via_http(self):
         """Create repository published via http
 
@@ -499,7 +496,7 @@ class RepositoryTestCase(CLITestCase):
                 repo = self._make_repository({'publish-via-http': use_http})
                 self.assertEqual(repo['publish-via-http'], 'yes')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_publish_via_https(self):
         """Create repository not published via http
 
@@ -514,8 +511,8 @@ class RepositoryTestCase(CLITestCase):
                 repo = self._make_repository({'publish-via-http': use_http})
                 self.assertEqual(repo['publish-via-http'], 'no')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_yum_repo_with_checksum_type(self):
         """Create a YUM repository with a checksum type
 
@@ -539,7 +536,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(repository['content-type'], content_type)
                 self.assertEqual(repository['checksum-type'], checksum_type)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_docker_repo_with_upstream_name(self):
         """Create a Docker repository with upstream name.
 
@@ -564,7 +561,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['content-type'], content_type)
         self.assertEqual(new_repo['name'], 'busybox')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_docker_repo_with_name(self):
         """Create a Docker repository with a random name.
 
@@ -591,7 +588,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], content_type)
                 self.assertEqual(new_repo['name'], name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
@@ -618,7 +615,7 @@ class RepositoryTestCase(CLITestCase):
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['content-counts']['puppet-modules'], '1')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Repository name cannot be 300-characters long
 
@@ -633,7 +630,7 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({'name': name})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
@@ -650,7 +647,7 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({'url': url_encoded})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
@@ -666,7 +663,7 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({'url': url_encoded})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_download_policy(self):
         """Verify that YUM repository cannot be created with invalid download
         policy
@@ -683,7 +680,7 @@ class RepositoryTestCase(CLITestCase):
                 {'content-type': 'yum', 'download-policy': gen_string('alpha', 5)}
             )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_to_invalid_download_policy(self):
         """Verify that YUM repository cannot be updated to invalid download
         policy
@@ -699,7 +696,7 @@ class RepositoryTestCase(CLITestCase):
             new_repo = self._make_repository({'content-type': 'yum'})
             Repository.update({'id': new_repo['id'], 'download-policy': gen_string('alpha', 5)})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with download
         policy
@@ -731,7 +728,7 @@ class RepositoryTestCase(CLITestCase):
                         {'content-type': content_type, 'download-policy': 'on_demand'}
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_synchronize_yum_repo(self):
         """Check if repository can be created and synced
 
@@ -754,7 +751,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = Repository.info({'id': new_repo['id']})
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_synchronize_file_repo(self):
         """Check if repository can be created and synced
 
@@ -776,8 +773,8 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['sync']['status'], 'Success')
         self.assertEqual(int(new_repo['content-counts']['files']), CUSTOM_FILE_REPO_FILES_COUNT)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
@@ -804,7 +801,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = Repository.info({'id': new_repo['id']})
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
@@ -836,8 +833,8 @@ class RepositoryTestCase(CLITestCase):
                         'Error retrieving metadata: Unauthorized', ''.join(response.stderr)
                     )
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -864,8 +861,8 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = Repository.info({'id': new_repo['id']})
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_synchronize_docker_repo(self):
         """Check if Docker repository can be created and synced
 
@@ -888,8 +885,8 @@ class RepositoryTestCase(CLITestCase):
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
         """Check if only whitelisted tags are synchronized
 
@@ -911,7 +908,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertIn(tags, repo['container-image-tags-filter'])
         self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_synchronize_docker_repo_set_tags_later(self):
         """Verify that adding tags whitelist and re-syncing after
         synchronizing full repository doesn't remove content that was
@@ -939,7 +936,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertIn(tags, repo['container-image-tags-filter'])
         self.assertGreaterEqual(int(repo['content-counts']['container-image-tags']), 2)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
         """Set tags whitelist to contain both valid and invalid (non-existing)
         tags. Check if only whitelisted tags are synchronized
@@ -962,7 +959,7 @@ class RepositoryTestCase(CLITestCase):
         [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
         self.assertEqual(int(repo['content-counts']['container-image-tags']), 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_docker_repo_with_invalid_tags(self):
         """Set tags whitelist to contain only invalid (non-existing)
         tags. Check that no data is synchronized.
@@ -985,7 +982,7 @@ class RepositoryTestCase(CLITestCase):
         [self.assertIn(tag, repo['container-image-tags-filter']) for tag in tags]
         self.assertEqual(int(repo['content-counts']['container-image-tags']), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
         removed from repository
@@ -1017,7 +1014,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['packages'], '32')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
         were removed from repository
@@ -1047,7 +1044,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['puppet-modules'], '2')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_synchronize_rpm_repo_ignore_content(self):
         """Synchronize yum repository with ignore content setting
 
@@ -1122,7 +1119,7 @@ class RepositoryTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertGreaterEqual(len(result.stdout), 4, 'content not synced correctly')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_url(self):
         """Update the original url for a repository
 
@@ -1154,7 +1151,7 @@ class RepositoryTestCase(CLITestCase):
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], url)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_auth_url_with_special_characters(self):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
@@ -1182,7 +1179,7 @@ class RepositoryTestCase(CLITestCase):
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], new_repo['url'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
@@ -1208,7 +1205,7 @@ class RepositoryTestCase(CLITestCase):
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], new_repo['url'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_gpg_key(self):
         """Update the original gpg key
 
@@ -1225,7 +1222,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['gpg-key']['id'], gpg_key_new['id'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_mirror_on_sync(self):
         """Update the mirror on sync rule for repository
 
@@ -1240,7 +1237,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['mirror-on-sync'], 'yes')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_publish_method(self):
         """Update the original publishing method
 
@@ -1255,7 +1252,7 @@ class RepositoryTestCase(CLITestCase):
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['publish-via-http'], 'yes')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_checksum_type(self):
         """Create a YUM repository and update the checksum type
 
@@ -1277,7 +1274,7 @@ class RepositoryTestCase(CLITestCase):
                 result = Repository.info({'id': repository['id']})
                 self.assertEqual(result['checksum-type'], checksum_type)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_checksum_with_on_demand_policy(self):
         """Attempt to create repository with checksum and on_demand policy.
 
@@ -1299,7 +1296,7 @@ class RepositoryTestCase(CLITestCase):
                     }
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_id(self):
         """Check if repository can be created and deleted
 
@@ -1316,8 +1313,8 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Repository.info({'id': new_repo['id']})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_name(self):
         """Check if repository can be created and deleted
 
@@ -1334,7 +1331,7 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Repository.info({'id': new_repo['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -1354,7 +1351,7 @@ class RepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': new_repo['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -1376,8 +1373,8 @@ class RepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': new_repo['id']})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_remove_content_by_repo_name(self):
         """Synchronize repository and remove rpm content from using repo name
 
@@ -1426,8 +1423,8 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['packages'], '0')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_remove_content_rpm(self):
         """Synchronize repository and remove rpm content from it
 
@@ -1453,8 +1450,8 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['packages'], '0')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_remove_content_puppet(self):
         """Synchronize repository and remove puppet content from it
 
@@ -1478,7 +1475,7 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['puppet-modules'], '0')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_upload_content(self):
         """Create repository and upload content
 
@@ -1505,7 +1502,7 @@ class RepositoryTestCase(CLITestCase):
         assert f"Successfully uploaded file '{RPM_TO_UPLOAD}'" in result[0]['message']
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['packages']) == 1
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_upload_content_to_file_repo(self):
         """Create file repository and upload content to it
 
@@ -1541,7 +1538,7 @@ class RepositoryTestCase(CLITestCase):
         assert int(new_repo['content-counts']['files']) == CUSTOM_FILE_REPO_FILES_COUNT + 1
 
     @pytest.mark.skip_if_open("BZ:1410916")
-    @tier2
+    @pytest.mark.tier2
     def test_negative_restricted_user_cv_add_repository(self):
         """Attempt to add a product repository to content view with a
         restricted user, using product name not visible to restricted user.
@@ -1691,7 +1688,7 @@ class RepositoryTestCase(CLITestCase):
         repos = Repository.with_user(user_name, user_password).list({'organization-id': org['id']})
         self.assertEqual(len(repos), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_upload_remove_srpm_content(self):
         """Create repository, upload and remove an SRPM content
 
@@ -1730,8 +1727,8 @@ class RepositoryTestCase(CLITestCase):
         )
         assert int(Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']) == 0
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_srpm_list_end_to_end(self):
         """Create repository,  upload, list and remove an SRPM content
 
@@ -1812,7 +1809,7 @@ class RepositoryTestCase(CLITestCase):
             Repository.info({'id': new_repo['id']})['content-counts']['source-rpms']
         ) == len(Srpm.list({'repository-id': new_repo['id']}))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_get_update_delete_module_streams(self):
         """Check module-stream get for each create, get, update, delete.
 
@@ -1879,7 +1876,7 @@ class RepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': repo['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_module_stream_list_validation(self):
         """Check module-stream get with list on hammer.
 
@@ -1912,7 +1909,7 @@ class RepositoryTestCase(CLITestCase):
         module_streams = ModuleStream.list({'product-id': product2['id']})
         self.assertEqual(len(module_streams), 7, 'Module Streams get worked correctly')
 
-    @tier1
+    @pytest.mark.tier1
     def test_module_stream_info_validation(self):
         """Check module-stream get with info on hammer.
 
@@ -1974,7 +1971,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         return make_repository(options)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_ostree_repo(self):
         """Create a ostree repository
 
@@ -1998,7 +1995,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], 'ostree')
 
     @pytest.mark.skip_if_open("BZ:1716429")
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_ostree_repo_with_checksum(self):
         """Create a ostree repository with checksum type
 
@@ -2025,7 +2022,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                         }
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_unprotected_ostree_repo(self):
         """Create a ostree repository and published via http
 
@@ -2049,8 +2046,8 @@ class OstreeRepositoryTestCase(CLITestCase):
                         }
                     )
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.skip_if_open("BZ:1625783")
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
@@ -2072,7 +2069,7 @@ class OstreeRepositoryTestCase(CLITestCase):
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_ostree_by_name(self):
         """Delete Ostree repository by name
 
@@ -2095,8 +2092,8 @@ class OstreeRepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'name': new_repo['name']})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_ostree_by_id(self):
         """Delete Ostree repository by id
 
@@ -2124,7 +2121,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with SRPMs
@@ -2144,7 +2141,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
@@ -2168,8 +2165,8 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated SRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
@@ -2210,7 +2207,7 @@ class DRPMRepositoryTestCase(CLITestCase):
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
@@ -2230,7 +2227,7 @@ class DRPMRepositoryTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
@@ -2254,8 +2251,8 @@ class DRPMRepositoryTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated DRPM repository")
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
@@ -2299,7 +2296,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
     # update to contain the latest and greatest.
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_local_create(self):
         """Create repository with local git puppet mirror.
 
@@ -2318,7 +2315,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_local_update(self):
         """Update repository with local git puppet mirror.
 
@@ -2337,8 +2334,8 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
 
@@ -2357,7 +2354,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_remote_create(self):
         """Create repository with remote git puppet mirror.
 
@@ -2376,7 +2373,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_remote_update(self):
         """Update repository with remote git puppet mirror.
 
@@ -2395,8 +2392,8 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
 
@@ -2415,7 +2412,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_sync(self):
         """Sync repository with git puppet mirror.
 
@@ -2436,8 +2433,8 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_git_sync_with_content_change(self):
         """Sync repository with changes in git puppet mirror.
         If module changes in GIT mirror but the version in manifest
@@ -2465,7 +2462,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
 
@@ -2484,7 +2481,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_git_view_content(self):
         """View content in synced git puppet mirror
 
@@ -2513,7 +2510,7 @@ class FileRepositoryTestCase(CLITestCase):
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
 
@@ -2552,7 +2549,7 @@ class FileRepositoryTestCase(CLITestCase):
         self.assertEqual(RPM_TO_UPLOAD, filesearch[0].name)
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository
 
@@ -2571,8 +2568,8 @@ class FileRepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
 
@@ -2611,8 +2608,8 @@ class FileRepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['files'], '0')
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
         through http
@@ -2644,7 +2641,7 @@ class FileRepositoryTestCase(CLITestCase):
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['files'], '2')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_file_repo_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
 
@@ -2681,7 +2678,7 @@ class FileRepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertGreater(repo['content-counts']['files'], '1')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_symlinks_sync(self):
         """Check symlinks can be synced to File Repository
 

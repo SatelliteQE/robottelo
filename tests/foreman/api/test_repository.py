@@ -64,12 +64,7 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
@@ -93,7 +88,7 @@ class RepositoryTestCase(APITestCase):
             organization=[cls.org.id],
         ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a repository with valid name.
 
@@ -108,9 +103,9 @@ class RepositoryTestCase(APITestCase):
                 repo = entities.Repository(product=self.product, name=name).create()
                 self.assertEqual(name, repo.name)
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_assign_http_proxy_to_repository(self):
         """Assign http_proxy to Repositories and perform repository sync.
 
@@ -142,7 +137,7 @@ class RepositoryTestCase(APITestCase):
         repo_b = entities.Repository(id=repo_b.id, http_proxy_policy='none').update()
         assert repo_b.http_proxy_policy == 'none'
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_label(self):
         """Create a repository providing label which is different from its name
 
@@ -158,8 +153,8 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.label, label)
                 self.assertNotEqual(repo.name, label)
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_yum(self):
         """Create yum repository.
 
@@ -175,8 +170,8 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'yum')
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
@@ -191,8 +186,8 @@ class RepositoryTestCase(APITestCase):
         ).create()
         self.assertEqual(repo.content_type, 'puppet')
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
@@ -212,8 +207,8 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.content_type, 'yum')
                 self.assertEqual(repo.url, url_encoded)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
@@ -230,7 +225,7 @@ class RepositoryTestCase(APITestCase):
                 ).create()
                 self.assertEqual(repo.download_policy, policy)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_download_policy(self):
         """Verify if the default download policy is assigned
         when creating a YUM repo without `download_policy` field
@@ -249,7 +244,7 @@ class RepositoryTestCase(APITestCase):
         repo = entities.Repository(product=self.product, content_type='yum').create()
         self.assertEqual(repo.download_policy, default_dl_policy[0].value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_immediate_update_to_on_demand(self):
         """Update `immediate` download policy to `on_demand`
         for a newly created YUM repository
@@ -268,7 +263,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'on_demand')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_immediate_update_to_background(self):
         """Update `immediate` download policy to `background`
         for a newly created YUM repository
@@ -286,7 +281,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'background')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_on_demand_update_to_immediate(self):
         """Update `on_demand` download policy to `immediate`
         for a newly created YUM repository
@@ -304,7 +299,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'immediate')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_on_demand_update_to_background(self):
         """Update `on_demand` download policy to `background`
         for a newly created YUM repository
@@ -322,7 +317,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'background')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_background_update_to_immediate(self):
         """Update `background` download policy to `immediate`
         for a newly created YUM repository
@@ -340,7 +335,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'immediate')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_background_update_to_on_demand(self):
         """Update `background` download policy to `on_demand`
         for a newly created YUM repository
@@ -358,8 +353,8 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'on_demand')
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
@@ -379,7 +374,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.content_type, 'puppet')
                 self.assertEqual(repo.url, url_encoded)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_checksum(self):
         """Create a repository with valid checksum type.
 
@@ -397,7 +392,7 @@ class RepositoryTestCase(APITestCase):
                 ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_checksum_with_background_policy(self):
         """Attempt to create repository with checksum and background policy.
 
@@ -414,7 +409,7 @@ class RepositoryTestCase(APITestCase):
                 ).create()
                 self.assertEqual(checksum_type, repo.checksum_type)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_unprotected(self):
         """Create a repository with valid unprotected flag values.
 
@@ -429,7 +424,7 @@ class RepositoryTestCase(APITestCase):
             repo = entities.Repository(product=self.product, unprotected=unprotected).create()
             self.assertEqual(repo.unprotected, unprotected)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_gpg(self):
         """Create a repository and provide a GPG key ID.
 
@@ -446,7 +441,7 @@ class RepositoryTestCase(APITestCase):
         # Verify that the given GPG key ID is used.
         self.assertEqual(gpg_key.id, repo.gpg_key.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_same_name_different_orgs(self):
         """Create two repos with the same name in two different organizations.
 
@@ -461,7 +456,7 @@ class RepositoryTestCase(APITestCase):
         repo2 = entities.Repository(name=repo1.name).create()
         self.assertEqual(repo1.name, repo2.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
@@ -483,7 +478,7 @@ class RepositoryTestCase(APITestCase):
             repo.sync()
             self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_name(self):
         """Attempt to create repository with invalid names only.
 
@@ -498,7 +493,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Repository(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Attempt to create a repository providing a name of already existent
         entity
@@ -514,7 +509,7 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Repository(product=self.product, name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_label(self):
         """Attempt to create repository with invalid label.
 
@@ -527,7 +522,7 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Repository(label=gen_string('utf8')).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_url(self):
         """Attempt to create repository with invalid url.
 
@@ -542,8 +537,8 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Repository(url=url).create()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
@@ -560,8 +555,8 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Repository(url=url).create()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
@@ -577,7 +572,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Repository(url=url).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_download_policy(self):
         """Verify that YUM repository cannot be created with invalid
         download policy
@@ -594,7 +589,7 @@ class RepositoryTestCase(APITestCase):
                 product=self.product, content_type='yum', download_policy=gen_string('alpha', 5)
             ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_to_invalid_download_policy(self):
         """Verify that YUM repository cannot be updated to invalid
         download policy
@@ -611,7 +606,7 @@ class RepositoryTestCase(APITestCase):
             repo.download_policy = gen_string('alpha', 5)
             repo.update(['download_policy'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_non_yum_with_download_policy(self):
         """Verify that non-YUM repositories cannot be created with
         download policy
@@ -633,7 +628,7 @@ class RepositoryTestCase(APITestCase):
                         download_policy='on_demand',
                     ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_checksum(self):
         """Attempt to create repository with invalid checksum type.
 
@@ -648,7 +643,7 @@ class RepositoryTestCase(APITestCase):
                 checksum_type=gen_string('alpha'), download_policy='immediate'
             ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_checksum_with_on_demand_policy(self):
         """Attempt to create repository with checksum and on_demand policy.
 
@@ -664,7 +659,7 @@ class RepositoryTestCase(APITestCase):
                     checksum_type=checksum_type, download_policy='on_demand'
                 ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_checksum_with_on_demand_policy(self):
         """Attempt to update the on_demand downloadpolicy on a already created repository with
         checksum.
@@ -683,7 +678,7 @@ class RepositoryTestCase(APITestCase):
                 repo.download_policy = 'on_demand'
                 repo.update(['download_policy'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update repository name to another valid name.
 
@@ -700,7 +695,7 @@ class RepositoryTestCase(APITestCase):
                 repo = repo.update(['name'])
                 self.assertEqual(new_name, repo.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_checksum(self):
         """Update repository checksum type to another valid one.
 
@@ -719,8 +714,8 @@ class RepositoryTestCase(APITestCase):
             repo = repo.update(['checksum_type'])
             self.assertEqual(repo.checksum_type, updated_checksum)
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
@@ -735,7 +730,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['url'])
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_unprotected(self):
         """Update repository unprotected flag to another valid one.
 
@@ -750,7 +745,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['unprotected'])
         self.assertEqual(repo.unprotected, True)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_gpg(self):
         """Create a repository and update its GPGKey
 
@@ -774,7 +769,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update(['gpg_key'])
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
 
@@ -791,8 +786,8 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_upload_delete_srpm(self):
         """Create a repository and upload, delete SRPM contents.
 
@@ -818,10 +813,10 @@ class RepositoryTestCase(APITestCase):
         repo.remove_content(data={'ids': [srpm_detail[0].id], 'content_type': 'srpm'})
         self.assertEqual(repo.read().content_counts['srpm'], 0)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_delete_srpm_repo(self):
         """Create a repository, sync SRPM contents and remove repo
 
@@ -839,8 +834,8 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
 
@@ -864,7 +859,7 @@ class RepositoryTestCase(APITestCase):
         repo.remove_content(data={'ids': [package.id for package in packages]})
         self.assertEqual(repo.read().content_counts['rpm'], 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Attempt to update repository name to invalid one
 
@@ -882,7 +877,7 @@ class RepositoryTestCase(APITestCase):
                     repo.update(['name'])
 
     @pytest.mark.skip_if_open("BZ:1311113")
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_label(self):
         """Attempt to update repository label to another one.
 
@@ -899,8 +894,8 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.update(['label'])
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_update_auth_url_with_special_characters(self):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
@@ -926,8 +921,8 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     new_repo.update(['url'])
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
@@ -951,7 +946,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     new_repo.update(['url'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_synchronize(self):
         """Create a repo and sync it.
 
@@ -965,8 +960,8 @@ class RepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
@@ -992,8 +987,8 @@ class RepositoryTestCase(APITestCase):
                 # Verify it has finished
                 self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
@@ -1016,9 +1011,9 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(TaskFailedError):
                     repo.sync()
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -1044,8 +1039,8 @@ class RepositoryTestCase(APITestCase):
                 # Verify it has finished
                 self.assertEqual(repo.read().content_counts['puppet_module'], 1)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
         removed from repository
@@ -1072,8 +1067,8 @@ class RepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
         were removed from repository
@@ -1100,7 +1095,7 @@ class RepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create a repository with different names and then delete it.
 
@@ -1117,9 +1112,9 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.read()
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -1139,9 +1134,9 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -1163,8 +1158,8 @@ class RepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_list_puppet_modules_with_multiple_repos(self):
         """Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
@@ -1193,9 +1188,9 @@ class RepositoryTestCase(APITestCase):
         # Verify that number of modules from the first repo has not changed
         self.assertEqual(modules_num, len(repo1.puppet_modules()['results']))
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_access_protected_repository(self):
         """Access protected/https repository data file URL using organization
         debug certificate
@@ -1236,9 +1231,9 @@ class RepositoryTestCase(APITestCase):
         response = client.get(repo_data_file_url, cert=cert_file_path, verify=False)
         self.assertEqual(response.status_code, 200)
 
-    @tier1
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_module_stream_repository_crud_operations(self):
         """Verify that module stream api calls works with product having other type
         repositories.
@@ -1267,7 +1262,7 @@ class RepositoryTestCase(APITestCase):
             repository.read()
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
@@ -1278,7 +1273,7 @@ class RepositorySyncTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @tier2
+    @pytest.mark.tier2
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh(self):
         """Sync RedHat Repository.
@@ -1302,8 +1297,8 @@ class RepositorySyncTestCase(APITestCase):
         )
         entities.Repository(id=repo_id).sync()
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_yum_with_string_based_version(self):
         """Sync Yum Repo with string based versions on update-info.
 
@@ -1329,7 +1324,7 @@ class RepositorySyncTestCase(APITestCase):
             assert repository.content_counts[key] == count
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
         """Sync RedHat Appstream Repository.
@@ -1352,7 +1347,7 @@ class DockerRepositoryTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create(self):
         """Create a Docker-type repository
 
@@ -1376,7 +1371,7 @@ class DockerRepositoryTestCase(APITestCase):
                 self.assertEqual(repo.docker_upstream_name, 'busybox')
                 self.assertEqual(repo.content_type, 'docker')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_synchronize(self):
         """Create and sync a Docker-type repository
 
@@ -1398,7 +1393,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update a repository's name.
 
@@ -1418,7 +1413,7 @@ class DockerRepositoryTestCase(APITestCase):
         repository = repository.update(['name'])
         self.assertEqual(new_name, repository.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_synchronize_private_registry(self):
         """Create and sync a Docker-type repository from a private registry
 
@@ -1446,7 +1441,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo.sync()
         self.assertGreaterEqual(repo.read().content_counts['docker_manifest'], 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_private_registry_wrong_password(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing wrong credentials the sync must fail with
@@ -1483,7 +1478,7 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("DKR1007", str(excinfo.exception))
         self.assertIn("Unauthorized or Not Found", str(excinfo.exception))
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_private_registry_wrong_repo(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing wrong repository the sync must fail with
@@ -1520,7 +1515,7 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("DKR1008", str(excinfo.exception))
         self.assertIn("Could not find registry API", str(excinfo.exception))
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_private_registry_no_passwd(self):
         """Create and try to sync a Docker-type repository from a private
         registry providing empty password and the sync must fail with
@@ -1550,8 +1545,8 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertIn("422", str(excinfo.exception))
         self.assertIn("Unprocessable Entity", str(excinfo.exception))
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_synchronize_docker_repo_with_tags_whitelist(self):
         """Check if only whitelisted tags are synchronized
 
@@ -1574,7 +1569,7 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertEqual(repo.content_counts['docker_tag'], 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_synchronize_docker_repo_set_tags_later(self):
         """Verify that adding tags whitelist and re-syncing after
         synchronizing full repository doesn't remove content that was
@@ -1605,7 +1600,7 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertGreaterEqual(repo.content_counts['docker_tag'], 2)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self):
         """Set tags whitelist to contain both valid and invalid (non-existing)
         tags. Check if only whitelisted tags are synchronized
@@ -1629,7 +1624,7 @@ class DockerRepositoryTestCase(APITestCase):
         [self.assertIn(tag, repo.docker_tags_whitelist) for tag in tags]
         self.assertEqual(repo.content_counts['docker_tag'], 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_synchronize_docker_repo_with_invalid_tags(self):
         """Set tags whitelist to contain only invalid (non-existing)
         tags. Check that no data is synchronized.
@@ -1665,8 +1660,8 @@ class OstreeRepositoryTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_ostree(self):
         """Create ostree repository.
 
@@ -1684,8 +1679,8 @@ class OstreeRepositoryTestCase(APITestCase):
         ).create()
         self.assertEqual(repo.content_type, 'ostree')
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_update_name(self):
         """Update ostree repository name.
 
@@ -1706,8 +1701,8 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = repo.update(['name'])
         self.assertEqual(new_name, repo.name)
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_update_url(self):
         """Update ostree repository url.
 
@@ -1728,9 +1723,9 @@ class OstreeRepositoryTestCase(APITestCase):
         repo = repo.update(['url'])
         self.assertEqual(new_url, repo.url)
 
-    @tier1
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_ostree(self):
         """Delete an ostree repository.
 
@@ -1750,11 +1745,11 @@ class OstreeRepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip_if_open("BZ:1625783")
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @upgrade
+    @pytest.mark.upgrade
     def test_positive_sync_rh_atomic(self):
         """Sync RH Atomic Ostree Repository.
 
@@ -1791,8 +1786,8 @@ class SRPMRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(self):
         """Upload SRPM to repository, add repository to content view
         and publish, promote content view
@@ -1824,10 +1819,10 @@ class SRPMRepositoryTestCase(APITestCase):
             len(entities.Srpms().search(query={'environment_id': self.lce.id})), 1
         )
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
@@ -1867,9 +1862,9 @@ class DRPMRepositoryTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -1888,9 +1883,9 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -1914,10 +1909,10 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1965,8 +1960,8 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         super().setUpClass()
         cls.product = entities.Product().create()
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_ignore_sprm_duplicate(self):
         """Test whether SRPM duplicated content can be ignored.
 
@@ -1981,8 +1976,8 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         repo = repo.read()
         self.assertEqual(repo.content_counts['srpm'], 0)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_srpm_duplicate(self):
         """Test sync of SRPM duplicated repository.
 
@@ -1996,9 +1991,9 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         repo = repo.read()
         self.assertEqual(repo.content_counts['srpm'], 2)
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_ignore_srpm_sync(self):
         """Test whether SRPM content can be ignored during sync.
 
@@ -2019,7 +2014,7 @@ class FileRepositoryTestCase(APITestCase):
     """Specific tests for File Repositories"""
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
 
@@ -2037,7 +2032,7 @@ class FileRepositoryTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository
 
@@ -2057,8 +2052,8 @@ class FileRepositoryTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
 
@@ -2079,8 +2074,8 @@ class FileRepositoryTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
         through http
@@ -2103,7 +2098,7 @@ class FileRepositoryTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
 
@@ -2127,7 +2122,7 @@ class FileRepositoryTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_symlinks_sync(self):
         """Check synlinks can be synced to File Repository
 
@@ -2167,7 +2162,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_long_token(self):
         """Create and sync Docker-type repo from the Red Hat Container registry
         Using token based auth, with very long tokens (>255 characters).
@@ -2204,7 +2199,7 @@ class TokenAuthContainerRepositoryTestCase(APITestCase):
                 repo.sync()
                 self.assertGreater(repo.read().content_counts['docker_manifest'], 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_multi_registry(self):
         """Create and sync Docker-type repos from multiple supported registries
 

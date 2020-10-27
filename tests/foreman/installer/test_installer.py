@@ -22,9 +22,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.decorators import tier1
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_host_info
 
 PREVIOUS_INSTALLER_OPTIONS = {
@@ -1381,8 +1378,8 @@ def extract_params(lst):
                 yield token.replace(',', '')
 
 
-@upgrade
-@tier1
+@pytest.mark.upgrade
+@pytest.mark.tier1
 def test_positive_foreman_module():
     """Check if SELinux foreman module has the right version
 
@@ -1405,8 +1402,8 @@ def test_positive_foreman_module():
     assert rpm_version.replace('-', '.') == semodule_version
 
 
-@upgrade
-@tier1
+@pytest.mark.upgrade
+@pytest.mark.tier1
 def test_positive_check_installer_services():
     """Check if services start correctly
 
@@ -1445,8 +1442,8 @@ def test_positive_check_installer_services():
         assert status == 'ok', f'{service} responded with {response}'
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_installer_options_and_flags():
     """Look for changes on installer options and flags
 
@@ -1475,7 +1472,7 @@ def test_installer_options_and_flags():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_satellite_installation_on_ipv6():
     """
     Check the satellite installation on ipv6 machine.
@@ -1501,7 +1498,7 @@ def test_satellite_installation_on_ipv6():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_capsule_installation_on_ipv6():
     """
     Check the capsule installation over ipv6 machine
@@ -1526,7 +1523,7 @@ def test_capsule_installation_on_ipv6():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_installer_check_on_ipv6():
     """
     Check the satellite-installer command execution with tuning options and updated config file.

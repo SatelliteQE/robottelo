@@ -14,37 +14,32 @@
 
 :Upstream: No
 """
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_integer
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def manager_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture
+@pytest.fixture
 def module_discovery_env(module_org, module_loc):
     discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
     default_discovery_loc = discovery_loc.value
@@ -61,7 +56,7 @@ def module_discovery_env(module_org, module_loc):
     discovery_org.update(['value'])
 
 
-@fixture
+@pytest.fixture
 def manager_user(manager_loc, module_loc, module_org):
     manager_role = entities.Role().search(query={'search': 'name="Discovery Manager"'})[0]
     password = gen_string('alphanumeric')
@@ -76,7 +71,7 @@ def manager_user(manager_loc, module_loc, module_org):
     return manager_user
 
 
-@fixture
+@pytest.fixture
 def reader_user(module_loc, module_org):
     password = gen_string('alphanumeric')
     reader_role = entities.Role().search(query={'search': 'name="Discovery Reader"'})[0]
@@ -91,7 +86,7 @@ def reader_user(module_loc, module_org):
     return reader_user
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_rule_with_non_admin_user(
     manager_loc, manager_user, module_org, test_name
 ):
@@ -116,7 +111,7 @@ def test_positive_create_rule_with_non_admin_user(
         assert dr_val['primary']['host_group'] == hg.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_rule_with_non_admin_user(
     manager_loc, manager_user, module_org, test_name
 ):
@@ -140,7 +135,7 @@ def test_positive_delete_rule_with_non_admin_user(
         assert dr.name not in [rule['Name'] for rule in dr_val]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_view_existing_rule_with_non_admin_user(
     module_loc, module_org, reader_user, test_name
 ):
@@ -168,7 +163,7 @@ def test_positive_view_existing_rule_with_non_admin_user(
         assert dr.name in [rule['Name'] for rule in dr_val]
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_delete_rule_with_non_admin_user(module_loc, module_org, reader_user, test_name):
     """Delete rule with non-admin user by associating discovery_reader role
 
@@ -184,14 +179,14 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org, reader
         hostgroup=hg, organization=[module_org], location=[module_loc]
     ).create()
     with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
-        with raises(ValueError):
+        with pytest.raises(ValueError):
             session.discoveryrule.delete(dr.name)
         dr_val = session.discoveryrule.read_all()
         assert dr.name in [rule['Name'] for rule in dr_val]
 
 
-@run_in_one_thread
-@tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
 def test_positive_list_host_based_on_rule_search_query(
     session, module_org, module_loc, module_discovery_env
 ):
@@ -261,8 +256,8 @@ def test_positive_list_host_based_on_rule_search_query(
         assert values['properties']['properties_table']['IP Address'] == ip_address
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for discovery rule component.
 

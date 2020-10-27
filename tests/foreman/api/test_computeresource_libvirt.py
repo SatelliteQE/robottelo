@@ -20,6 +20,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 """
 from random import randint
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -29,8 +30,6 @@ from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 
@@ -48,7 +47,7 @@ class ComputeResourceTestCase(APITestCase):
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create compute resources with different names
 
@@ -70,7 +69,7 @@ class ComputeResourceTestCase(APITestCase):
                 ).create()
                 self.assertEqual(compresource.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_description(self):
         """Create compute resources with different descriptions
 
@@ -93,7 +92,7 @@ class ComputeResourceTestCase(APITestCase):
                 ).create()
                 self.assertEqual(compresource.description, description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_libvirt_with_display_type(self):
         """Create a libvirt compute resources with different values of
         'display_type' parameter
@@ -117,7 +116,7 @@ class ComputeResourceTestCase(APITestCase):
                 ).create()
                 self.assertEqual(compresource.display_type, display_type)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_provider(self):
         """Create compute resources with different providers. Testing only
         Libvirt and Docker as other providers require valid credentials
@@ -136,7 +135,7 @@ class ComputeResourceTestCase(APITestCase):
         result = entity.create()
         self.assertEqual(result.provider, entity.provider)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_locs(self):
         """Create a compute resource with multiple locations
 
@@ -157,7 +156,7 @@ class ComputeResourceTestCase(APITestCase):
             {loc.name for loc in locs}, {loc.read().name for loc in compresource.location}
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_orgs(self):
         """Create a compute resource with multiple organizations
 
@@ -179,7 +178,7 @@ class ComputeResourceTestCase(APITestCase):
             {org.read().name for org in compresource.organization},
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update a compute resource with different names
 
@@ -200,7 +199,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['name'])
                 self.assertEqual(compresource.name, new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_description(self):
         """Update a compute resource with different descriptions
 
@@ -225,7 +224,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['description'])
                 self.assertEqual(compresource.description, new_description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_libvirt_display_type(self):
         """Update a libvirt compute resource with different values of
         'display_type' parameter
@@ -251,7 +250,7 @@ class ComputeResourceTestCase(APITestCase):
                 compresource = compresource.update(['display_type'])
                 self.assertEqual(compresource.display_type, display_type)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_url(self):
         """Update a compute resource's url field
 
@@ -272,7 +271,7 @@ class ComputeResourceTestCase(APITestCase):
         compresource = compresource.update(['url'])
         self.assertEqual(compresource.url, new_url)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_loc(self):
         """Update a compute resource's location
 
@@ -293,7 +292,7 @@ class ComputeResourceTestCase(APITestCase):
         self.assertEqual(len(compresource.location), 1)
         self.assertEqual(compresource.location[0].id, new_loc.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_locs(self):
         """Update a compute resource with new multiple locations
 
@@ -318,7 +317,7 @@ class ComputeResourceTestCase(APITestCase):
             {location.id for location in new_locs},
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_org(self):
         """Update a compute resource's organization
 
@@ -340,7 +339,7 @@ class ComputeResourceTestCase(APITestCase):
         self.assertEqual(len(compresource.organization), 1)
         self.assertEqual(compresource.organization[0].id, new_org.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_orgs(self):
         """Update a compute resource with new multiple organizations
 
@@ -364,7 +363,7 @@ class ComputeResourceTestCase(APITestCase):
             {organization.id for organization in new_orgs},
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Delete a compute resource
 
@@ -383,7 +382,7 @@ class ComputeResourceTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             compresource.read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_invalid_name(self):
         """Attempt to create compute resources with invalid names
 
@@ -405,7 +404,7 @@ class ComputeResourceTestCase(APITestCase):
                         url=self.current_libvirt_url,
                     ).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_same_name(self):
         """Attempt to create a compute resource with already existing name
 
@@ -429,7 +428,7 @@ class ComputeResourceTestCase(APITestCase):
                 url=self.current_libvirt_url,
             ).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_url(self):
         """Attempt to create compute resources with invalid url
 
@@ -448,7 +447,7 @@ class ComputeResourceTestCase(APITestCase):
                         location=[self.loc], organization=[self.org], url=url
                     ).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_invalid_name(self):
         """Attempt to update compute resource with invalid names
 
@@ -471,7 +470,7 @@ class ComputeResourceTestCase(APITestCase):
                     compresource.update(['name'])
                 self.assertEqual(compresource.read().name, name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_same_name(self):
         """Attempt to update a compute resource with already existing name
 
@@ -495,7 +494,7 @@ class ComputeResourceTestCase(APITestCase):
             new_compresource.update(['name'])
         self.assertNotEqual(new_compresource.read().name, name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_url(self):
         """Attempt to update a compute resource with invalid url
 

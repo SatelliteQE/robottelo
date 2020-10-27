@@ -14,15 +14,14 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -30,7 +29,7 @@ class PuppetClassTestCase(CLITestCase):
     """Implements puppet class tests in CLI."""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import a parametrized puppet class."""
         super().setUpClass()
@@ -42,8 +41,8 @@ class PuppetClassTestCase(CLITestCase):
             {'name': cls.puppet_modules[0]['name'], 'environment': cls.env['name']}
         )
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_list_smart_class_parameters(self):
         """List smart class parameters associated with the puppet class.
 

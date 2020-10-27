@@ -16,7 +16,6 @@
 """
 import pytest
 
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -29,7 +28,7 @@ class InstallerTestCase(CLITestCase):
     # error-prone) than simply grepping for ERROR/FATAL
 
     @pytest.mark.stubbed
-    @upgrade
+    @pytest.mark.upgrade
     def test_positive_installer_check_services(self):
         # devnote:
         # maybe `hammer ping` command might be useful here to check

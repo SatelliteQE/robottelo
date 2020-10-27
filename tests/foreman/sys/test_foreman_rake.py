@@ -12,15 +12,14 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo import ssh
-from robottelo.decorators import destructive
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier3
 
 
-@destructive
-@run_in_one_thread
-@tier3
+@pytest.mark.destructive
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
 def test_positive_katello_reimport():
     """Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.

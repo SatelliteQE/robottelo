@@ -12,11 +12,10 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
@@ -69,7 +68,7 @@ class TemplateCombinationTestCase(APITestCase):
             pass
         self.template.delete()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_get_combination(self):
         """Assert API template combination get method works.
 
@@ -89,8 +88,8 @@ class TemplateCombinationTestCase(APITestCase):
         self.assertEqual(self.env.id, combination.environment.id)
         self.assertEqual(self.hostgroup.id, combination.hostgroup.id)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_combination(self):
         """Assert API template combination delete method works.
 

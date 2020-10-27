@@ -16,6 +16,7 @@
 """
 import random
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
 
@@ -50,11 +51,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -66,8 +63,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         super().setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -78,8 +75,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         result = Org.info({'name': DEFAULT_ORG})
         self.assertEqual(result['name'], DEFAULT_ORG)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -90,8 +87,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         result = Location.info({'name': DEFAULT_LOC})
         self.assertEqual(result['name'], DEFAULT_LOC)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -104,9 +101,9 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         self.assertEqual(result['admin'], 'yes')
 
     @skip_if_not_set('compute_resources')
-    @tier4
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 

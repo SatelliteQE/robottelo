@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
@@ -24,16 +25,14 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.cli.http_proxy import HttpProxy
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class HttpProxyTestCase(CLITestCase):
     """Tests for http-proxy via Hammer CLI"""
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_update_delete(self):
         """Create new http-proxy with attributes, update and delete it.
 

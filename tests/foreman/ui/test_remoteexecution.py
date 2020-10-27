@@ -17,6 +17,7 @@
 import datetime
 import time
 
+import pytest
 from nailgun import entities
 from wait_for import wait_for
 
@@ -25,9 +26,6 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 
@@ -53,12 +51,12 @@ def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
         )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
@@ -71,7 +69,7 @@ def module_loc(module_org):
     return location
 
 
-@fixture
+@pytest.fixture
 def module_vm_client_by_ip(module_org, module_loc):
     """Setup a VM client to be used in remote execution by ip"""
     with VirtualMachine(distro=DISTRO_DEFAULT) as vm_client:
@@ -80,7 +78,7 @@ def module_vm_client_by_ip(module_org, module_loc):
         yield vm_client
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip):
     """Run a job template against a single host by ip
 
@@ -117,7 +115,7 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip):
     """Run a job template on a host connected by ip
 
@@ -165,8 +163,8 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, module_loc):
     """Run a job template against multiple hosts by ip
 
@@ -218,7 +216,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
             )
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_ip):
     """Schedule a job to be ran against a host by ip
 

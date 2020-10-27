@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
@@ -37,11 +38,6 @@ from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_labels_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -58,9 +54,9 @@ class ProductTestCase(CLITestCase):
         if ProductTestCase.org is None:
             ProductTestCase.org = make_org(cached=True)
 
-    @tier1
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_CRUD(self):
         """Check if product can be created, updated, synchronized and deleted
 
@@ -137,7 +133,7 @@ class ProductTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Product.info({'id': product['id'], 'organization-id': self.org['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_name(self):
         """Check that only valid names can be used
 
@@ -152,7 +148,7 @@ class ProductTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_product({'name': invalid_name, 'organization-id': self.org['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_label(self):
         """Check that only valid labels can be used
 
@@ -178,9 +174,9 @@ class ProductTestCase(CLITestCase):
                         }
                     )
 
-    @run_in_one_thread
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_product_list_with_default_settings(self):
         """Listing product of an organization apart from default organization using hammer
          does not return output if a defaults settings are applied on org.
@@ -226,8 +222,8 @@ class ProductTestCase(CLITestCase):
             result = ssh.command('hammer defaults list')
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_assign_http_proxy_to_products(self):
         """Assign http_proxy to Products and perform product sync.
 

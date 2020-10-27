@@ -18,6 +18,7 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
+import pytest
 from fauxfactory import gen_alpha
 from nailgun import entities
 from nailgun import entity_mixins
@@ -38,15 +39,12 @@ from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class IncrementalUpdateTestCase(TestCase):
     """Tests for the Incremental Update feature"""
 
@@ -208,8 +206,8 @@ class IncrementalUpdateTestCase(TestCase):
         """Retrieves applicable errata for the given repo"""
         return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
 
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_noapply_api(self):
         """Check if api incremental update can be done without
         actually applying it
@@ -256,8 +254,8 @@ class IncrementalUpdateTestCase(TestCase):
         self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
         self.assertGreater(len(self.rhel_6_partial_cv.version), len(cv_versions))
 
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_noapply_cli(self):
         """Check if cli incremental update can be done without
         actually applying it

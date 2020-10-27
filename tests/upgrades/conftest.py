@@ -89,7 +89,7 @@ import json
 import logging
 import os
 
-from pytest import fixture
+import pytest
 
 from robottelo.decorators.func_locker import lock_function
 
@@ -186,7 +186,7 @@ def _save_test_data(test_node_id, value):
     create_dict({test_node_id: value})
 
 
-@fixture
+@pytest.fixture
 def save_test_data(request):
     """A fixture to allow saving test data
 
@@ -202,7 +202,7 @@ def save_test_data(request):
     return functools.partial(_save_test_data, test_node_id)
 
 
-@fixture
+@pytest.fixture
 def pre_upgrade_data(request):
     """A fixture to allow restoring the saved data in pre_upgrade stage
 

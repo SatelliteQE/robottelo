@@ -36,10 +36,6 @@ from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -53,7 +49,7 @@ class ProductTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a product providing different valid names
 
@@ -68,7 +64,7 @@ class ProductTestCase(APITestCase):
                 product = entities.Product(name=name, organization=self.org).create()
                 self.assertEqual(name, product.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_label(self):
         """Create a product providing label which is different from its name
 
@@ -83,7 +79,7 @@ class ProductTestCase(APITestCase):
         self.assertEqual(label, product.label)
         self.assertNotEqual(label, product.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_description(self):
         """Create a product providing different descriptions
 
@@ -98,7 +94,7 @@ class ProductTestCase(APITestCase):
                 product = entities.Product(description=desc, organization=self.org).create()
                 self.assertEqual(desc, product.description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_gpg(self):
         """Create a product and provide a GPG key.
 
@@ -118,7 +114,7 @@ class ProductTestCase(APITestCase):
         product = entities.Product(gpg_key=gpg_key, organization=self.org).create()
         self.assertEqual(product.gpg_key.id, gpg_key.id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Create a product providing invalid names only
 
@@ -133,7 +129,7 @@ class ProductTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Product(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Create a product providing a name of already existent entity
 
@@ -148,7 +144,7 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Product(name=name, organization=self.org).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_label(self):
         """Create a product providing invalid label
 
@@ -161,7 +157,7 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Product(label=gen_string('utf8')).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update product name to another valid name.
 
@@ -178,7 +174,7 @@ class ProductTestCase(APITestCase):
                 product = product.update(['name'])
                 self.assertEqual(new_name, product.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_description(self):
         """Update product description to another valid one.
 
@@ -195,7 +191,7 @@ class ProductTestCase(APITestCase):
                 product = product.update(['description'])
                 self.assertEqual(new_desc, product.description)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name_to_original(self):
         """Rename Product back to original name
 
@@ -215,8 +211,8 @@ class ProductTestCase(APITestCase):
         product.name = old_name
         self.assertEqual(product.name, product.update(['name']).name)
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_update_gpg(self):
         """Create a product and update its GPGKey
 
@@ -241,7 +237,7 @@ class ProductTestCase(APITestCase):
         self.assertEqual(product.gpg_key.id, gpg_key_2.id)
 
     @pytest.mark.skip_if_open("BZ:1310422")
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_organization(self):
         """Create a product and update its organization
 
@@ -260,7 +256,7 @@ class ProductTestCase(APITestCase):
         product = product.update()
         self.assertEqual(product.organization.id, new_org.id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Attempt to update product name to invalid one
 
@@ -276,7 +272,7 @@ class ProductTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Product(id=product.id, name=new_name).update(['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_label(self):
         """Attempt to update product label to another one.
 
@@ -291,7 +287,7 @@ class ProductTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             product.update(['label'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create product and then delete it.
 
@@ -308,8 +304,8 @@ class ProductTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Product(id=product.id).read()
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync(self):
         """Sync product (repository within a product)
 
@@ -327,9 +323,9 @@ class ProductTestCase(APITestCase):
         product.sync()
         self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_several_repos(self):
         """Sync product (all repositories within a product)
 
@@ -355,7 +351,7 @@ class ProductTestCase(APITestCase):
         self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
         self.assertGreaterEqual(puppet_repo.read().content_counts['puppet_module'], 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_filter_product_list(self):
         """Filter products based on param 'custom/redhat_only'
 
@@ -384,7 +380,7 @@ class ProductTestCase(APITestCase):
         assert 'Red Hat Beta' in (prod.name for prod in rh_products)
         assert product.name not in (prod.name for prod in rh_products)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_assign_http_proxy_to_products(self):
         """Assign http_proxy to Products and check whether http-proxy is
          used during sync.

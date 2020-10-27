@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_integer
 
 from robottelo.cleanup import capsule_cleanup
@@ -43,11 +44,6 @@ from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_hostgroups_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -55,7 +51,7 @@ class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         super().setUpClass()
         cls.org = make_org()
@@ -77,7 +73,7 @@ class HostGroupTestCase(CLITestCase):
             {'content-source-id': cls.content_source['id'], 'organization-ids': cls.org['id']}
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_name(self):
         """Don't create an HostGroup with invalid data.
 
@@ -90,8 +86,8 @@ class HostGroupTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     HostGroup.create({'name': name})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_multiple_entities_and_delete(self):
         """Check if hostgroup with multiple options can be created and deleted
 
@@ -178,7 +174,7 @@ class HostGroupTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             HostGroup.info({'id': hostgroup['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_content_source(self):
         """Attempt to create a hostgroup with invalid content source specified
 
@@ -198,8 +194,8 @@ class HostGroupTestCase(CLITestCase):
                 }
             )
 
-    @run_in_one_thread
-    @tier2
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
     def test_positive_update_hostgroup(self):
         """Update hostgroup's content source, name and puppet classes
 
@@ -242,7 +238,7 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(hostgroup['content-source']['name'], new_content_source['name'])
         self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_content_source(self):
         """Attempt to update hostgroup's content source with invalid value
 
@@ -262,7 +258,7 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = HostGroup.info({'id': self.hostgroup['id']})
         self.assertEqual(hostgroup['content-source']['name'], self.content_source['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_name(self):
         """Create HostGroup then fail to update its name
 
@@ -276,7 +272,7 @@ class HostGroupTestCase(CLITestCase):
         result = HostGroup.info({'id': self.hostgroup['id']})
         self.assertEqual(self.hostgroup['name'], result['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_delete_by_id(self):
         """Create HostGroup then delete it by wrong ID
 

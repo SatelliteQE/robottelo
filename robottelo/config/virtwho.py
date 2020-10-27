@@ -7,7 +7,6 @@ from robottelo.config.base import get_project_root
 from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import INIReader
 
-
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'virtwho.properties'
 

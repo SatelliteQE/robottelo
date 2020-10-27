@@ -22,7 +22,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 
 
 @pytest.fixture(scope="module")
@@ -44,7 +43,7 @@ def module_org(module_org):
     module_org.delete()
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup):
     """Create a new discovery rule with several attributes, update them
     and delete the rule itself.
@@ -103,7 +102,7 @@ def test_positive_end_to_end_crud(module_org, module_location, module_hostgroup)
         discovery_rule.read()
 
 
-@tier1
+@pytest.mark.tier1
 def test_negative_create_with_invalid_host_limit_and_priority():
     """Create a discovery rule with invalid host limit and priority
 

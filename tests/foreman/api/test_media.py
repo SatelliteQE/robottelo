@@ -26,9 +26,6 @@ from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
 class TestMedia:
@@ -38,8 +35,8 @@ class TestMedia:
     def class_media(self, module_org):
         return entities.Media(organization=[module_org]).create()
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'name, new_name',
         **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
@@ -63,7 +60,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             media.read()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('os_family', **parametrized(OPERATING_SYSTEMS))
     def test_positive_create_update_with_os_family(self, module_org, os_family):
         """Create and update media with every OS family possible
@@ -81,7 +78,7 @@ class TestMedia:
         media.os_family = new_os_family
         assert media.update(['os_family']).os_family == new_os_family
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_location(self, module_org, module_location):
         """Create media entity assigned to non-default location
 
@@ -94,7 +91,7 @@ class TestMedia:
         media = entities.Media(organization=[module_org], location=[module_location]).create()
         assert media.location[0].read().name == module_location.name
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_os(self, module_org):
         """Create media entity assigned to operation system entity
 
@@ -108,7 +105,7 @@ class TestMedia:
         media = entities.Media(organization=[module_org], operatingsystem=[os]).create()
         assert os.read().medium[0].read().name == media.name
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_update_url(self, module_org):
         """Create media entity providing the initial url path, then
         update that url to another valid one.
@@ -126,7 +123,7 @@ class TestMedia:
         media = entities.Media(id=media.id, path_=new_url).update(['path_'])
         assert media.path_ == new_url
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, name):
         """Try to create media entity providing an invalid name
@@ -142,7 +139,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             entities.Media(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_url(self):
         """Try to create media entity providing an invalid URL
 
@@ -155,7 +152,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_os_family(self):
         """Try to create media entity providing an invalid OS family
 
@@ -168,7 +165,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, module_org, class_media, new_name):
         """Create media entity providing the initial name, then try to
@@ -185,7 +182,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             entities.Media(id=class_media.id, name=new_name).update(['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_url(self, module_org, class_media):
         """Try to update media with invalid url.
 
@@ -198,7 +195,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             entities.Media(id=class_media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_os_family(self, module_org, class_media):
         """Try to update media with invalid operation system.
 

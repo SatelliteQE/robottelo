@@ -49,11 +49,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
@@ -64,13 +60,13 @@ CUSTOM_REPO_URL = FAKE_9_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class ErrataTestCase(APITestCase):
     """API Tests for the errata management feature"""
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super().setUpClass()
@@ -181,8 +177,8 @@ class ErrataTestCase(APITestCase):
                 'contain {} of them'.format(host.name, len(errata['results']), expected_amount)
             )
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_bulk_install_package(self):
         """Bulk install package to a collection of hosts
 
@@ -211,8 +207,8 @@ class ErrataTestCase(APITestCase):
                 rpm_package_name=FAKE_2_CUSTOM_PACKAGE,
             )
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_install_in_hc(self):
         """Install errata in a host-collection
 
@@ -251,7 +247,7 @@ class ErrataTestCase(APITestCase):
             )
             self._validate_package_installed(clients, FAKE_2_CUSTOM_PACKAGE)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_in_host(self):
         """Install errata in a host
 
@@ -276,7 +272,7 @@ class ErrataTestCase(APITestCase):
             entities.Host(id=host_id).errata_apply(data={'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
             self._validate_package_installed([client], FAKE_2_CUSTOM_PACKAGE)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_multiple_in_host(self):
         """For a host with multiple applicable errata install one and ensure
         the rest of errata is still available
@@ -314,8 +310,8 @@ class ErrataTestCase(APITestCase):
                     applicable_errata_count,
                 )
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_list(self):
         """View all errata specific to repository
 
@@ -348,7 +344,7 @@ class ErrataTestCase(APITestCase):
         self.assertIn(FAKE_3_ERRATA_ID, repo2_errata_ids)
         self.assertNotIn(FAKE_3_ERRATA_ID, repo1_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_updated(self):
         """View all errata in an Org sorted by Updated
 
@@ -384,7 +380,7 @@ class ErrataTestCase(APITestCase):
         updated = [errata.updated for errata in erratum_list]
         self.assertEqual(updated, sorted(updated))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_filter_by_cve(self):
         """Filter errata by CVE
 
@@ -424,7 +420,7 @@ class ErrataTestCase(APITestCase):
             cve_ids = [cve['cve_id'] for cve in errata_cves]
             self.assertEqual(cve_ids, sorted(cve_ids, reverse=True))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_sort_by_issued_date(self):
         """Filter errata by issued date
 
@@ -460,9 +456,9 @@ class ErrataTestCase(APITestCase):
         issued = [errata.issued for errata in erratum_list]
         self.assertEqual(issued, sorted(issued))
 
-    @tier3
+    @pytest.mark.tier3
     @pytest.mark.skip_if_open("BZ:1682940")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
@@ -513,8 +509,8 @@ class ErrataTestCase(APITestCase):
         errata_env = entities.Errata(environment=env).search(query={'per_page': 1000})
         self.assertGreater(len(errata_library), len(errata_env))
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_get_count_for_host(self):
         """Available errata count when retrieving Host
 
@@ -589,9 +585,9 @@ class ErrataTestCase(APITestCase):
             for errata in ('bugfix', 'enhancement'):
                 self._validate_errata_counts(host, errata, 1)
 
-    @upgrade
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
 
@@ -672,8 +668,8 @@ class ErrataTestCase(APITestCase):
                 )
             )
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_get_diff_for_cv_envs(self):
         """Generate a difference in errata between a set of environments
         for a content view
@@ -732,7 +728,7 @@ class ErrataTestCase(APITestCase):
         )
         self.assertEqual({cvv.id for cvv in cvvs}, set(both_cvvs_errata['comparison']))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_incremental_update_required(self):
         """Given a set of hosts and errata, check for content view version
         and environments that need updating."
@@ -807,13 +803,13 @@ class ErrataTestCase(APITestCase):
             'at this point'
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class ErrataSwidTagsTestCase(APITestCase):
     """API Tests for the errata management feature with swid tags"""
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super().setUpClass()
@@ -844,8 +840,8 @@ class ErrataSwidTagsTestCase(APITestCase):
         )
         self.assertIn(module_name, result)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_errata_installation_with_swidtags(self):
         """Verify errata installation with swid_tags and swid tags get updated after
         module stream update.

@@ -24,8 +24,6 @@ from robottelo.api.utils import upload_manifest as up_man
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.decorators import fixture
-from robottelo.decorators import parametrize
 from robottelo.vm import VirtualMachine
 
 
@@ -40,7 +38,7 @@ NAV_ITEMS = [
 ]
 
 
-@fixture(scope="module")
+@pytest.fixture(scope="module")
 def module_org():
     org = entities.Organization(name="insights_{}".format(gen_string("alpha", 6))).create()
     with manifests.clone() as manifest:
@@ -49,7 +47,7 @@ def module_org():
     org.delete()
 
 
-@fixture(scope="module")
+@pytest.fixture(scope="module")
 def activation_key(module_org):
     ak = entities.ActivationKey(
         auto_attach=True,
@@ -62,7 +60,7 @@ def activation_key(module_org):
     ak.delete()
 
 
-@fixture(scope="module")
+@pytest.fixture(scope="module")
 def attach_subscription(module_org, activation_key):
     for subs in entities.Subscription(organization=module_org).search():
         if subs.name == DEFAULT_SUBSCRIPTION_NAME:
@@ -76,7 +74,7 @@ def attach_subscription(module_org, activation_key):
         raise Exception(f"{module_org.name} organization doesn't have any subscription")
 
 
-@fixture
+@pytest.fixture
 def vm(activation_key, module_org):
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         vm.configure_rhai_client(
@@ -114,7 +112,7 @@ def test_positive_unregister_client_to_rhai(vm, autosession):
     assert result == "0", "The client is still registered"
 
 
-@parametrize("nav_item", NAV_ITEMS, ids=lambda nav_item: nav_item[0])
+@pytest.mark.parametrize("nav_item", NAV_ITEMS, ids=lambda nav_item: nav_item[0])
 def test_rhai_navigation(autosession, nav_item):
     """Test navigation across RHAI tab
 

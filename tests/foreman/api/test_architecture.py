@@ -22,10 +22,9 @@ from requests.exceptions import HTTPError
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_CRUD(default_os):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
@@ -55,7 +54,7 @@ def test_positive_CRUD(default_os):
         arch.read()
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_create_with_invalid_name(name):
     """Create architecture providing an invalid initial name.
@@ -74,7 +73,7 @@ def test_negative_create_with_invalid_name(name):
         entities.Architecture(name=name).create()
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
 def test_negative_update_with_invalid_name(name, module_architecture):
     """Update architecture's name to an invalid name.

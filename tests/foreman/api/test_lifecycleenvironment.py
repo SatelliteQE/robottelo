@@ -27,10 +27,6 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
 @pytest.fixture(scope='module')
@@ -46,7 +42,7 @@ def lce(module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@tier1
+@pytest.mark.tier1
 def test_positive_create_with_name(name):
     """Create lifecycle environment with valid name only
 
@@ -62,7 +58,7 @@ def test_positive_create_with_name(name):
 
 
 @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-@tier1
+@pytest.mark.tier1
 def test_positive_create_with_description(desc):
     """Create lifecycle environment with valid description
 
@@ -78,7 +74,7 @@ def test_positive_create_with_description(desc):
     assert entities.LifecycleEnvironment(description=desc).create().description == desc
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_prior(module_org):
     """Create a lifecycle environment with valid name with Library as
     prior
@@ -95,7 +91,7 @@ def test_positive_create_prior(module_org):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-@tier3
+@pytest.mark.tier3
 def test_negative_create_with_invalid_name(name):
     """Create lifecycle environment providing an invalid name
 
@@ -112,7 +108,7 @@ def test_negative_create_with_invalid_name(name):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-@tier1
+@pytest.mark.tier1
 def test_positive_update_name(module_lce, new_name):
     """Create lifecycle environment providing the initial name, then
     update its name to another valid name.
@@ -130,7 +126,7 @@ def test_positive_update_name(module_lce, new_name):
 
 
 @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-@tier2
+@pytest.mark.tier2
 def test_positive_update_description(module_lce, new_desc):
     """Create lifecycle environment providing the initial
     description, then update its description to another one.
@@ -152,7 +148,7 @@ def test_positive_update_description(module_lce, new_desc):
 
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-@tier1
+@pytest.mark.tier1
 def test_negative_update_name(module_lce, new_name):
     """Update lifecycle environment providing an invalid name
 
@@ -173,8 +169,8 @@ def test_negative_update_name(module_lce, new_name):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@tier1
-@upgrade
+@pytest.mark.tier1
+@pytest.mark.upgrade
 def test_positive_delete(lce, name):
     """Create lifecycle environment and then delete it.
 
@@ -192,7 +188,7 @@ def test_positive_delete(lce, name):
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-@tier2
+@pytest.mark.tier2
 def test_positive_search_in_org(name):
     """Search for a lifecycle environment and specify an org ID.
 
@@ -218,7 +214,7 @@ def test_positive_search_in_org(name):
     assert {lc_env_.name for lc_env_ in lc_envs}, {'Library', lc_env.name}
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed('Implement once BZ1348727 is fixed')
 def test_positive_create_environment_after_host_register():
     """Verify that no error is thrown when creating an environment after

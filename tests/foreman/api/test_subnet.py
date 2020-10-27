@@ -26,17 +26,13 @@ from requests.exceptions import HTTPError
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
 class ParameterizedSubnetTestCase(APITestCase):
     """Implements parametrized subnet tests in API"""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parameter(self):
         """Subnet can be created along with parameters
 
@@ -52,7 +48,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         self.assertEqual(subnet.subnet_parameters_attributes[0]['name'], parameter[0]['name'])
         self.assertEqual(subnet.subnet_parameters_attributes[0]['value'], parameter[0]['value'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_add_parameter(self):
         """Parameters can be created in subnet
 
@@ -77,7 +73,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                 self.assertEqual(subnet_param.name, name)
                 self.assertEqual(subnet_param.value, value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_add_parameter_with_values_and_separator(self):
         """Subnet parameters can be created with values separated by comma
 
@@ -102,7 +98,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             self.assertEqual(subnet_param.name, name)
             self.assertEqual(subnet_param.value, values)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parameter_and_valid_separator(self):
         """Subnet parameters can be created with name with valid separators
 
@@ -132,7 +128,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                 self.assertEqual(subnet_param.name, name)
                 self.assertEqual(subnet_param.value, value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
         """Subnet parameters can not be created with name with invalid
         separators
@@ -160,7 +156,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Parameter(name=name, subnet=subnet.id).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_duplicated_parameters(self):
         """Attempt to create multiple parameters with same key name for the
         same subnet
@@ -187,7 +183,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         self.assertRegexpMatches(context.exception.response.text, "Name has already been taken")
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_inherit_subnet_parmeters_in_host(self):
         """Host inherits parameters from subnet
 
@@ -214,7 +210,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overridden from host
 
@@ -240,7 +236,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
 
@@ -294,7 +290,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             org_subnet.read().subnet_parameters_attributes[0]['value'], parameter[0]['value']
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_parameter(self):
         """Subnet parameter can be updated
 
@@ -322,7 +318,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             up_subnet.subnet_parameters_attributes[0]['value'], update_parameter[0]['value']
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_parameter(self):
         """Subnet parameter can not be updated with invalid names
 
@@ -353,7 +349,7 @@ class ParameterizedSubnetTestCase(APITestCase):
                     sub_param.update(['name'])
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_subnet_parameter_host_impact(self):
         """Update in parameter name and value from subnet component updates
         the parameter in host inheriting that subnet
@@ -378,8 +374,8 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
 
@@ -399,7 +395,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             sub_param.read()
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
         """Deleting parameter from subnet component deletes the parameter in
         host inheriting that subnet
@@ -424,8 +420,8 @@ class ParameterizedSubnetTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_delete_subnet_overridden_parameter_host_impact(self):
         """Deleting parameter from subnet component doesnt deletes its
         overridden parameter in host inheriting that subnet
@@ -451,7 +447,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :BZ: 1470014
         """
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_parameters(self):
         """Satellite lists all the subnet parameters
 
@@ -490,7 +486,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         self.assertEqual(params_list[sub_param.name], sub_param.value)
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_subnet_parameter_priority(self):
         """Higher priority hosts component parameter overrides subnet parameter
          with same name
@@ -520,7 +516,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_component_overrides_subnet_parameter(self):
         """Lower priority hosts component parameter doesnt overrides subnet
         parameter with same name

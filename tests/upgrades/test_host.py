@@ -33,7 +33,6 @@ from robottelo.helpers import download_gce_cert
 from robottelo.test import APITestCase
 from robottelo.test import settings
 
-
 GCE_SETTINGS = dict(
     project_id=settings.gce.project_id,
     client_email=settings.gce.client_email,

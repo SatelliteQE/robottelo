@@ -24,8 +24,6 @@ from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 
 
 class TestModel:
@@ -36,8 +34,8 @@ class TestModel:
         """Shared model for tests"""
         return make_model()
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'name, new_name',
         **parametrized(list(zip(valid_data_list().values(), valid_data_list().values())))
@@ -62,7 +60,7 @@ class TestModel:
         with pytest.raises(CLIReturnCodeError):
             Model.info({'id': model['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_vendor_class(self):
         """Check if Model can be created with specific vendor class
 
@@ -76,7 +74,7 @@ class TestModel:
         model = make_model({'vendor-class': vendor_class})
         assert model['vendor-class'] == vendor_class
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name):
         """Don't create an Model with invalid data.
@@ -92,7 +90,7 @@ class TestModel:
         with pytest.raises(CLIReturnCodeError):
             Model.create({'name': name})
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, class_model, new_name):
         """Fail to update shared model name
@@ -110,7 +108,7 @@ class TestModel:
         result = Model.info({'id': class_model['id']})
         assert class_model['name'] == result['name']
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
     def test_negative_delete_by_id(self, entity_id):
         """Delete model by wrong ID

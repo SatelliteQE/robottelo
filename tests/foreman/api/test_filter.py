@@ -18,10 +18,10 @@ http://theforeman.org/api/apidoc/v2/filters.html
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
@@ -36,7 +36,7 @@ class FilterTestCase(APITestCase):
             query={'search': 'resource_type="ProvisioningTemplate"'}
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_permission(self):
         """Create a filter and assign it some permissions.
 
@@ -52,7 +52,7 @@ class FilterTestCase(APITestCase):
             [perm.id for perm in filter_.permission], [perm.id for perm in self.ct_perms]
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create a filter and delete it afterwards.
 
@@ -67,7 +67,7 @@ class FilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             filter_.read()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_role(self):
         """Create a filter and delete the role it points at.
 

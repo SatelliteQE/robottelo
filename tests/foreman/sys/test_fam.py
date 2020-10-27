@@ -12,15 +12,15 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo import ssh
 from robottelo.constants import FAM_MODULE_PATH
 from robottelo.constants import FOREMAN_ANSIBLE_MODULES
-from robottelo.decorators import destructive
-from robottelo.decorators import run_in_one_thread
 
 
-@destructive
-@run_in_one_thread
+@pytest.mark.destructive
+@pytest.mark.run_in_one_thread
 def test_positive_ansible_modules_installation():
     """Foreman ansible modules installation test
 

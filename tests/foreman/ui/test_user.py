@@ -16,6 +16,7 @@
 """
 import random
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_email
 from fauxfactory import gen_string
@@ -25,23 +26,20 @@ from robottelo.api.utils import create_role_permissions
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, test_name, module_org, module_loc):
     """Perform end to end testing for user component
 
@@ -115,7 +113,7 @@ def test_positive_end_to_end(session, test_name, module_org, module_loc):
         assert not session.user.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_with_multiple_roles(session):
     """Create User with multiple roles
 
@@ -147,7 +145,7 @@ def test_positive_create_with_multiple_roles(session):
         assert set(user['roles']['resources']['assigned']) == {role1, role2}
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_with_all_roles(session):
     """Create User and assign all available roles to it
 
@@ -174,7 +172,7 @@ def test_positive_create_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_with_multiple_orgs(session):
     """Create User associated to multiple Orgs
 
@@ -210,7 +208,7 @@ def test_positive_create_with_multiple_orgs(session):
         }
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_with_multiple_roles(session):
     """Update User with multiple roles
 
@@ -238,7 +236,7 @@ def test_positive_update_with_multiple_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(role_names)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_with_all_roles(session):
     """Update User with all roles
 
@@ -265,7 +263,7 @@ def test_positive_update_with_all_roles(session):
         assert set(user['roles']['resources']['assigned']) == set(ROLES)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_orgs(session):
     """Assign a User to multiple Orgs
 
@@ -294,7 +292,7 @@ def test_positive_update_orgs(session):
         assert set(user['organizations']['resources']['assigned']) == set(org_names)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_product_with_limited_user_permission(
     session, test_name, module_org, module_loc
 ):

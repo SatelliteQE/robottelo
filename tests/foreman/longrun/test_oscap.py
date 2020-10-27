@@ -41,8 +41,6 @@ from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
 from robottelo.helpers import ProxyError
@@ -165,8 +163,8 @@ class OpenScapTestCase(CLITestCase):
             'env_name': env.name,
         }
 
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test, and push the updated scap content via puppet
          after first run.
@@ -348,8 +346,8 @@ class OpenScapTestCase(CLITestCase):
                 result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
                 assert result is not None
 
-    @upgrade
-    @tier4
+    @pytest.mark.upgrade
+    @pytest.mark.tier4
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """End-to-End Oscap run with tailoring files and default capsule via puppet
 
@@ -460,8 +458,8 @@ class OpenScapTestCase(CLITestCase):
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
-    @upgrade
-    @tier4
+    @pytest.mark.upgrade
+    @pytest.mark.tier4
     def test_positive_oscap_run_with_tailoring_file_with_ansible(self):
         """End-to-End Oscap run with tailoring files via ansible
 
@@ -594,7 +592,7 @@ class OpenScapTestCase(CLITestCase):
             assert result is not None
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
 
@@ -613,7 +611,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
 
@@ -633,7 +631,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_download_xml_button(self):
         """'Download xml' button should exist for OSCAP Reports
         to be downloaded in xml format.
@@ -654,7 +652,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_select_oscap_proxy(self):
         """Oscap-Proxy select box should exist while filling hosts
         and host-groups form.
@@ -673,7 +671,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
 
@@ -694,7 +692,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.
 

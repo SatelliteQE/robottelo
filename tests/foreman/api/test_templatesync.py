@@ -25,8 +25,6 @@ from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
 
 
 class TestTemplateSyncTestCase:
@@ -63,7 +61,7 @@ class TestTemplateSyncTestCase:
         # Download the Test Template in test running folder
         ssh.command(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_filtered_templates_from_git(self, module_org, module_location):
         """Assure only templates with a given filter regex are pulled from
         git repo.
@@ -140,7 +138,7 @@ class TestTemplateSyncTestCase:
         )
         assert len(rtemplates) == 1
 
-    @tier2
+    @pytest.mark.tier2
     def test_import_filtered_templates_from_git_with_negate(self, module_org):
         """Assure templates with a given filter regex are NOT pulled from
         git repo.
@@ -192,7 +190,7 @@ class TestTemplateSyncTestCase:
         )
         assert len(rtemplates) == 1
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_and_associate(
         self,
         create_import_export_local_dir,
@@ -330,7 +328,7 @@ class TestTemplateSyncTestCase:
         assert ptemplate
         assert len(ptemplate[0].read().organization) == 1
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_to_subdirectory(self, module_org):
         """Assure templates are imported from specific repositories subdirectory
 
@@ -364,7 +362,7 @@ class TestTemplateSyncTestCase:
         # check name of imported temp
         assert imported_count == 1
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_community_templates_from_repo(self, module_org):
         """Assure all community templates are imported if no filter is specified.
 
@@ -395,7 +393,7 @@ class TestTemplateSyncTestCase:
 
     # Export tests
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_localdir(
         self, module_org, create_import_export_local_dir
     ):
@@ -431,7 +429,7 @@ class TestTemplateSyncTestCase:
         assert exported_count == 23
         assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '23'
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_filtered_templates_negate(
         self, module_org, create_import_export_local_dir
     ):
@@ -463,7 +461,7 @@ class TestTemplateSyncTestCase:
         assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '0'
         assert ssh.command(f'find {dir_path} -type f | wc -l').stdout[0] != '0'
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_and_import_with_metadata(
         self, create_import_export_local_dir, module_org, module_location
     ):
@@ -541,7 +539,7 @@ class TestTemplateSyncTestCase:
         assert result.return_code == 1
 
     # Take Templates out of Tech Preview Feature Tests
-    @tier3
+    @pytest.mark.tier3
     def test_positive_import_json_output_verbose_true(self, module_org):
         """Assert all the required fields displayed in import output when
         verbose is True
@@ -588,7 +586,7 @@ class TestTemplateSyncTestCase:
         actual_fields = templates['message']['templates'][0].keys()
         assert sorted(actual_fields) == sorted(expected_fields)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_verbose_false(self, module_org):
         """Assert all the required fields displayed in import output when
         verbose is `False`
@@ -634,7 +632,7 @@ class TestTemplateSyncTestCase:
         actual_fields = templates['message']['templates'][0].keys()
         assert sorted(actual_fields) == sorted(expected_fields)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_true(
         self, create_import_export_local_dir, module_org
     ):
@@ -670,7 +668,7 @@ class TestTemplateSyncTestCase:
         )
         assert bool(post_template['message']['templates'][0]['changed'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_false(
         self, create_import_export_local_dir, module_org
     ):
@@ -704,7 +702,7 @@ class TestTemplateSyncTestCase:
         )
         assert not bool(post_template['message']['templates'][0]['changed'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_name_key(
         self, create_import_export_local_dir, module_org
     ):
@@ -733,7 +731,7 @@ class TestTemplateSyncTestCase:
         assert 'name' in template['message']['templates'][0].keys()
         assert template_name == template['message']['templates'][0]['name']
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_imported_key(
         self, create_import_export_local_dir, module_org
     ):
@@ -760,7 +758,7 @@ class TestTemplateSyncTestCase:
         )
         assert bool(template['message']['templates'][0]['imported'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_file_key(
         self, create_import_export_local_dir, module_org
     ):
@@ -787,7 +785,7 @@ class TestTemplateSyncTestCase:
         )
         assert 'example_template.erb' == template['message']['templates'][0]['file']
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_corrupted_metadata(
         self, create_import_export_local_dir, module_org
     ):
@@ -821,7 +819,7 @@ class TestTemplateSyncTestCase:
         )
 
     @pytest.mark.skip_if_open('BZ:1787355')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_filtered_skip_message(
         self, create_import_export_local_dir, module_org
     ):
@@ -857,7 +855,7 @@ class TestTemplateSyncTestCase:
             == template['message']['templates'][0]['additional_info']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_no_name_error(
         self, create_import_export_local_dir, module_org
     ):
@@ -891,7 +889,7 @@ class TestTemplateSyncTestCase:
             == template['message']['templates'][0]['additional_errors']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_no_model_error(
         self, create_import_export_local_dir, module_org
     ):
@@ -925,7 +923,7 @@ class TestTemplateSyncTestCase:
             == template['message']['templates'][0]['additional_errors']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_json_output_blank_model_error(
         self, create_import_export_local_dir, module_org
     ):
@@ -959,7 +957,7 @@ class TestTemplateSyncTestCase:
             == template['message']['templates'][0]['additional_errors']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_json_output(self, create_import_export_local_dir, module_org):
         """Assert template export output returns template names
 
@@ -1011,7 +1009,7 @@ class TestTemplateSyncTestCase:
             == 0
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_import_log_to_production(self, module_org):
         """Assert template import logs are logged to production logs
 
@@ -1044,7 +1042,7 @@ class TestTemplateSyncTestCase:
         )
         assert result.return_code == 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_log_to_production(self, create_import_export_local_dir, module_org):
         """Assert template export logs are logged to production logs
 

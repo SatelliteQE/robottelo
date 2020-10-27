@@ -21,13 +21,11 @@ from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
-from robottelo.decorators import destructive
-from robottelo.decorators import tier4
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_run_capsule_upgrade_playbook():
     """Run Capsule Upgrade playbook against an External Capsule
 
@@ -71,7 +69,7 @@ def test_positive_run_capsule_upgrade_playbook():
         assert {'SSH', 'TFTP', 'HTTPBoot', 'Dynflow', 'Pulp Node', 'Logs'}.issubset(feature_list)
 
 
-@destructive
+@pytest.mark.destructive
 def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
     """Run Capsule Upgrade playbook against the Satellite itself
 

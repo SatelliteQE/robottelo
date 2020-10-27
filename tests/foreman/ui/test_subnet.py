@@ -14,34 +14,32 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_ipaddr
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_dom(module_org, module_loc):
     d = entities.Domain(organization=[module_org.id], location=[module_loc.id]).create()
     yield d.read()
     d.delete()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_dom):
     """Perform end to end testing for subnet component in ipv6 network
 

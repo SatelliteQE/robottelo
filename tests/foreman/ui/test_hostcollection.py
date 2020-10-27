@@ -16,8 +16,8 @@
 """
 import time
 
+import pytest
 from nailgun import entities
-from pytest import raises
 
 from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
@@ -41,10 +41,6 @@ from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
@@ -52,7 +48,7 @@ from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
@@ -62,17 +58,17 @@ def module_org():
     return org
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_repos_collection(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_DEFAULT,
@@ -86,7 +82,7 @@ def module_repos_collection(module_org, module_lce):
     return repos_collection
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_repos_collection_module_stream(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
@@ -95,7 +91,7 @@ def module_repos_collection_module_stream(module_org, module_lce):
     return repos_collection
 
 
-@fixture
+@pytest.fixture
 def vm_content_hosts(request, module_loc, module_repos_collection):
     clients = []
     for _ in range(2):
@@ -108,7 +104,7 @@ def vm_content_hosts(request, module_loc, module_repos_collection):
     return clients
 
 
-@fixture
+@pytest.fixture
 def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_stream):
     distro = module_repos_collection_module_stream.distro
     with VirtualMachine(distro=distro) as client1, VirtualMachine(distro=distro) as client2:
@@ -129,7 +125,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
         yield clients
 
 
-@fixture
+@pytest.fixture
 def vm_host_collection(module_org, vm_content_hosts):
     host_ids = [
         entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
@@ -139,7 +135,7 @@ def vm_host_collection(module_org, vm_content_hosts):
     return host_collection
 
 
-@fixture
+@pytest.fixture
 def vm_host_collection_module_stream(module_org, vm_content_hosts_module_stream):
     host_ids = [
         entities.Host().search(query={'search': f'name={host.hostname}'})[0].id
@@ -233,8 +229,8 @@ def _get_content_repository_urls(repos_collection, lce, content_view):
     return repos_urls
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for host collection component
 
@@ -278,7 +274,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert not session.hostcollection.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
@@ -313,7 +309,7 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
         }
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_install_via_custom_remote_execution(session, module_org, module_loc):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
@@ -348,8 +344,8 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
         }
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_positive_add_host(session):
     """Check if host can be added to Host Collection
 
@@ -381,8 +377,8 @@ def test_positive_add_host(session):
         assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Install a package to hosts inside host collection remotely
 
@@ -401,8 +397,8 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package from hosts inside host collection remotely
 
@@ -424,7 +420,7 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
         )
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Upgrade a package on hosts inside host collection remotely
 
@@ -444,8 +440,8 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Install a package group to hosts inside host collection remotely
 
@@ -468,7 +464,7 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
             assert _is_package_installed(vm_content_hosts, package)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package group from hosts inside host collection remotely
 
@@ -496,8 +492,8 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
             assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_collection):
     """Install an errata to the hosts inside host collection remotely
 
@@ -518,7 +514,7 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_change_assigned_content(
     session, module_org, module_lce, vm_content_hosts, vm_host_collection, module_repos_collection
 ):
@@ -616,7 +612,7 @@ def test_positive_change_assigned_content(
             assert set(expected_repo_urls) == set(client_repo_urls)
 
 
-@tier3
+@pytest.mark.tier3
 def test_negative_hosts_limit(session, module_org, module_loc):
     """Check that Host limit actually limits usage
 
@@ -658,15 +654,15 @@ def test_negative_hosts_limit(session, module_org, module_loc):
         session.hostcollection.create({'name': hc_name, 'unlimited_hosts': False, 'max_hosts': 1})
         assert session.hostcollection.search(hc_name)[0]['Name'] == hc_name
         session.hostcollection.associate_host(hc_name, hosts[0].name)
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.hostcollection.associate_host(hc_name, hosts[1].name)
         assert "cannot have more than 1 host(s) associated with host collection '{}'".format(
             hc_name
         ) in str(context.value)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_module_stream(
     session, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):
@@ -702,8 +698,8 @@ def test_positive_install_module_stream(
         assert _is_package_installed(vm_content_hosts_module_stream, FAKE_3_CUSTOM_PACKAGE)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_modular_errata(
     session, vm_content_hosts_module_stream, vm_host_collection_module_stream
 ):

@@ -29,9 +29,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
 from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
@@ -78,7 +75,7 @@ def setup_content(request):
 class ReportTemplateTestCase(APITestCase):
     """Tests for ``katello/api/v2/report_templates``."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRUDL(self):
         """Create, Read, Update, Delete, List
 
@@ -121,7 +118,7 @@ class ReportTemplateTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             rt = entities.ReportTemplate(id=rt.id).read()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_generate_report_nofilter(self):
         """Generate Host - Statuses report
 
@@ -144,7 +141,7 @@ class ReportTemplateTestCase(APITestCase):
         self.assertIn("Service Level", res)
         self.assertIn(host_name, res)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_generate_report_filter(self):
         """Generate Host - Statuses report
 
@@ -170,7 +167,7 @@ class ReportTemplateTestCase(APITestCase):
         self.assertNotIn(host1_name, res)
         self.assertIn(host2_name, res)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_report_add_userinput(self):
         """Add user input to template, use it in template, generate template
 
@@ -203,7 +200,7 @@ class ReportTemplateTestCase(APITestCase):
         res = rt.generate(data={"input_values": {input_name: input_value}})
         self.assertEquals(f'value="{input_value}"', res)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_lock_clone_nodelete_unlock_report(self):
         """Lock report template. Check it can be cloned and can't be deleted or edited.
            Unlock. Check it can be deleted and edited.
@@ -277,7 +274,7 @@ class ReportTemplateTestCase(APITestCase):
             len(entities.ReportTemplate().search(query={'search': f'name="{template_name}"'})),
         )
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_export_report(self):
         """Export report template
@@ -295,7 +292,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted which might brake CSV format
@@ -314,7 +311,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
@@ -332,7 +329,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report
@@ -350,7 +347,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_nonblocking(self):
         """Generate an Applied Errata report
@@ -369,7 +366,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
@@ -388,7 +385,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
@@ -408,7 +405,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_negative_bad_email(self):
         """Report can't be generated when incorrectly formed mail specified
@@ -426,7 +423,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_cleanup_task_running(self):
         """Report can't be generated when incorrectly formed mail specified
@@ -444,7 +441,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_negative_nonauthor_of_report_cant_download_it(self):
         """The resulting report should only be downloadable by
@@ -464,7 +461,7 @@ class ReportTemplateTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @tier3
+    @pytest.mark.tier3
     @pytest.mark.usefixtures("setup_content")
     def test_positive_generate_entitlements_report(self):
         """Generate a report using the Subscription - Entitlement Report template.
@@ -502,7 +499,7 @@ class ReportTemplateTestCase(APITestCase):
             assert res[0]['Host Name'] == vm.hostname
             assert res[0]['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
 
-    @tier3
+    @pytest.mark.tier3
     @pytest.mark.usefixtures("setup_content")
     def test_positive_schedule_entitlements_report(self):
         """Schedule a report using the Subscription - Entitlement Report template.

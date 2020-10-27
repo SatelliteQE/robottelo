@@ -11,6 +11,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.factory import make_compute_resource
@@ -21,8 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -45,8 +44,8 @@ class EC2ComputeResourceTestCase(CLITestCase):
         cls.aws_security_groups = settings.ec2.security_groups
         cls.aws_managed_ip = settings.ec2.managed_ip
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_ec2_with_custom_region(self):
         """Create a new ec2 compute resource with custom region
 

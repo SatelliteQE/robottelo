@@ -14,19 +14,19 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
 class ComputeProfileTestCase(APITestCase):
     """Tests for compute profiles."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create new Compute Profile using different names
 
@@ -43,7 +43,7 @@ class ComputeProfileTestCase(APITestCase):
                 profile = entities.ComputeProfile(name=name).create()
                 self.assertEqual(name, profile.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create(self):
         """Attempt to create Compute Profile using invalid names only
 
@@ -60,7 +60,7 @@ class ComputeProfileTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ComputeProfile(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update selected Compute Profile entity using proper names
 
@@ -80,7 +80,7 @@ class ComputeProfileTestCase(APITestCase):
                 )
                 self.assertEqual(new_name, updated_profile.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Attempt to update Compute Profile entity using invalid names only
 
@@ -100,7 +100,7 @@ class ComputeProfileTestCase(APITestCase):
                 updated_profile = entities.ComputeProfile(id=profile.id).read()
                 self.assertNotEqual(new_name, updated_profile.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Delete Compute Profile entity
 

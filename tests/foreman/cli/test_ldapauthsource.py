@@ -39,11 +39,6 @@ from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import parametrized
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.rhsso_utils import get_oidc_authorization_endpoint
 from robottelo.rhsso_utils import get_oidc_client_id
 from robottelo.rhsso_utils import get_oidc_token_endpoint
@@ -53,12 +48,12 @@ from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_client_configuration
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestADAuthSource:
     """Implements Active Directory feature tests in CLI"""
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     def test_positive_create_with_ad(self, ad_data, server_name):
         """Create/update/delete LDAP authentication with AD using names of different types
@@ -99,7 +94,7 @@ class TestADAuthSource:
             LDAPAuthSource.info({'name': new_name})
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestIPAAuthSource:
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
@@ -137,9 +132,9 @@ class TestIPAAuthSource:
         for user_group in user_groups:
             user_group.delete()
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
-    @upgrade
+    @pytest.mark.upgrade
     def test_positive_end_to_end_with_ipa(self, ipa_data, server_name):
         """CRUD LDAP authentication with FreeIPA
 
@@ -178,7 +173,7 @@ class TestIPAAuthSource:
         with pytest.raises(CLIReturnCodeError):
             LDAPAuthSource.info({'name': new_name})
 
-    @tier3
+    @pytest.mark.tier3
     def test_usergroup_sync_with_refresh(self, ipa_data):
         """Verify the refresh functionality in Ldap Auth Source
 
@@ -254,7 +249,7 @@ class TestIPAAuthSource:
             Role.with_user(username=member_username, password=self.ldap_ipa_user_passwd).list()
         assert 'Missing one of the required permissions' in error.value.message
 
-    @tier3
+    @pytest.mark.tier3
     def test_usergroup_with_usergroup_sync(self, ipa_data):
         """Verify the usergroup-sync functionality in Ldap Auth Source
 
@@ -326,13 +321,13 @@ class TestIPAAuthSource:
         assert len(user_group['users']) == 0
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestOpenLdapAuthSource:
     """Implements OpenLDAP Auth Source tests in CLI"""
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
-    @upgrade
+    @pytest.mark.upgrade
     def test_positive_end_to_end_with_open_ldap(self, open_ldap_data, server_name):
         """CRUD LDAP Operations with OpenLDAP
 
@@ -393,7 +388,7 @@ class TestRHSSOAuthSource:
 
         request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
-    @tier3
+    @pytest.mark.tier3
     def test_rhsso_login_using_hammer(
         self, enable_external_auth_rhsso, rhsso_setting_setup, rh_sso_hammer_auth_setup
     ):
@@ -431,7 +426,7 @@ class TestRHSSOAuthSource:
             ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
-    @tier3
+    @pytest.mark.tier3
     def test_rhsso_timeout_using_hammer(
         self,
         enable_external_auth_rhsso,
@@ -462,7 +457,7 @@ class TestRHSSOAuthSource:
             ).list()
         assert 'Unable to authenticate user sat_admin' in error.value.message
 
-    @tier3
+    @pytest.mark.tier3
     def test_rhsso_two_factor_login_using_hammer(
         self, rhsso_setting_setup, rh_sso_hammer_auth_setup
     ):

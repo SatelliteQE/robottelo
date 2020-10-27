@@ -17,6 +17,7 @@
 from random import choice
 from random import uniform
 
+import pytest
 import yaml
 from nailgun import entities
 
@@ -26,33 +27,30 @@ from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier2
 
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [{'author': 'robottelo', 'name': PM_NAME}]
 
-pytestmark = [run_in_one_thread]
+pytestmark = ['run_in_one_thread']
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     return entities.Location(id=default_loc_id).read()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def content_view(module_org):
     return publish_puppet_module(PUPPET_MODULES, CUSTOM_PUPPET_REPO, module_org)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
         query={
@@ -63,7 +61,7 @@ def puppet_env(content_view, module_org):
     )[0]
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def puppet_class(puppet_env):
     puppet_class_entity = entities.PuppetClass().search(
         query={
@@ -76,14 +74,14 @@ def puppet_class(puppet_env):
     delete_puppet_class(puppet_class_entity.name)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def sc_params_list(puppet_class):
     return entities.SmartClassParameters().search(
         query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': 1000}
     )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_host(module_org, module_loc, content_view, puppet_env, puppet_class):
     lce = entities.LifecycleEnvironment().search(
         query={'search': f'organization_id="{module_org.id}" and name="{ENVIRONMENT}"'}
@@ -102,12 +100,12 @@ def module_host(module_org, module_loc, content_view, puppet_env, puppet_class):
     return host
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def domain(module_host):
     return entities.Domain(id=module_host.domain.id).read()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, puppet_class, sc_params_list):
     """Perform end to end testing for smart class parameter component
 
@@ -209,7 +207,7 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
         )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_matcher_attribute_priority(session, sc_params_list, module_host, domain):
     """Matcher Value set on Attribute Priority for Host.
 
@@ -295,7 +293,7 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
         assert output_scp == str([domain.name, module_host.mac])
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
 
@@ -370,7 +368,7 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
         assert output_scp == [20, 80, 90, 100]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_matcher_from_attribute(session, sc_params_list, module_host):
     """Impact on parameter on editing the parameter value from attribute.
 
@@ -436,7 +434,7 @@ def test_positive_update_matcher_from_attribute(session, sc_params_list, module_
         assert property_matcher['Value']['value'] == new_override_value
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_impact_parameter_delete_attribute(
     session, sc_params_list, puppet_env, puppet_class
 ):
@@ -495,7 +493,7 @@ def test_positive_impact_parameter_delete_attribute(
         assert session.sc_parameter.search(sc_param.parameter)[0]['Number of Overrides'] == '0'
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host):
     """Update the hidden default value of parameter in attribute. Then unhide.
 

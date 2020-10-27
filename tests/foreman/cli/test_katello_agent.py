@@ -16,6 +16,8 @@
 """
 import time
 
+import pytest
+
 from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
@@ -41,15 +43,12 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class KatelloAgentTestCase(CLITestCase):
     """Host tests, which require VM with installed katello-agent."""
 
@@ -120,7 +119,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_get_errata_info(self):
         """Get errata info
 
@@ -135,8 +134,8 @@ class KatelloAgentTestCase(CLITestCase):
         assert result[0]['errata-id'] == FAKE_1_ERRATA_ID
         assert FAKE_2_CUSTOM_PACKAGE in result[0]['packages']
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_apply_errata(self):
         """Apply errata to a host
 
@@ -149,7 +148,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': self.host['id']})
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
 
@@ -181,8 +180,8 @@ class KatelloAgentTestCase(CLITestCase):
         )
         assert result.return_code == 1
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
@@ -196,7 +195,7 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}')
         assert result.return_code == 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
@@ -211,7 +210,7 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
         assert result.return_code != 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_upgrade_package(self):
         """Upgrade a host package remotely
 
@@ -226,7 +225,7 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
         assert result.return_code == 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_upgrade_packages_all(self):
         """Upgrade all the host packages remotely
 
@@ -242,8 +241,8 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
         assert result.return_code == 0
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_install_and_remove_package_group(self):
         """Install and remove a package group to a host remotely
 
@@ -264,7 +263,7 @@ class KatelloAgentTestCase(CLITestCase):
             result = self.client.run(f'rpm -q {package}')
             assert result.return_code != 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_unregister_and_pull_content(self):
         """Attempt to retrieve content after host has been unregistered from
         Satellite
@@ -280,8 +279,8 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         assert result.return_code != 0
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_register_host_ak_with_host_collection(self):
         """Attempt to register a host using activation key with host collection
 

@@ -18,19 +18,15 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
+import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
-from pytest import raises
 
 from robottelo.api.utils import wait_for_syncplan_tasks
 from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_cron_expressions
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
 def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
@@ -75,12 +71,12 @@ def validate_repo_content(repo, content_types, after_sync=True):
             ), 'Repository contains invalid number of content entities.'
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org):
     """Perform end to end scenario for sync plan component
 
@@ -134,7 +130,7 @@ def test_positive_end_to_end(session, module_org):
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end_custom_cron(session):
     """Perform end to end scenario for sync plan component with custom cron
 
@@ -180,8 +176,8 @@ def test_positive_end_to_end_custom_cron(session):
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_search_scoped(session):
     """Test scoped search for different sync plan parameters
 
@@ -212,7 +208,7 @@ def test_positive_search_scoped(session):
         assert name not in session.syncplan.search('enabled = false')
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org):
     """Create a sync plan with real datetime as a sync date,
     add a custom product and verify the product gets synchronized
@@ -248,7 +244,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         )
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         session.syncplan.add_product(plan_name, product.name)
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             validate_task_status(repo.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
@@ -264,7 +260,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session, module_org):
     """Create a sync plan with past datetime as a sync date,
     add a custom product and verify the product gets synchronized
@@ -300,7 +296,7 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
         session.syncplan.add_product(plan_name, product.name)
         # Waiting part of delay and check that product was not synced
         time.sleep(delay / 4)
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             validate_task_status(repo.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)

@@ -14,10 +14,10 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
@@ -27,7 +27,7 @@ class AuditTestCase(APITestCase):
     :CaseImportance: High
     """
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_by_type(self):
         """Create entities of different types and check audit logs for these
         events using entity type as search criteria
@@ -117,7 +117,7 @@ class AuditTestCase(APITestCase):
             self.assertEqual(audit.action, 'create')
             self.assertEqual(audit.version, 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_by_type(self):
         """Update some entities of different types and check audit logs for
         these events using entity type as search criteria
@@ -157,7 +157,7 @@ class AuditTestCase(APITestCase):
             self.assertEqual(audit.action, 'update')
             self.assertEqual(audit.version, 2)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_type(self):
         """Delete some entities of different types and check audit logs for
         these events using entity type as search criteria

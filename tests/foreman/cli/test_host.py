@@ -87,12 +87,7 @@ from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
@@ -158,8 +153,8 @@ class HostCreateTestCase(CLITestCase):
             {'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_and_delete(self):
         """A host can be created and deleted
 
@@ -213,7 +208,7 @@ class HostCreateTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Host.info({'id': new_host['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_add_interface_by_id(self):
         """New network interface can be added to existing host
 
@@ -244,8 +239,8 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(host_interface['domain'], domain['name'])
         self.assertEqual(host_interface['mac-address'], mac)
 
-    @run_in_one_thread
-    @tier2
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
     def test_positive_create_and_update_with_content_source(self):
         """Create a host with content source specified and update content
             source
@@ -284,7 +279,7 @@ class HostCreateTestCase(CLITestCase):
             host['content-information']['content-source']['name'], new_content_source['name']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_content_source(self):
         """Attempt to create a host with invalid content source specified
 
@@ -306,7 +301,7 @@ class HostCreateTestCase(CLITestCase):
                 }
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_content_source(self):
         """Attempt to update host's content source with invalid value
 
@@ -337,7 +332,7 @@ class HostCreateTestCase(CLITestCase):
             host['content-information']['content-source']['name'], content_source['name']
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_lce_and_cv(self):
         """Check if host can be created with new lifecycle and
             new content view
@@ -365,7 +360,7 @@ class HostCreateTestCase(CLITestCase):
             new_host['content-information']['content-view']['name'], self.promoted_cv['name']
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_puppet_class_name(self):
         """Check if host can be created with puppet class name
 
@@ -385,7 +380,7 @@ class HostCreateTestCase(CLITestCase):
         host_classes = Host.puppetclasses({'host': host['name']})
         self.assertIn(self.puppet_class['name'], [puppet['name'] for puppet in host_classes])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_openscap_proxy_id(self):
         """Check if host can be created with OpenSCAP Proxy id
 
@@ -404,7 +399,7 @@ class HostCreateTestCase(CLITestCase):
         )
         assert host['openscap-proxy'] == openscap_proxy['id']
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Check if host can be created with random long names
 
@@ -426,7 +421,7 @@ class HostCreateTestCase(CLITestCase):
                         }
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_unpublished_cv(self):
         """Check if host can be created using unpublished cv
 
@@ -447,8 +442,8 @@ class HostCreateTestCase(CLITestCase):
                 }
             )
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_katello_and_openscap_loaded(self):
         """Verify that command line arguments from both Katello
         and foreman_openscap plugins are loaded and available
@@ -472,8 +467,8 @@ class HostCreateTestCase(CLITestCase):
                 f'--{arg}' in line for line in help_output
             ), f"--{arg} not supported by update subcommand"
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_register_with_no_ak(self):
         """Register host to satellite without activation key
 
@@ -491,7 +486,7 @@ class HostCreateTestCase(CLITestCase):
             )
             self.assertTrue(client.subscribed)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_register_twice(self):
         """Attempt to register a host twice to Satellite
 
@@ -521,7 +516,7 @@ class HostCreateTestCase(CLITestCase):
             # host being already registered.
             self.assertEqual(result.return_code, 64)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_list_scparams(self):
         """List all smart class parameters using host id
 
@@ -554,7 +549,7 @@ class HostCreateTestCase(CLITestCase):
         host_scparams = Host.sc_params({'host': host['name']})
         self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list(self):
         """List hosts for a given org
 
@@ -581,7 +576,7 @@ class HostCreateTestCase(CLITestCase):
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_by_last_checkin(self):
         """List all content hosts using last checkin criteria
 
@@ -606,8 +601,8 @@ class HostCreateTestCase(CLITestCase):
             self.assertGreaterEqual(len(hosts), 1)
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_unregister(self):
         """Unregister a host
 
@@ -643,7 +638,7 @@ class HostCreateTestCase(CLITestCase):
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
     @skip_if_not_set('compute_resources')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_using_libvirt_without_mac(self):
         """Create a libvirt host and not specify a MAC address.
 
@@ -679,7 +674,7 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(result['name'], host.name + '.' + host.domain.name)
         Host.delete({'id': result['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_inherit_lce_cv(self):
         """Create a host with hostgroup specified. Make sure host inherited
         hostgroup's lifecycle environment and content-view
@@ -711,7 +706,7 @@ class HostCreateTestCase(CLITestCase):
             host['content-information']['content-view']['name'], hostgroup['content-view']['name']
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_create_inherit_nested_hostgroup(self):
         """Create two nested host groups with the same name, but different
         parents. Then create host using any from these hostgroups title
@@ -770,7 +765,7 @@ class HostCreateTestCase(CLITestCase):
         )
         self.assertEqual(f'{host_name}.{options.domain.read().name}', host['name'])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_with_nested_hostgroup(self):
         """Create parent and nested host groups. Then create host using nested
         hostgroup and then find created host using list command
@@ -824,7 +819,7 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(f'{parent_hg_name}/{nested_hg_name}', hosts[0]['host-group'])
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
 
@@ -884,7 +879,7 @@ class HostUpdateTestCase(CLITestCase):
             }
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_parameters_by_name(self):
         """A host can be updated with a new name, mac address, domain,
             location, environment, architecture, operating system and medium.
@@ -945,7 +940,7 @@ class HostUpdateTestCase(CLITestCase):
         self.assertEqual(self.host['operating-system']['operating-system'], new_os['title'])
         self.assertEqual(self.host['operating-system']['medium'], new_medium['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """A host can not be updated with invalid or empty name
 
@@ -965,7 +960,7 @@ class HostUpdateTestCase(CLITestCase):
                     self.host['name'],
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_mac(self):
         """A host can not be updated with invalid or empty MAC address
 
@@ -982,7 +977,7 @@ class HostUpdateTestCase(CLITestCase):
                     self.host = Host.info({'id': self.host['id']})
                     self.assertEqual(self.host['network']['mac'], new_mac)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_arch(self):
         """A host can not be updated with a architecture, which does not
         belong to host's operating system
@@ -999,7 +994,7 @@ class HostUpdateTestCase(CLITestCase):
         self.host = Host.info({'id': self.host['id']})
         self.assertNotEqual(self.host['operating-system']['architecture'], new_arch['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_os(self):
         """A host can not be updated with a operating system, which is
         not associated with host's medium
@@ -1028,8 +1023,8 @@ class HostUpdateTestCase(CLITestCase):
         self.host = Host.info({'id': self.host['id']})
         self.assertNotEqual(self.host['operating-system']['operating-system'], new_os['title'])
 
-    @tier2
-    @run_in_one_thread
+    @pytest.mark.tier2
+    @pytest.mark.run_in_one_thread
     def test_hammer_host_info_output(self):
         """Verify re-add of 'owner-id' in `hammer host info` output
 
@@ -1082,7 +1077,7 @@ class HostParameterTestCase(CLITestCase):
             }
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_parameter_crud(self):
         """Add, update and remove host parameter with valid name.
 
@@ -1110,7 +1105,7 @@ class HostParameterTestCase(CLITestCase):
         self.host = Host.info({'id': self.host['id']})
         self.assertNotIn(name, self.host['parameters'].keys())
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_add_parameter(self):
         """Try to add host parameter with different invalid names.
 
@@ -1135,7 +1130,7 @@ class HostParameterTestCase(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user without Parameter
          permissions
@@ -1188,7 +1183,7 @@ class HostParameterTestCase(CLITestCase):
         )
         self.assertFalse(host.get('parameters'))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_view_parameter_by_non_admin_user(self):
         """Attempt to view parameters with non admin user that has
         Parameter::vew_params permission
@@ -1244,7 +1239,7 @@ class HostParameterTestCase(CLITestCase):
         self.assertIn(param_name, host['parameters'])
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_edit_parameter_by_non_admin_user(self):
         """Attempt to edit parameter with non admin user that has
         Parameter::vew_params permission
@@ -1302,7 +1297,7 @@ class HostParameterTestCase(CLITestCase):
         host = Host.info({'id': self.host['id']})
         self.assertEqual(host['parameters'][param_name], param_value)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
         """Check that host parameter value with multi-line and spaces is
         correctly restored from yaml format
@@ -1363,8 +1358,8 @@ class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_baremetal_with_bios_syslinux(self):
         """Provision RHEL system on a new BIOS BM Host with SYSLINUX loader
         from provided MAC address
@@ -1401,7 +1396,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
         """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
         from provided MAC address
@@ -1438,7 +1433,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
         """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
         a provided MAC address
@@ -1478,8 +1473,8 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_baremetal_with_uefi_grub2(self):
         """Provision a RHEL7+ system on a new UEFI BM Host with GRUB2 loader
         from a provided MAC address
@@ -1520,7 +1515,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
         """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
         provided MAC address
@@ -1554,7 +1549,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class KatelloHostToolsTestCase(CLITestCase):
     """Host tests, which require VM with installed katello-host-tools."""
 
@@ -1609,7 +1604,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_host_tools()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_report_package_installed_removed(self):
         """Ensure installed/removed package is reported to satellite
 
@@ -1648,7 +1643,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         )
         self.assertEqual(len(installed_packages), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_package_applicability(self):
         """Ensure packages applicability is functioning properly
 
@@ -1699,7 +1694,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         self.assertEqual(len(applicable_packages), 0)
 
     @pytest.mark.skip_if_open("BZ:1740790")
-    @tier3
+    @pytest.mark.tier3
     def test_positive_erratum_applicability(self):
         """Ensure erratum applicability is functioning properly
 
@@ -1748,7 +1743,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         ]
         self.assertNotIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_package(self):
         """Attempt to install a package to a host remotely
 
@@ -1771,7 +1766,7 @@ class KatelloHostToolsTestCase(CLITestCase):
         )
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class HostSubscriptionTestCase(CLITestCase):
     """Tests for host subscription sub command"""
 
@@ -1923,7 +1918,7 @@ class HostSubscriptionTestCase(CLITestCase):
             }
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_register(self):
         """Attempt to register a host
 
@@ -1949,7 +1944,7 @@ class HostSubscriptionTestCase(CLITestCase):
         )
         self.assertEqual(len(host_subscriptions), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_attach(self):
         """Attempt to attach a subscription to host
 
@@ -1979,7 +1974,7 @@ class HostSubscriptionTestCase(CLITestCase):
         with self.assertNotRaises(VirtualMachineError):
             self.client.install_katello_agent()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_attach_with_lce(self):
         """Attempt to attach a subscription to host, registered by lce
 
@@ -2004,7 +1999,7 @@ class HostSubscriptionTestCase(CLITestCase):
         with self.assertNotRaises(VirtualMachineError):
             self.client.install_katello_agent()
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_without_attach(self):
         """Register content host from satellite, register client to uuid
         of that content host, as there was no attach on the client,
@@ -2026,7 +2021,7 @@ class HostSubscriptionTestCase(CLITestCase):
         repo_list = self.client.subscription_manager_list_repos()
         self.assertIn(NO_REPOS_AVAILABLE, repo_list.stdout)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_without_attach_with_lce(self):
         """Attempt to enable a repository of a subscription that was not
         attached to a host
@@ -2117,8 +2112,8 @@ class HostSubscriptionTestCase(CLITestCase):
         result = self._client_enable_repo()
         self.assertNotEqual(result.return_code, 0)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_remove(self):
         """Attempt to remove a subscription from content host
 
@@ -2154,7 +2149,7 @@ class HostSubscriptionTestCase(CLITestCase):
         )
         self.assertNotIn(self.subscription_name, [sub['name'] for sub in host_subscriptions])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_auto_attach(self):
         """Attempt to auto attach a subscription to content host
 
@@ -2176,7 +2171,7 @@ class HostSubscriptionTestCase(CLITestCase):
         with self.assertNotRaises(VirtualMachineError):
             self.client.install_katello_agent()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_unregister(self):
         """Attempt to unregister host subscription
 
@@ -2208,7 +2203,7 @@ class HostSubscriptionTestCase(CLITestCase):
                 }
             )
 
-    @tier3
+    @pytest.mark.tier3
     def test_syspurpose_end_to_end(self):
         """Create a host with system purpose values set by activation key.
 
@@ -2302,7 +2297,7 @@ class HostSubscriptionTestCase(CLITestCase):
 class HostErrataTestCase(CLITestCase):
     """Tests for errata's host sub command"""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_errata_list_of_sat_server(self):
         """Check if errata list doesn't raise exception. Check BZ for details.
 
@@ -2322,7 +2317,7 @@ class HostErrataTestCase(CLITestCase):
 class EncDumpTestCase(CLITestCase):
     """Tests for Dump host's ENC YAML"""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_dump_enc_yaml(self):
         """Dump host's ENC YAML. Check BZ for details.
 

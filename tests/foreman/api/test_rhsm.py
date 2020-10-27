@@ -20,17 +20,17 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 """
 import http
 
+import pytest
 from nailgun import client
 
 from robottelo.config import settings
-from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
 class RedHatSubscriptionManagerTestCase(APITestCase):
     """Tests for the ``/rhsm`` path."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_path(self):
         """Check whether the path exists.
 

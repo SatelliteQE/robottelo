@@ -33,6 +33,7 @@ Subcommands::
 """
 import random
 
+import pytest
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 
@@ -44,9 +45,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -112,7 +110,7 @@ class ComputeResourceTestCase(CLITestCase):
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create Compute Resource
 
@@ -132,7 +130,7 @@ class ComputeResourceTestCase(CLITestCase):
             }
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_info(self):
         """Test Compute Resource Info
 
@@ -155,7 +153,7 @@ class ComputeResourceTestCase(CLITestCase):
         # factory already runs info, just check the data
         self.assertEquals(compute_resource['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Test Compute Resource List
 
@@ -176,8 +174,8 @@ class ComputeResourceTestCase(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_name(self):
         """Test Compute Resource delete
 
@@ -198,8 +196,8 @@ class ComputeResourceTestCase(CLITestCase):
         self.assertFalse(result)
 
     # Positive create
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_libvirt(self):
         """Test Compute Resource create
 
@@ -222,7 +220,7 @@ class ComputeResourceTestCase(CLITestCase):
                     }
                 )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_loc(self):
         """Create Compute Resource with location
 
@@ -239,7 +237,7 @@ class ComputeResourceTestCase(CLITestCase):
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_locs(self):
         """Create Compute Resource with multiple locations
 
@@ -263,7 +261,7 @@ class ComputeResourceTestCase(CLITestCase):
 
     # Negative create
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_name_url(self):
         """Compute Resource negative create with invalid values
 
@@ -286,7 +284,7 @@ class ComputeResourceTestCase(CLITestCase):
                         }
                     )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_same_name(self):
         """Compute Resource negative create with the same name
 
@@ -310,7 +308,7 @@ class ComputeResourceTestCase(CLITestCase):
 
     # Update Positive
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Compute Resource positive update
 
@@ -339,7 +337,7 @@ class ComputeResourceTestCase(CLITestCase):
 
     # Update Negative
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update(self):
         """Compute Resource negative update
 
@@ -363,7 +361,7 @@ class ComputeResourceTestCase(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(comp_res[key], result[key])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_console_password_and_name(self):
         """Create a compute resource with ``--set-console-password``.
 
@@ -388,7 +386,7 @@ class ComputeResourceTestCase(CLITestCase):
                     }
                 )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_console_password(self):
         """Update a compute resource with ``--set-console-password``.
 

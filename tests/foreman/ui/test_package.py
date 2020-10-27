@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -22,24 +23,21 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.products import SatelliteToolsRepository
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_yum_repo(module_product):
     yum_repo = entities.Repository(
         name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_0_YUM_REPO
@@ -48,7 +46,7 @@ def module_yum_repo(module_product):
     return yum_repo
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_yum_repo2(module_product):
     yum_repo = entities.Repository(
         name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_3_YUM_REPO
@@ -57,7 +55,7 @@ def module_yum_repo2(module_product):
     return yum_repo
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_rh_repo(module_org):
     manifests.upload_manifest_locked(module_org.id, manifests.clone())
     rhst = SatelliteToolsRepository(cdn=True)
@@ -73,7 +71,7 @@ def module_rh_repo(module_org):
     return entities.Repository(id=repo_id).read()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
     packages inside of it
@@ -95,8 +93,8 @@ def test_positive_search_in_repo(session, module_org, module_yum_repo):
         ].startswith('cheetah')
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo, module_yum_repo2):
     """Create product with two different yum repositories assigned to it.
     Search for packages inside of these repositories. Make sure that unique
@@ -127,8 +125,8 @@ def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo,
         assert not session.package.search('name = tiger', repository=module_yum_repo2.name)
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_check_package_details(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
     package inside of it and then open it. Check all the details about that
@@ -168,8 +166,8 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
         assert expected_package_details == package_details
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_check_custom_package_details(session, module_org, module_yum_repo):
     """Upload custom rpm package to repository. Search for package
     and then open it. Check that package details are available
@@ -196,8 +194,8 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
         assert repo_details['filename'] == RPM_TO_UPLOAD
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_rh_repo_search_and_check_file_list(session, module_org, module_rh_repo):
     """Synchronize one of RH repos (for example Satellite Tools). Search
     for packages inside of it and open one of the packages and check list of

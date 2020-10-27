@@ -57,12 +57,7 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.helpers import download_server_file
 from robottelo.ui.utils import create_fake_host
 
@@ -382,7 +377,7 @@ def module_libvirt_hostgroup(
     ).create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_host_template, module_org, module_global_params):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
@@ -454,7 +449,7 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
         assert not session.host.search(new_host_name)
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_read_from_details_page(session, module_host_template):
     """Create new Host and read all its content through details page
 
@@ -498,7 +493,7 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert values['properties']['properties_table']['Owner'] == values['current_user']
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_read_from_edit_page(session, module_host_template):
     """Create new Host and read all its content through edit page
 
@@ -537,7 +532,7 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['additional_information']['enabled'] is True
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_inherit_puppet_env_from_host_group_when_action(session):
     """Host group puppet environment is inherited to already created
     host when corresponding action is applied to that host
@@ -580,8 +575,8 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
         assert values['host']['puppet_environment'] == env.name
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 
@@ -620,7 +615,7 @@ def test_positive_create_with_puppet_class(session, module_host_template, module
         assert values['puppet_classes']['classes']['assigned'][0] == pc_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_assign_taxonomies(session, module_org, module_loc):
     """Ensure Host organization and Location can be assigned.
 
@@ -658,7 +653,7 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
 
 
 @skip_if_not_set('oscap')
-@tier2
+@pytest.mark.tier2
 def test_positive_assign_compliance_policy(session, scap_policy):
     """Ensure host compliance Policy can be assigned.
 
@@ -719,8 +714,8 @@ def test_positive_assign_compliance_policy(session, scap_policy):
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
-@skip_if(settings.webdriver != 'chrome')
-@tier3
+@pytest.mark.skipif(settings.webdriver != 'chrome')
+@pytest.mark.tier3
 def test_positive_export(session):
     """Create few hosts and export them via UI
 
@@ -749,7 +744,7 @@ def test_positive_export(session):
         assert set(actual_fields) == expected_fields
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_create_with_inherited_params(session):
     """Create a new Host in organization and location with parameters
 
@@ -785,7 +780,7 @@ def test_positive_create_with_inherited_params(session):
         )
 
 
-@tier4
+@pytest.mark.tier4
 def test_negative_delete_primary_interface(session, module_host_template):
     """Attempt to delete primary interface of a host
 
@@ -808,7 +803,7 @@ def test_negative_delete_primary_interface(session, module_host_template):
 
 
 @pytest.mark.skip_if_open("BZ:1801630")
-@tier2
+@pytest.mark.tier2
 def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
@@ -842,7 +837,7 @@ def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_l
         assert content_host['breadcrumb'] == created_host.name
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Remove a host parameter as a non-admin user with enough permissions
 
@@ -890,7 +885,7 @@ def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_
         assert not values['parameters']['host_params']
 
 
-@tier3
+@pytest.mark.tier3
 def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -944,7 +939,7 @@ def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_
         assert 'Remove Parameter' in str(context.value)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_check_permissions_affect_create_procedure(test_name, module_loc):
     """Verify whether user permissions affect what entities can be selected
     when host is created
@@ -1067,7 +1062,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             assert create_values[tab_name][field_name] == host_field['expected_value']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_by_parameter(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it
 
@@ -1096,7 +1091,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
         assert values[0]['Name'] == param_host.name
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_search_by_parameter_with_different_values(session, module_org, module_loc):
     """Search for the host by global parameter assigned to it by its value
 
@@ -1129,7 +1124,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
             assert values[0]['Name'] == host.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_by_parameter_with_prefix(session, module_loc):
     """Search by global parameter assigned to host using prefix 'not' and
     any random string as parameter value to make sure that all hosts will
@@ -1161,7 +1156,7 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_by_parameter_with_operator(session, module_loc):
     """Search by global parameter assigned to host using operator '<>' and
     any random string as parameter value to make sure that all hosts will
@@ -1197,7 +1192,7 @@ def test_positive_search_by_parameter_with_operator(session, module_loc):
         assert {value['Name'] for value in values} == {param_host.name, additional_host.name}
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_with_org_and_loc_context(session):
     """Perform usual search for host, but organization and location used
     for host create procedure should have 'All capsules' checkbox selected
@@ -1223,7 +1218,7 @@ def test_positive_search_with_org_and_loc_context(session):
         assert session.host.search(host.name)[0]['Name'] == host.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_by_org(session, module_loc):
     """Search for host by specifying host's organization name
 
@@ -1245,7 +1240,7 @@ def test_positive_search_by_org(session, module_loc):
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_validate_inherited_cv_lce(session, module_host_template):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
@@ -1299,7 +1294,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
         assert values['host']['content_view'] == content_view['name']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_inherit_puppet_env_from_host_group_when_create(session, module_org, module_loc):
     """Host group puppet environment is inherited to host in create
     procedure
@@ -1341,7 +1336,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
         assert values['host']['inherit_puppet_environment'] is False
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
     """Content View puppet environment is inherited to host in create
     procedure and can be rolled back to its value at any moment using
@@ -1389,7 +1384,7 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
         assert values['host']['puppet_environment'] == published_puppet_env
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module_host_template):
     """Check that host parameter value with multi-line and spaces is
     correctly represented in yaml format
@@ -1455,8 +1450,8 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
         assert host_parameters[param_name] == param_value
 
 
-@tier4
-@upgrade
+@pytest.mark.tier4
+@pytest.mark.upgrade
 def test_positive_bulk_delete_host(session, module_loc):
     """Delete multiple hosts from the list
 
@@ -1496,7 +1491,7 @@ def test_positive_bulk_delete_host(session, module_loc):
         assert not values['table']
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_provision_end_to_end(
     session,
     module_org,
@@ -1552,7 +1547,7 @@ def test_positive_provision_end_to_end(
         )
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_delete_libvirt(
     session,
     module_org,
@@ -1737,7 +1732,7 @@ def gce_hostgroup(
     ).create()
 
 
-@tier4
+@pytest.mark.tier4
 @skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
@@ -1819,8 +1814,8 @@ def test_positive_gce_provision_end_to_end(
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
 
 
-@tier4
-@upgrade
+@pytest.mark.tier4
+@pytest.mark.upgrade
 @skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
@@ -1894,8 +1889,8 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             )
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_cockpit(session):
     """Test whether webconsole button and cockpit integration works
 

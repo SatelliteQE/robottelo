@@ -48,13 +48,8 @@ from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
@@ -63,12 +58,11 @@ from robottelo.products import YumRepository
 from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
-
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing settings', allow_module_level=True)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
@@ -78,7 +72,7 @@ def module_org():
     return org
 
 
-@fixture(scope='module', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def repos_collection(module_org):
     """Adds required repositories, AK, LCE and CV for content host testing"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -95,7 +89,7 @@ def repos_collection(module_org):
     return repos_collection
 
 
-@fixture(scope='module', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def repos_collection_for_module_streams(module_org):
     """Adds required repositories, AK, LCE and CV for content host testing for
     module streams"""
@@ -113,7 +107,7 @@ def repos_collection_for_module_streams(module_org):
     return repos_collection
 
 
-@fixture
+@pytest.fixture
 def vm(repos_collection):
     """Virtual machine registered in satellite with katello-agent installed"""
     with VirtualMachine(distro=repos_collection.distro) as vm:
@@ -121,7 +115,7 @@ def vm(repos_collection):
         yield vm
 
 
-@fixture
+@pytest.fixture
 def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
@@ -172,7 +166,7 @@ def module_host_template(module_org, module_loc):
     return host_template
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_end_to_end(session, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
     as a content host, read content host details, install package and errata.
@@ -245,8 +239,8 @@ def test_positive_end_to_end(session, repos_collection, vm):
         assert not session.contenthost.search(vm.hostname)
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_positive_end_to_end_bulk_update(session, vm):
     """Create VM, set up VM as host, register it as a content host,
     read content host details, install a package ( e.g. walrus-0.71) and
@@ -301,7 +295,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
         session.contenthost.delete(vm.hostname)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_search_by_subscription_status(session, vm):
     """Register host into the system and search for it afterwards by
     subscription status
@@ -334,7 +328,7 @@ def test_positive_search_by_subscription_status(session, vm):
         assert values['table'][0]['Name'] == vm.hostname
 
 
-@tier3
+@pytest.mark.tier3
 def test_negative_install_package(session, vm):
     """Attempt to install non-existent package to a host remotely
 
@@ -355,8 +349,8 @@ def test_negative_install_package(session, vm):
         assert result['result'] == 'warning'
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 
@@ -376,7 +370,7 @@ def test_positive_remove_package(session, vm):
         assert not packages
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_upgrade_package(session, vm):
     """Upgrade a host package remotely
 
@@ -396,8 +390,8 @@ def test_positive_upgrade_package(session, vm):
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_install_package_group(session, vm):
     """Install a package group to a host remotely
 
@@ -417,7 +411,7 @@ def test_positive_install_package_group(session, vm):
             assert packages[0]['Installed Package'] == package
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_remove_package_group(session, vm):
     """Remove a package group from a host remotely
 
@@ -437,7 +431,7 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
-@tier3
+@pytest.mark.tier3
 def test_actions_katello_host_package_update_timeout(session, vm):
     """Check that Actions::Katello::Host::Package::Update task will time
     out if goferd does not respond while attempting to update a package.
@@ -498,7 +492,7 @@ def test_actions_katello_host_package_update_timeout(session, vm):
     assert error_line_found, "The expected time out error was not found in logs."
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
 
@@ -521,8 +515,8 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, de
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm):
     """Ensure that errata remain available to install when content host is
     re-registered
@@ -562,7 +556,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_host_re_registion_with_host_rename(session, module_org, repos_collection, vm):
     """Ensure that content host should get re-registered after change in the hostname
 
@@ -600,9 +594,9 @@ def test_positive_host_re_registion_with_host_rename(session, module_org, repos_
         assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
 
 
-@run_in_one_thread
-@tier3
-@upgrade
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request):
     """Verify that 'Ignore facts for operating system' setting works
     properly
@@ -675,8 +669,8 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
 
 
 @skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_virt_who_hypervisor_subscription_status(session):
     """Check that virt-who hypervisor shows the right subscription status
     without and with attached subscription.
@@ -749,8 +743,8 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
             assert chost['details']['subscription_status'] == 'Fully entitled'
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_module_stream_actions_on_content_host(session, vm_module_streams):
     """Check remote execution for module streams actions e.g. install, remove, disable
     works on content host. Verify that correct stream module stream
@@ -853,7 +847,7 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         assert module_stream[0]['Status'] == ""
 
 
-@tier3
+@pytest.mark.tier3
 def test_module_streams_customize_action(session, vm_module_streams):
     """Check remote execution for customized module action is working on content host.
 
@@ -902,8 +896,8 @@ def test_module_streams_customize_action(session, vm_module_streams):
         assert module_stream[0]['Stream'] == install_stream_version
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_install_modular_errata(session, vm_module_streams):
     """Populate, Search and Install Modular Errata generated from module streams.
 
@@ -967,7 +961,7 @@ def test_install_modular_errata(session, vm_module_streams):
         assert module_stream[0]['Name'] == module_name
 
 
-@tier3
+@pytest.mark.tier3
 def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
     """Verify dnf upload-profile updates the module stream status to Satellite.
 
@@ -1015,7 +1009,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
         )
 
 
-@tier3
+@pytest.mark.tier3
 def test_module_status_update_without_force_upload_package_profile(session, vm, vm_module_streams):
     """Verify you do not have to run dnf upload-profile or restart rhsmcertd
     to update the module stream status to Satellite and that the web UI will also be updated.
@@ -1077,8 +1071,8 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         )
 
 
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_module_stream_update_from_satellite(session, vm_module_streams):
     """Verify module stream enable, update actions works and update the module stream
 
@@ -1138,7 +1132,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_syspurpose_attributes_empty(session, vm_module_streams):
     """
     Test if syspurpose attributes are displayed as empty
@@ -1163,7 +1157,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_set_syspurpose_attributes_cli(session, vm_module_streams):
     """
     Test that UI shows syspurpose attributes set by the syspurpose tool on a registered host.
@@ -1191,7 +1185,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
     """
     Test that previously set syspurpose attributes are correctly set
@@ -1225,7 +1219,7 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_syspurpose_matched(session, vm_module_streams):
     """
     Test that syspurpose status is set as 'Matched' if auto-attach
@@ -1250,7 +1244,7 @@ def test_syspurpose_matched(session, vm_module_streams):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_syspurpose_mismatched(session, vm_module_streams):
     """
     Test that syspurpose status is 'Mismatched' if a syspurpose attribute
@@ -1275,7 +1269,7 @@ def test_syspurpose_mismatched(session, vm_module_streams):
         assert details['system_purpose_status'] == "Mismatched"
 
 
-@tier3
+@pytest.mark.tier3
 def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
     """Create hosts to fill more than one page, sort on OS, check pagination.
 
@@ -1329,7 +1323,7 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
         assert int(total_items_found) >= host_num
 
 
-@tier3
+@pytest.mark.tier3
 def test_search_for_virt_who_hypervisors(session):
     """
     Search the virt_who hypervisors with hypervisor=True or hypervisor=False.

@@ -9,6 +9,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi import RHEVMSystem
@@ -23,7 +24,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
 from robottelo.helpers import host_provisioning_check
 from robottelo.helpers import ProvisioningCheckError
 from robottelo.test import CLITestCase
@@ -103,7 +103,7 @@ class ComputeResourceHostTestCase(CLITestCase):
         for host in hosts:
             Host.delete({'id': host['id']})
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_rhev_with_host_group(self):
         """Provision a host on RHEV compute resource with
         the help of hostgroup.
@@ -180,7 +180,7 @@ class ComputeResourceHostTestCase(CLITestCase):
         with self.assertNotRaises(ProvisioningCheckError):
             host_provisioning_check(ip_addr=host_ip)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_vmware_with_host_group(self):
         """Provision a host on vmware compute resource with
         the help of hostgroup.

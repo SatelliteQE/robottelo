@@ -24,7 +24,6 @@ from robottelo.cli.template_sync import TemplateSync
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
-from robottelo.decorators import tier2
 
 
 class TestTemplateSyncTestCase:
@@ -54,7 +53,7 @@ class TestTemplateSyncTestCase:
         # Download the Test Template in test running folder
         ssh.command(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_force_locked_template(
         self, module_org, create_import_export_local_dir
     ):
@@ -107,7 +106,7 @@ class TestTemplateSyncTestCase:
             pytest.fail('The template is not imported for force test')
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_git(self):
         """Assure only templates with a given filter regex are pushed to
         git template (new templates are created, existing updated).
@@ -126,7 +125,7 @@ class TestTemplateSyncTestCase:
         :CaseAutomation: NotAutomated
         """
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org):
         """Assure templates can be exported to /tmp directory without right permissions
 

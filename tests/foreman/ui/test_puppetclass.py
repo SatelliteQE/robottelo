@@ -14,27 +14,23 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
-
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     return entities.Location(organization=[module_org]).create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for puppet class component
 
@@ -64,7 +60,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         pc_values = session.puppetclass.read(name)
         assert pc_values['puppet_class']['host_group']['assigned'] == [hostgroup.name]
         # Make an attempt to delete puppet class that associated with host group
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.puppetclass.delete(name)
         assert f"error: '{puppet_class.name} is used by {hostgroup.name}'" in str(context.value)
         # Unassign puppet class from host group

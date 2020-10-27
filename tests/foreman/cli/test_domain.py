@@ -26,9 +26,6 @@ from robottelo.cli.factory import make_org
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import parametrized
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
 @filtered_datapoint
@@ -113,8 +110,8 @@ def valid_delete_params():
     ]
 
 
-@tier1
-@upgrade
+@pytest.mark.tier1
+@pytest.mark.upgrade
 def test_positive_create_update_delete_domain():
     """Create domain, update and delete domain and set parameters
 
@@ -171,7 +168,7 @@ def test_positive_create_update_delete_domain():
         Domain.info({'id': domain['id']})
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_create_params()))
 def test_negative_create(options):
     """Create domain with invalid values
@@ -188,7 +185,7 @@ def test_negative_create(options):
         make_domain(options)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_create_with_invalid_dns_id():
     """Attempt to register a domain with invalid id
 
@@ -210,7 +207,7 @@ def test_negative_create_with_invalid_dns_id():
     assert len(messages) > 0
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_update_params()))
 def test_negative_update(module_domain, options):
     """Update domain with invalid values
@@ -231,7 +228,7 @@ def test_negative_update(module_domain, options):
         assert result[key] == getattr(module_domain, key)
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('options', **parametrized(invalid_set_params()))
 def test_negative_set_parameter(module_domain, options):
     """Domain set-parameter with invalid values
@@ -253,7 +250,7 @@ def test_negative_set_parameter(module_domain, options):
     assert len(domain['parameters']) == 0
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
 def test_negative_delete_by_id(entity_id):
     """Create Domain then delete it by wrong ID

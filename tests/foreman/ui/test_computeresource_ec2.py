@@ -14,9 +14,9 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
 
 from robottelo.config import settings
 from robottelo.constants import AWS_EC2_FLAVOR_T2_MICRO
@@ -24,27 +24,24 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.decorators import fixture
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import tier2
-
 
 if not setting_is_set('ec2'):
-    skip('skipping tests due to missing ec2 settings', allow_module_level=True)
+    pytest.skip('skipping tests due to missing ec2 settings', allow_module_level=True)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
     return entities.Location(id=default_loc_id).read()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_ec2_settings():
     return dict(
         access_key=settings.ec2.access_key,
@@ -58,7 +55,7 @@ def module_ec2_settings():
     )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_loc, module_ec2_settings
 ):
@@ -83,7 +80,7 @@ def test_positive_default_end_to_end_with_custom_profile(
     :CaseImportance: High
     """
     if not setting_is_set('http_proxy'):
-        skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
+        pytest.skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')
@@ -166,7 +163,7 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert not session.computeresource.search(new_cr_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_ec2_with_custom_region(session, module_ec2_settings):
     """Create a new ec2 compute resource with custom region
 

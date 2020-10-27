@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
@@ -22,10 +24,6 @@ from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -33,7 +31,7 @@ class PuppetModuleTestCase(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         super().setUpClass()
         cls.org = make_org()
@@ -48,7 +46,7 @@ class PuppetModuleTestCase(CLITestCase):
         )
         Repository.synchronize({'id': cls.repo['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Check if puppet-module list retrieves puppet-modules of
         the given org
@@ -65,7 +63,7 @@ class PuppetModuleTestCase(CLITestCase):
         # There are 4 puppet modules in the test puppet-module url
         self.assertEqual(len(result), 4)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_info(self):
         """Check if puppet-module info retrieves info for the given
         puppet-module id
@@ -81,9 +79,9 @@ class PuppetModuleTestCase(CLITestCase):
             result = PuppetModule.info({'id': return_value[i]['id']}, output_format='json')
             self.assertEqual(result['id'], return_value[i]['id'])
 
-    @tier2
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.

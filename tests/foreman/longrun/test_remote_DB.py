@@ -16,13 +16,12 @@
 """
 import pytest
 
-from robottelo.decorators import tier1
 from robottelo.test import TestCase
 
 
 class RemoteDBTestCase(TestCase):
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_install_external_foreman(self):
         """Install Satellite with external foreman database
 
@@ -38,7 +37,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_install_external_candlepin(self):
         """Install Satellite with external candlepin database
 
@@ -54,7 +53,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_install_external_pulp(self):
         """Install Satellite with external pulp database
 
@@ -70,7 +69,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_install_external_all_with_SSL(self):
         """Install Satellite with all external databases with SSL
 
@@ -86,7 +85,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_reset_satellite_installation_external_all_with_SSL(self):
         """Reset Satellite installation with all ext SSL
 
@@ -108,7 +107,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_offline_backup_external_all_with_SSL(self):
         """Perform offline backup of external database
 
@@ -122,7 +121,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_online_backup_external_all_with_SSL(self):
         """Perform online backup of external database
 
@@ -136,7 +135,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_snapshot_backup_external_all_with_SSL(self):
         """Perform snapshot backup of external database
 
@@ -150,7 +149,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_restore_offline_backup_external_all_with_SSL(self):
         """Restore offline backup of external databases
 
@@ -164,7 +163,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_restore_online_backup_external_all_with_SSL(self):
         """Restore online backup of external databases
 
@@ -178,7 +177,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_restore_snapshot_backup_external_all_with_SSL(self):
         """Restore snapshot backup of external databases
 
@@ -192,7 +191,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_offload_internal_db_to_external_db_host(self):
         """Offload internal databases content to an external database host
 
@@ -209,7 +208,7 @@ class RemoteDBTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_upgrade_satellite_eith_all_external_db_SSL(self):
         """Upgrade Satellite with all external databases with SSL
 

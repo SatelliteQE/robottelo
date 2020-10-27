@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -25,10 +26,6 @@ from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.location import Location
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -59,8 +56,8 @@ class LocationTestCase(CLITestCase):
         cls.template = entities.ProvisioningTemplate().create()
         cls.user = entities.User().create()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_create_update_delete(self):
         """Create new location with attributes, update and delete it
 
@@ -133,7 +130,7 @@ class LocationTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Location.info({'id': loc['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parent(self):
         """Create new location with parent location specified
 
@@ -151,7 +148,7 @@ class LocationTestCase(CLITestCase):
         loc = make_location({'parent-id': parent_loc['id']})
         self.assertEqual(loc['parent'], parent_loc['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Try to create location using same name twice
 
@@ -167,7 +164,7 @@ class LocationTestCase(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'name': name})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_user_by_name(self):
         """Try to create new location with incorrect user assigned to it
         Use user login as a parameter
@@ -181,9 +178,9 @@ class LocationTestCase(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
 
-    @run_in_one_thread
-    @tier2
-    @upgrade
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_capsule(self):
         """Add a capsule to location and remove it
 
@@ -206,7 +203,7 @@ class LocationTestCase(CLITestCase):
         loc = Location.info({'name': loc['name']})
         self.assertNotIn(proxy['name'], loc['smart-proxies'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_add_update_remove_parameter(self):
         """Add, update and remove parameter to location
 
@@ -242,7 +239,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(len(location['parameters']), 0)
         self.assertNotIn(param_name.lower(), location['parameters'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_parent(self):
         """Update location's parent location
 
@@ -263,7 +260,7 @@ class LocationTestCase(CLITestCase):
         loc = Location.info({'id': loc['id']})
         self.assertEqual(loc['parent'], new_parent_loc['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_parent_with_child(self):
         """Attempt to set child location as a parent and vice versa
 

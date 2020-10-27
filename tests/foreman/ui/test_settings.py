@@ -20,17 +20,12 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
-from pytest import raises
 
 from robottelo import ssh
 from robottelo.cleanup import setting_cleanup
 from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
 @filtered_datapoint
@@ -73,8 +68,8 @@ def add_content_views_to_composite(composite_cv, org, repo):
     return content_view
 
 
-@run_in_one_thread
-@tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['restrict_composite_view'], indirect=True)
 def test_positive_update_restrict_composite_view(session, setting_update, repo_setup):
     """Update settings parameter restrict_composite_view to Yes/True and ensure
@@ -102,7 +97,7 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
         for param_value in ['Yes', 'No']:
             session.settings.update(f'name = {property_name}', param_value)
             if param_value == 'Yes':
-                with raises(AssertionError) as context:
+                with pytest.raises(AssertionError) as context:
                     session.contentview.promote(
                         composite_cv.name, 'Version 1.0', repo_setup['lce'].name
                     )
@@ -120,7 +115,8 @@ def test_positive_update_restrict_composite_view(session, setting_update, repo_s
                     session.contentview.delete(content_view_name)
 
 
-@tier2
+@pytest.mark.skip_if_open("BZ:1677282")
+@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['http_proxy'], indirect=True)
 def test_positive_httpd_proxy_url_update(session, setting_update):
     """Update the http_proxy_url should pass successfully.
@@ -144,10 +140,10 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
         assert result['table'][0]['Value'] == param_value
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['foreman_url', 'entries_per_page'], indirect=True)
 def test_negative_validate_foreman_url_error_message(session, setting_update):
-    """Update foreman_url and entries_per_page with invalid value (an exceptional tier2 test)
+    """Updates some settings with invalid values (an exceptional tier2 test)
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
 
@@ -160,13 +156,13 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
     property_name = setting_update.name
     with session:
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
             assert is_valid_error_message(str(context.value))
 
 
-@run_in_one_thread
-@tier2
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
 @pytest.mark.parametrize(
     'setting_update',
     ['host_dmi_uuid_duplicates', 'register_hostname_fact', 'content_view_solve_dependencies'],
@@ -197,7 +193,7 @@ def test_positive_host_dmi_uuid_duplicates(session, setting_update):
         assert result['table'][0]['Value'] == property_dict[setting_update.name]
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['login_text'], indirect=True)
 def test_positive_update_login_page_footer_text_with_long_string(session, setting_update):
     """Testing to update parameter "Login_page_footer_text with long length
@@ -228,7 +224,7 @@ def test_positive_update_login_page_footer_text_with_long_string(session, settin
         assert result["login_text"] == login_text_data
 
 
-@tier3
+@pytest.mark.tier3
 def test_negative_settings_access_to_non_admin():
     """Check non admin users can't access Administer -> Settings tab
 
@@ -260,7 +256,7 @@ def test_negative_settings_access_to_non_admin():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab
 
@@ -295,8 +291,8 @@ def test_positive_update_email_delivery_method_smtp():
 
 
 @pytest.mark.stubbed
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_negative_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab fail
 
@@ -329,8 +325,8 @@ def test_negative_update_email_delivery_method_smtp():
     """
 
 
-@run_in_one_thread
-@tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
 def test_positive_update_email_delivery_method_sendmail(session):
     """Updating Sendmail params on Email tab
 
@@ -390,7 +386,7 @@ def test_positive_update_email_delivery_method_sendmail(session):
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_negative_update_email_delivery_method_sendmail():
     """Updating Sendmail params on Email tab fail
 
@@ -420,7 +416,7 @@ def test_negative_update_email_delivery_method_sendmail():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_email_yaml_config_precedence():
     """Check configuration file /etc/foreman/email.yaml takes precedence
     over UI. This behaviour will be default until Foreman 1.16. This
@@ -452,7 +448,7 @@ def test_positive_email_yaml_config_precedence():
 
 
 @pytest.mark.skip_if_open("BZ:1470083")
-@tier2
+@pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(session, setting_update):
     """Update the Hostname_facts settings without any string(empty values)
@@ -477,8 +473,8 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
         assert response is not None, "Empty string accepted"
 
 
-@run_in_one_thread
-@tier3
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
 @pytest.mark.parametrize('setting_update', ['entries_per_page'], indirect=True)
 def test_positive_entries_per_page(session, setting_update):
     """Update the per page entry in the settings.

@@ -18,7 +18,6 @@ import pytest
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier1
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +35,7 @@ def module_org(module_org):
 class TestTailoringFile:
     """Implements Tailoring Files tests in API."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_crud_tailoringfile(self, module_org, module_location, tailoring_file_path):
         """Perform end to end testing for oscap tailoring files component
 

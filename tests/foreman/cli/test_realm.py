@@ -25,9 +25,6 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_realm
 from robottelo.cli.realm import Realm
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 
 
 @pytest.fixture(scope='module')
@@ -38,12 +35,12 @@ def _make_proxy(options=None):
     capsule_cleanup(proxy['id'])
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestRealm:
     """Tests for Realms via Hammer CLI, must be run on QE Satellite Server.
     Requires enroll_idm() and configure_realm() to configure the test environment."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_name(self, _make_proxy):
         """Realm deletion by realm name
 
@@ -56,7 +53,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.info({'id': realm['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_id(self, _make_proxy):
         """Realm deletion by realm ID
 
@@ -70,7 +67,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.info({'id': realm['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_realm_info_name(self, _make_proxy):
         """Test realm info functionality
 
@@ -91,7 +88,7 @@ class TestRealm:
         for key in info.keys():
             assert info[key] == realm[key]
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_realm_info_id(self, _make_proxy):
         """Test realm info functionality
 
@@ -113,7 +110,7 @@ class TestRealm:
             assert info[key] == realm[key]
         assert info == Realm.info({'id': realm['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_realm_update_name(self, _make_proxy):
         """Test updating realm name
 
@@ -138,7 +135,7 @@ class TestRealm:
         info = Realm.info({'id': realm['id']})
         assert info['name'] == new_realm_name
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_realm_update_invalid_type(self, _make_proxy):
         """Test updating realm with an invalid type
 
@@ -160,7 +157,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.update({'id': realm['id'], 'realm-type': new_realm_type})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_name_only(self):
         """Create a realm with just a name parameter
 
@@ -171,7 +168,7 @@ class TestRealm:
         with pytest.raises(CLIFactoryError):
             make_realm({'name': gen_string('alpha', random.randint(1, 30))})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_invalid_id(self):
         """Create a realm with an invalid proxy ID
 
@@ -188,7 +185,7 @@ class TestRealm:
                 }
             )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_invalid_realm_type(self):
         """Create a realm with an invalid type
 
@@ -206,7 +203,7 @@ class TestRealm:
                 }
             )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_invalid_location(self):
         """Create a realm with an invalid location
 
@@ -224,7 +221,7 @@ class TestRealm:
                 }
             )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_invalid_organization(self):
         """Create a realm with an invalid organization
 
@@ -242,7 +239,7 @@ class TestRealm:
                 }
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_delete_nonexistent_realm_name(self):
         """Delete a realm with a name that does not exist
 
@@ -253,7 +250,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.delete({'name': gen_string('alpha', random.randint(1, 30))})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_delete_nonexistent_realm_id(self):
         """Delete a realm with an ID that does not exist
 
@@ -264,7 +261,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.delete({'id': 0})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_info_nonexistent_realm_name(self):
         """Get info for a realm with a name that does not exist
 
@@ -275,7 +272,7 @@ class TestRealm:
         with pytest.raises(CLIReturnCodeError):
             Realm.info({'name': gen_string('alpha', random.randint(1, 30))})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_info_nonexistent_realm_id(self):
         """Get info for a realm with an ID that does not exists
 

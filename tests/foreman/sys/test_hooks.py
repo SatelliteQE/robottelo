@@ -15,6 +15,7 @@
 :Upstream: No
 
 """
+import pytest
 from fauxfactory import gen_ipaddr
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -22,15 +23,13 @@ from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.datafactory import valid_hostgroups_list
 from robottelo.datafactory import valid_hosts_list
-from robottelo.decorators import destructive
-from robottelo.decorators import run_in_one_thread
 from robottelo.test import TestCase
 
 HOOKS_DIR = '/usr/share/foreman/config/hooks'
 LOGS_DIR = '/usr/share/foreman/tmp/hooks.log'
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class ForemanHooksTestCase(TestCase):
     """Test class for testing foreman hooks"""
 
@@ -54,7 +53,7 @@ class ForemanHooksTestCase(TestCase):
         super().tearDownClass()
         ssh.command(f"rm -rf {HOOKS_DIR}/*")
 
-    @destructive
+    @pytest.mark.destructive
     def test_positive_host_hooks(self):
         """Create hooks to be executed on host create, update and destroy
 
@@ -106,7 +105,7 @@ class ForemanHooksTestCase(TestCase):
         self.assertEqual(result.return_code, 0)
         self.assertIn(expected_msg.format(destroy_event, host_name), result.stdout[0])
 
-    @destructive
+    @pytest.mark.destructive
     def test_positive_hostgroup_hooks(self):
         """Create hooks to be executed on hostgroup create, udpdate and destroy
 

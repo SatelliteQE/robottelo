@@ -14,18 +14,17 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
 class ForemanTaskTestCase(APITestCase):
     """Tests for the ``foreman_tasks/api/v2/tasks/:id`` path."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_fetch_non_existent_task(self):
         """Fetch a non-existent task.
 
@@ -38,8 +37,8 @@ class ForemanTaskTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_get_summary(self):
         """Get a summary of foreman tasks.
 

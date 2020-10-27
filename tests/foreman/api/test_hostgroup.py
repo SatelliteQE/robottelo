@@ -29,10 +29,6 @@ from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_hostgroups_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -47,8 +43,8 @@ class HostGroupTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_inherit_puppetclass(self):
         """Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
@@ -171,8 +167,8 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(len(host_attrs['all_puppetclasses']), 1)
         self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_rebuild_config(self):
         """'Rebuild orchestration config' of an existing host group
 
@@ -202,7 +198,7 @@ class HostGroupTestCase(APITestCase):
             hostgroup.rebuild_config()['message'], 'Configuration successfully rebuilt.'
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a hostgroup with different names
 
@@ -219,7 +215,7 @@ class HostGroupTestCase(APITestCase):
                 ).create()
                 self.assertEqual(name, hostgroup.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_clone(self):
         """Create a hostgroup by cloning an existing one
 
@@ -249,7 +245,7 @@ class HostGroupTestCase(APITestCase):
         self.assertDictContainsSubset(hostgroup_cloned, hostgroup_origin)
         self.assertEqual(hostgroup_cloned, hostgroup_cloned)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_properties(self):
         """Create a hostgroup with properties
 
@@ -379,7 +375,7 @@ class HostGroupTestCase(APITestCase):
             hostgroup.read()
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_realm(self):
         """Create a hostgroup with realm specified
 
@@ -401,7 +397,7 @@ class HostGroupTestCase(APITestCase):
         ).create()
         self.assertEqual(hostgroup.realm.read().name, realm.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_locs(self):
         """Create a hostgroup with multiple locations specified
 
@@ -418,7 +414,7 @@ class HostGroupTestCase(APITestCase):
             {loc.name for loc in locs}, {loc.read().name for loc in hostgroup.location}
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_orgs(self):
         """Create a hostgroup with multiple organizations specified
 
@@ -435,7 +431,7 @@ class HostGroupTestCase(APITestCase):
             {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update a hostgroup with a new name
 
@@ -452,7 +448,7 @@ class HostGroupTestCase(APITestCase):
                 hostgroup = hostgroup.update(['name'])
                 self.assertEqual(name, hostgroup.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_puppet_ca_proxy(self):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -471,7 +467,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_realm(self):
         """Update a hostgroup with a new realm
 
@@ -502,7 +498,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['realm'])
         self.assertEqual(hostgroup.realm.read().name, new_realm.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_puppet_proxy(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -520,7 +516,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['puppet_proxy'])
         self.assertEqual(hostgroup.puppet_proxy.read().name, new_proxy.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_content_source(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -538,7 +534,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['content_source'])
         self.assertEqual(hostgroup.content_source.read().name, new_content_source.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_locs(self):
         """Update a hostgroup with new multiple locations
 
@@ -558,7 +554,7 @@ class HostGroupTestCase(APITestCase):
             {loc.name for loc in new_locs}, {loc.read().name for loc in hostgroup.location}
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_orgs(self):
         """Update a hostgroup with new multiple organizations
 
@@ -577,7 +573,7 @@ class HostGroupTestCase(APITestCase):
             {org.read().name for org in hostgroup.organization},
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Attempt to create a hostgroup with invalid names
 
@@ -594,7 +590,7 @@ class HostGroupTestCase(APITestCase):
                         location=[self.loc], name=name, organization=[self.org]
                     ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Attempt to update a hostgroup with invalid names
 
@@ -613,7 +609,7 @@ class HostGroupTestCase(APITestCase):
                     hostgroup.update(['name'])
                 self.assertEqual(hostgroup.read().name, original_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_group_parameters(self):
         """Create a hostgroup with 'group parameters' specified
 
@@ -649,7 +645,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         host_group = entities.HostGroup().create()
         cls.host_group_attrs = set(host_group.read_json().keys())
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_get_content_source(self):
         """Read a host group. Inspect the server's response.
 
@@ -668,7 +664,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             ),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_get_cv(self):
         """Read a host group. Inspect the server's response.
 
@@ -687,7 +683,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             ),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_get_lce(self):
         """Read a host group. Inspect the server's response.
 
@@ -706,7 +702,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
             ),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_read_puppet_proxy_name(self):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -726,7 +722,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         self.assertIn('puppet_proxy_name', hg)
         self.assertEqual(proxy.name, hg['puppet_proxy_name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_read_puppet_ca_proxy_name(self):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response

@@ -14,15 +14,13 @@
 """
 import pytest
 
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 
 
 class InfobloxTestCase(TestCase):
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_set_dns_provider(self):
         """Check Infoblox DNS plugin is set as provider
 
@@ -44,8 +42,8 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_set_dhcp_provider(self):
         """Check Infoblox DHCP plugin is set as provider
 
@@ -67,7 +65,7 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_update_dns_appliance_credentials(self):
         """Check infoblox appliance credentials are updated
 
@@ -86,8 +84,8 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_enable_dns_plugin(self):
         """Check Infoblox DNS plugin can be enabled on server
 
@@ -104,7 +102,7 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_disable_dns_plugin(self):
         """Check Infoblox DNS plugin can be disabled on host
 
@@ -120,8 +118,8 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_enable_dhcp_plugin(self):
         """Check Infoblox DHCP plugin can be enabled on host
 
@@ -138,7 +136,7 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_disable_dhcp_plugin(self):
         """Check Infoblox DHCP plugin can be disabled on host
 
@@ -154,8 +152,8 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_dhcp_ip_range(self):
         """Check host get IP from Infoblox IP range while provisioning a host
 
@@ -172,8 +170,8 @@ class InfobloxTestCase(TestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_dns_records(self):
         """Check DNS records are updated via infoblox DNS plugin
 

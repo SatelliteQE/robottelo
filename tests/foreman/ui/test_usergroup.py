@@ -14,16 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from fauxfactory import gen_utf8
 from nailgun import entities
 
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
-
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_delete_with_user(session, module_org, module_loc):
     """Delete a Usergroup that contains a user
 
@@ -51,8 +49,8 @@ def test_positive_delete_with_user(session, module_org, module_loc):
         assert session.user.search(user_name) is not None
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for usergroup component
 

@@ -16,6 +16,8 @@
 """
 import random
 
+import pytest
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_ldap_auth_source
 from robottelo.cli.factory import make_role
@@ -32,18 +34,14 @@ from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class UserGroupTestCase(CLITestCase):
     """User group CLI related tests."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRUD(self):
         """Create new user group with valid elements that attached group.
            List the user group, update and delete it.
@@ -93,7 +91,7 @@ class UserGroupTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             UserGroup.info({'name': user_group['name']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_multiple_elements(self):
         """Create new user group using multiple users, roles and user
            groups attached to that group.
@@ -119,7 +117,7 @@ class UserGroupTestCase(CLITestCase):
             sorted([ug['usergroup'] for ug in user_group['user-groups']]),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_elements(self):
         """Create new user group. Add and remove several element from the group.
 
@@ -160,8 +158,8 @@ class UserGroupTestCase(CLITestCase):
         self.assertEqual(len(user_group['users']), 0)
         self.assertEqual(len(user_group['user-groups']), 0)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remove_user_assigned_to_usergroup(self):
         """Create new user and assign it to user group. Then remove that user.
 
@@ -180,7 +178,7 @@ class UserGroupTestCase(CLITestCase):
             User.delete({'id': user['id']})
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class ActiveDirectoryUserGroupTestCase(CLITestCase):
     """Implements Active Directory feature tests for user groups in CLI."""
 
@@ -231,8 +229,8 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         LDAPAuthSource.delete({'id': cls.auth['server']['id']})
         super().tearDownClass()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
         """Create and refresh external user group with AD LDAP. Verify Local user
            association from user-group with external group with AD LDAP
@@ -273,7 +271,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             self.user_group['name'],
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_automate_bz1426957(self):
         """Verify role is properly reflected on AD user.
 
@@ -303,7 +301,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         self.assertIn(role['name'], User.info({'login': self.ldap_user_name})['user-groups'])
         User.delete({'login': self.ldap_user_name})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_automate_bz1437578(self):
         """Verify error message on usergroup create with 'Domain Users' on AD user.
 
@@ -333,7 +331,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             )
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class FreeIPAUserGroupTestCase(CLITestCase):
     """Implements FreeIPA LDAP feature tests for user groups in CLI."""
 
@@ -384,8 +382,8 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         LDAPAuthSource.delete({'id': cls.auth['server']['id']})
         super().tearDownClass()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
         """Create and Refresh external user group with FreeIPA LDAP. Verify Local user
            association from user-group with external group with FreeIPA LDAP

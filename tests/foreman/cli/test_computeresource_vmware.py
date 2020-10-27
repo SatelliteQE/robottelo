@@ -11,6 +11,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.factory import make_compute_resource
@@ -21,8 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -50,7 +49,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
             VMWARE_CONSTANTS.get('network_interfaces') % settings.vlan_networking.bridge
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_server(self):
         """Create VMware compute resource with server field
 
@@ -81,7 +80,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
         self.assertEquals(vmware_cr['name'], cr_name)
         self.assertEquals(vmware_cr['server'], self.vmware_server)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_org(self):
         """Create VMware Compute Resource with organizations
 
@@ -111,7 +110,7 @@ class VMWareComputeResourceTestCase(CLITestCase):
         )
         self.assertEquals(vmware_cr['name'], cr_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_loc(self):
         """Create VMware Compute Resource with locations
 
@@ -141,8 +140,8 @@ class VMWareComputeResourceTestCase(CLITestCase):
         )
         self.assertEquals(vmware_cr['name'], cr_name)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_org_and_loc(self):
         """Create VMware Compute Resource with organizations and locations
 

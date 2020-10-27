@@ -16,11 +16,9 @@
 """
 import pytest
 
-from robottelo.decorators import tier3
-
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_n_1_setup():
     """
     Prepare the environment to test the N-1 Capsule sync scenarios.
@@ -42,7 +40,7 @@ def test_n_1_setup():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_capsule_optimize_sync():
     """
     Check the N-1 Capsule sync operation when the synchronization type is Optimize.
@@ -64,7 +62,7 @@ def test_capsule_optimize_sync():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_capsule_complete_sync():
     """
     Check the N-1 Capsule sync operation when the synchronization type is Complete.
@@ -86,7 +84,7 @@ def test_capsule_complete_sync():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_content_update_on_capsule_registered_host():
     """
     Check the packages update on the capsule registered content host.
@@ -116,7 +114,7 @@ def test_content_update_on_capsule_registered_host():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_provisioning_from_n_1_capsule():
     """
     Check the RHEL7/8 provisioning from N-1 Capsule.
@@ -138,7 +136,7 @@ def test_provisioning_from_n_1_capsule():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_puppet_environment_import():
     """
     Check the puppet environment import from satellite and N-1 capsule
@@ -156,7 +154,7 @@ def test_puppet_environment_import():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_puppet_fact_update():
     """
     Verify the facts successfully fetched from the N-1 Capsule's provisioned host
@@ -175,7 +173,7 @@ def test_puppet_fact_update():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_ansible_role_import():
     """
     Check the Ansible import operation from N-1 capsule
@@ -191,7 +189,7 @@ def test_ansible_role_import():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def rex_job_execution_from_n_1_capsule():
     """
     Check the updated ansible templates should work as expected from content-host

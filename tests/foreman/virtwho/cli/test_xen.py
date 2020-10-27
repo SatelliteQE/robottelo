@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.host import Host
@@ -21,8 +22,6 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -31,7 +30,7 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-@fixture()
+@pytest.fixture()
 def form_data():
     form = {
         'name': gen_string('alpha'),
@@ -49,13 +48,13 @@ def form_data():
     return form
 
 
-@fixture()
+@pytest.fixture()
 def virtwho_config(form_data):
     return VirtWhoConfig.create(form_data)['general-information']
 
 
 class TestVirtWhoConfigforXen:
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """Verify " hammer virt-who-config deploy"
 
@@ -94,7 +93,7 @@ class TestVirtWhoConfigforXen:
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
         """Verify " hammer virt-who-config fetch"
 
@@ -133,7 +132,7 @@ class TestVirtWhoConfigforXen:
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
         """Verify hypervisor_id option by hammer virt-who-config update"
 

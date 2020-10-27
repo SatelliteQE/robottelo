@@ -17,6 +17,7 @@
 import datetime
 from operator import itemgetter
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
@@ -78,18 +79,14 @@ from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 ERRATUM_MAX_IDS_INFO = 10
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
 
@@ -101,7 +98,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
@@ -188,7 +185,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         result = virtual_machine.run(f'rpm -q {self.CUSTOM_PACKAGE_ERRATA_APPLIED}')
         return True if result.return_code == 0 else False
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_id_and_org_id(self):
         """Using hc-id and org id to install an erratum in a hc
 
@@ -216,7 +213,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_id_and_org_name(self):
         """Using hc-id and org name to install an erratum in a hc
 
@@ -244,7 +241,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_id_and_org_label(self):
         """Use hc-id and org label to install an erratum in a hc
 
@@ -272,7 +269,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_name_and_org_id(self):
         """Use hc-name and org id to install an erratum in a hc
 
@@ -300,7 +297,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_name_and_org_name(self):
         """Use hc name and org name to install an erratum in a hc
 
@@ -328,7 +325,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_install_by_hc_name_and_org_label(self):
         """Use hc-name and org label to install an erratum in a hc
 
@@ -356,7 +353,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_by_hc_id_without_errata_info(self):
         """Attempt to install an erratum in a hc using hc-id and not
         specifying the erratum info
@@ -380,7 +377,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn("Error: Option '--errata' is required", context.exception.stderr)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_by_hc_name_without_errata_info(self):
         """Attempt to install an erratum in a hc using hc-name and not
         specifying the erratum info
@@ -404,7 +401,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn("Error: Option '--errata' is required", context.exception.stderr)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_without_hc_info(self):
         """Attempt to install an erratum in a hc by not specifying hc
         info
@@ -427,7 +424,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 {'organization-id': self.org['id'], 'errata': [self.CUSTOM_ERRATA_ID]}
             )
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_by_hc_id_without_org_info(self):
         """Attempt to install an erratum in a hc using hc-id and not
         specifying org info
@@ -450,7 +447,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn('Error: Could not find organization', context.exception.stderr)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_install_by_hc_name_without_org_info(self):
         """Attempt to install an erratum in a hc without specifying org
         info
@@ -473,8 +470,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn('Error: Could not find organization', context.exception.stderr)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_list_affected_chosts(self):
         """View a list of affected content hosts for an erratum
 
@@ -503,7 +500,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
                 virtual_machine.hostname in result
             ), "VM host name not found in list of applicable hosts"
 
-    @tier3
+    @pytest.mark.tier3
     def test_install_errata_to_one_host(self):
         """Install an erratum to one of the hosts in a host collection.
 
@@ -545,7 +542,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         result = self.virtual_machines[1].run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
         assert result.return_code == 0, "Expected custom package not found."
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
         """View a list of affected content hosts for an erratum filtered
         with restrict flags. Applicability is calculated using the Library,
@@ -689,7 +686,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             }
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_host_errata_search_commands(self):
         """View a list of affected hosts for security (RHSA) and bugfix (RHBA) errata,
         filtered with errata status and applicable flags. Applicability is calculated using the
@@ -855,7 +852,7 @@ class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create 3 organizations
 
@@ -947,8 +944,8 @@ class ErrataTestCase(CLITestCase):
         )
         return sorted_erratum_info_list
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_list_sort_by_issued_date(self):
         """Sort errata by Issued date
 
@@ -998,7 +995,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_id_and_sort_by_updated_date(self):
         """Filter errata by org id and sort by updated date
 
@@ -1055,7 +1052,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_name_and_sort_by_updated_date(self):
         """Filter errata by org name and sort by updated date
 
@@ -1112,7 +1109,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_label_and_sort_by_updated_date(self):
         """Filter errata by org label and sort by updated date
 
@@ -1171,7 +1168,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_id_and_sort_by_issued_date(self):
         """Filter errata by org id and sort by issued date
 
@@ -1228,7 +1225,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_name_and_sort_by_issued_date(self):
         """Filter errata by org name and sort by issued date
 
@@ -1285,7 +1282,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_label_and_sort_by_issued_date(self):
         """Filter errata by org label and sort by issued date
 
@@ -1344,7 +1341,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_id(self):
         """Filter errata by product id
 
@@ -1372,7 +1369,7 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.errata_org_product_errata_id, errata_org_product_errata_ids)
         self.assertEqual(org_product_errata_ids.intersection(errata_org_product_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_id_and_org_id(self):
         """Filter errata by product id and Org id
 
@@ -1419,7 +1416,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_id_and_org_name(self):
         """Filter errata by product id and Org name
 
@@ -1466,7 +1463,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_id_and_org_label(self):
         """Filter errata by product id and Org label
 
@@ -1513,7 +1510,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_list_filter_by_product_name(self):
         """Attempt to Filter errata by product name
 
@@ -1534,7 +1531,7 @@ class ErrataTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Erratum.list({'product': self.org_product['name'], 'per-page': 1000})
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_name_and_org_id(self):
         """Filter errata by product name and Org id
 
@@ -1581,7 +1578,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_name_and_org_name(self):
         """Filter errata by product name and Org name
 
@@ -1627,7 +1624,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_product_name_and_org_label(self):
         """Filter errata by product name and Org label
 
@@ -1674,7 +1671,7 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(product_errata_ids.intersection(product_big_errata_ids), set())
         self.assertEqual(product_small_errata_ids.intersection(product_big_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_id(self):
         """Filter errata by Org id
 
@@ -1698,7 +1695,7 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
         self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_name(self):
         """Filter errata by Org name
 
@@ -1722,7 +1719,7 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
         self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_filter_by_org_label(self):
         """Filter errata by Org label
 
@@ -1748,8 +1745,8 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
         self.assertEqual(org_errata_ids.intersection(errata_org_errata_ids), set())
 
-    @run_in_one_thread
-    @tier3
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier3
     def test_positive_list_filter_by_cve(self):
         """Filter errata by CVE
 
@@ -1794,8 +1791,8 @@ class ErrataTestCase(CLITestCase):
                 cve_errata_ids = [cve_errata['errata-id'] for cve_errata in cve_erratum]
                 self.assertIn(REAL_4_ERRATA_ID, cve_errata_ids)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_user_permission(self):
         """Show errata only if the User has permissions to view them
 
@@ -1886,7 +1883,7 @@ class ErrataTestCase(CLITestCase):
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_check_errata_dates(self):
         """Check for errata dates in `hammer erratum list`
 

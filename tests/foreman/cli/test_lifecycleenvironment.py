@@ -24,8 +24,6 @@ from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 
 
 @pytest.fixture(scope='class')
@@ -40,7 +38,7 @@ def module_lce(module_org):
 
 
 # Issues validation
-@tier2
+@pytest.mark.tier2
 def test_positive_list_subcommand(module_org):
     """List subcommand returns standard output
 
@@ -60,7 +58,7 @@ def test_positive_list_subcommand(module_org):
     assert len(result) > 0
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_lce_via_UTF8(module_org):
     """Search lifecycle environment via its name containing UTF-8
     chars
@@ -82,7 +80,7 @@ def test_positive_search_lce_via_UTF8(module_org):
 
 
 # CRUD
-@tier1
+@pytest.mark.tier1
 def test_positive_lce_crud(module_org):
     """CRUD test case for lifecycle environment for name, description, label, registry name pattern,
     and unauthenticated pull
@@ -141,7 +139,7 @@ def test_positive_lce_crud(module_org):
         LifecycleEnvironment.info({'id': lce['id'], 'organization-id': module_org.id})
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_with_organization_label(module_org):
     """Create lifecycle environment, specifying organization label
 
@@ -159,7 +157,7 @@ def test_positive_create_with_organization_label(module_org):
     assert new_lce['organization'] == module_org.label
 
 
-@tier1
+@pytest.mark.tier1
 def test_positve_list_paths(module_org):
     """List the environment paths under a given organization
 
@@ -200,7 +198,7 @@ class LifeCycleEnvironmentPaginationTestCase:
 
         cls.lces_count += 1  # include default 'Library' lce
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_list_all_with_per_page(self):
         """Attempt to list more than 20 lifecycle environment with per-page
         option.
@@ -222,7 +220,7 @@ class LifeCycleEnvironmentPaginationTestCase:
         env_name_set = {env['name'] for env in lifecycle_environments}
         assert env_name_set == set(self.env_names)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_list_with_pagination(self):
         """Make sure lces list can be displayed with different items per page
         value

@@ -17,7 +17,6 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
 
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
@@ -27,12 +26,9 @@ from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import tier3
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 
 if not setting_is_set('azurerm'):
-    skip('skipping tests due to missing azurerm settings', allow_module_level=True)
+    pytest.skip('skipping tests due to missing azurerm settings', allow_module_level=True)
 
 
 @pytest.fixture(scope='module')
@@ -94,7 +90,7 @@ def module_azure_hg(
 
 
 @pytest.mark.skip_if_open("BZ:1850934")
-@tier4
+@pytest.mark.tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
     azurermclient,
@@ -171,8 +167,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
 
 @pytest.mark.skip_if_open("BZ:1850934")
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_azurerm_host_provision_ud(
     session,
     azurermclient,

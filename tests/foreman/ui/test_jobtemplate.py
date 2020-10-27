@@ -19,16 +19,14 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.config import settings
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for Job Template component.
 
@@ -224,7 +222,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
 
 @pytest.mark.skip_if_open('BZ:1705866')
-@tier2
+@pytest.mark.tier2
 def test_positive_clone_job_template_with_foreign_input_sets(session):
     """Clone job template with foreign input sets
 

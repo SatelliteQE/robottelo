@@ -33,12 +33,7 @@ from robottelo.constants import REPOSET
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
@@ -58,7 +53,7 @@ def _bad_max_hosts():
 class ActivationKeyTestCase(APITestCase):
     """Tests for the ``activation_keys`` path."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_unlimited_hosts(self):
         """Create a plain vanilla activation key.
 
@@ -71,7 +66,7 @@ class ActivationKeyTestCase(APITestCase):
         """
         self.assertTrue(entities.ActivationKey().create().unlimited_hosts)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_limited_hosts(self):
         """Create an activation key with limited hosts.
 
@@ -90,7 +85,7 @@ class ActivationKeyTestCase(APITestCase):
                 self.assertEqual(act_key.max_hosts, max_host)
                 self.assertFalse(act_key.unlimited_hosts)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create an activation key providing the initial name.
 
@@ -105,7 +100,7 @@ class ActivationKeyTestCase(APITestCase):
                 act_key = entities.ActivationKey(name=name).create()
                 self.assertEqual(name, act_key.name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_description(self):
         """Create an activation key and provide a description.
 
@@ -120,7 +115,7 @@ class ActivationKeyTestCase(APITestCase):
                 act_key = entities.ActivationKey(description=desc).create()
                 self.assertEqual(desc, act_key.description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_no_host_limit(self):
         """Create activation key without providing limitation for hosts number
 
@@ -133,7 +128,7 @@ class ActivationKeyTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_hosts=False).create()
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_invalid_host_limit(self):
         """Create activation key with invalid limit values for hosts number.
 
@@ -148,7 +143,7 @@ class ActivationKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_invalid_name(self):
         """Create activation key providing an invalid name.
 
@@ -163,7 +158,7 @@ class ActivationKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(name=name).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_limited_host(self):
         """Create activation key then update it to limited hosts.
 
@@ -184,7 +179,7 @@ class ActivationKeyTestCase(APITestCase):
                 actual = {attr: getattr(act_key, attr) for attr in want.keys()}
                 self.assertEqual(want, actual)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_name(self):
         """Create activation key providing the initial name, then update
         its name to another valid name.
@@ -202,7 +197,7 @@ class ActivationKeyTestCase(APITestCase):
                 updated = entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_update_limit(self):
         """Create activation key then update its limit to invalid value.
 
@@ -228,7 +223,7 @@ class ActivationKeyTestCase(APITestCase):
                 actual = {attr: getattr(act_key, attr) for attr in want.keys()}
                 self.assertEqual(want, actual)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_update_name(self):
         """Create activation key then update its name to an invalid name.
 
@@ -248,7 +243,7 @@ class ActivationKeyTestCase(APITestCase):
                 self.assertNotEqual(new_key.name, new_name)
                 self.assertEqual(new_key.name, act_key.name)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_update_max_hosts(self):
         """Create an activation key with ``max_hosts == 1``, then update that
         field with a string value.
@@ -264,7 +259,7 @@ class ActivationKeyTestCase(APITestCase):
             entities.ActivationKey(id=act_key.id, max_hosts='foo').update(['max_hosts'])
         self.assertEqual(act_key.read().max_hosts, 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_get_releases_status_code(self):
         """Get an activation key's releases. Check response format.
 
@@ -282,7 +277,7 @@ class ActivationKeyTestCase(APITestCase):
         self.assertEqual(status_code, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_get_releases_content(self):
         """Get an activation key's releases. Check response contents.
 
@@ -299,7 +294,7 @@ class ActivationKeyTestCase(APITestCase):
         self.assertIn('results', response.keys())
         self.assertEqual(type(response['results']), list)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_host_collections(self):
         """Associate an activation key with several host collections.
 
@@ -333,8 +328,8 @@ class ActivationKeyTestCase(APITestCase):
         act_key = act_key.update(['host_collection'])
         self.assertEqual(len(act_key.host_collection), 2)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remove_host_collection(self):
         """Disassociate host collection from the activation key
 
@@ -369,7 +364,7 @@ class ActivationKeyTestCase(APITestCase):
         act_key.remove_host_collection(data={'host_collection_ids': [host_collection.id]})
         self.assertEqual(len(act_key.read().host_collection), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_auto_attach(self):
         """Create an activation key, then update the auto_attach
         field with the inverse boolean value.
@@ -386,8 +381,8 @@ class ActivationKeyTestCase(APITestCase):
         ).update(['auto_attach'])
         self.assertNotEqual(act_key.auto_attach, act_key_2.auto_attach)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete(self):
         """Create activation key and then delete it.
 
@@ -404,7 +399,7 @@ class ActivationKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(id=act_key.id).read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_user(self):
         """Delete any user who has previously created an activation key
         and check that activation key still exists
@@ -426,10 +421,10 @@ class ActivationKeyTestCase(APITestCase):
         except HTTPError:
             self.fail("Activation Key can't be read")
 
-    @upgrade
-    @run_in_one_thread
+    @pytest.mark.upgrade
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_fetch_product_content(self):
         """Associate RH & custom product with AK and fetch AK's product content
 
@@ -480,9 +475,9 @@ class ActivationKeyTestCase(APITestCase):
             {subscr['product']['id'] for subscr in ak_subscriptions},
         )
 
-    @upgrade
+    @pytest.mark.upgrade
     @skip_if_not_set('fake_manifest')
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_add_future_subscription(self):
         """Add a future-dated subscription to an activation key.
@@ -514,7 +509,7 @@ class ActivationKeySearchTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.act_key = entities.ActivationKey(organization=cls.org).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_by_org(self):
         """Search for all activation keys in an organization.
 

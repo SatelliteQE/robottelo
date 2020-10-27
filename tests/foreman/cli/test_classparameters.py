@@ -12,6 +12,7 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
@@ -30,19 +31,15 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -94,7 +91,7 @@ class SmartClassParametersTestCase(CLITestCase):
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please update puppet module.")
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """List all the parameters included in specific elements.
 
@@ -142,7 +139,7 @@ class SmartClassParametersTestCase(CLITestCase):
                     f"Not only unique resutls returned for query: {query}",
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_with_non_admin_user(self):
         """List all the parameters for specific puppet class by id.
 
@@ -178,8 +175,8 @@ class SmartClassParametersTestCase(CLITestCase):
         # Check that only unique results are returned
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
-    @tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier1
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_import_twice_list_by_puppetclass_id(self):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
@@ -204,8 +201,8 @@ class SmartClassParametersTestCase(CLITestCase):
         # Check that only unique results are returned
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_override(self):
         """Override the Default Parameter value.
 
@@ -235,7 +232,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(sc_param['default-value'], value)
         self.assertEqual(sc_param['omit'], True)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_override(self):
         """Override the Default Parameter value - override Unchecked.
 
@@ -257,7 +254,7 @@ class SmartClassParametersTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             SmartClassParameter.update({'default-value': gen_string('alpha'), 'id': sc_param_id})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_default_value_with_list(self):
         """Error raised for default value not in list.
 
@@ -291,7 +288,7 @@ class SmartClassParametersTestCase(CLITestCase):
         )
         self.assertNotEqual(sc_param['default-value'], value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_default_value_with_list(self):
         """Error not raised for default value in list and required
 
@@ -328,7 +325,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(sc_param['validator']['type'], 'list')
         self.assertEqual(sc_param['validator']['rule'], '5, test')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
@@ -354,8 +351,8 @@ class SmartClassParametersTestCase(CLITestCase):
                 }
             )
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_and_remove_matcher(self):
         """Create and remove matcher for attribute in parameter.
 
@@ -400,7 +397,7 @@ class SmartClassParametersTestCase(CLITestCase):
         )
         self.assertEqual(len(sc_param['override-values']['values']), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter,
         Where Value is puppet default value.
@@ -431,8 +428,8 @@ class SmartClassParametersTestCase(CLITestCase):
         )
         self.assertEqual(sc_param['override-values']['values']['1']['match'], 'domain=test.com')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_test_hidden_parameter_value(self):
         """Unhide the default value of parameter.
 

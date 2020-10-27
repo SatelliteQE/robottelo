@@ -16,11 +16,9 @@
 """
 import pytest
 
-from robottelo.decorators import tier1
-
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def initial_setup():
     """Initial setup
 
@@ -51,7 +49,7 @@ def initial_setup():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_katello_cert_download_manually():
     """Download katello-ca-consumer-latest.noarch.rpm through LB
 
@@ -67,7 +65,7 @@ def test_katello_cert_download_manually():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_manually_register_client_using_ak():
     """Register the client using ak to the capsule
 
@@ -85,7 +83,7 @@ def test_manually_register_client_using_ak():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_list_repolist():
     """List all the repositories
 
@@ -100,7 +98,7 @@ def test_list_repolist():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_register_using_bootstrap():
     """Register the client using bootstrap.py
 
@@ -127,7 +125,7 @@ def test_register_using_bootstrap():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_package_action_from_host():
     """Package installation on client
 
@@ -142,7 +140,7 @@ def test_package_action_from_host():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_loadbalancer_down():
     """Loadbalancer service/VM down
 
@@ -169,7 +167,7 @@ def test_loadbalancer_down():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_capsule_down():
     """Capsule service/VM down
 
@@ -200,7 +198,7 @@ def test_capsule_down():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_remote_execution_on_client():
     """Remote Execution on client
 
@@ -219,7 +217,7 @@ def test_remote_execution_on_client():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_openscap_reporting():
     """openscap report to be uploaded
 
@@ -237,7 +235,7 @@ def test_openscap_reporting():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_capsule_3():
     """Tests for capsule_3
 
@@ -264,7 +262,7 @@ def test_capsule_3():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_multiclient():
     """Testing multiple clients to test the loadbalancer functionality
 
@@ -279,7 +277,7 @@ def test_multiclient():
 
 
 @pytest.mark.stubbed
-@tier1
+@pytest.mark.tier1
 def test_upgrade_the_setup():
     """Upgrading the setup previous GA to current snap
 

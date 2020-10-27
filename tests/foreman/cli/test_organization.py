@@ -39,11 +39,7 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_org_names_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -80,7 +76,7 @@ class OrganizationTestCase(CLITestCase):
         super().setUpClass()
         cls.org = make_org()
 
-    @tier2
+    @pytest.mark.tier2
     def test_verify_bugzilla_1078866(self):
         """hammer organization <info,list> --help types information
         doubled
@@ -106,7 +102,7 @@ class OrganizationTestCase(CLITestCase):
         lines = [line for line in result['options']]
         self.assertEqual(len(set(lines)), len(lines))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRD(self):
         """Create organization with valid name, label and description
 
@@ -159,7 +155,7 @@ class OrganizationTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.info({'id': org['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_system_admin_user(self):
         """Create organization using user with system admin role
 
@@ -178,8 +174,8 @@ class OrganizationTestCase(CLITestCase):
         result = Org.info({'name': org_name})
         self.assertEqual(result['name'], org_name)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_subnets(self):
         """add and remove a subnet from organization
 
@@ -206,7 +202,7 @@ class OrganizationTestCase(CLITestCase):
         org_info = Org.info({'id': self.org['id']})
         self.assertEqual(len(org_info['subnets']), 0, "Failed to remove subnets")
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_users(self):
         """Add and remove (admin) user to organization
 
@@ -258,7 +254,7 @@ class OrganizationTestCase(CLITestCase):
             admin_user['login'], org_info['users'], "Failed to remove admin user by id"
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_hostgroups(self):
         """add and remove a hostgroup from an organization
 
@@ -294,8 +290,8 @@ class OrganizationTestCase(CLITestCase):
         )
 
     @skip_if_not_set('compute_resources')
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_compresources(self):
         """Add and remove a compute resource from organization
 
@@ -349,7 +345,7 @@ class OrganizationTestCase(CLITestCase):
             compute_res_b['name'], org_info['compute-resources'], "Failed to remove cr by name"
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_media(self):
         """Add and remove medium to organization
 
@@ -386,7 +382,7 @@ class OrganizationTestCase(CLITestCase):
             medium_b['name'], org_info['installation-media'], "Failed to remove medium by id"
         )
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip_if_open("BZ:1845860")
     def test_positive_add_and_remove_templates(self):
         """Add and remove provisioning templates to organization
@@ -450,7 +446,7 @@ class OrganizationTestCase(CLITestCase):
             "Failed to remove template by id",
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_domains(self):
         """Add and remove domains to organization
 
@@ -479,8 +475,8 @@ class OrganizationTestCase(CLITestCase):
         org_info = Org.info({'id': self.org['id']})
         self.assertEqual(len(org_info['domains']), 0, "Failed to remove domains")
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_lce(self):
         """Remove a lifecycle environment from organization
 
@@ -508,9 +504,9 @@ class OrganizationTestCase(CLITestCase):
         response = LifecycleEnvironment.list(lc_env_attrs)
         self.assertEqual(len(response), 0)
 
-    @run_in_one_thread
-    @tier2
-    @upgrade
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_capsules(self):
         """Add and remove a capsule from organization
 
@@ -540,8 +536,8 @@ class OrganizationTestCase(CLITestCase):
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(proxy['name'], org_info['smart-proxies'], "Failed to add capsule by name")
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_locations(self):
         """Add and remove a locations from organization
 
@@ -570,8 +566,8 @@ class OrganizationTestCase(CLITestCase):
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn('locations', org_info, "Failed to remove locations")
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_add_and_remove_parameter(self):
         """Remove a parameter from organization
 
@@ -608,7 +604,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org_info['parameters']), 0)
         self.assertNotIn(param_name.lower(), org_info['parameters'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create an organization with invalid name, but valid label and
         description
@@ -629,7 +625,7 @@ class OrganizationTestCase(CLITestCase):
                         }
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_same_name(self):
         """Create organization with valid values, then create a new one with
         same values
@@ -648,7 +644,7 @@ class OrganizationTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.create({'description': desc, 'label': label, 'name': name})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update(self):
         """Create organization and update its name and description
 
@@ -672,7 +668,7 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertEqual(org['description'], new_desc)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Create organization then fail to update its name
 

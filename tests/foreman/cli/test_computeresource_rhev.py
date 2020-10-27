@@ -23,10 +23,6 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_os
 from robottelo.config import settings
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -45,7 +41,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         cls.image_uuid = settings.rhev.image_uuid
         cls.os = make_os()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_rhev_with_valid_name(self):
         """Create Compute Resource of type Rhev with valid name
 
@@ -68,7 +64,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
             }
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_rhev_info(self):
         """List the info of RHEV compute resource
 
@@ -93,7 +89,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         )
         self.assertEquals(compute_resource['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_name(self):
         """Delete the RHEV compute resource by name
 
@@ -119,7 +115,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertFalse(result)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_id(self):
         """Delete the RHEV compute resource by id
 
@@ -145,7 +141,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertFalse(result)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_rhev_with_url(self):
         """RHEV compute resource negative create with invalid values
 
@@ -166,7 +162,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_same_name(self):
         """RHEV compute resource negative create with the same name
 
@@ -205,8 +201,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_update_name(self):
         """RHEV compute resource positive update
 
@@ -237,7 +233,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
         self.assertEqual(new_name, ComputeResource.info({'id': comp_res['id']})['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_image_rhev_with_name(self):
         """Add images to the RHEV compute resource
 
@@ -281,7 +277,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         self.assertEqual(result[0]['uuid'], self.image_uuid)
 
     @pytest.mark.skip_if_open("BZ:1829239")
-    @tier2
+    @pytest.mark.tier2
     def test_negative_add_image_rhev_with_invalid_uuid(self):
         """Attempt to add invalid image to the RHEV compute resource
 
@@ -322,7 +318,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_add_image_rhev_with_invalid_name(self):
         """Attempt to add invalid image name to the RHEV compute resource
 
@@ -368,8 +364,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
             )
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_rhev_without_host_group(self):
         """Provision a host on RHEV compute resource without
         the help of hostgroup.

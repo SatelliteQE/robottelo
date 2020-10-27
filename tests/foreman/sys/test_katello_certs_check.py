@@ -23,10 +23,6 @@ from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.decorators import destructive
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
@@ -34,7 +30,7 @@ from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestKatelloCertsCheck:
     """Implements ``katello-certs-check`` tests.
 
@@ -121,7 +117,7 @@ class TestKatelloCertsCheck:
                     options.append(i)
         assert set(options) == expected_result
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_katello_certs_check_output(self, cert_setup, cert_data):
         """Validate that katello-certs-check generates correct output.
 
@@ -149,7 +145,7 @@ class TestKatelloCertsCheck:
             )
         self.validate_output(result, cert_data)
 
-    @destructive
+    @pytest.mark.destructive
     def test_positive_update_katello_certs(self, cert_setup, cert_data):
         """Update certificates on a currently running satellite instance.
 
@@ -205,7 +201,7 @@ class TestKatelloCertsCheck:
                 result = connection.run('foreman-maintain health check --label services-up -y')
                 assert result.return_code == 0, 'Not all services are running'
 
-    @destructive
+    @pytest.mark.destructive
     def test_positive_generate_capsule_certs_using_absolute_path(self, cert_setup, cert_data):
         """Create Capsule certs using absolute paths.
 
@@ -253,8 +249,8 @@ class TestKatelloCertsCheck:
             # assert the certs.tar was built
             assert connection.run('test -e /root/capsule_cert/capsule_certs_Abs.tar')
 
-    @destructive
-    @upgrade
+    @pytest.mark.destructive
+    @pytest.mark.upgrade
     def test_positive_generate_capsule_certs_using_relative_path(self, cert_setup, cert_data):
         """Create Capsule certs using relative paths.
 
@@ -303,7 +299,7 @@ class TestKatelloCertsCheck:
             assert connection.run('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_check_expiration_of_certificate(self):
         """Check expiration of certificate.
 
@@ -320,7 +316,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_check_ca_bundle(self):
         """Check ca bundle file that contains invalid data.
 
@@ -337,7 +333,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_certificate_subject(self):
         """Validate certificate subject.
 
@@ -355,7 +351,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_check_private_key_match(self):
         """Validate private key match with certificate.
 
@@ -372,7 +368,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_check_expiration_of_ca_bundle(self):
         """Validate expiration of ca bundle file.
 
@@ -389,7 +385,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_check_for_non_ascii_characters(self):
         """Validate non ascii character in certs.
 
@@ -407,7 +403,7 @@ class TestKatelloCertsCheck:
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_without_req_file_output(self):
         """Check katello-certs-check without -r REQ_FILE generates correct command.
 
@@ -459,7 +455,7 @@ class TestCapsuleCertsCheckTestCase:
             'capsule_hostname': capsule_hostname,
         }
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_capsule_certificate(self, file_setup):
         """Check that Capsules cert handles additional proxy names.
 

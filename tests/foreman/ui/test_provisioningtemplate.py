@@ -14,32 +14,30 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def template_data():
     return read_data_file(OS_TEMPLATE_DATA_FILE)
 
 
-@fixture(scope='function', autouse=False)
+@pytest.fixture(scope='function', autouse=False)
 def clone_setup(module_org, module_loc):
     name = gen_string('alpha')
     content = gen_string('alpha')
@@ -56,7 +54,7 @@ def clone_setup(module_org, module_loc):
     }
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_clone(session, clone_setup):
     """Assure ability to clone a provisioning template
 
@@ -89,8 +87,8 @@ def test_positive_clone(session, clone_setup):
         assert set(clone_setup['os_list']) == {f'{os.name} {os.major}' for os in assigned_oses}
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc, template_data):
     """Perform end to end testing for provisioning template component
 

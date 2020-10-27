@@ -37,17 +37,13 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
 
-pytestmark = [run_in_one_thread]
+pytestmark = ['run_in_one_thread']
 
 if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
@@ -87,8 +83,8 @@ def golden_ticket_host_setup():
     return org, ak
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session):
     """Upload a manifest with minimal input parameters, attempt to
     delete it with checking the warning message and hit 'Cancel' button after than delete it.
@@ -150,7 +146,7 @@ def test_positive_end_to_end(session):
         assert not session.subscription.has_manifest
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_access_with_non_admin_user_without_manifest(test_name):
     """Access subscription page with user that has only view_subscriptions
     permission and organization that has no manifest uploaded.
@@ -181,8 +177,8 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
         assert not session.subscription.has_manifest
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_access_with_non_admin_user_with_manifest(test_name):
     """Access subscription page with user that has only view_subscriptions
     permission and organization that has a manifest uploaded.
@@ -219,7 +215,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
         )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_access_manifest_as_another_admin_user(test_name):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
@@ -259,7 +255,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
         assert not session.subscription.has_manifest
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_view_vdc_subscription_products(session):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
@@ -321,7 +317,7 @@ def test_positive_view_vdc_subscription_products(session):
 
 
 @skip_if_not_set('compute_resources')
-@tier3
+@pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(session):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
@@ -401,7 +397,7 @@ def test_positive_view_vdc_guest_subscription_products(session):
             assert content_products and product_name in content_products
 
 
-@tier3
+@pytest.mark.tier3
 def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
     """Ensures that no column headers from checkboxes show up in the table after
     unticking everything from selectable customizable column
@@ -457,7 +453,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         assert set(col[1:]) == set(checkbox_dict)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_subscription_status_disabled_golden_ticket(session, golden_ticket_host_setup):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
@@ -483,7 +479,7 @@ def test_positive_subscription_status_disabled_golden_ticket(session, golden_tic
             assert "Disabled" in host
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_candlepin_events_processed_by_STOMP(session):
     """Verify that Candlepin events are being read and processed by
        attaching subscriptions, validating host subscriptions status,

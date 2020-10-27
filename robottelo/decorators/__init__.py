@@ -2,34 +2,12 @@
 import logging
 from functools import wraps
 
-import pytest
 import unittest2
 
 from robottelo.config import settings
 
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
-
-# Test Tier Decorators
-# CRUD tests
-tier1 = pytest.mark.tier1
-# Association tests
-tier2 = pytest.mark.tier2
-# Systems integration tests
-tier3 = pytest.mark.tier3
-# Long running tests
-tier4 = pytest.mark.tier4
-# Destructive tests
-destructive = pytest.mark.destructive
-# Upgrade
-upgrade = pytest.mark.upgrade
-# Tests to be executed in 1 thread
-run_in_one_thread = pytest.mark.run_in_one_thread
-
-# Shortcuts for pytest methods
-parametrize = pytest.mark.parametrize
-fixture = pytest.fixture
-skipif = pytest.mark.skipif
 
 
 def setting_is_set(option):
@@ -42,30 +20,6 @@ def setting_is_set(option):
     if getattr(settings, option).validate():
         return False
     return True
-
-
-def skip_if(cond, reason=None):
-    """Skips test if expected condition is True.
-
-    Decorating a method::
-
-        @skip_if(foo is not bar, 'skipping due foo is not bar')
-        def test_something(self):
-            self.assertTrue(True)
-    """
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if not cond:
-                return func(*args, **kwargs)
-            r = reason if reason else 'Skipping due expected condition is true'
-            LOGGER.info(r)
-            raise unittest2.SkipTest(r)
-
-        return wrapper
-
-    return decorator
 
 
 def skip_if_not_set(*options):

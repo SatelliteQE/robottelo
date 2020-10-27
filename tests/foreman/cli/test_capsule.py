@@ -24,16 +24,13 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.test import CLITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
@@ -45,7 +42,7 @@ class CapsuleTestCase(CLITestCase):
         return proxy
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
@@ -63,7 +60,7 @@ class CapsuleTestCase(CLITestCase):
             )
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Proxy creation with the home proxy
 
@@ -81,7 +78,7 @@ class CapsuleTestCase(CLITestCase):
                 self.assertEquals(proxy['name'], name)
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_id(self):
         """Proxy deletion with the home proxy
 
@@ -101,7 +98,7 @@ class CapsuleTestCase(CLITestCase):
                     Proxy.info({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Proxy name update with the home proxy
 
@@ -123,7 +120,7 @@ class CapsuleTestCase(CLITestCase):
                     self.assertEqual(proxy['name'], new_name)
 
     @skip_if_not_set('fake_capsules')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_refresh_features_by_id(self):
         """Refresh smart proxy features, search for proxy by id
 
@@ -147,7 +144,7 @@ class CapsuleTestCase(CLITestCase):
             Proxy.refresh_features({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_refresh_features_by_name(self):
         """Refresh smart proxy features, search for proxy by name
 
@@ -171,7 +168,7 @@ class CapsuleTestCase(CLITestCase):
             Proxy.refresh_features({'id': proxy['name']})
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
 
@@ -188,7 +185,7 @@ class CapsuleTestCase(CLITestCase):
             Proxy.import_classes({'id': proxy['id']})
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 

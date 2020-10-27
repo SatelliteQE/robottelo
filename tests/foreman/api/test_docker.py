@@ -16,6 +16,7 @@ from random import choice
 from random import randint
 from random import shuffle
 
+import pytest
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 from nailgun import entities
@@ -27,9 +28,6 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_docker_upstream_names
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_docker_upstream_names
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
@@ -71,7 +69,7 @@ class DockerRepositoryTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create one Docker-type repository
 
@@ -89,7 +87,7 @@ class DockerRepositoryTestCase(APITestCase):
                 self.assertEqual(repo.docker_upstream_name, 'busybox')
                 self.assertEqual(repo.content_type, 'docker')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_upstream_name(self):
         """Create a Docker-type repository with a valid docker upstream
         name
@@ -109,7 +107,7 @@ class DockerRepositoryTestCase(APITestCase):
                 self.assertEqual(repo.docker_upstream_name, upstream_name)
                 self.assertEqual(repo.content_type, 'docker')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_upstream_name(self):
         """Create a Docker-type repository with a invalid docker
         upstream name.
@@ -127,7 +125,7 @@ class DockerRepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     _create_repository(product, upstream_name=upstream_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
@@ -144,7 +142,7 @@ class DockerRepositoryTestCase(APITestCase):
             product = product.read()
             self.assertIn(repo.id, [repo_.id for repo_ in product.repository])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple products
 
@@ -163,7 +161,7 @@ class DockerRepositoryTestCase(APITestCase):
                 product = product.read()
                 self.assertIn(repo.id, [repo_.id for repo_ in product.repository])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
 
@@ -179,7 +177,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo = repo.read()
         self.assertGreaterEqual(repo.content_counts['docker_manifest'], 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
@@ -199,7 +197,7 @@ class DockerRepositoryTestCase(APITestCase):
                 repo = repo.update()
                 self.assertEqual(repo.name, new_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
@@ -219,7 +217,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo = repo.update()
         self.assertEqual(repo.docker_upstream_name, new_upstream_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
@@ -240,7 +238,7 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, new_url)
         self.assertNotEqual(repo.url, DOCKER_REGISTRY_HUB)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create and delete a Docker-type repository
 
@@ -257,7 +255,7 @@ class DockerRepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_random_repo(self):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
@@ -301,7 +299,7 @@ class DockerContentViewTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repo(self):
         """Add one Docker-type repository to a non-composite content view
 
@@ -317,7 +315,7 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repos(self):
         """Add multiple Docker-type repositories to a
         non-composite content view.
@@ -349,7 +347,7 @@ class DockerContentViewTestCase(APITestCase):
             self.assertEqual(repo.content_type, 'docker')
             self.assertEqual(repo.docker_upstream_name, 'busybox')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_synced_docker_repo(self):
         """Create and sync a Docker-type repository
 
@@ -369,7 +367,7 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repo_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -400,7 +398,7 @@ class DockerContentViewTestCase(APITestCase):
             content_view.version[0].id, [component.id for component in comp_content_view.component]
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repos_to_ccv(self):
         """Add multiple Docker-type repositories to a composite
         content view.
@@ -435,7 +433,7 @@ class DockerContentViewTestCase(APITestCase):
                 cv_version.id, [component.id for component in comp_content_view.component]
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_publish_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it once.
 
@@ -463,7 +461,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(content_view.last_published)
         self.assertGreater(float(content_view.next_version), 1.0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and
         publish it once.
@@ -508,7 +506,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(comp_content_view.last_published)
         self.assertGreater(float(comp_content_view.next_version), 1.0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_publish_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it
         multiple times.
@@ -533,7 +531,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(content_view.last_published)
         self.assertEqual(len(content_view.version), publish_amount)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_publish_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it
         multiple times.
@@ -571,7 +569,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(comp_content_view.last_published)
         self.assertEqual(len(comp_content_view.version), publish_amount)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -597,7 +595,7 @@ class DockerContentViewTestCase(APITestCase):
         promote(cvv, lce.id)
         self.assertEqual(len(cvv.read().environment), 2)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -623,7 +621,7 @@ class DockerContentViewTestCase(APITestCase):
             promote(cvv, lce.id)
             self.assertEqual(len(cvv.read().environment), i + 1)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
@@ -656,8 +654,8 @@ class DockerContentViewTestCase(APITestCase):
         promote(comp_cvv, lce.id)
         self.assertEqual(len(comp_cvv.read().environment), 2)
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
@@ -691,8 +689,8 @@ class DockerContentViewTestCase(APITestCase):
             promote(comp_cvv, lce.id)
             self.assertEqual(len(comp_cvv.read().environment), i + 1)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_name_pattern_change(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change registry name pattern for that environment. Verify that repository
@@ -730,7 +728,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertEqual(lce.registry_name_pattern, new_pattern)
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_product_name_change_after_promotion(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change product name. Verify that repository name on product changed
@@ -773,7 +771,7 @@ class DockerContentViewTestCase(APITestCase):
         expected_pattern = f"{self.org.label}/{new_prod_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_repo_name_change_after_promotion(self):
         """Promote content view with Docker repository to lifecycle environment.
         Change repository name. Verify that Docker repository name on product
@@ -819,7 +817,7 @@ class DockerContentViewTestCase(APITestCase):
         expected_pattern = f"{self.org.label}/{new_repo_name}".lower()
         self.assertEqual(repos[0].container_repository_name, expected_pattern)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_set_non_unique_name_pattern_and_promote(self):
         """Set registry name pattern to one that does not guarantee uniqueness.
         Try to promote content view with multiple Docker repositories to
@@ -849,7 +847,7 @@ class DockerContentViewTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             promote(cvv, lce.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_promote_and_set_non_unique_name_pattern(self):
         """Promote content view with multiple Docker repositories to
         lifecycle environment. Set registry name pattern to one that
@@ -903,7 +901,7 @@ class DockerActivationKeyTestCase(APITestCase):
         cls.cvv = content_view.read().version[0].read()
         promote(cls.cvv, cls.lce.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repo_cv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then create an activation key and associate it with the
@@ -920,7 +918,7 @@ class DockerActivationKeyTestCase(APITestCase):
         self.assertEqual(ak.content_view.id, self.content_view.id)
         self.assertEqual(ak.content_view.read().repository[0].id, self.repo.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_docker_repo_cv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Create an activation key and associate it with the
@@ -941,7 +939,7 @@ class DockerActivationKeyTestCase(APITestCase):
         ak.content_view = None
         self.assertIsNone(ak.update(['content_view']).content_view)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
@@ -967,7 +965,7 @@ class DockerActivationKeyTestCase(APITestCase):
         ).create()
         self.assertEqual(ak.content_view.id, comp_content_view.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view

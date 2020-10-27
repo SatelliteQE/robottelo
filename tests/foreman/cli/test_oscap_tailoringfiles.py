@@ -26,10 +26,6 @@ from robottelo.constants import SNIPPET_DATA_FILE
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 
 
@@ -37,7 +33,7 @@ class TestTailoringFiles:
     """Implements Tailoring Files tests in CLI."""
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create(self, tailoring_file_path, name):
         """Create new Tailoring Files using different values types as name
 
@@ -58,7 +54,7 @@ class TestTailoringFiles:
         )
         assert tailoring_file['name'] == name
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_space(self, tailoring_file_path):
         """Create tailoring files with space in name
 
@@ -78,7 +74,7 @@ class TestTailoringFiles:
         )
         assert tailoring_file['name'] == name
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_get_info_of_tailoring_file(self, tailoring_file_path):
         """Get information of tailoring file
 
@@ -101,7 +97,7 @@ class TestTailoringFiles:
         result = TailoringFiles.info({'name': name})
         assert result['name'] == name
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_tailoring_file(self, tailoring_file_path):
         """List all created tailoring files
 
@@ -123,7 +119,7 @@ class TestTailoringFiles:
         result = TailoringFiles.list()
         assert name in [tailoringfile['name'] for tailoringfile in result]
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_file(self):
         """Create Tailoring files with invalid file
 
@@ -146,7 +142,7 @@ class TestTailoringFiles:
             make_tailoringfile({'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'})
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self, tailoring_file_path, name):
         """Create Tailoring files with invalid name
 
@@ -166,7 +162,7 @@ class TestTailoringFiles:
             make_tailoringfile({'name': name, 'scap-file': tailoring_file_path['satellite']})
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_negative_associate_tailoring_file_with_different_scap(self):
         """Associate a tailoring file with different scap content
 
@@ -186,7 +182,7 @@ class TestTailoringFiles:
         """
 
     @pytest.mark.skip_if_open("BZ:1857572")
-    @tier2
+    @pytest.mark.tier2
     def test_positive_download_tailoring_file(self, tailoring_file_path):
 
         """Download the tailoring file from satellite
@@ -216,8 +212,8 @@ class TestTailoringFiles:
         assert result.return_code == 0
         assert file_path == result.stdout[0]
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_tailoring_file(self, tailoring_file_path):
         """Delete tailoring file
 
@@ -238,8 +234,8 @@ class TestTailoringFiles:
             TailoringFiles.info({'id': tailoring_file['id']})
 
     @pytest.mark.stubbed
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """End-to-End Oscap run with tailoring files and default capsule
 
@@ -265,8 +261,8 @@ class TestTailoringFiles:
         """
 
     @pytest.mark.stubbed
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
         """End-to-End Oscap run with tailoring files and external capsule
 
@@ -292,8 +288,8 @@ class TestTailoringFiles:
         """
 
     @pytest.mark.stubbed
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):
         """Fetch Tailoring file Information from Arf-reports
 

@@ -45,12 +45,6 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.manifests import upload_manifest_locked
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
@@ -66,7 +60,7 @@ RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
 RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
 
-pytestmark = [run_in_one_thread]
+pytestmark = ['run_in_one_thread']
 
 
 def _generate_errata_applicability(host_name):
@@ -99,19 +93,19 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     org = entities.Organization().create()
     upload_manifest_locked(org.id)
     return org
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_repos_col(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
@@ -127,7 +121,7 @@ def module_repos_col(module_org, module_lce):
     return repos_collection
 
 
-@fixture
+@pytest.fixture
 def vm(module_repos_col):
     """Virtual machine client using module_repos_col for subscription"""
     with VirtualMachine(distro=module_repos_col.distro) as client:
@@ -135,7 +129,7 @@ def vm(module_repos_col):
         yield client
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_rhva_repos_col(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL6,
@@ -149,7 +143,7 @@ def module_rhva_repos_col(module_org, module_lce):
     return repos_collection
 
 
-@fixture
+@pytest.fixture
 def rhva_vm(module_rhva_repos_col):
     """Virtual machine client using module_rhva_repos_col for subscription"""
     with VirtualMachine(distro=module_rhva_repos_col.distro) as client:
@@ -157,7 +151,7 @@ def rhva_vm(module_rhva_repos_col):
         yield client
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_erratatype_repos_col(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
@@ -174,7 +168,7 @@ def module_erratatype_repos_col(module_org, module_lce):
     return repos_collection
 
 
-@fixture
+@pytest.fixture
 def erratatype_vm(module_erratatype_repos_col):
     """Virtual machine client using module_erratatype_repos_col for subscription"""
     with VirtualMachine(distro=module_erratatype_repos_col.distro) as client:
@@ -182,7 +176,7 @@ def erratatype_vm(module_erratatype_repos_col):
         yield client
 
 
-@fixture
+@pytest.fixture
 def errata_status_installable():
     """Fixture to allow restoring errata_status_installable setting after usage"""
     errata_status_installable = entities.Setting().search(
@@ -193,7 +187,7 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
-@tier3
+@pytest.mark.tier3
 def test_end_to_end(session, module_repos_col, vm):
     """Create all entities required for errata, set up applicable host,
     read errata details and apply it to host
@@ -253,8 +247,8 @@ def test_end_to_end(session, module_repos_col, vm):
         assert result['result'] == 'success'
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
 
@@ -288,7 +282,7 @@ def test_positive_list(session, module_repos_col, module_lce):
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_list_permission(test_name, module_org, module_repos_col, module_rhva_repos_col):
     """Show errata only if the User has permissions to view them
 
@@ -331,8 +325,8 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_apply_for_all_hosts(session, module_org, module_repos_col):
     """Apply an erratum for all content hosts
 
@@ -369,8 +363,8 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col):
                 assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
     """View CVE number(s) in Errata Details page
 
@@ -397,8 +391,8 @@ def test_positive_view_cve(session, module_repos_col, module_rhva_repos_col):
         assert errata_values['details']['cves'] == 'N/A'
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_filter_by_environment(session, module_org, module_repos_col):
     """Filter Content hosts by environment
 
@@ -458,8 +452,8 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
             )
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_content_host_previous_env(session, module_org, module_repos_col, vm):
     """Check if the applicable errata are available from the content
     host's previous environment
@@ -502,7 +496,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_content_host_library(session, module_org, vm):
     """Check if the applicable errata are available from the content
     host's Library
@@ -529,7 +523,7 @@ def test_positive_content_host_library(session, module_org, vm):
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
     """Search for errata on a content host's errata tab by type.
 
@@ -587,7 +581,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
 
 @pytest.mark.skip_if_open("BZ:1655130")
-@tier3
+@pytest.mark.tier3
 def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
     """Read for errata details on a content_host by user with only viewer permission
 
@@ -631,7 +625,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
         assert erratum_details['type'] == 'security'
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
     """Available errata count displayed in Content hosts page
 
@@ -669,7 +663,7 @@ def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
             assert int(installable_errata[errata_type]) == 1
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_show_count_on_content_host_details_page(session, module_org, rhva_vm):
     """Errata count on Content host Details page
 
@@ -706,9 +700,9 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
             assert int(content_host_values['details'][errata_type]) == 1
 
 
-@tier3
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_filtered_errata_status_installable_param(session, errata_status_installable):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -800,7 +794,7 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
 
 
-@tier3
+@pytest.mark.tier3
 def test_content_host_errata_search_commands(session, module_org, module_repos_col):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the

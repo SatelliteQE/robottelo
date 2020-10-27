@@ -16,12 +16,11 @@
 """
 from datetime import datetime
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 
 from robottelo.datafactory import valid_emails_list
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 from robottelo.virtwho_utils import add_configure_option
 from robottelo.virtwho_utils import delete_configure_option
 from robottelo.virtwho_utils import deploy_configure_by_command
@@ -37,7 +36,7 @@ from robottelo.virtwho_utils import virtwho
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
-@fixture()
+@pytest.fixture()
 def form_data():
     form = {
         'debug': True,
@@ -52,7 +51,7 @@ def form_data():
 
 
 class TestVirtwhoConfigforEsx:
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
         """Verify configure created and deployed with id.
 
@@ -89,7 +88,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(self, session, form_data):
         """Verify configure created and deployed with script.
 
@@ -126,7 +125,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_debug_option(self, session, form_data):
         """Verify debug checkbox and the value changes of VIRTWHO_DEBUG
 
@@ -156,7 +155,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_interval_option(self, session, form_data):
         """Verify interval dropdown options and the value changes of VIRTWHO_INTERVAL.
 
@@ -195,7 +194,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(self, session, form_data):
         """Verify Hypervisor ID dropdown options.
 
@@ -227,7 +226,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_filtering_option(self, session, form_data):
         """Verify Filtering dropdown options.
 
@@ -275,7 +274,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_proxy_option(self, session, form_data):
         """Verify 'HTTP Proxy' and 'Ignore Proxy' options.
 
@@ -306,7 +305,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_virtwho_roles(self, session):
         """Verify the default roles for virtwho configure
 
@@ -341,7 +340,7 @@ class TestVirtwhoConfigforEsx:
                 assigned_permissions = session.filter.read_permissions(role_name)
                 assert sorted(assigned_permissions) == sorted(role_filters)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_virtwho_configs_widget(self, session, form_data):
         """Check if Virt-who Configurations Status Widget is working in the Dashboard UI
 
@@ -394,7 +393,7 @@ class TestVirtwhoConfigforEsx:
             session.organization.select("Default Organization")
             session.organization.delete(org_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_configure(self, session, form_data):
         """Verify when a config is deleted the associated user is deleted.
 
@@ -423,7 +422,7 @@ class TestVirtwhoConfigforEsx:
             restart_virtwho_service()
             assert get_virtwho_status() == 'logerror'
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_virtwho_reporter_role(self, session, test_name, form_data):
         """Verify the virt-who reporter role can TRULY work.
 
@@ -475,7 +474,7 @@ class TestVirtwhoConfigforEsx:
             session.user.delete(username)
             assert not session.user.search(username)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_virtwho_viewer_role(self, session, test_name, form_data):
         """Verify the virt-who viewer role can TRULY work.
 
@@ -533,7 +532,7 @@ class TestVirtwhoConfigforEsx:
             session.user.delete(username)
             assert not session.user.search(username)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_virtwho_manager_role(self, session, test_name, form_data):
         """Verify the virt-who manager role can TRULY work.
 
@@ -589,7 +588,7 @@ class TestVirtwhoConfigforEsx:
             session.user.delete(username)
             assert not session.user.search(username)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_overview_label_name(self, form_data, session):
         """Verify the label name on virt-who config Overview Page.
 
@@ -650,7 +649,7 @@ class TestVirtwhoConfigforEsx:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_last_checkin_status(self, form_data, session):
         """Verify the Last Checkin status on Content Hosts Page.
 

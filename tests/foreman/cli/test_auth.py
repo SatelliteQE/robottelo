@@ -16,6 +16,7 @@
 """
 from time import sleep
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -28,9 +29,6 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
@@ -56,7 +54,7 @@ def configure_sessions(enable=True, add_default_creds=False):
     return result.return_code
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class HammerAuthTestCase(CLITestCase):
     """Implements hammer authentication tests in CLI"""
 
@@ -78,7 +76,7 @@ class HammerAuthTestCase(CLITestCase):
         super().tearDownClass()
         configure_sessions(False)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_session(self):
         """Check if user stays authenticated with session enabled
 
@@ -116,8 +114,8 @@ class HammerAuthTestCase(CLITestCase):
             # reset timeout to default
             Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_disable_session(self):
         """Check if user logs out when session is disabled
 
@@ -149,7 +147,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_log_out_from_session(self):
         """Check if session is terminated when user logs out
 
@@ -179,7 +177,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_change_session(self):
         """Change from existing session to a different session
 
@@ -209,7 +207,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_session_survives_unauthenticated_call(self):
         """Check if session stays up after unauthenticated call
 
@@ -240,7 +238,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_session_survives_failed_login(self):
         """Check if session stays up after failed login attempt
 
@@ -274,7 +272,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertNotRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_session_preceeds_saved_credentials(self):
         """Check if enabled session is mutually exclusive with
         saved credentials in hammer config
@@ -316,7 +314,7 @@ class HammerAuthTestCase(CLITestCase):
             # reset timeout to default
             Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_no_credentials(self):
         """Attempt to execute command without authentication
 
@@ -331,7 +329,7 @@ class HammerAuthTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.with_user().list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_no_permissions(self):
         """Attempt to execute command out of user's permissions
 

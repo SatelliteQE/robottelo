@@ -36,11 +36,6 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -68,7 +63,7 @@ def golden_ticket_host_setup(request):
     request.cls.ak_setup = new_ak
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class SubscriptionTestCase(CLITestCase):
     """Manifest CLI tests"""
 
@@ -116,7 +111,7 @@ class SubscriptionTestCase(CLITestCase):
             for csv_row in csv_data:
                 csv_writer.writerow(csv_row)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_manifest_upload(self):
         """upload manifest
 
@@ -129,8 +124,8 @@ class SubscriptionTestCase(CLITestCase):
         self._upload_manifest(self.org['id'])
         Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_manifest_delete(self):
         """Delete uploaded manifest
 
@@ -145,8 +140,8 @@ class SubscriptionTestCase(CLITestCase):
         Subscription.delete_manifest({'organization-id': self.org['id']})
         Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_enable_manifest_reposet(self):
         """enable repository set
 
@@ -178,7 +173,7 @@ class SubscriptionTestCase(CLITestCase):
             }
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_manifest_history(self):
         """upload manifest and check history
 
@@ -193,8 +188,8 @@ class SubscriptionTestCase(CLITestCase):
         history = Subscription.manifest_history({'organization-id': self.org['id']})
         assert '{} file imported successfully.'.format(self.org['name']) in ''.join(history)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_manifest_refresh(self):
         """upload manifest and refresh
 
@@ -210,7 +205,7 @@ class SubscriptionTestCase(CLITestCase):
         Subscription.delete_manifest({'organization-id': self.org['id']})
 
     @pytest.mark.skip_if_open("BZ:1686916")
-    @tier2
+    @pytest.mark.tier2
     def test_positive_subscription_list(self):
         """Verify that subscription list contains start and end date
 
@@ -227,7 +222,7 @@ class SubscriptionTestCase(CLITestCase):
         for column in ['start-date', 'end-date']:
             assert column in subscription_list[0].keys()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_manifest_as_another_user(self):
         """Verify that uploaded manifest if visible and deletable
             by a different user than the one who uploaded it
@@ -261,7 +256,7 @@ class SubscriptionTestCase(CLITestCase):
         )
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_subscription_status_disabled_golden_ticket(self):
@@ -302,7 +297,7 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_auto_attach_disabled_golden_ticket(self):
         """Verify that Auto-Attach is disabled or "Not Applicable"

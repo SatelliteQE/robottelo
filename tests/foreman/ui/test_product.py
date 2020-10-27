@@ -16,6 +16,7 @@
 """
 from datetime import timedelta
 
+import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
 
@@ -28,20 +29,16 @@ from robottelo.datafactory import gen_string
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import fixture
-from robottelo.decorators import parametrize
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
 from robottelo.helpers import read_data_file
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_end_to_end(session, module_org):
     """Perform end to end testing for product component
 
@@ -104,8 +101,8 @@ def test_positive_end_to_end(session, module_org):
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
-@parametrize('product_name', **parametrized(valid_data_list('ui')))
-@tier2
+@pytest.mark.parametrize('product_name', **parametrized(valid_data_list('ui')))
+@pytest.mark.tier2
 def test_positive_create_in_different_orgs(session, product_name):
     """Create Product with same name but in different organizations
 
@@ -128,7 +125,7 @@ def test_positive_create_in_different_orgs(session, product_name):
             assert product_values['details']['description'] == org.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_product_create_with_create_sync_plan(session, module_org):
     """Perform Sync Plan Create from Product Create Page
 

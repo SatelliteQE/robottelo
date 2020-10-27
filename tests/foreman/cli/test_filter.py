@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_location
@@ -21,8 +23,6 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -41,7 +41,7 @@ class FilterTestCase(CLITestCase):
         super().setUp()
         self.role = make_role()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_permission(self):
         """Create a filter and assign it some permissions.
 
@@ -55,7 +55,7 @@ class FilterTestCase(CLITestCase):
         filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
         self.assertEqual(set(filter_['permissions'].split(", ")), set(self.perms))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_org(self):
         """Create a filter and assign it some permissions.
 
@@ -80,7 +80,7 @@ class FilterTestCase(CLITestCase):
         # we expect here only only one organization, i.e. first element
         self.assertEqual(filter_['organizations'][0], org['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_loc(self):
         """Create a filter and assign it some permissions.
 
@@ -105,7 +105,7 @@ class FilterTestCase(CLITestCase):
         # we expect here only only one location, i.e. first element
         self.assertEqual(filter_['locations'][0], loc['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create a filter and delete it afterwards.
 
@@ -120,8 +120,8 @@ class FilterTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Filter.info({'id': filter_['id']})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_role(self):
         """Create a filter and delete the role it points at.
 
@@ -141,7 +141,7 @@ class FilterTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Filter.info({'id': filter_['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_permissions(self):
         """Create a filter and update its permissions.
 
@@ -160,7 +160,7 @@ class FilterTestCase(CLITestCase):
         filter_ = Filter.info({'id': filter_['id']})
         self.assertEqual(set(filter_['permissions'].split(", ")), set(new_perms))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_role(self):
         """Create a filter and assign it to another role.
 
@@ -177,7 +177,7 @@ class FilterTestCase(CLITestCase):
         filter_ = Filter.info({'id': filter_['id']})
         self.assertEqual(filter_['role'], new_role['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_org_loc(self):
         """Create a filter and assign it to another organization and location.
 

@@ -35,20 +35,16 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.ui.utils import create_fake_host
 from robottelo.vm import VirtualMachine
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
@@ -90,7 +86,7 @@ def setup_content(module_org):
     return module_org, ak
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_create_report_without_name(session):
     """A report template with empty name can't be created
@@ -111,7 +107,7 @@ def test_negative_create_report_without_name(session):
     """
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_cannot_delete_locked_report(session):
     """Edit a report template
@@ -131,7 +127,7 @@ def test_negative_cannot_delete_locked_report(session):
     """
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_preview_report(session):
     """Preview a report
@@ -153,7 +149,7 @@ def test_positive_preview_report(session):
     """
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for report template component's CRUD operations
 
@@ -251,8 +247,8 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert not session.reporttemplate.search(new_name)
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_generate_registered_hosts_report(session, module_org, module_loc):
     """Use provided Registered Hosts report for testing
 
@@ -300,8 +296,8 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
             assert res['Operating System'] == f'{os_name} {os.major}'
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_generate_subscriptions_report_json(session, module_org, module_loc):
     """Use provided Subscriptions report, generate JSON
 
@@ -331,7 +327,7 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
         assert sorted(list(subscription.keys())) == keys_expected
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_applied_errata(session):
     """Generate an Applied Errata report
@@ -347,7 +343,7 @@ def test_positive_applied_errata(session):
     """
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_datetime_picker(session):
     """Generate an Applied Errata report with date filled
@@ -368,7 +364,7 @@ def test_datetime_picker(session):
     """
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_positive_autocomplete(session):
     """Check if host field suggests matching hosts on typing
@@ -387,7 +383,7 @@ def test_positive_autocomplete(session):
     """
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc):
     """Schedule generating a report. Request the result be sent via e-mail.
 
@@ -448,7 +444,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
         assert sorted(list(subscription.keys())) == keys_expected
 
 
-@tier3
+@pytest.mark.tier3
 @pytest.mark.stubbed
 def test_negative_bad_email(session):
     """Generate a report and request the result be sent to
@@ -466,7 +462,7 @@ def test_negative_bad_email(session):
     """
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it(session):
     """The resulting report should only be downloadable by
@@ -485,7 +481,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     """
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_gen_entitlements_reports_multiple_formats(session, setup_content, module_org):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
