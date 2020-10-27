@@ -20,7 +20,6 @@ import random
 import pytest
 from fauxfactory import gen_string
 
-from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
@@ -36,7 +35,6 @@ def _make_proxy(options=None):
     """Create a Proxy and register the cleanup function"""
     proxy = make_proxy(options=options)
     yield proxy
-    capsule_cleanup(proxy['id'])
 
 
 @run_in_one_thread
