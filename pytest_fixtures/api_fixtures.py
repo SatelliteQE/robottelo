@@ -511,3 +511,20 @@ def setting_update(request):
     yield setting_object
     setting_object.value = default_setting_value
     setting_object.update({'value'})
+
+
+@pytest.fixture(scope="function")
+def repo_setup():
+    """
+    This fixture is used to create an organization, product, repository, and lifecycle environment
+    and once the test case gets completed then it performs the teardown of that.
+    """
+    repo_name = gen_string('alpha')
+    org = entities.Organization().create()
+    product = entities.Product(organization=org).create()
+    repo = entities.Repository(name=repo_name, product=product).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
+    yield details
+    for property_name in ['lce', 'repo', 'product', 'org']:
+        details[property_name].delete()
