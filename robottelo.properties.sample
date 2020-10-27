@@ -139,6 +139,10 @@ ssh_key=
 # which are essentially required for generating swid tags in RHEL8 content host.
 # swid_tools_repo=https://example.com/swid-rhel-8.repo
 
+# Broker-specific settings
+# [broker]
+# broker_directory=.
+
 # Bugzilla data to authenticate API calls
 # [bugzilla]
 # url default value is set to 'https://bugzilla.redhat.com' even if not provided.
