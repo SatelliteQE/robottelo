@@ -18,7 +18,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :Upstream: No
 """
-from pytest_fixtures.broker import rhel7_contenthost
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -248,8 +247,9 @@ class SubscriptionsTestCase(APITestCase):
             host_content = entities.Host(id=host_id).read_raw().content
             assert "Disabled" in str(host_content)
 
+
 @tier2
-def test_positive_candlepin_events_processed_by_STOMP(self, rhel7_contenthost):
+def test_positive_candlepin_events_processed_by_STOMP(rhel7_contenthost):
     """Verify that Candlepin events are being read and processed by
         attaching subscriptions, validating host subscriptions status,
         and viewing processed and failed Candlepin events
@@ -269,7 +269,7 @@ def test_positive_candlepin_events_processed_by_STOMP(self, rhel7_contenthost):
 
     :expectedresults: Candlepin events are being read and processed
                         correctly without any failures
-    :BZ: #1826515
+    :BZ: 1826515
 
     :CaseImportance: High
     """
