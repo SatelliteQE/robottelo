@@ -30,7 +30,6 @@ from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -41,16 +40,18 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -100,7 +101,13 @@ def repos_collection_for_module_streams(module_org):
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=settings.rhel8_os['baseos']),
+            YumRepository(url=settings.rhel8_os['appstream']),
+            YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
+        ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -119,7 +126,7 @@ def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(
-            vm_module_streams, install_katello_agent=False
+            vm_module_streams, install_katello_agent=True
         )
         add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
@@ -349,6 +356,7 @@ def test_negative_install_package(session, vm):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 
@@ -487,7 +495,7 @@ def test_actions_katello_host_package_update_timeout(session, vm):
 
 
 @tier3
-def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
+def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
 
     :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
@@ -503,7 +511,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     """
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with Session(
-        test_name, user=module_viewer_user.login, password=module_viewer_user.password
+        test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
@@ -944,6 +952,19 @@ def test_install_modular_errata(session, vm_module_streams):
             status='Upgrade Available',
             stream_version=stream_version,
         )
+
+        run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
+        # Install errata using Katello Agent
+        result = session.contenthost.install_errata(
+            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='katello'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Installed',
+            stream_version=stream_version,
+        )
+        assert module_stream[0]['Name'] == module_name
 
 
 @tier3

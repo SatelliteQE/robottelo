@@ -19,8 +19,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.cli.ansible import Ansible
-from robottelo.constants import OSCAP_PROFILE
 from robottelo.decorators import tier1
 
 
@@ -34,50 +32,6 @@ def module_location(module_location):
 def module_org(module_org):
     yield module_org
     module_org.delete()
-
-
-@pytest.fixture(scope="module")
-def scap_content(module_org, module_location, oscap_content_path):
-    """ Import Ansible roles, Ansible variables, create Scap content."""
-    # Import Ansible roles and variables.
-    Ansible.roles_import({'proxy-id': 1})
-    Ansible.variables_import({'proxy-id': 1})
-    sc_title = gen_string('alpha')
-    entity = entities.ScapContents().search(query={'search': f'title="{sc_title}"'})
-    # Create Scap content.
-    if not entity:
-        result = entities.ScapContents(
-            title=f"{sc_title}",
-            scap_file=f"{oscap_content_path}",
-            organization=[module_org],
-            location=[module_location],
-        ).create()
-    else:
-        result = entities.ScapContents(id=entity[0].id).read()
-    scap_profile_id_rhel7 = [
-        profile['id']
-        for profile in result.scap_content_profiles
-        if OSCAP_PROFILE['security7'] in profile['title']
-    ][0]
-    return (result, scap_profile_id_rhel7)
-
-
-@pytest.fixture(scope="module")
-def tailoring_file(module_org, module_location, tailoring_file_path):
-    """ Create Tailoring file."""
-    tf_name = gen_string('alpha')
-    entity = entities.TailoringFile().search(query={'search': f'name="{tf_name}"'})
-    if not entity:
-        result = entities.TailoringFile(
-            name=f"{tf_name}",
-            scap_file=f"{tailoring_file_path}",
-            organization=[module_org],
-            location=[module_location],
-        ).create()
-    else:
-        result = entities.TailoringFile(id=entity[0].id).read()
-    tailor_profile_id = result.tailoring_file_profiles[0]['id']
-    return (result, tailor_profile_id)
 
 
 class TestOscapPolicy:
@@ -108,10 +62,10 @@ class TestOscapPolicy:
             name=name,
             deploy_by='puppet',
             description=description,
-            scap_content_id=scap_content[0].id,
-            scap_content_profile_id=scap_content[1],
-            tailoring_file_id=tailoring_file[0].id,
-            tailoring_file_profile_id=tailoring_file[1],
+            scap_content_id=scap_content["scap_id"],
+            scap_content_profile_id=scap_content["scap_profile_id"],
+            tailoring_file_id=tailoring_file["tailoring_file_id"],
+            tailoring_file_profile_id=tailoring_file["tailoring_file_profile_id"],
             period="monthly",
             day_of_month="5",
             hostgroup=[hostgroup],
@@ -123,9 +77,9 @@ class TestOscapPolicy:
         assert policy.deploy_by == 'puppet'
         assert policy.name == name
         assert policy.description == description
-        assert policy.scap_content_id == scap_content[0].id
-        assert policy.scap_content_profile_id == scap_content[1]
-        assert policy.tailoring_file_id == tailoring_file[0].id
+        assert policy.scap_content_id == scap_content["scap_id"]
+        assert policy.scap_content_profile_id == scap_content["scap_profile_id"]
+        assert policy.tailoring_file_id == tailoring_file["tailoring_file_id"]
         assert policy.period == "monthly"
         assert policy.day_of_month == 5
         assert policy.hostgroup[0].id == hostgroup.id

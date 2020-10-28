@@ -52,7 +52,7 @@ class TestTailoringFile:
         original_filename = gen_string('alpha')
         scap = entities.TailoringFile(
             name=name,
-            scap_file=tailoring_file_path,
+            scap_file=tailoring_file_path['local'],
             organization=[module_org],
             location=[module_location],
         ).create()

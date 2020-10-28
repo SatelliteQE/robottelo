@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import re
 from math import ceil
 from random import choice
 
@@ -35,54 +36,45 @@ from robottelo.cli.user import User
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import parametrized
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.test import CLITestCase
 
 
-class RoleTestCase(CLITestCase):
+class TestRole:
     """Test class for Roles CLI"""
 
     @tier1
-    def test_positive_create_with_name(self):
-        """Create new roles with provided name
+    @pytest.mark.parametrize(
+        'name, new_name',
+        **parametrized(
+            list(zip(generate_strings_list(length=10), generate_strings_list(length=10)))
+        ),
+    )
+    def test_positive_crud_with_name(self, name, new_name):
+        """Create new role with provided name, update name and delete role by ID
 
-        :id: 6883177c-6926-428c-92ab-9effbe1372ae
+        :id: f77b8e84-e964-4007-b12b-142949134d8b
 
-        :expectedresults: Role is created and has correct name
+        :parametrized: yes
+
+        :expectedresults: Role is created and has correct name, its name is updated
+            and then deleted by ID
 
         :BZ: 1138553
 
         :CaseImportance: Critical
         """
-        for name in generate_strings_list(length=10):
-            with self.subTest(name):
-                role = make_role({'name': name})
-                self.assertEqual(role['name'], name)
-
-    @tier1
-    def test_positive_create_with_filter(self):
-        """Create new role with a filter
-
-        :id: 6c99ee25-4e58-496c-af42-f8ad2da6cf07
-
-        :expectedresults: Role is created and correct filter is assigned
-
-        :CaseImportance: Critical
-        """
-        role = make_role()
-        # Pick permissions by its resource type
-        permissions = [
-            permission['name']
-            for permission in Filter.available_permissions(
-                {"search": "resource_type=Organization"}
-            )
-        ]
-        # Assign filter to created role
-        filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
-        self.assertEqual(role['name'], filter_['role'])
+        role = make_role({'name': name})
+        assert role['name'] == name
+        Role.update({'id': role['id'], 'new-name': new_name})
+        role = Role.info({'id': role['id']})
+        assert role['name'] == new_name
+        Role.delete({'id': role['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Role.info({'id': role['id']})
 
     @tier1
     @upgrade
@@ -105,42 +97,7 @@ class RoleTestCase(CLITestCase):
         ]
         # Assign filter to created role
         make_filter({'role-id': role['id'], 'permissions': permissions})
-        self.assertEqual(set(Role.filters({'id': role['id']})[0]['permissions']), set(permissions))
-
-    @tier1
-    def test_positive_delete_by_id(self):
-        """Create a new role and then delete role by its ID
-
-        :id: 351780b4-697c-4f87-b989-dd9a9a2ad012
-
-        :expectedresults: Role is created and then deleted by its ID
-
-        :CaseImportance: Critical
-        """
-        for name in generate_strings_list(length=10):
-            with self.subTest(name):
-                role = make_role({'name': name})
-                self.assertEqual(role['name'], name)
-                Role.delete({'id': role['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Role.info({'id': role['id']})
-
-    @tier1
-    def test_positive_update_name(self):
-        """Create new role and update its name
-
-        :id: 3ce1b337-fd52-4460-b8a8-df49c94ffed1
-
-        :expectedresults: Role is created and its name is updated
-
-        :CaseImportance: Critical
-        """
-        role = make_role({'name': gen_string('alpha', 15)})
-        for new_name in generate_strings_list(length=10):
-            with self.subTest(new_name):
-                Role.update({'id': role['id'], 'new-name': new_name})
-                role = Role.info({'id': role['id']})
-                self.assertEqual(role['name'], new_name)
+        assert set(Role.filters({'id': role['id']})[0]['permissions']) == set(permissions)
 
     @tier1
     def test_positive_list_filters_by_id(self):
@@ -162,8 +119,8 @@ class RoleTestCase(CLITestCase):
         ]
         # Assign filter to created role
         filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
-        self.assertEqual(role['name'], filter_['role'])
-        self.assertEqual(Role.filters({'id': role['id']})[0]['id'], filter_['id'])
+        assert role['name'] == filter_['role']
+        assert Role.filters({'id': role['id']})[0]['id'] == filter_['id']
 
     @tier1
     def test_positive_list_filters_by_name(self):
@@ -185,8 +142,8 @@ class RoleTestCase(CLITestCase):
         ]
         # Assign filter to created role
         filter_ = make_filter({'role': role['name'], 'permissions': permissions})
-        self.assertEqual(role['name'], filter_['role'])
-        self.assertEqual(Role.filters({'name': role['name']})[0]['id'], filter_['id'])
+        assert role['name'] == filter_['role']
+        assert Role.filters({'name': role['name']})[0]['id'] == filter_['id']
 
     @tier1
     def test_negative_list_filters_without_parameters(self):
@@ -200,27 +157,16 @@ class RoleTestCase(CLITestCase):
 
         :BZ: 1296782
         """
-        with self.assertRaises(CLIReturnCodeError) as err:
-            with self.assertNotRaises(CLIDataBaseError):
+        with pytest.raises(CLIReturnCodeError) as err:
+            try:
                 Role.filters()
-        self.assertRegex(err.exception.msg, 'At least one of options .* is required')
+            except CLIDataBaseError as err:
+                pytest.fail(err)
+        assert re.search('At least one of options .* is required', err.value.msg)
 
-    @tier1
-    @upgrade
-    def test_positive_list_filters_with_pagination(self):
-        """Make sure filters list can be displayed with different items per
-        page value
-
-        :id: b9c7c6c1-70c2-4d7f-8d36-fa8613acc865
-
-        :BZ: 1428516
-
-        :expectedresults: `per-page` correctly sets amount of items displayed
-            per page, different `per-page` values divide a list into correct
-            number of pages
-
-        :CaseImportance: Critical
-        """
+    @pytest.fixture()
+    def make_role_with_permissions(self):
+        """Create new role with a filter"""
         role = make_role()
         res_types = iter(PERMISSIONS.keys())
         permissions = []
@@ -235,20 +181,49 @@ class RoleTestCase(CLITestCase):
         # Create a filter for each permission
         for perm in permissions:
             make_filter({'role': role['name'], 'permissions': perm})
-        # Test different `per-page` values
-        for per_page in (1, 5, 20):
-            with self.subTest(per_page):
-                # Verify the first page contains exactly the same items count
-                # as `per-page` value
-                filters = Role.filters({'name': role['name'], 'per-page': per_page})
-                self.assertEqual(len(filters), per_page)
-                # Verify pagination and total amount of pages by checking the
-                # items count on the last page
-                last_page = ceil(len(permissions) / per_page)
-                filters = Role.filters(
-                    {'name': role['name'], 'page': last_page, 'per-page': per_page}
-                )
-                self.assertEqual(len(filters), len(permissions) % per_page or per_page)
+        return {
+            'role': role,
+            'permissions': permissions,
+        }
+
+    @tier1
+    @upgrade
+    @pytest.mark.parametrize('per_page', [1, 5, 20])
+    def test_positive_list_filters_with_pagination(self, make_role_with_permissions, per_page):
+        """Make sure filters list can be displayed with different items per
+        page value
+
+        :id: b9c7c6c1-70c2-4d7f-8d36-fa8613acc865
+
+        :BZ: 1428516
+
+        :expectedresults: `per-page` correctly sets amount of items displayed
+            per page, different `per-page` values divide a list into correct
+            number of pages
+
+        :CaseImportance: Critical
+
+        :parametrized: yes
+        """
+        # Verify the first page contains exactly the same items count
+        # as `per-page` value
+        filters = Role.filters(
+            {'name': make_role_with_permissions['role']['name'], 'per-page': per_page}
+        )
+        assert len(filters) == per_page
+        # Verify pagination and total amount of pages by checking the
+        # items count on the last page
+        last_page = ceil(len(make_role_with_permissions['permissions']) / per_page)
+        filters = Role.filters(
+            {
+                'name': make_role_with_permissions['role']['name'],
+                'page': last_page,
+                'per-page': per_page,
+            }
+        )
+        assert len(filters) == (
+            len(make_role_with_permissions['permissions']) % per_page or per_page
+        )
 
     @tier1
     @upgrade
@@ -265,16 +240,16 @@ class RoleTestCase(CLITestCase):
 
         """
         role_list = Role.list({'search': 'name=\\"{}\\"'.format(choice(ROLES))})
-        self.assertEqual(len(role_list), 1)
+        assert len(role_list) == 1
         cloned_role = Role.clone(
             {'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')}
         )
         Role.delete({'id': cloned_role['id']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             Role.info({'id': cloned_role['id']})
 
 
-class CannedRoleTestCases(CLITestCase):
+class TestCannedRole:
     """Implements Canned Roles tests from UI
 
     :CaseAutomation: notautomated
@@ -1239,11 +1214,13 @@ class CannedRoleTestCases(CLITestCase):
         """
 
 
-class SystemAdminTestCases(CLITestCase):
+class TestSystemAdmin:
     """Test class for System Admin role end to end CLI"""
 
+    @pytest.fixture(scope='class', autouse=True)
     def tearDown(self):
         """Will reset the changed value of settings"""
+        yield
         Settings.set({'name': "outofsync_interval", 'value': "30"})
 
     @upgrade
@@ -1293,7 +1270,7 @@ class SystemAdminTestCases(CLITestCase):
         )
         sync_time = Settings.list({'search': 'name=outofsync_interval'})[0]
         # Asserts if the setting was updated successfully
-        self.assertEqual('32', sync_time['value'])
+        assert '32' == sync_time['value']
 
         # Create another System Admin user using the first one
         system_admin = User.with_user(
@@ -1334,7 +1311,7 @@ class SystemAdminTestCases(CLITestCase):
             }
         )
         # Assert if the cloning was successful
-        self.assertIsNotNone(org_role['id'])
+        assert org_role['id'] is not None
         org_role_filters = Role.filters({'id': org_role['id']})
         search_filter = None
         for arch_filter in org_role_filters:
@@ -1345,10 +1322,10 @@ class SystemAdminTestCases(CLITestCase):
             {'role-id': org_role['id'], 'id': arch_filter['id'], 'search': 'name=x86_64'}
         )
         # Asserts if the filter is updated
-        self.assertIn('name=x86_64', Filter.info({'id': search_filter['id']}).values())
+        assert 'name=x86_64' in Filter.info({'id': search_filter['id']}).values()
         org_admin = User.with_user(username=system_admin['login'], password=common_pass).info(
             {'id': org_admin['id']}
         )
         # Asserts Created Org Admin
-        self.assertIn(org_role['name'], org_admin['roles'])
-        self.assertIn(org['name'], org_admin['organizations'])
+        assert org_role['name'] in org_admin['roles']
+        assert org['name'] in org_admin['organizations']

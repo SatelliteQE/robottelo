@@ -216,7 +216,7 @@ class TestProvisioningTemplate:
             key: value for key, value in template_origin.items() if key not in unique_keys
         }
 
-        dupe_name = gen_choice(valid_data_list())
+        dupe_name = gen_choice(list(valid_data_list().values()))
         dupe_json = entities.ProvisioningTemplate(
             id=template.clone(data={'name': dupe_name})['id']
         ).read_json()

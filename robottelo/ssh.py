@@ -61,7 +61,7 @@ class SSHClient(paramiko.SSHClient):
         """This method exists to allow the reuse of existing connections when
         running multiple ssh commands as in the following example of use:
 
-            with robotello.ssh.get_connection() as connection:
+            with robottelo.ssh.get_connection() as connection:
                 connection.run('ls /tmp')
                 connection.run('another command')
 

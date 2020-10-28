@@ -16,10 +16,10 @@ from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -529,7 +529,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
           example usage::
 
            permissions_types_names = {
-               '(Miscellaneous)': ['access_dashboard'],
+               None: ['access_dashboard'],
                'Organization': ['view_organizations'],
                'Location': ['view_locations'],
                'Katello::KTEnvironment': [
@@ -968,3 +968,28 @@ def set_hammer_api_timeout(timeout=-1, reverse=False):
                 new_timeout, default_timeout
             )
         )
+
+
+def update_rhsso_settings_in_satellite(revert=False):
+    """Update or Revert the RH-SSO settings in satellite"""
+    rhhso_settings = {
+        'authorize_login_delegation': True,
+        'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'oidc_algorithm': 'RS256',
+        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
+        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
+        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
+    }
+    if revert:
+        setting_entity = entities.Setting().search(
+            query={'search': 'name=authorize_login_delegation'}
+        )[0]
+        setting_entity.value = False
+        setting_entity.update({'value'})
+    else:
+        for setting_name, setting_value in rhhso_settings.items():
+            setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
+            setting_entity.value = setting_value
+            setting_entity.update({'value'})

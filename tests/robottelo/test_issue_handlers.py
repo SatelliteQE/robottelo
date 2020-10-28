@@ -17,10 +17,10 @@ from robottelo.utils.issue_handlers import should_deselect
 class TestBugzillaIssueHandler:
     @pytest.fixture(scope='class', autouse=True)
     def set_env_version(self):
-        """Set SAT_VERSION to avoid ssh calls"""
-        os.environ['SAT_VERSION'] = '6.6'
+        """Set SATELLITE_VERSION to avoid ssh calls"""
+        os.environ['SATELLITE_VERSION'] = '6.6'
         yield
-        os.environ.pop('SAT_VERSION', None)
+        os.environ.pop('SATELLITE_VERSION', None)
 
     def test_bz_is_open_pre_processed(self):
         """Assert a pre-processed BZ is considered open"""
@@ -398,7 +398,7 @@ class TestBugzillaIssueHandler:
 
 
 def test_add_workaround():
-    """Assert helper function adds corrent items to given data"""
+    """Assert helper function adds current items to given data"""
     data = defaultdict(lambda: {"data": {}, "used_in": []})
     matches = [('BZ', '123456'), ('BZ', '789456')]
 

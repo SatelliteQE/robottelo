@@ -93,6 +93,7 @@ def module_azure_hg(
     ).create()
 
 
+@pytest.mark.skip_if_open("BZ:1850934")
 @tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
@@ -115,6 +116,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             2. Host is deleted Successfully.
 
     :CaseLevel: System
+
+    :BZ: 1850934
     """
 
     hostname = gen_string('alpha')
@@ -137,7 +140,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Installed'
+            assert 'Installed' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )
@@ -167,6 +170,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
 
 
+@pytest.mark.skip_if_open("BZ:1850934")
 @tier3
 @upgrade
 def test_positive_azurerm_host_provision_ud(
@@ -191,6 +195,8 @@ def test_positive_azurerm_host_provision_ud(
     :CaseImportance: Critical
 
     :CaseLevel: System
+
+    :BZ: 1850934
     """
 
     hostname = gen_string('alpha')
@@ -213,7 +219,7 @@ def test_positive_azurerm_host_provision_ud(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
+            assert 'Pending installation' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )

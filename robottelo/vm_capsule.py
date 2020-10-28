@@ -9,6 +9,7 @@ from fauxfactory import gen_alphanumeric
 from robottelo import ssh
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
+from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
 from robottelo.decorators import setting_is_set
@@ -207,9 +208,9 @@ class CapsuleVirtualMachine(VirtualMachine):
                 if exp.return_code == 70:
                     super(CapsuleVirtualMachine, self).destroy()
                 if is_open('BZ:1622064'):
-                    logger.warn('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.warning(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                 else:
-                    logger.error('Failed to cleanup the host: {0}\n{1}'.format(self.hostname, exp))
+                    logger.error(f'Failed to cleanup the host: {self.hostname}\n{exp}')
                     raise
             try:
                 # try to delete the capsule if it was added already
@@ -231,12 +232,21 @@ class CapsuleVirtualMachine(VirtualMachine):
         )
         self.configure_rhel_repo(settings.__dict__[self.distro + '_repo'])
         self.run('yum repolist')
+        self.run('yum -y update')
         self.run('yum -y install satellite-capsule', timeout=1200)
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
             raise CapsuleVirtualMachineError(
                 'Failed to install satellite-capsule package\n{}'.format(result.stderr)
             )
+        # update http proxy except list
+        result = Settings.list({'search': 'http_proxy_except_list'})[0]
+        if result["value"] == "[]":
+            except_list = '[{0}]'.format(self.hostname)
+        else:
+            except_list = result["value"][:-1] + ', {0}]'.format(self.hostname)
+        Settings.set({'name': 'http_proxy_except_list', 'value': except_list})
+        # generate certificate
         cert_file_path = '/root/{0}-certs.tar'.format(self.hostname)
         certs_gen = ssh.command(
             'capsule-certs-generate '
@@ -266,6 +276,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         os.remove(temporary_local_cert_file_path)
 
         installer_cmd = extract_capsule_satellite_installer_command(certs_gen.stdout)
+        installer_cmd += " --verbose"
         result = self.run(installer_cmd, timeout=1800)
         if result.return_code != 0:
             # before exit download the capsule log file

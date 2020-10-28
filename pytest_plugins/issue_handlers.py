@@ -16,13 +16,17 @@ from robottelo.utils.issue_handlers import should_deselect
 from robottelo.utils.version import search_version_key
 from robottelo.utils.version import VersionEncoder
 
-LOGGER = logging.getLogger('issue_handlers_plugin')
+LOGGER = logging.getLogger('robottelo')
 
 DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 
 
 def pytest_addoption(parser):
-    """Adds custom options to pytest runner."""
+    """ Add CLI options related to issue handlers
+
+    Add a --bz-cache option to control use of a BZ cache from a local JSON file
+    Add a --BZ option for filtering BZ marked testcases
+    """
     parser.addoption(
         "--bz-cache",
         action='store_true',
@@ -30,6 +34,26 @@ def pytest_addoption(parser):
         f"Without this flag a cache file will be created with the name {DEFAULT_BZ_CACHE_FILE}."
         "This default cache file can be used on subsequent runs by including this flag",
     )
+    parser.addoption(
+        "--BZ",
+        help="Filter test collection based on BZ markers. "
+        "BZ markers are applied automatically by skip_if_open marks on tests. "
+        "Comma separated list to include multiple BZs for collection."
+        " Example: `--BZ 123456,456789`",
+    )
+
+
+def pytest_configure(config):
+    """Register custom markers to avoid warnings."""
+    markers = [
+        "skip_if_open(issue): Skip test based on issue status.",
+        (
+            "BZ(number): Bugzillas related to the testcase, "
+            "for use with `--BZ <number>` option for collection"
+        ),
+    ]
+    for marker in markers:
+        config.addinivalue_line("markers", marker)
 
 
 @pytest.hookimpl(trylast=True)
@@ -42,13 +66,39 @@ def pytest_collection_modifyitems(session, items, config):
 
     pytest.issue_data = generate_issue_collection(items, config)
 
-    # No item deselect, just adding skipif markers
+    # Add skipif markers, and modify collection based on --bz option
+    bz_filters = config.getoption('BZ', None)
+    if bz_filters:
+        bz_filters = bz_filters.split(',')
+    selected = []
+    deselected = []
     for item in items:
+        # Add a skipif marker for the issues
         skip_if_open = item.get_closest_marker('skip_if_open')
         if skip_if_open:
             # marker must have `BZ:123456` as argument.
             issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
             item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
+
+        # remove items from collection
+        if bz_filters:
+            # Only include items which have BZ mark that includes any of the filtered bz numbers
+            item_bz_marks = set(getattr(item.get_closest_marker('BZ', None), 'args', []))
+            if bool(set(bz_filters) & item_bz_marks):
+                selected.append(item)
+            else:
+                LOGGER.debug(
+                    f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters} '
+                    f'and available marks {item_bz_marks}'
+                )
+                deselected.append(item)
+                continue  # move to the next item
+            # append only when there is a BZ in common between the lists
+        else:
+            selected.append(item)
+
+    config.hook.pytest_deselected(items=deselected)
+    items[:] = selected
 
 
 IS_OPEN = re.compile(
@@ -126,7 +176,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     valid_markers = ["skip_if_open", "skip", "deselect"]
     collected_data = defaultdict(lambda: {"data": {}, "used_in": []})
 
-    use_bz_cache = config.getvalue('bz_cache')  # use existing json cache?
+    use_bz_cache = config.getoption('bz_cache', None)  # use existing json cache?
     cached_data = None
     if use_bz_cache:
         try:
@@ -148,7 +198,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     # --- Build the issue marked usage collection ---
     for item in items:
         component = None
-        bzs = None
+        bz_marks_to_add = []
         importance = None
 
         # register test module as processed
@@ -162,7 +212,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
                 component = component_matches[-1]
             bz_matches = BZ.findall(docstring)
             if bz_matches:
-                bzs = bz_matches[-1]
+                bz_marks_to_add.extend(b.strip() for b in bz_matches[-1].split(','))
             importance_matches = IMPORTANCE.findall(docstring)
             if importance_matches:
                 importance = importance_matches[-1]
@@ -187,8 +237,8 @@ def generate_issue_collection(items, config):  # pragma: no cover
 
                 # Store issue key to lookup in the deselection process
                 deselect_data[item.location] = issue_key
-                # Add issue as a marker to enable filtering e.g: "-m BZ_123456"
-                item.add_marker(getattr(pytest.mark, issue_key.replace(':', '_')))
+                # Add issue as a marker to enable filtering e.g: "--BZ 123456"
+                bz_marks_to_add.append(issue_key.split(':')[-1])
 
         # Then take the workarounds using `is_open` helper.
         source = inspect.getsource(item.function)
@@ -208,10 +258,9 @@ def generate_issue_collection(items, config):  # pragma: no cover
         if component_mark is not None:
             item.add_marker(getattr(pytest.mark, component_mark))
 
-        # Add BZs from tokens as a marker to enable filter e.g: "-m BZ_123456"
-        if bzs:
-            for bz in bzs.split(','):
-                item.add_marker(getattr(pytest.mark, f'BZ_{bz.strip()}'))
+        # Add BZs from tokens as a marker to enable filter e.g: "--BZ 123456"
+        if bz_marks_to_add:
+            item.add_marker(pytest.mark.BZ(*bz_marks_to_add))
 
         # Add importance as a token
         if importance:

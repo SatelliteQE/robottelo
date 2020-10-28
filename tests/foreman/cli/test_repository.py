@@ -46,34 +46,34 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.srpm import Srpm
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
-from robottelo.constants import CUSTOM_FILE_REPO
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOWNLOAD_POLICIES
-from robottelo.constants import FAKE_0_YUM_REPO
-from robottelo.constants import FAKE_1_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_2_PUPPET_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
-from robottelo.constants import FAKE_3_PUPPET_REPO
-from robottelo.constants import FAKE_3_YUM_REPO
-from robottelo.constants import FAKE_4_PUPPET_REPO
-from robottelo.constants import FAKE_4_YUM_REPO
-from robottelo.constants import FAKE_5_PUPPET_REPO
-from robottelo.constants import FAKE_5_YUM_REPO
-from robottelo.constants import FAKE_7_PUPPET_REPO
-from robottelo.constants import FAKE_PULP_REMOTE_FILEREPO
-from robottelo.constants import FAKE_YUM_DRPM_REPO
-from robottelo.constants import FAKE_YUM_MIXED_REPO
-from robottelo.constants import FAKE_YUM_SRPM_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
+from robottelo.constants.repos import CUSTOM_FILE_REPO
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_PUPPET_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_3_PUPPET_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_4_PUPPET_REPO
+from robottelo.constants.repos import FAKE_4_YUM_REPO
+from robottelo.constants.repos import FAKE_5_PUPPET_REPO
+from robottelo.constants.repos import FAKE_5_YUM_REPO
+from robottelo.constants.repos import FAKE_7_PUPPET_REPO
+from robottelo.constants.repos import FAKE_PULP_REMOTE_FILEREPO
+from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
+from robottelo.constants.repos import FAKE_YUM_MIXED_REPO
+from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_http_credentials
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
@@ -1659,7 +1659,8 @@ class RepositoryTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             Role.with_user(user_name, user_password).info({'id': role['id']})
         self.assertIn(
-            'Forbidden - server refused to process the request', context.exception.stderr
+            'Access denied\nMissing one of the required permissions: view_roles',
+            context.exception.stderr,
         )
         # Create a product
         product = make_product({'organization-id': org['id'], 'name': product_name})

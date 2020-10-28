@@ -153,7 +153,7 @@ class ServerSettings(FeatureSettings):
 
     @property
     def version(self):
-        # Version is lazily taken from config OR SAT_VERSION env var or SSH.
+        # Version is lazily taken from config OR SATELLITE_VERSION env var or SSH.
         if self._version is None:
             # import here to avoid circular import error
             from robottelo.host_info import get_sat_version
@@ -177,6 +177,10 @@ class ServerSettings(FeatureSettings):
 
         """
         return (self.admin_username, self.admin_password)
+
+    def get_hostname(self, key="hostname"):
+        reader = INIReader(os.path.join(get_project_root(), SETTINGS_FILE_NAME))
+        return reader.get('server', key, self.hostname)
 
     def get_url(self):
         """Return the base URL of the Foreman deployment being tested.
@@ -230,6 +234,23 @@ class ServerSettings(FeatureSettings):
 
         """
         return urljoin(self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
+
+
+class BrokerSettings(FeatureSettings):
+    """Broker settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(BrokerSettings, self).__init__(*args, **kwargs)
+        self.broker_directory = None
+
+    def read(self, reader):
+        """Read and validate broker settings."""
+        self.broker_directory = reader.get('broker', 'broker_directory', '.')
+        os.environ["BROKER_DIRECTORY"] = self.broker_directory
+
+    def validate(self):
+        """This section is lazily validated on .issue_handlers.bugzilla."""
+        return []
 
 
 class BugzillaSettings(FeatureSettings):
@@ -702,6 +723,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = None
         self.time_based_secret = None
         self.disabled_user_ipa = None
+        self.group_users = None
+        self.groups = None
 
     def read(self, reader):
         """Read LDAP freeIPA settings."""
@@ -714,6 +737,8 @@ class LDAPIPASettings(FeatureSettings):
         self.otp_user = reader.get('ipa', 'otp_user')
         self.time_based_secret = reader.get('ipa', 'time_based_secret')
         self.disabled_user_ipa = reader.get('ipa', 'disabled_user_ipa')
+        self.group_users = reader.get('ipa', 'group_users', cast=list)
+        self.groups = reader.get('ipa', 'groups', cast=list)
 
     def validate(self):
         """Validate LDAP freeIPA settings."""
@@ -722,7 +747,40 @@ class LDAPIPASettings(FeatureSettings):
             validation_errors.append(
                 'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
                 ' password_ipa, username_ipa, user_ipa,'
-                ' otp_user, time_based_secret and disabled_user_ipa options must be provided.'
+                ' otp_user, time_based_secret, disabled_user_ipa, '
+                'group_users and groups options must be provided.'
+            )
+        return validation_errors
+
+
+class OpenLDAPSettings(FeatureSettings):
+    """Open LDAP settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(OpenLDAPSettings, self).__init__(*args, **kwargs)
+        self.base_dn = None
+        self.group_base_dn = None
+        self.hostname = None
+        self.password = None
+        self.username = None
+        self.open_ldap_user = None
+
+    def read(self, reader):
+        """Read Open LDAP settings."""
+        self.base_dn = reader.get('open_ldap', 'base_dn')
+        self.group_base_dn = reader.get('open_ldap', 'group_base_dn')
+        self.hostname = reader.get('open_ldap', 'hostname')
+        self.password = reader.get('open_ldap', 'password')
+        self.username = reader.get('open_ldap', 'username')
+        self.open_ldap_user = reader.get('open_ldap', 'open_ldap_user')
+
+    def validate(self):
+        """Validate Open LDAP settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [open_ldap] base_dn, group_base_dn, hostname, password, '
+                'username, open_ldap_user options must be provided.'
             )
         return validation_errors
 
@@ -1298,19 +1356,21 @@ class ReportPortalSettings(FeatureSettings):
         self.rp_url = None
         self.rp_project = None
         self.rp_key = None
+        self.fail_threshold = None
 
     def read(self, reader):
         """Read Report portal settings."""
         self.rp_url = reader.get('report_portal', 'portal_url')
         self.rp_project = reader.get('report_portal', 'project')
         self.rp_key = reader.get('report_portal', 'api_key')
+        self.fail_threshold = reader.get('report_portal', 'fail_threshold', 20, int)
 
     def validate(self):
         """Validate Report portal settings."""
         validation_errors = []
-        if not all(self.__dict__.values()):
+        if not all([self.rp_key, self.rp_project, self.rp_url]):
             validation_errors.append(
-                'All [report_portal] {} options must be provided'.format(self.__dict__.keys())
+                'All [report_portal] options must be provided, except fail_threshold'
             )
         return validation_errors
 
@@ -1352,7 +1412,9 @@ class Settings(object):
         self.browseroptions = None
         self.webdriver_desired_capabilities = None
         self.command_executor = None
+        self.repos_hosting_url = None
 
+        self.broker = BrokerSettings()
         self.bugzilla = BugzillaSettings()
         # Features
         self.azurerm = AzureRMSettings()
@@ -1370,6 +1432,7 @@ class Settings(object):
         self.gce = GCESettings()
         self.ldap = LDAPSettings()
         self.ipa = LDAPIPASettings()
+        self.open_ldap = OpenLDAPSettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
         self.osp = OSPSettings()
@@ -1490,6 +1553,7 @@ class Settings(object):
             'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub'
         )
         self.window_manager_command = self.reader.get('robottelo', 'window_manager_command', None)
+        self.repos_hosting_url = self.reader.get('robottelo', 'repos_hosting_url', None)
 
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""

@@ -20,6 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
@@ -31,21 +32,22 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
-from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -204,7 +206,7 @@ def test_end_to_end(session, module_repos_col, vm):
     :CaseLevel: System
     """
     ERRATA_DETAILS = {
-        'advisory': 'RHEA-2012:0055',
+        'advisory': 'RHSA-2012:0055',
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
@@ -224,7 +226,12 @@ def test_end_to_end(session, module_repos_col, vm):
         'module_stream_packages': [],
     }
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
+    value = 'has type = security'
     with session:
+        # Check selection box function for BZ#1688636
+        assert session.errata.search(value, installable=True)[0]['Errata ID']
+        assert session.errata.search(value, applicable=True)[0]['Errata ID']
+        # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         assert errata['details'] == ERRATA_DETAILS
         assert set(errata['packages']['independent_packages']) == set(
@@ -247,6 +254,7 @@ def test_end_to_end(session, module_repos_col, vm):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
 
@@ -706,6 +714,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
 
 @tier3
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_filtered_errata_status_installable_param(session, errata_status_installable):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -814,7 +823,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
         3.  host list --search "applicable_errata = RHSA-2012:0055"
         4.  host list --search "applicable_errata = RHBA-2012:1030"
         5.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
-        6.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
+        6.  host list --search "applicable_rpms = kangaroo-0.2-1.noarch"
         7.  host list --search "installable_errata = RHSA-2012:0055"
         8.  host list --search "installable_errata = RHBA-2012:1030"
 
@@ -830,7 +839,7 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
             module_repos_col.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
         assert _install_client_package(client1, FAKE_1_CUSTOM_PACKAGE, errata_applicability=False)
-        # Install pkg kangaroo-0.2-1.noarch to create need for RHBA on client 2
+        # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
         assert _install_client_package(client2, FAKE_4_CUSTOM_PACKAGE, errata_applicability=False)
         with session:
             # Search for hosts needing RHSA security errata
