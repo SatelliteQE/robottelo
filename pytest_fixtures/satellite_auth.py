@@ -17,7 +17,7 @@ from robottelo.rhsso_utils import set_the_redirect_uri
 
 
 @fixture(scope='session')
-def ldap_data():
+def ad_data():
     return {
         'ldap_user_name': settings.ldap.username,
         'ldap_user_passwd': settings.ldap.password,
@@ -30,15 +30,15 @@ def ldap_data():
 @fixture(scope='session')
 def ipa_data():
     return {
-        'ldap_ipa_user_name': settings.ipa.username_ipa,
+        'ldap_user_name': settings.ipa.user_ipa,
+        'ldap_user_cn': settings.ipa.username_ipa,
         'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_ipa_user_passwd': settings.ipa.password_ipa,
-        'ipa_base_dn': settings.ipa.basedn_ipa,
-        'ipa_group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_ipa_hostname': settings.ipa.hostname_ipa,
+        'ldap_user_passwd': settings.ipa.password_ipa,
+        'base_dn': settings.ipa.basedn_ipa,
+        'group_base_dn': settings.ipa.grpbasedn_ipa,
+        'ldap_hostname': settings.ipa.hostname_ipa,
         'time_based_secret': settings.ipa.time_based_secret,
         'disabled_user_ipa': settings.ipa.disabled_user_ipa,
-        'user_ipa': settings.ipa.user_ipa,
     }
 
 
@@ -48,20 +48,20 @@ def open_ldap_data():
 
 
 @fixture(scope='function')
-def auth_source(module_org, module_loc, ldap_data):
+def auth_source(module_org, module_loc, ad_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ldap_data['ldap_user_name'],
-        account_password=ldap_data['ldap_user_passwd'],
-        base_dn=ldap_data['base_dn'],
-        groups_base=ldap_data['group_base_dn'],
+        account=ad_data['ldap_user_name'],
+        account_password=ad_data['ldap_user_passwd'],
+        base_dn=ad_data['base_dn'],
+        groups_base=ad_data['group_base_dn'],
         attr_firstname=LDAP_ATTR['firstname'],
         attr_lastname=LDAP_ATTR['surname'],
         attr_login=LDAP_ATTR['login_ad'],
         server_type=LDAP_SERVER_TYPE['API']['ad'],
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
-        host=ldap_data['ldap_hostname'],
+        host=ad_data['ldap_hostname'],
         tls=False,
         port='389',
         organization=[module_org],
@@ -73,22 +73,72 @@ def auth_source(module_org, module_loc, ldap_data):
 def auth_source_ipa(module_org, module_loc, ipa_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
-        account=ipa_data['ldap_ipa_user_name'],
-        account_password=ipa_data['ldap_ipa_user_passwd'],
-        base_dn=ipa_data['ipa_base_dn'],
-        groups_base=ipa_data['ipa_group_base_dn'],
+        account=ipa_data['ldap_user_cn'],
+        account_password=ipa_data['ldap_user_passwd'],
+        base_dn=ipa_data['base_dn'],
+        groups_base=ipa_data['group_base_dn'],
         attr_firstname=LDAP_ATTR['firstname'],
         attr_lastname=LDAP_ATTR['surname'],
         attr_login=LDAP_ATTR['login'],
         server_type=LDAP_SERVER_TYPE['API']['ipa'],
         attr_mail=LDAP_ATTR['mail'],
         name=gen_string('alpha'),
-        host=ipa_data['ldap_ipa_hostname'],
+        host=ipa_data['ldap_hostname'],
         tls=False,
         port='389',
         organization=[module_org],
         location=[module_loc],
     ).create()
+
+
+@fixture
+def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
+    if request.param.lower() == 'ad':
+        # entity create with AD settings
+        entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=ad_data['ldap_user_name'],
+            account_password=ad_data['ldap_user_passwd'],
+            base_dn=ad_data['base_dn'],
+            groups_base=ad_data['group_base_dn'],
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login_ad'],
+            server_type=LDAP_SERVER_TYPE['API']['ad'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=ad_data['ldap_hostname'],
+            tls=False,
+            port='389',
+            organization=[module_org],
+            location=[module_loc],
+        ).create()
+        ldap_data = ad_data
+    elif request.param.lower() == 'ipa':
+        # entity create with IPA settings
+        entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=ipa_data['ldap_user_cn'],
+            account_password=ipa_data['ldap_user_passwd'],
+            base_dn=ipa_data['base_dn'],
+            groups_base=ipa_data['group_base_dn'],
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login'],
+            server_type=LDAP_SERVER_TYPE['API']['ipa'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=ipa_data['ldap_hostname'],
+            tls=False,
+            port='389',
+            organization=[module_org],
+            location=[module_loc],
+        ).create()
+        ldap_data = ipa_data
+    else:
+        # default auth server settings
+        raise Exception('Incorrect auth source parameter used')
+    yield ldap_data
 
 
 @fixture(scope='function')

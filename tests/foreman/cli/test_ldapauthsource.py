@@ -60,7 +60,7 @@ class TestADAuthSource:
     @tier1
     @upgrade
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
-    def test_positive_create_with_ad(self, ldap_data, server_name):
+    def test_positive_create_with_ad(self, ad_data, server_name):
         """Create/update/delete LDAP authentication with AD using names of different types
 
         :id: 093f6abc-91e7-4449-b484-71e4a14ac808
@@ -75,20 +75,20 @@ class TestADAuthSource:
             {
                 'name': server_name,
                 'onthefly-register': 'true',
-                'host': ldap_data['ldap_hostname'],
+                'host': ad_data['ldap_hostname'],
                 'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
                 'attr-login': LDAP_ATTR['login_ad'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ldap_data['ldap_user_name'],
-                'account-password': ldap_data['ldap_user_passwd'],
-                'base-dn': ldap_data['base_dn'],
-                'groups-base': ldap_data['group_base_dn'],
+                'account': ad_data['ldap_user_name'],
+                'account-password': ad_data['ldap_user_passwd'],
+                'base-dn': ad_data['base_dn'],
+                'groups-base': ad_data['group_base_dn'],
             }
         )
         assert auth['server']['name'] == server_name
-        assert auth['server']['server'] == ldap_data['ldap_hostname']
+        assert auth['server']['server'] == ad_data['ldap_hostname']
         assert auth['server']['server-type'] == LDAP_SERVER_TYPE['CLI']['ad']
         new_name = gen_string('alpha')
         LDAPAuthSource.update({'name': server_name, 'new-name': new_name})
@@ -155,20 +155,20 @@ class TestIPAAuthSource:
             {
                 'name': server_name,
                 'onthefly-register': 'true',
-                'host': ipa_data['ldap_ipa_hostname'],
+                'host': ipa_data['ldap_hostname'],
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_ipa_user_name'],
-                'account-password': ipa_data['ldap_ipa_user_passwd'],
-                'base-dn': ipa_data['ipa_base_dn'],
-                'groups-base': ipa_data['ipa_group_base_dn'],
+                'account': ipa_data['ldap_user_cn'],
+                'account-password': ipa_data['ldap_user_passwd'],
+                'base-dn': ipa_data['base_dn'],
+                'groups-base': ipa_data['group_base_dn'],
             }
         )
         assert auth['server']['name'] == server_name
-        assert auth['server']['server'] == ipa_data['ldap_ipa_hostname']
+        assert auth['server']['server'] == ipa_data['ldap_hostname']
         assert auth['server']['server-type'] == LDAP_SERVER_TYPE['CLI']['ipa']
         new_name = gen_string('alpha')
         LDAPAuthSource.update({'name': server_name, 'new-name': new_name})
@@ -190,9 +190,9 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ldap_ipa_hostname = ipa_data['ldap_ipa_hostname']
-        self.ldap_ipa_user_passwd = ipa_data['ldap_ipa_user_passwd']
-        ipa_group_base_dn = ipa_data['ipa_group_base_dn'].replace('foobargroup', 'foreman_group')
+        self.ldap_ipa_hostname = ipa_data['ldap_hostname']
+        self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
+        ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
@@ -202,15 +202,15 @@ class TestIPAAuthSource:
                 'name': auth_source_name,
                 'onthefly-register': 'true',
                 'usergroup-sync': 'false',
-                'host': ipa_data['ldap_ipa_hostname'],
+                'host': ipa_data['ldap_hostname'],
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_ipa_user_name'],
-                'account-password': ipa_data['ldap_ipa_user_passwd'],
-                'base-dn': ipa_data['ipa_base_dn'],
+                'account': ipa_data['ldap_user_cn'],
+                'account-password': ipa_data['ldap_user_passwd'],
+                'base-dn': ipa_data['base_dn'],
                 'groups-base': ipa_group_base_dn,
             }
         )
@@ -266,9 +266,9 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ldap_ipa_hostname = ipa_data['ldap_ipa_hostname']
-        self.ldap_ipa_user_passwd = ipa_data['ldap_ipa_user_passwd']
-        ipa_group_base_dn = ipa_data['ipa_group_base_dn'].replace('foobargroup', 'foreman_group')
+        self.ldap_ipa_hostname = ipa_data['ldap_hostname']
+        self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
+        ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
         member_group = 'foreman_group'
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
@@ -278,15 +278,15 @@ class TestIPAAuthSource:
                 'name': auth_source_name,
                 'onthefly-register': 'true',
                 'usergroup-sync': 'true',
-                'host': ipa_data['ldap_ipa_hostname'],
+                'host': ipa_data['ldap_hostname'],
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': ipa_data['ldap_ipa_user_name'],
-                'account-password': ipa_data['ldap_ipa_user_passwd'],
-                'base-dn': ipa_data['ipa_base_dn'],
+                'account': ipa_data['ldap_user_cn'],
+                'account-password': ipa_data['ldap_user_passwd'],
+                'base-dn': ipa_data['base_dn'],
                 'groups-base': ipa_group_base_dn,
             }
         )
