@@ -26,7 +26,6 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
-from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.utils.issue_handlers import is_open
@@ -34,6 +33,7 @@ from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
+from robottelo.virtwho_utils import virtwho
 
 
 class scenario_positive_virt_who(APITestCase):
@@ -48,17 +48,15 @@ class scenario_positive_virt_who(APITestCase):
     """
 
     @classmethod
-    @skip_if_not_set('virtwho')
     def setUpClass(cls):
         cls.org_name = 'virtwho_upgrade_org_name'
         cls.satellite_url = settings.server.hostname
-        cls.hypervisor_type = settings.virtwho.hypervisor_type
-        cls.hypervisor_server = settings.virtwho.hypervisor_server
-        cls.hypervisor_username = settings.virtwho.hypervisor_username
-        cls.hypervisor_password = settings.virtwho.hypervisor_password
-        cls.hypervisor_config_file = settings.virtwho.hypervisor_config_file
-        cls.vdc_physical = settings.virtwho.sku_vdc_physical
-        cls.vdc_virtual = settings.virtwho.sku_vdc_virtual
+        cls.hypervisor_type = virtwho.esx.hypervisor_type
+        cls.hypervisor_server = virtwho.esx.hypervisor_server
+        cls.hypervisor_username = virtwho.esx.hypervisor_username
+        cls.hypervisor_password = virtwho.esx.hypervisor_password
+        cls.vdc_physical = virtwho.sku.vdc_physical
+        cls.vdc_virtual = virtwho.sku.vdc_virtual
 
         cls.name = 'preupgrade_virt_who'
 
@@ -71,14 +69,9 @@ class scenario_positive_virt_who(APITestCase):
             'hypervisor_server': self.hypervisor_server,
             'filtering_mode': 'none',
             'satellite_url': self.satellite_url,
+            'hypervisor_username': self.hypervisor_username,
+            'hypervisor_password': self.hypervisor_password,
         }
-        if self.hypervisor_type == 'libvirt':
-            args['hypervisor_username'] = self.hypervisor_username
-        elif self.hypervisor_type == 'kubevirt':
-            args['kubeconfig'] = self.hypervisor_config_file
-        else:
-            args['hypervisor_username'] = self.hypervisor_username
-            args['hypervisor_password'] = self.hypervisor_password
         return args
 
     @pre_upgrade
@@ -110,7 +103,7 @@ class scenario_positive_virt_who(APITestCase):
         self.assertEqual(vhd.status, 'unknown')
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, debug=True, org=org.name
+            command, args['hypervisor_type'], debug=True, org=org.name
         )
         self.assertEqual(
             entities.VirtWhoConfig(organization_id=org.id)

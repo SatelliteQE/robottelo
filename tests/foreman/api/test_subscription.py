@@ -112,7 +112,7 @@ class SubscriptionsTestCase(APITestCase):
             upload_manifest(org.id, manifest.content)
         try:
             sub.refresh_manifest(data={'organization_id': org.id})
-            self.assertGreater(len(sub.search()), 0)
+            assert len(sub.search()) > 0
         finally:
             sub.delete_manifest(data={'organization_id': org.id})
 
@@ -139,9 +139,9 @@ class SubscriptionsTestCase(APITestCase):
         self.upload_manifest(org.id, manifests.original_manifest())
         try:
             org_sub.refresh_manifest(data={'organization_id': org.id})
-            self.assertGreater(len(org_sub.search()), 0)
+            assert len(org_sub.search()) > 0
             self.upload_manifest(new_org.id, manifests.clone())
-            self.assertGreater(len(new_org_sub.search()), 0)
+            assert len(new_org_sub.search()) > 0
         finally:
             org_sub.delete_manifest(data={'organization_id': org.id})
 
@@ -160,9 +160,9 @@ class SubscriptionsTestCase(APITestCase):
         sub = entities.Subscription(organization=org)
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        self.assertGreater(len(sub.search()), 0)
+        assert len(sub.search()) > 0
         sub.delete_manifest(data={'organization_id': org.id})
-        self.assertEqual(len(sub.search()), 0)
+        assert len(sub.search()) == 0
 
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -177,9 +177,9 @@ class SubscriptionsTestCase(APITestCase):
         orgs = [entities.Organization().create() for _ in range(2)]
         with manifests.clone() as manifest:
             upload_manifest(orgs[0].id, manifest.content)
-            with self.assertRaises(TaskFailedError):
+            with pytest.raises(TaskFailedError):
                 upload_manifest(orgs[1].id, manifest.content)
-        self.assertEqual(len(entities.Subscription(organization=orgs[1]).search()), 0)
+        assert len(entities.Subscription(organization=orgs[1]).search()) == 0
 
     @tier2
     def test_positive_delete_manifest_as_another_user(self):
@@ -222,7 +222,7 @@ class SubscriptionsTestCase(APITestCase):
         entities.Subscription(sc2, organization=org).delete_manifest(
             data={'organization_id': org.id}
         )
-        self.assertEquals(0, len(Subscription.list({'organization-id': org.id})))
+        assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @tier2
     @pytest.mark.usefixtures("golden_ticket_host_setup")
@@ -247,58 +247,58 @@ class SubscriptionsTestCase(APITestCase):
             host_content = entities.Host(id=host_id).read_raw().content
             assert "Disabled" in str(host_content)
 
-    @tier2
-    def test_positive_candlepin_events_processed_by_STOMP(self):
-        """Verify that Candlepin events are being read and processed by
-           attaching subscriptions, validating host subscriptions status,
-           and viewing processed and failed Candlepin events
 
-        :id: efd20ffd-8f98-4536-abb6-d080f9d23169
+@tier2
+def test_positive_candlepin_events_processed_by_STOMP(rhel7_contenthost):
+    """Verify that Candlepin events are being read and processed by
+        attaching subscriptions, validating host subscriptions status,
+        and viewing processed and failed Candlepin events
 
-        :steps:
+    :id: efd20ffd-8f98-4536-abb6-d080f9d23169
 
-            1. Add subscriptions to content host
-            2. Verify subscription status is invalid at
-               <your-satellite-url>/api/v2/hosts
-            3. Import a Manifest
-            4. Attach subs to content host
-            5. Verify subscription status is valid
-            6. Check ping api for processed and failed events
-               /katello/api/v2/ping
+    :steps:
 
-        :expectedresults: Candlepin events are being read and processed
-                          correctly without any failures
-        :BZ: #1826515
+        1. Add subscriptions to content host
+        2. Verify subscription status is invalid at
+            <your-satellite-url>/api/v2/hosts
+        3. Import a Manifest
+        4. Attach subs to content host
+        5. Verify subscription status is valid
+        6. Check ping api for processed and failed events
+            /katello/api/v2/ping
 
-        :CaseImportance: High
-        """
-        org = entities.Organization().create()
-        repo = entities.Repository(product=entities.Product(organization=org).create()).create()
-        repo.sync()
-        ak = entities.ActivationKey(
-            content_view=org.default_content_view,
-            max_hosts=100,
-            organization=org,
-            environment=entities.LifecycleEnvironment(id=org.library.id),
-            auto_attach=True,
-        ).create()
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(org.name, ak.name)
-            host = entities.Host().search(query={'search': f'name={vm.hostname}'})
-            host_id = host[0].id
-            host_content = entities.Host(id=host_id).read_json()
-            assert host_content["subscription_status"] == 2
-            with manifests.clone() as manifest:
-                upload_manifest(org.id, manifest.content)
-            subscription = entities.Subscription(organization=org).search(
-                query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-            )[0]
-            entities.HostSubscription(host=host_id).add_subscriptions(
-                data={'subscriptions': [{'id': subscription.cp_id, 'quantity': 1}]}
-            )
-            host_content = entities.Host(id=host_id).read_json()
-            assert host_content["subscription_status"] == 0
-            response = entities.Ping().search_json()["services"]["candlepin_events"]
-            assert response["status"] == "ok"
-            assert "0 Failed" in response["message"]
+    :expectedresults: Candlepin events are being read and processed
+                        correctly without any failures
+    :BZ: 1826515
+
+    :CaseImportance: High
+    """
+    org = entities.Organization().create()
+    repo = entities.Repository(product=entities.Product(organization=org).create()).create()
+    repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+        auto_attach=True,
+    ).create()
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(org.name, ak.name)
+    host = entities.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
+    host_id = host[0].id
+    host_content = entities.Host(id=host_id).read_json()
+    assert host_content["subscription_status"] == 2
+    with manifests.clone() as manifest:
+        upload_manifest(org.id, manifest.content)
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+    )[0]
+    entities.HostSubscription(host=host_id).add_subscriptions(
+        data={'subscriptions': [{'id': subscription.cp_id, 'quantity': 1}]}
+    )
+    host_content = entities.Host(id=host_id).read_json()
+    assert host_content["subscription_status"] == 0
+    response = entities.Ping().search_json()["services"]["candlepin_events"]
+    assert response["status"] == "ok"
+    assert "0 Failed" in response["message"]

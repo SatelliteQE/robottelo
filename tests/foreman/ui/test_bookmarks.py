@@ -119,7 +119,7 @@ def test_positive_end_to_end(session, random_entity):
 
 
 @tier2
-def test_positive_create_bookmark_public(session, random_entity, module_viewer_user, test_name):
+def test_positive_create_bookmark_public(session, random_entity, default_viewer_role, test_name):
     """Create and check visibility of the (non)public bookmarks
 
     :id: 93139529-7690-429b-83fe-3dcbac4f91dc
@@ -153,14 +153,14 @@ def test_positive_create_bookmark_public(session, random_entity, module_viewer_u
                 {'name': name, 'query': gen_string('alphanumeric'), 'public': name == public_name}
             )
             assert session.bookmark.search(name)[0]['Name'] == name
-    with Session(test_name, module_viewer_user.login, module_viewer_user.password) as session:
+    with Session(test_name, default_viewer_role.login, default_viewer_role.password) as session:
         assert session.bookmark.search(public_name)[0]['Name'] == public_name
         assert not session.bookmark.search(nonpublic_name)
 
 
 @tier2
 def test_positive_update_bookmark_public(
-    session, random_entity, module_viewer_user, module_user, test_name
+    session, random_entity, default_viewer_role, module_user, test_name
 ):
     """Update and save a bookmark public state
 
@@ -209,7 +209,7 @@ def test_positive_update_bookmark_public(
             cfg, name=name, controller=random_entity['controller'], public=name == public_name
         ).create()
     with Session(
-        test_name, module_viewer_user.login, module_viewer_user.password
+        test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert non_admin_session.bookmark.search(public_name)[0]['Name'] == public_name
         assert not non_admin_session.bookmark.search(nonpublic_name)
@@ -217,14 +217,14 @@ def test_positive_update_bookmark_public(
         session.bookmark.update(public_name, {'public': False})
         session.bookmark.update(nonpublic_name, {'public': True})
     with Session(
-        test_name, module_viewer_user.login, module_viewer_user.password
+        test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert non_admin_session.bookmark.search(nonpublic_name)[0]['Name'] == nonpublic_name
         assert not non_admin_session.bookmark.search(public_name)
 
 
 @tier2
-def test_negative_delete_bookmark(random_entity, module_viewer_user, test_name):
+def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name):
     """Simple removal of a bookmark query without permissions
 
     :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
@@ -247,7 +247,7 @@ def test_negative_delete_bookmark(random_entity, module_viewer_user, test_name):
     """
     bookmark = entities.Bookmark(controller=random_entity['controller'], public=True).create()
     with Session(
-        test_name, module_viewer_user.login, module_viewer_user.password
+        test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
         with raises(NoSuchElementException):

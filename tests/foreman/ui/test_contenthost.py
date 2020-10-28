@@ -30,7 +30,6 @@ from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -41,16 +40,18 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -355,6 +356,7 @@ def test_negative_install_package(session, vm):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 
@@ -493,7 +495,7 @@ def test_actions_katello_host_package_update_timeout(session, vm):
 
 
 @tier3
-def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
+def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
 
     :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
@@ -509,7 +511,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     """
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with Session(
-        test_name, user=module_viewer_user.login, password=module_viewer_user.password
+        test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}

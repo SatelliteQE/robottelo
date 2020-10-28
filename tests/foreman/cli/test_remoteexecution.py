@@ -36,7 +36,8 @@ from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -121,6 +122,8 @@ class TestRemoteExecution:
             and task can be listed by name and ID
 
         :BZ: 1647582
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -168,6 +171,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -235,6 +240,8 @@ class TestRemoteExecution:
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
         :expectedresults: Verify the job was successfully ran against the host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -278,6 +285,8 @@ class TestRemoteExecution:
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
 
         :expectedresults: Verify the job was successfully ran against all hosts
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -324,6 +333,7 @@ class TestRemoteExecution:
             assert invocation_command['success'] == '2', output_msgs
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_install_multiple_packages_with_a_job_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -333,6 +343,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the packages were successfully installed
             on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -395,6 +407,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was run not more than the specified
             number of times.
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -442,6 +456,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully ran after the
             designated time
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -553,6 +569,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -633,6 +651,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -672,6 +692,7 @@ class TestAnsibleREX:
 
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job can install packages and start services
 
@@ -694,6 +715,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup

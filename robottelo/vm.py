@@ -539,7 +539,7 @@ gpgcheck=0'''.format(
                 password = settings.server.admin_password
 
             cmd += ' --consumerid {0} --username {1} --password {2}'.format(
-                consumerid, username, password,
+                consumerid, username, password
             )
             if auto_attach:
                 cmd += ' --auto-attach'
@@ -649,7 +649,7 @@ gpgcheck=0'''.format(
         # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests as they are huge(in GB's)
         # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
-        self.run('wget -O /etc/yum.repos.d/rhel.repo {0}'.format(rhel_repo))
+        self.run('curl -o /etc/yum.repos.d/rhel.repo {0}'.format(rhel_repo))
 
     def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.

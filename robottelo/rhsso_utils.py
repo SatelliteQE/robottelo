@@ -1,15 +1,19 @@
 """Utility module to handle the rhsso-satellite configure UI/CLI/API testing"""
 import json
 import random
+from contextlib import contextmanager
 
 from fauxfactory import gen_string
+from pexpect import pxssh
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import KEY_CLOAK_CLI
+from robottelo.constants import RHSSO_NEW_GROUP
 from robottelo.constants import RHSSO_NEW_USER
 from robottelo.constants import RHSSO_RESET_PASSWORD
+from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
 
 satellite = settings.server.hostname
@@ -72,6 +76,16 @@ def get_rhsso_user_details(username):
     return result_json[0]
 
 
+def get_rhsso_groups_details(group_name):
+    """Getter method to receive the group id"""
+    result = run_command(
+        cmd=f"{KEY_CLOAK_CLI} get groups -r {realm} -q group_name={group_name}",
+        hostname=rhsso_host,
+    )
+    result_json = json.loads("[{{{0}".format("".join(result)))
+    return result_json[0]
+
+
 def upload_rhsso_entity(json_content, entity_name):
     """Helper method upload the entity json request as file on RHSSO Server"""
     with open(entity_name, "w") as file:
@@ -112,9 +126,109 @@ def create_new_rhsso_user(client_id, username=None):
     return RHSSO_NEW_USER
 
 
+def update_rhsso_user(username, group_name=None):
+    user_details = get_rhsso_user_details(username)
+    RHSSO_USER_UPDATE["realm"] = f"{realm}"
+    RHSSO_USER_UPDATE["userId"] = f"{user_details['id']}"
+    if group_name:
+        group_details = get_rhsso_groups_details(group_name=group_name)
+        RHSSO_USER_UPDATE["groupId"] = f"{group_details['id']}"
+        upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
+        group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
+        run_command(
+            cmd=f"{KEY_CLOAK_CLI} update -r {realm} {group_path} -f update_user",
+            hostname=rhsso_host,
+        )
+
+
 def delete_rhsso_user(username):
     """Delete the RHSSO user"""
     user_details = get_rhsso_user_details(username)
     run_command(
         cmd=f"{KEY_CLOAK_CLI} delete -r {realm} users/{user_details['id']}", hostname=rhsso_host,
     )
+
+
+def create_group(group_name=None):
+    """Create the RHSSO group"""
+    if not group_name:
+        group_name = gen_string('alphanumeric')
+    RHSSO_NEW_GROUP['name'] = group_name
+    upload_rhsso_entity(RHSSO_NEW_GROUP, "create_group")
+    result = run_command(
+        cmd=f"{KEY_CLOAK_CLI} create groups -r {realm} -f create_group", hostname=rhsso_host,
+    )
+    return result
+
+
+def delete_rhsso_group(group_name):
+    """Delete the RHSSO group"""
+    group_details = get_rhsso_groups_details(group_name)
+    run_command(
+        cmd=f"{KEY_CLOAK_CLI} delete -r {realm} groups/{group_details['id']}", hostname=rhsso_host,
+    )
+
+
+def update_client_configuration(json_content):
+    """Update the client configuration"""
+    client_id = get_rhsso_client_id()
+    upload_rhsso_entity(json_content, "update_client_info")
+    update_cmd = (
+        f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info -s enabled=true --merge"
+    )
+    run_command(cmd=update_cmd, hostname=rhsso_host)
+
+
+def get_oidc_token_endpoint():
+    """getter oidc token endpoint"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/token"
+    )
+
+
+def get_oidc_client_id():
+    """getter for the oidc client_id"""
+    return f"{settings.server.hostname}-foreman-openidc"
+
+
+def get_oidc_authorization_endpoint():
+    """getter for the oidc authorization endpoint"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/auth"
+    )
+
+
+def get_two_factor_token_rh_sso_url():
+    """getter for the two factor token rh_sso url"""
+    return (
+        f"https://{settings.rhsso.host_name}/auth/realms/"
+        f"{settings.rhsso.realm}/protocol/openid-connect/"
+        f"auth?response_type=code&client_id={settings.server.hostname}-foreman-openidc&"
+        f"redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=openid"
+    )
+
+
+@contextmanager
+def open_pxssh_session(
+    ssh_key=settings.server.ssh_key,
+    hostname=settings.server.hostname,
+    username=settings.server.ssh_username,
+):
+    ssh_options = {'IdentityAgent': ssh_key}
+    ssh_session = pxssh.pxssh(options=ssh_options)
+    ssh_session.login(hostname, username, sync_multiplier=5)
+    yield ssh_session
+    ssh_session.logout()
+
+
+def set_the_redirect_uri():
+    client_config = {
+        "redirectUris": [
+            "urn:ietf:wg:oauth:2.0:oob",
+            f"https://{settings.server.hostname}/users/extlogin/redirect_uri",
+            f"https://{settings.server.hostname}/users/extlogin",
+        ]
+    }
+    update_client_configuration(client_config)

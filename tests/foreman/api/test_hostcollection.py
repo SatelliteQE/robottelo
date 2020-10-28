@@ -17,11 +17,9 @@
 from random import choice
 
 from nailgun import entities
-from nailgun.client import request
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
-from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
@@ -445,16 +443,10 @@ class HostCollectionTestCase(APITestCase):
             )
             # GET the subscriptions from hosts and assert they are there
             for host_id in host_ids:
-                req = request(
-                    'GET',
-                    '{0}/api/v2/hosts/{1}/subscriptions'.format(
-                        settings.server.get_url(), host_id
-                    ),
-                    verify=False,
-                    auth=settings.server.get_credentials(),
-                    headers={'content-type': 'application/json'},
-                )
-                assert prod_name in req.text, 'Subscription not applied to HC members'
+                req = entities.HostSubscription(host=host_id).subscriptions()
+                assert (
+                    prod_name in req['results'][0]['product_name']
+                ), 'Subscription not applied to HC members'
             # Remove the subscription
             # Call nailgun to make the API PUT to members of Host Collection
             entities.Host().bulk_remove_subscriptions(
@@ -466,13 +458,5 @@ class HostCollectionTestCase(APITestCase):
             )
             # GET the subscriptions from hosts and assert they are gone
             for host_id in host_ids:
-                req = request(
-                    'GET',
-                    '{0}/api/v2/hosts/{1}/subscriptions'.format(
-                        settings.server.get_url(), host_id
-                    ),
-                    verify=False,
-                    auth=settings.server.get_credentials(),
-                    headers={'content-type': 'application/json'},
-                )
-                assert prod_name not in req.text, 'Subscription not removed from HC members'
+                req = entities.HostSubscription(host=host_id).subscriptions()
+                assert not req['results'], 'Subscription not removed from HC members'
