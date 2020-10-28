@@ -39,6 +39,13 @@ DISTROS_MAJOR_VERSION = {
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
+BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
+BROKER_PROVISIONING_PROVIDER = "RHEV"
+BROKER_RHEL77 = {
+    "workflow": BROKER_DEPLOY_WORKFLOW,
+    "rhel_version": "7.7",
+    "provider": BROKER_PROVISIONING_PROVIDER,
+}
 
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
@@ -671,10 +678,10 @@ FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
 FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
-REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
-REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
-REAL_RHEL7_0_1_PACKAGE = 'liblouis-python-2.5.2-11.el7_4.noarch'
-REAL_RHEL7_0_1_PACKAGE_FILENAME = 'liblouis-python-2.5.2-11.el7_4.noarch.rpm'
+REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
+REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
+REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
+REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_9_YUM_OUTDATED_PACKAGES = [
     'bear-4.0-1.noarch',
@@ -708,7 +715,7 @@ REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
-REAL_RHEL7_0_ERRATA_ID = 'RHSA-2017:3111'  # for REAL_RHEL7_0_0_PACKAGE
+REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
@@ -1759,6 +1766,12 @@ RHSSO_NEW_USER = {
     "firstName": "first_name",
     "lastName": "last_name",
     "username": "random_name",
+}
+
+RHSSO_USER_UPDATE = {'realm': "realm_name", "userId": "user_id"}
+
+RHSSO_NEW_GROUP = {
+    "name": "group_name",
 }
 
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}

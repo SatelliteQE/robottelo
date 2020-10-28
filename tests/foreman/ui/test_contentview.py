@@ -96,7 +96,6 @@ from robottelo.products import SatelliteToolsRepository
 from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
-from robottelo.vm import VirtualMachineError
 
 VERSION = 'Version 1.0'
 
@@ -2879,76 +2878,6 @@ def test_positive_subscribe_system_with_puppet_modules(session):
         assert vm.subscribed
         with session:
             session.organization.select(org.name)
-            # assert the vm exists in content hosts page
-            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
-
-
-@run_in_one_thread
-@upgrade
-@skip_if_not_set('fake_manifest')
-@tier3
-def test_positive_subscribe_system_with_rh_custom_spin(session):
-    """Attempt to subscribe a host to content view with rh repository
-     and custom filter that exclude katello agent package. Then remove filter
-     and make one more attempt
-
-    :id: 3ea6719b-df4d-4b0f-b4b4-69ce852f632e
-
-    :setup: content view with rh repo and custom spin
-
-    :expectedresults: System will be subscribed only after filter is removed
-
-    :CaseLevel: System
-
-    :CaseImportance: Low
-    """
-    filter_name = gen_string('alpha')
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
-    )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
-    with session:
-        session.organization.select(org.name)
-        # add a package exclude filter
-        session.contentviewfilter.create(
-            cv.name,
-            {
-                'name': filter_name,
-                'content_type': FILTER_CONTENT_TYPE['package'],
-                'inclusion_type': FILTER_TYPE['exclude'],
-            },
-        )
-        # assert the added filter visible
-        assert session.contentviewfilter.search(cv.name, filter_name)[0]['Name'] == filter_name
-        # exclude some package in the created filter
-        session.contentviewfilter.add_package_rule(
-            cv.name, filter_name, 'gofer', None, 'All Versions'
-        )
-        # Publish and promote CV to next environment
-        result = session.contentview.publish(cv.name)
-        assert result['Version'] == 'Version 2.0'
-        result = session.contentview.promote(cv.name, 'Version 2.0', lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
-        # create a vm host client and ensure it cannot be subscribed since
-        # gofer package is excluded
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            with raises(VirtualMachineError) as context:
-                repos_collection.setup_virtual_machine(vm)
-            assert 'Failed to install katello-agent' in str(context.value)
-        # Remove content view filter
-        session.contentviewfilter.delete(cv.name, filter_name)
-        # Publish and promote CV to next environment
-        result = session.contentview.publish(cv.name)
-        assert result['Version'] == 'Version 3.0'
-        result = session.contentview.promote(cv.name, 'Version 3.0', lce.name)
-        assert 'Promoted to {}'.format(lce.name) in result['Status']
-        # create a vm host client and ensure it can be subscribed
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            repos_collection.setup_virtual_machine(vm)
-            assert vm.subscribed
             # assert the vm exists in content hosts page
             assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
 

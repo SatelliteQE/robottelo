@@ -226,7 +226,12 @@ def test_end_to_end(session, module_repos_col, vm):
         'module_stream_packages': [],
     }
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
+    value = 'has type = security'
     with session:
+        # Check selection box function for BZ#1688636
+        assert session.errata.search(value, installable=True)[0]['Errata ID']
+        assert session.errata.search(value, applicable=True)[0]['Errata ID']
+        # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         assert errata['details'] == ERRATA_DETAILS
         assert set(errata['packages']['independent_packages']) == set(

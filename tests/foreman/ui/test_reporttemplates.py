@@ -182,7 +182,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.create(
             {
                 'template.name': name,
-                'template.default': True,
+                'template.default': False,
                 'template.template_editor.editor': content,
                 'template.audit_comment': gen_string('alpha'),
                 'inputs': template_input,
@@ -194,7 +194,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # READ report template
         rt = session.reporttemplate.read(name)
         assert rt['template']['name'] == name
-        assert rt['template']['default'] is True
+        assert rt['template']['default'] is False
         assert rt['template']['template_editor']['editor'] == content
         assert rt['inputs'][0]['name'] == template_input[0]['name']
         assert rt['inputs'][0]['required'] is template_input[0]['required']
@@ -210,7 +210,18 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.update(name, {'template.name': new_name, 'type.snippet': True})
         rt = session.reporttemplate.read(new_name)
         assert rt['template']['name'] == new_name
+        assert rt['template']['default'] is False
+        assert rt['template']['template_editor']['editor'] == content
+        assert rt['inputs'][0]['name'] == template_input[0]['name']
+        assert rt['inputs'][0]['required'] is template_input[0]['required']
+        assert rt['inputs'][0]['input_type'] == template_input[0]['input_type']
+        assert (
+            rt['inputs'][0]['input_content']['description']
+            == template_input[0]['input_content.description']
+        )
         assert rt['type']['snippet'] is True
+        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # LOCK
         session.reporttemplate.lock(new_name)
         assert session.reporttemplate.is_locked(new_name) is True
@@ -221,7 +232,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.clone(new_name, {'template.name': clone_name})
         rt = session.reporttemplate.read(clone_name)
         assert rt['template']['name'] == clone_name
-        assert rt['template']['default'] is True
+        assert rt['template']['default'] is False
         assert rt['template']['template_editor']['editor'] == content
         assert rt['inputs'][0]['name'] == input_name
         assert rt['inputs'][0]['required'] is True

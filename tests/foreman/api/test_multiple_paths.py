@@ -297,8 +297,7 @@ class EntityIdTestCase(APITestCase):
                 entity.create_missing()
                 response = client.put(
                     entity_cls(id=entity_id).path(),
-                    # FIXME: use entity.update_payload()
-                    entity.create_payload(),
+                    entity.update_payload(),
                     auth=settings.server.get_credentials(),
                     verify=False,
                 )
