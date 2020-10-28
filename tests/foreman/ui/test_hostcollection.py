@@ -22,7 +22,6 @@ from pytest import raises
 from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
@@ -32,14 +31,15 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2

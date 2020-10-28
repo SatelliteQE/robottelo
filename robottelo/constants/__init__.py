@@ -39,6 +39,13 @@ DISTROS_MAJOR_VERSION = {
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
+BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
+BROKER_PROVISIONING_PROVIDER = "RHEV"
+BROKER_RHEL77 = {
+    "workflow": BROKER_DEPLOY_WORKFLOW,
+    "rhel_version": "7.7",
+    "provider": BROKER_PROVISIONING_PROVIDER,
+}
 
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
@@ -643,63 +650,16 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     },
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
-
 DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
 DOCKER_UPSTREAM_NAME = 'busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
-CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'
 CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
-
-CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
-
-CUSTOM_RPM_REPO = 'https://fixtures.pulpproject.org/rpm-signed/'
-
-CUSTOM_RPM_SHA_512 = 'https://fixtures.pulpproject.org/rpm-with-sha-512/'
-
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-
-CUSTOM_MODULE_STREAM_REPO_1 = 'https://partha.fedorapeople.org/test-repos/pteradactyl/'
-CUSTOM_MODULE_STREAM_REPO_2 = 'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
-CUSTOM_SWID_TAG_REPO = 'https://partha.fedorapeople.org/test-repos/swid-zoo/'
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
-FAKE_0_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo/'
-FAKE_1_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo3/'
-FAKE_2_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo2/'
-FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
-FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
-FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
-FAKE_7_YUM_REPO = 'https://fixtures.pulpproject.org/rpm-long-updateinfo/'
-FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
-FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
-FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
-FAKE_YUM_DRPM_REPO = 'https://fixtures.pulpproject.org/drpm-signed/'
-FAKE_YUM_SRPM_REPO = 'https://fixtures.pulpproject.org/srpm-signed/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://fixtures.pulpproject.org/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
-CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
-FAKE_0_PUPPET_REPO = 'http://davidd.fedorapeople.org/repos/random_puppet/'
-FAKE_1_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet01'
-FAKE_2_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet02'
-FAKE_3_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet03'
-FAKE_4_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet04'
-FAKE_5_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet05'
-FAKE_6_PUPPET_REPO = 'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
-FAKE_7_PUPPET_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
-FAKE_8_PUPPET_REPO = 'https://omaciel.fedorapeople.org/f4cb00ed/'
-# Fedora's OSTree repo changed to a single repo at
-#   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
-# With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
-# We will use the archived versions for now, but probably need to revisit this.
-FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
-FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
-REPO_DISCOVERY_URL = 'http://omaciel.fedorapeople.org/'
-FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
@@ -718,10 +678,10 @@ FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
 FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
-REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
-REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
-REAL_RHEL7_0_1_PACKAGE = 'liblouis-python-2.5.2-11.el7_4.noarch'
-REAL_RHEL7_0_1_PACKAGE_FILENAME = 'liblouis-python-2.5.2-11.el7_4.noarch.rpm'
+REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
+REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
+REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
+REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_9_YUM_OUTDATED_PACKAGES = [
     'bear-4.0-1.noarch',
@@ -755,7 +715,7 @@ REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
-REAL_RHEL7_0_ERRATA_ID = 'RHSA-2017:3111'  # for REAL_RHEL7_0_0_PACKAGE
+REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
@@ -802,14 +762,7 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
 
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
-
-FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
-
-FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
-)
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
-
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
@@ -1813,6 +1766,12 @@ RHSSO_NEW_USER = {
     "firstName": "first_name",
     "lastName": "last_name",
     "username": "random_name",
+}
+
+RHSSO_USER_UPDATE = {'realm': "realm_name", "userId": "user_id"}
+
+RHSSO_NEW_GROUP = {
+    "name": "group_name",
 }
 
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}

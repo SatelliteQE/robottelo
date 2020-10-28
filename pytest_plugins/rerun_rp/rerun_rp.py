@@ -14,22 +14,36 @@ class LaunchError(Exception):
     pass
 
 
-def _get_failed_tests(launch, fail_args):
-    """Returns failed test names from Report Portal Launch based on arguments"""
-    test_args = (
-        [dict(status='failed')]
-        if fail_args == ['all']
-        else [dict(defect_type=dtype) for dtype in fail_args]
-    )
-    tests = []
-    for t_args in test_args:
-        tests.extend([*launch.tests(**t_args).keys()])
-    # Formating test names for 'member of pytest test items' operation
+def _transform_rp_tests_to_pytest(tests):
+    """Formating test names toc check 'member of pytest test items' operation
+
+    :param list tests: The list of tests those name to be changed
+    :return list: The transformed list of tests
+    """
     tests = [str(test).replace('::', '.') for test in tests]
     return tests
 
 
-def _get_test_collection(rp_failed_tests, items):
+def _get_tests(launch, **kwargs):
+    """The helper function that actually connects to Report Portal and fetch tests of a launch
+
+    :param rp.launch launch: The launch object from where the tests will be read
+    :param dict kwargs: The params to `launch.tests` function
+        i.e status, user, defect_types
+    :return list: The list of test names retrieved from RP launch
+    """
+    tests = []
+    if 'defect_types' in kwargs:
+        defect_types = kwargs.pop('defect_types')
+        for dtype in defect_types:
+            tests.extend(launch.tests(**kwargs, defect_type=dtype).keys())
+    else:
+        tests.extend(launch.tests(**kwargs).keys())
+    transformed_tests = _transform_rp_tests_to_pytest(tests)
+    return transformed_tests
+
+
+def _get_test_collection(selectable_tests, items):
     """Returns the selected and deselected items"""
     # Select test item if its in failed tests else deselect
     LOGGER.debug('Selecting/Deselecting tests based on latest launch test results..')
@@ -37,17 +51,33 @@ def _get_test_collection(rp_failed_tests, items):
     deselected = []
     for item in items:
         test_item = f"{item.location[0]}.{item.location[2]}"
-        if test_item in rp_failed_tests:
+        if test_item in selectable_tests:
             selected.append(item)
         else:
             deselected.append(item)
     return selected, deselected
 
 
+def _validate_launch(launch, sat_version):
+    """Stop session based on RP Launch statistics and info"""
+    if launch.info['isProcessing']:
+        raise LaunchError(f'The launch of satellite version {sat_version} is not finished yet')
+    fail_percent = round(
+        (int(launch.statistics['failed']) / int(launch.statistics['total']) * 100)
+    )
+    fail_threshold = settings.report_portal.fail_threshold
+    if fail_percent > fail_threshold:
+        raise LaunchError(
+            f'The latest launch of Satellite verson {sat_version} has {fail_percent}% tests '
+            f'failed. Which is higher than the threshold of {fail_threshold}%. '
+            'Examine the failures thoroughly and check for any major issue.'
+        )
+
+
 def pytest_addoption(parser):
-    """Add options for pytest to collect only failed tests"""
-    help_script = f'''
-        Collects only failed tests in Report Portal to run only failed tests.
+    """Add options for pytest to collect only failed/skipped and user tests"""
+    help_text = f'''
+        Collects tests in Report Portal to run only failed status tests.
 
         Usage: --only-failed [options]
 
@@ -56,48 +86,64 @@ def pytest_addoption(parser):
         Defect_types:
             Collect failed tests marked with defect types: {[*ReportPortal.defect_types.keys()]}
         '''
-    parser.addoption("--only-failed", const='all', nargs='?', help=help_script)
+    parser.addoption("--only-failed", const='all', nargs='?', help=help_text)
+    help_text = '''
+        Collects only skipped tests in Report Portal to run only skipped tests.
+
+        Usage: --only-skipped
+        '''
+    parser.addoption("--only-skipped", action='store_true', default=False, help=help_text)
+    help_text = '''
+            Collects user tests from report portal.
+
+            Usage: --user [value]
+
+            Value: [ Report_portal_username ]
+
+            Defect_types:
+                Collect tests of specific user from Report Portal
+        '''
+    parser.addoption("--user", nargs='?', help=help_text)
 
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(items, config):
     """
-    Collects tests based on pytest option to select tests marked as failed on Report Portal
+    Collects and modifies tests collection based on pytest options to select tests marked as
+    failed/skipped and user specific tests in Report Portal
     """
-    fail_args = config.getvalue('only_failed')
-    if not fail_args:
+    fail_args = config.getoption('only_failed', False)
+    skip_arg = config.getoption('only_skipped', False)
+    user_arg = config.getoption('user', False)
+    if not any([fail_args, skip_arg, user_arg]):
         return
     rp = ReportPortal()
-    fail_args = fail_args.split(',') if ',' in fail_args else [fail_args]
-    allowed_args = [*rp.defect_types.keys()]
-    # Stop Session based on Arguments to pytest
-    if not fail_args == ['all']:
-        if not set(fail_args).issubset(set(allowed_args)):
-            raise pytest.UsageError(
-                f'Incorrect values to pytest option \'--only-failed\' are provided as '
-                f'{fail_args} but should be none/one/mix of {allowed_args}'
-            )
-    # Fetch the latest launch
     version = settings.server.version
     sat_version = f'{version.base_version}.{version.epoch}'
+    LOGGER.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
     launch = next(iter(rp.launches(sat_version=sat_version).values()))
-    # Stop session based on RP Launch statistics and info
-    if launch.info['isProcessing']:
-        raise LaunchError(f'The launch of satellite version {sat_version} is not Finished yet')
-    fail_percent = round(
-        (int(launch.statistics['failed']) / int(launch.statistics['total']) * 100)
-    )
-    if fail_percent > 20:
-        raise LaunchError(
-            f'The latest launch of Satellite verson {sat_version} has {fail_percent}% tests '
-            'failed. Which is higher than the threshold of 20%. '
-            'Examine the failures thoroughly and check for any major issue.'
-        )
-    rp_tests = _get_failed_tests(launch, fail_args)
+    _validate_launch(launch, sat_version)
+    test_args = {}
+    if fail_args:
+        test_args['status'] = 'failed'
+        if not fail_args == ['all']:
+            defect_types = fail_args.split(',') if ',' in fail_args else [fail_args]
+            allowed_args = [*rp.defect_types.keys()]
+            if not set(defect_types).issubset(set(allowed_args)):
+                raise pytest.UsageError(
+                    'Incorrect values to pytest option \'--only-failed\' are provided as '
+                    f'\'{fail_args}\'. It should be none/one/mix of {allowed_args}'
+                )
+            test_args['defect_types'] = defect_types
+    elif skip_arg:
+        test_args['status'] = 'skipped'
+    if user_arg:
+        test_args['user'] = user_arg
+    rp_tests = _get_tests(launch, **test_args)
     selected, deselected = _get_test_collection(rp_tests, items)
     LOGGER.debug(
-        f'Selected {len(selected)} failed and deselected {len(deselected)} passed tests '
-        f'based on latest launch test results.'
+        f'Selected {len(selected)} and deselected {len(deselected)} tests based on latest '
+        'launch test results.'
     )
     config.hook.pytest_deselected(items=deselected)
     items[:] = selected

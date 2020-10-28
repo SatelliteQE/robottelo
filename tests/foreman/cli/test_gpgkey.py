@@ -7,7 +7,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: GPGKeys
+:CaseComponent: ContentCredentials
 
 :TestType: Functional
 
@@ -462,7 +462,7 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list().values())
+        new_name = gen_choice(list(valid_data_list().values()))
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -501,7 +501,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list().values())
+        new_name = gen_choice(list(valid_data_list().values()))
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -544,7 +544,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list().values())
+        new_name = gen_choice(list(valid_data_list().values()))
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -580,7 +580,7 @@ class TestGPGKey(CLITestCase):
         # Verify gpg key was associated
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list().values())
+        new_name = gen_choice(list(valid_data_list().values()))
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )
@@ -621,7 +621,7 @@ class TestGPGKey(CLITestCase):
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list().values())
+        new_name = gen_choice(list(valid_data_list().values()))
         GPGKey.update(
             {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
         )

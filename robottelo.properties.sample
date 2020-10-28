@@ -2,6 +2,10 @@
 [server]
 # Server hostname
 hostname=
+# Additional satellite hostnames for xdist workers
+# gw0=
+# gw1=
+# gw2=
 
 # Path to private ssh key to be used when connecting via SSH.
 ssh_key=
@@ -49,6 +53,10 @@ ssh_key=
 # Webdriver logging options
 # A list of commands to be logged
 # log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo
+# - The URL of container hosting repos on SatLab
+# Example url - http://<container_hostname_or_ip>:<port>
+# Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
+# repos_hosting_url=
 
 # browser tells robottelo which browser to use when testing UI. Valid values
 # are:
@@ -131,6 +139,10 @@ ssh_key=
 # which are essentially required for generating swid tags in RHEL8 content host.
 # swid_tools_repo=https://example.com/swid-rhel-8.repo
 
+# Broker-specific settings
+# [broker]
+# broker_directory=.
+
 # Bugzilla data to authenticate API calls
 # [bugzilla]
 # url default value is set to 'https://bugzilla.redhat.com' even if not provided.
@@ -138,6 +150,15 @@ ssh_key=
 
 # Provide api_key to access Bugzilla REST API
 # api_key=
+
+# For Open Ldap Authentication
+# [open_ldap]
+# hostname=
+# username=
+# open_ldap_user=
+# password
+# base_dn=
+# group_base_dn=
 
 # For LDAP Authentication.
 # [ldap]
@@ -160,6 +181,8 @@ ssh_key=
 # disabled_user_ipa=
 # otp_user=otp_user
 # time_based_secret=
+# group_users =
+# groups =
 
 # Fake manifest testing.
 # [fake_manifest]
@@ -590,6 +613,9 @@ port_range=9091, 14999
 # project=satellite6
 # API key of an user
 # api_key=
+# To skip the rerun, if the failed tests in last run more than fail_threshold %
+# if its not set, 20% by default will be considered
+# fail_threshold=
 
 # Section for Http Proxy Details
 # [http_proxy]

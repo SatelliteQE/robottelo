@@ -99,6 +99,8 @@ class TestLocation:
             correct name
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         location = entities.Location(name=name).create()
         assert location.name == name
@@ -148,6 +150,8 @@ class TestLocation:
         :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         with pytest.raises(HTTPError):
             entities.Location(name=name).create()
@@ -190,6 +194,8 @@ class TestLocation:
         :expectedresults: Location updated successfully and name was changed
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         location = entities.Location().create()
         location.name = new_name
