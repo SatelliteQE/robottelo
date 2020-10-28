@@ -92,6 +92,8 @@ class TestOrganization:
             auto-generated label.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         org = entities.Organization(name=name, description=name).create()
         assert org.name == name
@@ -111,6 +113,7 @@ class TestOrganization:
 
         :expectedresults: The organization cannot be created.
 
+        :parametrized: yes
         """
         with pytest.raises(HTTPError):
             entities.Organization(name=name).create()
@@ -202,6 +205,8 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's name is updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         setattr(module_org, 'name', name)
         module_org = module_org.update(['name'])
@@ -217,6 +222,8 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's description is updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         setattr(module_org, 'description', desc)
         module_org = module_org.update(['description'])
@@ -333,6 +340,8 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's attributes are not updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         with pytest.raises(HTTPError):
             entities.Organization(id=module_org.id, **attrs).update(attrs.keys())

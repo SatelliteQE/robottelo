@@ -188,7 +188,7 @@ class TestRole:
 
     @tier1
     @upgrade
-    @pytest.mark.parametrize('per_page', **parametrized([1, 5, 20]))
+    @pytest.mark.parametrize('per_page', [1, 5, 20])
     def test_positive_list_filters_with_pagination(self, make_role_with_permissions, per_page):
         """Make sure filters list can be displayed with different items per
         page value
@@ -202,6 +202,8 @@ class TestRole:
             number of pages
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
         # Verify the first page contains exactly the same items count
         # as `per-page` value

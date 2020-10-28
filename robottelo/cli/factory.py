@@ -1062,6 +1062,7 @@ def make_usergroup(options=None):
     """
     # Assigning default values for attributes
     args = {
+        'admin': None,
         'name': gen_alphanumeric(),
         'role-ids': None,
         'roles': None,

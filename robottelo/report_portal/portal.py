@@ -173,7 +173,7 @@ class Launch:
             launch_name = next(filter(version_compiler.search, launch_tags))
         except StopIteration:
             LOGGER.debug(
-                'Invalid launch with no build name is detected. '
+                'Launch with no build name in launch_tags is detected. '
                 f'The launch has tags {launch_tags}'
             )
             return
