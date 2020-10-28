@@ -28,9 +28,11 @@ from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -41,6 +43,7 @@ class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -177,6 +180,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_import_twice_list_by_puppetclass_id(self):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
@@ -217,6 +221,8 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Parameter Value overridden with new value.
 
+        :BZ: 1830834
+
         :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
@@ -243,6 +249,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Attempt to submit the changes.
 
         :expectedresults: Not overridden parameter value cannot be updated.
+
+        :BZ: 1830834
 
         :CaseImportance: Medium
         """
@@ -298,6 +306,8 @@ class SmartClassParametersTestCase(CLITestCase):
             4.  Submit the change.
 
         :expectedresults: Error not raised for default value in list.
+
+        :BZ: 1830834
 
         :CaseImportance: Medium
         """

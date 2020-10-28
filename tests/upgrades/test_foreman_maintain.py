@@ -50,7 +50,9 @@ class ScenarioForemanMaintain(TestCase):
             satellite_version = satellite_version.stdout
         else:
             return [], [], None, None
-        forman_maintain_version = ssh.command("foreman-maintain upgrade list-versions")
+        forman_maintain_version = ssh.command(
+            "foreman-maintain upgrade list-versions --disable-self-upgrade"
+        )
         upgradeable_version = [
             version for version in forman_maintain_version.stdout if version != ''
         ]

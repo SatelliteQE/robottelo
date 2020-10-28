@@ -18,13 +18,15 @@ import pytest
 
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
 from robottelo.constants import DISTROS_SUPPORTED
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import xdist_adapter
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier4
 from robottelo.products import DockerRepository
 from robottelo.products import PuppetRepository
@@ -55,10 +57,13 @@ def module_lce(module_org):
 
 @tier4
 @pytest.mark.parametrize('value', **xdist_adapter(_distro_cdn_variants()))
+@skip_if(not settings.repos_hosting_url)
 def test_vm_install_package(value, module_org, module_lce):
     """Install a package with all supported distros and cdn not cdn variants
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
+
+    :parametrized: yes
 
     :expectedresults: Package is install is installed
     """

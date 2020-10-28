@@ -39,6 +39,13 @@ DISTROS_MAJOR_VERSION = {
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
+BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
+BROKER_PROVISIONING_PROVIDER = "RHEV"
+BROKER_RHEL77 = {
+    "workflow": BROKER_DEPLOY_WORKFLOW,
+    "rhel_version": "7.7",
+    "provider": BROKER_PROVISIONING_PROVIDER,
+}
 
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
@@ -70,7 +77,7 @@ LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
 RHEV_CR = '%s (RHV)'
 
-AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
+AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - T2 Micro Instance'
 
 COMPUTE_PROFILE_LARGE = '3-Large'
 COMPUTE_PROFILE_SMALL = '1-Small'
@@ -151,13 +158,18 @@ AZURERM_VALID_REGIONS = [
     'Norway West',
     'Norway East',
 ]
-AZURERM_RHEL7_FT_IMG_URN = 'RedHat:RHEL:7-RAW:latest'
-AZURERM_RHEL7_UD_IMG_URN = 'RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
+AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
+AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
+AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://vm1-shared-image-20200514081407'
+AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
 AZURERM_RG_DEFAULT = 'SATQE'
 AZURERM_PLATFORM_DEFAULT = 'Linux'
 AZURERM_VM_SIZE_DEFAULT = 'Standard_B2ms'
 AZURERM_PREMIUM_OS_Disk = True
-AZURERM_FILE_URI = 'https://github.com/SatelliteQE/robottelo/blob/master/tests/foreman/data/uri.sh'
+AZURERM_FILE_URI = (
+    'https://raw.githubusercontent.com/SatelliteQE/robottelo/master/tests/foreman/data/uri.sh'
+)
 
 HTML_TAGS = [
     'A',
@@ -294,7 +306,7 @@ SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
 ENVIRONMENT = "Library"
 
-NOT_IMPLEMENTED = 'Test not implemented'
+NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
@@ -638,63 +650,16 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     },
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
-
 DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
 DOCKER_UPSTREAM_NAME = 'busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
-CUSTOM_FILE_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
 CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
-
-CUSTOM_KICKSTART_REPO = 'http://mirror.linux.duke.edu/pub/centos/8/BaseOS/x86_64/kickstart/'
-
-CUSTOM_RPM_REPO = 'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
-
-CUSTOM_RPM_SHA_512 = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-with-sha-512/'
-
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-
-CUSTOM_MODULE_STREAM_REPO_1 = 'https://partha.fedorapeople.org/test-repos/pteradactyl/'
-CUSTOM_MODULE_STREAM_REPO_2 = 'https://partha.fedorapeople.org/test-repos/rpm-with-modules/el8/'
-CUSTOM_SWID_TAG_REPO = 'https://partha.fedorapeople.org/test-repos/swid-zoo/'
 CUSTOM_REPODATA_PATH = '/var/lib/pulp/published/yum/https/repos'
 CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
-FAKE_0_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo/'
-FAKE_1_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo3/'
-FAKE_2_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo2/'
-FAKE_3_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo01'
-FAKE_4_YUM_REPO = 'http://omaciel.fedorapeople.org/fakerepo02'
-FAKE_5_YUM_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/needed-errata/'
-FAKE_7_YUM_REPO = 'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
-FAKE_8_YUM_REPO = 'https://abalakht.fedorapeople.org/test_repos/lots_files/'
-FAKE_9_YUM_REPO = 'https://stephenw.fedorapeople.org/fakerepos/multiple_errata/'
-FAKE_10_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/modules-rpms/'
-FAKE_11_YUM_REPO = 'https://partha.fedorapeople.org/test-repos/separated/rpm-deps/'
-FAKE_YUM_DRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
-FAKE_YUM_SRPM_REPO = 'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
-FAKE_YUM_SRPM_DUPLICATE_REPO = 'https://repos.fedorapeople.org/pulp/pulp/fixtures/srpm-duplicate/'
-FAKE_YUM_MIXED_REPO = 'https://pondrejk.fedorapeople.org/test_repos/mixed/'
 FAKE_0_YUM_REPO_PACKAGES_COUNT = 32
-CUSTOM_PUPPET_REPO = 'http://omaciel.fedorapeople.org/bagoftricks'
-FAKE_0_PUPPET_REPO = 'http://davidd.fedorapeople.org/repos/random_puppet/'
-FAKE_1_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet01'
-FAKE_2_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet02'
-FAKE_3_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet03'
-FAKE_4_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet04'
-FAKE_5_PUPPET_REPO = 'http://omaciel.fedorapeople.org/fakepuppet05'
-FAKE_6_PUPPET_REPO = 'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
-FAKE_7_PUPPET_REPO = 'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
-FAKE_8_PUPPET_REPO = 'https://omaciel.fedorapeople.org/f4cb00ed/'
-# Fedora's OSTree repo changed to a single repo at
-#   https://kojipkgs.fedoraproject.org/compose/ostree/repo/
-# With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
-# We will use the archived versions for now, but probably need to revisit this.
-FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
-FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
-REPO_DISCOVERY_URL = 'http://omaciel.fedorapeople.org/'
-FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
 FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
 FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
 FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
@@ -709,14 +674,14 @@ FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_3_CUSTOM_PACKAGE = 'duck-0.8-1.noarch'
 FAKE_3_CUSTOM_PACKAGE_NAME = 'duck'
-FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
+FAKE_4_CUSTOM_PACKAGE = 'kangaroo-0.1-1.noarch'  # for RHBA-2012:1030
 FAKE_4_CUSTOM_PACKAGE_NAME = 'kangaroo'
-FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.3-1.noarch'  # for RHBA-2012:1030
+FAKE_5_CUSTOM_PACKAGE = 'kangaroo-0.2-1.noarch'  # for RHBA-2012:1030
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
-REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
-REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
-REAL_RHEL7_0_1_PACKAGE = 'liblouis-python-2.5.2-11.el7_4.noarch'
-REAL_RHEL7_0_1_PACKAGE_FILENAME = 'liblouis-python-2.5.2-11.el7_4.noarch.rpm'
+REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
+REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
+REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
+REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_9_YUM_OUTDATED_PACKAGES = [
     'bear-4.0-1.noarch',
@@ -726,7 +691,7 @@ FAKE_9_YUM_OUTDATED_PACKAGES = [
     'penguin-0.8.1-1.noarch',
     'stork-0.11-1.noarch',
     'walrus-0.71-1.noarch',
-    'kangaroo-0.2-1.noarch',
+    'kangaroo-0.1-1.noarch',
 ]
 FAKE_9_YUM_UPDATED_PACKAGES = [
     'bear-4.1-1.noarch',
@@ -736,7 +701,7 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
     'penguin-0.9.1-1.noarch',
     'stork-0.12-1.noarch',
     'walrus-5.21-1.noarch',
-    'kangaroo-0.3-1.noarch',
+    'kangaroo-0.2-1.noarch',
 ]
 FAKE_0_MODULAR_ERRATA_ID = 'RHEA-2012:0059'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
@@ -745,12 +710,12 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 FAKE_4_ERRATA_ID = 'WALRUS-2013:0002'
 FAKE_5_ERRATA_ID = 'RHBA-2012:1030'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
-REAL_0_ERRATA_ID = 'RHBA-2019:3175'  # for rhst7
+REAL_0_ERRATA_ID = 'RHBA-2020:1455'  # for rhst7
 REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
-REAL_RHEL7_0_ERRATA_ID = 'RHSA-2017:3111'  # for REAL_RHEL7_0_0_PACKAGE
+REAL_RHEL7_0_ERRATA_ID = 'RHBA-2020:3615'  # for REAL_RHEL7_0_0_PACKAGE
 REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
@@ -797,14 +762,7 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
 
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_0_PUPPET_MODULE = 'httpd'
-
-FAKE_PULP_REMOTE_FILEREPO = 'https://pondrejk.fedorapeople.org/test_repos/filerepo/'
-
-FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
-    'https://repos.fedorapeople.org/pulp/pulp/fixtures/rpm-string-version-updateinfo/'
-)
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
-
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
@@ -842,6 +800,12 @@ PERMISSIONS = {
         'view_rh_search',
         'view_tasks',
         'view_statuses',
+        'generate_foreman_rh_cloud',
+        'forget_status_hosts',
+        'edit_user_mail_notifications',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
+        'view_foreman_rh_cloud',
     ],
     'AnsibleRole': ['view_ansible_roles', 'destroy_ansible_roles', 'import_ansible_roles'],
     'AnsibleVariable': [
@@ -888,6 +852,8 @@ PERMISSIONS = {
         'destroy_compute_resources_vms',
         'power_compute_resources_vms',
         'console_compute_resources_vms',
+        'destroy_vm_compute_resources',
+        'power_vm_compute_resources',
     ],
     'DiscoveryRule': [
         'create_discovery_rules',
@@ -980,7 +946,7 @@ PERMISSIONS = {
         'destroy_locations',
         'assign_locations',
     ],
-    'MailNotification': ['view_mail_notifications'],
+    'MailNotification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
     'Model': ['view_models', 'create_models', 'edit_models', 'destroy_models'],
     'Operatingsystem': [
@@ -1068,12 +1034,6 @@ PERMISSIONS = {
     'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
-    'VariableLookupKey': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
@@ -1092,6 +1052,7 @@ PERMISSIONS = {
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
+        'forget_status_hosts',
     ],
     'Katello::ActivationKey': [
         'view_activation_keys',
@@ -1497,21 +1458,26 @@ OSCAP_WEEKDAY = {
 OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
+    'jre_content': 'Red Hat jre default content',
+    'rhel8_content': 'Red Hat rhel8 default content',
     'rhel_firefox': 'Red Hat firefox default content',
 }
 
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
+    'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
     'esp': 'Example Server Profile',
-    'rhccp': ('Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)'),
+    'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
-    'common': 'Common Profile for General-Purpose Systems',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
     ),
     'security6': 'Standard System Security Profile for Red Hat Enterprise Linux 6',
     'security7': 'Standard System Security Profile for Red Hat Enterprise Linux 7',
+    'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
+    'ppgpo': 'Protection Profile for General Purpose Operating Systems',
+    'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
 }
 
 ROLES = [
@@ -1636,8 +1602,8 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'PuppetEnvironment', 'controller': 'environments', 'setup': entities.Environment},
     {'name': 'PuppetClass', 'controller': 'puppetclasses', 'setup': entities.PuppetClass},
-    {'name': 'Roles', 'controller': 'ansible_roles', 'setup': entities.Role},
-    {'name': 'Variables', 'controller': 'ansible_variables'},
+    {'name': 'Role', 'controller': 'ansible_roles', 'setup': entities.Role},
+    {'name': 'Variables', 'controller': 'ansible_variables', 'skip_for_ui': True},
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
     {
         'name': 'ComputeResource',
@@ -1742,8 +1708,6 @@ VMWARE_CONSTANTS = {
 
 HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
-ANSWERS = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
-
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 
 FOREMAN_TEMPLATES_COMMUNITY_URL = 'https://github.com/theforeman/community-templates.git'
@@ -1752,6 +1716,8 @@ FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
     'example_template.erb'
 )
+
+FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
 
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),
@@ -1800,6 +1766,12 @@ RHSSO_NEW_USER = {
     "firstName": "first_name",
     "lastName": "last_name",
     "username": "random_name",
+}
+
+RHSSO_USER_UPDATE = {'realm': "realm_name", "userId": "user_id"}
+
+RHSSO_NEW_GROUP = {
+    "name": "group_name",
 }
 
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}

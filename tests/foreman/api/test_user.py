@@ -63,6 +63,8 @@ class TestUser:
 
         :id: a9827cda-7f6d-4785-86ff-3b6969c9c00a
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
@@ -79,10 +81,14 @@ class TestUser:
 
         :id: 036bb958-227c-420c-8f2b-c607136f12e0
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         user = entities.User(firstname=firstname).create()
         assert user.firstname == firstname
 
@@ -95,10 +101,14 @@ class TestUser:
 
         :id: 95d3b571-77e7-42a1-9c48-21f242e8cdc2
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         user = entities.User(lastname=lastname).create()
         assert user.lastname == lastname
 
@@ -108,6 +118,8 @@ class TestUser:
         """Create User for all variations of Email
 
         :id: e68caf51-44ba-4d32-b79b-9ab9b67b9590
+
+        :parametrized: yes
 
         :expectedresults: User is created
 
@@ -122,6 +134,8 @@ class TestUser:
         """Create User for all variations of Description
 
         :id: 1463d71c-b77d-4223-84fa-8370f77b3edf
+
+        :parametrized: yes
 
         :expectedresults: User is created
 
@@ -139,6 +153,8 @@ class TestUser:
 
         :id: 53d0a419-0730-4f7d-9170-d855adfc5070
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
@@ -153,6 +169,8 @@ class TestUser:
         """Create random users and then delete it.
 
         :id: df6059e7-85c5-42fa-99b5-b7f1ef809f52
+
+        :parametrized: yes
 
         :expectedresults: The user cannot be fetched after deletion.
 
@@ -170,6 +188,8 @@ class TestUser:
 
         :id: a8e218b1-7256-4f20-91f3-3958d58ea5a8
 
+        :parametrized: yes
+
         :expectedresults: The user's ``Username`` attribute is updated.
 
         :CaseImportance: Critical
@@ -184,6 +204,8 @@ class TestUser:
         """Update a user and provide new login.
 
         :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+
+        :parametrized: yes
 
         :expectedresults: The user's ``login`` attribute is updated.
 
@@ -202,10 +224,14 @@ class TestUser:
 
         :id: a1287d47-e7d8-4475-abe8-256e6f2034fc
 
+        :parametrized: yes
+
         :expectedresults: The user's ``firstname`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         create_user.firstname = firstname
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
@@ -219,10 +245,14 @@ class TestUser:
 
         :id: 25c6c9df-5db2-4827-89bb-b8fd0658a9b9
 
+        :parametrized: yes
+
         :expectedresults: The user's ``lastname`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         create_user.lastname = lastname
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
@@ -233,6 +263,8 @@ class TestUser:
         """Update a user and provide new email.
 
         :id: 3ae70631-7cee-4a4a-9c2f-b428273f1311
+
+        :parametrized: yes
 
         :expectedresults: The user's ``mail`` attribute is updated.
 
@@ -249,6 +281,8 @@ class TestUser:
 
         :id: 0631dce1-694c-4815-971d-26ff1934da98
 
+        :parametrized: yes
+
         :expectedresults: The user's ``mail`` attribute is updated.
 
         :CaseImportance: Critical
@@ -263,6 +297,8 @@ class TestUser:
         """Update a user and provide new email.
 
         :id: a1d764ad-e9bb-4e5e-b8cd-3c52e1f128f6
+
+        :parametrized: yes
 
         :expectedresults: The user's ``Description`` attribute is updated.
 
@@ -279,6 +315,8 @@ class TestUser:
 
         :id: b5fedf65-37f5-43ca-806a-ac9a7979b19d
 
+        :parametrized: yes
+
         :expectedresults: The user's ``admin`` attribute is updated.
 
         :CaseImportance: Critical
@@ -294,6 +332,8 @@ class TestUser:
 
         :id: ebbd1f5f-e71f-41f4-a956-ce0071b0a21c
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
@@ -307,6 +347,8 @@ class TestUser:
         """Create User with invalid Username
 
         :id: aaf157a9-0375-4405-ad87-b13970e0609b
+
+        :parametrized: yes
 
         :expectedresults: User is not created. Appropriate error shown.
 
@@ -322,6 +364,8 @@ class TestUser:
 
         :id: cb1ca8a9-38b1-4d58-ae32-915b47b91657
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
@@ -335,6 +379,8 @@ class TestUser:
         """Create User with invalid Lastname
 
         :id: 59546d26-2b6b-400b-990f-0b5d1c35004e
+
+        :parametrized: yes
 
         :expectedresults: User is not created. Appropriate error shown.
 
@@ -377,6 +423,8 @@ class TestUserRole:
 
         :id: 32daacf1-eed4-49b1-81e1-ab0a5b0113f2
 
+        :parametrized: yes
+
         :expectedresults: A user is created with the given role(s).
 
         This test targets BZ 1216239.
@@ -395,6 +443,8 @@ class TestUserRole:
         """Update an existing user and give it roles.
 
         :id: 7fdca879-d65f-44fa-b9f2-b6bb5df30c2d
+
+        :parametrized: yes
 
         :expectedresults: The user has whatever roles are given.
 
@@ -634,6 +684,8 @@ class TestActiveDirectoryUser:
         """Create User in ldap mode
 
         :id: 6f8616b1-5380-40d2-8678-7c4434050cfb
+
+        :parametrized: yes
 
         :expectedresults: User is created without specifying the password
 

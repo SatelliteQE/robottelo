@@ -53,9 +53,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL7
@@ -67,21 +65,24 @@ from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
-from robottelo.constants import FAKE_0_INC_UPD_URL
-from robottelo.constants import FAKE_0_PUPPET_REPO
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_INC_UPD_URL
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -1167,6 +1168,7 @@ class ContentViewTestCase(CLITestCase):
     @run_in_one_thread
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_module_stream_filter_rule(self):
         """Associate module stream content to a content view and create filter rule
 
@@ -1280,6 +1282,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_puppet_module(self):
         """Add puppet module to Content View by name
 
@@ -1322,6 +1325,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn('Latest', cv_module[0]['version'])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_puppet_module_older_version(self):
         """Add older version of puppet module to Content View by id/uuid
 
@@ -1371,6 +1375,7 @@ class ContentViewTestCase(CLITestCase):
                 self.assertEqual(cv_module[0]['version'], module['version'])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_puppet_module_by_name(self):
         """Remove puppet module from Content View by name
 
@@ -1415,6 +1420,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_puppet_module_by_id(self):
         """Remove puppet module from Content View by id
 
@@ -1453,6 +1459,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_puppet_module_by_uuid(self):
         """Remove puppet module from Content View by uuid
 
@@ -1489,6 +1496,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_add_puppet_repo(self):
         # Again, individual modules should be ok.
         """attempt to associate puppet repos within a custom content
@@ -1581,6 +1589,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_add_same_puppet_repo_twice(self):
         """attempt to associate duplicate puppet module(s) within a
         content view
@@ -2037,6 +2046,7 @@ class ContentViewTestCase(CLITestCase):
 
     @upgrade
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_publish_custom_content_module_stream(self):
         """attempt to publish a content view containing custom content
         module streams
@@ -2726,6 +2736,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
         """Attempt to subscribe content host to content view that has
         puppet module assigned to it
@@ -2780,6 +2791,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -3195,7 +3207,7 @@ class ContentViewTestCase(CLITestCase):
             new_cv['lifecycle-environments'],
         )
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
@@ -3212,7 +3224,7 @@ class ContentViewTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 
@@ -3230,6 +3242,7 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -3302,6 +3315,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_promoted_cv_version_from_default_env(self):
         """Remove promoted content view version from Library environment
 
@@ -3476,6 +3490,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -3585,6 +3600,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -3698,6 +3714,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -3901,7 +3918,7 @@ class ContentViewTestCase(CLITestCase):
         content_views = ContentView.list({'organization-id': org['id']})
         self.assertNotIn(content_view['name'], [cv['name'] for cv in content_views])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
@@ -3940,7 +3957,7 @@ class ContentViewTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -3983,6 +4000,7 @@ class ContentViewTestCase(CLITestCase):
     @run_in_one_thread
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
@@ -4325,6 +4343,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(self.environment['id'], [env['id'] for env in cv['lifecycle-environments']])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_inc_update_no_lce(self):
         """Publish incremental update without providing lifecycle environment
         for a content view version not promoted to any lifecycle environment
@@ -4376,6 +4395,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn('1.1', [cvv_['version'] for cvv_ in content_view['versions']])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_incremental_update_propagate_composite(self):
         """Incrementally update a CVV in composite CV with
         `propagate_all_composites` flag set
@@ -4469,6 +4489,7 @@ class OstreeContentViewTestCase(CLITestCase):
 
     @classmethod
     @skip_if_os('RHEL6')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create an organization, product, and repo with all content-types."""
         super(OstreeContentViewTestCase, cls).setUpClass()
@@ -4924,7 +4945,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         cv = ContentView.info({'id': cv['id']})
         self.assertEqual(cv['file-repositories'][0]['name'], self.repo_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_arbitrary_file_repo_removal(self):
         """Check a File Repository with Arbitrary File can be removed from a
@@ -4948,7 +4969,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_arbitrary_file_sync_over_capsule(self):

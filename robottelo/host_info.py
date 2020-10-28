@@ -154,6 +154,7 @@ class SatVersionDependentValues(object):
 
 
 def get_sat_version():
-    """Try to read sat_version from envvar SAT_VERSION
+    """Try to read sat_version from envvar SATELLITE_VERSION
     if not available fallback to ssh connection to get it."""
-    return Version(os.environ.get('SAT_VERSION') or get_host_sat_version())
+    sat_ver = os.environ.get('SATELLITE_VERSION') or get_host_sat_version()
+    return Version('9999' if 'nightly' in sat_ver else sat_ver)

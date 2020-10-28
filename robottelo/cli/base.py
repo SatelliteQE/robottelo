@@ -2,6 +2,8 @@
 import logging
 import re
 
+from wait_for import wait_for
+
 from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import settings
@@ -193,7 +195,18 @@ class Base(object):
                     raise CLIError(tmpl.format(cls.__name__))
                 info_options['organization-id'] = options['organization-id']
 
-            new_obj = cls.info(info_options)
+            # organization creation can take some time
+            if cls.command_base == 'organization':
+                new_obj, _ = wait_for(
+                    lambda: cls.info(info_options),
+                    timeout=300,
+                    delay=5,
+                    silent_failure=True,
+                    handle_exception=True,
+                )
+            else:
+                new_obj = cls.info(info_options)
+
             # stdout should be a dictionary containing the object
             if len(new_obj) > 0:
                 result = new_obj
@@ -456,6 +469,6 @@ class Base(object):
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += ' --{0}="{1}"'.format(key, val)
-        cmd = '{0} {1} {2}'.format(cls.command_base, cls.command_sub, tail.strip())
+        cmd = f"{cls.command_base} {cls.command_sub or ''} {tail.strip()}"
 
         return cmd

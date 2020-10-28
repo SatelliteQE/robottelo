@@ -18,6 +18,7 @@
 import re
 from random import choice
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
@@ -41,24 +42,25 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 
@@ -226,6 +228,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(new_ak['host-limit'], '10')
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_content_and_check_enabled(self):
         """Create activation key and add content to it. Check enabled state.
 
@@ -739,6 +742,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
@@ -764,6 +768,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
@@ -810,7 +815,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(len(content), 2)
         self.assertEqual({REPOSET['rhst7'], repo['name']}, {pc['name'] for pc in content})
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key
 
@@ -901,7 +906,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertTrue(vm.subscribed)
 
     @skip_if_not_set('clients')
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_update_aks_to_chost_in_one_command(self):
         """Check if multiple Activation keys can be attached to a
@@ -1408,6 +1413,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn("'--auto-attach': value must be one of", exe.exception.stderr.lower())
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_content_override(self):
         """Positive content override
 
@@ -1571,6 +1577,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_subscription_quantity_attached(self):
         """ Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 

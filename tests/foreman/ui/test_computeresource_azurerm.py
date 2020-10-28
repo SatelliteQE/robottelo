@@ -36,13 +36,8 @@ if not setting_is_set('azurerm'):
 
 
 @pytest.fixture(scope='module')
-def module_org(module_azurerm_cr):
-    return module_azurerm_cr.organization[0].read()
-
-
-@pytest.fixture(scope='module')
-def module_loc(module_azurerm_cr):
-    return module_azurerm_cr.location[0].read()
+def module_org():
+    return entities.Organization().create()
 
 
 @pytest.fixture(scope='module')
@@ -61,6 +56,7 @@ def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_finishimg):
             "platform": AZURERM_PLATFORM_DEFAULT,
             "script_command": "touch /var/tmp/text.txt",
             "script_uris": AZURERM_FILE_URI,
+            "volumes_attributes": {"0": {"disk_size_gb": "5"}},
             "interfaces_attributes": {
                 "0": {"public_ip": "Static", "private_ip": "false", "network": nw_id}
             },
@@ -76,8 +72,8 @@ def module_azure_hg(
     default_os,
     module_puppet_environment,
     default_smart_proxy,
-    default_domain,
-    module_loc,
+    module_domain,
+    module_location,
     module_org,
 ):
     """ Create hostgroup """
@@ -86,8 +82,8 @@ def module_azure_hg(
         architecture=default_architecture,
         compute_resource=module_azurerm_cr,
         compute_profile=COMPUTE_PROFILE_SMALL,
-        domain=default_domain,
-        location=[module_loc],
+        domain=module_domain,
+        location=[module_location],
         environment=module_puppet_environment,
         puppet_proxy=default_smart_proxy,
         puppet_ca_proxy=default_smart_proxy,
@@ -97,15 +93,16 @@ def module_azure_hg(
     ).create()
 
 
+@pytest.mark.skip_if_open("BZ:1850934")
 @tier4
 def test_positive_end_to_end_azurerm_ft_host_provision(
     session,
     azurermclient,
     module_azurerm_finishimg,
     module_azurerm_cr,
-    default_domain,
+    module_domain,
     module_org,
-    module_loc,
+    module_location,
     module_azure_hg,
 ):
 
@@ -119,12 +116,16 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             2. Host is deleted Successfully.
 
     :CaseLevel: System
+
+    :BZ: 1850934
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, default_domain.name).lower()
+    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
 
     with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
 
         # Provision Host
         try:
@@ -139,7 +140,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Installed'
+            assert 'Installed' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )
@@ -169,6 +170,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
 
 
+@pytest.mark.skip_if_open("BZ:1850934")
 @tier3
 @upgrade
 def test_positive_azurerm_host_provision_ud(
@@ -176,10 +178,10 @@ def test_positive_azurerm_host_provision_ud(
     azurermclient,
     module_azurerm_cloudimg,
     module_azurerm_cr,
-    default_domain,
+    module_domain,
     default_os,
     module_org,
-    module_loc,
+    module_location,
     module_azure_hg,
 ):
 
@@ -193,12 +195,16 @@ def test_positive_azurerm_host_provision_ud(
     :CaseImportance: Critical
 
     :CaseLevel: System
+
+    :BZ: 1850934
     """
 
     hostname = gen_string('alpha')
-    fqdn = '{}.{}'.format(hostname, default_domain.name).lower()
+    fqdn = '{}.{}'.format(hostname, module_domain.name).lower()
 
     with session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
 
         # Provision Host
         try:
@@ -213,7 +219,7 @@ def test_positive_azurerm_host_provision_ud(
             )
 
             host_info = session.host.get_details(fqdn)
-            assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
+            assert 'Pending installation' in host_info['properties']['properties_table']['Build']
             assert (
                 host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
             )

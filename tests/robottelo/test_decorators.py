@@ -183,26 +183,6 @@ class TestSkipIfNotSet:
         settings.configure.called_once_with()
 
 
-class TestStubbed:
-    """Tests for :func:`robottelo.decorators.stubbed`."""
-
-    @mock.patch('robottelo.decorators.unittest2.skip')
-    def test_default_reason(self, skip):
-        @decorators.stubbed()
-        def foo():
-            pass
-
-        skip.assert_called_once_with(decorators.NOT_IMPLEMENTED)
-
-    @mock.patch('robottelo.decorators.unittest2.skip')
-    def test_reason(self, skip):
-        @decorators.stubbed('42 is the answer')
-        def foo():
-            pass
-
-        skip.assert_called_once_with('42 is the answer')
-
-
 class TestHostSkipIf:
     """Tests for :func:`robottelo.decorators.host.skip_if_host_is` when host
     version isn't available

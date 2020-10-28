@@ -1,24 +1,29 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
-import os
-
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
-from robottelo import ssh
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import AZURERM_RG_DEFAULT
+from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
+from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.decorators import skip_if
 from robottelo.helpers import download_gce_cert
-from robottelo.helpers import file_downloader
 from robottelo.test import settings
 
 # Global Satellite Entities
@@ -28,13 +33,13 @@ if not settings.configured:
 
 
 @pytest.fixture(scope='session')
-def default_lce():
-    return entities.LifecycleEnvironment().search(query={'search': 'name=Library'})[0]
+def default_org():
+    return entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
 
 
-@pytest.fixture(scope='module')
-def module_lce(module_org):
-    return entities.LifecycleEnvironment(organization=module_org).create()
+@pytest.fixture(scope='session')
+def default_location():
+    return entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
 @pytest.fixture(scope='module')
@@ -48,18 +53,33 @@ def module_location(module_org):
 
 
 @pytest.fixture(scope='session')
-def default_smart_proxy():
-    smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
-        .read()
-    )
-    return entities.SmartProxy(id=smart_proxy.id).read()
+def default_lce():
+    return entities.LifecycleEnvironment().search(query={'search': f'name={ENVIRONMENT}'})[0]
+
+
+@pytest.fixture(scope='module')
+def module_lce(module_org):
+    return entities.LifecycleEnvironment(organization=module_org).create()
+
+
+@pytest.fixture(scope='module')
+def module_host():
+    return entities.Host().create()
+
+
+@pytest.fixture(scope='module')
+def module_model():
+    return entities.Model().create()
+
+
+@pytest.fixture(scope='module')
+def module_compute_profile():
+    return entities.ComputeProfile().create()
 
 
 @pytest.fixture(scope='session')
 def default_domain(default_smart_proxy):
-    *_, domain_name = settings.server.hostname.partition('.')
+    domain_name = settings.server.hostname.partition('.')[-1]
     dom = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})[0]
     dom.dns = default_smart_proxy
     dom.update(['dns'])
@@ -87,6 +107,11 @@ def module_subnet(module_org, module_location, default_domain, default_smart_pro
         ipam='DHCP',
     ).create()
     return subnet
+
+
+@pytest.fixture(scope='module')
+def module_default_subnet(module_org, module_location):
+    return entities.Subnet(location=[module_location], organization=[module_org]).create()
 
 
 @pytest.fixture(scope='session')
@@ -132,13 +157,14 @@ def default_architecture():
     return arch
 
 
+@pytest.fixture(scope='module')
+def module_architecture():
+    return entities.Architecture().create()
+
+
 @pytest.fixture(scope='session')
 def default_os(
-    default_architecture,
-    default_partitiontable,
-    module_configtemaplate,
-    module_provisioingtemplate,
-    os=None,
+    default_architecture, default_partitiontable, default_pxetemplate, os=None,
 ):
     if os is None:
         os = (
@@ -164,11 +190,15 @@ def default_os(
         )
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
-    os.config_template.append(module_configtemaplate)
-    os.provisioning_template.append(module_provisioingtemplate)
-    os.update(['architecture', 'ptable', 'config_template', 'provisioning_template'])
+    os.provisioning_template.append(default_pxetemplate)
+    os.update(['architecture', 'ptable', 'provisioning_template'])
     os = entities.OperatingSystem(id=os.id).read()
     return os
+
+
+@pytest.fixture(scope='module')
+def module_os():
+    return entities.OperatingSystem().create()
 
 
 @pytest.fixture(scope='session')
@@ -186,6 +216,24 @@ def module_puppet_environment(module_org, module_location):
         organization=[module_org], location=[module_location]
     ).create()
     return entities.Environment(id=environment.id).read()
+
+
+@pytest.fixture(scope='module')
+def module_user(module_org, module_location):
+    return entities.User(organization=[module_org], location=[module_location]).create()
+
+
+# Compute resource - Libvirt entities
+@pytest.fixture(scope="module")
+def module_cr_libvirt(module_org, module_location):
+    return entities.LibvirtComputeResource(
+        organization=[module_org], location=[module_location]
+    ).create()
+
+
+@pytest.fixture(scope="module")
+def module_libvirt_image(module_cr_libvirt):
+    return entities.Image(compute_resource=module_cr_libvirt).create()
 
 
 # Google Cloud Engine Entities
@@ -279,6 +327,20 @@ def module_azurerm_finishimg(default_architecture, default_os, module_azurerm_cr
 
 
 @pytest.fixture(scope='module')
+def module_azurerm_byos_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates BYOS Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_BYOS_IMG_URN,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
 def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr):
     """ Creates cloudinit image on AzureRM Compute Resource """
     finish_image = entities.Image(
@@ -289,6 +351,34 @@ def module_azurerm_cloudimg(default_architecture, default_os, module_azurerm_cr)
         username=settings.azurerm.username,
         uuid=AZURERM_RHEL7_UD_IMG_URN,
         user_data=True,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_gallery_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates Shared Gallery Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    ).create()
+    return finish_image
+
+
+@pytest.fixture(scope='module')
+def module_azurerm_custom_finishimg(default_architecture, default_os, module_azurerm_cr):
+    """ Creates Custom Finish Template image on AzureRM Compute Resource """
+    finish_image = entities.Image(
+        architecture=default_architecture,
+        compute_resource=module_azurerm_cr,
+        name=gen_string('alpha'),
+        operatingsystem=default_os,
+        username=settings.azurerm.username,
+        uuid=AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     ).create()
     return finish_image
 
@@ -324,6 +414,13 @@ def module_cv(module_org):
     return entities.ContentView(organization=module_org).create()
 
 
+@pytest.fixture(scope='module')
+def module_published_cv(module_org):
+    content_view = entities.ContentView(organization=module_org).create()
+    content_view.publish()
+    return content_view.read()
+
+
 @pytest.fixture(scope='session')
 def default_contentview(module_org):
     return entities.ContentView().search(
@@ -334,16 +431,83 @@ def default_contentview(module_org):
     )
 
 
-@pytest.fixture(scope="module")
-def tailoring_file_path():
-    """ Return Tailoring file path."""
-    return file_downloader(file_url=settings.oscap.tailoring_path)[0]
+@skip_if(not settings.repos_hosting_url)
+@pytest.fixture(scope='module')
+def module_cv_with_puppet_module(module_org):
+    """Returns content view entity created by publish_puppet_module with chosen
+    name and author of puppet module, custom puppet repository and organization.
+    """
+    return publish_puppet_module(
+        [{'author': 'robottelo', 'name': 'generic_1'}],
+        CUSTOM_PUPPET_REPO,
+        organization_id=module_org.id,
+    )
 
 
-@pytest.fixture(scope="module")
-def oscap_content_path():
-    """ Download scap content from satellite and return local path of it."""
-    _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = f"/tmp/{file_name}"
-    ssh.download_file(settings.oscap.content_path, local_file)
-    return local_file
+@pytest.fixture(scope='session')
+def default_pxetemplate():
+    pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
+    return pxe_template[0].read()
+
+
+@pytest.fixture(scope='module')
+def module_env_search(module_org, module_location, module_cv_with_puppet_module):
+    """Search for puppet environment according to the following criteria:
+    Content view from module_cv_with_puppet_module and chosen organization.
+
+    Returns the puppet environment with updated location.
+    """
+    env = (
+        entities.Environment()
+        .search(
+            query={
+                'search': f'content_view={module_cv_with_puppet_module.name} '
+                f'and organization_id={module_org.id}'
+            }
+        )[0]
+        .read()
+    )
+    env.location.append(module_location)
+    env.update(['location'])
+    return env
+
+
+@pytest.fixture(scope='module')
+def module_lce_search(module_org):
+    """ Returns the Library lifecycle environment from chosen organization """
+    return (
+        entities.LifecycleEnvironment()
+        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_org.id}'})[0]
+        .read()
+    )
+
+
+@pytest.fixture(scope='module')
+def module_puppet_classes(module_env_search):
+    """ Returns puppet class based on following criteria:
+    Puppet environment from module_env_search and puppet class name. The name was set inside
+    module_cv_with_puppet_module.
+    """
+    return entities.PuppetClass().search(
+        query={'search': f'name ~ {"generic_1"} and environment = {module_env_search.name}'}
+    )
+
+
+# function scoped
+@pytest.fixture(scope="function")
+def function_role():
+    return entities.Role().create()
+
+
+@pytest.fixture(scope="function")
+def setting_update(request):
+    """
+    This fixture is used to create an object of the provided settings parameter that we use in
+    each test case to update their attributes and once the test case gets completed it helps to
+    restore their default value
+    """
+    setting_object = entities.Setting().search(query={'search': f'name={request.param}'})[0]
+    default_setting_value = setting_object.value
+    yield setting_object
+    setting_object.value = default_setting_value
+    setting_object.update({'value'})

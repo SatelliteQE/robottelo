@@ -24,7 +24,7 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.test import APITestCase
 
 

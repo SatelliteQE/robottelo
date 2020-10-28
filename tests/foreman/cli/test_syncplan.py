@@ -19,6 +19,7 @@ from datetime import datetime
 from datetime import timedelta
 from time import sleep
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
@@ -42,7 +43,6 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -389,7 +389,7 @@ class SyncPlanTestCase(CLITestCase):
             self.validate_task_status(repo['id'], max_tries=2)
             # validate the error message once unstubbed (#3611)
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier4
     @upgrade
     def test_positive_synchronize_custom_product_custom_cron(self):

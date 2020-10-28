@@ -38,7 +38,7 @@ def module_loc():
 
 @pytest.fixture
 def valid_domain_name():
-    return list(valid_domain_names(interface='ui')['argvalues'])[0]
+    return list(valid_domain_names(interface='ui').values())[0]
 
 
 @tier2
@@ -47,6 +47,8 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
     """Set parameter in a domain with a value of 255 chars, or a blank value.
 
     :id: b346ae66-1720-46af-b0da-460c52ce9476
+
+    :parametrized: yes
 
     :expectedresults: Domain parameter is created.
 

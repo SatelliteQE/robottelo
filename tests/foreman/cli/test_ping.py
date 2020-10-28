@@ -46,6 +46,8 @@ class PingTestCase(CLITestCase):
 
         status_count = 0
         ok_count = 0
+        # Exclude message from stdout for services candlepin_events and katello_events
+        result.stdout = [line for line in result.stdout if "message" not in line]
 
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]

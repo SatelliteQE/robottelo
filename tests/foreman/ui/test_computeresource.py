@@ -81,6 +81,8 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
 
+    :parametrized: yes
+
     :expectedresults: All expected CRUD actions finished successfully.
 
     :CaseLevel: Integration
@@ -127,6 +129,8 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
 
     :id: f75e994a-6da1-40a3-9685-42387388b300
 
+    :parametrized: yes
+
     :expectedresults: resource created successfully and has expected protocol
         version
 
@@ -163,6 +167,8 @@ def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, 
 
     :id: f75544b1-3943-4cc6-98d1-f2d0fbe7244c
 
+    :parametrized: yes
+
     :expectedresults: resource updated successfully and has new description
 
     :CaseLevel: Integration
@@ -197,6 +203,8 @@ def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version)
     """List VMs for RHEV Compute Resource
 
     :id: eea2f2b1-e9f4-448d-8c54-51fb25af3d5f
+
+    :parametrized: yes
 
     :expectedresults: VMs listed for provided compute resource
 
@@ -261,6 +269,8 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
 
     :id: 47aea4b7-9258-4863-8966-900bc9e94116
 
+    :parametrized: yes
+
     :expectedresults: virtual machine is powered on or powered off depending on
         its initial state
 
@@ -304,6 +314,8 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
     """Import an existing VM as a Host
 
     :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
+
+    :parametrized: yes
 
     :expectedresults: VM is shown as Host in Foreman
 
@@ -390,6 +402,8 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
     """Update a rhev Compute Resource organization
 
     :id: f6656c8e-70a3-40e5-8dda-2154f2eeb042
+
+    :parametrized: yes
 
     :setup: rhev hostname and credentials.
 

@@ -36,7 +36,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -91,7 +90,7 @@ def setup_content(module_org):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_create_report_without_name(session):
     """ A report template with empty name can't be created
 
@@ -112,7 +111,7 @@ def test_negative_create_report_without_name(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_cannot_delete_locked_report(session):
     """ Edit a report template
 
@@ -132,7 +131,7 @@ def test_negative_cannot_delete_locked_report(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_preview_report(session):
     """ Preview a report
 
@@ -183,7 +182,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.create(
             {
                 'template.name': name,
-                'template.default': True,
+                'template.default': False,
                 'template.template_editor.editor': content,
                 'template.audit_comment': gen_string('alpha'),
                 'inputs': template_input,
@@ -195,7 +194,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         # READ report template
         rt = session.reporttemplate.read(name)
         assert rt['template']['name'] == name
-        assert rt['template']['default'] is True
+        assert rt['template']['default'] is False
         assert rt['template']['template_editor']['editor'] == content
         assert rt['inputs'][0]['name'] == template_input[0]['name']
         assert rt['inputs'][0]['required'] is template_input[0]['required']
@@ -211,7 +210,18 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.update(name, {'template.name': new_name, 'type.snippet': True})
         rt = session.reporttemplate.read(new_name)
         assert rt['template']['name'] == new_name
+        assert rt['template']['default'] is False
+        assert rt['template']['template_editor']['editor'] == content
+        assert rt['inputs'][0]['name'] == template_input[0]['name']
+        assert rt['inputs'][0]['required'] is template_input[0]['required']
+        assert rt['inputs'][0]['input_type'] == template_input[0]['input_type']
+        assert (
+            rt['inputs'][0]['input_content']['description']
+            == template_input[0]['input_content.description']
+        )
         assert rt['type']['snippet'] is True
+        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # LOCK
         session.reporttemplate.lock(new_name)
         assert session.reporttemplate.is_locked(new_name) is True
@@ -222,7 +232,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.reporttemplate.clone(new_name, {'template.name': clone_name})
         rt = session.reporttemplate.read(clone_name)
         assert rt['template']['name'] == clone_name
-        assert rt['template']['default'] is True
+        assert rt['template']['default'] is False
         assert rt['template']['template_editor']['editor'] == content
         assert rt['inputs'][0]['name'] == input_name
         assert rt['inputs'][0]['required'] is True
@@ -321,7 +331,7 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_applied_errata(session):
     """ Generate an Applied Errata report
 
@@ -337,7 +347,7 @@ def test_positive_applied_errata(session):
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_datetime_picker(session):
     """ Generate an Applied Errata report with date filled
 
@@ -358,7 +368,7 @@ def test_datetime_picker(session):
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_autocomplete(session):
     """ Check if host field suggests matching hosts on typing
 
@@ -438,7 +448,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
 
 
 @tier3
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_bad_email(session):
     """ Generate a report and request the result be sent to
         a wrong formatted e-mail address
@@ -456,7 +466,7 @@ def test_negative_bad_email(session):
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_negative_nonauthor_of_report_cant_download_it(session):
     """ The resulting report should only be downloadable by
         the user that generated it. Check.

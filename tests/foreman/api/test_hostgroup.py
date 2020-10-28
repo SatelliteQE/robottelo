@@ -17,6 +17,7 @@
 """
 from random import randint
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -29,7 +30,6 @@ from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_hostgroups_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -379,7 +379,7 @@ class HostGroupTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             hostgroup.read()
 
-    @stubbed('Remove stub once proper infrastructure will be created')
+    @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @tier2
     def test_positive_create_with_realm(self):
         """Create a hostgroup with realm specified
@@ -471,7 +471,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['puppet_ca_proxy'])
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
 
-    @stubbed('Remove stub once proper infrastructure will be created')
+    @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @tier2
     def test_positive_update_realm(self):
         """Update a hostgroup with a new realm

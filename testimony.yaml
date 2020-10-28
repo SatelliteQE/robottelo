@@ -32,6 +32,7 @@ CaseComponent:
     - ComputeResources-RHEV
     - ComputeResources-VMWare
     - ContainerManagement-Content
+    - ContentCredentials
     - ContentManagement
     - ContentViews
     - Dashboard
@@ -46,7 +47,6 @@ CaseComponent:
     - Fact
     - ForemanDebug
     - ForemanMaintain
-    - GPGKeys
     - Hammer
     - Hammer-Content
     - HooksPlugin
@@ -62,6 +62,7 @@ CaseComponent:
     - katello-agent
     - katello-tracer
     - LDAP
+    - Leappintegration
     - LifecycleEnvironments
     - LocalizationInternationalization
     - Logging
@@ -147,4 +148,11 @@ Upstream:
     - 'Yes'
     - 'No'
     required: true
+    type: choice
+Parametrized:
+    casesensitive: false
+    choices:
+    - 'Yes'
+    - 'No'
+    required: false
     type: choice

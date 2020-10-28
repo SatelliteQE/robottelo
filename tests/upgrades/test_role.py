@@ -170,8 +170,8 @@ class scenario_positive_default_role_added_permission(APITestCase):
         """
         defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         subnetfilter = entities.Filter(
-            permission=entities.Permission(resource_type='Subnet').search(
-                filters={'name': 'view_subnets'}
+            permission=entities.Permission().search(
+                filters={'name': 'view_subnets'}, query={'search': 'resource_type="Subnet"'}
             ),
             role=defaultrole,
         ).create()
@@ -223,8 +223,8 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
         """
         defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         domainfilter = entities.Filter(
-            permission=entities.Permission(resource_type='Domain').search(
-                filters={'name': 'view_domains'}
+            permission=entities.Permission().search(
+                filters={'name': 'view_domains'}, query={'search': 'resource_type="Domain"'}
             ),
             unlimited=False,
             role=defaultrole,

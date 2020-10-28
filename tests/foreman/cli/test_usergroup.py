@@ -32,7 +32,7 @@ from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_usernames_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier1
@@ -57,8 +57,8 @@ class UserGroupTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         user = make_user()
-        ug_name = random.choice(valid_data_list())
-        role_name = random.choice(valid_data_list())
+        ug_name = random.choice(valid_usernames_list())
+        role_name = random.choice(valid_usernames_list())
         role = make_role({'name': role_name})
         sub_user_group = make_usergroup()
 
@@ -84,7 +84,7 @@ class UserGroupTestCase(CLITestCase):
         self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 
         # Update
-        new_name = random.choice(valid_data_list())
+        new_name = random.choice(valid_usernames_list())
         UserGroup.update({'id': user_group['id'], 'new-name': new_name})
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['name'], new_name)
@@ -300,7 +300,7 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
             UserGroupExternal.refresh(
                 {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
             )
-        self.assertEqual(User.info({'login': self.ldap_user_name})['user-groups'][1], role['name'])
+        self.assertIn(role['name'], User.info({'login': self.ldap_user_name})['user-groups'])
         User.delete({'login': self.ldap_user_name})
 
     @tier2

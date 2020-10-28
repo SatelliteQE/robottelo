@@ -29,6 +29,7 @@ from robottelo.api.utils import enable_sync_redhat_repo
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
@@ -38,18 +39,19 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import fixture
 from robottelo.decorators import parametrize
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -140,6 +142,8 @@ def test_positive_create_with_cv(session, module_org, cv_name):
     """Create Activation key for all variations of Content Views
 
     :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
+
+    :parametrized: yes
 
     :expectedresults: Activation key is created
 
@@ -411,6 +415,8 @@ def test_positive_update_cv(session, module_org, cv2_name):
     """Update Content View in an Activation key
 
     :id: 68880ca6-acb9-4a16-aaa0-ced680126732
+
+    :parametrized: yes
 
     :Steps:
         1. Create Activation key
@@ -723,10 +729,12 @@ def test_positive_access_non_admin_user(session, test_name):
 
     # Add permissions for Organization and Location
     entities.Filter(
-        permission=entities.Permission(resource_type='Organization').search(), role=role
+        permission=entities.Permission().search(query={'search': 'resource_type="Organization"'}),
+        role=role,
     ).create()
     entities.Filter(
-        permission=entities.Permission(resource_type='Location').search(), role=role
+        permission=entities.Permission().search(query={'search': 'resource_type="Location"'}),
+        role=role,
     ).create()
 
     # Create new user with a configured role
@@ -981,6 +989,7 @@ def test_negative_usage_limit(session, module_org):
 @skip_if_not_set('clients')
 @tier3
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_multiple_aks_to_system(session, module_org):
     """Check if multiple Activation keys can be attached to a system
 
@@ -1036,6 +1045,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
 @skip_if_not_set('clients')
 @tier3
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_host_associations(session):
     """Register few hosts with different activation keys and ensure proper
     data is reflected under Associations > Content Hosts tab
@@ -1076,6 +1086,7 @@ def test_positive_host_associations(session):
 
 @skip_if_not_set('clients', 'fake_manifest')
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_service_level_subscription_with_custom_product(session):
     """Subscribe a host to activation key with Premium service level and with
     custom product
