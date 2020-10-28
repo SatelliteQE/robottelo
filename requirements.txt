@@ -24,7 +24,7 @@ wrapanapi==3.5.7
 urllib3==1.25.3
 tenacity==6.2.0
 PyYAML==5.3.1
-pyotp==2.3.0
+pyotp==2.4.1
 pexpect==4.8.0
 pytest-ibutsu==1.1.1
 
