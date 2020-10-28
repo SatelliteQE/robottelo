@@ -20,7 +20,6 @@ selenium==3.141.0
 requests==2.22.0
 testimony==2.1.0
 unittest2==1.1.0
-PyNaCl==1.2.1
 wait-for==1.1.4
 widgetastic.core==0.60
 wrapanapi==3.5.7
