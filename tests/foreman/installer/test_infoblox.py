@@ -12,14 +12,15 @@
 
 :Upstream: No
 """
+import pytest
 
-from robottelo.decorators import stubbed, tier3, upgrade
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 
 
 class InfobloxTestCase(TestCase):
-
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_set_dns_provider(self):
@@ -42,7 +43,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_set_dhcp_provider(self):
@@ -65,7 +66,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_update_dns_appliance_credentials(self):
         """Check infoblox appliance credentials are updated
@@ -84,7 +85,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_enable_dns_plugin(self):
@@ -102,7 +103,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_disable_dns_plugin(self):
         """Check Infoblox DNS plugin can be disabled on host
@@ -118,7 +119,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_enable_dhcp_plugin(self):
@@ -136,7 +137,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_disable_dhcp_plugin(self):
         """Check Infoblox DHCP plugin can be disabled on host
@@ -152,7 +153,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_dhcp_ip_range(self):
@@ -170,7 +171,7 @@ class InfobloxTestCase(TestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_dns_records(self):

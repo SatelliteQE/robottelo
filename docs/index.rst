@@ -65,7 +65,7 @@ are a few other things you may wish to do before continuing:
 2. You may wish to install the optional dependencies listed in
    ``requirements-optional.txt``. (Use pip, as shown above.) They are required
    for tasks like working with certificates, running the internal robottelo test
-   suite and checking code quality with pylint.
+   suite and checking code quality with pre-commit.
 
 Robottelo on Docker
 -------------------
@@ -76,7 +76,7 @@ Robottelo is also available on `dockerhub`_.::
 
 It also can be built locally using the Dockerfile, in the main directory.::
 
-    $ docker built -t robottelo .
+    $ docker build -t robottelo .
 
 In order to run tests, you will need to mount your robottelo.properties file.::
 
@@ -118,7 +118,7 @@ If you want to run tests without the aid of ``make``, you can do that with
 either `pytest`_ , `unittest`_ or `nose`_. Just specify the path for the test suite you
 want to run::
 
-    $ pytest tests/robotello
+    $ pytest tests/robottelo
     $ pytest tests/foreman
     $ python -m unittest discover -s tests/robottelo -t .
     $ python -m unittest discover -s tests/foreman -t .
@@ -151,7 +151,7 @@ documentation.
 Using environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the sections in the ``robottelo.properties`` file can be mapped to an 
+Each of the sections in the ``robottelo.properties`` file can be mapped to an
 environment variable prefixed with ``ROBOTTELO_`` so for example if you want
 to override the ``server.hostname`` without changing the properties file you can do::
 
@@ -319,15 +319,15 @@ Miscellany
     code_standards
     reviewing_PRs
     features/index
-    api/index
+    autoapi/index
 
 Want to contribute? Before submitting code, read through the :doc:`committing
 guide </committing>` and **Robottelo** :doc:`code standards </code_standards>`.
 Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
-for that too! Finally, the :doc:`API reference </api/index>` covers individual
-functions, classes, methods and modules.
+for that too! Finally, the :doc:`API reference </autoapi/index>` covers
+individual functions, classes, methods and modules.
 
-**Robottelo** is compatible with Python 2.7.
+**Robottelo** is compatible with Python 3.6+.
 
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
 If you think you've found a new issue, please do one of the following:
@@ -348,7 +348,8 @@ you have `graphviz`_ installed::
 
 To check for code smells::
 
-    $ make lint
+    $ pre-commit install-hooks
+    $ pre-commit run --all-files
 
 The design and development for this software is led by `Og Maciel`_.
 

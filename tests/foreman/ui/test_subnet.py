@@ -16,8 +16,11 @@
 """
 from fauxfactory import gen_ipaddr
 from nailgun import entities
+
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -55,16 +58,18 @@ def test_positive_end_to_end(session, module_dom):
     description = gen_string('alphanumeric')
     network_address = gen_ipaddr(ip3=True, ipv6=True)
     with session:
-        session.subnet.create({
-            'subnet.name': name,
-            'subnet.description': description,
-            'subnet.protocol': 'IPv6',
-            'subnet.network_address': network_address,
-            'subnet.network_prefix': '24',
-            'subnet.ipam': 'EUI-64',
-            'subnet.mtu': '1600',
-            'domains.resources.assigned': [module_dom.name],
-        })
+        session.subnet.create(
+            {
+                'subnet.name': name,
+                'subnet.description': description,
+                'subnet.protocol': 'IPv6',
+                'subnet.network_address': network_address,
+                'subnet.network_prefix': '24',
+                'subnet.ipam': 'EUI-64',
+                'subnet.mtu': '1600',
+                'domains.resources.assigned': [module_dom.name],
+            }
+        )
         sn = entities.Subnet().search(query={'search': 'name={0}'.format(name)})
         assert sn, 'Subnet {0} expected to exist, but it is not listed'.format(sn)
         sn = sn[0]
@@ -85,4 +90,5 @@ def test_positive_end_to_end(session, module_dom):
         sn.update(['domain'])
         session.subnet.delete(new_name)
         assert not entities.Subnet().search(
-            query={'search': 'name={0}'.format(new_name)}), 'The subnet was supposed to be deleted'
+            query={'search': 'name={0}'.format(new_name)}
+        ), 'The subnet was supposed to be deleted'

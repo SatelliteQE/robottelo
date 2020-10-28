@@ -15,11 +15,23 @@
 :Upstream: No
 """
 from datetime import timedelta
+
 from fauxfactory import gen_choice
 from nailgun import entities
-from robottelo.constants import FAKE_1_YUM_REPO, REPO_TYPE, VALID_GPG_KEY_FILE, SYNC_INTERVAL
-from robottelo.datafactory import gen_string, valid_data_list, valid_cron_expressions
-from robottelo.decorators import fixture, parametrize, tier2
+
+from robottelo.config import settings
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import SYNC_INTERVAL
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.datafactory import gen_string
+from robottelo.datafactory import parametrized
+from robottelo.datafactory import valid_cron_expressions
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier2
 from robottelo.helpers import read_data_file
 
 
@@ -29,6 +41,7 @@ def module_org():
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end(session, module_org):
     """Perform end to end testing for product component
 
@@ -45,19 +58,20 @@ def test_positive_end_to_end(session, module_org):
     product_label = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE),
-        organization=module_org
+        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
     ).create()
     sync_plan = entities.SyncPlan(organization=module_org).create()
     with session:
         # Create new product using different parameters
-        session.product.create({
-            'name': product_name,
-            'label': product_label,
-            'gpg_key': gpg_key.name,
-            'sync_plan': sync_plan.name,
-            'description': product_description,
-        })
+        session.product.create(
+            {
+                'name': product_name,
+                'label': product_label,
+                'gpg_key': gpg_key.name,
+                'sync_plan': sync_plan.name,
+                'description': product_description,
+            }
+        )
         assert session.product.search(product_name)[0]['Name'] == product_name
         # Verify that created entity has expected parameters
         product_values = session.product.read(product_name)
@@ -67,9 +81,7 @@ def test_positive_end_to_end(session, module_org):
         assert product_values['details']['description'] == product_description
         assert product_values['details']['sync_plan'] == sync_plan.name
         # Update a product with a different name
-        session.product.update(
-            product_name, {'details.name': new_product_name}
-        )
+        session.product.update(product_name, {'details.name': new_product_name})
         assert session.product.search(product_name)[0]['Name'] != product_name
         assert session.product.search(new_product_name)[0]['Name'] == new_product_name
         # Add a repo to product
@@ -79,7 +91,7 @@ def test_positive_end_to_end(session, module_org):
                 'name': gen_string('alpha'),
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
-            }
+            },
         )
         # Synchronize the product
         result = session.product.synchronize(new_product_name)
@@ -92,12 +104,14 @@ def test_positive_end_to_end(session, module_org):
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
-@parametrize('product_name', **valid_data_list('ui'))
+@parametrize('product_name', **parametrized(valid_data_list('ui')))
 @tier2
 def test_positive_create_in_different_orgs(session, product_name):
     """Create Product with same name but in different organizations
 
     :id: 469fc036-a48a-4c0a-9da9-33e73f903479
+
+    :parametrized: yes
 
     :expectedresults: Product is created successfully in both
         organizations.
@@ -108,10 +122,8 @@ def test_positive_create_in_different_orgs(session, product_name):
     with session:
         for org in orgs:
             session.organization.select(org_name=org.name)
-            session.product.create(
-                {'name': product_name, 'description': org.name})
-            assert session.product.search(
-                product_name)[0]['Name'] == product_name
+            session.product.create({'name': product_name, 'description': org.name})
+            assert session.product.search(product_name)[0]['Name'] == product_name
             product_values = session.product.read(product_name)
             assert product_values['details']['description'] == org.name
 
@@ -131,15 +143,14 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
     product_name = gen_string('alpha')
     product_description = gen_string('alpha')
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE),
-        organization=module_org
+        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
     ).create()
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
     with session:
-        startdate = (
-                session.browser.get_client_datetime() + timedelta(minutes=10))
+        session.organization.select(module_org.name)
+        startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         sync_plan_values = {
             'name': plan_name,
             'interval': SYNC_INTERVAL['custom'],
@@ -149,11 +160,10 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
             'date_time.hours': startdate.strftime('%H'),
             'date_time.minutes': startdate.strftime('%M'),
         }
-        session.product.create({
-            'name': product_name,
-            'gpg_key': gpg_key.name,
-            'description': product_description,
-        }, sync_plan_values=sync_plan_values)
+        session.product.create(
+            {'name': product_name, 'gpg_key': gpg_key.name, 'description': product_description},
+            sync_plan_values=sync_plan_values,
+        )
         assert session.product.search(product_name)[0]['Name'] == product_name
         product_values = session.product.read(product_name, widget_names='details')
         assert product_values['details']['name'] == product_name

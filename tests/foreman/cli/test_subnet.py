@@ -13,18 +13,25 @@
 
 :Upstream: No
 """
-
 import random
 import re
 
-from fauxfactory import gen_integer, gen_ipaddr
+import pytest
+from fauxfactory import gen_integer
+from fauxfactory import gen_ipaddr
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_subnet
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import (
-     stubbed, tier1, tier2, tier3, upgrade)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -32,8 +39,7 @@ from robottelo.test import CLITestCase
 def valid_addr_pools():
     """Returns a list of valid address pools"""
     return [
-        [gen_integer(min_value=1, max_value=255),
-         gen_integer(min_value=1, max_value=255)],
+        [gen_integer(min_value=1, max_value=255), gen_integer(min_value=1, max_value=255)],
         [gen_integer(min_value=1, max_value=255)] * 2,
         [1, 255],
     ]
@@ -43,11 +49,13 @@ def valid_addr_pools():
 def invalid_addr_pools():
     """Returns a list of invalid address pools"""
     return [
-        {u'from': gen_integer(min_value=1, max_value=255)},
-        {u'to': gen_integer(min_value=1, max_value=255)},
-        {u'from': gen_integer(min_value=128, max_value=255),
-         u'to': gen_integer(min_value=1, max_value=127)},
-        {u'from': 256, u'to': 257},
+        {'from': gen_integer(min_value=1, max_value=255)},
+        {'to': gen_integer(min_value=1, max_value=255)},
+        {
+            'from': gen_integer(min_value=128, max_value=255),
+            'to': gen_integer(min_value=1, max_value=127),
+        },
+        {'from': 256, 'to': 257},
     ]
 
 
@@ -55,12 +63,12 @@ def invalid_addr_pools():
 def invalid_missing_attributes():
     """Returns a list of invalid missing attributes"""
     return [
-        {u'name': ''},
-        {u'network': '256.0.0.0'},
-        {u'network': ''},
-        {u'mask': '256.0.0.0'},
-        {u'mask': ''},
-        {u'mask': '255.0.255.0'}
+        {'name': ''},
+        {'network': '256.0.0.0'},
+        {'network': ''},
+        {'mask': '256.0.0.0'},
+        {'mask': ''},
+        {'mask': '255.0.255.0'},
     ]
 
 
@@ -92,16 +100,18 @@ class SubnetTestCase(CLITestCase):
         domains = [make_domain() for _ in range(domains_amount)]
         gateway = gen_ipaddr(ip3=True)
         ipam_type = SUBNET_IPAM_TYPES['dhcp']
-        subnet = make_subnet({
-            u'name': name,
-            u'from': from_ip,
-            u'mask': mask,
-            u'network': network,
-            u'to': to_ip,
-            u'domain-ids': [domain['id'] for domain in domains],
-            u'gateway': gateway,
-            u'ipam': ipam_type
-        })
+        subnet = make_subnet(
+            {
+                'name': name,
+                'from': from_ip,
+                'mask': mask,
+                'network': network,
+                'to': to_ip,
+                'domain-ids': [domain['id'] for domain in domains],
+                'gateway': gateway,
+                'ipam': ipam_type,
+            }
+        )
         # Check if Subnet can be listed
         subnets_ids = [subnet_['id'] for subnet_ in Subnet.list()]
         self.assertIn(subnet['id'], subnets_ids)
@@ -123,17 +133,19 @@ class SubnetTestCase(CLITestCase):
         ip_from = re.sub(r'\d+$', str(pool[0]), new_network)
         ip_to = re.sub(r'\d+$', str(pool[1]), new_network)
         ipam_type = SUBNET_IPAM_TYPES['internal']
-        Subnet.update({
-            u'new-name': new_name,
-            u'from': ip_from,
-            u'id': subnet['id'],
-            u'to': ip_to,
-            u'mask': new_mask,
-            u'network': new_network,
-            u'ipam': ipam_type,
-            u'domain-ids': ""  # delete domains needed for subnet delete
-        })
-        subnet = Subnet.info({u'id': subnet['id']})
+        Subnet.update(
+            {
+                'new-name': new_name,
+                'from': ip_from,
+                'id': subnet['id'],
+                'to': ip_to,
+                'mask': new_mask,
+                'network': new_network,
+                'ipam': ipam_type,
+                'domain-ids': "",  # delete domains needed for subnet delete
+            }
+        )
+        subnet = Subnet.info({'id': subnet['id']})
         self.assertEqual(subnet['name'], new_name)
         self.assertEqual(subnet['start-of-ip-range'], ip_from)
         self.assertEqual(subnet['end-of-ip-range'], ip_to)
@@ -158,10 +170,7 @@ class SubnetTestCase(CLITestCase):
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
-                with self.assertRaisesRegex(
-                    CLIFactoryError,
-                    u'Could not create the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIFactoryError, 'Could not create the subnet:'):
                     make_subnet(options)
 
     @tier2
@@ -179,16 +188,13 @@ class SubnetTestCase(CLITestCase):
         network = gen_ipaddr()
         for pool in invalid_addr_pools():
             with self.subTest(pool):
-                opts = {u'mask': mask, u'network': network}
+                opts = {'mask': mask, 'network': network}
                 # generate pool range from network address
                 for key, val in pool.items():
                     opts[key] = re.sub(r'\d+$', str(val), network)
                 with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(opts)
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Could not create the subnet:'
-                )
+                self.assert_error_msg(raise_ctx, 'Could not create the subnet:')
 
     @tier2
     def test_negative_update_attributes(self):
@@ -204,13 +210,10 @@ class SubnetTestCase(CLITestCase):
         for options in invalid_missing_attributes():
             with self.subTest(options):
                 options['id'] = subnet['id']
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the subnet:'):
                     Subnet.update(options)
                     # check - subnet is not updated
-                    result = Subnet.info({u'id': subnet['id']})
+                    result = Subnet.info({'id': subnet['id']})
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
 
@@ -227,17 +230,14 @@ class SubnetTestCase(CLITestCase):
         subnet = make_subnet()
         for options in invalid_addr_pools():
             with self.subTest(options):
-                opts = {u'id': subnet['id']}
+                opts = {'id': subnet['id']}
                 # generate pool range from network address
                 for key, val in options.items():
                     opts[key] = re.sub(r'\d+$', str(val), subnet['network-addr'])
-                with self.assertRaisesRegex(
-                    CLIReturnCodeError,
-                    u'Could not update the subnet:'
-                ):
+                with self.assertRaisesRegex(CLIReturnCodeError, 'Could not update the subnet:'):
                     Subnet.update(opts)
                 # check - subnet is not updated
-                result = Subnet.info({u'id': subnet['id']})
+                result = Subnet.info({'id': subnet['id']})
                 for key in ['start-of-ip-range', 'end-of-ip-range']:
                     self.assertEqual(result[key], subnet[key])
 
@@ -248,7 +248,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     :CaseImportance: Medium
     """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_set_parameter_option_presence(self):
         """Presence of set parameter option in command
@@ -266,7 +266,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_create_with_parameter(self):
         """Subnet with parameters can be created
@@ -283,7 +283,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_create_with_parameter_and_multiple_values(self):
         """Subnet parameters can be created with multiple values
@@ -302,7 +302,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_create_with_parameter_and_multiple_names(self):
         """Subnet parameters can be created with multiple names with valid
@@ -322,7 +322,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
         """Subnet parameters can not be created with multiple names with
@@ -342,7 +342,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     @upgrade
     def test_positive_create_with_multiple_parameters(self):
@@ -361,7 +361,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_create_with_duplicated_parameters(self):
         """Subnet with more than one parameters with duplicate names
@@ -380,7 +380,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_inherit_subnet_parmeters_in_host(self):
@@ -401,7 +401,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612, 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_inherit_subnet_parmeters_in_host(self):
         """Host does not inherits parameters from subnet for non primary
@@ -422,7 +422,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612, 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overridden from host
@@ -447,7 +447,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612, 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
@@ -469,7 +469,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_update_parameter(self):
         """Subnet parameter can be updated
@@ -487,7 +487,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_negative_update_parameter(self):
         """Subnet parameter can not be updated with invalid names
@@ -505,7 +505,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_subnet_parameter_host_impact(self):
         """Update in parameter name and value from subnet component updates
@@ -525,7 +525,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612, 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
@@ -542,7 +542,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     @upgrade
     def test_positive_delete_multiple_parameters(self):
@@ -560,7 +560,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
         """Deleting parameter from subnet component deletes the parameter in
@@ -580,7 +580,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :BZ: 1426612, 1470014
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_delete_subnet_parameter_overrided_host_impact(self):
         """Deleting parameter from subnet component doesnt deletes its

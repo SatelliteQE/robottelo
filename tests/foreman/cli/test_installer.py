@@ -15,18 +15,21 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, upgrade
+import pytest
+
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class InstallerTestCase(CLITestCase):
     """Test class for installer"""
+
     # Notes for installer testing:
     # Perhaps there is a convenient log analyzer library out there
     # that can parse logs? It would be better (and possibly less
     # error-prone) than simply grepping for ERROR/FATAL
 
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     def test_positive_installer_check_services(self):
         # devnote:
@@ -43,7 +46,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_installer_logfile_check(self):
         """Look for ERROR or FATAL references in logfiles
 
@@ -58,7 +61,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_installer_check_progress_meter(self):
         """ Assure progress indicator/meter "works"
 
@@ -70,7 +73,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_server_installer_from_iso(self):
         """ Can install product from ISO
 
@@ -81,7 +84,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_server_installer_from_repository(self):
         """ Can install main satellite instance successfully via RPM
 
@@ -92,7 +95,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_capsule_installer_from_repository(self):
         """ Can install capsule successfully via RPM
 
@@ -103,7 +106,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_disconnected_util_installer(self):
         """ Can install  satellite disconnected utility successfully
         via RPM
@@ -115,7 +118,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_capsule_installer_and_register(self):
         """Upon installation, capsule instance self-registers
         itself to parent instance
@@ -128,7 +131,7 @@ class InstallerTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_installer_clear_data(self):
         """ User can run installer to clear existing data
 

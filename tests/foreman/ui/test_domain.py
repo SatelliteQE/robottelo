@@ -15,12 +15,15 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-import pytest
 
 from robottelo.datafactory import valid_domain_names
-from robottelo.decorators import fixture, parametrize, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -35,16 +38,17 @@ def module_loc():
 
 @pytest.fixture
 def valid_domain_name():
-    return list(valid_domain_names(interface='ui')['argvalues'])[0]
+    return list(valid_domain_names(interface='ui').values())[0]
 
 
 @tier2
-@parametrize('param_value', [gen_string('alpha', 255), ''],
-             ids=['long_value', 'blank_value'])
+@parametrize('param_value', [gen_string('alpha', 255), ''], ids=['long_value', 'blank_value'])
 def test_positive_set_parameter(session, valid_domain_name, param_value):
     """Set parameter in a domain with a value of 255 chars, or a blank value.
 
     :id: b346ae66-1720-46af-b0da-460c52ce9476
+
+    :parametrized: yes
 
     :expectedresults: Domain parameter is created.
 
@@ -53,15 +57,12 @@ def test_positive_set_parameter(session, valid_domain_name, param_value):
     new_param = {'name': gen_string('alpha', 255), 'value': param_value}
     with session:
         name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
+        session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         session.domain.update(name, {'parameters.params': [new_param]})
         read_values = session.domain.read(name)
-    assert read_values['parameters']['params'] == [new_param], (
-        "Current domain parameters do not match expected value"
-    )
+    assert read_values['parameters']['params'] == [
+        new_param
+    ], "Current domain parameters do not match expected value"
 
 
 @tier2
@@ -78,18 +79,12 @@ def test_negative_set_parameter(session, valid_domain_name):
     """
     update_values = {
         'parameters.params': [
-            {
-                'name': gen_string('alpha', 256),
-                'value': gen_string('alpha', 256)
-            }
+            {'name': gen_string('alpha', 256), 'value': gen_string('alpha', 256)}
         ]
     }
     with session:
         name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
+        session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         with pytest.raises(AssertionError) as context:
             session.domain.update(name, update_values)
         assert 'Name is too long' in str(context.value)
@@ -111,10 +106,7 @@ def test_negative_set_parameter_same(session, valid_domain_name):
     param_value = gen_string('alpha')
     with session:
         name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
+        session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         session.domain.add_parameter(name, param_name, param_value)
         with pytest.raises(AssertionError) as context:
             session.domain.add_parameter(name, param_name, param_value)
@@ -137,10 +129,7 @@ def test_positive_remove_parameter(session, valid_domain_name):
     param_value = gen_string('alpha')
     with session:
         name = valid_domain_name
-        session.domain.create({
-            'domain.dns_domain': name,
-            'domain.full_name': name,
-        })
+        session.domain.create({'domain.dns_domain': name, 'domain.full_name': name})
         session.domain.add_parameter(name, param_name, param_value)
         session.domain.remove_parameter(name, param_name)
         params = session.domain.read(name)['parameters']['params']
@@ -165,13 +154,15 @@ def test_positive_end_to_end(session, module_org, module_loc, valid_domain_name)
     new_name = gen_string('alpha')
     param = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
     with session:
-        session.domain.create({
-            'domain.dns_domain': dns_domain_name,
-            'domain.full_name': full_domain_name,
-            'parameters.params': [param],
-            'locations.multiselect.assigned': [module_loc.name],
-            'organizations.multiselect.assigned': [module_org.name],
-        })
+        session.domain.create(
+            {
+                'domain.dns_domain': dns_domain_name,
+                'domain.full_name': full_domain_name,
+                'parameters.params': [param],
+                'locations.multiselect.assigned': [module_loc.name],
+                'organizations.multiselect.assigned': [module_org.name],
+            }
+        )
         assert session.domain.search(full_domain_name)[0]['Description'] == full_domain_name
         domain_values = session.domain.read(full_domain_name)
         assert domain_values['domain']['dns_domain'] == dns_domain_name

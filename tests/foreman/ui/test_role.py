@@ -21,9 +21,12 @@ from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
-from robottelo.constants import PERMISSIONS_UI, ROLES
+from robottelo.constants import PERMISSIONS_UI
+from robottelo.constants import ROLES
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -61,21 +64,22 @@ def test_positive_end_to_end(session, module_org, module_loc):
     new_org = entities.Organization().create()
     new_loc = entities.Location(organization=[new_org]).create()
     with session:
-        session.role.create({
-            'name': role_name,
-            'description': role_description,
-            'organizations.assigned': [module_org.name],
-            'locations.assigned': [module_loc.name]
-        })
+        session.role.create(
+            {
+                'name': role_name,
+                'description': role_description,
+                'organizations.assigned': [module_org.name],
+                'locations.assigned': [module_loc.name],
+            }
+        )
         values = session.role.read(role_name)
         assert values['name'] == role_name
         assert values['description'] == role_description
         assert values['organizations']['assigned'] == [module_org.name]
         assert values['locations']['assigned'] == [module_loc.name]
-        session.filter.create(role_name, {
-            'resource_type': resource_type,
-            'permission.assigned': permissions
-        })
+        session.filter.create(
+            role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
+        )
         assigned_permissions = session.filter.read_permissions(role_name)
         assert set(assigned_permissions[resource_type]) == set(permissions)
         # clone the role
@@ -85,12 +89,15 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert list(assigned_permissions.keys()) == [resource_type]
         assert set(assigned_permissions[resource_type]) == set(permissions)
         # update the role
-        session.role.update(role_name, {
-            'name': new_role_name,
-            'description': new_role_description,
-            'organizations.assigned': [new_org.name],
-            'locations.assigned': [new_loc.name]
-        })
+        session.role.update(
+            role_name,
+            {
+                'name': new_role_name,
+                'description': new_role_description,
+                'organizations.assigned': [new_org.name],
+                'locations.assigned': [new_loc.name],
+            },
+        )
         assert not session.role.search(role_name)
         values = session.role.read(new_role_name)
         assert values['name'] == new_role_name
@@ -126,13 +133,15 @@ def test_positive_assign_cloned_role(session):
     with session:
         session.role.clone(role_name, {'name': cloned_role_name})
         assert session.role.search(cloned_role_name)[0]['Name'] == cloned_role_name
-        session.user.create({
-            'user.login': user_name,
-            'user.auth': 'INTERNAL',
-            'user.password': user_password,
-            'user.confirm': user_password,
-            'roles.resources.assigned': [cloned_role_name],
-        })
+        session.user.create(
+            {
+                'user.login': user_name,
+                'user.auth': 'INTERNAL',
+                'user.password': user_password,
+                'user.confirm': user_password,
+                'roles.resources.assigned': [cloned_role_name],
+            }
+        )
         assert session.user.search(user_name)[0]['Username'] == user_name
         user = session.user.read(user_name, widget_names='roles')
         assert user['roles']['resources']['assigned'] == [cloned_role_name]
@@ -163,8 +172,7 @@ def test_positive_delete_cloned_builtin(session):
 
 
 @tier2
-def test_positive_create_filter_without_override(
-        session, module_org, module_loc, test_name):
+def test_positive_create_filter_without_override(session, module_org, module_loc, test_name):
     """Create filter in role w/o overriding it
 
     :id: a7f76f6e-6c13-4b34-b38c-19501b65786f
@@ -190,18 +198,17 @@ def test_positive_create_filter_without_override(
     subnet.create_missing()
     subnet_name = subnet.name
     with session:
-        session.role.create({
-            'name': role_name,
-            'organizations.assigned': [module_org.name],
-            'locations.assigned': [module_loc.name]
-        })
+        session.role.create(
+            {
+                'name': role_name,
+                'organizations.assigned': [module_org.name],
+                'locations.assigned': [module_loc.name],
+            }
+        )
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
-            {
-                'resource_type': 'Subnet',
-                'permission.assigned': ['view_subnets', 'create_subnets'],
-            }
+            {'resource_type': 'Subnet', 'permission.assigned': ['view_subnets', 'create_subnets']},
         )
         filter_values = session.filter.read(role_name, 'Subnet')
         assert filter_values['override'] is False
@@ -209,36 +216,38 @@ def test_positive_create_filter_without_override(
             role_name,
             {
                 'resource_type': 'Organization',
-                'permission.assigned': [
-                    'assign_organizations', 'view_organizations'],
-            }
+                'permission.assigned': ['assign_organizations', 'view_organizations'],
+            },
         )
         session.filter.create(
             role_name,
             {
                 'resource_type': 'Location',
                 'permission.assigned': ['assign_locations', 'view_locations'],
+            },
+        )
+        session.user.create(
+            {
+                'user.login': username,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'user.mail': 'test@eample.com',
+                'roles.resources.assigned': [role_name],
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
             }
         )
-        session.user.create({
-            'user.login': username,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'user.mail': 'test@eample.com',
-            'roles.resources.assigned': [role_name],
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-
-        })
     with Session(test_name, user=username, password=password) as session:
-        session.subnet.create({
-            'subnet.name': subnet_name,
-            'subnet.protocol': 'IPv4',
-            'subnet.network_address': subnet.network,
-            'subnet.network_mask': subnet.mask,
-            'subnet.boot_mode': 'Static',
-        })
+        session.subnet.create(
+            {
+                'subnet.name': subnet_name,
+                'subnet.protocol': 'IPv4',
+                'subnet.network_address': subnet.network,
+                'subnet.network_mask': subnet.mask,
+                'subnet.boot_mode': 'Static',
+            }
+        )
         assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
         with raises(NavigationTriesExceeded):
             session.architecture.create({'name': gen_string('alpha')})
@@ -246,8 +255,7 @@ def test_positive_create_filter_without_override(
 
 @tier2
 @upgrade
-def test_positive_create_non_overridable_filter(
-        session, module_org, module_loc, test_name):
+def test_positive_create_non_overridable_filter(session, module_org, module_loc, test_name):
     """Create non overridden filter in role
 
     :id: 5ee281cf-28fa-439d-888d-b1f9aacc6d57
@@ -274,45 +282,45 @@ def test_positive_create_non_overridable_filter(
     user_loc = entities.Location().create()
     arch = entities.Architecture().create()
     with session:
-        session.role.create({
-            'name': role_name,
-            'organizations.assigned': [module_org.name],
-            'locations.assigned': [module_loc.name]
-        })
+        session.role.create(
+            {
+                'name': role_name,
+                'organizations.assigned': [module_org.name],
+                'locations.assigned': [module_loc.name],
+            }
+        )
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
             {
                 'resource_type': 'Architecture',
-                'permission.assigned': [
-                    'view_architectures', 'edit_architectures'],
+                'permission.assigned': ['view_architectures', 'edit_architectures'],
+            },
+        )
+        session.user.create(
+            {
+                'user.login': username,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'user.mail': 'test@eample.com',
+                'roles.resources.assigned': [role_name],
+                'organizations.resources.assigned': [user_org.name],
+                'locations.resources.assigned': [user_loc.name],
             }
         )
-        session.user.create({
-            'user.login': username,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'user.mail': 'test@eample.com',
-            'roles.resources.assigned': [role_name],
-            'organizations.resources.assigned': [user_org.name],
-            'locations.resources.assigned': [user_loc.name],
-
-        })
     with Session(test_name, user=username, password=password) as session:
         session.architecture.update(arch.name, {'name': new_name})
         assert session.architecture.search(new_name)[0]['Name'] == new_name
         with raises(NavigationTriesExceeded):
-            session.organization.create({
-                'name': gen_string('alpha'),
-                'label': gen_string('alpha'),
-            })
+            session.organization.create(
+                {'name': gen_string('alpha'), 'label': gen_string('alpha')}
+            )
 
 
 @tier2
 @upgrade
-def test_positive_create_overridable_filter(
-        session, module_org, module_loc, test_name):
+def test_positive_create_overridable_filter(session, module_org, module_loc, test_name):
     """Create overridden filter in role
 
     :id: 325e7e3e-60fc-4182-9585-0449d9660e8d
@@ -344,12 +352,13 @@ def test_positive_create_overridable_filter(
     subnet_name = subnet.name
     new_subnet_name = gen_string('alpha')
     with session:
-        session.role.create({
-            'name': role_name,
-            'organizations.assigned': [role_org.name, module_org.name],
-            'locations.assigned': [role_loc.name, module_loc.name]
-
-        })
+        session.role.create(
+            {
+                'name': role_name,
+                'organizations.assigned': [role_org.name, module_org.name],
+                'locations.assigned': [role_loc.name, module_loc.name],
+            }
+        )
         assert session.role.search(role_name)[0]['Name'] == role_name
         session.filter.create(
             role_name,
@@ -357,63 +366,66 @@ def test_positive_create_overridable_filter(
                 'resource_type': 'Subnet',
                 'permission.assigned': ['view_subnets', 'create_subnets'],
                 'override': True,
-                'taxonomies_tabs.locations.resources.assigned': [
-                    module_loc.name],
-                'taxonomies_tabs.organizations.resources.assigned': [
-                    module_org.name]
-            }
+                'taxonomies_tabs.locations.resources.assigned': [module_loc.name],
+                'taxonomies_tabs.organizations.resources.assigned': [module_org.name],
+            },
         )
         session.filter.create(
             role_name,
             {
                 'resource_type': 'Organization',
-                'permission.assigned': [
-                    'assign_organizations', 'view_organizations'],
-            }
+                'permission.assigned': ['assign_organizations', 'view_organizations'],
+            },
         )
         session.filter.create(
             role_name,
             {
                 'resource_type': 'Location',
                 'permission.assigned': ['assign_locations', 'view_locations'],
+            },
+        )
+        session.user.create(
+            {
+                'user.login': username,
+                'user.auth': 'INTERNAL',
+                'user.password': password,
+                'user.confirm': password,
+                'user.mail': 'test@eample.com',
+                'roles.resources.assigned': [role_name],
+                'organizations.resources.assigned': [role_org.name, module_org.name],
+                'locations.resources.assigned': [role_loc.name, module_loc.name],
             }
         )
-        session.user.create({
-            'user.login': username,
-            'user.auth': 'INTERNAL',
-            'user.password': password,
-            'user.confirm': password,
-            'user.mail': 'test@eample.com',
-            'roles.resources.assigned': [role_name],
-            'organizations.resources.assigned': [
-                role_org.name, module_org.name],
-            'locations.resources.assigned': [role_loc.name, module_loc.name],
-
-        })
     with Session(test_name, user=username, password=password) as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
-        session.subnet.create({
-            'subnet.name': subnet_name,
-            'subnet.protocol': 'IPv4',
-            'subnet.network_address': subnet.network,
-            'subnet.network_mask': subnet.mask,
-            'subnet.boot_mode': 'Static',
-        })
-        assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
-        session.organization.select(org_name=role_org.name)
-        session.location.select(loc_name=role_loc.name)
-        with raises(AssertionError) as context:
-            session.subnet.create({
-                'subnet.name': new_subnet_name,
+        session.subnet.create(
+            {
+                'subnet.name': subnet_name,
                 'subnet.protocol': 'IPv4',
                 'subnet.network_address': subnet.network,
                 'subnet.network_mask': subnet.mask,
                 'subnet.boot_mode': 'Static',
-            })
-        assert "You don't have permission create_subnets with attributes" \
-               " that you have specified or you don't have access to" \
-               " specified organizations or locations" in str(context.value)
+            }
+        )
+        assert session.subnet.search(subnet_name)[0]['Name'] == subnet_name
+        session.organization.select(org_name=role_org.name)
+        session.location.select(loc_name=role_loc.name)
+        with raises(AssertionError) as context:
+            session.subnet.create(
+                {
+                    'subnet.name': new_subnet_name,
+                    'subnet.protocol': 'IPv4',
+                    'subnet.network_address': subnet.network,
+                    'subnet.network_mask': subnet.mask,
+                    'subnet.boot_mode': 'Static',
+                }
+            )
+        assert (
+            "You don't have permission create_subnets with attributes"
+            " that you have specified or you don't have access to"
+            " specified organizations or locations" in str(context.value)
+        )
 
 
 @tier2
@@ -444,10 +456,9 @@ def test_positive_create_with_21_filters(session):
         for _ in range(filters_number):
             resource_type, permission = next(permissions)
             used_filters.add((resource_type, permission))
-            session.filter.create(role_name, {
-                'resource_type': resource_type,
-                'permission.assigned': [permission]
-            })
+            session.filter.create(
+                role_name, {'resource_type': resource_type, 'permission.assigned': [permission]}
+            )
         assigned_permissions = session.filter.read_permissions(role_name)
         assigned_filters = {
             (resource_type, permission)
@@ -478,42 +489,10 @@ def test_positive_create_with_sc_parameter_permission(session):
     with session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(role_name, {
-            'resource_type': resource_type,
-            'permission.assigned': permissions
-        })
+        session.filter.create(
+            role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
+        )
         values = session.filter.search(role_name, 'PuppetclassLookupKey')
-        assert values
-        assert values[0]['Resource'] == resource_type
-        assigned_permissions = values[0]['Permissions'].split(', ')
-        assert set(assigned_permissions) == set(permissions)
-
-
-@tier2
-def test_positive_create_with_smart_variable_permission(session):
-    """Create role filter with few permissions for smart variables.
-
-    :id: 9e5775f3-5f79-4212-bcb4-29d91032df4e
-
-    :customerscenario: true
-
-    :expectedresults: Corresponding role filter has necessary permissions
-
-    :BZ: 1360191
-
-    :CaseImportance: High
-    """
-    role_name = gen_string('alpha')
-    resource_type = 'Smart variable'
-    permissions = ['view_external_variables', 'edit_external_variables']
-    with session:
-        session.role.create({'name': role_name})
-        assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(role_name, {
-            'resource_type': resource_type,
-            'permission.assigned': permissions
-        })
-        values = session.filter.search(role_name, 'VariableLookupKey')
         assert values
         assert values[0]['Resource'] == resource_type
         assigned_permissions = values[0]['Permissions'].split(', ')
@@ -538,8 +517,7 @@ def test_positive_create_filter_admin_user_with_locs(test_name):
     resource_type = 'Architecture'
     permissions = ['view_architectures', 'edit_architectures']
     org = entities.Organization().create()
-    locations = [
-        entities.Location(organization=[org]).create() for _ in range(6)]
+    locations = [entities.Location(organization=[org]).create() for _ in range(6)]
     password = gen_string('alphanumeric')
     user = entities.User(
         admin=True,
@@ -552,10 +530,9 @@ def test_positive_create_filter_admin_user_with_locs(test_name):
     with Session(test_name, user=user.login, password=password) as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(role_name, {
-            'resource_type': resource_type,
-            'permission.assigned': permissions
-        })
+        session.filter.create(
+            role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
+        )
         assigned_permissions = session.filter.read_permissions(role_name)
         assert set(assigned_permissions[resource_type]) == set(permissions)
 
@@ -578,10 +555,7 @@ def test_positive_create_filter_admin_user_with_orgs(test_name):
     resource_type = 'Architecture'
     permissions = ['view_architectures', 'edit_architectures']
     password = gen_string('alphanumeric')
-    organizations = [
-        entities.Organization().create()
-        for _ in range(10)
-    ]
+    organizations = [entities.Organization().create() for _ in range(10)]
     loc = entities.Location(organization=[organizations[0]]).create()
     user = entities.User(
         admin=True,
@@ -594,9 +568,8 @@ def test_positive_create_filter_admin_user_with_orgs(test_name):
     with Session(test_name, user=user.login, password=password) as session:
         session.role.create({'name': role_name})
         assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(role_name, {
-            'resource_type': resource_type,
-            'permission.assigned': permissions
-        })
+        session.filter.create(
+            role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
+        )
         assigned_permissions = session.filter.read_permissions(role_name)
         assert set(assigned_permissions[resource_type]) == set(permissions)

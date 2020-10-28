@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API-Content
+:CaseComponent: ContentManagement
 
 :TestType: Functional
 
@@ -15,14 +15,12 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2
-)
 
-from robottelo.decorators import fixture, tier2
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
 
 
 @fixture(scope='module')
@@ -72,8 +70,8 @@ def test_positive_module_stream_details_search_in_repo(session, module_org, modu
             'Description': 'A module for the walrus 5.21 package',
         }
         module_stream_details = {
-            key: value for key, value in
-            walrus_details['details']['details_table'].items()
+            key: value
+            for key, value in walrus_details['details']['details_table'].items()
             if key in expected_module_details
         }
         assert expected_module_details == module_stream_details

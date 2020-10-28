@@ -34,75 +34,71 @@ Subcommands::
 """
 import random
 
-from fauxfactory import gen_string, gen_url
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import make_location, make_compute_resource
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_location
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import (
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 def valid_name_desc_data():
     """Random data for valid name and description"""
-    return(
-        {u'name': gen_string('numeric'),
-         u'description': gen_string('numeric')},
-        {u'name': gen_string('alphanumeric', 255),
-         u'description': gen_string('alphanumeric')},
-        {u'name': gen_string('alphanumeric'),
-         u'description': gen_string('alphanumeric', 255)},
-        {u'name': gen_string('utf8'),
-         u'description': gen_string('utf8')},
-        {u'name': u'<html>{0}</html>'.format(
-            gen_string('alpha')),
-         u'description': u'<html>{0}</html>'.format(
-             gen_string('alpha'))},
-        {u'name': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(
-            gen_string('utf8')),
-         u'description': u"{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(
-             gen_string('alpha'))},
+    return (
+        {'name': gen_string('numeric'), 'description': gen_string('numeric')},
+        {'name': gen_string('alphanumeric', 255), 'description': gen_string('alphanumeric')},
+        {'name': gen_string('alphanumeric'), 'description': gen_string('alphanumeric', 255)},
+        {'name': gen_string('utf8'), 'description': gen_string('utf8')},
+        {
+            'name': '<html>{0}</html>'.format(gen_string('alpha')),
+            'description': '<html>{0}</html>'.format(gen_string('alpha')),
+        },
+        {
+            'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
+            'description': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('alpha')),
+        },
     )
 
 
 def invalid_create_data():
     """Random data for invalid name and url"""
-    return(
-        {u'name': gen_string('alphanumeric', 256)},
-        {u'name': ''},
-        {u'url': 'invalid url'},
-        {u'url': ''},
+    return (
+        {'name': gen_string('alphanumeric', 256)},
+        {'name': ''},
+        {'url': 'invalid url'},
+        {'url': ''},
     )
 
 
 def valid_update_data():
     """Random data for valid update"""
-    return(
-        {u'new-name': gen_string('utf8', 255)},
-        {u'new-name': gen_string('alphanumeric')},
-        {u'new-name': 'white spaces %s' %
-                      gen_string(str_type='alphanumeric')},
-        {u'description': gen_string('utf8', 255)},
-        {u'description': gen_string('alphanumeric')},
-        {u'url': gen_url()},
-        {u'url': 'qemu+tcp://localhost:16509/system'},
+    return (
+        {'new-name': gen_string('utf8', 255)},
+        {'new-name': gen_string('alphanumeric')},
+        {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
+        {'description': gen_string('utf8', 255)},
+        {'description': gen_string('alphanumeric')},
+        {'url': gen_url()},
+        {'url': 'qemu+tcp://localhost:16509/system'},
     )
 
 
 def invalid_update_data():
     """Random data for invalid update"""
-    return(
-        {u'new-name': gen_string('utf8', 256)},
-        {u'new-name': ''},
-        {u'url': 'invalid url'},
-        {u'url': ''},
+    return (
+        {'new-name': gen_string('utf8', 256)},
+        {'new-name': ''},
+        {'url': 'invalid url'},
+        {'url': ''},
     )
 
 
@@ -117,7 +113,6 @@ class ComputeResourceTestCase(CLITestCase):
             LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
-    # pylint: disable=no-self-use
     @tier1
     def test_positive_create_with_name(self):
         """Create Compute Resource
@@ -130,11 +125,13 @@ class ComputeResourceTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        ComputeResource.create({
-            'name': 'cr {0}'.format(gen_string(str_type='alpha')),
-            'provider': 'Libvirt',
-            'url': self.current_libvirt_url,
-        })
+        ComputeResource.create(
+            {
+                'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+                'provider': 'Libvirt',
+                'url': self.current_libvirt_url,
+            }
+        )
 
     @tier1
     def test_positive_info(self):
@@ -149,11 +146,13 @@ class ComputeResourceTestCase(CLITestCase):
         :CaseLevel: Component
         """
         name = gen_string('utf8')
-        compute_resource = make_compute_resource({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': self.current_libvirt_url,
-        })
+        compute_resource = make_compute_resource(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'url': self.current_libvirt_url,
+            }
+        )
         # factory already runs info, just check the data
         self.assertEquals(compute_resource['name'], name)
 
@@ -169,13 +168,11 @@ class ComputeResourceTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        comp_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': self.current_libvirt_url,
-        })
+        comp_res = make_compute_resource(
+            {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': self.current_libvirt_url}
+        )
         self.assertTrue(comp_res['name'])
-        result_list = ComputeResource.list({
-            'search': 'name=%s' % comp_res['name']})
+        result_list = ComputeResource.list({'search': 'name=%s' % comp_res['name']})
         self.assertTrue(len(result_list) > 0)
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)
@@ -193,10 +190,9 @@ class ComputeResourceTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        comp_res = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': self.current_libvirt_url,
-        })
+        comp_res = make_compute_resource(
+            {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': self.current_libvirt_url}
+        )
         self.assertTrue(comp_res['name'])
         ComputeResource.delete({'name': comp_res['name']})
         result = ComputeResource.exists(search=('name', comp_res['name']))
@@ -218,12 +214,14 @@ class ComputeResourceTestCase(CLITestCase):
         """
         for options in valid_name_desc_data():
             with self.subTest(options):
-                ComputeResource.create({
-                    u'description': options['description'],
-                    u'name': options['name'],
-                    u'provider': FOREMAN_PROVIDERS['libvirt'],
-                    u'url': gen_url(),
-                })
+                ComputeResource.create(
+                    {
+                        'description': options['description'],
+                        'name': options['name'],
+                        'provider': FOREMAN_PROVIDERS['libvirt'],
+                        'url': gen_url(),
+                    }
+                )
 
     @tier2
     def test_positive_create_with_loc(self):
@@ -257,9 +255,9 @@ class ComputeResourceTestCase(CLITestCase):
         """
         locations_amount = random.randint(3, 5)
         locations = [make_location() for _ in range(locations_amount)]
-        comp_resource = make_compute_resource({
-            'location-ids': [location['id'] for location in locations],
-        })
+        comp_resource = make_compute_resource(
+            {'location-ids': [location['id'] for location in locations]}
+        )
         self.assertEqual(len(comp_resource['locations']), locations_amount)
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
@@ -281,12 +279,13 @@ class ComputeResourceTestCase(CLITestCase):
         for options in invalid_create_data():
             with self.subTest(options):
                 with self.assertRaises(CLIReturnCodeError):
-                    ComputeResource.create({
-                        u'name': options.get(
-                            'name', gen_string(str_type='alphanumeric')),
-                        u'provider': FOREMAN_PROVIDERS['libvirt'],
-                        u'url': options.get('url', gen_url()),
-                    })
+                    ComputeResource.create(
+                        {
+                            'name': options.get('name', gen_string(str_type='alphanumeric')),
+                            'provider': FOREMAN_PROVIDERS['libvirt'],
+                            'url': options.get('url', gen_url()),
+                        }
+                    )
 
     @tier2
     def test_negative_create_with_same_name(self):
@@ -302,11 +301,13 @@ class ComputeResourceTestCase(CLITestCase):
         """
         comp_res = make_compute_resource()
         with self.assertRaises(CLIReturnCodeError):
-            ComputeResource.create({
-                u'name': comp_res['name'],
-                u'provider': FOREMAN_PROVIDERS['libvirt'],
-                u'url': gen_url(),
-            })
+            ComputeResource.create(
+                {
+                    'name': comp_res['name'],
+                    'provider': FOREMAN_PROVIDERS['libvirt'],
+                    'url': gen_url(),
+                }
+            )
 
     # Update Positive
 
@@ -331,21 +332,11 @@ class ComputeResourceTestCase(CLITestCase):
                 # check updated values
                 result = ComputeResource.info({'id': comp_res['id']})
                 self.assertEqual(
-                    result['description'],
-                    options.get('description', comp_res['description'])
+                    result['description'], options.get('description', comp_res['description'])
                 )
-                self.assertEqual(
-                    result['name'],
-                    options.get('new-name', comp_res['name'])
-                )
-                self.assertEqual(
-                    result['url'],
-                    options.get('url', comp_res['url'])
-                )
-                self.assertEqual(
-                    result['provider'].lower(),
-                    comp_res['provider'].lower()
-                )
+                self.assertEqual(result['name'], options.get('new-name', comp_res['name']))
+                self.assertEqual(result['url'], options.get('url', comp_res['url']))
+                self.assertEqual(result['provider'].lower(), comp_res['provider'].lower())
 
     # Update Negative
 
@@ -365,8 +356,7 @@ class ComputeResourceTestCase(CLITestCase):
             with self.subTest(options):
                 comp_res = make_compute_resource()
                 with self.assertRaises(CLIReturnCodeError):
-                    ComputeResource.update(
-                        dict({'name': comp_res['name']}, **options))
+                    ComputeResource.update(dict({'name': comp_res['name']}, **options))
                 result = ComputeResource.info({'id': comp_res['id']})
                 # check attributes have not changed
                 self.assertEqual(result['name'], comp_res['name'])
@@ -390,12 +380,14 @@ class ComputeResourceTestCase(CLITestCase):
         """
         for set_console_password in ('true', 'false'):
             with self.subTest(set_console_password):
-                ComputeResource.create({
-                    'name': gen_string('utf8'),
-                    'provider': 'Libvirt',
-                    'set-console-password': set_console_password,
-                    'url': gen_url(),
-                })
+                ComputeResource.create(
+                    {
+                        'name': gen_string('utf8'),
+                        'provider': 'Libvirt',
+                        'set-console-password': set_console_password,
+                        'url': gen_url(),
+                    }
+                )
 
     @tier2
     def test_positive_update_console_password(self):
@@ -412,14 +404,9 @@ class ComputeResourceTestCase(CLITestCase):
         :CaseLevel: Component
         """
         cr_name = gen_string('utf8')
-        ComputeResource.create({
-            'name': cr_name,
-            'provider': 'Libvirt',
-            'url': gen_url(),
-        })
+        ComputeResource.create({'name': cr_name, 'provider': 'Libvirt', 'url': gen_url()})
         for set_console_password in ('true', 'false'):
             with self.subTest(set_console_password):
-                ComputeResource.update({
-                    'name': cr_name,
-                    'set-console-password': set_console_password,
-                })
+                ComputeResource.update(
+                    {'name': cr_name, 'set-console-password': set_console_password}
+                )

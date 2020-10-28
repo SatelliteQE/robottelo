@@ -15,24 +15,21 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
-from robottelo.cleanup import capsule_cleanup, location_cleanup
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_location,
-    make_medium,
-    make_proxy,
-)
 from nailgun import entities
+
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import location_cleanup
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_proxy
 from robottelo.cli.location import Location
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -60,7 +57,7 @@ class LocationTestCase(CLITestCase):
         cls.host_group2 = entities.HostGroup().create()
         cls.host_group3 = entities.HostGroup().create()
         cls.comp_resource = entities.LibvirtComputeResource().create()
-        cls.template = entities.ConfigTemplate().create()
+        cls.template = entities.ProvisioningTemplate().create()
         cls.user = entities.User().create()
 
     @tier2
@@ -80,19 +77,21 @@ class LocationTestCase(CLITestCase):
         """
         # Create
         description = gen_string('utf8')
-        loc = make_location({
-            'description': description,
-            'subnet-ids': self.subnet.id,
-            'puppet-environment-ids': self.env.id,
-            'domain-ids': [self.domain.id, self.domain2.id],
-            'hostgroup-ids': [self.host_group.id, self.host_group2.id],
-            'medium-ids': self.medium["id"],
-            'compute-resource-ids': self.comp_resource.id,
-            'config-templates': self.template.name,
-            'user-ids': self.user.id
-        })
+        loc = make_location(
+            {
+                'description': description,
+                'subnet-ids': self.subnet.id,
+                'puppet-environment-ids': self.env.id,
+                'domain-ids': [self.domain.id, self.domain2.id],
+                'hostgroup-ids': [self.host_group.id, self.host_group2.id],
+                'medium-ids': self.medium["id"],
+                'compute-resource-ids': self.comp_resource.id,
+                'provisioning-templates': self.template.name,
+                'user-ids': self.user.id,
+            }
+        )
 
-        self.assertEqual(loc['description'], description)
+        self.assertEqual(loc['description'][0], description)
         self.assertIn(self.subnet.name, loc['subnets'][0])
         self.assertIn(self.subnet.network, loc['subnets'][0])
         self.assertEqual(loc['environments'][0], self.env.name)
@@ -109,17 +108,20 @@ class LocationTestCase(CLITestCase):
             template_search = self.template.name
         else:
             template_search = '{0} ({1})'.format(
-                self.template.name, entities.TemplateKind().search()[0].name)
+                self.template.name, entities.TemplateKind().search()[0].name
+            )
         self.assertIn(template_search, loc['templates'])
         self.assertEqual(loc['users'][0], self.user.login)
 
         # Update
-        Location.update({
-            'id': loc['id'],
-            'puppet-environment-ids': [self.env.id, self.env2.id],
-            'domain-ids': self.domain2.id,
-            'hostgroup-ids': [self.host_group2.id, self.host_group3.id],
-        })
+        Location.update(
+            {
+                'id': loc['id'],
+                'puppet-environment-ids': [self.env.id, self.env2.id],
+                'domain-ids': self.domain2.id,
+                'hostgroup-ids': [self.host_group2.id, self.host_group3.id],
+            }
+        )
         loc = Location.info({'id': loc['id']})
         self.assertIn(self.host_group2.name, loc['hostgroups'])
         self.assertIn(self.host_group3.name, loc['hostgroups'])
@@ -198,16 +200,10 @@ class LocationTestCase(CLITestCase):
         proxy = self._make_proxy()
         self.addCleanup(location_cleanup, loc['id'])
 
-        Location.add_smart_proxy({
-            'name': loc['name'],
-            'smart-proxy-id': proxy['id'],
-        })
+        Location.add_smart_proxy({'name': loc['name'], 'smart-proxy-id': proxy['id']})
         loc = Location.info({'name': loc['name']})
         self.assertIn(proxy['name'], loc['smart-proxies'])
-        Location.remove_smart_proxy({
-            'name': loc['name'],
-            'smart-proxy': proxy['name'],
-        })
+        Location.remove_smart_proxy({'name': loc['name'], 'smart-proxy': proxy['name']})
         loc = Location.info({'name': loc['name']})
         self.assertNotIn(proxy['name'], loc['smart-proxies'])
 
@@ -226,32 +222,23 @@ class LocationTestCase(CLITestCase):
         param_value = gen_string('alpha')
         param_new_value = gen_string('alpha')
         location = make_location()
-        Location.set_parameter({
-            'name': param_name,
-            'value': param_value,
-            'location-id': location['id'],
-        })
+        Location.set_parameter(
+            {'name': param_name, 'value': param_value, 'location-id': location['id']}
+        )
         location = Location.info({'id': location['id']})
         self.assertEqual(len(location['parameters']), 1)
-        self.assertEqual(
-            param_value, location['parameters'][param_name.lower()])
+        self.assertEqual(param_value, location['parameters'][param_name.lower()])
 
         # Update
-        Location.set_parameter({
-            'name': param_name,
-            'value': param_new_value,
-            'location': location['name'],
-        })
+        Location.set_parameter(
+            {'name': param_name, 'value': param_new_value, 'location': location['name']}
+        )
         location = Location.info({'id': location['id']})
         self.assertEqual(len(location['parameters']), 1)
-        self.assertEqual(
-            param_new_value, location['parameters'][param_name.lower()])
+        self.assertEqual(param_new_value, location['parameters'][param_name.lower()])
 
         # Remove
-        Location.delete_parameter({
-            'name': param_name,
-            'location': location['name'],
-        })
+        Location.delete_parameter({'name': param_name, 'location': location['name']})
         location = Location.info({'id': location['id']})
         self.assertEqual(len(location['parameters']), 0)
         self.assertNotIn(param_name.lower(), location['parameters'])
@@ -273,10 +260,7 @@ class LocationTestCase(CLITestCase):
         parent_loc = make_location()
         loc = make_location({'parent-id': parent_loc['id']})
         new_parent_loc = make_location()
-        Location.update({
-            'id': loc['id'],
-            'parent-id': new_parent_loc['id'],
-        })
+        Location.update({'id': loc['id'], 'parent-id': new_parent_loc['id']})
         loc = Location.info({'id': loc['id']})
         self.assertEqual(loc['parent'], new_parent_loc['name'])
 
@@ -299,18 +283,12 @@ class LocationTestCase(CLITestCase):
 
         # set parent as child
         with self.assertRaises(CLIReturnCodeError):
-            Location.update({
-                'id': parent_loc['id'],
-                'parent-id': loc['id'],
-            })
+            Location.update({'id': parent_loc['id'], 'parent-id': loc['id']})
         parent_loc = Location.info({'id': parent_loc['id']})
         self.assertIsNone(parent_loc.get('parent'))
 
         # set child as parent
         with self.assertRaises(CLIReturnCodeError):
-            Location.update({
-                'id': loc['id'],
-                'parent-id': loc['id'],
-            })
+            Location.update({'id': loc['id'], 'parent-id': loc['id']})
         loc = Location.info({'id': loc['id']})
         self.assertEqual(loc['parent'], parent_loc['name'])

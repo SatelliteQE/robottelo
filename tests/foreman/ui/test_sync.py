@@ -20,30 +20,27 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.constants import (
-    DISTRO_RHEL6, DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    FAKE_1_YUM_REPO,
-    FEDORA27_OSTREE_REPO,
-    REPOS,
-    REPOSET,
-    REPO_TYPE,
-    PRDS,
-)
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    upgrade,
-)
+from robottelo.config import settings
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import PRDS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
-from robottelo.products import (
-    RepositoryCollection,
-    RHELCloudFormsTools,
-    SatelliteCapsuleRepository,
-)
+from robottelo.products import RepositoryCollection
+from robottelo.products import RHELCloudFormsTools
+from robottelo.products import SatelliteCapsuleRepository
 
 
 @fixture(scope='module')
@@ -64,6 +61,7 @@ def module_org_with_manifest():
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo(session, module_custom_product):
     """Create Content Custom Sync with minimal input parameters
 
@@ -73,11 +71,9 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 
     :CaseImportance: Critical
     """
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO, product=module_custom_product).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=module_custom_product).create()
     with session:
-        results = session.sync_status.synchronize([
-            (module_custom_product.name, repo.name)])
+        results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -95,10 +91,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 
     :CaseLevel: Integration
     """
-    repos = (
-        SatelliteCapsuleRepository(cdn=True),
-        RHELCloudFormsTools(cdn=True)
-    )
+    repos = (SatelliteCapsuleRepository(cdn=True), RHELCloudFormsTools(cdn=True))
     distros = [DISTRO_RHEL7, DISTRO_RHEL6]
     repo_collections = [
         RepositoryCollection(distro=distro, repositories=[repo])
@@ -126,6 +119,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 @skip_if_os('RHEL6')
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """Create custom ostree repository and sync it.
 
@@ -144,8 +138,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
         unprotected=False,
     ).create()
     with session:
-        results = session.sync_status.synchronize([
-            (module_custom_product.name, repo.name)])
+        results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -181,8 +174,7 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     )
     with session:
         session.organization.select(org_name=module_org_with_manifest.name)
-        results = session.sync_status.synchronize([
-            (PRDS['rhah'], REPOS['rhaht']['name'])])
+        results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
         assert results[0] == 'Syncing Complete.'
 
@@ -204,10 +196,12 @@ def test_positive_sync_docker_via_sync_status(session, module_org):
     with session:
         session.repository.create(
             product.name,
-            {'name': repo_name,
-             'repo_type': REPO_TYPE['docker'],
-             'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
-             'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME}
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['docker'],
+                'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
+                'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME,
+            },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
         result = session.sync_status.synchronize([(product.name, repo_name)])

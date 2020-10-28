@@ -1,6 +1,5 @@
 """Configuration casts to help typing the settings."""
 import logging
-
 from shlex import shlex
 
 
@@ -13,9 +12,16 @@ class Boolean(object):
     :param str value: A string to cast to boolean.
 
     """
+
     _booleans = {
-        '1': True, 'yes': True, 'true': True, 'on': True,
-        '0': False, 'no': False, 'false': False, 'off': False,
+        '1': True,
+        'yes': True,
+        'true': True,
+        'on': True,
+        '0': False,
+        'no': False,
+        'false': False,
+        'off': False,
     }
 
     def __call__(self, value):
@@ -31,6 +37,7 @@ class List(object):
     :param str value: A comma separated string to cast to a list.
 
     """
+
     def __call__(self, value):
         lexer = shlex(value, posix=True)
         lexer.whitespace = ','
@@ -44,6 +51,7 @@ class LoggingLevel(object):
     :param str value: A string to cast to a logging level.
 
     """
+
     _logging_levels = {
         'critical': logging.CRITICAL,
         'debug': logging.DEBUG,
@@ -55,10 +63,9 @@ class LoggingLevel(object):
     def __call__(self, value):
         value = value.lower()
         if value not in self._logging_levels:
-            raise ValueError('{} should one of {}.'.format(
-                value,
-                ', '.join(self._logging_levels.keys()),
-            ))
+            raise ValueError(
+                '{} should one of {}.'.format(value, ', '.join(self._logging_levels.keys()))
+            )
         return self._logging_levels[value]
 
 
@@ -68,6 +75,7 @@ class Tuple(List):
     :param str value: A comma separated string to cast to a tuple.
 
     """
+
     def __call__(self, value):
         return tuple(super(Tuple, self).__call__(value))
 
@@ -77,6 +85,7 @@ class Dict(List):
 
     :param str value: A comma separated string to cast to a dict.
     """
+
     def __call__(self, value):
         return dict(v.split('=') for v in super(Dict, self).__call__(value))
 
@@ -90,9 +99,9 @@ class WebdriverDesiredCapabilities(Dict):
     :param str value: A comma separated string to cast to a
         webdriver.DesiredCapabilities dict.
     """
+
     def __call__(self, value):
-        desired_capabilities = super(
-            WebdriverDesiredCapabilities, self).__call__(value)
+        desired_capabilities = super(WebdriverDesiredCapabilities, self).__call__(value)
         for k, v in desired_capabilities.items():
             v = v.lower()
             if v in ('true', 'false'):

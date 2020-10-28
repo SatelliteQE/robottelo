@@ -20,9 +20,14 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_not_set, tier2, upgrade
-from robottelo.manifests import original_manifest, upload_manifest_locked
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import INSTALL_MEDIUM_URL
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.manifests import original_manifest
+from robottelo.manifests import upload_manifest_locked
 
 
 @tier2
@@ -46,8 +51,7 @@ def test_positive_end_to_end(session):
     # entities to be added and removed
     user = entities.User().create()
     media = entities.Media(
-        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
-        os_family='Redhat',
+        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6), os_family='Redhat'
     ).create()
     template = entities.ProvisioningTemplate().create()
     ptable = entities.PartitionTable().create()
@@ -56,14 +60,20 @@ def test_positive_end_to_end(session):
     hostgroup = entities.HostGroup().create()
     location = entities.Location().create()
 
-    widget_list = ['primary', 'users', 'media', 'provisioning_templates',
-                   'partition_tables', 'domains', 'environments', 'host_groups',
-                   'locations']
+    widget_list = [
+        'primary',
+        'users',
+        'media',
+        'provisioning_templates',
+        'partition_tables',
+        'domains',
+        'environments',
+        'host_groups',
+        'locations',
+    ]
 
     with session:
-        session.organization.create({
-            'name': name, 'label': label, 'description': description,
-        })
+        session.organization.create({'name': name, 'label': label, 'description': description})
         assert session.organization.search(name)[0]['Name'] == name
         org_values = session.organization.read(name, widget_names='primary')
         assert org_values['primary']['name'] == name
@@ -71,65 +81,71 @@ def test_positive_end_to_end(session):
         assert org_values['primary']['description'] == description
 
         # add attributes
-        session.organization.update(name, {
-            'primary.name': new_name,
-            'users.resources.assigned': [user.login],
-            'media.resources.assigned': [media.name],
-            'provisioning_templates.resources.assigned': [template.name],
-            'partition_tables.resources.assigned': [ptable.name],
-            'domains.resources.assigned': [domain.name],
-            'environments.resources.assigned': [env.name],
-            'host_groups.resources.assigned': [hostgroup.name],
-            'locations.resources.assigned': [location.name]
-        })
+        session.organization.update(
+            name,
+            {
+                'primary.name': new_name,
+                'users.resources.assigned': [user.login],
+                'media.resources.assigned': [media.name],
+                'provisioning_templates.resources.assigned': [template.name],
+                'partition_tables.resources.assigned': [ptable.name],
+                'domains.resources.assigned': [domain.name],
+                'environments.resources.assigned': [env.name],
+                'host_groups.resources.assigned': [hostgroup.name],
+                'locations.resources.assigned': [location.name],
+            },
+        )
 
         org_values = session.organization.read(new_name, widget_names=widget_list)
         with raises(AssertionError):
             session.organization.delete(new_name)
         assert user.login in org_values['users']['resources']['assigned']
         assert media.name in org_values['media']['resources']['assigned']
-        assert template.name in org_values[
-            'provisioning_templates']['resources']['assigned']
-        assert ptable.name in org_values[
-            'partition_tables']['resources']['assigned']
+        assert template.name in org_values['provisioning_templates']['resources']['assigned']
+        assert ptable.name in org_values['partition_tables']['resources']['assigned']
         assert domain.name in org_values['domains']['resources']['assigned']
         assert env.name in org_values['environments']['resources']['assigned']
-        assert hostgroup.name in org_values[
-            'host_groups']['resources']['assigned']
+        assert hostgroup.name in org_values['host_groups']['resources']['assigned']
         assert location.name in org_values['locations']['resources']['assigned']
 
+        ptables_before_remove = len(org_values['partition_tables']['resources']['assigned'])
+        templates_before_remove = len(
+            org_values['provisioning_templates']['resources']['assigned']
+        )
+
         # remove attributes
-        session.organization.update(new_name, {
-            'users.resources.unassigned': [user.login],
-            'media.resources.unassigned': [media.name],
-            'provisioning_templates.resources.unassigned': [template.name],
-            'partition_tables.resources.unassigned': [ptable.name],
-            'domains.resources.unassigned': [domain.name],
-            'environments.resources.unassigned': [env.name],
-            'host_groups.resources.unassigned': [hostgroup.name],
-            'locations.resources.unassigned': [location.name]
-        })
+        session.organization.update(
+            new_name,
+            {
+                'users.resources.unassigned': [user.login],
+                'media.resources.unassigned': [media.name],
+                'provisioning_templates.resources.unassigned': [template.name],
+                'partition_tables.resources.unassigned': [ptable.name],
+                'domains.resources.unassigned': [domain.name],
+                'environments.resources.unassigned': [env.name],
+                'host_groups.resources.unassigned': [hostgroup.name],
+                'locations.resources.unassigned': [location.name],
+            },
+        )
 
         org_values = session.organization.read(new_name, widget_names=widget_list)
         assert len(org_values['users']['resources']['assigned']) == 0
         assert user.login in org_values['users']['resources']['unassigned']
         assert len(org_values['media']['resources']['assigned']) == 0
         assert media.name in org_values['media']['resources']['unassigned']
-        assert template.name in org_values[
-            'provisioning_templates']['resources']['unassigned']
-        assert ptable.name in org_values[
-            'partition_tables']['resources']['unassigned']
+        assert len(org_values['partition_tables']['resources']['assigned']) < ptables_before_remove
+        assert (
+            len(org_values['provisioning_templates']['resources']['assigned'])
+            < templates_before_remove
+        )
         assert len(org_values['domains']['resources']['assigned']) == 0
         assert domain.name in org_values['domains']['resources']['unassigned']
         assert len(org_values['environments']['resources']['assigned']) == 0
-        assert env.name in org_values[
-            'environments']['resources']['unassigned']
+        assert env.name in org_values['environments']['resources']['unassigned']
         assert len(org_values['host_groups']['resources']['assigned']) == 0
-        assert hostgroup.name in org_values[
-            'host_groups']['resources']['unassigned']
+        assert hostgroup.name in org_values['host_groups']['resources']['unassigned']
         assert len(org_values['locations']['resources']['assigned']) == 0
-        assert location.name in org_values[
-            'locations']['resources']['unassigned']
+        assert location.name in org_values['locations']['resources']['unassigned']
 
         # delete org
         session.organization.select(DEFAULT_ORG)
@@ -180,8 +196,7 @@ def test_positive_create_with_all_users(session):
     user = entities.User().create()
     org = entities.Organization().create()
     with session:
-        session.organization.update(
-            org.name, {'users.all_users': True})
+        session.organization.update(org.name, {'users.all_users': True})
         org_values = session.organization.read(org.name, widget_names='users')
         assert user.login in org_values['users']['resources']['assigned']
         session.organization.search(org.name)
@@ -203,28 +218,22 @@ def test_positive_update_compresource(session):
 
     :CaseLevel: Integration
     """
-    url = (
-        '{0}{1}'.format(LIBVIRT_RESOURCE_URL, settings.compute_resources.libvirt_hostname))
+    url = '{0}{1}'.format(LIBVIRT_RESOURCE_URL, settings.compute_resources.libvirt_hostname)
     resource = entities.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
     org = entities.Organization().create()
     with session:
         session.organization.update(
-            org.name,
-            {'compute_resources.resources.assigned': [resource_name]}
-        )
-        org_values = session.organization.read(org.name,  widget_names='compute_resources')
-        assert org_values[
-            'compute_resources']['resources']['assigned'][0] == resource_name
-        session.organization.update(
-            org.name,
-            {'compute_resources.resources.unassigned': [resource_name]}
+            org.name, {'compute_resources.resources.assigned': [resource_name]}
         )
         org_values = session.organization.read(org.name, widget_names='compute_resources')
-        assert len(
-            org_values['compute_resources']['resources']['assigned']) == 0
-        assert resource_name in org_values[
-            'compute_resources']['resources']['unassigned']
+        assert org_values['compute_resources']['resources']['assigned'][0] == resource_name
+        session.organization.update(
+            org.name, {'compute_resources.resources.unassigned': [resource_name]}
+        )
+        org_values = session.organization.read(org.name, widget_names='compute_resources')
+        assert len(org_values['compute_resources']['resources']['assigned']) == 0
+        assert resource_name in org_values['compute_resources']['resources']['unassigned']
 
 
 @skip_if_not_set('fake_manifest')
@@ -247,10 +256,7 @@ def test_positive_delete_with_manifest_lces(session):
     with session:
         session.organization.select(org.name)
         session.lifecycleenvironment.create({'name': 'DEV'})
-        session.lifecycleenvironment.create(
-            {'name': 'QE'},
-            prior_entity_name='DEV',
-        )
+        session.lifecycleenvironment.create({'name': 'QE'}, prior_entity_name='DEV')
         # Org cannot be deleted when selected,
         # So switching to Default Org and then deleting.
         session.organization.select(DEFAULT_ORG)

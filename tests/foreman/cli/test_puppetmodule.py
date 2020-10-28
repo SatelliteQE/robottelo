@@ -15,12 +15,18 @@
 
 :Upstream: No
 """
-
-from robottelo.cli.factory import make_org, make_product, make_repository
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
-from robottelo.constants import FAKE_0_PUPPET_REPO, FAKE_1_PUPPET_REPO
-from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.config import settings
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -28,18 +34,19 @@ class PuppetModuleTestCase(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(PuppetModuleTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product({
-            u'organization-id': cls.org['id']
-        })
-        cls.repo = make_repository({
-            u'organization-id': cls.org['id'],
-            u'product-id': cls.product['id'],
-            u'content-type': u'puppet',
-            u'url': FAKE_0_PUPPET_REPO,
-        })
+        cls.product = make_product({'organization-id': cls.org['id']})
+        cls.repo = make_repository(
+            {
+                'organization-id': cls.org['id'],
+                'product-id': cls.product['id'],
+                'content-type': 'puppet',
+                'url': FAKE_0_PUPPET_REPO,
+            }
+        )
         Repository.synchronize({'id': cls.repo['id']})
 
     @tier1
@@ -70,18 +77,14 @@ class PuppetModuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        return_value = PuppetModule.list({
-            'organization-id': self.org['id'],
-        })
+        return_value = PuppetModule.list({'organization-id': self.org['id']})
         for i in range(len(return_value)):
-            result = PuppetModule.info(
-                {'id': return_value[i]['id']},
-                output_format='json'
-            )
+            result = PuppetModule.info({'id': return_value[i]['id']}, output_format='json')
             self.assertEqual(result['id'], return_value[i]['id'])
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.
@@ -96,19 +99,17 @@ class PuppetModuleTestCase(CLITestCase):
         # Verify that number of synced modules is correct
         repo1 = Repository.info({'id': self.repo['id']})
         repo_content_count = repo1['content-counts']['puppet-modules']
-        modules_num = len(
-            PuppetModule.list({'repository-id': repo1['id']}))
+        modules_num = len(PuppetModule.list({'repository-id': repo1['id']}))
         self.assertEqual(repo_content_count, str(modules_num))
         # Create and sync second repo
-        repo2 = make_repository({
-            u'organization-id': self.org['id'],
-            u'product-id': self.product['id'],
-            u'content-type': u'puppet',
-            u'url': FAKE_1_PUPPET_REPO,
-        })
+        repo2 = make_repository(
+            {
+                'organization-id': self.org['id'],
+                'product-id': self.product['id'],
+                'content-type': 'puppet',
+                'url': FAKE_1_PUPPET_REPO,
+            }
+        )
         Repository.synchronize({'id': repo2['id']})
         # Verify that number of modules from the first repo has not changed
-        self.assertEqual(
-            modules_num,
-            len(PuppetModule.list({'repository-id': repo1['id']}))
-        )
+        self.assertEqual(modules_num, len(PuppetModule.list({'repository-id': repo1['id']})))

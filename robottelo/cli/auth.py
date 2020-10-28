@@ -12,7 +12,6 @@ Subcommands::
     logout                        Wipe your credentials
     status                        Information about current connections
 """
-
 from robottelo.cli.base import Base
 
 
@@ -25,22 +24,19 @@ class Auth(Base):
     def login(cls, options=None):
         """Set credentials"""
         cls.command_sub = 'login'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def logout(cls, options=None):
         """Wipe credentials"""
         cls.command_sub = 'logout'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def status(cls, options=None):
         """Show login status"""
         cls.command_sub = 'status'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
 
 class AuthLogin(Base):
@@ -52,12 +48,10 @@ class AuthLogin(Base):
     def basic(cls, options=None):
         """Provide username and password"""
         cls.command_sub = 'basic'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def oauth(cls, options=None):
         """Supports for both with/without 2fa"""
         cls.command_sub = 'oauth'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

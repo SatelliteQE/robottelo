@@ -3,20 +3,22 @@
 Usage:
     hammer virt-who-config [OPTIONS] SUBCOMMAND [ARG] ...
 
-Parameters:
- SUBCOMMAND                    subcommand
- [ARG] ...                     subcommand arguments
+Parameters::
 
-Subcommands:
- create                        Create a virt-who configuration
- delete                        Delete a virt-who configuration
- deploy                        Download and execute script for the specified
-                               virt-who configuration
- fetch                         Renders a deploy script for the specified
-                               virt-who configuration
- info                          Show a virt-who configuration
- list                          List of virt-who configurations
- update                        Update a virt-who configuration
+    SUBCOMMAND                    subcommand
+    [ARG] ...                     subcommand arguments
+
+Subcommands::
+
+    create                        Create a virt-who configuration
+    delete                        Delete a virt-who configuration
+    deploy                        Download and execute script for the specified
+                                virt-who configuration
+    fetch                         Renders a deploy script for the specified
+                                virt-who configuration
+    info                          Show a virt-who configuration
+    list                          List of virt-who configurations
+    update                        Update a virt-who configuration
 """
 from robottelo.cli.base import Base
 
@@ -30,9 +32,7 @@ class VirtWhoConfig(Base):
     def fetch(cls, options=None, output_format=None):
         """Renders a deploy script for the specified virt-who configuration"""
         cls.command_sub = 'fetch'
-        return cls.execute(
-                cls._construct_command(options),
-                output_format=output_format)
+        return cls.execute(cls._construct_command(options), output_format=output_format)
 
     @classmethod
     def deploy(cls, options=None):

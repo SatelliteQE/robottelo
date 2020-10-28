@@ -15,28 +15,26 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
 
-from fauxfactory import gen_choice, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    make_content_view,
-    make_content_view_filter,
-    make_location,
-    make_org,
-    make_product_wait,  # workaround for BZ 1332650
-    make_repository,
-)
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_content_view_filter
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -48,17 +46,14 @@ class ContentViewFilterTestCase(CLITestCase):
         """Init single organization, product and repository for all tests"""
         super(ContentViewFilterTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product_wait({u'organization-id': cls.org['id']})
-        cls.content_view = make_content_view({
-            u'organization-id': cls.org['id'],
-        })
+        cls.product = make_product_wait({'organization-id': cls.org['id']})
+        cls.content_view = make_content_view({'organization-id': cls.org['id']})
         for _ in range(2):
-            cls.repo = make_repository({u'product-id': cls.product['id']})
-            Repository.synchronize({u'id': cls.repo['id']})
-            ContentView.add_repository({
-                u'id': cls.content_view['id'],
-                u'repository-id': cls.repo['id'],
-            })
+            cls.repo = make_repository({'product-id': cls.product['id']})
+            Repository.synchronize({'id': cls.repo['id']})
+            ContentView.add_repository(
+                {'id': cls.content_view['id'], 'repository-id': cls.repo['id']}
+            )
 
     @tier1
     def test_positive_create_with_name_by_cv_id(self):
@@ -75,21 +70,18 @@ class ContentViewFilterTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                filter_content_type = gen_choice([
-                    'rpm',
-                    'package_group',
-                    'erratum',
-                ])
-                ContentView.filter.create({
-                    'content-view-id': self.content_view['id'],
-                    'name': name,
-                    'organization-id': self.org['id'],
-                    'type': filter_content_type,
-                })
-                cvf = ContentView.filter.info({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': name,
-                })
+                filter_content_type = gen_choice(['rpm', 'package_group', 'erratum', 'modulemd'])
+                ContentView.filter.create(
+                    {
+                        'content-view-id': self.content_view['id'],
+                        'name': name,
+                        'organization-id': self.org['id'],
+                        'type': filter_content_type,
+                    }
+                )
+                cvf = ContentView.filter.info(
+                    {'content-view-id': self.content_view['id'], 'name': name}
+                )
                 self.assertEqual(cvf['name'], name)
                 self.assertEqual(cvf['type'], filter_content_type)
 
@@ -105,19 +97,20 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for filter_content_type in ('rpm', 'package_group', 'erratum'):
+        for filter_content_type in ('rpm', 'package_group', 'erratum', 'modulemd'):
             with self.subTest(filter_content_type):
                 cvf_name = gen_string('utf8')
-                ContentView.filter.create({
-                    'content-view-id': self.content_view['id'],
-                    'name': cvf_name,
-                    'organization-id': self.org['id'],
-                    'type': filter_content_type,
-                })
-                cvf = ContentView.filter.info({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': cvf_name,
-                })
+                ContentView.filter.create(
+                    {
+                        'content-view-id': self.content_view['id'],
+                        'name': cvf_name,
+                        'organization-id': self.org['id'],
+                        'type': filter_content_type,
+                    }
+                )
+                cvf = ContentView.filter.info(
+                    {'content-view-id': self.content_view['id'], 'name': cvf_name}
+                )
                 self.assertEqual(cvf['type'], filter_content_type)
 
     @tier1
@@ -135,17 +128,18 @@ class ContentViewFilterTestCase(CLITestCase):
         for inclusion in ('true', 'false'):
             with self.subTest(inclusion):
                 cvf_name = gen_string('utf8')
-                ContentView.filter.create({
-                    'content-view-id': self.content_view['id'],
-                    'inclusion': inclusion,
-                    'name': cvf_name,
-                    'organization-id': self.org['id'],
-                    'type': 'rpm',
-                })
-                cvf = ContentView.filter.info({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': cvf_name,
-                })
+                ContentView.filter.create(
+                    {
+                        'content-view-id': self.content_view['id'],
+                        'inclusion': inclusion,
+                        'name': cvf_name,
+                        'organization-id': self.org['id'],
+                        'type': 'rpm',
+                    }
+                )
+                cvf = ContentView.filter.info(
+                    {'content-view-id': self.content_view['id'], 'name': cvf_name}
+                )
                 self.assertEqual(cvf['inclusion'], inclusion)
 
     @tier1
@@ -162,17 +156,18 @@ class ContentViewFilterTestCase(CLITestCase):
         """
         description = gen_string('utf8')
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'description': description,
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'package_group',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'description': description,
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'package_group',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(cvf['description'], description)
 
     @run_in_one_thread
@@ -193,30 +188,24 @@ class ContentViewFilterTestCase(CLITestCase):
         """
         name = gen_string('alpha')
         location = make_location()
-        Defaults.add({
-            u'param-name': 'organization_id',
-            u'param-value': self.org['id'],
-        })
-        Defaults.add({
-            u'param-name': 'location_id',
-            u'param-value': location['id'],
-        })
+        Defaults.add({'param-name': 'organization_id', 'param-value': self.org['id']})
+        Defaults.add({'param-name': 'location_id', 'param-value': location['id']})
         try:
-            ContentView.filter.create({
-                'content-view': self.content_view['name'],
-                'name': name,
-                'type': 'erratum',
-                'inclusion': 'true',
-
-            })
-            cvf = ContentView.filter.info({
-                u'content-view': self.content_view['name'],
-                u'name': name,
-            })
+            ContentView.filter.create(
+                {
+                    'content-view': self.content_view['name'],
+                    'name': name,
+                    'type': 'erratum',
+                    'inclusion': 'true',
+                }
+            )
+            cvf = ContentView.filter.info(
+                {'content-view': self.content_view['name'], 'name': name}
+            )
             self.assertEqual(cvf['name'], name)
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
-            Defaults.delete({u'param-name': 'location_id'})
+            Defaults.delete({'param-name': 'organization_id'})
+            Defaults.delete({'param-name': 'location_id'})
 
     @tier1
     def test_positive_list_by_name_and_org(self):
@@ -232,16 +221,17 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'package_group',
-        })
-        cv_filters = ContentView.filter.list({
-            u'content-view': self.content_view['name'],
-            u'organization': self.org['name'],
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'package_group',
+            }
+        )
+        cv_filters = ContentView.filter.list(
+            {'content-view': self.content_view['name'], 'organization': self.org['name']}
+        )
         self.assertGreaterEqual(len(cv_filters), 1)
         self.assertIn(cvf_name, [cvf['name'] for cvf in cv_filters])
 
@@ -259,17 +249,16 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view': self.content_view['name'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'package_group',
-        })
-        ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view': self.content_view['name'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'package_group',
+            }
+        )
+        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
 
     @tier1
     def test_positive_create_by_org_name(self):
@@ -283,17 +272,16 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view': self.content_view['name'],
-            'inclusion': 'false',
-            'name': cvf_name,
-            'organization': self.org['name'],
-            'type': 'erratum',
-        })
-        ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view': self.content_view['name'],
+                'inclusion': 'false',
+                'name': cvf_name,
+                'organization': self.org['name'],
+                'type': 'erratum',
+            }
+        )
+        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
 
     @tier1
     def test_positive_create_by_org_label(self):
@@ -307,17 +295,16 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view': self.content_view['name'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'organization-label': self.org['label'],
-            'type': 'erratum',
-        })
-        ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view': self.content_view['name'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'organization-label': self.org['label'],
+                'type': 'erratum',
+            }
+        )
+        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
 
     @tier1
     def test_positive_create_with_repo_by_id(self):
@@ -333,18 +320,19 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'repository-ids': self.repo['id'],
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'repository-ids': self.repo['id'],
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         # Check that only one, specified above, repository is displayed
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
@@ -365,19 +353,20 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'false',
-            'name': cvf_name,
-            'product': self.product['name'],
-            'repositories': self.repo['name'],
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'inclusion': 'false',
+                'name': cvf_name,
+                'product': self.product['name'],
+                'repositories': self.repo['name'],
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         # Check that only one, specified above, repository is displayed
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
@@ -396,18 +385,19 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'original-packages': 'true',
-            'repository-ids': self.repo['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'original-packages': 'true',
+                'repository-ids': self.repo['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
     @tier2
@@ -422,30 +412,32 @@ class ContentViewFilterTestCase(CLITestCase):
         :expectedresults: Content view filter created successfully and has both
             repositories affected (yum and docker)
         """
-        docker_repository = make_repository({
-            u'content-type': u'docker',
-            u'docker-upstream-name': u'busybox',
-            u'product-id': self.product['id'],
-            u'url': DOCKER_REGISTRY_HUB,
-        })
-        ContentView.add_repository({
-            u'id': self.content_view['id'],
-            u'repository-id': docker_repository['id'],
-        })
+        docker_repository = make_repository(
+            {
+                'content-type': 'docker',
+                'docker-upstream-name': 'busybox',
+                'product-id': self.product['id'],
+                'url': DOCKER_REGISTRY_HUB,
+            }
+        )
+        ContentView.add_repository(
+            {'id': self.content_view['id'], 'repository-id': docker_repository['id']}
+        )
         repos = [self.repo['id'], docker_repository['id']]
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'repository-ids': repos,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'repository-ids': repos,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(len(cvf['repositories']), 2)
         for repo in cvf['repositories']:
             self.assertIn(repo['id'], repos)
@@ -463,12 +455,14 @@ class ContentViewFilterTestCase(CLITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.create({
-                        'content-view-id': self.content_view['id'],
-                        'name': name,
-                        'organization-id': self.org['id'],
-                        'type': 'rpm',
-                    })
+                    ContentView.filter.create(
+                        {
+                            'content-view-id': self.content_view['id'],
+                            'name': name,
+                            'organization-id': self.org['id'],
+                            'type': 'rpm',
+                        }
+                    )
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -481,19 +475,23 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Low
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.create({
+        ContentView.filter.create(
+            {
                 'content-view-id': self.content_view['id'],
                 'name': cvf_name,
                 'organization-id': self.org['id'],
                 'type': 'rpm',
-            })
+            }
+        )
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.filter.create(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': cvf_name,
+                    'organization-id': self.org['id'],
+                    'type': 'rpm',
+                }
+            )
 
     @tier1
     def test_negative_create_without_type(self):
@@ -507,11 +505,13 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.create({
-                'content-view-id': self.content_view['id'],
-                'name': gen_string('utf8'),
-                'organization-id': self.org['id'],
-            })
+            ContentView.filter.create(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': gen_string('utf8'),
+                    'organization-id': self.org['id'],
+                }
+            )
 
     @tier1
     def test_negative_create_without_cv(self):
@@ -525,10 +525,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.create({
-                'name': gen_string('utf8'),
-                'type': 'rpm',
-            })
+            ContentView.filter.create({'name': gen_string('utf8'), 'type': 'rpm'})
 
     @tier1
     def test_negative_create_with_invalid_repo_id(self):
@@ -541,13 +538,15 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.create({
-                'content-view-id': self.content_view['id'],
-                'name': gen_string('utf8'),
-                'repository-ids': gen_string('numeric', 6),
-                'organization-id': self.org['id'],
-                'type': 'rpm',
-            })
+            ContentView.filter.create(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': gen_string('utf8'),
+                    'repository-ids': gen_string('numeric', 6),
+                    'organization-id': self.org['id'],
+                    'type': 'rpm',
+                }
+            )
 
     @tier2
     def test_positive_update_name(self):
@@ -565,23 +564,26 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        cvf = make_content_view_filter({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
+        cvf = make_content_view_filter(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                ContentView.filter.update({
-                    'content-view-id': self.content_view['id'],
-                    'id': cvf['filter-id'],
-                    'new-name': new_name,
-                })
-                cvf = ContentView.filter.info({
-                    'content-view-id': self.content_view['id'],
-                    'name': new_name,
-                })
+                ContentView.filter.update(
+                    {
+                        'content-view-id': self.content_view['id'],
+                        'id': cvf['filter-id'],
+                        'new-name': new_name,
+                    }
+                )
+                cvf = ContentView.filter.info(
+                    {'content-view-id': self.content_view['id'], 'name': new_name}
+                )
                 self.assertEqual(cvf['name'], new_name)
                 cvf_name = new_name  # updating cvf name for next iteration
 
@@ -601,35 +603,36 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': self.repo['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'repository-ids': self.repo['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
-        new_repo = make_repository({u'product-id': self.product['id']})
-        ContentView.add_repository({
-            u'id': self.content_view['id'],
-            u'repository-id': new_repo['id'],
-        })
+        new_repo = make_repository({'product-id': self.product['id']})
+        ContentView.add_repository(
+            {'id': self.content_view['id'], 'repository-id': new_repo['id']}
+        )
 
-        ContentView.filter.update({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': new_repo['id'],
-        })
+        ContentView.filter.update(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'repository-ids': new_repo['id'],
+            }
+        )
 
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
         self.assertEqual(cvf['repositories'][0]['name'], new_repo['name'])
@@ -650,37 +653,40 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': self.repo['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'repository-ids': self.repo['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
-        docker_repo = make_repository({
-            u'content-type': u'docker',
-            u'docker-upstream-name': u'busybox',
-            u'product-id': self.product['id'],
-            u'url': DOCKER_REGISTRY_HUB,
-        })
-        ContentView.add_repository({
-            u'id': self.content_view['id'],
-            u'repository-id': docker_repo['id'],
-        })
-        ContentView.filter.update({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': docker_repo['id'],
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        docker_repo = make_repository(
+            {
+                'content-type': 'docker',
+                'docker-upstream-name': 'busybox',
+                'product-id': self.product['id'],
+                'url': DOCKER_REGISTRY_HUB,
+            }
+        )
+        ContentView.add_repository(
+            {'id': self.content_view['id'], 'repository-id': docker_repo['id']}
+        )
+        ContentView.filter.update(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'repository-ids': docker_repo['id'],
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(len(cvf['repositories']), 1)
         self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
         self.assertEqual(cvf['repositories'][0]['name'], docker_repo['name'])
@@ -699,27 +705,25 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'inclusion': 'true',
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(cvf['inclusion'], 'true')
-        ContentView.filter.update({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'inclusion': 'false',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.update(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name, 'inclusion': 'false'}
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(cvf['inclusion'], 'false')
 
     @tier1
@@ -738,16 +742,17 @@ class ContentViewFilterTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.update({
-                        'content-view-id': self.content_view['id'],
-                        'name': cvf_name,
-                        'new-name': new_name,
-                    })
+                    ContentView.filter.update(
+                        {
+                            'content-view-id': self.content_view['id'],
+                            'name': cvf_name,
+                            'new-name': new_name,
+                        }
+                    )
                 with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.info({
-                        u'content-view-id': self.content_view['id'],
-                        u'name': new_name,
-                    })
+                    ContentView.filter.info(
+                        {'content-view-id': self.content_view['id'], 'name': new_name}
+                    )
 
     @tier1
     def test_negative_update_with_same_name(self):
@@ -761,25 +766,31 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
         new_name = gen_string('alpha', 100)
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': new_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.update({
+        ContentView.filter.create(
+            {
                 'content-view-id': self.content_view['id'],
                 'name': new_name,
-                'new-name': cvf_name,
-            })
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.filter.update(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': new_name,
+                    'new-name': cvf_name,
+                }
+            )
 
     @tier1
     def test_negative_update_inclusion(self):
@@ -793,23 +804,26 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'inclusion': 'true',
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.update({
+        ContentView.filter.create(
+            {
                 'content-view-id': self.content_view['id'],
-                'inclusion': 'wrong_value',
+                'inclusion': 'true',
                 'name': cvf_name,
-            })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.filter.update(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'inclusion': 'wrong_value',
+                    'name': cvf_name,
+                }
+            )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         self.assertEqual(cvf['inclusion'], 'true')
 
     @tier1
@@ -823,18 +837,22 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': self.repo['id'],
-            'type': 'rpm',
-        })
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.update({
+        ContentView.filter.create(
+            {
                 'content-view-id': self.content_view['id'],
                 'name': cvf_name,
-                'repository-ids': gen_string('numeric', 6),
-            })
+                'repository-ids': self.repo['id'],
+                'type': 'rpm',
+            }
+        )
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.filter.update(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': cvf_name,
+                    'repository-ids': gen_string('numeric', 6),
+                }
+            )
 
     @tier1
     def test_negative_update_with_invalid_repo_id(self):
@@ -848,19 +866,23 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'repository-ids': self.repo['id'],
-            'type': 'rpm',
-        })
-        new_repo = make_repository({u'product-id': self.product['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.update({
+        ContentView.filter.create(
+            {
                 'content-view-id': self.content_view['id'],
                 'name': cvf_name,
-                'repository-ids': new_repo['id'],
-            })
+                'repository-ids': self.repo['id'],
+                'type': 'rpm',
+            }
+        )
+        new_repo = make_repository({'product-id': self.product['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.filter.update(
+                {
+                    'content-view-id': self.content_view['id'],
+                    'name': cvf_name,
+                    'repository-ids': new_repo['id'],
+                }
+            )
 
     @tier1
     def test_positive_delete_by_name(self):
@@ -876,25 +898,22 @@ class ContentViewFilterTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                ContentView.filter.create({
-                    'content-view-id': self.content_view['id'],
-                    'name': name,
-                    'organization-id': self.org['id'],
-                    'type': 'rpm',
-                })
-                ContentView.filter.info({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': name,
-                })
-                ContentView.filter.delete({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': name,
-                })
+                ContentView.filter.create(
+                    {
+                        'content-view-id': self.content_view['id'],
+                        'name': name,
+                        'organization-id': self.org['id'],
+                        'type': 'rpm',
+                    }
+                )
+                ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': name})
+                ContentView.filter.delete(
+                    {'content-view-id': self.content_view['id'], 'name': name}
+                )
                 with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.info({
-                        u'content-view-id': self.content_view['id'],
-                        u'name': name,
-                    })
+                    ContentView.filter.info(
+                        {'content-view-id': self.content_view['id'], 'name': name}
+                    )
 
     @tier1
     @upgrade
@@ -909,22 +928,20 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        cvf = ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        cvf = ContentView.filter.info(
+            {'content-view-id': self.content_view['id'], 'name': cvf_name}
+        )
         ContentView.filter.delete({'id': cvf['filter-id']})
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.info({
-                u'content-view-id': self.content_view['id'],
-                u'name': cvf_name,
-            })
+            ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
 
     @tier1
     def test_positive_delete_by_org_name(self):
@@ -939,26 +956,24 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
-            'content-view-id': self.content_view['id'],
-            'name': cvf_name,
-            'organization-id': self.org['id'],
-            'type': 'rpm',
-        })
-        ContentView.filter.info({
-            u'content-view-id': self.content_view['id'],
-            u'name': cvf_name,
-        })
-        ContentView.filter.delete({
-            u'content-view': self.content_view['name'],
-            u'name': cvf_name,
-            u'organization': self.org['name'],
-        })
+        ContentView.filter.create(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': cvf_name,
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+            }
+        )
+        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        ContentView.filter.delete(
+            {
+                'content-view': self.content_view['name'],
+                'name': cvf_name,
+                'organization': self.org['name'],
+            }
+        )
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.info({
-                u'content-view-id': self.content_view['id'],
-                u'name': cvf_name,
-            })
+            ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
 
     @tier1
     def test_negative_delete_by_name(self):
@@ -971,7 +986,6 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.delete({
-                u'content-view-id': self.content_view['id'],
-                u'name': u'invalid_cv_filter',
-            })
+            ContentView.filter.delete(
+                {'content-view-id': self.content_view['id'], 'name': 'invalid_cv_filter'}
+            )

@@ -15,9 +15,10 @@
 
 :Upstream: No
 """
-import pytest
-from random import shuffle, randint
+from random import randint
+from random import shuffle
 
+import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
@@ -25,35 +26,32 @@ from pytest import raises
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    CHECKSUM_TYPE,
-    CUSTOM_MODULE_STREAM_REPO_1,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DISTRO_RHEL7,
-    DOCKER_REGISTRY_HUB,
-    DOWNLOAD_POLICIES,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    FAKE_8_PUPPET_REPO,
-    FEDORA26_OSTREE_REPO,
-    FEDORA27_OSTREE_REPO,
-    INVALID_URL,
-    REPO_DISCOVERY_URL,
-    REPO_TYPE,
-    REPOSET,
-    VALID_GPG_KEY_FILE,
-    VALID_GPG_KEY_BETA_FILE,
-)
+from robottelo.config import settings
+from robottelo.constants import CHECKSUM_TYPE
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOWNLOAD_POLICIES
+from robottelo.constants import INVALID_URL
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOSET
+from robottelo.constants import VALID_GPG_KEY_BETA_FILE
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_8_PUPPET_REPO
+from robottelo.constants.repos import FEDORA26_OSTREE_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    stubbed,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.host_info import get_sat_version
 from robottelo.products import SatelliteToolsRepository
@@ -71,6 +69,7 @@ def module_prod(module_org):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_in_different_orgs(session, module_org):
     """Create repository in two different orgs with same name
 
@@ -95,16 +94,16 @@ def test_positive_create_in_different_orgs(session, module_org):
                     'label': org.label,
                     'repo_type': REPO_TYPE['yum'],
                     'repo_content.upstream_url': FAKE_1_YUM_REPO,
-                }
+                },
             )
-            assert session.repository.search(
-                prod.name, repo_name)[0]['Name'] == repo_name
+            assert session.repository.search(prod.name, repo_name)[0]['Name'] == repo_name
             values = session.repository.read(prod.name, repo_name)
             assert values['name'] == repo_name
             assert values['label'] == org.label
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_as_non_admin_user(module_org, test_name):
     """Create a repository as a non admin user
 
@@ -141,31 +140,28 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
         organization=[module_org],
     ).create()
     product = entities.Product(organization=module_org).create()
-    with Session(
-            test_name, user=user_login, password=user_password) as session:
+    with Session(test_name, user=user_login, password=user_password) as session:
         # ensure that the created user is not a global admin user
         # check administer->organizations page
         with raises(NavigationTriesExceeded):
-            session.organization.create({
-                'name': gen_string('alpha'),
-                'label': gen_string('alpha'),
-            })
+            session.organization.create(
+                {'name': gen_string('alpha'), 'label': gen_string('alpha')}
+            )
         session.repository.create(
             product.name,
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
-            }
+            },
         )
-        assert session.repository.search(
-            product.name, repo_name)[0]['Name'] == repo_name
+        assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
 
 
 @tier2
 @upgrade
-def test_positive_create_puppet_repo_same_url_different_orgs(
-        session, module_prod):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_create_puppet_repo_same_url_different_orgs(session, module_prod):
     """Create two repos with the same URL in two different organizations.
 
     :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
@@ -177,38 +173,32 @@ def test_positive_create_puppet_repo_same_url_different_orgs(
     """
     # Create first repository
     repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO,
-        product=module_prod,
-        content_type=REPO_TYPE['puppet'],
+        url=FAKE_8_PUPPET_REPO, product=module_prod, content_type=REPO_TYPE['puppet']
     ).create()
     repo.sync()
     # Create second repository
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
     new_repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO,
-        product=product,
-        content_type=REPO_TYPE['puppet'],
+        url=FAKE_8_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
     ).create()
     new_repo.sync()
     with session:
         # Check packages number in first repository
-        assert session.repository.search(
-            module_prod.name, repo.name)[0]['Name'] == repo.name
+        assert session.repository.search(module_prod.name, repo.name)[0]['Name'] == repo.name
         repo = session.repository.read(module_prod.name, repo.name)
         assert repo['content_counts']['Puppet Modules'] == '1'
         # Check packages number in first repository
         session.organization.select(org.name)
-        assert session.repository.search(
-            product.name, new_repo.name)[0]['Name'] == new_repo.name
+        assert session.repository.search(product.name, new_repo.name)[0]['Name'] == new_repo.name
         new_repo = session.repository.read(product.name, new_repo.name)
         assert new_repo['content_counts']['Puppet Modules'] == '1'
 
 
 @tier2
 @upgrade
-def test_positive_create_as_non_admin_user_with_cv_published(
-        module_org, test_name):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name):
     """Create a repository as a non admin user in a product that already
     contain a repository that is used in a published content view.
 
@@ -256,12 +246,14 @@ def test_positive_create_as_non_admin_user_with_cv_published(
         # check administer->users page
         with raises(NavigationTriesExceeded):
             pswd = gen_string('alphanumeric')
-            session.user.create({
-                'user.login': gen_string('alphanumeric'),
-                'user.auth': 'INTERNAL',
-                'user.password': pswd,
-                'user.confirm': pswd,
-            })
+            session.user.create(
+                {
+                    'user.login': gen_string('alphanumeric'),
+                    'user.auth': 'INTERNAL',
+                    'user.password': pswd,
+                    'user.confirm': pswd,
+                }
+            )
         # ensure that the created user has only the assigned permissions
         # check that host collections menu tab does not exist
         with raises(NavigationTriesExceeded):
@@ -272,14 +264,14 @@ def test_positive_create_as_non_admin_user_with_cv_published(
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
-            }
+            },
         )
-        assert session.repository.search(
-            prod.name, repo.name)[0]['Name'] == repo.name
+        assert session.repository.search(prod.name, repo.name)[0]['Name'] == repo.name
 
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_discover_repo_via_existing_product(session, module_org):
     """Create repository via repo-discovery under existing product
 
@@ -293,18 +285,20 @@ def test_positive_discover_repo_via_existing_product(session, module_org):
     product = entities.Product(organization=module_org).create()
     with session:
         session.organization.select(org_name=module_org.name)
-        session.product.discover_repo({
-            'repo_type': 'Yum Repositories',
-            'url': REPO_DISCOVERY_URL,
-            'discovered_repos.repos': repo_name,
-            'create_repo.product_type': 'Existing Product',
-            'create_repo.product_content.product_name': product.name,
-        })
-        assert repo_name in session.repository.search(
-            product.name, repo_name)[0]['Name']
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'Existing Product',
+                'create_repo.product_content.product_name': product.name,
+            }
+        )
+        assert repo_name in session.repository.search(product.name, repo_name)[0]['Name']
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_discover_repo_via_new_product(session, module_org):
     """Create repository via repo discovery under new product
 
@@ -318,20 +312,20 @@ def test_positive_discover_repo_via_new_product(session, module_org):
     repo_name = 'fakerepo01'
     with session:
         session.organization.select(org_name=module_org.name)
-        session.product.discover_repo({
-            'repo_type': 'Yum Repositories',
-            'url': REPO_DISCOVERY_URL,
-            'discovered_repos.repos': repo_name,
-            'create_repo.product_type': 'New Product',
-            'create_repo.product_content.product_name': product_name,
-        })
-        assert session.product.search(
-            product_name)[0]['Name'] == product_name
-        assert repo_name in session.repository.search(
-            product_name, repo_name)[0]['Name']
+        session.product.discover_repo(
+            {
+                'repo_type': 'Yum Repositories',
+                'url': REPO_DISCOVERY_URL,
+                'discovered_repos.repos': repo_name,
+                'create_repo.product_type': 'New Product',
+                'create_repo.product_content.product_name': product_name,
+            }
+        )
+        assert session.product.search(product_name)[0]['Name'] == product_name
+        assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
 
 
-@stubbed
+@pytest.mark.stubbed
 @tier2
 @upgrade
 def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):
@@ -349,6 +343,7 @@ def test_positive_discover_module_stream_repo_via_existing_product(session, modu
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo_yum(session, module_org):
     """Create Custom yum repos and sync it via the repos page.
 
@@ -372,6 +367,7 @@ def test_positive_sync_custom_repo_yum(session, module_org):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo_puppet(session, module_org):
     """Create Custom puppet repos and sync it via the repos page.
 
@@ -384,9 +380,7 @@ def test_positive_sync_custom_repo_puppet(session, module_org):
     """
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO,
-        product=product,
-        content_type=REPO_TYPE['puppet'],
+        url=FAKE_0_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
     ).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
@@ -407,9 +401,7 @@ def test_positive_sync_custom_repo_docker(session, module_org):
     """
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB,
-        product=product,
-        content_type=REPO_TYPE['docker'],
+        url=DOCKER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
@@ -417,6 +409,7 @@ def test_positive_sync_custom_repo_docker(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
     """Create Custom yum repo and sync it via the repos page. Then try to
     change repo url to invalid one and re-sync that repository
@@ -433,21 +426,16 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
     :CaseLevel: Integration
     """
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        product=product,
-    ).create()
+    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
         with raises(AssertionError) as context:
             session.repository.update(
-                product.name, repo.name,
-                {'repo_content.upstream_url': INVALID_URL}
+                product.name, repo.name, {'repo_content.upstream_url': INVALID_URL}
             )
         assert 'bad URI(is not URI?)' in str(context.value)
-        assert session.repository.search(
-            product.name, repo.name)[0]['Name'] == repo.name
+        assert session.repository.search(product.name, repo.name)[0]['Name'] == repo.name
         repo_values = session.repository.read(product.name, repo.name)
         assert repo_values['repo_content']['upstream_url'] == FAKE_1_YUM_REPO
         result = session.repository.synchronize(product.name, repo.name)
@@ -455,6 +443,7 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resynchronize_rpm_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -468,9 +457,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
     :BZ: 1318004
     """
     repo = entities.Repository(
-        url=FAKE_1_YUM_REPO,
-        content_type=REPO_TYPE['yum'],
-        product=module_prod,
+        url=FAKE_1_YUM_REPO, content_type=REPO_TYPE['yum'], product=module_prod
     ).create()
     with session:
         result = session.repository.synchronize(module_prod.name, repo.name)
@@ -491,6 +478,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_resynchronize_puppet_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -504,9 +492,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
     :BZ: 1318004
     """
     repo = entities.Repository(
-        url=FAKE_1_PUPPET_REPO,
-        content_type=REPO_TYPE['puppet'],
-        product=module_prod,
+        url=FAKE_1_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=module_prod
     ).create()
     with session:
         result = session.repository.synchronize(module_prod.name, repo.name)
@@ -515,8 +501,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert int(repo_values['content_counts']['Puppet Modules']) >= 1
         # Remove puppet modules
-        session.repository.remove_all_puppet_modules(
-            module_prod.name, repo.name)
+        session.repository.remove_all_puppet_modules(module_prod.name, repo.name)
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert repo_values['content_counts']['Puppet Modules'] == '0'
         # Sync it again
@@ -529,6 +514,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     """Perform end to end testing for custom yum repository
 
@@ -545,12 +531,10 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     new_repo_name = gen_string('alphanumeric')
     new_checksum_type = CHECKSUM_TYPE['sha1']
     gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_FILE),
-        organization=module_org
+        content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
     ).create()
     new_gpg_key = entities.GPGKey(
-        content=read_data_file(VALID_GPG_KEY_BETA_FILE),
-        organization=module_org,
+        content=read_data_file(VALID_GPG_KEY_BETA_FILE), organization=module_org
     ).create()
     with session:
         session.repository.create(
@@ -561,8 +545,8 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
                 'repo_content.checksum_type': checksum_type,
                 'repo_content.gpg_key': gpg_key.name,
-                'repo_content.download_policy': DOWNLOAD_POLICIES['immediate']
-            }
+                'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
+            },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
@@ -579,7 +563,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
                 'repo_content.metadata_type': new_checksum_type,
                 'repo_content.gpg_key': new_gpg_key.name,
                 'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
-            }
+            },
         )
         assert not session.repository.search(module_prod.name, repo_name)
         repo_values = session.repository.read(module_prod.name, new_repo_name)
@@ -594,6 +578,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
     """Perform end to end testing for custom module streams yum repository
 
@@ -613,7 +598,7 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
                 'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_2,
-            }
+            },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
@@ -623,11 +608,7 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert int(repo_values['content_counts']['Module Streams']) >= 5
         session.repository.update(
-            module_prod.name,
-            repo_name,
-            {
-                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_1,
-            }
+            module_prod.name, repo_name, {'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_1}
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_1
@@ -670,31 +651,28 @@ def test_positive_upstream_with_credentials(session, module_prod):
                 'repo_content.upstream_url': FAKE_1_YUM_REPO,
                 'repo_content.upstream_username': upstream_username,
                 'repo_content.upstream_password': upstream_password,
-            }
+            },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
-            upstream_username, hidden_password)
+            upstream_username, hidden_password
+        )
         session.repository.update(
             module_prod.name,
             repo_name,
             {
                 'repo_content.upstream_authorization': dict(
-                    username=new_upstream_username,
-                    password=new_upstream_password
-                ),
-            }
+                    username=new_upstream_username, password=new_upstream_password
+                )
+            },
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert repo_values['repo_content']['upstream_authorization'] == '{0} / {1}'.format(
-            new_upstream_username, hidden_password)
+            new_upstream_username, hidden_password
+        )
         session.repository.update(
-            module_prod.name,
-            repo_name,
-            {
-                'repo_content.upstream_authorization': {},
-            }
+            module_prod.name, repo_name, {'repo_content.upstream_authorization': {}}
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert not repo_values['repo_content']['upstream_authorization']
@@ -702,6 +680,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
     """Perform end to end testing for custom ostree repository
 
@@ -724,16 +703,13 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
                 'name': repo_name,
                 'repo_type': REPO_TYPE['ostree'],
                 'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
-            }
+            },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         session.repository.update(
             module_prod.name,
             repo_name,
-            {
-                'name': new_repo_name,
-                'repo_content.upstream_url': FEDORA27_OSTREE_REPO,
-            }
+            {'name': new_repo_name, 'repo_content.upstream_url': FEDORA27_OSTREE_REPO},
         )
         assert not session.repository.search(module_prod.name, repo_name)
         repo_values = session.repository.read(module_prod.name, new_repo_name)
@@ -762,21 +738,27 @@ def test_positive_reposet_disable(session):
         session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],
-            version=sat_tools_repo.data['releasever']
+            version=sat_tools_repo.data['releasever'],
         )
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled')
+            'name = "{0}"'.format(repository_name), category='Enabled'
+        )
         assert results[0]['name'] == repository_name
-        results = session.sync_status.synchronize([(
-            sat_tools_repo.data['product'],
-            sat_tools_repo.data['releasever'],
-            sat_tools_repo.data['arch'],
-            repository_name
-        )])
+        results = session.sync_status.synchronize(
+            [
+                (
+                    sat_tools_repo.data['product'],
+                    sat_tools_repo.data['releasever'],
+                    sat_tools_repo.data['arch'],
+                    repository_name,
+                )
+            ]
+        )
         assert results and all([result == 'Syncing Complete.' for result in results])
         session.redhatrepository.disable(repository_name)
         assert not session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled')
+            'name = "{0}"'.format(repository_name), category='Enabled'
+        )
 
 
 @run_in_one_thread
@@ -807,29 +789,36 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         session.redhatrepository.enable(
             sat_tools_repo.data['repository-set'],
             sat_tools_repo.data['arch'],
-            version=sat_tools_repo.data['releasever']
+            version=sat_tools_repo.data['releasever'],
         )
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled')
+            'name = "{0}"'.format(repository_name), category='Enabled'
+        )
         assert results[0]['name'] == repository_name
         # Sync the repo and verify sync was successful
-        results = session.sync_status.synchronize([(
-            sat_tools_repo.data['product'],
-            sat_tools_repo.data['releasever'],
-            sat_tools_repo.data['arch'],
-            repository_name
-        )])
+        results = session.sync_status.synchronize(
+            [
+                (
+                    sat_tools_repo.data['product'],
+                    sat_tools_repo.data['releasever'],
+                    sat_tools_repo.data['arch'],
+                    repository_name,
+                )
+            ]
+        )
         assert results and all([result == 'Syncing Complete.' for result in results])
         # Delete manifest
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
         results = session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled')
+            'name = "{0}"'.format(repository_name), category='Enabled'
+        )
         assert results[0]['name'] == repository_name_orphaned
         # Disable the orphaned repository
         session.redhatrepository.disable(repository_name, orphaned=True)
         assert not session.redhatrepository.search(
-            'name = "{0}"'.format(repository_name), category='Enabled')
+            'name = "{0}"'.format(repository_name), category='Enabled'
+        )
 
 
 @tier2
@@ -845,16 +834,10 @@ def test_positive_delete_random_docker_repo(session, module_org):
     :CaseLevel: Integration
     """
     entities_list = []
-    products = [
-        entities.Product(organization=module_org).create()
-        for _
-        in range(randint(2, 5))
-    ]
+    products = [entities.Product(organization=module_org).create() for _ in range(randint(2, 5))]
     for product in products:
         repo = entities.Repository(
-            url=DOCKER_REGISTRY_HUB,
-            product=product,
-            content_type=REPO_TYPE['docker'],
+            url=DOCKER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
         ).create()
         entities_list.append((product.name, repo.name))
     with session:
@@ -868,7 +851,6 @@ def test_positive_delete_random_docker_repo(session, module_org):
 
 
 @tier2
-@pytest.mark.skip_if_open("BZ:1776108")
 def test_positive_recommended_repos(session, module_org):
     """list recommended repositories using
      On/Off 'Recommended Repositories' toggle.
@@ -890,10 +872,13 @@ def test_positive_recommended_repos(session, module_org):
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
         sat_version = get_sat_version().public
-        cap_tool_repos = [repo['name'] for repo in rrepos_on if 'Tools' in repo['name'] or
-                                                                'Capsule' in repo['name']]
+        cap_tool_repos = [
+            repo['name']
+            for repo in rrepos_on
+            if 'Tools' in repo['name'] or 'Capsule' in repo['name']
+        ]
         cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
         assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
-        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
+        assert REPOSET['rhae2'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)

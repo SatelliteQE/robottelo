@@ -15,898 +15,871 @@
 
 :Upstream: No
 """
+import http
 import random
 
+import pytest
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import client
+from nailgun import entities
+
+from .utils import AK_CONTENT_LABEL
+from .utils import ClientProvisioningMixin
 from robottelo import manifests
-from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-)
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
-    FAKE_0_PUPPET_REPO,
-    CUSTOM_RPM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    setting_is_set,
-    skip_if_not_set,
-    tier1,
-    tier4,
-    upgrade
-)
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
-from six.moves import http_client
-from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
-# (too many public methods) pylint: disable=R0904
+from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
-    # flake8:noqa (line-too-long) pylint:disable=C0301
-    u'activation_keys': (
-        u'/katello/api/activation_keys',
-        u'/katello/api/activation_keys',
-        u'/katello/api/activation_keys/:id',
-        u'/katello/api/activation_keys/:id',
-        u'/katello/api/activation_keys/:id',
-        u'/katello/api/activation_keys/:id/add_subscriptions',
-        u'/katello/api/activation_keys/:id/content_override',
-        u'/katello/api/activation_keys/:id/copy',
-        u'/katello/api/activation_keys/:id/host_collections/available',
-        u'/katello/api/activation_keys/:id/product_content',
-        u'/katello/api/activation_keys/:id/releases',
-        u'/katello/api/activation_keys/:id/remove_subscriptions',
+    # flake8:noqa (line-too-long)
+    'activation_keys': (
+        '/katello/api/activation_keys',
+        '/katello/api/activation_keys',
+        '/katello/api/activation_keys/:id',
+        '/katello/api/activation_keys/:id',
+        '/katello/api/activation_keys/:id',
+        '/katello/api/activation_keys/:id/add_subscriptions',
+        '/katello/api/activation_keys/:id/content_override',
+        '/katello/api/activation_keys/:id/copy',
+        '/katello/api/activation_keys/:id/host_collections/available',
+        '/katello/api/activation_keys/:id/product_content',
+        '/katello/api/activation_keys/:id/releases',
+        '/katello/api/activation_keys/:id/remove_subscriptions',
     ),
-    u'ansible_roles': (
-        u'/ansible/api/ansible_roles',
-        u'/ansible/api/ansible_roles/:id',
-        u'/ansible/api/ansible_roles/:id',
-        u'/ansible/api/ansible_roles/import',
-        u'/ansible/api/ansible_roles/obsolete',
+    'ansible_collections': (
+        '/katello/api/ansible_collections/compare',
+        '/katello/api/ansible_collections/:id',
     ),
-    u'api': (),
-    u'architectures': (
-        u'/api/architectures',
-        u'/api/architectures',
-        u'/api/architectures/:id',
-        u'/api/architectures/:id',
-        u'/api/architectures/:id',
+    'ansible_inventories': (
+        '/ansible/api/ansible_inventories/hosts',
+        '/ansible/api/ansible_inventories/hostgroups',
+        '/ansible/api/ansible_inventories/schedule',
     ),
-    u'arf_reports': (
-        u'/api/compliance/arf/:cname/:policy_id/:date',
-        u'/api/compliance/arf_reports',
-        u'/api/compliance/arf_reports/:id',
-        u'/api/compliance/arf_reports/:id',
-        u'/api/compliance/arf_reports/:id/download',
-        u'/api/compliance/arf_reports/:id/download_html',
+    'ansible_override_values': (
+        '/ansible/api/ansible_override_values',
+        '/ansible/api/ansible_override_values/:id',
     ),
-    u'audits': (
-        u'/api/audits',
-        u'/api/audits/:id',
+    'ansible_roles': (
+        '/ansible/api/ansible_roles',
+        '/ansible/api/ansible_roles/:id',
+        '/ansible/api/ansible_roles/:id',
+        '/ansible/api/ansible_roles/fetch',
+        '/ansible/api/ansible_roles/import',
+        '/ansible/api/ansible_roles/obsolete',
     ),
-    u'auth_source_externals': (
-        u'/api/auth_source_externals',
-        u'/api/auth_source_externals/:id',
-        u'/api/auth_source_externals/:id',
+    'ansible_variables': (
+        '/ansible/api/ansible_variables/:id',
+        '/ansible/api/ansible_variables',
+        '/ansible/api/ansible_variables/:id',
+        '/ansible/api/ansible_variables',
+        '/ansible/api/ansible_variables/:id',
+        '/ansible/api/ansible_variables/import',
+        '/ansible/api/ansible_variables/obsolete',
     ),
-    u'auth_source_internals': (
-        u'/api/auth_source_internals',
-        u'/api/auth_source_internals/:id',
+    'api': (),
+    'architectures': (
+        '/api/architectures',
+        '/api/architectures',
+        '/api/architectures/:id',
+        '/api/architectures/:id',
+        '/api/architectures/:id',
     ),
-    u'auth_source_ldaps': (
-        u'/api/auth_source_ldaps',
-        u'/api/auth_source_ldaps',
-        u'/api/auth_source_ldaps/:id',
-        u'/api/auth_source_ldaps/:id',
-        u'/api/auth_source_ldaps/:id',
-        u'/api/auth_source_ldaps/:id/test',
+    'arf_reports': (
+        '/api/compliance/arf/:cname/:policy_id/:date',
+        '/api/compliance/arf_reports',
+        '/api/compliance/arf_reports/:id',
+        '/api/compliance/arf_reports/:id',
+        '/api/compliance/arf_reports/:id/download',
+        '/api/compliance/arf_reports/:id/download_html',
     ),
-    u'auth_sources': (
-        u'/api/auth_sources',
+    'audits': ('/api/audits', '/api/audits/:id'),
+    'auth_source_externals': (
+        '/api/auth_source_externals',
+        '/api/auth_source_externals/:id',
+        '/api/auth_source_externals/:id',
     ),
-    u'autosign': (
-        u'/api/smart_proxies/:smart_proxy_id/autosign',
-        u'/api/smart_proxies/:smart_proxy_id/autosign/:id',
-        u'/api/smart_proxies/smart_proxy_id/autosign',
+    'auth_source_internals': ('/api/auth_source_internals', '/api/auth_source_internals/:id'),
+    'auth_source_ldaps': (
+        '/api/auth_source_ldaps',
+        '/api/auth_source_ldaps',
+        '/api/auth_source_ldaps/:id',
+        '/api/auth_source_ldaps/:id',
+        '/api/auth_source_ldaps/:id',
+        '/api/auth_source_ldaps/:id/test',
     ),
-    u'base': (),
-    u'bookmarks': (
-        u'/api/bookmarks',
-        u'/api/bookmarks',
-        u'/api/bookmarks/:id',
-        u'/api/bookmarks/:id',
-        u'/api/bookmarks/:id',
+    'auth_sources': ('/api/auth_sources',),
+    'autosign': (
+        '/api/smart_proxies/:smart_proxy_id/autosign',
+        '/api/smart_proxies/:smart_proxy_id/autosign',
+        '/api/smart_proxies/:smart_proxy_id/autosign/:id',
     ),
-    u'candlepin_proxies': (
-        u'/katello/api/consumers/:id/tracer',
-        u'/katello/api/systems/:id/enabled_repos',
+    'base': (),
+    'bookmarks': (
+        '/api/bookmarks',
+        '/api/bookmarks',
+        '/api/bookmarks/:id',
+        '/api/bookmarks/:id',
+        '/api/bookmarks/:id',
     ),
-    u'capsule_content': (
-        u'/katello/api/capsules/:id/content/available_lifecycle_environments',
-        u'/katello/api/capsules/:id/content/lifecycle_environments',
-        u'/katello/api/capsules/:id/content/lifecycle_environments',
-        u'/katello/api/capsules/:id/content/lifecycle_environments/:environment_id',
-        u'/katello/api/capsules/:id/content/sync',
-        u'/katello/api/capsules/:id/content/sync',
-        u'/katello/api/capsules/:id/content/sync',
+    'candlepin_dynflow_proxy': (
+        '/katello/api/consumers/:id/profiles',
+        '/katello/api/systems/:id/deb_package_profile',
     ),
-    u'capsules': (
-        u'/katello/api/capsules',
-        u'/katello/api/capsules/:id',
+    'candlepin_proxies': (
+        '/katello/api/consumers/:id/tracer',
+        '/katello/api/systems/:id/enabled_repos',
     ),
-    u'common_parameters': (
-        u'/api/common_parameters',
-        u'/api/common_parameters',
-        u'/api/common_parameters/:id',
-        u'/api/common_parameters/:id',
-        u'/api/common_parameters/:id',
+    'capsule_content': (
+        '/katello/api/capsules/:id/content/available_lifecycle_environments',
+        '/katello/api/capsules/:id/content/lifecycle_environments',
+        '/katello/api/capsules/:id/content/lifecycle_environments',
+        '/katello/api/capsules/:id/content/lifecycle_environments/:environment_id',
+        '/katello/api/capsules/:id/content/sync',
+        '/katello/api/capsules/:id/content/sync',
+        '/katello/api/capsules/:id/content/sync',
     ),
-    u'compute_attributes': (
-        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
-        u'/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
+    'capsules': ('/katello/api/capsules', '/katello/api/capsules/:id'),
+    'common_parameters': (
+        '/api/common_parameters',
+        '/api/common_parameters',
+        '/api/common_parameters/:id',
+        '/api/common_parameters/:id',
+        '/api/common_parameters/:id',
     ),
-    u'compute_profiles': (
-        u'/api/compute_profiles',
-        u'/api/compute_profiles',
-        u'/api/compute_profiles/:id',
-        u'/api/compute_profiles/:id',
-        u'/api/compute_profiles/:id',
+    'compute_attributes': (
+        '/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
+        '/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
+        '/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes',
+        '/api/compute_resources/:compute_resource_id/compute_profiles/:compute_profile_id/compute_attributes/:id',
     ),
-    u'compute_resources': (
-        u'/api/compute_resources',
-        u'/api/compute_resources',
-        u'/api/compute_resources/:id',
-        u'/api/compute_resources/:id',
-        u'/api/compute_resources/:id',
-        u'/api/compute_resources/:id/associate',
-        u'/api/compute_resources/:id/available_clusters',
-        u'/api/compute_resources/:id/available_clusters/:cluster_id/available_resource_pools',
-        u'/api/compute_resources/:id/available_flavors',
-        u'/api/compute_resources/:id/available_folders',
-        u'/api/compute_resources/:id/available_images',
-        u'/api/compute_resources/:id/available_networks',
-        u'/api/compute_resources/:id/available_security_groups',
-        u'/api/compute_resources/:id/available_storage_domains',
-        u'/api/compute_resources/:id/available_storage_pods',
-        u'/api/compute_resources/:id/available_zones',
-        u'/api/compute_resources/:id/refresh_cache',
+    'compute_profiles': (
+        '/api/compute_profiles',
+        '/api/compute_profiles',
+        '/api/compute_profiles/:id',
+        '/api/compute_profiles/:id',
+        '/api/compute_profiles/:id',
     ),
-    u'configs': (
-        u'/foreman_virt_who_configure/api/v2/configs',
-        u'/foreman_virt_who_configure/api/v2/configs',
-        u'/foreman_virt_who_configure/api/v2/configs/:id',
-        u'/foreman_virt_who_configure/api/v2/configs/:id',
-        u'/foreman_virt_who_configure/api/v2/configs/:id',
-        u'/foreman_virt_who_configure/api/v2/configs/:id/deploy_script',
+    'compute_resources': (
+        '/api/compute_resources',
+        '/api/compute_resources',
+        '/api/compute_resources/:id',
+        '/api/compute_resources/:id',
+        '/api/compute_resources/:id',
+        '/api/compute_resources/:id/associate',
+        '/api/compute_resources/:id/available_clusters',
+        '/api/compute_resources/:id/available_clusters/:cluster_id/available_resource_pools',
+        '/api/compute_resources/:id/available_flavors',
+        '/api/compute_resources/:id/available_folders',
+        '/api/compute_resources/:id/available_images',
+        '/api/compute_resources/:id/available_networks',
+        '/api/compute_resources/:id/available_security_groups',
+        '/api/compute_resources/:id/available_storage_domains',
+        '/api/compute_resources/:id/available_storage_pods',
+        '/api/compute_resources/:id/available_zones',
+        '/api/compute_resources/:id/refresh_cache',
+        '/api/compute_resources/:id/available_virtual_machines',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id/power',
+        '/api/compute_resources/:id/available_virtual_machines/:vm_id',
+        '/api/compute_resources/:id/storage_domains/:storage_domain_id',
+        '/api/compute_resources/:id/storage_pods/:storage_pod_id',
     ),
-    u'config_groups': (
-        u'/api/config_groups',
-        u'/api/config_groups',
-        u'/api/config_groups/:id',
-        u'/api/config_groups/:id',
-        u'/api/config_groups/:id',
+    'configs': (
+        '/foreman_virt_who_configure/api/v2/configs',
+        '/foreman_virt_who_configure/api/v2/configs',
+        '/foreman_virt_who_configure/api/v2/configs/:id',
+        '/foreman_virt_who_configure/api/v2/configs/:id',
+        '/foreman_virt_who_configure/api/v2/configs/:id',
+        '/foreman_virt_who_configure/api/v2/configs/:id/deploy_script',
     ),
-    u'config_reports': (
-        u'/api/config_reports',
-        u'/api/config_reports',
-        u'/api/config_reports/:id',
-        u'/api/config_reports/:id',
-        u'/api/hosts/:host_id/config_reports/last',
-
+    'config_groups': (
+        '/api/config_groups',
+        '/api/config_groups',
+        '/api/config_groups/:id',
+        '/api/config_groups/:id',
+        '/api/config_groups/:id',
     ),
-    u'config_templates': (
-        u'/api/config_templates',
-        u'/api/config_templates',
-        u'/api/config_templates/:id',
-        u'/api/config_templates/:id',
-        u'/api/config_templates/:id',
-        u'/api/config_templates/:id/clone',
-        u'/api/config_templates/build_pxe_default',
+    'config_reports': (
+        '/api/config_reports',
+        '/api/config_reports',
+        '/api/config_reports/:id',
+        '/api/config_reports/:id',
+        '/api/hosts/:host_id/config_reports/last',
     ),
-    u'content_credentials': (
-        u'/katello/api/content_credentials',
-        u'/katello/api/content_credentials',
-        u'/katello/api/content_credentials/:id',
-        u'/katello/api/content_credentials/:id',
-        u'/katello/api/content_credentials/:id',
-        u'/katello/api/content_credentials/:id/content',
-        u'/katello/api/content_credentials/:id/content',
+    'content_credentials': (
+        '/katello/api/content_credentials',
+        '/katello/api/content_credentials',
+        '/katello/api/content_credentials/:id',
+        '/katello/api/content_credentials/:id',
+        '/katello/api/content_credentials/:id',
+        '/katello/api/content_credentials/:id/content',
+        '/katello/api/content_credentials/:id/content',
     ),
-    u'content_uploads': (
-        u'/katello/api/repositories/:repository_id/content_uploads',
-        u'/katello/api/repositories/:repository_id/content_uploads/:id',
-        u'/katello/api/repositories/:repository_id/content_uploads/:id',
+    'content_uploads': (
+        '/katello/api/repositories/:repository_id/content_uploads',
+        '/katello/api/repositories/:repository_id/content_uploads/:id',
+        '/katello/api/repositories/:repository_id/content_uploads/:id',
     ),
-    u'content_view_components': (
-        u'/katello/api/content_views/:composite_content_view_id/content_view_components',
-        u'/katello/api/content_views/:composite_content_view_id/content_view_components/:id',
-        u'/katello/api/content_views/:composite_content_view_id/content_view_components/:id',
-        u'/katello/api/content_views/:composite_content_view_id/content_view_components/add',
-        u'/katello/api/content_views/:composite_content_view_id/content_view_components/remove',
+    'content_view_components': (
+        '/katello/api/content_views/:composite_content_view_id/content_view_components',
+        '/katello/api/content_views/:composite_content_view_id/content_view_components/:id',
+        '/katello/api/content_views/:composite_content_view_id/content_view_components/:id',
+        '/katello/api/content_views/:composite_content_view_id/content_view_components/add',
+        '/katello/api/content_views/:composite_content_view_id/content_view_components/remove',
     ),
-    u'content_view_filter_rules': (
-        u'/katello/api/content_view_filters/:content_view_filter_id/rules',
-        u'/katello/api/content_view_filters/:content_view_filter_id/rules',
-        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
-        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
-        u'/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+    'content_view_filter_rules': (
+        '/katello/api/content_view_filters/:content_view_filter_id/rules',
+        '/katello/api/content_view_filters/:content_view_filter_id/rules',
+        '/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+        '/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
+        '/katello/api/content_view_filters/:content_view_filter_id/rules/:id',
     ),
-    u'content_view_filters': (
-        u'/katello/api/content_views/:content_view_id/filters',
-        u'/katello/api/content_views/:content_view_id/filters',
-        u'/katello/api/content_views/:content_view_id/filters/:id',
-        u'/katello/api/content_views/:content_view_id/filters/:id',
-        u'/katello/api/content_views/:content_view_id/filters/:id',
+    'content_view_filters': (
+        '/katello/api/content_views/:content_view_id/filters',
+        '/katello/api/content_views/:content_view_id/filters',
+        '/katello/api/content_views/:content_view_id/filters/:id',
+        '/katello/api/content_views/:content_view_id/filters/:id',
+        '/katello/api/content_views/:content_view_id/filters/:id',
     ),
-    u'content_view_puppet_modules': (
-        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
-        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules',
-        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
-        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
-        u'/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+    'content_view_puppet_modules': (
+        '/katello/api/content_views/:content_view_id/content_view_puppet_modules',
+        '/katello/api/content_views/:content_view_id/content_view_puppet_modules',
+        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
+        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
     ),
-    u'content_views': (
-        u'/katello/api/content_views/:id',
-        u'/katello/api/content_views/:id',
-        u'/katello/api/content_views/:id',
-        u'/katello/api/content_views/:id/available_puppet_module_names',
-        u'/katello/api/content_views/:id/available_puppet_modules',
-        u'/katello/api/content_views/:id/copy',
-        u'/katello/api/content_views/:id/environments/:environment_id',
-        u'/katello/api/content_views/:id/publish',
-        u'/katello/api/content_views/:id/remove',
-        u'/katello/api/organizations/:organization_id/content_views',
-        u'/katello/api/organizations/:organization_id/content_views',
+    'content_views': (
+        '/katello/api/content_views/:id',
+        '/katello/api/content_views/:id',
+        '/katello/api/content_views/:id',
+        '/katello/api/content_views/:id/available_puppet_module_names',
+        '/katello/api/content_views/:id/available_puppet_modules',
+        '/katello/api/content_views/:id/copy',
+        '/katello/api/content_views/:id/environments/:environment_id',
+        '/katello/api/content_views/:id/publish',
+        '/katello/api/content_views/:id/remove',
+        '/katello/api/organizations/:organization_id/content_views',
+        '/katello/api/organizations/:organization_id/content_views',
     ),
-    u'containers': (
-        u'/docker/api/v2/containers',
-        u'/docker/api/v2/containers',
-        u'/docker/api/v2/containers/:id',
-        u'/docker/api/v2/containers/:id',
-        u'/docker/api/v2/containers/:id/logs',
-        u'/docker/api/v2/containers/:id/power',
+    'content_view_histories': ('/katello/api/content_views/:id/history',),
+    'content_view_versions': (
+        '/katello/api/content_view_versions',
+        '/katello/api/content_view_versions/:id',
+        '/katello/api/content_view_versions/:id',
+        '/katello/api/content_view_versions/:id',
+        '/katello/api/content_view_versions/:id/export',
+        '/katello/api/content_view_versions/:id/promote',
+        '/katello/api/content_view_versions/:id/republish_repositories',
+        '/katello/api/content_view_versions/incremental_update',
     ),
-    u'content_view_histories': (
-        u'/katello/api/content_views/:id/history',
+    'dashboard': ('/api/dashboard',),
+    'debs': ('/katello/api/debs/:id', '/katello/api/debs/compare'),
+    'discovered_hosts': (
+        '/api/v2/discovered_hosts',
+        '/api/v2/discovered_hosts',
+        '/api/v2/discovered_hosts/:id',
+        '/api/v2/discovered_hosts/:id',
+        '/api/v2/discovered_hosts/:id',
+        '/api/v2/discovered_hosts/:id/auto_provision',
+        '/api/v2/discovered_hosts/:id/reboot',
+        '/api/v2/discovered_hosts/:id/refresh_facts',
+        '/api/v2/discovered_hosts/auto_provision_all',
+        '/api/v2/discovered_hosts/facts',
+        '/api/v2/discovered_hosts/reboot_all',
     ),
-    u'content_view_versions': (
-        u'/katello/api/content_view_versions',
-        u'/katello/api/content_view_versions/:id',
-        u'/katello/api/content_view_versions/:id',
-        u'/katello/api/content_view_versions/:id/export',
-        u'/katello/api/content_view_versions/:id/promote',
-        u'/katello/api/content_view_versions/:id/republish_repositories',
-        u'/katello/api/content_view_versions/incremental_update',
+    'discovery_rules': (
+        '/api/v2/discovery_rules',
+        '/api/v2/discovery_rules',
+        '/api/v2/discovery_rules/:id',
+        '/api/v2/discovery_rules/:id',
+        '/api/v2/discovery_rules/:id',
     ),
-    u'dashboard': (
-        u'/api/dashboard',
+    'disks': ('/bootdisk/api', '/bootdisk/api/generic', '/bootdisk/api/hosts/:host_id'),
+    'docker_manifests': (
+        '/katello/api/docker_manifests/:id',
+        '/katello/api/docker_manifests/compare',
     ),
-    u'debs': (
-        u'/katello/api/debs/:id',
-        u'/katello/api/debs/compare',
+    'docker_manifest_lists': (
+        '/katello/api/docker_manifest_lists/:id',
+        '/katello/api/docker_manifest_lists/compare',
     ),
-    u'discovered_hosts': (
-        u'/api/v2/discovered_hosts',
-        u'/api/v2/discovered_hosts',
-        u'/api/v2/discovered_hosts/:id',
-        u'/api/v2/discovered_hosts/:id',
-        u'/api/v2/discovered_hosts/:id',
-        u'/api/v2/discovered_hosts/:id/auto_provision',
-        u'/api/v2/discovered_hosts/:id/reboot',
-        u'/api/v2/discovered_hosts/:id/refresh_facts',
-        u'/api/v2/discovered_hosts/auto_provision_all',
-        u'/api/v2/discovered_hosts/facts',
-        u'/api/v2/discovered_hosts/reboot_all',
+    'docker_tags': (
+        '/katello/api/docker_tags/compare',
+        '/katello/api/docker_tags/:id',
+        '/katello/api/docker_tags/:id/repositories',
     ),
-    u'discovery_rules': (
-        u'/api/v2/discovery_rules',
-        u'/api/v2/discovery_rules',
-        u'/api/v2/discovery_rules/:id',
-        u'/api/v2/discovery_rules/:id',
-        u'/api/v2/discovery_rules/:id',
+    'domains': (
+        '/api/domains',
+        '/api/domains',
+        '/api/domains/:id',
+        '/api/domains/:id',
+        '/api/domains/:id',
     ),
-    u'disks': (
-        u'/bootdisk/api',
-        u'/bootdisk/api/generic',
-        u'/bootdisk/api/hosts/:host_id',
+    'environments': (
+        '/api/environments',
+        '/api/environments',
+        '/api/environments/:id',
+        '/api/environments/:id',
+        '/api/environments/:id',
+        '/api/smart_proxies/:id/import_puppetclasses',
     ),
-    u'docker_manifests': (
-        u'/katello/api/docker_manifests/:id',
-        u'/katello/api/docker_manifests/compare',
+    'errata': (
+        '/katello/api/content_view_versions/:id/available_errata',
+        '/katello/api/errata/compare',
+        '/katello/api/errata/:id',
     ),
-    u'docker_manifest_lists': (
-        u'/katello/api/docker_manifest_lists/:id',
-        u'/katello/api/docker_manifest_lists/compare',
+    'external_usergroups': (
+        '/api/usergroups/:usergroup_id/external_usergroups',
+        '/api/usergroups/:usergroup_id/external_usergroups',
+        '/api/usergroups/:usergroup_id/external_usergroups/:id',
+        '/api/usergroups/:usergroup_id/external_usergroups/:id',
+        '/api/usergroups/:usergroup_id/external_usergroups/:id',
+        '/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
     ),
-    u'docker_tags': (
-        u'/katello/api/docker_tags/compare',
-        u'/katello/api/docker_tags/:id',
+    'fact_values': ('/api/fact_values',),
+    'file_units': ('/katello/api/files/compare', '/katello/api/files/:id'),
+    'filters': (
+        '/api/filters',
+        '/api/filters',
+        '/api/filters/:id',
+        '/api/filters/:id',
+        '/api/filters/:id',
     ),
-    u'domains': (
-        u'/api/domains',
-        u'/api/domains',
-        u'/api/domains/:id',
-        u'/api/domains/:id',
-        u'/api/domains/:id',
-    ),
-    u'environments': (
-        u'/api/environments',
-        u'/api/environments',
-        u'/api/environments/:id',
-        u'/api/environments/:id',
-        u'/api/environments/:id',
-        u'/api/smart_proxies/:id/import_puppetclasses',
-    ),
-    u'errata': (
-        u'/katello/api/content_view_versions/:id/available_errata',
-        u'/katello/api/errata/compare',
-        u'/katello/api/errata/:id',
-    ),
-    u'external_usergroups': (
-        u'/api/usergroups/:usergroup_id/external_usergroups',
-        u'/api/usergroups/:usergroup_id/external_usergroups',
-        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
-        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
-        u'/api/usergroups/:usergroup_id/external_usergroups/:id',
-        u'/api/usergroups/:usergroup_id/external_usergroups/:id/refresh',
-    ),
-    u'fact_values': (
-        u'/api/fact_values',
-    ),
-    u'file_units': (
-        u'/katello/api/files/compare',
-        u'/katello/api/files/:id',
-    ),
-    u'filters': (
-        u'/api/filters',
-        u'/api/filters',
-        u'/api/filters/:id',
-        u'/api/filters/:id',
-        u'/api/filters/:id',
-    ),
-    u'foreign_input_sets': (
+    'foreign_input_sets': (
         '/api/templates/:template_id/foreign_input_sets',
         '/api/templates/:template_id/foreign_input_sets',
         '/api/templates/:template_id/foreign_input_sets/:id',
         '/api/templates/:template_id/foreign_input_sets/:id',
         '/api/templates/:template_id/foreign_input_sets/:id',
     ),
-    u'foreman_tasks': (
-        u'/foreman_tasks/api/tasks',
-        u'/foreman_tasks/api/tasks/:id',
-        u'/foreman_tasks/api/tasks/bulk_resume',
-        u'/foreman_tasks/api/tasks/bulk_search',
-        u'/foreman_tasks/api/tasks/callback',
-        u'/foreman_tasks/api/tasks/summary',
+    'foreman_tasks': (
+        '/foreman_tasks/api/tasks',
+        '/foreman_tasks/api/tasks/:id',
+        '/foreman_tasks/api/tasks/:id/details',
+        '/foreman_tasks/api/tasks/:id/sub_tasks',
+        '/foreman_tasks/api/tasks/bulk_resume',
+        '/foreman_tasks/api/tasks/bulk_cancel',
+        '/foreman_tasks/api/tasks/bulk_stop',
+        '/foreman_tasks/api/tasks/bulk_search',
+        '/foreman_tasks/api/tasks/callback',
+        '/foreman_tasks/api/tasks/summary',
     ),
-    u'gpg_keys': (
-        u'/katello/api/gpg_keys',
-        u'/katello/api/gpg_keys',
-        u'/katello/api/gpg_keys/:id',
-        u'/katello/api/gpg_keys/:id',
-        u'/katello/api/gpg_keys/:id',
-        u'/katello/api/gpg_keys/:id/content',
-        u'/katello/api/gpg_keys/:id/content',
+    'gpg_keys': (
+        '/katello/api/gpg_keys',
+        '/katello/api/gpg_keys',
+        '/katello/api/gpg_keys/:id',
+        '/katello/api/gpg_keys/:id',
+        '/katello/api/gpg_keys/:id',
+        '/katello/api/gpg_keys/:id/content',
+        '/katello/api/gpg_keys/:id/content',
     ),
-    u'home': (
-        u'/api',
-        u'/api/status',
+    'home': ('/api', '/api/status'),
+    'host_autocomplete': (),
+    'host_classes': (
+        '/api/hosts/:host_id/puppetclass_ids',
+        '/api/hosts/:host_id/puppetclass_ids',
+        '/api/hosts/:host_id/puppetclass_ids/:id',
     ),
-    u'host_autocomplete': (),
-    u'host_classes': (
-        u'/api/hosts/:host_id/puppetclass_ids',
-        u'/api/hosts/:host_id/puppetclass_ids',
-        u'/api/hosts/:host_id/puppetclass_ids/:id',
+    'host_collections': (
+        '/katello/api/host_collections',
+        '/katello/api/host_collections',
+        '/katello/api/host_collections/:id',
+        '/katello/api/host_collections/:id',
+        '/katello/api/host_collections/:id',
+        '/katello/api/host_collections/:id/add_hosts',
+        '/katello/api/host_collections/:id/copy',
+        '/katello/api/host_collections/:id/remove_hosts',
     ),
-    u'host_collections': (
-        u'/katello/api/host_collections',
-        u'/katello/api/host_collections',
-        u'/katello/api/host_collections/:id',
-        u'/katello/api/host_collections/:id',
-        u'/katello/api/host_collections/:id',
-        u'/katello/api/host_collections/:id/add_hosts',
-        u'/katello/api/host_collections/:id/copy',
-        u'/katello/api/host_collections/:id/remove_hosts',
+    'host_debs': ('/api/hosts/:host_id/debs',),
+    'host_module_streams': ('/api/hosts/:host_id/module_streams',),
+    'host_subscriptions': (
+        '/api/hosts/:host_id/subscriptions',
+        '/api/hosts/:host_id/subscriptions',
+        '/api/hosts/:host_id/subscriptions/add_subscriptions',
+        '/api/hosts/:host_id/subscriptions/auto_attach',
+        '/api/hosts/:host_id/subscriptions/available_release_versions',
+        '/api/hosts/:host_id/subscriptions/content_override',
+        '/api/hosts/:host_id/subscriptions/product_content',
+        '/api/hosts/subscriptions',
     ),
-    u'host_subscriptions': (
-        u'/api/hosts/:host_id/subscriptions',
-        u'/api/hosts/:host_id/subscriptions',
-        u'/api/hosts/:host_id/subscriptions/add_subscriptions',
-        u'/api/hosts/:host_id/subscriptions/auto_attach',
-        u'/api/hosts/:host_id/subscriptions/available_release_versions',
-        u'/api/hosts/:host_id/subscriptions/content_override',
-        u'/api/hosts/:host_id/subscriptions/events',
-        u'/api/hosts/:host_id/subscriptions/product_content',
-        u'/api/hosts/subscriptions',
+    'host_tracer': ('/api/hosts/:host_id/traces', '/api/hosts/:host_id/traces/resolve',),
+    'hostgroup_classes': (
+        '/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        '/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        '/api/hostgroups/:hostgroup_id/puppetclass_ids/:id',
     ),
-    u'host_tracer': (
-        u'/api/hosts/:host_id/traces',
+    'hostgroups': (
+        '/api/hostgroups',
+        '/api/hostgroups/:id',
+        '/api/hostgroups',
+        '/api/hostgroups/:id',
+        '/api/hostgroups/:id',
+        '/api/hostgroups/:id/clone',
+        '/api/hostgroups/:id/rebuild_config',
+        '/api/hostgroups/:id/play_roles',
+        '/api/hostgroups/multiple_play_roles',
+        '/api/hostgroups/:id/ansible_roles',
+        '/api/hostgroups/:id/assign_ansible_roles',
     ),
-    u'hostgroup_classes': (
-        u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
-        u'/api/hostgroups/:hostgroup_id/puppetclass_ids',
-        u'/api/hostgroups/:hostgroup_id/puppetclass_ids/:id',
+    'hosts': (
+        '/api/hosts',
+        '/api/hosts/:id',
+        '/api/hosts',
+        '/api/hosts/:id',
+        '/api/hosts/:id',
+        '/api/hosts/:id/enc',
+        '/api/hosts/:id/status/:type',
+        '/api/hosts/:id/status/:type',
+        '/api/hosts/:id/vm_compute_attributes',
+        '/api/hosts/:id/disassociate',
+        '/api/hosts/:id/power',
+        '/api/hosts/:id/power',
+        '/api/hosts/:id/boot',
+        '/api/hosts/facts',
+        '/api/hosts/:id/rebuild_config',
+        '/api/hosts/:id/template/:kind',
+        '/api/hosts/:id/play_roles',
+        '/api/hosts/multiple_play_roles',
+        '/api/hosts/:id/ansible_roles',
+        '/api/hosts/:id/assign_ansible_roles',
+        '/api/hosts/:host_id/host_collections',
+        '/api/hosts/:id/policies_enc',
     ),
-    u'hostgroups': (
-        u'/api/hostgroups',
-        u'/api/hostgroups',
-        u'/api/hostgroups/:id',
-        u'/api/hostgroups/:id',
-        u'/api/hostgroups/:id',
-        u'/api/hostgroups/:id/clone',
-        u'/api/hostgroups/play_roles',
-        u'/api/hostgroups/:id/play_roles',
-        u'/api/hostgroups/:id/rebuild_config',
+    'hosts_bulk_actions': (
+        '/api/hosts/bulk/add_host_collections',
+        '/api/hosts/bulk/add_subscriptions',
+        '/api/hosts/bulk/auto_attach',
+        '/api/hosts/bulk/applicable_errata',
+        '/api/hosts/bulk/available_incremental_updates',
+        '/api/hosts/bulk/content_overrides',
+        '/api/hosts/bulk/destroy',
+        '/api/hosts/bulk/environment_content_view',
+        '/api/hosts/bulk/install_content',
+        '/api/hosts/bulk/installable_errata',
+        '/api/hosts/bulk/module_streams',
+        '/api/hosts/bulk/release_version',
+        '/api/hosts/bulk/remove_content',
+        '/api/hosts/bulk/remove_host_collections',
+        '/api/hosts/bulk/remove_subscriptions',
+        '/api/hosts/bulk/update_content',
+        '/api/hosts/bulk/resolve_traces',
+        '/api/hosts/bulk/traces',
     ),
-    u'hosts': (
-        u'/api/hosts',
-        u'/api/hosts',
-        u'/api/hosts/:host_id/host_collections',
-        u'/api/hosts/:id',
-        u'/api/hosts/:id',
-        u'/api/hosts/:id',
-        u'/api/hosts/:id/enc',
-        u'/api/hosts/:id/boot',
-        u'/api/hosts/:id/disassociate',
-        u'/api/hosts/:id/play_roles',
-        u'/api/hosts/:id/power',
-        u'/api/hosts/:id/rebuild_config',
-        u'/api/hosts/:id/status',
-        u'/api/hosts/:id/status/:type',
-        u'/api/hosts/:id/template/:kind',
-        u'/api/hosts/:id/vm_compute_attributes',
-        u'/api/hosts/facts',
-        u'/api/hosts/play_roles',
+    'host_errata': (
+        '/api/hosts/:host_id/errata',
+        '/api/hosts/:host_id/errata/:id',
+        '/api/hosts/:host_id/errata/applicability',
+        '/api/hosts/:host_id/errata/apply',
     ),
-    u'hosts_bulk_actions': (
-        u'/api/hosts/bulk/add_host_collections',
-        u'/api/hosts/bulk/add_subscriptions',
-        u'/api/hosts/bulk/auto_attach',
-        u'/api/hosts/bulk/applicable_errata',
-        u'/api/hosts/bulk/available_incremental_updates',
-        u'/api/hosts/bulk/content_overrides',
-        u'/api/hosts/bulk/destroy',
-        u'/api/hosts/bulk/environment_content_view',
-        u'/api/hosts/bulk/install_content',
-        u'/api/hosts/bulk/installable_errata',
-        u'/api/hosts/bulk/release_version',
-        u'/api/hosts/bulk/remove_content',
-        u'/api/hosts/bulk/remove_host_collections',
-        u'/api/hosts/bulk/remove_subscriptions',
-        u'/api/hosts/bulk/update_content',
+    'host_packages': (
+        '/api/hosts/:host_id/packages',
+        '/api/hosts/:host_id/packages/install',
+        '/api/hosts/:host_id/packages/remove',
+        '/api/hosts/:host_id/packages/upgrade_all',
     ),
-    u'host_errata': (
-        u'/api/hosts/:host_id/errata',
-        u'/api/hosts/:host_id/errata/:id',
-        u'/api/hosts/:host_id/errata/applicability',
-        u'/api/hosts/:host_id/errata/apply',
+    'http_proxies': (
+        '/api/http_proxies',
+        '/api/http_proxies',
+        '/api/http_proxies/:id',
+        '/api/http_proxies/:id',
+        '/api/http_proxies/:id',
     ),
-    u'host_packages': (
-        u'/api/hosts/:host_id/packages',
-        u'/api/hosts/:host_id/packages/install',
-        u'/api/hosts/:host_id/packages/remove',
-        u'/api/hosts/:host_id/packages/upgrade_all',
+    'images': (
+        '/api/compute_resources/:compute_resource_id/images',
+        '/api/compute_resources/:compute_resource_id/images',
+        '/api/compute_resources/:compute_resource_id/images/:id',
+        '/api/compute_resources/:compute_resource_id/images/:id',
+        '/api/compute_resources/:compute_resource_id/images/:id',
     ),
-    u'http_proxies': (
-        u'/api/http_proxies',
-        u'/api/http_proxies',
-        u'/api/http_proxies/:id',
-        u'/api/http_proxies/:id',
-        u'/api/http_proxies/:id',
+    'interfaces': (
+        '/api/hosts/:host_id/interfaces',
+        '/api/hosts/:host_id/interfaces',
+        '/api/hosts/:host_id/interfaces/:id',
+        '/api/hosts/:host_id/interfaces/:id',
+        '/api/hosts/:host_id/interfaces/:id',
     ),
-    u'images': (
-        u'/api/compute_resources/:compute_resource_id/images',
-        u'/api/compute_resources/:compute_resource_id/images',
-        u'/api/compute_resources/:compute_resource_id/images/:id',
-        u'/api/compute_resources/:compute_resource_id/images/:id',
-        u'/api/compute_resources/:compute_resource_id/images/:id',
+    'job_invocations': (
+        '/api/job_invocations',
+        '/api/job_invocations',
+        '/api/job_invocations/:id',
+        '/api/job_invocations/:id/cancel',
+        '/api/job_invocations/:id/hosts/:host_id',
+        '/api/job_invocations/:id/hosts/:host_id/raw',
+        '/api/job_invocations/:id/rerun',
     ),
-    u'interfaces': (
-        u'/api/hosts/:host_id/interfaces',
-        u'/api/hosts/:host_id/interfaces',
-        u'/api/hosts/:host_id/interfaces/:id',
-        u'/api/hosts/:host_id/interfaces/:id',
-        u'/api/hosts/:host_id/interfaces/:id',
+    'job_templates': (
+        '/api/job_templates',
+        '/api/job_templates',
+        '/api/job_templates/:id',
+        '/api/job_templates/:id',
+        '/api/job_templates/:id',
+        '/api/job_templates/:id/clone',
+        '/api/job_templates/:id/export',
+        '/api/job_templates/import',
     ),
-    u'job_invocations': (
-        u'/api/job_invocations',
-        u'/api/job_invocations',
-        u'/api/job_invocations/:id',
-        u'/api/job_invocations/:id/cancel',
-        u'/api/job_invocations/:id/hosts/:host_id',
-        u'/api/job_invocations/:id/rerun',
+    'lifecycle_environments': (
+        '/katello/api/environments',
+        '/katello/api/environments',
+        '/katello/api/environments/:id',
+        '/katello/api/environments/:id',
+        '/katello/api/environments/:id',
+        '/katello/api/organizations/:organization_id/environments/paths',
     ),
-    u'job_templates': (
-        u'/api/job_templates',
-        u'/api/job_templates',
-        u'/api/job_templates/:id',
-        u'/api/job_templates/:id',
-        u'/api/job_templates/:id',
-        u'/api/job_templates/:id/clone',
-        u'/api/job_templates/:id/export',
-        u'/api/job_templates/import',
+    'locations': (
+        '/api/locations',
+        '/api/locations',
+        '/api/locations/:id',
+        '/api/locations/:id',
+        '/api/locations/:id',
     ),
-    u'lifecycle_environments': (
-        u'/katello/api/environments',
-        u'/katello/api/environments',
-        u'/katello/api/environments/:id',
-        u'/katello/api/environments/:id',
-        u'/katello/api/environments/:id',
-        u'/katello/api/organizations/:organization_id/environments/paths',
+    'mail_notifications': (
+        '/api/mail_notifications',
+        '/api/mail_notifications/:id',
+        '/api/users/:user_id/mail_notifications',
+        '/api/users/:user_id/mail_notifications/:mail_notification_id',
+        '/api/users/:user_id/mail_notifications/:mail_notification_id',
+        '/api/users/:user_id/mail_notifications',
     ),
-    u'locations': (
-        u'/api/locations',
-        u'/api/locations',
-        u'/api/locations/:id',
-        u'/api/locations/:id',
-        u'/api/locations/:id',
+    'media': ('/api/media', '/api/media', '/api/media/:id', '/api/media/:id', '/api/media/:id',),
+    'models': (
+        '/api/models',
+        '/api/models',
+        '/api/models/:id',
+        '/api/models/:id',
+        '/api/models/:id',
     ),
-    u'mail_notifications': (
-        u'/api/mail_notifications',
-        u'/api/mail_notifications/:id',
+    'module_streams': ('/katello/api/module_streams/compare', '/katello/api/module_streams/:id',),
+    'operatingsystems': (
+        '/api/operatingsystems',
+        '/api/operatingsystems',
+        '/api/operatingsystems/:id',
+        '/api/operatingsystems/:id',
+        '/api/operatingsystems/:id',
+        '/api/operatingsystems/:id/bootfiles',
     ),
-    u'media': (
-        u'/api/media',
-        u'/api/media',
-        u'/api/media/:id',
-        u'/api/media/:id',
-        u'/api/media/:id',
+    'organizations': (
+        '/katello/api/organizations',
+        '/katello/api/organizations',
+        '/katello/api/organizations/:id',
+        '/katello/api/organizations/:id',
+        '/katello/api/organizations/:id',
+        '/katello/api/organizations/:id/redhat_provider',
+        '/katello/api/organizations/:id/releases',
+        '/katello/api/organizations/:id/repo_discover',
+        '/katello/api/organizations/:label/cancel_repo_discover',
+        '/katello/api/organizations/:label/download_debug_certificate',
     ),
-    u'models': (
-        u'/api/models',
-        u'/api/models',
-        u'/api/models/:id',
-        u'/api/models/:id',
-        u'/api/models/:id',
+    'os_default_templates': (
+        '/api/operatingsystems/:operatingsystem_id/os_default_templates',
+        '/api/operatingsystems/:operatingsystem_id/os_default_templates',
+        '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+        '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+        '/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
     ),
-    u'operatingsystems': (
-        u'/api/operatingsystems',
-        u'/api/operatingsystems',
-        u'/api/operatingsystems/:id',
-        u'/api/operatingsystems/:id',
-        u'/api/operatingsystems/:id',
-        u'/api/operatingsystems/:id/bootfiles',
+    'ostree_branches': (
+        '/katello/api/ostree_branches/:id',
+        '/katello/api/ostree_branches/compare',
     ),
-    u'organizations': (
-        u'/katello/api/organizations',
-        u'/katello/api/organizations',
-        u'/katello/api/organizations/:id',
-        u'/katello/api/organizations/:id',
-        u'/katello/api/organizations/:id',
-        u'/katello/api/organizations/:id/autoattach_subscriptions',
-        u'/katello/api/organizations/:id/redhat_provider',
-        u'/katello/api/organizations/:id/releases',
-        u'/katello/api/organizations/:id/repo_discover',
-        u'/katello/api/organizations/:label/cancel_repo_discover',
-        u'/katello/api/organizations/:label/download_debug_certificate',
+    'package_groups': (
+        '/katello/api/package_group',
+        '/katello/api/package_group',
+        '/katello/api/package_groups/:id',
+        '/katello/api/package_groups/compare',
     ),
-    u'os_default_templates': (
-        u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
-        u'/api/operatingsystems/:operatingsystem_id/os_default_templates',
-        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
-        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
-        u'/api/operatingsystems/:operatingsystem_id/os_default_templates/:id',
+    'packages': ('/katello/api/packages/:id', '/katello/api/packages/compare'),
+    'parameters': (
+        '/api/hosts/:host_id/parameters',
+        '/api/hosts/:host_id/parameters',
+        '/api/hosts/:host_id/parameters',
+        '/api/hosts/:host_id/parameters/:id',
+        '/api/hosts/:host_id/parameters/:id',
+        '/api/hosts/:host_id/parameters/:id',
     ),
-    u'ostree_branches': (
-        u'/katello/api/ostree_branches/:id',
-        u'/katello/api/ostree_branches/compare',
+    'permissions': (
+        '/api/permissions',
+        '/api/permissions/:id',
+        '/api/permissions/resource_types',
     ),
-    u'override_values': (
-        u'/api/smart_variables/:smart_variable_id/override_values',
-        u'/api/smart_variables/:smart_variable_id/override_values',
-        u'/api/smart_variables/:smart_variable_id/override_values/:id',
-        u'/api/smart_variables/:smart_variable_id/override_values/:id',
-        u'/api/smart_variables/:smart_variable_id/override_values/:id',
+    'personal_access_tokens': (
+        '/api/users/:user_id/personal_access_tokens',
+        '/api/users/:user_id/personal_access_tokens',
+        '/api/users/:user_id/personal_access_tokens/:id',
+        '/api/users/:user_id/personal_access_tokens/:id',
     ),
-    u'package_groups': (
-        u'/katello/api/package_group',
-        u'/katello/api/package_group',
-        u'/katello/api/package_groups/:id',
-        u'/katello/api/package_groups/compare',
+    'ping': ('/katello/api/ping', '/katello/api/status', '/api/ping', '/api/statuses'),
+    'plugins': ('/api/plugins',),
+    'policies': (
+        '/api/compliance/policies',
+        '/api/compliance/policies',
+        '/api/compliance/policies/:id',
+        '/api/compliance/policies/:id',
+        '/api/compliance/policies/:id',
+        '/api/compliance/policies/:id/content',
+        '/api/compliance/policies/:id/tailoring',
     ),
-    u'packages': (
-        u'/katello/api/packages/:id',
-        u'/katello/api/packages/compare'
+    'products_bulk_actions': (
+        '/katello/api/products/bulk/destroy',
+        '/katello/api/products/bulk/http_proxy',
+        '/katello/api/products/bulk/sync_plan',
     ),
-    u'parameters': (
-        u'/api/hosts/:host_id/parameters',
-        u'/api/hosts/:host_id/parameters',
-        u'/api/hosts/:host_id/parameters',
-        u'/api/hosts/:host_id/parameters/:id',
-        u'/api/hosts/:host_id/parameters/:id',
-        u'/api/hosts/:host_id/parameters/:id',
+    'products': (
+        '/katello/api/products',
+        '/katello/api/products',
+        '/katello/api/products/:id',
+        '/katello/api/products/:id',
+        '/katello/api/products/:id',
+        '/katello/api/products/:id/sync',
     ),
-    u'permissions': (
-        u'/api/permissions',
-        u'/api/permissions/:id',
-        u'/api/permissions/resource_types',
+    'provisioning_templates': (
+        '/api/provisioning_templates',
+        '/api/provisioning_templates',
+        '/api/provisioning_templates/:id',
+        '/api/provisioning_templates/:id',
+        '/api/provisioning_templates/:id',
+        '/api/provisioning_templates/:id/clone',
+        '/api/provisioning_templates/:id/export',
+        '/api/provisioning_templates/build_pxe_default',
+        '/api/provisioning_templates/import',
     ),
-    u'personal_access_tokens': (
-        u'/api/users/:user_id/personal_access_tokens',
-        u'/api/users/:user_id/personal_access_tokens',
-        u'/api/users/:user_id/personal_access_tokens/:id',
-        u'/api/users/:user_id/personal_access_tokens/:id',
+    'ptables': (
+        '/api/ptables',
+        '/api/ptables',
+        '/api/ptables/:id',
+        '/api/ptables/:id',
+        '/api/ptables/:id',
+        '/api/ptables/:id/clone',
+        '/api/ptables/:id/export',
+        '/api/ptables/import',
     ),
-    u'ping': (
-        u'/katello/api/ping',
-        u'/katello/api/status',
+    'puppetclasses': (
+        '/api/puppetclasses',
+        '/api/puppetclasses',
+        '/api/puppetclasses/:id',
+        '/api/puppetclasses/:id',
+        '/api/puppetclasses/:id',
     ),
-    u'plugins': (
-        u'/api/plugins',
+    'puppet_hosts': ('/api/hosts/:id/puppetrun',),
+    'puppet_modules': ('/katello/api/puppet_modules/compare', '/katello/api/puppet_modules/:id',),
+    'realms': (
+        '/api/realms',
+        '/api/realms',
+        '/api/realms/:id',
+        '/api/realms/:id',
+        '/api/realms/:id',
     ),
-    u'policies': (
-        u'/api/compliance/policies',
-        u'/api/compliance/policies',
-        u'/api/compliance/policies/:id',
-        u'/api/compliance/policies/:id',
-        u'/api/compliance/policies/:id',
-        u'/api/compliance/policies/:id/content',
-        u'/api/compliance/policies/:id/tailoring',
+    'recurring_logics': (
+        '/foreman_tasks/api/recurring_logics',
+        '/foreman_tasks/api/recurring_logics/:id',
+        '/foreman_tasks/api/recurring_logics/:id',
+        '/foreman_tasks/api/recurring_logics/:id/cancel',
+        '/foreman_tasks/api/recurring_logics/bulk_destroy',
     ),
-    u'products_bulk_actions': (
-        u'/katello/api/products/bulk/destroy',
-        u'/katello/api/products/bulk/sync_plan',
-    ),
-    u'products': (
-        u'/katello/api/products',
-        u'/katello/api/products',
-        u'/katello/api/products/:id',
-        u'/katello/api/products/:id',
-        u'/katello/api/products/:id',
-        u'/katello/api/products/:id/sync',
-    ),
-    u'provisioning_templates': (
-        u'/api/provisioning_templates',
-        u'/api/provisioning_templates',
-        u'/api/provisioning_templates/:id',
-        u'/api/provisioning_templates/:id',
-        u'/api/provisioning_templates/:id',
-        u'/api/provisioning_templates/:id/clone',
-        u'/api/provisioning_templates/:id/export',
-        u'/api/provisioning_templates/build_pxe_default',
-        u'/api/provisioning_templates/import',
-    ),
-    u'ptables': (
-        u'/api/ptables',
-        u'/api/ptables',
-        u'/api/ptables/:id',
-        u'/api/ptables/:id',
-        u'/api/ptables/:id',
-        u'/api/ptables/:id/clone',
-        u'/api/ptables/:id/export',
-        u'/api/ptables/import',
-    ),
-    u'puppetclasses': (
-        u'/api/puppetclasses',
-        u'/api/puppetclasses',
-        u'/api/puppetclasses/:id',
-        u'/api/puppetclasses/:id',
-        u'/api/puppetclasses/:id',
-    ),
-    u'puppet_hosts': (
-        u'/api/hosts/:id/puppetrun',
-    ),
-    u'puppet_modules': (
-        u'/katello/api/puppet_modules/compare',
-        u'/katello/api/puppet_modules/:id',
-    ),
-    u'realms': (
-        u'/api/realms',
-        u'/api/realms',
-        u'/api/realms/:id',
-        u'/api/realms/:id',
-        u'/api/realms/:id',
-    ),
-    u'recurring_logics': (
-        u'/foreman_tasks/api/recurring_logics',
-        u'/foreman_tasks/api/recurring_logics/:id',
-        u'/foreman_tasks/api/recurring_logics/:id/cancel',
-    ),
-    u'registries': (
-        u'/docker/api/v2/registries',
-        u'/docker/api/v2/registries',
-        u'/docker/api/v2/registries/:id',
-        u'/docker/api/v2/registries/:id',
-        u'/docker/api/v2/registries/:id',
-    ),
-    u'remote_execution_features': (
+    'remote_execution_features': (
         '/api/remote_execution_features',
         '/api/remote_execution_features/:id',
         '/api/remote_execution_features/:id',
     ),
-    u'reports': (
-        u'/api/hosts/:host_id/reports/last',
-        u'/api/reports',
-        u'/api/reports',
-        u'/api/reports/:id',
-        u'/api/reports/:id',
+    'override_values': (
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
     ),
-    u'repositories_bulk_actions': (
-        u'/katello/api/repositories/bulk/destroy',
-        u'/katello/api/repositories/bulk/sync',
+    'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
+    'report_templates': (
+        '/api/report_templates',
+        '/api/report_templates/:id',
+        '/api/report_templates',
+        '/api/report_templates/import',
+        '/api/report_templates/:id',
+        '/api/report_templates/:id',
+        '/api/report_templates/:id/clone',
+        '/api/report_templates/:id/export',
+        '/api/report_templates/:id/generate',
+        '/api/report_templates/:id/schedule_report',
+        '/api/report_templates/:id/report_data/:job_id',
     ),
-    u'repositories': (
-        u'/katello/api/repositories',
-        u'/katello/api/repositories',
-        u'/katello/api/repositories/:id',
-        u'/katello/api/repositories/:id',
-        u'/katello/api/repositories/:id',
-        u'/katello/api/repositories/:id/export',
-        u'/katello/api/repositories/:id/gpg_key_content',
-        u'/katello/api/repositories/:id/import_uploads',
-        u'/katello/api/repositories/:id/republish',
-        u'/katello/api/repositories/:id/sync',
-        u'/katello/api/repositories/:id/upload_content',
-        u'/katello/api/repositories/repository_types',
+    'repositories_bulk_actions': (
+        '/katello/api/repositories/bulk/destroy',
+        '/katello/api/repositories/bulk/sync',
     ),
-    u'repository_sets': (
-        u'/katello/api/products/:product_id/repository_sets',
-        u'/katello/api/products/:product_id/repository_sets/:id',
-        u'/katello/api/products/:product_id/repository_sets/:id/available_repositories',
-        u'/katello/api/products/:product_id/repository_sets/:id/disable',
-        u'/katello/api/products/:product_id/repository_sets/:id/enable',
+    'repositories': (
+        '/katello/api/repositories',
+        '/katello/api/repositories',
+        '/katello/api/repositories/:id',
+        '/katello/api/repositories/:id',
+        '/katello/api/repositories/:id',
+        '/katello/api/repositories/:id/export',
+        '/katello/api/repositories/:id/gpg_key_content',
+        '/katello/api/repositories/:id/import_uploads',
+        '/katello/api/repositories/:id/republish',
+        '/katello/api/repositories/:id/sync',
+        '/katello/api/repositories/:id/upload_content',
+        '/katello/api/repositories/repository_types',
     ),
-    u'roles': (
-        u'/api/roles',
-        u'/api/roles',
-        u'/api/roles/:id',
-        u'/api/roles/:id',
-        u'/api/roles/:id',
-        u'/api/roles/:id/clone',
+    'repository_sets': (
+        '/katello/api/repository_sets',
+        '/katello/api/repository_sets/:id',
+        '/katello/api/repository_sets/:id/available_repositories',
+        '/katello/api/repository_sets/:id/disable',
+        '/katello/api/repository_sets/:id/enable',
     ),
-    u'root': (),
-    u'scap_contents': (
-        u'/api/compliance/scap_contents',
-        u'/api/compliance/scap_contents',
-        u'/api/compliance/scap_contents/:id',
-        u'/api/compliance/scap_contents/:id',
-        u'/api/compliance/scap_contents/:id',
-        u'/api/compliance/scap_contents/:id/xml',
+    'roles': (
+        '/api/roles',
+        '/api/roles',
+        '/api/roles/:id',
+        '/api/roles/:id',
+        '/api/roles/:id',
+        '/api/roles/:id/clone',
     ),
-    u'settings': (
-        u'/api/settings',
-        u'/api/settings/:id',
-        u'/api/settings/:id',
+    'root': (),
+    'scap_contents': (
+        '/api/compliance/scap_contents',
+        '/api/compliance/scap_contents',
+        '/api/compliance/scap_contents/:id',
+        '/api/compliance/scap_contents/:id',
+        '/api/compliance/scap_contents/:id',
+        '/api/compliance/scap_contents/:id/xml',
     ),
-    u'smart_class_parameters': (
-        u'/api/smart_class_parameters',
-        u'/api/smart_class_parameters/:id',
-        u'/api/smart_class_parameters/:id',
+    'settings': ('/api/settings', '/api/settings/:id', '/api/settings/:id'),
+    'smart_class_parameters': (
+        '/api/smart_class_parameters',
+        '/api/smart_class_parameters/:id',
+        '/api/smart_class_parameters/:id',
     ),
-    u'smart_proxies': (
-        u'/api/smart_proxies',
-        u'/api/smart_proxies',
-        u'/api/smart_proxies/:id',
-        u'/api/smart_proxies/:id',
-        u'/api/smart_proxies/:id',
-        u'/api/smart_proxies/:id/import_puppetclasses',
-        u'/api/smart_proxies/:id/refresh',
+    'smart_proxies': (
+        '/api/smart_proxies',
+        '/api/smart_proxies',
+        '/api/smart_proxies/:id',
+        '/api/smart_proxies/:id',
+        '/api/smart_proxies/:id',
+        '/api/smart_proxies/:id/import_puppetclasses',
+        '/api/smart_proxies/:id/refresh',
     ),
-    u'smart_variables': (
-        u'/api/smart_variables',
-        u'/api/smart_variables',
-        u'/api/smart_variables/:id',
-        u'/api/smart_variables/:id',
-        u'/api/smart_variables/:id',
+    'srpms': ('/katello/api/srpms/:id', '/katello/api/srpms/compare'),
+    'ssh_keys': (
+        '/api/users/:user_id/ssh_keys',
+        '/api/users/:user_id/ssh_keys',
+        '/api/users/:user_id/ssh_keys/:id',
+        '/api/users/:user_id/ssh_keys/:id',
     ),
-    u'ssh_keys': (
-        u'/api/users/:user_id/ssh_keys',
-        u'/api/users/:user_id/ssh_keys',
-        u'/api/users/:user_id/ssh_keys/:id',
-        u'/api/users/:user_id/ssh_keys/:id',
+    'statistics': ('/api/statistics',),
+    'subnet_disks': ('/bootdisk/api', '/bootdisk/api/subnets/:subnet_id'),
+    'subnets': (
+        '/api/subnets',
+        '/api/subnets',
+        '/api/subnets/:id',
+        '/api/subnets/:id',
+        '/api/subnets/:id',
+        '/api/subnets/:id/freeip',
     ),
-    u'statistics': (
-        u'/api/statistics',
+    'subscriptions': (
+        '/katello/api/activation_keys/:activation_key_id/subscriptions',
+        '/katello/api/organizations/:organization_id/subscriptions',
+        '/katello/api/organizations/:organization_id/subscriptions/delete_manifest',
+        '/katello/api/organizations/:organization_id/subscriptions/:id',
+        '/katello/api/organizations/:organization_id/subscriptions/manifest_history',
+        '/katello/api/organizations/:organization_id/subscriptions/refresh_manifest',
+        '/katello/api/organizations/:organization_id/subscriptions/upload',
     ),
-    u'subnet_disks': (
-        u'/bootdisk/api',
-        u'/bootdisk/api/subnets/:subnet_id',
+    'sync_plans': (
+        '/katello/api/organizations/:organization_id/sync_plans',
+        '/katello/api/organizations/:organization_id/sync_plans/:id',
+        '/katello/api/organizations/:organization_id/sync_plans/:id',
+        '/katello/api/organizations/:organization_id/sync_plans/:id',
+        '/katello/api/organizations/:organization_id/sync_plans/:id/add_products',
+        '/katello/api/organizations/:organization_id/sync_plans/:id/remove_products',
+        '/katello/api/sync_plans',
+        '/katello/api/sync_plans/:id/sync',
     ),
-    u'subnets': (
-        u'/api/subnets',
-        u'/api/subnets',
-        u'/api/subnets/:id',
-        u'/api/subnets/:id',
-        u'/api/subnets/:id',
-        u'/api/subnets/:id/freeip',
+    'sync': ('/katello/api/organizations/:organization_id/products/:product_id/sync',),
+    'tailoring_files': (
+        '/api/compliance/tailoring_files',
+        '/api/compliance/tailoring_files',
+        '/api/compliance/tailoring_files/:id',
+        '/api/compliance/tailoring_files/:id',
+        '/api/compliance/tailoring_files/:id',
+        '/api/compliance/tailoring_files/:id/xml',
     ),
-    u'subscriptions': (
-        u'/katello/api/activation_keys/:activation_key_id/subscriptions',
-        u'/katello/api/organizations/:organization_id/subscriptions',
-        u'/katello/api/organizations/:organization_id/subscriptions/delete_manifest',
-        u'/katello/api/organizations/:organization_id/subscriptions/:id',
-        u'/katello/api/organizations/:organization_id/subscriptions/manifest_history',
-        u'/katello/api/organizations/:organization_id/subscriptions/refresh_manifest',
-        u'/katello/api/organizations/:organization_id/subscriptions/upload',
+    'tasks': ('/api/orchestration/:id/tasks',),
+    'table_preferences': (
+        '/api/users/:user_id/table_preferences/:name',
+        '/api/users/:user_id/table_preferences/:name',
+        '/api/users/:user_id/table_preferences',
+        '/api/users/:user_id/table_preferences',
+        '/api/users/:user_id/table_preferences/:name',
     ),
-    u'sync_plans': (
-        u'/katello/api/organizations/:organization_id/sync_plans',
-        u'/katello/api/organizations/:organization_id/sync_plans/:id',
-        u'/katello/api/organizations/:organization_id/sync_plans/:id',
-        u'/katello/api/organizations/:organization_id/sync_plans/:id',
-        u'/katello/api/organizations/:organization_id/sync_plans/:id/add_products',
-        u'/katello/api/organizations/:organization_id/sync_plans/:id/remove_products',
-        u'/katello/api/sync_plans',
-        u'/katello/api/sync_plans/:id/sync',
+    'templates': ('/api/templates/export', '/api/templates/import'),
+    'template_combinations': (
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations',
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations',
+        '/api/template_combinations/:id',
+        '/api/provisioning_templates/:provisioning_template_id/template_combinations/:id',
+        '/api/template_combinations/:id',
     ),
-    u'sync': (
-        u'/katello/api/organizations/:organization_id/products/:product_id/sync',
-    ),
-    u'tailoring_files': (
-        u'/api/compliance/tailoring_files',
-        u'/api/compliance/tailoring_files',
-        u'/api/compliance/tailoring_files/:id',
-        u'/api/compliance/tailoring_files/:id',
-        u'/api/compliance/tailoring_files/:id',
-        u'/api/compliance/tailoring_files/:id/xml',
-    ),
-    u'tasks': (
-        u'/api/orchestration/:id/tasks',
-    ),
-    u'table_preferences': (
-        u'/api/users/:user_id/table_preferences/:name',
-        u'/api/users/:user_id/table_preferences/:name',
-        u'/api/users/:user_id/table_preferences',
-        u'/api/users/:user_id/table_preferences',
-        u'/api/users/:user_id/table_preferences/:name',
-    ),
-    u'template': (
-        u'/api/templates/export',
-        u'/api/templates/import',
-    ),
-    u'template_combinations': (
-        u'/api/config_templates/:config_template_id/template_combinations',
-        u'/api/config_templates/:config_template_id/template_combinations',
-        u'/api/provisioning_templates/:provisioning_template_id/template_combinations/:id',
-        u'/api/template_combinations/:id',
-        u'/api/template_combinations/:id',
-    ),
-    u'template_inputs': (
+    'template_inputs': (
         '/api/templates/:template_id/template_inputs',
         '/api/templates/:template_id/template_inputs',
         '/api/templates/:template_id/template_inputs/:id',
         '/api/templates/:template_id/template_inputs/:id',
         '/api/templates/:template_id/template_inputs/:id',
     ),
-    u'template_invocations': (
-        u'/api/job_invocations/:job_invocation_id/template_invocations',
+    'template_invocations': ('/api/job_invocations/:job_invocation_id/template_invocations',),
+    'template_kinds': ('/api/template_kinds',),
+    'trends': ('/api/trends', '/api/trends/:id', '/api/trends', '/api/trends/:id'),
+    'upstream_subscriptions': (
+        '/katello/api/organizations/:organization_id/upstream_subscriptions',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions/ping',
     ),
-    u'template_kinds': (
-        u'/api/template_kinds',
+    'usergroups': (
+        '/api/usergroups',
+        '/api/usergroups',
+        '/api/usergroups/:id',
+        '/api/usergroups/:id',
+        '/api/usergroups/:id',
     ),
-    u'upstream_subscriptions': (
-        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
-        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
-        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
-        u'/katello/api/organizations/:organization_id/upstream_subscriptions',
-    ),
-    u'usergroups': (
-        u'/api/usergroups',
-        u'/api/usergroups',
-        u'/api/usergroups/:id',
-        u'/api/usergroups/:id',
-        u'/api/usergroups/:id',
-    ),
-    u'users': (
-        u'/api/users',
-        u'/api/users',
-        u'/api/users/:id',
-        u'/api/users/:id',
-        u'/api/users/:id',
+    'users': (
+        '/api/users',
+        '/api/users/:id',
+        '/api/current_user',
+        '/api/users',
+        '/api/users/:id',
+        '/api/users/:id',
     ),
 }
+
+if is_open('BZ:1887932'):
+    missing = '/katello/api/activation_keys/:activation_key_id/subscriptions'
+    API_PATHS['subscriptions'] = tuple(
+        [subscription for subscription in API_PATHS['subscriptions'] if subscription != missing]
+    )
 
 
 class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
+
     longMessage = True
     maxDiff = None
 
@@ -925,12 +898,8 @@ class AvailableURLsTestCase(TestCase):
             content-type
 
         """
-        response = client.get(
-            self.path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
-        self.assertEqual(response.status_code, http_client.OK)
+        response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
+        self.assertEqual(response.status_code, http.client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
     @tier1
@@ -944,42 +913,33 @@ class AvailableURLsTestCase(TestCase):
 
         """
         # Did the server give us any paths at all?
-        response = client.get(
-            self.path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
+        response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
         response.raise_for_status()
         # See below for an explanation of this transformation.
         api_paths = response.json()['links']
         for group, path_pairs in api_paths.items():
             api_paths[group] = list(path_pairs.values())
-
-        self.assertEqual(
-            frozenset(api_paths.keys()),
-            frozenset(API_PATHS.keys())
-        )
+        self.assertEqual(frozenset(api_paths.keys()), frozenset(API_PATHS.keys()))
         for group in api_paths.keys():
             self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
-
-        # (line-too-long) pylint:disable=C0301
+        # noqa (line-too-long)
         # response.json()['links'] is a dict like this:
         #
-        #     {u'content_views': {
-        #          u'…': u'/katello/api/content_views/:id',
-        #          u'…': u'/katello/api/content_views/:id/available_puppet_modules',
-        #          u'…': u'/katello/api/organizations/:organization_id/content_views',
-        #          u'…': u'/katello/api/organizations/:organization_id/content_views',
+        #     {'content_views': {
+        #          '…': '/katello/api/content_views/:id',
+        #          '…': '/katello/api/content_views/:id/available_puppet_modules',
+        #          '…': '/katello/api/organizations/:organization_id/content_views',
+        #          '…': '/katello/api/organizations/:organization_id/content_views',
         #     }, …}
         #
         # We don't care about prose descriptions. It doesn't matter if those
         # change. Transform it before running any assertions:
         #
-        #     {u'content_views': [
-        #          u'/katello/api/content_views/:id',
-        #          u'/katello/api/content_views/:id/available_puppet_modules',
-        #          u'/katello/api/organizations/:organization_id/content_views',
-        #          u'/katello/api/organizations/:organization_id/content_views',
+        #     {'content_views': [
+        #          '/katello/api/content_views/:id',
+        #          '/katello/api/content_views/:id/available_puppet_modules',
+        #          '/katello/api/organizations/:organization_id/content_views',
+        #          '/katello/api/organizations/:organization_id/content_views',
         #     ], …}
 
 
@@ -1017,9 +977,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         :expectedresults: 'Default Location' is found
 
         """
-        results = entities.Location().search(
-            query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
-        )
+        results = entities.Location().search(query={'search': 'name="{0}"'.format(DEFAULT_LOC)})
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
@@ -1049,24 +1007,25 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         """
         response = entities.Ping().search_json()
-        self.assertEqual(response['status'], u'ok')  # overall status
+        self.assertEqual(response['status'], 'ok')  # overall status
 
         # Check that all services are OK. ['services'] is in this format:
         #
-        # {u'services': {
-        #    u'candlepin': {u'duration_ms': u'40', u'status': u'ok'},
-        #    u'candlepin_auth': {u'duration_ms': u'41', u'status': u'ok'},
+        # {'services': {
+        #    'candlepin': {'duration_ms': '40', 'status': 'ok'},
+        #    'candlepin_auth': {'duration_ms': '41', 'status': 'ok'},
         #    …
-        # }, u'status': u'ok'}
+        # }, 'status': 'ok'}
         services = response['services']
         self.assertTrue(
-            all([service['status'] == u'ok' for service in services.values()]),
-            u'Not all services seem to be up and running!'
+            all([service['status'] == 'ok' for service in services.values()]),
+            'Not all services seem to be up and running!',
         )
 
     @skip_if_not_set('compute_resources')
     @tier4
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
@@ -1114,44 +1073,36 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
                 upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
-        le1 = entities.LifecycleEnvironment(
-            server_config,
-            organization=org
-        ).create()
+        le1 = entities.LifecycleEnvironment(server_config, organization=org).create()
 
         # step 2.4: Create a custom product
         prod = entities.Product(server_config, organization=org).create()
         repositories = []
 
-
         # step 2.5: Create custom YUM repository
         repo1 = entities.Repository(
-            server_config,
-            product=prod,
-            content_type=u'yum',
-            url=CUSTOM_RPM_REPO
+            server_config, product=prod, content_type='yum', url=CUSTOM_RPM_REPO
         ).create()
         repositories.append(repo1)
 
         # step 2.6: Create custom PUPPET repository
         repo2 = entities.Repository(
-            server_config,
-            product=prod,
-            content_type=u'puppet',
-            url=FAKE_0_PUPPET_REPO
+            server_config, product=prod, content_type='puppet', url=FAKE_0_PUPPET_REPO
         ).create()
         repositories.append(repo2)
 
         # step 2.7: Enable a Red Hat repository
         if self.fake_manifest_is_set:
-            repo3 = entities.Repository(id=enable_rhrepo_and_fetchid(
-                basearch='x86_64',
-                org_id=org.id,
-                product=PRDS['rhel'],
-                repo=REPOS['rhva6']['name'],
-                reposet=REPOSET['rhva6'],
-                releasever='6Server',
-            ))
+            repo3 = entities.Repository(
+                id=enable_rhrepo_and_fetchid(
+                    basearch='x86_64',
+                    org_id=org.id,
+                    product=PRDS['rhel'],
+                    repo=REPOS['rhva6']['name'],
+                    reposet=REPOSET['rhva6'],
+                    releasever='6Server',
+                )
+            )
             repositories.append(repo3)
 
         # step 2.8: Synchronize the three repositories
@@ -1159,10 +1110,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             repo.sync()
 
         # step 2.9: Create content view
-        content_view = entities.ContentView(
-            server_config,
-            organization=org
-        ).create()
+        content_view = entities.ContentView(server_config, organization=org).create()
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
@@ -1170,20 +1118,14 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         content_view.repository = repositories
         content_view = content_view.update(['repository'])
 
-
         # step 2.11: Add a PUPPET module to new content view
         puppet_mods = content_view.available_puppet_modules()
         self.assertGreater(len(puppet_mods['results']), 0)
         puppet_module = random.choice(puppet_mods['results'])
         puppet = entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            content_view=content_view,
-            name=puppet_module['name'],
+            author=puppet_module['author'], content_view=content_view, name=puppet_module['name']
         ).create()
-        self.assertEqual(
-            puppet.name,
-            puppet_module['name'],
-        )
+        self.assertEqual(puppet.name, puppet_module['name'])
 
         # step 2.12: Publish content view
         content_view.publish()
@@ -1202,26 +1144,19 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         # step 2.14: Create a new activation key
         activation_key_name = gen_string('alpha')
         activation_key = entities.ActivationKey(
-            name=activation_key_name,
-            environment=le1,
-            organization=org,
-            content_view=content_view,
+            name=activation_key_name, environment=le1, organization=org, content_view=content_view
         ).create()
 
         # step 2.15: Add the products to the activation key
         for sub in entities.Subscription(organization=org).search():
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': sub.id,
-                })
+            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
+                activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
-            activation_key.content_override(data={'content_override': {
-                u'content_label': AK_CONTENT_LABEL,
-                u'value': u'1',
-            }})
+            activation_key.content_override(
+                data={'content_overrides': [{'content_label': AK_CONTENT_LABEL, 'value': '1'}]}
+            )
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
@@ -1233,22 +1168,14 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             organization=org,
         ).create()
         # check that content view matches what we passed
-        self.assertEqual(
-            content_host.content_facet_attributes['content_view_id'],
-            content_view.id
-        )
+        self.assertEqual(content_host.content_facet_attributes['content_view_id'], content_view.id)
         # check that lifecycle environment matches
-        self.assertEqual(
-            content_host.content_facet_attributes['lifecycle_environment_id'],
-            le1.id
-        )
+        self.assertEqual(content_host.content_facet_attributes['lifecycle_environment_id'], le1.id)
 
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url=u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            ),
+            url='qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname),
         ).create()
 
         # step 2.17: Create a new subnet
@@ -1259,11 +1186,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # step 2.19: Create a new hostgroup and associate previous entities to
         # it
-        entities.HostGroup(
-            server_config,
-            domain=domain,
-            subnet=subnet
-        ).create()
+        entities.HostGroup(server_config, domain=domain, subnet=subnet).create()
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key_name, org.label)

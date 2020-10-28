@@ -26,6 +26,7 @@ Subcommands::
      list                          List all hosts
      package                       Manage packages on your hosts
      package-group                 Manage package-groups on your hosts
+     policies-enc                  View policies ENC for host
      puppet-classes                List all Puppet classes
      puppetrun                     Force a Puppet agent run on the host
      reboot                        Reboot a host
@@ -34,15 +35,13 @@ Subcommands::
      reset                         Reset a host
      sc-params                     List all smart class parameters
      set-parameter                 Create or append a parameter for a host
-     smart-variables               List all smart variables
      start                         Power a host on
-     status                        Get configuration status of host
+     status                        Get status of host
      stop                          Power a host off
      subscription                  Manage subscription information on your hosts
      update                        Update a host
 
 """
-
 from robottelo.cli.base import Base
 
 
@@ -55,8 +54,7 @@ class Host(Base):
     def ansible_roles_play(cls, options):
         """Plays the associated ansible-roles"""
         cls.command_sub = 'ansible-roles play'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def enc_dump(cls, options):
@@ -80,29 +78,25 @@ class Host(Base):
              -h, --help                              Print help
         """
         cls.command_sub = 'enc-dump'
-        return cls.execute(
-            cls._construct_command(options), output_format='yaml')
+        return cls.execute(cls._construct_command(options), output_format='yaml')
 
     @classmethod
     def errata_apply(cls, options):
         """Schedule errata for installation"""
         cls.command_sub = 'errata apply'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def errata_info(cls, options):
         """Retrieve a single errata for a system"""
         cls.command_sub = 'errata info'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def errata_list(cls, options):
         """List errata available for the content host."""
         cls.command_sub = 'errata list'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def facts(cls, options=None):
@@ -125,8 +119,7 @@ class Host(Base):
         """
         cls.command_sub = 'facts'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         facts = []
 
@@ -139,50 +132,43 @@ class Host(Base):
     def package_install(cls, options):
         """Install packages remotely."""
         cls.command_sub = 'package install'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_list(cls, options):
         """List packages installed on the host."""
         cls.command_sub = 'package list'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_remove(cls, options):
         """Uninstall packages remotely."""
         cls.command_sub = 'package remove'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_upgrade(cls, options):
         """Update packages remotely."""
         cls.command_sub = 'package upgrade'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_upgrade_all(cls, options):
         """Update all packages remotely."""
         cls.command_sub = 'package upgrade-all'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_group_install(cls, options):
         """Install package groups remotely."""
         cls.command_sub = 'package-group install'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def package_group_remove(cls, options):
         """Uninstall package groups remotely."""
         cls.command_sub = 'package-group remove'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppetrun(cls, options=None):
@@ -250,8 +236,7 @@ class Host(Base):
 
         cls.command_sub = 'reports'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         reports = []
 
@@ -381,8 +366,7 @@ class Host(Base):
                                                                 not provided
         """
         cls.command_sub = 'subscription register'
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
         if isinstance(result, list):
             result = result[0]
         return result
@@ -477,29 +461,7 @@ class Host(Base):
             --search SEARCH               filter results
         """
         cls.command_sub = 'sc-params'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def smart_variables(cls, options=None):
-        """List all smart variables
-
-        Usage::
-
-            hammer host smart-variables [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME              Host name
-            --host-id HOST_ID
-            --order ORDER                 sort results
-            --page PAGE                   paginate results
-            --per-page PER_PAGE           number of entries per request
-            --search SEARCH               filter results
-        """
-        cls.command_sub = 'smart-variables'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
 
 class HostInterface(Base):
@@ -515,6 +477,7 @@ class HostInterface(Base):
         list           List all interfaces for host
         update         Update a host's interface
     """
+
     command_base = 'host interface'
 
     @classmethod

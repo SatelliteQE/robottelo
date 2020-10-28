@@ -7,7 +7,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: GPGKeys
+:CaseComponent: ContentCredentials
 
 :TestType: Functional
 
@@ -15,37 +15,33 @@
 
 :Upstream: No
 """
+from tempfile import mkstemp
 
-from fauxfactory import (
-    gen_alphanumeric,
-    gen_choice,
-    gen_integer,
-    gen_string,
-)
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_choice
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_gpg_key,
-    make_org,
-    make_product,
-    make_repository,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.constants import DEFAULT_ORG, VALID_GPG_KEY_FILE
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
-from tempfile import mkstemp
 
 VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
 
@@ -76,7 +72,6 @@ class TestGPGKey(CLITestCase):
         hundreds of organizations
         """
         super(TestGPGKey, cls).setUpClass()
-        # pylint: disable=unexpected-keyword-arg
         cls.org = make_org(cached=True)
 
     # Bug verification
@@ -95,11 +90,9 @@ class TestGPGKey(CLITestCase):
         content = gen_alphanumeric()
         gpg_key = create_gpg_key_file(content=content)
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
-        gpg_key = make_gpg_key({
-            'key': gpg_key,
-            'name': gen_string('alpha'),
-            'organization-id': self.org['id'],
-        })
+        gpg_key = make_gpg_key(
+            {'key': gpg_key, 'name': gen_string('alpha'), 'organization-id': self.org['id']}
+        )
         self.assertEqual(gpg_key['content'], content)
 
     @tier1
@@ -114,15 +107,10 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        gpg_key = make_gpg_key({
-            u'key': VALID_GPG_KEY_FILE_PATH,
-            u'name': name,
-            u'organization-id': self.org['id'],
-        })
-        gpg_key = GPGKey.info({
-            u'name': gpg_key['name'],
-            u'organization-id': self.org['id'],
-        })
+        gpg_key = make_gpg_key(
+            {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': self.org['id']}
+        )
+        gpg_key = GPGKey.info({'name': gpg_key['name'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], name)
 
     # Positive Create
@@ -139,22 +127,16 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         org = Org.info({'name': DEFAULT_ORG})
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key({
-                    'key': VALID_GPG_KEY_FILE_PATH,
-                    'name': name,
-                    'organization-id': org['id'],
-                })
+                gpg_key = make_gpg_key(
+                    {'key': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': org['id']}
+                )
                 # Can we find the new object?
                 result = GPGKey.exists(
-                    {'organization-id': org['id']},
-                    (self.search_key, gpg_key[self.search_key])
+                    {'organization-id': org['id']}, (self.search_key, gpg_key[self.search_key])
                 )
-                self.assertEqual(
-                    gpg_key[self.search_key],
-                    result[self.search_key]
-                )
+                self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
     @tier1
     def test_positive_create_with_custom_org(self):
@@ -167,22 +149,21 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key({
-                    'key': VALID_GPG_KEY_FILE_PATH,
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                gpg_key = make_gpg_key(
+                    {
+                        'key': VALID_GPG_KEY_FILE_PATH,
+                        'name': name,
+                        'organization-id': self.org['id'],
+                    }
+                )
                 # Can we find the new object?
                 result = GPGKey.exists(
                     {'organization-id': self.org['id']},
-                    (self.search_key, gpg_key[self.search_key])
+                    (self.search_key, gpg_key[self.search_key]),
                 )
-                self.assertEqual(
-                    gpg_key[self.search_key],
-                    result[self.search_key]
-                )
+                self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
     # Negative Create
 
@@ -198,22 +179,15 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        gpg_key = make_gpg_key({
-            'name': name,
-            'organization-id': self.org['id'],
-        })
+        gpg_key = make_gpg_key({'name': name, 'organization-id': self.org['id']})
         # Can we find the new object?
         result = GPGKey.exists(
-            {'organization-id': self.org['id']},
-            (self.search_key, gpg_key[self.search_key])
+            {'organization-id': self.org['id']}, (self.search_key, gpg_key[self.search_key])
         )
         self.assertEqual(gpg_key[self.search_key], result[self.search_key])
         # Try to create a gpg key with the same name
         with self.assertRaises(CLIFactoryError):
-            make_gpg_key({
-                'name': name,
-                'organization-id': self.org['id'],
-            })
+            make_gpg_key({'name': name, 'organization-id': self.org['id']})
 
     @tier1
     def test_negative_create_with_no_gpg_key(self):
@@ -225,13 +199,10 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
-                    GPGKey.create({
-                        'name': name,
-                        'organization-id': self.org['id'],
-                    })
+                    GPGKey.create({'name': name, 'organization-id': self.org['id']})
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -248,10 +219,7 @@ class TestGPGKey(CLITestCase):
             with self.subTest(name):
                 with self.assertRaises(CLIFactoryError):
                     # factory will provide a valid key
-                    make_gpg_key({
-                        'name': name,
-                        'organization-id': self.org['id'],
-                    })
+                    make_gpg_key({'name': name, 'organization-id': self.org['id']})
 
     # Positive Delete
     @tier1
@@ -266,27 +234,18 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                gpg_key = make_gpg_key({'name': name, 'organization-id': self.org['id']})
                 result = GPGKey.exists(
                     {'organization-id': self.org['id']},
-                    (self.search_key, gpg_key[self.search_key])
+                    (self.search_key, gpg_key[self.search_key]),
                 )
-                self.assertEqual(
-                    gpg_key[self.search_key],
-                    result[self.search_key]
-                )
-                GPGKey.delete({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                self.assertEqual(gpg_key[self.search_key], result[self.search_key])
+                GPGKey.delete({'name': name, 'organization-id': self.org['id']})
                 result = GPGKey.exists(
                     {'organization-id': self.org['id']},
-                    (self.search_key, gpg_key[self.search_key])
+                    (self.search_key, gpg_key[self.search_key]),
                 )
                 self.assertEqual(len(result), 0)
 
@@ -304,17 +263,16 @@ class TestGPGKey(CLITestCase):
         :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
-                GPGKey.update({
-                    'name': gpg_key['name'],
-                    'new-name': new_name,
-                    'organization-id': self.org['id'],
-                })
-                gpg_key = GPGKey.info({
-                    'name': new_name,
-                    'organization-id': self.org['id'],
-                })
+                GPGKey.update(
+                    {
+                        'name': gpg_key['name'],
+                        'new-name': new_name,
+                        'organization-id': self.org['id'],
+                    }
+                )
+                gpg_key = GPGKey.info({'name': new_name, 'organization-id': self.org['id']})
 
     @tier1
     def test_positive_update_key(self):
@@ -334,15 +292,8 @@ class TestGPGKey(CLITestCase):
         self.assertIsNotNone(local_key, 'GPG Key file must be created')
         key = '/tmp/%s' % gen_alphanumeric()
         ssh.upload_file(local_file=local_key, remote_file=key)
-        GPGKey.update({
-            'key': key,
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
-        gpg_key = GPGKey.info({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.update({'key': key, 'name': gpg_key['name'], 'organization-id': self.org['id']})
+        gpg_key = GPGKey.info({'name': gpg_key['name'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['content'], content)
 
     # Negative Update
@@ -361,11 +312,13 @@ class TestGPGKey(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    GPGKey.update({
-                        'name': gpg_key['name'],
-                        'new-name': new_name,
-                        'organization-id': self.org['id'],
-                    })
+                    GPGKey.update(
+                        {
+                            'name': gpg_key['name'],
+                            'new-name': new_name,
+                            'organization-id': self.org['id'],
+                        }
+                    )
 
     # Product association
     @tier2
@@ -380,10 +333,7 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        product = make_product({
-            'gpg-key-id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
     @tier2
@@ -401,15 +351,10 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
@@ -428,41 +373,16 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
-        repos = [
-            make_repository({'product-id': product['id']})
-            for _ in range(gen_integer(2, 5))
-        ]
+        repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
-
-    @stubbed()
-    @tier2
-    def test_positive_add_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method
-
-        :id: fb12db0f-583f-49f4-9d8f-d19f2d5550ee
-
-        :expectedresults: gpg key is associated with product but not the
-            repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_add_repo_from_product_with_repo(self):
@@ -480,15 +400,10 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        Repository.update({
-            'gpg-key-id': gpg_key['id'],
-            'id': repo['id'],
-            'organization-id': self.org['id'],
-        })
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Repository.update(
+            {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': self.org['id']}
+        )
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
         self.assertNotEqual(product['gpg'].get('gpg-key-id'), gpg_key['id'])
@@ -508,20 +423,12 @@ class TestGPGKey(CLITestCase):
         :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
-        repos = [
-            make_repository({'product-id': product['id']})
-            for _ in range(gen_integer(2, 5))
-        ]
+        repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        Repository.update({
-            'gpg-key': gpg_key['name'],
-            'id': repos[0]['id'],
-            'organization-id': self.org['id'],
-        })
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Repository.update(
+            {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': self.org['id']}
+        )
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg'].get('gpg-key-id'), gpg_key['id'])
         # First repo should have a valid gpg key assigned
         repo = Repository.info({'id': repos.pop(0)['id']})
@@ -530,23 +437,6 @@ class TestGPGKey(CLITestCase):
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('id'), gpg_key['id'])
-
-    @stubbed()
-    @tier2
-    def test_positive_add_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method
-
-        :id: 1e91871c-0298-4cd0-b63b-f02d02622259
-
-        :expectedresults: gpg key is associated with product and all the
-            repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_update_key_for_empty_product(self):
@@ -565,35 +455,22 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Associate gpg key with a product
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
-        GPGKey.update({
-            'name': gpg_key['name'],
-            'new-name': new_name,
-            'organization-id': self.org['id'],
-        })
+        new_name = gen_choice(list(valid_data_list().values()))
+        GPGKey.update(
+            {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({
-            'id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], new_name)
 
     @tier2
@@ -615,37 +492,24 @@ class TestGPGKey(CLITestCase):
         # Create a repository and assign it to the product
         repo = make_repository({'product-id': product['id']})
         # Associate gpg key with a product
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
-        GPGKey.update({
-            'name': gpg_key['name'],
-            'new-name': new_name,
-            'organization-id': self.org['id'],
-        })
+        new_name = gen_choice(list(valid_data_list().values()))
+        GPGKey.update(
+            {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({
-            'id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], new_name)
         # Verify changes are reflected in the repository
         repo = Repository.info({'id': repo['id']})
@@ -668,65 +532,32 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Create repositories and assign them to the product
-        repos = [
-            make_repository({'product-id': product['id']})
-            for _ in range(gen_integer(2, 5))
-        ]
+        repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         # Associate gpg key with a product
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
-        GPGKey.update({
-            'name': gpg_key['name'],
-            'new-name': new_name,
-            'organization-id': self.org['id'],
-        })
+        new_name = gen_choice(list(valid_data_list().values()))
+        GPGKey.update(
+            {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({
-            'id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], new_name)
         # Verify changes are reflected in the repositories
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), new_name)
-
-    @stubbed()
-    @tier2
-    def test_positive_update_key_for_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method then update the key
-
-        :id: 8092bd11-75f3-4657-9309-d327498e7d52
-
-        :expectedresults: gpg key is associated with product before/after
-            update but not the repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
@@ -745,33 +576,22 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Create repository, assign product and gpg-key
-        repo = make_repository({
-            'gpg-key-id': gpg_key['id'],
-            'product-id': product['id'],
-        })
+        repo = make_repository({'gpg-key-id': gpg_key['id'], 'product-id': product['id']})
         # Verify gpg key was associated
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
-        GPGKey.update({
-            'name': gpg_key['name'],
-            'new-name': new_name,
-            'organization-id': self.org['id'],
-        })
+        new_name = gen_choice(list(valid_data_list().values()))
+        GPGKey.update(
+            {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({
-            'id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the repositories
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['gpg-key'].get('name'), new_name)
         # Verify gpg key wasn't added to the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], new_name)
 
     @tier2
@@ -792,62 +612,32 @@ class TestGPGKey(CLITestCase):
         product = make_product({'organization-id': self.org['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Create repositories and assign them to the product
-        repos = [
-            make_repository({'product-id': product['id']})
-            for _ in range(gen_integer(2, 5))
-        ]
+        repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         # Associate gpg key with a single repository
-        Repository.update({
-            'gpg-key': gpg_key['name'],
-            'id': repos[0]['id'],
-            'organization-id': self.org['id'],
-        })
+        Repository.update(
+            {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Update the gpg key
-        new_name = gen_choice(valid_data_list())
-        GPGKey.update({
-            'name': gpg_key['name'],
-            'new-name': new_name,
-            'organization-id': self.org['id'],
-        })
+        new_name = gen_choice(list(valid_data_list().values()))
+        GPGKey.update(
+            {'name': gpg_key['name'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         # Verify changes are reflected in the gpg key
-        gpg_key = GPGKey.info({
-            'id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        gpg_key = GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(gpg_key['name'], new_name)
         # Verify changes are reflected in the associated repository
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key'].get('name'), new_name)
         # Verify changes are not reflected in the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], new_name)
         # Verify changes are not reflected in the rest of repositories
         for repo in repos[1:]:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), new_name)
-
-    @stubbed()
-    @tier2
-    def test_positive_update_key_for_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method then update the key
-
-        :id: 21dfd9b0-3de9-4876-aeea-c856adb5ed98
-
-        :expectedresults: gpg key is associated with product and all
-            repositories before/after update
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_delete_key_for_empty_product(self):
@@ -864,28 +654,16 @@ class TestGPGKey(CLITestCase):
         """
         # Create a product and a gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        product = make_product({
-            'gpg-key-id': gpg_key['id'],
-            'organization-id': self.org['id'],
-        })
+        product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was associated
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({
-                'id': gpg_key['id'],
-                'organization-id': self.org['id'],
-            })
+            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
     @tier2
@@ -908,35 +686,21 @@ class TestGPGKey(CLITestCase):
         repo = make_repository({'product-id': product['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Associate gpg key with a product
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated both with product and its repository
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({
-                'id': gpg_key['id'],
-                'organization-id': self.org['id'],
-            })
+            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product and its repository
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
@@ -957,65 +721,30 @@ class TestGPGKey(CLITestCase):
         """
         # Create product, repositories and gpg key
         product = make_product({'organization-id': self.org['id']})
-        repos = [
-            make_repository({'product-id': product['id']})
-            for _ in range(gen_integer(2, 5))
-        ]
+        repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Associate gpg key with a product
-        Product.update({
-            'gpg-key': gpg_key['name'],
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        Product.update(
+            {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated with product and its repositories
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({
-                'id': gpg_key['id'],
-                'organization-id': self.org['id'],
-            })
+            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the product and its
         # repositories
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
-
-    @stubbed()
-    @tier2
-    def test_positive_delete_key_for_product_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it with custom product using Repo discovery
-        method then delete it
-
-        :id: f8492db8-12f3-4d32-833a-f177734e2253
-
-        :expectedresults: gpg key is associated with product but not the
-            repositories during creation but removed from product after
-            deletion
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     @tier2
     def test_positive_delete_key_for_repo_from_product_with_repo(self):
@@ -1036,31 +765,20 @@ class TestGPGKey(CLITestCase):
         repo = make_repository({'product-id': product['id']})
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Associate gpg key with a repository
-        Repository.update({
-            'gpg-key': gpg_key['name'],
-            'id': repo['id'],
-            'organization-id': self.org['id'],
-        })
+        Repository.update(
+            {'gpg-key': gpg_key['name'], 'id': repo['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated with the repository but not with the
         # product
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertEqual(repo['gpg-key'].get('name'), gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({
-                'id': gpg_key['id'],
-                'organization-id': self.org['id'],
-            })
+            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key was disassociated from the repository
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
@@ -1086,101 +804,24 @@ class TestGPGKey(CLITestCase):
             repos.append(make_repository({'product-id': product['id']}))
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         # Associate gpg key with a repository
-        Repository.update({
-            'gpg-key': gpg_key['name'],
-            'id': repos[0]['id'],
-            'organization-id': self.org['id'],
-        })
+        Repository.update(
+            {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': self.org['id']}
+        )
         # Verify gpg key was associated with the repository
         repos[0] = Repository.info({'id': repos[0]['id']})
         self.assertEqual(repos[0]['gpg-key']['name'], gpg_key['name'])
         # Delete the gpg key
-        GPGKey.delete({
-            'name': gpg_key['name'],
-            'organization-id': self.org['id'],
-        })
+        GPGKey.delete({'name': gpg_key['name'], 'organization-id': self.org['id']})
         # Verify gpg key was actually deleted
         with self.assertRaises(CLIReturnCodeError):
-            GPGKey.info({
-                'id': gpg_key['id'],
-                'organization-id': self.org['id'],
-            })
+            GPGKey.info({'id': gpg_key['id'], 'organization-id': self.org['id']})
         # Verify gpg key is not associated with any repository or the product
         # itself
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org['id'],
-        })
+        product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         for repo in repos:
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
-
-    @stubbed()
-    @tier2
-    def test_positive_delete_key_for_repos_using_repo_discovery(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then associate it to repos from custom product using Repo
-        discovery method then delete the key
-
-        :id: 8ae226c6-f27c-4fb5-94f2-89792cccda0b
-
-        :expectedresults: gpg key is associated with product and all
-            repositories during creation but removed from product and all
-            repositories after deletion
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    # Content
-
-    @stubbed()
-    @tier2
-    def test_positive_consume_content_using_repo(self):
-        """Hosts can install packages using gpg key associated with
-        single custom repository
-
-        :id: 39357649-4c60-4c82-9114-a43dfef81e5b
-
-        :expectedresults: host can install package from custom repository
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    @upgrade
-    def test_positive_consume_content_using_repos(self):
-        """Hosts can install packages using gpg key associated with
-        multiple custom repositories
-
-        :id: fedd6fa2-e28b-468b-8e15-802b52970bb9
-
-        :expectedresults: host can install package from custom repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_consume_content_using_repos_and_different_keys(self):
-        """Hosts can install packages using different gpg keys
-        associated with multiple custom repositories
-
-        :id: ac908aee-0928-4f81-a98b-b60d46b10c90
-
-        :expectedresults: host can install package from custom repositories
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: Integration
-        """
 
     # Miscelaneous
 
@@ -1194,10 +835,7 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        gpg_key = make_gpg_key({
-            'key': VALID_GPG_KEY_FILE_PATH,
-            'organization-id': self.org['id'],
-        })
+        gpg_key = make_gpg_key({'key': VALID_GPG_KEY_FILE_PATH, 'organization-id': self.org['id']})
         gpg_keys_list = GPGKey.list({'organization-id': self.org['id']})
         self.assertIn(gpg_key['id'], [gpg['id'] for gpg in gpg_keys_list])
 
@@ -1211,16 +849,17 @@ class TestGPGKey(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
-                gpg_key = make_gpg_key({
-                    'key': VALID_GPG_KEY_FILE_PATH,
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                gpg_key = make_gpg_key(
+                    {
+                        'key': VALID_GPG_KEY_FILE_PATH,
+                        'name': name,
+                        'organization-id': self.org['id'],
+                    }
+                )
                 # Can we find the new object?
                 result = GPGKey.exists(
-                    {'organization-id': self.org['id']},
-                    search=('name', gpg_key['name'])
+                    {'organization-id': self.org['id']}, search=('name', gpg_key['name'])
                 )
                 self.assertEqual(gpg_key['name'], result['name'])

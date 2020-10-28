@@ -14,8 +14,8 @@
 
 :Upstream: No
 """
-
-from upgrade_tests import pre_upgrade, post_upgrade
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
 
 
 class scenario_positive_create_parameters_in_existing_subnet:
@@ -28,9 +28,9 @@ class scenario_positive_create_parameters_in_existing_subnet:
         1. Create subnet with all the details preupgrade
             satellite version
         2. Create host with this subnet
-        2. Upgrade Satellite to next/latest satellite version
-        3. Go to the subnet created in preupgrade satellite version
-        4. Attempt to add parameter in subnet
+        3. Upgrade Satellite to next/latest satellite version
+        4. Go to the subnet created in preupgrade satellite version
+        5. Attempt to add parameter in subnet
 
     :expectedresults:
 

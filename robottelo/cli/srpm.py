@@ -26,8 +26,7 @@ class Srpm(Base):
         """Show a SRPM Info"""
         cls.command_sub = 'info'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -36,7 +35,6 @@ class Srpm(Base):
         """List SRPMs """
         cls.command_sub = 'list'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result

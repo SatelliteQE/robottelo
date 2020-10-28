@@ -18,7 +18,8 @@
 from fauxfactory import gen_string
 
 from robottelo.constants import TREND_TYPES
-from robottelo.decorators import tier2, upgrade
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @tier2
@@ -39,11 +40,9 @@ def test_positive_end_to_end(session):
     fact_name = 'cpu'
     with session:
         # Create new trend
-        session.trend.create({
-            'trendable_type': TREND_TYPES['facts'],
-            'trendable_id': fact_name,
-            'name': name,
-        })
+        session.trend.create(
+            {'trendable_type': TREND_TYPES['facts'], 'trendable_id': fact_name, 'name': name}
+        )
         assert session.trend.search(name)
         # Update trend
         session.trend.update(name, fact_name, new_name)

@@ -14,11 +14,12 @@
 
 :Upstream: No
 """
-
 from nailgun import entities
 from requests.exceptions import HTTPError
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo.test import APITestCase
-from upgrade_tests import pre_upgrade, post_upgrade
 
 
 class scenario_positive_activation_key(APITestCase):
@@ -33,6 +34,7 @@ class scenario_positive_activation_key(APITestCase):
 
     :expectedresults: Activation key should create, update and delete successfully.
     """
+
     @classmethod
     def setUpClass(cls):
         cls.ak_name = 'preupgrade_activation_key'
@@ -51,26 +53,20 @@ class scenario_positive_activation_key(APITestCase):
         """
         org = entities.Organization(name=self.org_name).create()
         custom_repo = entities.Repository(
-            product=entities.Product(organization=org).create(),
+            product=entities.Product(organization=org).create()
         ).create()
         custom_repo.sync()
         cv = entities.ContentView(
-            organization=org,
-            repository=[custom_repo.id],
-            name=self.cv_name
+            organization=org, repository=[custom_repo.id], name=self.cv_name
         ).create()
         cv.publish()
         ak = entities.ActivationKey(content_view=cv, organization=org, name=self.ak_name).create()
         org_subscriptions = entities.Subscription(organization=org).search()
         for subscription in org_subscriptions:
-            ak.add_subscriptions(data={
-                'quantity': 1,
-                'subscription_id': subscription.id,
-            })
+            ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak.product_content()['results']
         self.assertEqual(
-            {custom_repo.product.id},
-            {subscr['product']['id'] for subscr in ak_subscriptions}
+            {custom_repo.product.id}, {subscr['product']['id'] for subscr in ak_subscriptions}
         )
         ak.host_collection.append(entities.HostCollection().create())
         ak.update(['host_collection'])
@@ -90,15 +86,13 @@ class scenario_positive_activation_key(APITestCase):
 
         :expectedresults: Activation key should update and delete successfully.
         """
-        org = entities.Organization().search(query={
-            'search': 'name={0}'.format(self.org_name)
-        })
-        ak = entities.ActivationKey(organization=org[0]).search(query={
-            'search': 'name={0}'.format(self.ak_name)
-        })
-        cv = entities.ContentView(organization=org[0]).search(query={
-            'search': 'name={0}'.format(self.cv_name)
-        })
+        org = entities.Organization().search(query={'search': 'name={0}'.format(self.org_name)})
+        ak = entities.ActivationKey(organization=org[0]).search(
+            query={'search': 'name={0}'.format(self.ak_name)}
+        )
+        cv = entities.ContentView(organization=org[0]).search(
+            query={'search': 'name={0}'.format(self.cv_name)}
+        )
 
         # verify activation key is intact after upgrade
         self.assertEqual(self.ak_name, ak[0].name)
@@ -109,27 +103,19 @@ class scenario_positive_activation_key(APITestCase):
         ak[0].update(['host_collection'])
         self.assertEqual(len(ak[0].host_collection), 2)
         custom_repo2 = entities.Repository(
-            product=entities.Product(organization=org[0]).create(),
+            product=entities.Product(organization=org[0]).create()
         ).create()
         custom_repo2.sync()
-        cv2 = entities.ContentView(
-            organization=org[0],
-            repository=[custom_repo2.id]
-        ).create()
+        cv2 = entities.ContentView(organization=org[0], repository=[custom_repo2.id]).create()
         cv2.publish()
         org_subscriptions = entities.Subscription(organization=org[0]).search()
         for subscription in org_subscriptions:
-            provided_products_ids = [
-                prod.id for prod in subscription.read().provided_product]
+            provided_products_ids = [prod.id for prod in subscription.read().provided_product]
             if custom_repo2.product.id in provided_products_ids:
-                ak[0].add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': subscription.id,
-                })
+                ak[0].add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak[0].product_content()['results']
         self.assertIn(
-            custom_repo2.product.id,
-            {subscr['product']['id'] for subscr in ak_subscriptions}
+            custom_repo2.product.id, {subscr['product']['id'] for subscr in ak_subscriptions}
         )
 
         # Delete activation key

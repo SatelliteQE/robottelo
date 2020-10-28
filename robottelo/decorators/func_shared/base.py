@@ -3,7 +3,6 @@ import json
 
 
 class BaseStorageHandler(object):
-
     @staticmethod
     def encode(data):
         return json.dumps(data)

@@ -15,27 +15,24 @@
 :Upstream: No
 """
 import re
+
 from fauxfactory import gen_string
-from robottelo import (
-    manifests,
-    ssh,
-)
-from robottelo.cli.factory import (
-    make_org,
-    make_product_wait,
-    make_repository,
-)
+
+from robottelo import manifests
+from robottelo import ssh
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.subscription import Subscription
+from robottelo.decorators import tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-from robottelo.decorators import tier4
 
 
 def line_count(file, connection=None):
     """Get number of lines in a file."""
     connection = connection or ssh.get_connection()
-    result = connection.run('wc -l < {0}'.format(file),
-                            output_format='plain')
+    result = connection.run('wc -l < {0}'.format(file), output_format='plain')
     count = result.stdout.strip('\n')
     return count
 
@@ -44,11 +41,9 @@ def cut_lines(start_line, end_line, source_file, out_file, connection=None):
     """Given start and end line numbers, cut lines from source file
     and put them in out file."""
     connection = connection or ssh.get_connection()
-    result = connection.run('sed -n "{0},{1} p" {2} < {2} > {3}'.format(
-                start_line,
-                end_line,
-                source_file,
-                out_file))
+    result = connection.run(
+        'sed -n "{0},{1} p" {2} < {2} > {3}'.format(start_line, end_line, source_file, out_file)
+    )
     return result
 
 
@@ -66,9 +61,7 @@ class SimpleLoggingTestCase(CLITestCase):
         # need own org for the manifest refresh test
 
         cls.org = make_org(cached=True)
-        cls.product = make_product_wait(
-            {u'organization-id': cls.org['id']},
-            )
+        cls.product = make_product_wait({'organization-id': cls.org['id']})
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
@@ -76,7 +69,7 @@ class SimpleLoggingTestCase(CLITestCase):
             options = {}
 
         if not options.get('product-id'):
-            options[u'product-id'] = self.product['id']
+            options['product-id'] = self.product['id']
 
         return make_repository(options)
 
@@ -147,11 +140,13 @@ class SimpleLoggingTestCase(CLITestCase):
             line_count_end_1 = line_count(source_log_1, connection)
             line_count_end_2 = line_count(source_log_2, connection)
             # get the log lines of interest, put them in test_logfile_1
-            cut_lines(line_count_start_1, line_count_end_1, source_log_1, test_logfile_1,
-                      connection)
+            cut_lines(
+                line_count_start_1, line_count_end_1, source_log_1, test_logfile_1, connection
+            )
             # get the log lines of interest, put them in test_logfile_2
-            cut_lines(line_count_start_2, line_count_end_2, source_log_2, test_logfile_2,
-                      connection)
+            cut_lines(
+                line_count_start_2, line_count_end_2, source_log_2, test_logfile_2, connection
+            )
         # use same location on remote and local for log file extract
         ssh.download_file(test_logfile_1)
         # use same location on remote and local for log file extract
@@ -202,10 +197,7 @@ class SimpleLoggingTestCase(CLITestCase):
             # command for this test
             with manifests.clone() as manifest:
                 upload_file(manifest.content, manifest.filename)
-                Subscription.upload({
-                    'file': manifest.filename,
-                    'organization-id': self.org['id'],
-                    })
+                Subscription.upload({'file': manifest.filename, 'organization-id': self.org['id']})
             # get the number of lines in the source log after the test
             line_count_end = line_count(source_log, connection)
             # get the log lines of interest, put them in test_logfile
@@ -215,8 +207,9 @@ class SimpleLoggingTestCase(CLITestCase):
         # search the log file extract for the line with POST to candlepin API
         with open(test_logfile, "r") as logfile:
             for line in logfile:
-                if re.search(r'verb=POST, uri=/candlepin/owners/{0}', line
-                             .format(self.org['name'])):
+                if re.search(
+                    r'verb=POST, uri=/candlepin/owners/{0}', line.format(self.org['name'])
+                ):
                     self.logger.info('Found the line with POST to candlepin API')
                     POST_line_found = True
                     # Confirm the request ID was logged in the line with POST
@@ -245,8 +238,8 @@ class SimpleLoggingTestCase(CLITestCase):
             # get the number of lines in the source log before the test
             line_count_start = line_count(source_log, connection)
             # command for this test
-            new_repo = self._make_repository({u'name': gen_string('alpha')})
-            self.logger.info('Created Repo {0} for dynflow log test'.format(new_repo[u'name']))
+            new_repo = self._make_repository({'name': gen_string('alpha')})
+            self.logger.info('Created Repo {0} for dynflow log test'.format(new_repo['name']))
             # get the number of lines in the source log after the test
             line_count_end = line_count(source_log, connection)
             # get the log lines of interest, put them in test_logfile

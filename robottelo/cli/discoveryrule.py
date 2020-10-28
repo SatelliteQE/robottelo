@@ -17,8 +17,6 @@ Subcommands::
     list                          List all discovery rules
     update                        Update a rule
 """
-
-
 from robottelo.cli.base import Base
 
 

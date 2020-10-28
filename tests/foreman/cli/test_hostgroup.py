@@ -16,45 +16,39 @@
 :Upstream: No
 """
 from fauxfactory import gen_integer
+
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_architecture,
-    make_content_view,
-    make_domain,
-    make_environment,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_location,
-    make_medium,
-    make_org,
-    make_os,
-    make_partition_table,
-    make_proxy,
-    make_subnet,
-    publish_puppet_module,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_architecture
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_os
+from robottelo.cli.factory import make_partition_table
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-)
-from robottelo.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-    valid_hostgroups_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -62,6 +56,7 @@ class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(HostGroupTestCase, cls).setUpClass()
         cls.org = make_org()
@@ -70,21 +65,18 @@ class HostGroupTestCase(CLITestCase):
             {'author': 'robottelo', 'name': 'generic_1'},
             {'author': 'robottelo', 'name': 'generic_2'},
         ]
-        cls.cv = publish_puppet_module(
-            puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({
-            'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
         cls.puppet_classes = [
             Puppet.info({'name': mod['name'], 'puppet-environment': cls.env['name']})
             for mod in puppet_modules
         ]
-        cls.content_source = Proxy.list({
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
-        cls.hostgroup = make_hostgroup({
-            'content-source-id': cls.content_source['id'],
-            'organization-ids': cls.org['id'],
-        })
+        cls.content_source = Proxy.list(
+            {'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )[0]
+        cls.hostgroup = make_hostgroup(
+            {'content-source-id': cls.content_source['id'], 'organization-ids': cls.org['id']}
+        )
 
     @tier2
     def test_negative_create_with_name(self):
@@ -120,48 +112,30 @@ class HostGroupTestCase(CLITestCase):
         loc = make_location()
         org = make_org()
         orgs = [org, self.org]
-        env = make_environment({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
+        env = make_environment({'location-ids': loc['id'], 'organization-ids': org['id']})
         lce = make_lifecycle_environment({'organization-id': org['id']})
         # Content View should be promoted to be used with LC Env
         cv = make_content_view({'organization-id': org['id']})
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
-        ContentView.version_promote({
-            'id': cv['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
+        ContentView.version_promote(
+            {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
         # Network
-        domain = make_domain({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        subnet = make_subnet({
-            'domain-ids': domain['id'],
-            'organization-ids': org['id'],
-        })
+        domain = make_domain({'location-ids': loc['id'], 'organization-ids': org['id']})
+        subnet = make_subnet({'domain-ids': domain['id'], 'organization-ids': org['id']})
         # Operating System
         arch = make_architecture()
-        ptable = make_partition_table({
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-        os = make_os({
-            'architecture-ids': arch['id'],
-            'partition-table-ids': ptable['id'],
-        })
-        os_full_name = "{0} {1}.{2}".format(
-            os['name'],
-            os['major-version'],
-            os['minor-version']
+        ptable = make_partition_table({'location-ids': loc['id'], 'organization-ids': org['id']})
+        os = make_os({'architecture-ids': arch['id'], 'partition-table-ids': ptable['id']})
+        os_full_name = "{0} {1}.{2}".format(os['name'], os['major-version'], os['minor-version'])
+        media = make_medium(
+            {
+                'operatingsystem-ids': os['id'],
+                'location-ids': loc['id'],
+                'organization-ids': org['id'],
+            }
         )
-        media = make_medium({
-            'operatingsystem-ids': os['id'],
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
         # Note: in the current hammer version there is no content source name
         # option
         make_hostgroup_params = {
@@ -179,46 +153,27 @@ class HostGroupTestCase(CLITestCase):
             'architecture': arch['name'],
             'partition-table': ptable['name'],
             'medium': media['name'],
-            'operatingsystem':  os_full_name,
+            'operatingsystem': os_full_name,
             'puppet-classes': self.puppet_classes[0]['name'],
-            'query-organization': org['name']
+            'query-organization': org['name'],
         }
         hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertEqual(hostgroup['name'], name)
-        self.assertEqual(
-            set(org['name'] for org in orgs),
-            set(hostgroup['organizations'])
-        )
+        self.assertEqual(set(org['name'] for org in orgs), set(hostgroup['organizations']))
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['puppet-environment'])
         self.assertEqual(self.content_source['name'], hostgroup['puppet-master-proxy'])
         self.assertEqual(self.content_source['name'], hostgroup['puppet-ca-proxy'])
         self.assertEqual(domain['name'], hostgroup['network']['domain'])
         self.assertEqual(subnet['name'], hostgroup['network']['subnet-ipv4'])
-        self.assertEqual(
-            arch['name'],
-            hostgroup['operating-system']['architecture']
-        )
-        self.assertEqual(
-            ptable['name'],
-            hostgroup['operating-system']['partition-table']
-        )
-        self.assertEqual(
-            media['name'],
-            hostgroup['operating-system']['medium']
-        )
-        self.assertEqual(
-            os_full_name,
-            hostgroup['operating-system']['operating-system']
-        )
-        self.assertEqual(
-            cv['name'],
-            hostgroup['content-view']['name'])
-        self.assertEqual(
-            lce['name'], hostgroup['lifecycle-environment']['name'])
+        self.assertEqual(arch['name'], hostgroup['operating-system']['architecture'])
+        self.assertEqual(ptable['name'], hostgroup['operating-system']['partition-table'])
+        self.assertEqual(media['name'], hostgroup['operating-system']['medium'])
+        self.assertEqual(os_full_name, hostgroup['operating-system']['operating-system'])
+        self.assertEqual(cv['name'], hostgroup['content-view']['name'])
+        self.assertEqual(lce['name'], hostgroup['lifecycle-environment']['name'])
         self.assertEqual(self.content_source['name'], hostgroup['content-source']['name'])
-        self.assertIn(
-            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
+        self.assertIn(self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
         # delete hostgroup
         HostGroup.delete({'id': hostgroup['id']})
         with self.assertRaises(CLIReturnCodeError):
@@ -237,10 +192,12 @@ class HostGroupTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         with self.assertRaises(CLIFactoryError):
-            make_hostgroup({
-                'content-source-id': gen_integer(10000, 99999),
-                'organization-ids': self.org['id'],
-            })
+            make_hostgroup(
+                {
+                    'content-source-id': gen_integer(10000, 99999),
+                    'organization-ids': self.org['id'],
+                }
+            )
 
     @run_in_one_thread
     @tier2
@@ -258,29 +215,32 @@ class HostGroupTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = make_hostgroup({
-            'content-source-id': self.content_source['id'],
-            'organization-ids': self.org['id'],
-            'environment-id': self.env['id'],
-            'content-view-id': self.cv['id'],
-            'query-organization-id': self.org['id'],
-        })
+        hostgroup = make_hostgroup(
+            {
+                'content-source-id': self.content_source['id'],
+                'organization-ids': self.org['id'],
+                'environment-id': self.env['id'],
+                'content-view-id': self.cv['id'],
+                'query-organization-id': self.org['id'],
+            }
+        )
         new_content_source = make_proxy()
         self.addCleanup(capsule_cleanup, new_content_source['id'])
         self.addCleanup(HostGroup.delete, {'id': hostgroup['id']})
         self.assertEqual(len(hostgroup['puppetclasses']), 0)
         new_name = valid_hostgroups_list()[0]
         puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
-        HostGroup.update({
-            'new-name': new_name,
-            'id': hostgroup['id'],
-            'content-source-id': new_content_source['id'],
-            'puppet-classes': puppet_classes,
-        })
+        HostGroup.update(
+            {
+                'new-name': new_name,
+                'id': hostgroup['id'],
+                'content-source-id': new_content_source['id'],
+                'puppet-classes': puppet_classes,
+            }
+        )
         hostgroup = HostGroup.info({'id': hostgroup['id']})
         self.assertEqual(hostgroup['name'], new_name)
-        self.assertEqual(
-            hostgroup['content-source']['name'], new_content_source['name'])
+        self.assertEqual(hostgroup['content-source']['name'], new_content_source['name'])
         self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
 
     @tier2
@@ -297,13 +257,11 @@ class HostGroupTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         with self.assertRaises(CLIReturnCodeError):
-            HostGroup.update({
-                'id': self.hostgroup['id'],
-                'content-source-id': gen_integer(10000, 99999),
-            })
+            HostGroup.update(
+                {'id': self.hostgroup['id'], 'content-source-id': gen_integer(10000, 99999)}
+            )
         hostgroup = HostGroup.info({'id': self.hostgroup['id']})
-        self.assertEqual(
-            hostgroup['content-source']['name'], self.content_source['name'])
+        self.assertEqual(hostgroup['content-source']['name'], self.content_source['name'])
 
     @tier2
     def test_negative_update_name(self):
@@ -315,10 +273,7 @@ class HostGroupTestCase(CLITestCase):
         """
         new_name = invalid_values_list()[0]
         with self.assertRaises(CLIReturnCodeError):
-            HostGroup.update({
-                'id': self.hostgroup['id'],
-                'new-name': new_name,
-            })
+            HostGroup.update({'id': self.hostgroup['id'], 'new-name': new_name})
         result = HostGroup.info({'id': self.hostgroup['id']})
         self.assertEqual(self.hostgroup['name'], result['name'])
 

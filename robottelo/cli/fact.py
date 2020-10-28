@@ -13,7 +13,6 @@ Subcommands::
 
     list                          List all fact values.
 """
-
 from robottelo.cli.base import Base
 
 

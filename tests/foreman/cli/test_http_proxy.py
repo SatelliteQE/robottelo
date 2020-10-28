@@ -14,18 +14,18 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string, gen_url, gen_integer
-from robottelo.cleanup import location_cleanup, org_cleanup
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+
+from robottelo.cleanup import location_cleanup
+from robottelo.cleanup import org_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_location,
-    make_org,
-)
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.http_proxy import HttpProxy
-from robottelo.decorators import (
-    tier1,
-    upgrade
-)
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -57,34 +57,38 @@ class HttpProxyTestCase(CLITestCase):
         self.addCleanup(org_cleanup, org['id'])
         # Create http proxy
         name = gen_string('alpha', 15)
-        url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+        url = '{}:{}'.format(gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
         password = gen_string('alpha', 15)
         username = gen_string('alpha', 15)
         updated_name = gen_string('alpha', 15)
         updated_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
+        )
         updated_password = gen_string('alpha', 15)
         updated_username = gen_string('alpha', 15)
-        http_proxy = HttpProxy.create({
-            'name': name,
-            'url': url,
-            'username': username,
-            'password': password,
-            'organization-id': org['id'],
-            'location-id': loc['id']
-        })
+        http_proxy = HttpProxy.create(
+            {
+                'name': name,
+                'url': url,
+                'username': username,
+                'password': password,
+                'organization-id': org['id'],
+                'location-id': loc['id'],
+            }
+        )
         assert http_proxy['name'] == name
         assert http_proxy['url'] == url
         assert http_proxy['username'] == username
         # Update http-proxy
-        HttpProxy.update({
-            'name': name,
-            'new-name': updated_name,
-            'url': updated_url,
-            'username': updated_username,
-            'password': updated_password,
-        })
+        HttpProxy.update(
+            {
+                'name': name,
+                'new-name': updated_name,
+                'url': updated_url,
+                'username': updated_username,
+                'password': updated_password,
+            }
+        )
         updated_http_proxy = HttpProxy.info({'id': http_proxy['id']})
         assert updated_http_proxy['name'] == updated_name
         assert updated_http_proxy['url'] == updated_url

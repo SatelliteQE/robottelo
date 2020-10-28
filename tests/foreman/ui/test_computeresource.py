@@ -16,23 +16,22 @@
 """
 import pytest
 import requests
-from wait_for import wait_for
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo.api.utils import check_create_os_with_title
-from robottelo.constants import DEFAULT_LOC
-from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    parametrize,
-    run_in_one_thread,
-    setting_is_set,
-    skip_if_not_set,
-    tier2,
-    tier3
-)
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_LARGE, FOREMAN_PROVIDERS
+from robottelo.constants import COMPUTE_PROFILE_LARGE
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture
+from robottelo.decorators import parametrize
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 
 
 if not setting_is_set('rhev'):
@@ -82,6 +81,8 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
 
+    :parametrized: yes
+
     :expectedresults: All expected CRUD actions finished successfully.
 
     :CaseLevel: Integration
@@ -92,24 +93,27 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
     new_name = gen_string('alpha')
     description = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'description': description,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'description': description,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         resource_values = session.computeresource.read(name)
         assert resource_values['name'] == name
         assert resource_values['description'] == description
         assert resource_values['provider'] == FOREMAN_PROVIDERS['rhev']
         assert resource_values['provider_content']['user'] == rhev_data['username']
-        assert (resource_values['provider_content']['datacenter']['value']
-                == rhev_data['datacenter'])
+        assert (
+            resource_values['provider_content']['datacenter']['value'] == rhev_data['datacenter']
+        )
         assert resource_values['provider_content']['api4'] == version
         session.computeresource.edit(name, {'name': new_name})
         assert not session.computeresource.search(name)
@@ -125,6 +129,8 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
 
     :id: f75e994a-6da1-40a3-9685-42387388b300
 
+    :parametrized: yes
+
     :expectedresults: resource created successfully and has expected protocol
         version
 
@@ -137,16 +143,18 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
     # self-signed certificate upon clicking Load Datacenters / Test Connection.
     name = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         resource_values = session.computeresource.read(name)
         assert resource_values['name'] == name
         assert resource_values['provider_content']['api4'] == version
@@ -154,11 +162,12 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
 
 @tier2
 @parametrize('version', [True, False])
-def test_positive_edit_resource_description(
-        session, module_ca_cert, rhev_data, version):
+def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, version):
     """Edit RHEV Compute Resource with another description
 
     :id: f75544b1-3943-4cc6-98d1-f2d0fbe7244c
+
+    :parametrized: yes
 
     :expectedresults: resource updated successfully and has new description
 
@@ -168,17 +177,19 @@ def test_positive_edit_resource_description(
     description = gen_string('alpha')
     new_description = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'description': description,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'description': description,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         resource_values = session.computeresource.read(name)
         assert resource_values['description'] == description
         session.computeresource.edit(name, {'description': new_description})
@@ -188,11 +199,12 @@ def test_positive_edit_resource_description(
 
 @tier2
 @parametrize('version', [True, False])
-def test_positive_list_resource_vms(
-        session, module_ca_cert, rhev_data, version):
+def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version):
     """List VMs for RHEV Compute Resource
 
     :id: eea2f2b1-e9f4-448d-8c54-51fb25af3d5f
+
+    :parametrized: yes
 
     :expectedresults: VMs listed for provided compute resource
 
@@ -200,16 +212,18 @@ def test_positive_list_resource_vms(
     """
     name = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         vm = session.computeresource.list_vms(name, rhev_data['vm_name'])
         assert vm['Name'].read() == rhev_data['vm_name']
 
@@ -227,16 +241,18 @@ def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
     """
     name = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': False,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': False,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         resource_values = session.computeresource.read(name)
         assert not resource_values['provider_content']['api4']
         session.computeresource.edit(name, {'provider_content.api4': True})
@@ -247,12 +263,13 @@ def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
 @tier2
 @parametrize('version', [True, False])
 @run_in_one_thread
-def test_positive_resource_vm_power_management(
-        session, module_ca_cert, rhev_data, version):
+def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_data, version):
     """Read current RHEV Compute Resource virtual machine power status and
     change it to opposite one
 
     :id: 47aea4b7-9258-4863-8966-900bc9e94116
+
+    :parametrized: yes
 
     :expectedresults: virtual machine is powered on or powered off depending on
         its initial state
@@ -261,16 +278,18 @@ def test_positive_resource_vm_power_management(
     """
     name = gen_string('alpha')
     with session:
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         status = session.computeresource.vm_status(name, rhev_data['vm_name'])
         if status:
             session.computeresource.vm_poweroff(name, rhev_data['vm_name'])
@@ -278,22 +297,25 @@ def test_positive_resource_vm_power_management(
             session.computeresource.vm_poweron(name, rhev_data['vm_name'])
 
         wait_for(
-            lambda: (session.browser.refresh(), session.computeresource.vm_status(
-                    name, rhev_data['vm_name']))[1]is not status,
+            lambda: (
+                session.browser.refresh(),
+                session.computeresource.vm_status(name, rhev_data['vm_name']),
+            )[1]
+            is not status,
             timeout=180,
             delay=1,
         )
-        assert session.computeresource.vm_status(
-            name, rhev_data['vm_name']) is not status
+        assert session.computeresource.vm_status(name, rhev_data['vm_name']) is not status
 
 
 @tier3
 @parametrize('version', [True, False])
-def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
-                            rhev_data, version):
+def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhev_data, version):
     """Import an existing VM as a Host
 
     :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
+
+    :parametrized: yes
 
     :expectedresults: VM is shown as Host in Foreman
 
@@ -304,22 +326,28 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
     :BZ: 1636067
     """
     # create entities for hostgroup
-    default_loc_id = entities.Location().search(
-        query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    default_loc_id = (
+        entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+    )
     entities.SmartProxy(id=1, location=[default_loc_id, module_loc.id]).update()
-    domain = entities.Domain(organization=[module_org.id],
-                             location=[module_loc]).create()
-    subnet = entities.Subnet(organization=[module_org.id],
-                             location=[module_loc], domain=[domain]).create()
+    domain = entities.Domain(organization=[module_org.id], location=[module_loc]).create()
+    subnet = entities.Subnet(
+        organization=[module_org.id], location=[module_loc], domain=[domain]
+    ).create()
     architecture = entities.Architecture().create()
-    ptable = entities.PartitionTable(organization=[module_org.id],
-                                     location=[module_loc]).create()
-    operatingsystem = entities.OperatingSystem(architecture=[architecture],
-                                               ptable=[ptable]).create()
-    medium = entities.Media(organization=[module_org.id], location=[module_loc],
-                            operatingsystem=[operatingsystem]).create()
-    le = entities.LifecycleEnvironment(name="Library",
-                                       organization=module_org.id).search()[0].read().id
+    ptable = entities.PartitionTable(organization=[module_org.id], location=[module_loc]).create()
+    operatingsystem = entities.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = entities.Media(
+        organization=[module_org.id], location=[module_loc], operatingsystem=[operatingsystem]
+    ).create()
+    le = (
+        entities.LifecycleEnvironment(name="Library", organization=module_org.id)
+        .search()[0]
+        .read()
+        .id
+    )
     cv = entities.ContentView(organization=[module_org.id]).create()
     cv.publish()
 
@@ -343,21 +371,28 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc,
     name = gen_string('alpha')
     with session:
 
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-            'locations.resources.assigned': [module_loc.name],
-        })
-        session.hostgroup.update(hostgroup_name, {'host_group.deploy': name+" (RHV)"})
-        session.computeresource.vm_import(name, rhev_data['vm_name'],
-                                          hostgroup_name, module_loc.name)
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
+        session.hostgroup.update(hostgroup_name, {'host_group.deploy': name + " (RHV)"})
+        session.computeresource.vm_import(
+            name, rhev_data['vm_name'], hostgroup_name, module_loc.name
+        )
         assert session.host.search(rhev_data['vm_name']) is not None
+    # disassociate the host so the corresponding VM doesn't get removed from the CR on host delete
+    entities.Host().search(query={'search': 'name~{}'.format(rhev_data['vm_name'])})[
+        0
+    ].disassociate()
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
@@ -367,6 +402,8 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
     """Update a rhev Compute Resource organization
 
     :id: f6656c8e-70a3-40e5-8dda-2154f2eeb042
+
+    :parametrized: yes
 
     :setup: rhev hostname and credentials.
 
@@ -388,19 +425,22 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
     name = gen_string('alpha')
     new_organization = entities.Organization().create()
     with session:
-        session.computeresource.create({
-            'name': name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.api4': version,
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-        })
+        session.computeresource.create(
+            {
+                'name': name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.api4': version,
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         assert session.computeresource.search(name)[0]['Name'] == name
-        session.computeresource.edit(name, {
-            'organizations.resources.assigned': [new_organization.name]})
+        session.computeresource.edit(
+            name, {'organizations.resources.assigned': [new_organization.name]}
+        )
         session.organization.select(new_organization.name)
         resource_values = session.computeresource.read(name)
         assert new_organization.name in resource_values['organizations']['resources']['assigned']
@@ -423,15 +463,17 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
     new_image_name = gen_string('alpha')
     check_create_os_with_title(rhev_data['image_os'])
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
         session.computeresource.create_image(
             cr_name,
@@ -443,7 +485,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
                 user_data=False,
                 password=rhev_data['image_password'],
                 image=rhev_data['image_name'],
-            )
+            ),
         )
         values = session.computeresource.read_image(cr_name, image_name)
         assert values['name'] == image_name
@@ -454,11 +496,15 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
         assert values['image'] == rhev_data['image_name']
         session.computeresource.update_image(cr_name, image_name, dict(name=new_image_name))
         assert session.computeresource.search_images(cr_name, image_name)[0] != image_name
-        assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
-                == new_image_name)
+        assert (
+            session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+            == new_image_name
+        )
         session.computeresource.delete_image(cr_name, new_image_name)
-        assert (session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
-                != new_image_name)
+        assert (
+            session.computeresource.search_images(cr_name, new_image_name)[0]['Name']
+            != new_image_name
+        )
 
 
 @skip_if_not_set('vlan_networking')
@@ -499,55 +545,50 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
             dict(name='nic3', network=settings.vlan_networking.bridge),
         ],
         storage=[
-            dict(
-                size='10',
-                bootable=False,
-                preallocate_disk=True,
-            ),
-            dict(
-                size='20',
-                bootable=True,
-                preallocate_disk=True,
-            ),
-            dict(
-                size='5',
-                bootable=False,
-                preallocate_disk=False,
-            ),
-        ]
+            dict(size='10', bootable=False, preallocate_disk=True),
+            dict(size='20', bootable=True, preallocate_disk=True),
+            dict(size='5', bootable=False, preallocate_disk=False),
+        ],
     )
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
         session.computeresource.update_computeprofile(
             cr_name,
             COMPUTE_PROFILE_LARGE,
-            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()}
+            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()},
         )
         provider_content_values = session.computeresource.read_computeprofile(
-            cr_name, COMPUTE_PROFILE_LARGE)['provider_content']
+            cr_name, COMPUTE_PROFILE_LARGE
+        )['provider_content']
         # assert main compute resource profile data updated updated successfully.
         excluded_keys = ['network_interfaces', 'storage']
-        expected_value = {key: value for key, value in cr_profile_data.items()
-                          if key not in excluded_keys}
-        provided_value = {key: value for key, value in provider_content_values.items()
-                          if key not in excluded_keys and key in cr_profile_data}
+        expected_value = {
+            key: value for key, value in cr_profile_data.items() if key not in excluded_keys
+        }
+        provided_value = {
+            key: value
+            for key, value in provider_content_values.items()
+            if key not in excluded_keys and key in cr_profile_data
+        }
         assert provided_value == expected_value
         # assert compute resource profile network and storage data updated successfully.
         for excluded_key in excluded_keys:
             for index, expected_value in enumerate(cr_profile_data[excluded_key]):
                 provided_value = {
-                        key: value
-                        for key, value in provider_content_values[excluded_key][index].items()
-                        if key in expected_value
+                    key: value
+                    for key, value in provider_content_values[excluded_key][index].items()
+                    if key in expected_value
                 }
                 assert provided_value == expected_value
 
@@ -585,25 +626,26 @@ def test_positive_associate_with_custom_profile_with_template(session, rhev_data
         memory='1 GB',
     )
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['rhev'],
-            'provider_content.url': rhev_data['rhev_url'],
-            'provider_content.user': rhev_data['username'],
-            'provider_content.password': rhev_data['password'],
-            'provider_content.datacenter.value': rhev_data['datacenter'],
-            'provider_content.certification_authorities': module_ca_cert,
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['rhev'],
+                'provider_content.url': rhev_data['rhev_url'],
+                'provider_content.user': rhev_data['username'],
+                'provider_content.password': rhev_data['password'],
+                'provider_content.datacenter.value': rhev_data['datacenter'],
+                'provider_content.certification_authorities': module_ca_cert,
+            }
+        )
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
         session.computeresource.update_computeprofile(
             cr_name,
             COMPUTE_PROFILE_LARGE,
-            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()}
+            {'provider_content.{0}'.format(key): value for key, value in cr_profile_data.items()},
         )
         values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_LARGE)
-        assert (
-            cr_profile_data
-            ==
-            {key: value for key, value in values['provider_content'].items()
-             if key in cr_profile_data}
-        )
+        assert cr_profile_data == {
+            key: value
+            for key, value in values['provider_content'].items()
+            if key in cr_profile_data
+        }

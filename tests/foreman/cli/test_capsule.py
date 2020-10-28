@@ -15,24 +15,22 @@
 
 :Upstream: No
 """
+import pytest
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 
-from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError, make_proxy
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-)
-from robottelo.helpers import (
-    default_url_on_new_port,
-    get_available_capsule_port
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
 from robottelo.test import CLITestCase
 
 
@@ -60,15 +58,10 @@ class CapsuleTestCase(CLITestCase):
 
        """
         # Create a random proxy
-        with self.assertRaisesRegex(
-            CLIFactoryError,
-            u'Could not create the proxy:'
-        ):
-            make_proxy({
-                u'url': u'http://{0}:{1}'.format(
-                    gen_string('alpha', 6),
-                    gen_string('numeric', 4)),
-            })
+        with self.assertRaisesRegex(CLIFactoryError, 'Could not create the proxy:'):
+            make_proxy(
+                {'url': 'http://{0}:{1}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
+            )
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -85,7 +78,7 @@ class CapsuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                proxy = self._make_proxy({u'name': name})
+                proxy = self._make_proxy({'name': name})
                 self.assertEquals(proxy['name'], name)
 
     @skip_if_not_set('fake_capsules')
@@ -103,10 +96,10 @@ class CapsuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                proxy = make_proxy({u'name': name})
+                proxy = make_proxy({'name': name})
                 Proxy.delete({'id': proxy['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    Proxy.info({u'id': proxy['id']})
+                    Proxy.info({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -121,17 +114,13 @@ class CapsuleTestCase(CLITestCase):
 
         :BZ: 1398695
         """
-        proxy = self._make_proxy({u'name': gen_alphanumeric()})
+        proxy = self._make_proxy({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
                 with default_url_on_new_port(9090, newport) as url:
-                    Proxy.update({
-                        u'id': proxy['id'],
-                        u'name': new_name,
-                        u'url': url,
-                    })
-                    proxy = Proxy.info({u'id': proxy['id']})
+                    Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
+                    proxy = Proxy.info({'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
 
     @skip_if_not_set('fake_capsules')
@@ -155,8 +144,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.refresh_features({u'id': proxy['id']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.refresh_features({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @tier2
@@ -179,8 +168,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.refresh_features({u'id': proxy['name']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.refresh_features({'id': proxy['name']})
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -196,15 +185,15 @@ class CapsuleTestCase(CLITestCase):
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({u'url': url})
-            Proxy.import_classes({u'id': proxy['id']})
+            proxy = self._make_proxy({'url': url})
+            Proxy.import_classes({'id': proxy['id']})
 
 
 @run_in_one_thread
 class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_provision(self):
         """User can provision through a capsule
 
@@ -226,7 +215,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_register(self):
         """User can register system through proxy-enabled capsule
 
@@ -239,7 +228,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_unregister(self):
         """User can unregister system through proxy-enabled capsule
 
@@ -252,7 +241,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_subscribe(self):
         """User can subscribe system to content through proxy-enabled
         capsule
@@ -271,7 +260,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_consume_content(self):
         """User can consume content on system, from a content source,
         through proxy-enabled capsule
@@ -293,7 +282,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_unsubscribe(self):
         """User can unsubscribe system from content through
         proxy-enabled capsule
@@ -316,7 +305,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_reregister_with_capsule_cert(self):
         """system can register via capsule using cert provided by
         the capsule itself.
@@ -338,7 +327,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_ssl_capsule(self):
         """Assure SSL functionality for capsules
 
@@ -356,7 +345,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         :CaseAutomation: NotAutomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_enable_bmc(self):
         """Enable BMC feature on smart-proxy
 

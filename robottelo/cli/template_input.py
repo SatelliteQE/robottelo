@@ -16,13 +16,15 @@ Subcommands::
     info                          Show template input details
     list                          List template inputs
 """
-from robottelo.cli.base import Base, CLIError
+from robottelo.cli.base import Base
+from robottelo.cli.base import CLIError
 
 
 class TemplateInput(Base):
     """
     Manipulates template input.
     """
+
     command_base = 'template-input'
 
     @classmethod
@@ -36,8 +38,7 @@ class TemplateInput(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         # Extract new object ID if it was successfully created
         if len(result) > 0 and 'id' in result[0]:
@@ -45,15 +46,12 @@ class TemplateInput(Base):
 
             # Fetch new object
             # Some Katello obj require the organization-id for subcommands
-            info_options = {
-                u'id': obj_id,
-                u'template-id': options['template-id']
-            }
+            info_options = {'id': obj_id, 'template-id': options['template-id']}
             if cls.command_requires_org:
                 if 'organization-id' not in options:
                     tmpl = 'organization-id option is required for {0}.create'
                     raise CLIError(tmpl.format(cls.__name__))
-                info_options[u'organization-id'] = options[u'organization-id']
+                info_options['organization-id'] = options['organization-id']
 
             new_obj = cls.info(info_options)
             # stdout should be a dictionary containing the object

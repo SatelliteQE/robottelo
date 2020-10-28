@@ -49,9 +49,7 @@ class Repository(Base):
         """Export a repository"""
         cls.command_sub = 'export'
         return cls.execute(
-            cls._construct_command(options),
-            output_format='csv',
-            ignore_stderr=True,
+            cls._construct_command(options), output_format='csv', ignore_stderr=True
         )
 
     @classmethod
@@ -75,7 +73,7 @@ class Repository(Base):
             output_format='csv',
             ignore_stderr=True,
             return_raw_response=return_raw_response,
-            timeout=timeout
+            timeout=timeout,
         )
 
     @classmethod
@@ -83,9 +81,7 @@ class Repository(Base):
         """Remove content from a repository"""
         cls.command_sub = 'remove-content'
         return cls.execute(
-            cls._construct_command(options),
-            output_format='csv',
-            ignore_stderr=True,
+            cls._construct_command(options), output_format='csv', ignore_stderr=True
         )
 
     @classmethod
@@ -93,7 +89,5 @@ class Repository(Base):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'
         return cls.execute(
-            cls._construct_command(options),
-            output_format='csv',
-            ignore_stderr=True,
+            cls._construct_command(options), output_format='csv', ignore_stderr=True
         )

@@ -15,31 +15,27 @@
 
 :Upstream: No
 """
-
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_filter,
-    make_location,
-    make_org,
-    make_role,
-)
+from robottelo.cli.factory import make_filter
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class FilterTestCase(CLITestCase):
-
     @classmethod
     def setUpClass(cls):
         """Search for Organization permissions. Set ``cls.perms``."""
         super(FilterTestCase, cls).setUpClass()
         cls.perms = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'User'})
-            ]
+            for permission in Filter.available_permissions({"search": "resource_type=User"})
+        ]
 
     def setUp(self):
         """Create a role that a filter would be assigned """
@@ -57,14 +53,8 @@ class FilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # Assign filter to created role
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-        })
-        self.assertEqual(
-            set(filter_['permissions'].split(", ")),
-            set(self.perms)
-        )
+        filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
+        self.assertEqual(set(filter_['permissions'].split(", ")), set(self.perms))
 
     @tier1
     def test_positive_create_with_org(self):
@@ -80,12 +70,14 @@ class FilterTestCase(CLITestCase):
         """
         org = make_org()
         # Assign filter to created role
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-            'organization-ids': org['id'],
-            'override': 1,
-        })
+        filter_ = make_filter(
+            {
+                'role-id': self.role['id'],
+                'permissions': self.perms,
+                'organization-ids': org['id'],
+                'override': 1,
+            }
+        )
         # we expect here only only one organization, i.e. first element
         self.assertEqual(filter_['organizations'][0], org['name'])
 
@@ -103,12 +95,14 @@ class FilterTestCase(CLITestCase):
         """
         loc = make_location()
         # Assign filter to created role
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-            'location-ids': loc['id'],
-            'override': 1,
-        })
+        filter_ = make_filter(
+            {
+                'role-id': self.role['id'],
+                'permissions': self.perms,
+                'location-ids': loc['id'],
+                'override': 1,
+            }
+        )
         # we expect here only only one location, i.e. first element
         self.assertEqual(filter_['locations'][0], loc['name'])
 
@@ -122,10 +116,7 @@ class FilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-        })
+        filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
         Filter.delete({'id': filter_['id']})
         with self.assertRaises(CLIReturnCodeError):
             Filter.info({'id': filter_['id']})
@@ -141,10 +132,7 @@ class FilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-        })
+        filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
 
         # A filter depends on a role. Deleting a role implicitly deletes the
         # filter pointing at it.
@@ -164,24 +152,14 @@ class FilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-        })
+        filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
         new_perms = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {'resource-type': 'User'})
-            ]
-        Filter.update({
-            'id': filter_['id'],
-            'permissions': new_perms
-        })
+            for permission in Filter.available_permissions({"search": "resource_type=User"})
+        ]
+        Filter.update({'id': filter_['id'], 'permissions': new_perms})
         filter_ = Filter.info({'id': filter_['id']})
-        self.assertEqual(
-            set(filter_['permissions'].split(", ")),
-            set(new_perms)
-        )
+        self.assertEqual(set(filter_['permissions'].split(", ")), set(new_perms))
 
     @tier1
     def test_positive_update_role(self):
@@ -193,16 +171,10 @@ class FilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-        })
+        filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
         # Update with another role
         new_role = make_role()
-        Filter.update({
-            'id': filter_['id'],
-            'role-id': new_role['id'],
-        })
+        Filter.update({'id': filter_['id'], 'role-id': new_role['id']})
         filter_ = Filter.info({'id': filter_['id']})
         self.assertEqual(filter_['role'], new_role['name'])
 
@@ -220,23 +192,27 @@ class FilterTestCase(CLITestCase):
          """
         org = make_org()
         loc = make_location()
-        filter_ = make_filter({
-            'role-id': self.role['id'],
-            'permissions': self.perms,
-            'organization-ids': org['id'],
-            'location-ids': loc['id'],
-            'override': 1,
-        })
+        filter_ = make_filter(
+            {
+                'role-id': self.role['id'],
+                'permissions': self.perms,
+                'organization-ids': org['id'],
+                'location-ids': loc['id'],
+                'override': 1,
+            }
+        )
         # Update org and loc
         new_org = make_org()
         new_loc = make_location()
-        Filter.update({
-            'id': filter_['id'],
-            'permissions': self.perms,
-            'organization-ids': new_org['id'],
-            'location-ids': new_loc['id'],
-            'override': 1,
-        })
+        Filter.update(
+            {
+                'id': filter_['id'],
+                'permissions': self.perms,
+                'organization-ids': new_org['id'],
+                'location-ids': new_loc['id'],
+                'override': 1,
+            }
+        )
         filter_ = Filter.info({'id': filter_['id']})
         # We expect here only one organization and location
         self.assertEqual(filter_['organizations'][0], new_org['name'])

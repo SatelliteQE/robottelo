@@ -22,8 +22,12 @@ from nailgun import entities
 from pytest import skip
 
 from robottelo.config import settings
-from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import fixture, setting_is_set, tier2
+from robottelo.constants import COMPUTE_PROFILE_SMALL
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.decorators import fixture
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import tier2
 
 
 if not setting_is_set('compute_resources'):
@@ -58,16 +62,18 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
     display_type = choice(('VNC', 'SPICE'))
     console_passwords = choice((True, False))
     with session:
-        session.computeresource.create({
-            'name': cr_name,
-            'description': cr_description,
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'provider_content.url': module_libvirt_url,
-            'provider_content.display_type': display_type,
-            'provider_content.console_passwords': console_passwords,
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'description': cr_description,
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'provider_content.url': module_libvirt_url,
+                'provider_content.display_type': display_type,
+                'provider_content.console_passwords': console_passwords,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
@@ -76,20 +82,27 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         assert cr_values['provider_content']['console_passwords'] == console_passwords
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
         assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
-        session.computeresource.edit(cr_name, {
-            'name': new_cr_name,
-            'description': new_cr_description,
-            'organizations.resources.assigned': [new_org.name],
-            'locations.resources.assigned': [new_loc.name],
-        })
+        session.computeresource.edit(
+            cr_name,
+            {
+                'name': new_cr_name,
+                'description': new_cr_description,
+                'organizations.resources.assigned': [new_org.name],
+                'locations.resources.assigned': [new_loc.name],
+            },
+        )
         assert not session.computeresource.search(cr_name)
         cr_values = session.computeresource.read(new_cr_name)
         assert cr_values['name'] == new_cr_name
         assert cr_values['description'] == new_cr_description
-        assert (set(cr_values['organizations']['resources']['assigned'])
-                == {module_org.name, new_org.name})
-        assert (set(cr_values['locations']['resources']['assigned'])
-                == {module_loc.name, new_loc.name})
+        assert set(cr_values['organizations']['resources']['assigned']) == {
+            module_org.name,
+            new_org.name,
+        }
+        assert set(cr_values['locations']['resources']['assigned']) == {
+            module_loc.name,
+            new_loc.name,
+        }
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
@@ -97,16 +110,15 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         session.computeresource.update_computeprofile(
             new_cr_name,
             COMPUTE_PROFILE_SMALL,
-            {
-                'provider_content.cpus': '16',
-                'provider_content.memory': '8 GB',
-            }
+            {'provider_content.cpus': '16', 'provider_content.memory': '8 GB'},
         )
         cr_profile_values = session.computeresource.read_computeprofile(
-            new_cr_name, COMPUTE_PROFILE_SMALL)
+            new_cr_name, COMPUTE_PROFILE_SMALL
+        )
         assert cr_profile_values['compute_profile'] == COMPUTE_PROFILE_SMALL
         assert cr_profile_values['compute_resource'] == '{0} ({1})'.format(
-            new_cr_name, FOREMAN_PROVIDERS['libvirt'])
+            new_cr_name, FOREMAN_PROVIDERS['libvirt']
+        )
         assert cr_profile_values['provider_content']['cpus'] == '16'
         assert cr_profile_values['provider_content']['memory'] == '8 GB'
         session.computeresource.delete(new_cr_name)

@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-
 """Docker related hammer commands"""
-
 from robottelo.cli.base import Base
 
 
@@ -23,6 +21,7 @@ class DockerManifest(Base):
         list                          List docker_manifests
 
     """
+
     command_base = 'docker manifest'
 
     @classmethod
@@ -117,6 +116,7 @@ class DockerTag(Base):
         list                          List docker_tags
 
     """
+
     command_base = 'docker tag'
 
     @classmethod
@@ -203,6 +203,7 @@ class Docker(Base):
         tag                           Manage docker tags
 
     """
+
     command_base = 'docker'
 
     # Shortcuts to docker subcommands. Instead of importing each subcommand

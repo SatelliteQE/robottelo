@@ -18,16 +18,15 @@ Subcommands::
  list                          List all filters
  update                        Update a filter
 """
-
 from robottelo.cli.base import Base
 
 
 class Filter(Base):
     """Manipulates Katello's filter command."""
+
     command_base = 'filter'
 
     @classmethod
     def available_permissions(cls, options=None):
         cls.command_sub = 'available-permissions'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

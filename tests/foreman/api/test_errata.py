@@ -14,57 +14,51 @@
 
 :Upstream: No
 """
-
 # For ease of use hc refers to host-collection throughout this document
-import pytest
-
-from nailgun import entities
-from robottelo.cli.factory import (
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
-from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_SWID_TAG_REPO,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_RELEASE_VERSION,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-    DISTRO_RHEL8,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_3_ERRATA_ID,
-    FAKE_3_YUM_REPO,
-    FAKE_9_YUM_ERRATUM,
-    FAKE_9_YUM_OUTDATED_PACKAGES,
-    FAKE_9_YUM_REPO,
-    PRDS,
-    REAL_0_ERRATA_ID,
-    REAL_0_RH_PACKAGE,
-    REAL_1_ERRATA_ID,
-    REAL_2_ERRATA_ID,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.products import (
-    YumRepository,
-    RepositoryCollection,
-)
-
-from robottelo.test import APITestCase
-from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
-from robottelo.vm import VirtualMachine
 from time import sleep
+
+import pytest
+from nailgun import entities
+
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_RELEASE_VERSION
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL8
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
+from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_ERRATA_ID
+from robottelo.constants import REAL_0_RH_PACKAGE
+from robottelo.constants import REAL_1_ERRATA_ID
+from robottelo.constants import REAL_2_ERRATA_ID
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.products import RepositoryCollection
+from robottelo.products import YumRepository
+from robottelo.test import APITestCase
+from robottelo.vm import VirtualMachine
 
 CUSTOM_REPO_URL = FAKE_9_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
@@ -76,37 +70,41 @@ class ErrataTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(ErrataTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.env = entities.LifecycleEnvironment(
-            organization=cls.org).create()
-        cls.content_view = entities.ContentView(
-            organization=cls.org).create()
+        cls.env = entities.LifecycleEnvironment(organization=cls.org).create()
+        cls.content_view = entities.ContentView(organization=cls.org).create()
         cls.activation_key = entities.ActivationKey(
-            environment=cls.env,
-            organization=cls.org,
+            environment=cls.env, organization=cls.org
         ).create()
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': cls.org.id,
-            'content-view-id': cls.content_view.id,
-            'lifecycle-environment-id': cls.env.id,
-            'activationkey-id': cls.activation_key.id,
-        }, force_manifest_upload=True)
-        cls.custom_entities = setup_org_for_a_custom_repo({
-            'url': FAKE_9_YUM_REPO,
-            'organization-id': cls.org.id,
-            'content-view-id': cls.content_view.id,
-            'lifecycle-environment-id': cls.env.id,
-            'activationkey-id': cls.activation_key.id,
-        })
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': cls.org.id,
+                'content-view-id': cls.content_view.id,
+                'lifecycle-environment-id': cls.env.id,
+                'activationkey-id': cls.activation_key.id,
+            },
+            force_manifest_upload=True,
+        )
+        cls.custom_entities = setup_org_for_a_custom_repo(
+            {
+                'url': FAKE_9_YUM_REPO,
+                'organization-id': cls.org.id,
+                'content-view-id': cls.content_view.id,
+                'lifecycle-environment-id': cls.env.id,
+                'activationkey-id': cls.activation_key.id,
+            }
+        )
 
-    def _install_package(self, clients, host_ids, package_name, via_ssh=True,
-                         rpm_package_name=None):
+    def _install_package(
+        self, clients, host_ids, package_name, via_ssh=True, rpm_package_name=None
+    ):
         """Install package via SSH CLI if via_ssh is True, otherwise
         install via http api: PUT /api/v2/hosts/bulk/install_content
         """
@@ -117,50 +115,53 @@ class ErrataTestCase(APITestCase):
                 result = client.run('rpm -q {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
         else:
-            entities.Host().install_content(data={
-                'organization_id': self.org.id,
-                'included': {'ids': host_ids},
-                'content_type': 'package',
-                'content': [package_name],
-            })
+            entities.Host().install_content(
+                data={
+                    'organization_id': self.org.id,
+                    'included': {'ids': host_ids},
+                    'content_type': 'package',
+                    'content': [package_name],
+                }
+            )
             self._validate_package_installed(clients, rpm_package_name)
 
-    def _validate_package_installed(self, hosts, package_name,
-                                    expected_installed=True, timeout=120):
+    def _validate_package_installed(
+        self, hosts, package_name, expected_installed=True, timeout=120
+    ):
         """Check whether package was installed on the list of hosts."""
         for host in hosts:
             for _ in range(timeout // 15):
                 result = host.run('rpm -q {0}'.format(package_name))
-                if (result.return_code == 0 and expected_installed or
-                        result.return_code != 0 and not expected_installed):
+                if (
+                    result.return_code == 0
+                    and expected_installed
+                    or result.return_code != 0
+                    and not expected_installed
+                ):
                     break
                 sleep(15)
             else:
                 self.fail(
-                    u'Package {0} was not {1} host {2}'.format(
+                    'Package {0} was not {1} host {2}'.format(
                         package_name,
-                        'installed on' if expected_installed else
-                        'removed from',
+                        'installed on' if expected_installed else 'removed from',
                         host.hostname,
                     )
                 )
 
-    def _validate_errata_counts(self, host, errata_type, expected_value,
-                                timeout=120):
+    def _validate_errata_counts(self, host, errata_type, expected_value, timeout=120):
         """Check whether host contains expected errata counts."""
         for _ in range(timeout // 5):
             host = host.read()
-            if (host.content_facet_attributes[
-                    'errata_counts'][errata_type] == expected_value):
+            if host.content_facet_attributes['errata_counts'][errata_type] == expected_value:
                 break
             sleep(5)
         else:
             self.fail(
-                u'Host {0} contains {1} {2} errata, but expected to contain '
+                'Host {0} contains {1} {2} errata, but expected to contain '
                 '{3} of them'.format(
                     host.name,
-                    host.content_facet_attributes[
-                        'errata_counts'][errata_type],
+                    host.content_facet_attributes['errata_counts'][errata_type],
                     errata_type,
                     expected_value,
                 )
@@ -176,12 +177,8 @@ class ErrataTestCase(APITestCase):
             errata = host.errata()
         else:
             self.fail(
-                u'Host {0} contains {1} available errata, but expected to '
-                'contain {2} of them'.format(
-                    host.name,
-                    len(errata['results']),
-                    expected_amount,
-                )
+                'Host {0} contains {1} available errata, but expected to '
+                'contain {2} of them'.format(host.name, len(errata['results']), expected_amount)
             )
 
     @upgrade
@@ -201,19 +198,19 @@ class ErrataTestCase(APITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            client.register_contenthost(
-                self.org.label, self.activation_key.name)
+            client.register_contenthost(self.org.label, self.activation_key.name)
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host_id = entities.Host().search(query={
-                'search': 'name={0}'.format(client.hostname)})[0].id
+            host_id = (
+                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
+            )
             self._install_package(
                 [client],
                 [host_id],
                 FAKE_1_CUSTOM_PACKAGE_NAME,
                 via_ssh=False,
-                rpm_package_name=FAKE_2_CUSTOM_PACKAGE
+                rpm_package_name=FAKE_2_CUSTOM_PACKAGE,
             )
 
     @upgrade
@@ -232,27 +229,28 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
-                distro=DISTRO_RHEL7) as client2:
+            distro=DISTRO_RHEL7
+        ) as client2:
             clients = [client1, client2]
             for client in clients:
                 client.install_katello_ca()
-                client.register_contenthost(
-                    self.org.label, self.activation_key.name)
+                client.register_contenthost(self.org.label, self.activation_key.name)
                 self.assertTrue(client.subscribed)
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
             host_ids = [
-                entities.Host().search(query={
-                    'search': 'name={0}'.format(client.hostname)})[0].id
+                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
                 for client in clients
-                ]
+            ]
             self._install_package(clients, host_ids, FAKE_1_CUSTOM_PACKAGE)
-            entities.Host().install_content(data={
-                'organization_id': self.org.id,
-                'included': {'ids': host_ids},
-                'content_type': 'errata',
-                'content': [CUSTOM_REPO_ERRATA_ID],
-            })
+            entities.Host().install_content(
+                data={
+                    'organization_id': self.org.id,
+                    'included': {'ids': host_ids},
+                    'content_type': 'errata',
+                    'content': [CUSTOM_REPO_ERRATA_ID],
+                }
+            )
             self._validate_package_installed(clients, FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
@@ -271,16 +269,15 @@ class ErrataTestCase(APITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            client.register_contenthost(
-                self.org.label, self.activation_key.name)
+            client.register_contenthost(self.org.label, self.activation_key.name)
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host_id = entities.Host().search(query={
-                    'search': 'name={0}'.format(client.hostname)})[0].id
+            host_id = (
+                entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0].id
+            )
             self._install_package([client], [host_id], FAKE_1_CUSTOM_PACKAGE)
-            entities.Host(id=host_id).errata_apply(data={
-                'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
+            entities.Host(id=host_id).errata_apply(data={'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
             self._validate_package_installed([client], FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
@@ -302,18 +299,15 @@ class ErrataTestCase(APITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            client.register_contenthost(
-                self.org.label, self.activation_key.name)
+            client.register_contenthost(self.org.label, self.activation_key.name)
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            host = entities.Host().search(query={
-                'search': 'name={0}'.format(client.hostname)})[0]
+            host = entities.Host().search(query={'search': 'name={0}'.format(client.hostname)})[0]
             for package in FAKE_9_YUM_OUTDATED_PACKAGES:
                 self._install_package([client], [host.id], package)
             host = host.read()
-            applicable_errata_count = host.content_facet_attributes[
-                'errata_counts']['total']
+            applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
             self.assertGreater(applicable_errata_count, 1)
             for errata in FAKE_9_YUM_ERRATUM[:2]:
                 host.errata_apply(data={'errata_ids': [errata]})
@@ -321,10 +315,11 @@ class ErrataTestCase(APITestCase):
                 applicable_errata_count -= 1
                 self.assertEqual(
                     host.content_facet_attributes['errata_counts']['total'],
-                    applicable_errata_count
+                    applicable_errata_count,
                 )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_list(self):
         """View all errata specific to repository
 
@@ -339,25 +334,19 @@ class ErrataTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        repo1 = entities.Repository(
-            id=self.custom_entities['repository-id']).read()
+        repo1 = entities.Repository(id=self.custom_entities['repository-id']).read()
         repo2 = entities.Repository(
-            product=entities.Product().create(),
-            url=FAKE_3_YUM_REPO,
+            product=entities.Product().create(), url=FAKE_3_YUM_REPO
         ).create()
         repo2.sync()
         repo1_errata_ids = [
-            errata['errata_id']
-            for errata
-            in repo1.errata(data={'per_page': 1000})['results']
+            errata['errata_id'] for errata in repo1.errata(data={'per_page': 1000})['results']
         ]
         repo2_errata_ids = [
-            errata['errata_id']
-            for errata
-            in repo2.errata(data={'per_page': 1000})['results']
+            errata['errata_id'] for errata in repo2.errata(data={'per_page': 1000})['results']
         ]
-        self.assertEqual(len(repo1_errata_ids), 4)
-        self.assertEqual(len(repo2_errata_ids), 79)
+        self.assertEqual(len(repo1_errata_ids), FAKE_9_YUM_ERRATUM_COUNT)
+        self.assertEqual(len(repo2_errata_ids), FAKE_3_YUM_ERRATUM_COUNT)
         self.assertIn(CUSTOM_REPO_ERRATA_ID, repo1_errata_ids)
         self.assertNotIn(CUSTOM_REPO_ERRATA_ID, repo2_errata_ids)
         self.assertIn(FAKE_3_ERRATA_ID, repo2_errata_ids)
@@ -378,7 +367,8 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
-                query={'organization_id': self.org.id})
+            query={'organization_id': self.org.id}
+        )
         if repo:
             repo = repo[0]
         else:
@@ -392,10 +382,9 @@ class ErrataTestCase(APITestCase):
             )
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
-        erratum_list = entities.Errata(repository=repo).search(query={
-            'order': 'updated ASC',
-            'per_page': 1000,
-        })
+        erratum_list = entities.Errata(repository=repo).search(
+            query={'order': 'updated ASC', 'per_page': 1000}
+        )
         updated = [errata.updated for errata in erratum_list]
         self.assertEqual(updated, sorted(updated))
 
@@ -414,7 +403,8 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
-            query={'organization_id': self.org.id})
+            query={'organization_id': self.org.id}
+        )
         if repo:
             repo = repo[0]
         else:
@@ -428,14 +418,11 @@ class ErrataTestCase(APITestCase):
             )
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
-        erratum_list = entities.Errata(repository=repo).search(query={
-            'order': 'cve DESC',
-            'per_page': 1000,
-        })
+        erratum_list = entities.Errata(repository=repo).search(
+            query={'order': 'cve DESC', 'per_page': 1000}
+        )
         # Most of Errata don't have any CVEs. Removing empty CVEs from results
-        erratum_cves = [
-            errata.cves for errata in erratum_list if errata.cves
-        ]
+        erratum_cves = [errata.cves for errata in erratum_list if errata.cves]
         # Verifying each errata have its CVEs sorted in DESC order
         for errata_cves in erratum_cves:
             cve_ids = [cve['cve_id'] for cve in errata_cves]
@@ -456,7 +443,8 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
-            query={'organization_id': self.org.id})
+            query={'organization_id': self.org.id}
+        )
         if repo:
             repo = repo[0]
         else:
@@ -470,15 +458,15 @@ class ErrataTestCase(APITestCase):
             )
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
-        erratum_list = entities.Errata(repository=repo).search(query={
-            'order': 'issued ASC',
-            'per_page': 1000,
-        })
+        erratum_list = entities.Errata(repository=repo).search(
+            query={'order': 'issued ASC', 'per_page': 1000}
+        )
         issued = [errata.issued for errata in erratum_list]
         self.assertEqual(issued, sorted(issued))
 
     @tier3
     @pytest.mark.skip_if_open("BZ:1682940")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
@@ -501,42 +489,36 @@ class ErrataTestCase(APITestCase):
         :BZ: 1682940
         """
         org = entities.Organization().create()
-        env = entities.LifecycleEnvironment(
-            organization=org).create()
-        content_view = entities.ContentView(
-            organization=org).create()
-        activation_key = entities.ActivationKey(
-            environment=env,
-            organization=org,
-        ).create()
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        })
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(environment=env, organization=org).create()
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            }
+        )
         new_cv = entities.ContentView(organization=org).create()
         new_repo = entities.Repository(
-            product=entities.Product(organization=org).create(),
-            url=CUSTOM_REPO_URL,
+            product=entities.Product(organization=org).create(), url=CUSTOM_REPO_URL
         ).create()
         self.assertEqual(new_repo.sync()['result'], 'success')
         new_cv = new_cv.read()
         new_cv.repository.append(new_repo)
         new_cv = new_cv.update(['repository'])
         new_cv.publish()
-        library_env = entities.LifecycleEnvironment(
-            name='Library',
-            organization=org,
-        ).search()[0]
+        library_env = entities.LifecycleEnvironment(name='Library', organization=org).search()[0]
         errata_library = entities.Errata(environment=library_env).search(query={'per_page': 1000})
         errata_env = entities.Errata(environment=env).search(query={'per_page': 1000})
         self.assertGreater(len(errata_library), len(errata_env))
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_count_for_host(self):
         """Available errata count when retrieving Host
 
@@ -554,30 +536,30 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         org = entities.Organization().create()
-        env = entities.LifecycleEnvironment(
-            organization=org).create()
-        content_view = entities.ContentView(
-            organization=org).create()
-        activation_key = entities.ActivationKey(
-            environment=env,
-            organization=org,
-        ).create()
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst6'],
-            'repository': REPOS['rhst6']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        }, force_manifest_upload=True)
-        setup_org_for_a_custom_repo({
-            'url': CUSTOM_REPO_URL,
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        })
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(environment=env, organization=org).create()
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst6'],
+                'repository': REPOS['rhst6']['name'],
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            },
+            force_manifest_upload=True,
+        )
+        setup_org_for_a_custom_repo(
+            {
+                'url': CUSTOM_REPO_URL,
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            }
+        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
             org_id=org.id,
@@ -602,12 +584,14 @@ class ErrataTestCase(APITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            host = entities.Host().search(query={
-                'search': 'name={0}'.format(client.hostname)})[0].read()
+            host = (
+                entities.Host()
+                .search(query={'search': 'name={0}'.format(client.hostname)})[0]
+                .read()
+            )
             for errata in ('security', 'bugfix', 'enhancement'):
                 self._validate_errata_counts(host, errata, 0)
-            client.run(
-                'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
             self._validate_errata_counts(host, 'security', 1)
             client.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
             for errata in ('bugfix', 'enhancement'):
@@ -615,6 +599,7 @@ class ErrataTestCase(APITestCase):
 
     @upgrade
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
 
@@ -631,30 +616,30 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         org = entities.Organization().create()
-        env = entities.LifecycleEnvironment(
-            organization=org).create()
-        content_view = entities.ContentView(
-            organization=org).create()
-        activation_key = entities.ActivationKey(
-            environment=env,
-            organization=org,
-        ).create()
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst6'],
-            'repository': REPOS['rhst6']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        }, force_manifest_upload=True)
-        setup_org_for_a_custom_repo({
-            'url': CUSTOM_REPO_URL,
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        })
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(environment=env, organization=org).create()
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst6'],
+                'repository': REPOS['rhst6']['name'],
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            },
+            force_manifest_upload=True,
+        )
+        setup_org_for_a_custom_repo(
+            {
+                'url': CUSTOM_REPO_URL,
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            }
+        )
         repo_id = enable_rhrepo_and_fetchid(
             basearch=DEFAULT_ARCHITECTURE,
             org_id=org.id,
@@ -679,27 +664,28 @@ class ErrataTestCase(APITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            host = entities.Host().search(query={
-                'search': 'name={0}'.format(client.hostname)})[0].read()
+            host = (
+                entities.Host()
+                .search(query={'search': 'name={0}'.format(client.hostname)})[0]
+                .read()
+            )
             erratum = self._fetch_available_errata(host, 0)
             self.assertEqual(len(erratum), 0)
-            client.run(
-                'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
             erratum = self._fetch_available_errata(host, 1)
             self.assertEqual(len(erratum), 1)
-            self.assertIn(
-                CUSTOM_REPO_ERRATA_ID,
-                [errata['errata_id'] for errata in erratum],
-            )
+            self.assertIn(CUSTOM_REPO_ERRATA_ID, [errata['errata_id'] for errata in erratum])
             client.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
             erratum = self._fetch_available_errata(host, 3)
             self.assertEqual(len(erratum), 3)
             self.assertTrue(
                 {REAL_1_ERRATA_ID, REAL_2_ERRATA_ID}.issubset(
-                    {errata['errata_id'] for errata in erratum})
+                    {errata['errata_id'] for errata in erratum}
+                )
             )
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_get_diff_for_cv_envs(self):
         """Generate a difference in errata between a set of environments
         for a content view
@@ -719,53 +705,46 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
         org = entities.Organization().create()
-        env = entities.LifecycleEnvironment(
-            organization=org).create()
-        content_view = entities.ContentView(
-            organization=org).create()
-        activation_key = entities.ActivationKey(
-            environment=env,
-            organization=org,
-        ).create()
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        }, force_use_cdn=True)
-        setup_org_for_a_custom_repo({
-            'url': CUSTOM_REPO_URL,
-            'organization-id': org.id,
-            'content-view-id': content_view.id,
-            'lifecycle-environment-id': env.id,
-            'activationkey-id': activation_key.id,
-        })
-        new_env = entities.LifecycleEnvironment(
-            organization=org,
-            prior=env,
-        ).create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(environment=env, organization=org).create()
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            },
+            force_use_cdn=True,
+        )
+        setup_org_for_a_custom_repo(
+            {
+                'url': CUSTOM_REPO_URL,
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            }
+        )
+        new_env = entities.LifecycleEnvironment(organization=org, prior=env).create()
         cvvs = content_view.read().version[-2:]
         promote(cvvs[-1], new_env.id)
-        result = entities.Errata().compare(data={
-            'content_view_version_ids': [cvv.id for cvv in cvvs],
-            'per_page': 9999,
-        })
+        result = entities.Errata().compare(
+            data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': 9999}
+        )
         cvv2_only_errata = next(
-            errata for errata in result['results']
-            if errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
+            errata for errata in result['results'] if errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
         )
         self.assertEqual([cvvs[-1].id], cvv2_only_errata['comparison'])
         both_cvvs_errata = next(
-            errata for errata in result['results']
-            if errata['errata_id'] == REAL_0_ERRATA_ID
+            errata for errata in result['results'] if errata['errata_id'] == REAL_0_ERRATA_ID
         )
-        self.assertEqual(
-            set(cvv.id for cvv in cvvs), set(both_cvvs_errata['comparison']))
+        self.assertEqual(set(cvv.id for cvv in cvvs), set(both_cvvs_errata['comparison']))
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_apply_to_envs_cvs(self):
         """Select multiple errata and apply them to multiple content
@@ -787,7 +766,7 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_query_envs_cvs(self):
         """Query a subset of environments or content views to push new
@@ -809,7 +788,7 @@ class ErrataTestCase(APITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
         """Select multiple packages and apply them to multiple content
@@ -838,22 +817,16 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(ErrataSwidTagsTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
         cls.repos_collection = RepositoryCollection(
-            distro=DISTRO_RHEL8,
-            repositories=[
-                YumRepository(url=CUSTOM_SWID_TAG_REPO),
-            ]
+            distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_SWID_TAG_REPO)]
         )
-        cls.repos_collection.setup_content(
-            cls.org.id,
-            cls.lce.id,
-            upload_manifest=True
-        )
+        cls.repos_collection.setup_content(cls.org.id, cls.lce.id, upload_manifest=True)
 
     def _run_remote_command_on_content_host(self, command, vm, return_result=False):
         result = vm.run(command)
@@ -863,17 +836,16 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     def _set_prerequisites_for_swid_repos(self, vm):
         self._run_remote_command_on_content_host(
-            "wget --no-check-certificate {}".format(settings.swid_tools_repo),
-            vm)
+            "wget --no-check-certificate {}".format(settings.swid_tools_repo), vm
+        )
         self._run_remote_command_on_content_host("mv *swid*.repo /etc/yum.repos.d", vm)
         self._run_remote_command_on_content_host("yum install -y swid-tools", vm)
         self._run_remote_command_on_content_host("dnf install -y dnf-plugin-swidtags", vm)
 
     def _validate_swid_tags_installed(self, vm, module_name):
         result = self._run_remote_command_on_content_host(
-            "swidq -i -n {} | grep 'Name'".format(module_name),
-            vm,
-            return_result=True)
+            "swidq -i -n {} | grep 'Name'".format(module_name), vm, return_result=True
+        )
         self.assertIn(module_name, result)
 
     @tier3
@@ -909,50 +881,48 @@ class ErrataSwidTagsTestCase(APITestCase):
             module_name = 'kangaroo'
             version = '20180704111719'
             # setup rhel8 and sat_tools_repos
-            vm.create_custom_repos(**{
-                repo_name: settings.rhel8_os[repo_name] for repo_name in ('baseos', 'appstream')
-            })
-            self.repos_collection.setup_virtual_machine(
-                vm,
-                install_katello_agent=False)
+            vm.create_custom_repos(
+                **{
+                    repo_name: settings.rhel8_os[repo_name]
+                    for repo_name in ('baseos', 'appstream')
+                }
+            )
+            self.repos_collection.setup_virtual_machine(vm, install_katello_agent=False)
 
             # install older module stream
             add_remote_execution_ssh_key(vm.ip_addr)
             self._set_prerequisites_for_swid_repos(vm=vm)
             self._run_remote_command_on_content_host(
-                'dnf -y module install {}:0:{}'.format(module_name, version),
-                vm)
+                'dnf -y module install {}:0:{}'.format(module_name, version), vm
+            )
 
             # validate swid tags Installed
             before_errata_apply_result = self._run_remote_command_on_content_host(
                 "swidq -i -n {} | grep 'File' | grep -o 'rpm-.*.swidtag'".format(module_name),
                 vm,
-                return_result=True)
+                return_result=True,
+            )
             self.assertNotEqual(before_errata_apply_result, '')
-            host = entities.Host().search(query={
-                'search': 'name={0}'.format(vm.hostname)})[0]
+            host = entities.Host().search(query={'search': 'name={0}'.format(vm.hostname)})[0]
             host = host.read()
-            applicable_errata_count = host.content_facet_attributes[
-                'errata_counts']['total']
+            applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
             self.assertEquals(applicable_errata_count, 1)
 
             # apply modular errata
             self._run_remote_command_on_content_host(
-                'dnf -y module update {}'.format(module_name),
-                vm)
-            self._run_remote_command_on_content_host(
-                'dnf -y upload-profile',
-                vm)
+                'dnf -y module update {}'.format(module_name), vm
+            )
+            self._run_remote_command_on_content_host('dnf -y upload-profile', vm)
             host = host.read()
             applicable_errata_count -= 1
             self.assertEqual(
-                host.content_facet_attributes['errata_counts']['total'],
-                applicable_errata_count
+                host.content_facet_attributes['errata_counts']['total'], applicable_errata_count
             )
             after_errata_apply_result = self._run_remote_command_on_content_host(
                 "swidq -i -n {} | grep 'File'| grep -o 'rpm-.*.swidtag'".format(module_name),
                 vm,
-                return_result=True)
+                return_result=True,
+            )
 
             # swidtags get updated based on package version
             self.assertNotEqual(before_errata_apply_result, after_errata_apply_result)

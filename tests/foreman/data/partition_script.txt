@@ -16,7 +16,7 @@ fi
 cat <<EOF > /tmp/diskpart.cfg
 zerombr yes
 clearpart --all --initlabel
-part swap --size "$vir_mem" 
+part swap --size "$vir_mem"
 part /boot --fstype ext3 --size 100 --asprimary
 part / --fstype ext3 --size 1024 --grow
 EOF

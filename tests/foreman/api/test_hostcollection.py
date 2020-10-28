@@ -14,17 +14,20 @@
 
 :Upstream: No
 """
-from nailgun import entities
 from random import choice
+
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade
-)
-from robottelo.datafactory import invalid_values_list, valid_data_list
+
+from robottelo.api.utils import promote
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
+from robottelo.vm import VirtualMachine
 
 
 class HostCollectionTestCase(APITestCase):
@@ -35,11 +38,15 @@ class HostCollectionTestCase(APITestCase):
         """Create hosts that can be shared by tests."""
         super(HostCollectionTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.hosts = [
-            entities.Host(organization=cls.org).create()
-            for _
-            in range(2)
-        ]
+        cls.hosts = [entities.Host(organization=cls.org).create() for _ in range(2)]
+        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
+        cls.content_view = entities.ContentView(organization=cls.org).create()
+        cls.content_view.publish()
+        cls.content_view = cls.content_view.read()
+        promote(cls.content_view.version[0], environment_id=cls.lce.id)
+        cls.activation_key = entities.ActivationKey(
+            content_view=cls.content_view, environment=cls.lce, organization=cls.org
+        ).create()
 
     @tier1
     def test_positive_create_with_name(self):
@@ -55,8 +62,7 @@ class HostCollectionTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 host_collection = entities.HostCollection(
-                    name=name,
-                    organization=self.org,
+                    name=name, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.name, name)
 
@@ -110,8 +116,7 @@ class HostCollectionTestCase(APITestCase):
         for desc in valid_data_list():
             with self.subTest(desc):
                 host_collection = entities.HostCollection(
-                    description=desc,
-                    organization=self.org,
+                    description=desc, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.description, desc)
 
@@ -129,8 +134,7 @@ class HostCollectionTestCase(APITestCase):
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
                 host_collection = entities.HostCollection(
-                    max_hosts=limit,
-                    organization=self.org,
+                    max_hosts=limit, organization=self.org
                 ).create()
                 self.assertEqual(host_collection.max_hosts, limit)
 
@@ -153,8 +157,7 @@ class HostCollectionTestCase(APITestCase):
                     organization=self.org,
                     unlimited_hosts=unlimited,
                 ).create()
-                self.assertEqual(
-                    host_collection.unlimited_hosts, unlimited)
+                self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
     @tier1
     def test_positive_create_with_host(self):
@@ -170,8 +173,7 @@ class HostCollectionTestCase(APITestCase):
         :BZ: 1325989
         """
         host_collection = entities.HostCollection(
-            host=[self.hosts[0]],
-            organization=self.org,
+            host=[self.hosts[0]], organization=self.org
         ).create()
         self.assertEqual(len(host_collection.host), 1)
 
@@ -188,10 +190,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ: 1325989
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
     @tier2
@@ -206,9 +205,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ:1325989
         """
-        host_collection = entities.HostCollection(
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.host = [self.hosts[0]]
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), 1)
@@ -226,9 +223,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ: 1325989
         """
-        host_collection = entities.HostCollection(
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.host = self.hosts
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
@@ -246,10 +241,7 @@ class HostCollectionTestCase(APITestCase):
 
         :BZ:1325989
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(
             frozenset((host.id for host in host_collection.host)),
             frozenset((host.id for host in self.hosts)),
@@ -265,8 +257,7 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 host_collection.name = new_name
@@ -282,13 +273,11 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
                 host_collection.description = new_desc
-                self.assertEqual(
-                    host_collection.update().description, new_desc)
+                self.assertEqual(host_collection.update().description, new_desc)
 
     @tier1
     def test_positive_update_limit(self):
@@ -301,15 +290,12 @@ class HostCollectionTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
-            max_hosts=1,
-            organization=self.org,
-            unlimited_hosts=False,
+            max_hosts=1, organization=self.org, unlimited_hosts=False
         ).create()
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
                 host_collection.max_hosts = limit
-                self.assertEqual(
-                    host_collection.update().max_hosts, limit)
+                self.assertEqual(host_collection.update().max_hosts, limit)
 
     @tier1
     def test_positive_update_unlimited_hosts(self):
@@ -332,10 +318,8 @@ class HostCollectionTestCase(APITestCase):
             with self.subTest(unlimited):
                 host_collection.max_hosts = 1 if not unlimited else None
                 host_collection.unlimited_hosts = unlimited
-                host_collection = host_collection.update(
-                    ['max_hosts', 'unlimited_hosts'])
-                self.assertEqual(
-                    host_collection.unlimited_hosts, unlimited)
+                host_collection = host_collection.update(['max_hosts', 'unlimited_hosts'])
+                self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
     @tier1
     def test_positive_update_host(self):
@@ -348,8 +332,7 @@ class HostCollectionTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
-            host=[self.hosts[0]],
-            organization=self.org,
+            host=[self.hosts[0]], organization=self.org
         ).create()
         host_collection.host = [self.hosts[1]]
         host_collection = host_collection.update(['host'])
@@ -366,20 +349,12 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            host=self.hosts,
-            organization=self.org,
-        ).create()
-        new_hosts = [
-            entities.Host(organization=self.org).create()
-            for _
-            in range(2)
-        ]
+        host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
+        new_hosts = [entities.Host(organization=self.org).create() for _ in range(2)]
         host_collection.host = new_hosts
         host_collection = host_collection.update(['host'])
         self.assertEqual(
-            {host.id for host in host_collection.host},
-            {host.id for host in new_hosts}
+            {host.id for host in host_collection.host}, {host.id for host in new_hosts}
         )
 
     @upgrade
@@ -393,8 +368,7 @@ class HostCollectionTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host_collection = entities.HostCollection(
-            organization=self.org).create()
+        host_collection = entities.HostCollection(organization=self.org).create()
         host_collection.delete()
         with self.assertRaises(HTTPError):
             host_collection.read()
@@ -412,42 +386,77 @@ class HostCollectionTestCase(APITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
-                    entities.HostCollection(
-                        name=name,
-                        organization=self.org,
-                    ).create()
+                    entities.HostCollection(name=name, organization=self.org).create()
 
     @tier1
-    @stubbed()
-    def test_positive_add_subscription(self):
-        """Try to add a subscription to a host collection
+    def test_positive_add_remove_subscription(self):
+        """Try to bulk add and remove a subscription to members of a host collection.
 
         :id: c4ec5727-eb25-452e-a91f-87cafb16666b
 
         :steps:
 
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the host collection
+            1. Create AK and HC, add AK to HC
+            2. Create product so we can use it's subscription
+            3. Create some VMs and register them with AK so they are in HC
+            4. Add the subscription to the members of the Host Collection
+            5. Assert subscription is added
+            6. Bulk remove subscription
+            7. Assert it is removed
 
-        :expectedresults: The subscription was added to the host collection
-
-        :CaseImportance: Critical
-        """
-
-    @tier1
-    @stubbed()
-    def test_positive_remove_subscription(self):
-        """Try to remove a subscription from a host collection
-
-        :id: fdf43e57-5101-4270-9750-afe26f77c53c
-
-        :steps:
-
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the host collection
-            3. Remove the subscription from the host collection
-
-        :expectedresults: The subscription was added to the host collection
+        :expectedresults: subscription added to, and removed from, members of host collection
 
         :CaseImportance: Critical
         """
+        # Create an activate key for this test
+        act_key = entities.ActivationKey(
+            content_view=self.content_view, environment=self.lce, organization=self.org
+        ).create()
+        # this command creates a host collection and "appends", makes available, to the AK
+        act_key.host_collection.append(entities.HostCollection(organization=self.org).create())
+        # Move HC from Add tab to List tab on AK view
+        act_key = act_key.update(['host_collection'])
+        # Create a product so we have a subscription to use
+        product = entities.Product(organization=self.org).create()
+        prod_name = product.name
+        product_subscription = entities.Subscription().search(
+            query={'search': f'name={prod_name}'}
+        )[0]
+        # Create and register VMs as members of Host Collection
+        with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
+            distro=DISTRO_RHEL7
+        ) as client2:
+            for client in [client1, client2]:
+                client.install_katello_ca()
+                client.register_contenthost(self.org.label, act_key.name)
+            # Read host_collection back from Satellite to get host_ids
+            host_collection = act_key.host_collection[0].read()
+            host_ids = [host.id for host in host_collection.host]
+            # Add subscription
+            # Call nailgun to make the API PUT to members of Host Collection
+            entities.Host().bulk_add_subscriptions(
+                data={
+                    "organization_id": self.org.id,
+                    "included": {"ids": host_ids},
+                    "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
+                }
+            )
+            # GET the subscriptions from hosts and assert they are there
+            for host_id in host_ids:
+                req = entities.HostSubscription(host=host_id).subscriptions()
+                assert (
+                    prod_name in req['results'][0]['product_name']
+                ), 'Subscription not applied to HC members'
+            # Remove the subscription
+            # Call nailgun to make the API PUT to members of Host Collection
+            entities.Host().bulk_remove_subscriptions(
+                data={
+                    "organization_id": self.org.id,
+                    "included": {"ids": host_ids},
+                    "subscriptions": [{"id": product_subscription.id, "quantity": 1}],
+                }
+            )
+            # GET the subscriptions from hosts and assert they are gone
+            for host_id in host_ids:
+                req = entities.HostSubscription(host=host_id).subscriptions()
+                assert not req['results'], 'Subscription not removed from HC members'

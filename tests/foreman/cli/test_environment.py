@@ -15,29 +15,25 @@
 
 :Upstream: No
 """
-
-from nailgun import entities
 from random import choice
 
 from fauxfactory import gen_string
+from nailgun import entities
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import (
-    make_environment,
-    publish_puppet_module,
-)
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
-from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-)
-from robottelo.decorators import (
-    tier1,
-    tier2,
-    upgrade,
-)
+from robottelo.config import settings
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.datafactory import invalid_id_list
+from robottelo.datafactory import invalid_values_list
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -45,6 +41,7 @@ class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         super(EnvironmentTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
@@ -52,17 +49,12 @@ class EnvironmentTestCase(CLITestCase):
         cls.loc2 = entities.Location().create()
 
         # Setup for puppet class related tests
-        puppet_modules = [
-            {'author': 'robottelo', 'name': 'generic_1'},
-        ]
-        cls.cv = publish_puppet_module(
-            puppet_modules, CUSTOM_PUPPET_REPO, cls.org.id)
-        cls.env = Environment.list({
-            'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
-        cls.puppet_class = Puppet.info({
-            'name': puppet_modules[0]['name'],
-            'environment': cls.env['name'],
-        })
+        puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
+        cls.cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, cls.org.id)
+        cls.env = Environment.list({'search': 'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.puppet_class = Puppet.info(
+            {'name': puppet_modules[0]['name'], 'environment': cls.env['name']}
+        )
 
     @tier2
     def test_negative_list_with_parameters(self):
@@ -77,27 +69,19 @@ class EnvironmentTestCase(CLITestCase):
 
         :BZ: 1337947
         """
-        make_environment({
-            'organization-ids': self.org.id,
-            'location-ids': self.loc.id,
-        })
+        make_environment({'organization-ids': self.org.id, 'location-ids': self.loc.id})
         # Filter by non-existing location and existing organization
         with self.assertRaises(CLIReturnCodeError):
-            Environment.list({
-                'organization-id': self.org.id,
-                'location-id': gen_string('numeric')
-            })
+            Environment.list(
+                {'organization-id': self.org.id, 'location-id': gen_string('numeric')}
+            )
         # Filter by non-existing organization and existing location
         with self.assertRaises(CLIReturnCodeError):
-            Environment.list({
-                'organization-id': gen_string('numeric'),
-                'location-id': self.loc.id
-            })
+            Environment.list(
+                {'organization-id': gen_string('numeric'), 'location-id': self.loc.id}
+            )
         # Filter by another location
-        results = Environment.list({
-            'organization': self.org.name,
-            'location': self.loc2.name
-        })
+        results = Environment.list({'organization': self.org.name, 'location': self.loc2.name})
         self.assertEqual(len(results), 0)
 
     @tier1
@@ -134,40 +118,33 @@ class EnvironmentTestCase(CLITestCase):
         """
         # Create with attributes
         env_name = gen_string('alpha')
-        environment = make_environment({
-            'location-ids': self.loc.id,
-            'organization-ids': self.org.id,
-            'name': env_name,
-        })
+        environment = make_environment(
+            {'location-ids': self.loc.id, 'organization-ids': self.org.id, 'name': env_name}
+        )
         self.assertIn(self.loc.name, environment['locations'])
         self.assertIn(self.org.name, environment['organizations'])
         self.assertEqual(env_name, environment['name'])
 
         # List by name
-        result = Environment.list({
-            'search': 'name={0}'.format(env_name)})
+        result = Environment.list({'search': 'name={0}'.format(env_name)})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['name'], env_name)
         # List by org loc id
-        results = Environment.list({
-            'organization-id': self.org.id,
-            'location-id': self.loc.id,
-        })
+        results = Environment.list({'organization-id': self.org.id, 'location-id': self.loc.id})
         self.assertIn(env_name, [res['name'] for res in results])
         # List by org loc name
-        results = Environment.list({
-            'organization': self.org.name,
-            'location': self.loc.name,
-        })
+        results = Environment.list({'organization': self.org.name, 'location': self.loc.name})
         self.assertIn(env_name, [res['name'] for res in results])
 
         # Update org and loc
         new_org = entities.Organization().create()
-        Environment.update({
-            'location-ids': self.loc2.id,
-            'organization-ids': new_org.id,
-            'name': environment['name'],
-        })
+        Environment.update(
+            {
+                'location-ids': self.loc2.id,
+                'organization-ids': new_org.id,
+                'name': environment['name'],
+            }
+        )
         env_info = Environment.info({'name': environment['name']})
         self.assertIn(self.loc2.name, env_info['locations'])
         self.assertNotIn(self.loc.name, env_info['locations'])
@@ -175,10 +152,7 @@ class EnvironmentTestCase(CLITestCase):
         self.assertNotIn(self.org.name, env_info['organizations'])
         # Update name
         new_env_name = gen_string('alpha')
-        Environment.update({
-            'id': environment['id'],
-            'new-name': new_env_name,
-        })
+        Environment.update({'id': environment['id'], 'new-name': new_env_name})
         env_info = Environment.info({'id': environment['id']})
         self.assertEqual(env_info['name'], new_env_name)
 
@@ -215,10 +189,7 @@ class EnvironmentTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    Environment.update({
-                        'id': environment['id'],
-                        'new-name': new_name,
-                    })
+                    Environment.update({'id': environment['id'], 'new-name': new_name})
                 result = Environment.info({'id': environment['id']})
                 self.assertEqual(environment['name'], result['name'])
 
@@ -233,13 +204,14 @@ class EnvironmentTestCase(CLITestCase):
 
         """
         # Override one of the sc-params from puppet class
-        sc_params_list = SmartClassParameter.list({
-            'environment': self.env['name'],
-            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
-        })
+        sc_params_list = SmartClassParameter.list(
+            {
+                'environment': self.env['name'],
+                'search': 'puppetclass="{0}"'.format(self.puppet_class['name']),
+            }
+        )
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
         # Verify that affected sc-param is listed
-        env_scparams = Environment.sc_params(
-            {'environment-id': self.env['id']})
+        env_scparams = Environment.sc_params({'environment-id': self.env['id']})
         self.assertIn(scp_id, [scp['id'] for scp in env_scparams])

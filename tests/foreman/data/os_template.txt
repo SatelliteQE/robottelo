@@ -26,7 +26,7 @@ user --name=test --password=$6$DQ7BFZ2qEaKuBh3l$il4f.smBhOqHgM/LGpAycTGTU86GuHU3
 bootloader --location=mbr --boot-drive=vda
 autopart --type=lvm
 # Partition clearing information
-clearpart --none --initlabel 
+clearpart --none --initlabel
 
 %packages
 @core

@@ -14,30 +14,33 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
+import http
+
+import pytest
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.config import settings
-from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_names_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+
 from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 @filtered_datapoint
@@ -66,9 +69,7 @@ class ActivationKeyTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        self.assertTrue(
-            entities.ActivationKey().create().unlimited_hosts
-        )
+        self.assertTrue(entities.ActivationKey().create().unlimited_hosts)
 
     @tier1
     def test_positive_create_limited_hosts(self):
@@ -84,7 +85,8 @@ class ActivationKeyTestCase(APITestCase):
         for max_host in _good_max_hosts():
             with self.subTest(max_host):
                 act_key = entities.ActivationKey(
-                    max_hosts=max_host, unlimited_hosts=False).create()
+                    max_hosts=max_host, unlimited_hosts=False
+                ).create()
                 self.assertEqual(act_key.max_hosts, max_host)
                 self.assertFalse(act_key.unlimited_hosts)
 
@@ -144,8 +146,7 @@ class ActivationKeyTestCase(APITestCase):
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
                 with self.assertRaises(HTTPError):
-                    entities.ActivationKey(
-                        max_hosts=max_host, unlimited_hosts=False).create()
+                    entities.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
 
     @tier3
     def test_negative_create_with_invalid_name(self):
@@ -198,8 +199,7 @@ class ActivationKeyTestCase(APITestCase):
         act_key = entities.ActivationKey().create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                updated = entities.ActivationKey(
-                    id=act_key.id, name=new_name).update(['name'])
+                updated = entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
     @tier3
@@ -217,10 +217,7 @@ class ActivationKeyTestCase(APITestCase):
         :CaseImportance: Low
         """
         act_key = entities.ActivationKey().create()
-        want = {
-            'max_hosts': act_key.max_hosts,
-            'unlimited_hosts': act_key.unlimited_hosts,
-        }
+        want = {'max_hosts': act_key.max_hosts, 'unlimited_hosts': act_key.unlimited_hosts}
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
                 act_key.max_hosts = max_host
@@ -246,8 +243,7 @@ class ActivationKeyTestCase(APITestCase):
         for new_name in invalid_names_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.ActivationKey(
-                        id=act_key.id, name=new_name).update(['name'])
+                    entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
                 new_key = entities.ActivationKey(id=act_key.id).read()
                 self.assertNotEqual(new_key.name, new_name)
                 self.assertEqual(new_key.name, act_key.name)
@@ -265,8 +261,7 @@ class ActivationKeyTestCase(APITestCase):
         """
         act_key = entities.ActivationKey(max_hosts=1).create()
         with self.assertRaises(HTTPError):
-            entities.ActivationKey(
-                id=act_key.id, max_hosts='foo').update(['max_hosts'])
+            entities.ActivationKey(id=act_key.id, max_hosts='foo').update(['max_hosts'])
         self.assertEqual(act_key.read().max_hosts, 1)
 
     @tier2
@@ -282,12 +277,8 @@ class ActivationKeyTestCase(APITestCase):
         """
         act_key = entities.ActivationKey().create()
         path = act_key.path('releases')
-        response = client.get(
-            path,
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
-        status_code = http_client.OK
+        response = client.get(path, auth=settings.server.get_credentials(), verify=False)
+        status_code = http.client.OK
         self.assertEqual(status_code, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -303,9 +294,7 @@ class ActivationKeyTestCase(APITestCase):
         """
         act_key = entities.ActivationKey().create()
         response = client.get(
-            act_key.path('releases'),
-            auth=settings.server.get_credentials(),
-            verify=False,
+            act_key.path('releases'), auth=settings.server.get_credentials(), verify=False
         ).json()
         self.assertIn('results', response.keys())
         self.assertEqual(type(response['results']), list)
@@ -335,16 +324,12 @@ class ActivationKeyTestCase(APITestCase):
         self.assertEqual(len(act_key.host_collection), 0)
 
         # Give activation key one host collection.
-        act_key.host_collection.append(
-            entities.HostCollection(organization=org).create()
-        )
+        act_key.host_collection.append(entities.HostCollection(organization=org).create())
         act_key = act_key.update(['host_collection'])
         self.assertEqual(len(act_key.host_collection), 1)
 
         # Give activation key second host collection.
-        act_key.host_collection.append(
-            entities.HostCollection(organization=org).create()
-        )
+        act_key.host_collection.append(entities.HostCollection(organization=org).create())
         act_key = act_key.update(['host_collection'])
         self.assertEqual(len(act_key.host_collection), 2)
 
@@ -377,15 +362,11 @@ class ActivationKeyTestCase(APITestCase):
         host_collection = entities.HostCollection(organization=org).create()
 
         # Associate host collection with activation key.
-        act_key.add_host_collection(data={
-            'host_collection_ids': [host_collection.id],
-        })
+        act_key.add_host_collection(data={'host_collection_ids': [host_collection.id]})
         self.assertEqual(len(act_key.read().host_collection), 1)
 
         # Disassociate host collection from the activation key.
-        act_key.remove_host_collection(data={
-            'host_collection_ids': [host_collection.id],
-        })
+        act_key.remove_host_collection(data={'host_collection_ids': [host_collection.id]})
         self.assertEqual(len(act_key.read().host_collection), 0)
 
     @tier1
@@ -401,8 +382,7 @@ class ActivationKeyTestCase(APITestCase):
         """
         act_key = entities.ActivationKey().create()
         act_key_2 = entities.ActivationKey(
-            id=act_key.id,
-            auto_attach=(not act_key.auto_attach),
+            id=act_key.id, auto_attach=(not act_key.auto_attach)
         ).update(['auto_attach'])
         self.assertNotEqual(act_key.auto_attach, act_key_2.auto_attach)
 
@@ -436,11 +416,7 @@ class ActivationKeyTestCase(APITestCase):
         :BZ: 1291271
         """
         password = gen_string('alpha')
-        user = entities.User(
-            password=password,
-            login=gen_string('alpha'),
-            admin=True,
-        ).create()
+        user = entities.User(password=password, login=gen_string('alpha'), admin=True).create()
         cfg = get_nailgun_config()
         cfg.auth = (user.login, password)
         ak = entities.ActivationKey(cfg).create()
@@ -482,35 +458,32 @@ class ActivationKeyTestCase(APITestCase):
         rh_repo = entities.Repository(id=rh_repo_id).read()
         rh_repo.sync()
         custom_repo = entities.Repository(
-            product=entities.Product(organization=org).create(),
+            product=entities.Product(organization=org).create()
         ).create()
         custom_repo.sync()
         cv = entities.ContentView(
-            organization=org,
-            repository=[rh_repo_id, custom_repo.id],
+            organization=org, repository=[rh_repo_id, custom_repo.id]
         ).create()
         cv.publish()
         ak = entities.ActivationKey(content_view=cv, organization=org).create()
         org_subscriptions = entities.Subscription(organization=org).search()
         for subscription in org_subscriptions:
-            provided_products_ids = [
-                prod.id for prod in subscription.read().provided_product]
-            if (custom_repo.product.id in provided_products_ids or
-                    rh_repo.product.id in provided_products_ids):
-                ak.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': subscription.id,
-                })
+            provided_products_ids = [prod.id for prod in subscription.read().provided_product]
+            if (
+                custom_repo.product.id in provided_products_ids
+                or rh_repo.product.id in provided_products_ids
+            ):
+                ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak.product_content()['results']
         self.assertEqual(
             {custom_repo.product.id, rh_repo.product.id},
-            {subscr['product']['id'] for subscr in ak_subscriptions}
+            {subscr['product']['id'] for subscr in ak_subscriptions},
         )
 
     @upgrade
     @skip_if_not_set('fake_manifest')
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_add_future_subscription(self):
         """Add a future-dated subscription to an activation key.
 

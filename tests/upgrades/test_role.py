@@ -15,8 +15,10 @@
 :Upstream: No
 """
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo.test import APITestCase
-from upgrade_tests import pre_upgrade, post_upgrade
 
 
 class scenario_positive_existing_overridden_filter:
@@ -166,16 +168,14 @@ class scenario_positive_default_role_added_permission(APITestCase):
         :expectedresults: Permission is added to existing 'Default role'.
 
         """
-        defaultrole = entities.Role().search(
-            query={'search': 'name="Default role"'})[0]
+        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         subnetfilter = entities.Filter(
-            permission=entities.Permission(
-                resource_type='Subnet').search(
-                filters={'name': 'view_subnets'}),
-            role=defaultrole
+            permission=entities.Permission().search(
+                filters={'name': 'view_subnets'}, query={'search': 'resource_type="Subnet"'}
+            ),
+            role=defaultrole,
         ).create()
-        self.assertIn(
-            subnetfilter.id, [filt.id for filt in defaultrole.read().filters])
+        self.assertIn(subnetfilter.id, [filt.id for filt in defaultrole.read().filters])
 
     @post_upgrade(depend_on=test_pre_default_role_added_permission)
     def test_post_default_role_added_permission(self):
@@ -184,11 +184,10 @@ class scenario_positive_default_role_added_permission(APITestCase):
         :expectedresults: The added permission in existing 'Default role' is
             intact post upgrade
         """
-        defaultrole = entities.Role().search(
-            query={'search': 'name="Default role"'})[0]
-        subnetfilt = entities.Filter().search(query={
-            'search': 'role_id={} and permission="view_subnets"'.format(
-                defaultrole.id)})
+        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
+        subnetfilt = entities.Filter().search(
+            query={'search': 'role_id={} and permission="view_subnets"'.format(defaultrole.id)}
+        )
         self.assertTrue(subnetfilt)
         # Teardown
         subnetfilt[0].delete()
@@ -222,18 +221,16 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
             'Default role'
 
         """
-        defaultrole = entities.Role().search(
-            query={'search': 'name="Default role"'})[0]
+        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
         domainfilter = entities.Filter(
-            permission=entities.Permission(
-                resource_type='Domain').search(
-                filters={'name': 'view_domains'}),
+            permission=entities.Permission().search(
+                filters={'name': 'view_domains'}, query={'search': 'resource_type="Domain"'}
+            ),
             unlimited=False,
             role=defaultrole,
-            search='name ~ a'
+            search='name ~ a',
         ).create()
-        self.assertIn(
-            domainfilter.id, [filt.id for filt in defaultrole.read().filters])
+        self.assertIn(domainfilter.id, [filt.id for filt in defaultrole.read().filters])
 
     @post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
     def test_post_default_role_added_permission_with_filter(self):
@@ -243,11 +240,10 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
         :expectedresults: The added permission with filter in existing
             'Default role' is intact post upgrade
         """
-        defaultrole = entities.Role().search(
-            query={'search': 'name="Default role"'})[0]
-        domainfilt = entities.Filter().search(query={
-            'search': 'role_id={} and permission="view_domains"'.format(
-                defaultrole.id)})
+        defaultrole = entities.Role().search(query={'search': 'name="Default role"'})[0]
+        domainfilt = entities.Filter().search(
+            query={'search': 'role_id={} and permission="view_domains"'.format(defaultrole.id)}
+        )
         self.assertTrue(domainfilt)
         self.assertEqual(domainfilt[0].search, 'name ~ a')
         # Teardown

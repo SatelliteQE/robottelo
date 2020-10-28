@@ -15,8 +15,9 @@
 
 :Upstream: No
 """
+import pytest
 
-from robottelo.decorators import stubbed, upgrade
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -33,7 +34,7 @@ class SingleSignOnTestCase(CLITestCase):
     # possibly other LDAP types. These (in particular, the LDAP variations)
     # can be easily added later.
 
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     def test_positive_login_kerberos_user(self):
         """kerberos user can login to CLI
@@ -47,7 +48,7 @@ class SingleSignOnTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     def test_positive_login_ipa_user(self):
         """IPA user can login to CLI
@@ -61,7 +62,7 @@ class SingleSignOnTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     def test_positive_login_openldap_user(self):
         """OpenLDAP user can login to CLI

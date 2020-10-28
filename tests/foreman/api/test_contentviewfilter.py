@@ -18,25 +18,29 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :Upstream: No
 """
-
-from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
+import http
 from random import randint
+
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from nailgun import client
+from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import (
-    CUSTOM_REPODATA_PATH,
-    CUSTOM_SWID_TAG_REPO,
-    CUSTOM_MODULE_STREAM_REPO_2,
-    DOCKER_REGISTRY_HUB,
-    FAKE_0_MODULAR_ERRATA_ID,
-)
-from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import tier1, tier2
+from robottelo.constants import CUSTOM_REPODATA_PATH
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
+from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 class ContentViewFilterTestCase(APITestCase):
@@ -54,9 +58,7 @@ class ContentViewFilterTestCase(APITestCase):
     def setUp(self):
         """Init content view with repo per each test"""
         super(ContentViewFilterTestCase, self).setUp()
-        self.content_view = entities.ContentView(
-            organization=self.org,
-        ).create()
+        self.content_view = entities.ContentView(organization=self.org).create()
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
@@ -78,7 +80,7 @@ class ContentViewFilterTestCase(APITestCase):
             auth=settings.server.get_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
 
     @tier2
     def test_negative_get_with_bad_args(self):
@@ -99,7 +101,7 @@ class ContentViewFilterTestCase(APITestCase):
             verify=False,
             data={'foo': 'bar'},
         )
-        self.assertEqual(response.status_code, http_client.OK)
+        self.assertEqual(response.status_code, http.client.OK)
 
     @tier2
     def test_positive_create_erratum_with_name(self):
@@ -115,8 +117,7 @@ class ContentViewFilterTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.ErratumContentViewFilter(
-                    content_view=self.content_view,
-                    name=name,
+                    content_view=self.content_view, name=name
                 ).create()
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'erratum')
@@ -137,8 +138,7 @@ class ContentViewFilterTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.PackageGroupContentViewFilter(
-                    content_view=self.content_view,
-                    name=name,
+                    content_view=self.content_view, name=name
                 ).create()
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'package_group')
@@ -159,8 +159,7 @@ class ContentViewFilterTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.RPMContentViewFilter(
-                    content_view=self.content_view,
-                    name=name,
+                    content_view=self.content_view, name=name
                 ).create()
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'rpm')
@@ -179,8 +178,7 @@ class ContentViewFilterTestCase(APITestCase):
         for inclusion in (True, False):
             with self.subTest(inclusion):
                 cvf = entities.RPMContentViewFilter(
-                    content_view=self.content_view,
-                    inclusion=inclusion,
+                    content_view=self.content_view, inclusion=inclusion
                 ).create()
                 self.assertEqual(cvf.inclusion, inclusion)
 
@@ -200,8 +198,7 @@ class ContentViewFilterTestCase(APITestCase):
         for description in valid_data_list():
             with self.subTest(description):
                 cvf = entities.RPMContentViewFilter(
-                    content_view=self.content_view,
-                    description=description,
+                    content_view=self.content_view, description=description
                 ).create()
                 self.assertEqual(cvf.description, description)
 
@@ -217,9 +214,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
         self.assertEqual(cvf.repository[0].id, self.repo.id)
 
@@ -278,6 +273,7 @@ class ContentViewFilterTestCase(APITestCase):
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_with_module_streams(self):
         """Verify Include and Exclude Filters creation for modulemd (module streams)
 
@@ -289,9 +285,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         module_stream_repo = entities.Repository(
-            content_type='yum',
-            product=self.product.id,
-            url=CUSTOM_MODULE_STREAM_REPO_2,
+            content_type='yum', product=self.product.id, url=CUSTOM_MODULE_STREAM_REPO_2
         ).create()
         self.content_view.repository += [module_stream_repo]
         self.content_view.update(['repository'])
@@ -307,6 +301,7 @@ class ContentViewFilterTestCase(APITestCase):
         assert cvf.type == 'modulemd'
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
         """Verify SWID tags content file should exist in publish content view
         version location even after applying content view filters.
@@ -333,8 +328,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         swid_tag_repository = entities.Repository(
-            product=self.product,
-            url=CUSTOM_SWID_TAG_REPO
+            product=self.product, url=CUSTOM_SWID_TAG_REPO
         ).create()
         swid_tag_repository.sync()
         content_view = entities.ContentView(organization=self.org).create()
@@ -342,15 +336,11 @@ class ContentViewFilterTestCase(APITestCase):
         content_view.update(['repository'])
 
         cv_filter = entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion=True,
-            repository=[swid_tag_repository],
+            content_view=content_view, inclusion=True, repository=[swid_tag_repository]
         ).create()
         self.assertEqual(len(cv_filter.repository), 1)
         cv_filter_rule = entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            name='walrus',
-            version='1.0',
+            content_view_filter=cv_filter, name='walrus', version='1.0'
         ).create()
         self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
         content_view.publish()
@@ -364,7 +354,7 @@ class ContentViewFilterTestCase(APITestCase):
             content_view.name,
             content_view_version_info.version,
             self.product.name,
-            swid_tag_repository.name
+            swid_tag_repository.name,
         )
         result = ssh.command('ls {} | grep swidtags.xml.gz'.format(swid_repo_path))
         assert result.return_code == 0
@@ -385,8 +375,7 @@ class ContentViewFilterTestCase(APITestCase):
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.RPMContentViewFilter(
-                        content_view=self.content_view,
-                        name=name,
+                        content_view=self.content_view, name=name
                     ).create()
 
     @tier2
@@ -401,10 +390,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseImportance: Low
         """
-        kwargs = {
-            'content_view': self.content_view,
-            'name': gen_string('alpha'),
-        }
+        kwargs = {'content_view': self.content_view, 'name': gen_string('alpha')}
         entities.RPMContentViewFilter(**kwargs).create()
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(**kwargs).create()
@@ -440,8 +426,7 @@ class ContentViewFilterTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(
-                content_view=self.content_view,
-                repository=[gen_integer(10000, 99999)],
+                content_view=self.content_view, repository=[gen_integer(10000, 99999)]
             ).create()
 
     @tier2
@@ -456,9 +441,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         cvf.delete()
         with self.assertRaises(HTTPError):
             cvf.read()
@@ -474,9 +457,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         for name in valid_data_list():
             with self.subTest(name):
                 cvf.name = name
@@ -495,9 +476,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         for desc in valid_data_list():
             with self.subTest(desc):
                 cvf.description = desc
@@ -514,9 +493,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         for inclusion in (True, False):
             with self.subTest(inclusion):
                 cvf.inclusion = inclusion
@@ -535,9 +512,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
         new_repo = entities.Repository(product=self.product).create()
         new_repo.sync()
@@ -562,15 +537,9 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
-        repos = [
-            entities.Repository(product=self.product).create()
-            for _
-            in range(randint(3, 5))
-        ]
+        repos = [entities.Repository(product=self.product).create() for _ in range(randint(3, 5))]
         for repo in repos:
             repo.sync()
         self.content_view.repository = repos
@@ -578,8 +547,7 @@ class ContentViewFilterTestCase(APITestCase):
         cvf.repository = repos
         cvf = cvf.update(['repository'])
         self.assertEqual(
-            set([repo.id for repo in cvf.repository]),
-            set([repo.id for repo in repos])
+            set([repo.id for repo in cvf.repository]), set([repo.id for repo in repos])
         )
 
     @tier2
@@ -594,9 +562,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
         for original_packages in (True, False):
             with self.subTest(original_packages):
@@ -617,9 +583,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
         docker_repository = entities.Repository(
             content_type='docker',
@@ -647,9 +611,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseImportance: Low
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         for name in invalid_names_list():
             with self.subTest(name):
                 cvf.name = name
@@ -669,13 +631,8 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseImportance: Low
         """
         name = gen_string('alpha', 8)
-        entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            name=name,
-        ).create()
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        entities.RPMContentViewFilter(content_view=self.content_view, name=name).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         cvf.name = name
         with self.assertRaises(HTTPError):
             cvf.update(['name'])
@@ -691,9 +648,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=self.content_view).create()
         cvf.content_view.id = gen_integer(10000, 99999)
         with self.assertRaises(HTTPError):
             cvf.update(['content_view'])
@@ -710,8 +665,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            repository=[self.repo],
+            content_view=self.content_view, repository=[self.repo]
         ).create()
         cvf.repository[0].id = gen_integer(10000, 99999)
         with self.assertRaises(HTTPError):
@@ -731,9 +685,7 @@ class ContentViewFilterTestCase(APITestCase):
         :CaseImportance: Low
         """
         cvf = entities.RPMContentViewFilter(
-            content_view=self.content_view,
-            inclusion=True,
-            repository=[self.repo],
+            content_view=self.content_view, inclusion=True, repository=[self.repo]
         ).create()
         new_repo = entities.Repository(product=self.product).create()
         new_repo.sync()
@@ -763,9 +715,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :BZ: 1242534
         """
-        cv_filter = entities.ErratumContentViewFilter(
-            content_view=self.content_view
-        ).create()
+        cv_filter = entities.ErratumContentViewFilter(content_view=self.content_view).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
     @tier1
@@ -778,9 +728,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        cv_filter = entities.PackageGroupContentViewFilter(
-            content_view=self.content_view
-        ).create()
+        cv_filter = entities.PackageGroupContentViewFilter(content_view=self.content_view).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
     @tier1
@@ -793,9 +741,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        cv_filter = entities.RPMContentViewFilter(
-            content_view=self.content_view
-        ).create()
+        cv_filter = entities.RPMContentViewFilter(content_view=self.content_view).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
 
@@ -803,23 +749,21 @@ class ContentViewFilterRuleTestCase(APITestCase):
     """Tests for content view filter rules."""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
         super(ContentViewFilterRuleTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.repo = entities.Repository(
-                content_type='yum',
-                product=cls.product,
-                url=CUSTOM_MODULE_STREAM_REPO_2).create()
+            content_type='yum', product=cls.product, url=CUSTOM_MODULE_STREAM_REPO_2
+        ).create()
         cls.repo.sync()
 
     def setUp(self):
         """Init content view with repo per each test"""
         super(ContentViewFilterRuleTestCase, self).setUp()
-        self.content_view = entities.ContentView(
-            organization=self.org,
-        ).create()
+        self.content_view = entities.ContentView(organization=self.org).create()
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
@@ -837,13 +781,14 @@ class ContentViewFilterRuleTestCase(APITestCase):
         """
         # Exclude module stream filter
         cv_filter = entities.ModuleStreamContentViewFilter(
-            content_view=self.content_view,
-            inclusion=False).create()
+            content_view=self.content_view, inclusion=False
+        ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('duck')})
+            query={'search': 'name="{}"'.format('duck')}
+        )
         entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            module_stream=module_streams).create()
+            content_view_filter=cv_filter, module_stream=module_streams
+        ).create()
         self.content_view.publish()
         content_view = self.content_view.read()
         content_view_version_info = content_view.version[0].read()
@@ -884,9 +829,11 @@ class ContentViewFilterRuleTestCase(APITestCase):
         :CaseLevel: Integration
         """
         cv_filter = entities.ErratumContentViewFilter(
-            content_view=self.content_view, inclusion=True).create()
+            content_view=self.content_view, inclusion=True
+        ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+        )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         self.content_view.publish()
@@ -900,9 +847,11 @@ class ContentViewFilterRuleTestCase(APITestCase):
         # delete the previous content_view_filter
         cv_filter.delete()
         cv_filter = entities.ErratumContentViewFilter(
-            content_view=self.content_view, inclusion=False).create()
+            content_view=self.content_view, inclusion=False
+        ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+        )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         content_view.publish()
@@ -925,25 +874,28 @@ class ContentViewFilterRuleTestCase(APITestCase):
         """
         # apply include errata filter
         cv_filter = entities.ErratumContentViewFilter(
-            content_view=self.content_view, inclusion=True).create()
+            content_view=self.content_view, inclusion=True
+        ).create()
         errata = entities.Errata().search(
-            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)})[0]
+            query={'search': 'errata_id="{0}"'.format(FAKE_0_MODULAR_ERRATA_ID)}
+        )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
         # apply exclude module filter
         cv_filter = entities.ModuleStreamContentViewFilter(
-            content_view=self.content_view,
-            inclusion=False).create()
+            content_view=self.content_view, inclusion=False
+        ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('duck')})
+            query={'search': 'name="{}"'.format('walrus')}
+        )
         entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            module_stream=module_streams).create()
+            content_view_filter=cv_filter, module_stream=module_streams
+        ).create()
         self.content_view.publish()
         content_view = self.content_view.read()
         content_view_version_info = content_view.read().version[0].read()
         # verify the module_stream_count and errata_count for Include Filter
-        assert content_view_version_info.module_stream_count == 1
+        assert content_view_version_info.module_stream_count == 2
         assert content_view_version_info.errata_counts['total'] == 1
 
     @tier2
@@ -965,13 +917,14 @@ class ContentViewFilterRuleTestCase(APITestCase):
         self.content_view.solve_dependencies = True
         content_view = self.content_view.update(['solve_dependencies'])
         cv_filter = entities.ModuleStreamContentViewFilter(
-            content_view=content_view,
-            inclusion=False).create()
+            content_view=content_view, inclusion=False
+        ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}" and version="{}'.format('kangaroo', '20180730223407')})
+            query={'search': 'name="{}" and version="{}'.format('kangaroo', '20180730223407')}
+        )
         entities.ContentViewFilterRule(
-            content_view_filter=cv_filter,
-            module_stream=module_streams).create()
+            content_view_filter=cv_filter, module_stream=module_streams
+        ).create()
         self.content_view.publish()
         content_view = content_view.read()
         content_view_version_info = content_view.read().version[0].read()

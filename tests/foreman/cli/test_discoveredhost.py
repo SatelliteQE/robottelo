@@ -13,28 +13,26 @@
 
 :Upstream: No
 """
+from time import sleep
+
+import pytest
+
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
-from robottelo.cli.factory import (
-    configure_env_for_provision,
-    make_location,
-    make_org,
-)
+from robottelo.cli.factory import configure_env_for_provision
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
 from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier3,
-    upgrade
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
-from robottelo import ssh
 from robottelo.test import CLITestCase
-from time import sleep
 
 
 @run_in_one_thread
@@ -73,27 +71,29 @@ class DiscoveredTestCase(CLITestCase):
         # Build PXE default template to get default PXE file
         Template.build_pxe_default()
         # let's just modify the timeouts to speed things up
-        ssh.command("sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
-                    "/var/lib/tftpboot/pxelinux.cfg/default")
-        ssh.command("sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
-                    "/var/lib/tftpboot/pxelinux.cfg/default")
+        ssh.command(
+            "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
+        ssh.command(
+            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
 
         # Create Org and location
         cls.org = make_org()
         cls.loc = make_location()
 
         # Get default settings values
-        cls.default_discovery_loc = Settings.list(
-            {'search': 'name=%s' % 'discovery_location'})[0]
+        cls.default_discovery_loc = Settings.list({'search': 'name=%s' % 'discovery_location'})[0]
         cls.default_discovery_org = Settings.list(
-            {'search': 'name=%s' % 'discovery_organization'})[0]
-        cls.default_discovery_auto = Settings.list(
-            {'search': 'name=%s' % 'discovery_auto'})[0]
+            {'search': 'name=%s' % 'discovery_organization'}
+        )[0]
+        cls.default_discovery_auto = Settings.list({'search': 'name=%s' % 'discovery_auto'})[0]
 
         # Update default org and location params to place discovered host
         Settings.set({'name': 'discovery_location', 'value': cls.loc['name']})
-        Settings.set(
-            {'name': 'discovery_organization', 'value': cls.org['name']})
+        Settings.set({'name': 'discovery_organization', 'value': cls.org['name']})
 
         # Enable flag to auto provision discovered hosts via discovery rules
         Settings.set({'name': 'discovery_auto', 'value': 'true'})
@@ -105,18 +105,11 @@ class DiscoveredTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Restore default global setting's values"""
-        Settings.set({
-            'name': 'discovery_location',
-            'value': cls.default_discovery_loc['value']
-        })
-        Settings.set({
-            'name': 'discovery_organization',
-            'value': cls.default_discovery_org['value']
-        })
-        Settings.set({
-            'name': 'discovery_auto',
-            'value': cls.default_discovery_auto['value']
-        })
+        Settings.set({'name': 'discovery_location', 'value': cls.default_discovery_loc['value']})
+        Settings.set(
+            {'name': 'discovery_organization', 'value': cls.default_discovery_org['value']}
+        )
+        Settings.set({'name': 'discovery_auto', 'value': cls.default_discovery_auto['value']})
         super(DiscoveredTestCase, cls).tearDownClass()
 
     @tier3
@@ -161,7 +154,7 @@ class DiscoveredTestCase(CLITestCase):
             host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(host)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_custom_facts_pxeless_discovery(self):
         """Check if defined custom facts of pxeless host are correctly
@@ -184,7 +177,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_custom_facts_pxe_discovery(self):
         """Check if defined custom facts of pxe-based discovered host are
@@ -244,44 +237,45 @@ class DiscoveredTestCase(CLITestCase):
         :BZ: 1731112
         """
         if not self.configured_env:
-            self.__class__.configured_env = configure_env_for_provision(
-                org=self.org, loc=self.loc)
+            self.__class__.configured_env = configure_env_for_provision(org=self.org, loc=self.loc)
         with LibvirtGuest(boot_iso=True) as pxe_host:
             hostname = pxe_host.guest_name
             # fixme: assertion #1
             discovered_host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(discovered_host)
             # Provision just discovered host
-            DiscoveredHost.provision({
-                'name': discovered_host['name'],
-                'hostgroup': self.configured_env['hostgroup']['name'],
-                'root-password': gen_string('alphanumeric'),
-            })
+            DiscoveredHost.provision(
+                {
+                    'name': discovered_host['name'],
+                    'hostgroup': self.configured_env['hostgroup']['name'],
+                    'root-password': gen_string('alphanumeric'),
+                }
+            )
             # fixme: assertion #2-5
-            provisioned_host = Host.info({
-                'name': '{0}.{1}'.format(
-                    discovered_host['name'],
-                    self.configured_env['domain']['name']
-                )
-            })
+            provisioned_host = Host.info(
+                {
+                    'name': '{0}.{1}'.format(
+                        discovered_host['name'], self.configured_env['domain']['name']
+                    )
+                }
+            )
             self.assertEqual(
-                provisioned_host['network']['subnet-ipv4'],
-                self.configured_env['subnet']['name']
+                provisioned_host['network']['subnet-ipv4'], self.configured_env['subnet']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['partition-table'],
-                self.configured_env['ptable']['name']
+                self.configured_env['ptable']['name'],
             )
             self.assertEqual(
                 provisioned_host['operating-system']['operating-system'],
-                self.configured_env['os']['title']
+                self.configured_env['os']['title'],
             )
             # Check that provisioned host is not in the list of discovered
             # hosts anymore
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB
@@ -319,7 +313,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub2(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB2
@@ -357,7 +351,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
         """Provision and discover the pxe-less UEFI SB host from cli using GRUB2
@@ -446,8 +440,7 @@ class DiscoveredTestCase(CLITestCase):
         """
         # fixme: assertion #1
         if not self.configured_env:
-            self.__class__.configured_env = configure_env_for_provision(
-                org=self.org, loc=self.loc)
+            self.__class__.configured_env = configure_env_for_provision(org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
             # fixme: assertion #2-3
@@ -455,36 +448,38 @@ class DiscoveredTestCase(CLITestCase):
             discovered_host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(discovered_host)
             # Provision just discovered host
-            DiscoveredHost.provision({
-                'name': discovered_host['name'],
-                'hostgroup': self.configured_env['hostgroup']['name'],
-                'root-password': gen_string('alphanumeric'),
-            })
+            DiscoveredHost.provision(
+                {
+                    'name': discovered_host['name'],
+                    'hostgroup': self.configured_env['hostgroup']['name'],
+                    'root-password': gen_string('alphanumeric'),
+                }
+            )
             # fixme: assertion #5-8
-            provisioned_host = Host.info({
-                'name': '{0}.{1}'.format(
-                    discovered_host['name'],
-                    self.configured_env['domain']['name']
-                )
-            })
+            provisioned_host = Host.info(
+                {
+                    'name': '{0}.{1}'.format(
+                        discovered_host['name'], self.configured_env['domain']['name']
+                    )
+                }
+            )
             # assertion #8
             self.assertEqual(
-                provisioned_host['network']['subnet-ipv4'],
-                self.configured_env['subnet']['name']
+                provisioned_host['network']['subnet-ipv4'], self.configured_env['subnet']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['partition-table'],
-                self.configured_env['ptable']['name']
+                self.configured_env['ptable']['name'],
             )
             self.assertEqual(
                 provisioned_host['operating-system']['operating-system'],
-                self.configured_env['os']['title']
+                self.configured_env['os']['title'],
             )
             # assertion #9
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB
@@ -533,7 +528,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
@@ -583,7 +578,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):
         """Provision the pxe-based UEFI Secureboot discovered host from cli
@@ -673,7 +668,7 @@ class DiscoveredTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveredHost.info({'id': host['id']})
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_host(self):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
@@ -689,7 +684,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_of_pxeless_host(self):
         """Refresh the facts of pxeless discovered hosts by adding a new NIC
@@ -705,7 +700,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_host(self):
         """Reboot pxe based discovered hosts
@@ -721,7 +716,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxeless_host(self):
         """Reboot pxe-less discovered hosts
@@ -737,7 +732,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_host(self):
         """Discover a pxe based host and auto-provision it with
@@ -752,7 +747,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxeless_host(self):
         """Discover a pxe-less host and auto-provision it with
@@ -767,7 +762,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_list_discovered_host(self):
         """List pxe-based and pxe-less discovered hosts
@@ -781,7 +776,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_discovery_manager_role(self):
         """Assign 'Discovery_Manager' role to a normal user
@@ -797,7 +792,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_discovery_role(self):
         """Assign 'Discovery" role to a normal user
@@ -812,7 +807,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_update_discover_hostname_settings(self):
         """Update the hostname_prefix and Hostname_facts settings and
@@ -859,26 +854,28 @@ class DiscoveredTestCase(CLITestCase):
         """
         param1_key, param1_value = gen_string('alpha'), gen_string('alphanumeric')
         param2_key, param2_value = gen_string('alpha'), gen_string('alphanumeric')
-        host_params = [
-            '{}={}, {}={}'.format(param1_key, param1_value, param2_key, param2_value)]
+        host_params = ['{}={}, {}={}'.format(param1_key, param1_value, param2_key, param2_value)]
         if not self.configured_env:
-            self.__class__.configured_env = configure_env_for_provision(
-                org=self.org, loc=self.loc)
+            self.__class__.configured_env = configure_env_for_provision(org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
             discovered_host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(discovered_host)
-            DiscoveredHost.provision({
-                'name': discovered_host['name'],
-                'hostgroup': self.configured_env['hostgroup']['name'],
-                'root-password': gen_string('alphanumeric'),
-                'parameters': host_params
-            })
-            provisioned_host = Host.info({
-                'name': '{}.{}'.format(
-                    discovered_host['name'],
-                    self.configured_env['domain']['name'])
-            })
+            DiscoveredHost.provision(
+                {
+                    'name': discovered_host['name'],
+                    'hostgroup': self.configured_env['hostgroup']['name'],
+                    'root-password': gen_string('alphanumeric'),
+                    'parameters': host_params,
+                }
+            )
+            provisioned_host = Host.info(
+                {
+                    'name': '{}.{}'.format(
+                        discovered_host['name'], self.configured_env['domain']['name']
+                    )
+                }
+            )
             self.assertEqual(provisioned_host['parameters'][str(param1_key).lower()], param1_value)
             self.assertEqual(provisioned_host['parameters'][str(param2_key).lower()], param2_value)
             with self.assertRaises(CLIReturnCodeError):

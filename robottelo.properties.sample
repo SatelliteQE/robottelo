@@ -2,6 +2,10 @@
 [server]
 # Server hostname
 hostname=
+# Additional satellite hostnames for xdist workers
+# gw0=
+# gw1=
+# gw2=
 
 # Path to private ssh key to be used when connecting via SSH.
 ssh_key=
@@ -44,10 +48,15 @@ ssh_key=
 # verbosity=debug
 # Directory for temporary files
 # tmp_dir=/var/tmp
-
+# Web Server to provide various test artifacts
+# artifacts_server=server.example.com
 # Webdriver logging options
 # A list of commands to be logged
 # log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo
+# - The URL of container hosting repos on SatLab
+# Example url - http://<container_hostname_or_ip>:<port>
+# Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
+# repos_hosting_url=
 
 # browser tells robottelo which browser to use when testing UI. Valid values
 # are:
@@ -107,6 +116,7 @@ ssh_key=
 # properly
 # rhel6_repo=http://example.com/yum/repo_files/rhel6-updates.repo
 # rhel7_repo=http://example.com/yum/repo_files/rhel7-updates.repo
+# rhel8_repo=http://example.com/yum/repo_files/rhel8-updates.repo
 
 # Provide link to rhel6/7 repositories URL as we need all OS packages in order
 # to have real installation media for provisioning procedure
@@ -129,13 +139,26 @@ ssh_key=
 # which are essentially required for generating swid tags in RHEL8 content host.
 # swid_tools_repo=https://example.com/swid-rhel-8.repo
 
+# Broker-specific settings
+# [broker]
+# broker_directory=.
+
 # Bugzilla data to authenticate API calls
 # [bugzilla]
 # url default value is set to 'https://bugzilla.redhat.com' even if not provided.
 # url=https://bugzilla.redhat.com
 
-# Provide api_key to access Bugzilla REST API 
+# Provide api_key to access Bugzilla REST API
 # api_key=
+
+# For Open Ldap Authentication
+# [open_ldap]
+# hostname=
+# username=
+# open_ldap_user=
+# password
+# base_dn=
+# group_base_dn=
 
 # For LDAP Authentication.
 # [ldap]
@@ -144,6 +167,8 @@ ssh_key=
 # password=
 # basedn=
 # grpbasedn=
+# realm=
+# nameserver=
 
 # For LDAP freeIPA Authentication.
 # [ipa]
@@ -153,6 +178,11 @@ ssh_key=
 # basedn_ipa=
 # grpbasedn_ipa=
 # user_ipa=
+# disabled_user_ipa=
+# otp_user=otp_user
+# time_based_secret=
+# group_users =
+# groups =
 
 # Fake manifest testing.
 # [fake_manifest]
@@ -197,7 +227,7 @@ ssh_key=
 # This will be used by tests that exercise external docker registries.
 # External docker registry url in the format http[s]://<server>[:<port>].
 # external_registry_1=
-# For testing the support for private registry repos 
+# For testing the support for private registry repos
 # private_registry_url='https://registry.hub.docker.com'
 # private_registry_name=username/imagename
 # private_registry_username=
@@ -347,6 +377,27 @@ ssh_key=
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
 
+# [azurerm]
+# Azure Resource Manager(AzureRM) Provider as Compute Resource
+# Client ID of the AzureRM account
+# client_id=
+# Client Secret of the AzureRM account
+# client_secret=
+# The subscription ID is a GUID that uniquely identifies your subscription to use Azure services.
+# subscription_id=
+# Tenant ID, the ID of the AAD directory in which you created the application
+# tenant_id=
+# Azure Region
+# azure_region=
+# SSH Public Key of the user from which login as passwordless in VM
+# ssh_pub_key=
+# Username of admin user(non-root)
+# username=
+# Password of the admin user
+# password=
+# Azure Private subnet details
+# azure_subnet=
+
 # [ec2]
 # AWS EC2 to be added as a compute resource.
 # Access key ID of the IAM user
@@ -411,6 +462,8 @@ port_range=9091, 14999
 # image_password=
 # image_name: Image name on the external provider
 # image_name=
+# image_uuid: Unique image id
+# image_uuid=
 # RHV CA cert url for adding RHV as compute resource
 # ca_cert=
 
@@ -538,3 +591,35 @@ port_range=9091, 14999
 # sku_vdc_physical=
 # The SKU ID for virtual vdc
 # sku_vdc_virtual=
+
+# section for RH-SSO integration
+# [rhsso]
+# RH-SSO Hostname
+# host_name=
+# RH-SSO Host Url
+# host_url=
+# RH-SSO Host Admin of Realm
+# rhsso_user=
+# RH-SSO Host Admin Password
+# user_password=
+# RH-SSO Host Realm
+# realm=
+
+# Report Portal Section for Rerunning failed tests
+# [report_portal]
+# Portal URL
+# portal_url=
+# Project Name
+# project=satellite6
+# API key of an user
+# api_key=
+# To skip the rerun, if the failed tests in last run more than fail_threshold %
+# if its not set, 20% by default will be considered
+# fail_threshold=
+
+# Section for Http Proxy Details
+# [http_proxy]
+# un_auth_proxy_url=http://proxy.example.com:4332
+# auth_proxy_url=
+# username=
+# password=

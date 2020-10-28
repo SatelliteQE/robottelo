@@ -4,13 +4,13 @@ from robottelo.constants import DISTRO_RHEL6
 from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
-AK_CONTENT_LABEL = u'rhel-6-server-rhev-agent-rpms'
+AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
 class ClientProvisioningMixin(object):
     def client_provisioning(
-            self, activation_key_name, organization_label,
-            package_name='python-kitchen'):
+        self, activation_key_name, organization_label, package_name='python-kitchen'
+    ):
         """Provision a Satellite's client.
 
         Do the following:

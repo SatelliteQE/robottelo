@@ -16,12 +16,15 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
-from upgrade_tests import pre_upgrade, post_upgrade
 from robottelo.test import CLITestCase
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 class scenario_preversion_cv_exports_imports(CLITestCase):
@@ -37,6 +40,7 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
         :expectedresults: Content-view created before upgrade should be exported and imported
             after upgrade
      """
+
     export_base = '/var/lib/pulp/katello-export/'
 
     def tearDownScenario(self):
@@ -53,12 +57,15 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
         """
         self.importing_org = entities.Organization().create()
         self.importing_prod = entities.Product(
-            organization=self.importing_org, name=product).create()
+            organization=self.importing_org, name=product
+        ).create()
         self.importing_repo = entities.Repository(
-            name=repo, mirror_on_sync='no',
-            download_policy='immediate', product=self.importing_prod).create()
-        self.importing_cv = entities.ContentView(
-            name=cv, organization=self.importing_org).create()
+            name=repo,
+            mirror_on_sync='no',
+            download_policy='immediate',
+            product=self.importing_prod,
+        ).create()
+        self.importing_cv = entities.ContentView(name=cv, organization=self.importing_org).create()
         self.importing_cv.repository = [self.importing_repo]
         self.importing_cv.update(['repository'])
 
@@ -81,8 +88,11 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
         org = entities.Organization().create()
         product = entities.Product(organization=org, name=exporting_prod_name).create()
         repo = entities.Repository(
-            product=product, name=exporting_repo_name,
-            mirror_on_sync=False, download_policy='immediate').create()
+            product=product,
+            name=exporting_repo_name,
+            mirror_on_sync=False,
+            download_policy='immediate',
+        ).create()
         repo.sync()
         cv = entities.ContentView(name=exporting_cv_name, organization=org).create()
         cv.repository = [repo]
@@ -90,11 +100,14 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
         cv.publish()
         cv = cv.read()
         self.assertTrue(cv.version[0].read().package_count > 0)
-        scenario_facts = {self.__class__.__name__: {
-            'exporting_orgid': org.id,
-            'exporting_cvname': exporting_cv_name,
-            'exporting_prodname': exporting_prod_name,
-            'exporting_reponame': exporting_repo_name}}
+        scenario_facts = {
+            self.__class__.__name__: {
+                'exporting_orgid': org.id,
+                'exporting_cvname': exporting_cv_name,
+                'exporting_prodname': exporting_prod_name,
+                'exporting_reponame': exporting_repo_name,
+            }
+        }
         create_dict(scenario_facts)
 
     @post_upgrade(depend_on=test_pre_version_cv_export_import)
@@ -110,24 +123,28 @@ class scenario_preversion_cv_exports_imports(CLITestCase):
          """
         prescene_dict = get_entity_data(self.__class__.__name__)
         exporting_cv = entities.ContentView(organization=prescene_dict['exporting_orgid']).search(
-            query={'search': 'name={}'.format(prescene_dict['exporting_cvname'])})[0]
+            query={'search': 'name={}'.format(prescene_dict['exporting_cvname'])}
+        )[0]
         exporting_cvv_id = max([cvv.id for cvv in exporting_cv.version])
         exporting_cvv_version = entities.ContentViewVersion(id=exporting_cvv_id).read().version
         ContentView.version_export(
-            {'export-dir': '{}'.format(self.export_base), 'id': exporting_cvv_id})
+            {'export-dir': '{}'.format(self.export_base), 'id': exporting_cvv_id}
+        )
         exported_tar = '{0}/export-{1}-{2}.tar'.format(
-            self.export_base, exporting_cv.name, exporting_cvv_version)
+            self.export_base, exporting_cv.name, exporting_cvv_version
+        )
         result = ssh.command("[ -f {0} ]".format(exported_tar))
         self.assertEqual(result.return_code, 0)
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         self.assertTrue(len(exported_packages) > 0)
         self.set_importing_org(
-            prescene_dict['exporting_prodname'], prescene_dict['exporting_reponame'],
-            exporting_cv.name)
-        ContentView.version_import({
-            'export-tar': exported_tar,
-            'organization-id': self.importing_org.id
-        })
+            prescene_dict['exporting_prodname'],
+            prescene_dict['exporting_reponame'],
+            exporting_cv.name,
+        )
+        ContentView.version_import(
+            {'export-tar': exported_tar, 'organization-id': self.importing_org.id}
+        )
         importing_cvv = self.importing_cv.read().version
         self.assertTrue(len(importing_cvv) == 1)
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0].id})

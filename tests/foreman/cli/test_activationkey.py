@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=unexpected-keyword-arg
 """Test class for Activation key CLI
 
 :Requirement: Activationkey
@@ -17,47 +16,51 @@
 :Upstream: No
 """
 import re
-
 from random import choice
 
-from fauxfactory import gen_string, gen_alphanumeric
+import pytest
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_string
 
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
-from robottelo.cli.factory import (
-    add_role_permissions,
-    CLIFactoryError,
-    make_activation_key,
-    make_content_view,
-    make_host_collection,
-    make_lifecycle_environment,
-    make_org,
-    make_role,
-    make_user,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
+from robottelo.cli.factory import add_role_permissions
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_host_collection
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_role
+from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_custom_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
-from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.config import settings
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 
@@ -68,15 +71,21 @@ class ActivationKeyTestCase(CLITestCase):
     def setUpClass(cls):
         """Tests for activation keys via Hammer CLI"""
         super(ActivationKeyTestCase, cls).setUpClass()
-        cls.org = make_org()
+        # syspurpose test will use cls org and manifest
+        cls.org = make_org(cached=True)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        try:
+            Subscription.upload({'file': manifest.filename, 'organization-id': cls.org['id']})
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
 
     @staticmethod
     def get_default_env():
         """Get default lifecycle environment"""
-        return LifecycleEnvironment.info({
-            'organization-id': ActivationKeyTestCase.org['id'],
-            'name': 'Library',
-        })
+        return LifecycleEnvironment.info(
+            {'organization-id': ActivationKeyTestCase.org['id'], 'name': 'Library'}
+        )
 
     def _make_activation_key(self, options=None):
         """Make a new activation key and assert its success"""
@@ -85,9 +94,9 @@ class ActivationKeyTestCase(CLITestCase):
 
         # Use default organization if None are provided
         no_org_flag = (
-            not options.get('organization', None) and
-            not options.get('organization-label', None) and
-            not options.get('organization-id', None)
+            not options.get('organization', None)
+            and not options.get('organization-label', None)
+            and not options.get('organization-id', None)
         )
         if no_org_flag:
             options['organization-id'] = self.org['id']
@@ -108,7 +117,7 @@ class ActivationKeyTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_ak = self._make_activation_key({u'name': name})
+                new_ak = self._make_activation_key({'name': name})
                 self.assertEqual(new_ak['name'], name)
 
     @tier1
@@ -123,9 +132,7 @@ class ActivationKeyTestCase(CLITestCase):
         """
         for desc in valid_data_list():
             with self.subTest(desc):
-                new_ak = self._make_activation_key({
-                    u'description': desc,
-                })
+                new_ak = self._make_activation_key({'description': desc})
                 self.assertEqual(new_ak['description'], desc)
 
     @tier1
@@ -139,9 +146,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         lce = self.get_default_env()
-        new_ak_env = self._make_activation_key({
-            u'lifecycle-environment-id': lce['id'],
-        })
+        new_ak_env = self._make_activation_key({'lifecycle-environment-id': lce['id']})
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
     @tier1
@@ -155,10 +160,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        env = make_lifecycle_environment({u'organization-id': self.org['id']})
-        new_ak_env = self._make_activation_key({
-            u'lifecycle-environment-id': env['id'],
-        })
+        env = make_lifecycle_environment({'organization-id': self.org['id']})
+        new_ak_env = self._make_activation_key({'lifecycle-environment-id': env['id']})
         self.assertEqual(new_ak_env['lifecycle-environment'], env['name'])
 
     @tier1
@@ -172,9 +175,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         lce = self.get_default_env()
-        new_ak_env = self._make_activation_key({
-            u'lifecycle-environment': lce['name'],
-        })
+        new_ak_env = self._make_activation_key({'lifecycle-environment': lce['name']})
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
     @tier2
@@ -190,15 +191,14 @@ class ActivationKeyTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_cv = make_content_view({
-                    u'name': name,
-                    u'organization-id': self.org['id'],
-                })
-                new_ak_cv = self._make_activation_key({
-                    u'content-view': new_cv['name'],
-                    u'environment': self.get_default_env()['name'],
-                    u'organization-id': self.org['id'],
-                })
+                new_cv = make_content_view({'name': name, 'organization-id': self.org['id']})
+                new_ak_cv = self._make_activation_key(
+                    {
+                        'content-view': new_cv['name'],
+                        'environment': self.get_default_env()['name'],
+                        'organization-id': self.org['id'],
+                    }
+                )
                 self.assertEqual(new_ak_cv['content-view'], name)
 
     @tier1
@@ -212,7 +212,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
-        self.assertEqual(new_ak['host-limit'], u'Unlimited')
+        self.assertEqual(new_ak['host-limit'], 'Unlimited')
 
     @tier1
     def test_positive_create_with_usage_limit_finite(self):
@@ -224,12 +224,11 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_ak = self._make_activation_key({
-            u'max-hosts': '10',
-        })
-        self.assertEqual(new_ak['host-limit'], u'10')
+        new_ak = self._make_activation_key({'max-hosts': '10'})
+        self.assertEqual(new_ak['host-limit'], '10')
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_content_and_check_enabled(self):
         """Create activation key and add content to it. Check enabled state.
 
@@ -242,30 +241,24 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        result = setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
-        })
-        content = ActivationKey.product_content({
-            u'id': result['activationkey-id'],
-            u'organization-id': self.org['id'],
-        })
+        result = setup_org_for_a_custom_repo(
+            {'url': FAKE_0_YUM_REPO, 'organization-id': self.org['id']}
+        )
+        content = ActivationKey.product_content(
+            {'id': result['activationkey-id'], 'organization-id': self.org['id']}
+        )
         self.assertEqual(content[0]['default-enabled?'], 'true')
 
-    def assert_negative_create_with_usage_limit(
-            self, invalid_values, *in_error_msg):
+    def assert_negative_create_with_usage_limit(self, invalid_values, *in_error_msg):
         """Asserts Activation key is not created and respective error msg
         :param invalid_values: invalid max-host values
         :param in_error_msg: strings which error msg must contain
         """
         for limit in invalid_values:
-            with self.subTest(limit), self.assertRaises(
-                    CLIFactoryError) as raise_ctx:
-                self._make_activation_key({u'max-hosts': limit})
+            with self.subTest(limit), self.assertRaises(CLIFactoryError) as raise_ctx:
+                self._make_activation_key({'max-hosts': limit})
             self.assert_error_msg(
-                raise_ctx,
-                u'Failed to create ActivationKey with data:',
-                *in_error_msg
+                raise_ctx, 'Failed to create ActivationKey with data:', *in_error_msg
             )
 
     @tier2
@@ -280,17 +273,12 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Low
         """
         for name in invalid_values_list():
-            with self.subTest(name), self.assertRaises(
-                    CLIFactoryError) as raise_ctx:
-                self._make_activation_key({u'name': name})
+            with self.subTest(name), self.assertRaises(CLIFactoryError) as raise_ctx:
+                self._make_activation_key({'name': name})
             if name in ['', ' ', '\t']:
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Name must contain at least 1 character')
+                self.assert_error_msg(raise_ctx, 'Name must contain at least 1 character')
             if len(name) > 255:
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Name is too long (maximum is 255 characters)')
+                self.assert_error_msg(raise_ctx, 'Name is too long (maximum is 255 characters)')
 
     @tier3
     def test_negative_create_with_usage_limit_with_not_integers(self):
@@ -304,25 +292,16 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Low
         """
         # exclude numeric values from invalid values list
-        invalid_values = [
-            value
-            for value in invalid_values_list()
-            if not value.isdigit()
-        ]
+        invalid_values = [value for value in invalid_values_list() if not value.isdigit()]
         invalid_values.append(0.5)
         for limit in invalid_values:
-            with self.subTest(limit), self.assertRaises(
-                    CLIFactoryError) as raise_ctx:
-                self._make_activation_key({u'max-hosts': limit})
+            with self.subTest(limit), self.assertRaises(CLIFactoryError) as raise_ctx:
+                self._make_activation_key({'max-hosts': limit})
             if type(limit) is int:
                 if limit < 1:
-                    self.assert_error_msg(
-                        raise_ctx,
-                        u'Max hosts cannot be less than one')
+                    self.assert_error_msg(raise_ctx, 'Max hosts cannot be less than one')
             if type(limit) is str:
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Numeric value is required.')
+                self.assert_error_msg(raise_ctx, 'Numeric value is required.')
 
     @tier3
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
@@ -336,8 +315,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Low
         """
         self.assert_negative_create_with_usage_limit(
-            ('-1', '-500', 0),
-            u'Validation failed: Max hosts cannot be less than one'
+            ('-1', '-500', 0), 'Validation failed: Max hosts cannot be less than one'
         )
 
     @tier1
@@ -353,14 +331,10 @@ class ActivationKeyTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                new_ak = self._make_activation_key({
-                    u'name': name,
-                    u'organization-id': self.org['id'],
-                })
-                ActivationKey.delete({
-                    'name': new_ak['name'],
-                    'organization-id': self.org['id'],
-                })
+                new_ak = self._make_activation_key(
+                    {'name': name, 'organization-id': self.org['id']}
+                )
+                ActivationKey.delete({'name': new_ak['name'], 'organization-id': self.org['id']})
                 with self.assertRaises(CLIReturnCodeError):
                     ActivationKey.info({'id': new_ak['id']})
 
@@ -376,10 +350,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: High
         """
         new_ak = self._make_activation_key()
-        ActivationKey.delete({
-            'name': new_ak['name'],
-            'organization': self.org['name'],
-        })
+        ActivationKey.delete({'name': new_ak['name'], 'organization': self.org['name']})
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
@@ -395,10 +366,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: High
         """
         new_ak = self._make_activation_key()
-        ActivationKey.delete({
-            'name': new_ak['name'],
-            'organization-label': self.org['label'],
-        })
+        ActivationKey.delete({'name': new_ak['name'], 'organization-label': self.org['label']})
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
@@ -414,8 +382,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        new_ak = self._make_activation_key({u'content-view': new_cv['name']})
+        new_cv = make_content_view({'organization-id': self.org['id']})
+        new_ak = self._make_activation_key({'content-view': new_cv['name']})
         ActivationKey.delete({'id': new_ak['id']})
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
@@ -431,9 +399,9 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        new_ak = self._make_activation_key({
-            u'lifecycle-environment': self.get_default_env()['name'],
-        })
+        new_ak = self._make_activation_key(
+            {'lifecycle-environment': self.get_default_env()['name']}
+        )
         ActivationKey.delete({'id': new_ak['id']})
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
@@ -451,11 +419,13 @@ class ActivationKeyTestCase(CLITestCase):
         activation_key = self._make_activation_key()
         for name in valid_data_list():
             with self.subTest(name):
-                ActivationKey.update({
-                    u'id': activation_key['id'],
-                    u'new-name': name,
-                    u'organization-id': self.org['id'],
-                })
+                ActivationKey.update(
+                    {
+                        'id': activation_key['id'],
+                        'new-name': name,
+                        'organization-id': self.org['id'],
+                    }
+                )
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['name'], name)
 
@@ -472,11 +442,13 @@ class ActivationKeyTestCase(CLITestCase):
         """
         new_name = gen_string('alpha')
         activation_key = self._make_activation_key()
-        ActivationKey.update({
-            u'name': activation_key['name'],
-            u'new-name': new_name,
-            u'organization-id': self.org['id'],
-        })
+        ActivationKey.update(
+            {
+                'name': activation_key['name'],
+                'new-name': new_name,
+                'organization-id': self.org['id'],
+            }
+        )
         updated_ak = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(updated_ak['name'], new_name)
 
@@ -493,11 +465,13 @@ class ActivationKeyTestCase(CLITestCase):
         activation_key = self._make_activation_key()
         for description in valid_data_list():
             with self.subTest(description):
-                ActivationKey.update({
-                    u'description': description,
-                    u'name': activation_key['name'],
-                    u'organization-id': self.org['id'],
-                })
+                ActivationKey.update(
+                    {
+                        'description': description,
+                        'name': activation_key['name'],
+                        'organization-id': self.org['id'],
+                    }
+                )
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['description'], description)
 
@@ -511,23 +485,22 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        ak_env = self._make_activation_key({
-            u'lifecycle-environment-id': self.get_default_env()['id'],
-        })
-        env = make_lifecycle_environment({u'organization-id': self.org['id']})
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        ContentView.publish({u'id': new_cv['id']})
-        cvv = ContentView.info({u'id': new_cv['id']})['versions'][0]
-        ContentView.version_promote({
-            u'id': cvv['id'],
-            u'to-lifecycle-environment-id': env['id'],
-        })
-        ActivationKey.update({
-            u'id': ak_env['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view': new_cv['name'],
-            u'organization-id': self.org['id'],
-        })
+        ak_env = self._make_activation_key(
+            {'lifecycle-environment-id': self.get_default_env()['id']}
+        )
+        env = make_lifecycle_environment({'organization-id': self.org['id']})
+        new_cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({'id': new_cv['id']})
+        cvv = ContentView.info({'id': new_cv['id']})['versions'][0]
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
+        ActivationKey.update(
+            {
+                'id': ak_env['id'],
+                'lifecycle-environment-id': env['id'],
+                'content-view': new_cv['name'],
+                'organization-id': self.org['id'],
+            }
+        )
         updated_ak = ActivationKey.info({'id': ak_env['id']})
         self.assertEqual(updated_ak['lifecycle-environment'], env['name'])
 
@@ -541,14 +514,16 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        cv = make_content_view({u'organization-id': self.org['id']})
-        ak_cv = self._make_activation_key({u'content-view-id': cv['id']})
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        ActivationKey.update({
-            u'content-view': new_cv['name'],
-            u'name': ak_cv['name'],
-            u'organization-id': self.org['id'],
-        })
+        cv = make_content_view({'organization-id': self.org['id']})
+        ak_cv = self._make_activation_key({'content-view-id': cv['id']})
+        new_cv = make_content_view({'organization-id': self.org['id']})
+        ActivationKey.update(
+            {
+                'content-view': new_cv['name'],
+                'name': ak_cv['name'],
+                'organization-id': self.org['id'],
+            }
+        )
         updated_ak = ActivationKey.info({'id': ak_cv['id']})
         self.assertEqual(updated_ak['content-view'], new_cv['name'])
 
@@ -563,14 +538,12 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
-        self.assertEqual(new_ak['host-limit'], u'Unlimited')
-        ActivationKey.update({
-            u'max-hosts': '2147483647',
-            u'name': new_ak['name'],
-            u'organization-id': self.org['id'],
-        })
+        self.assertEqual(new_ak['host-limit'], 'Unlimited')
+        ActivationKey.update(
+            {'max-hosts': '2147483647', 'name': new_ak['name'], 'organization-id': self.org['id']}
+        )
         updated_ak = ActivationKey.info({'id': new_ak['id']})
-        self.assertEqual(updated_ak['host-limit'], u'2147483647')
+        self.assertEqual(updated_ak['host-limit'], '2147483647')
 
     @tier1
     def test_positive_update_usage_limit_to_unlimited(self):
@@ -582,17 +555,13 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_ak = self._make_activation_key({
-            u'max-hosts': '10',
-        })
-        self.assertEqual(new_ak['host-limit'], u'10')
-        ActivationKey.update({
-            u'unlimited-hosts': True,
-            u'name': new_ak['name'],
-            u'organization-id': self.org['id'],
-        })
+        new_ak = self._make_activation_key({'max-hosts': '10'})
+        self.assertEqual(new_ak['host-limit'], '10')
+        ActivationKey.update(
+            {'unlimited-hosts': True, 'name': new_ak['name'], 'organization-id': self.org['id']}
+        )
         updated_ak = ActivationKey.info({'id': new_ak['id']})
-        self.assertEqual(updated_ak['host-limit'], u'Unlimited')
+        self.assertEqual(updated_ak['host-limit'], 'Unlimited')
 
     @tier2
     def test_negative_update_name(self):
@@ -607,17 +576,11 @@ class ActivationKeyTestCase(CLITestCase):
         """
         new_ak = self._make_activation_key()
         for name in invalid_values_list():
-            with self.subTest(name), self.assertRaises(
-                    CLIReturnCodeError) as raise_ctx:
-                ActivationKey.update({
-                    u'id': new_ak['id'],
-                    u'new-name': name,
-                    u'organization-id': self.org['id'],
-                })
-            self.assert_error_msg(
-                raise_ctx,
-                u'Could not update the activation key:'
-            )
+            with self.subTest(name), self.assertRaises(CLIReturnCodeError) as raise_ctx:
+                ActivationKey.update(
+                    {'id': new_ak['id'], 'new-name': name, 'organization-id': self.org['id']}
+                )
+            self.assert_error_msg(raise_ctx, 'Could not update the activation key:')
 
     @tier2
     def test_negative_update_usage_limit(self):
@@ -633,14 +596,15 @@ class ActivationKeyTestCase(CLITestCase):
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-            ActivationKey.update({
-                u'max-hosts': int('9' * 20),
-                u'id': new_ak['id'],
-                u'organization-id': self.org['id'],
-            })
+            ActivationKey.update(
+                {
+                    'max-hosts': int('9' * 20),
+                    'id': new_ak['id'],
+                    'organization-id': self.org['id'],
+                }
+            )
         self.assert_error_msg(
-            raise_ctx,
-            u'Validation failed: Max hosts must be less than 2147483648'
+            raise_ctx, 'Validation failed: Max hosts must be less than 2147483648'
         )
 
     @skip_if_not_set('clients')
@@ -666,28 +630,26 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        env = make_lifecycle_environment({u'organization-id': self.org['id']})
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        ContentView.publish({u'id': new_cv['id']})
-        cvv = ContentView.info({u'id': new_cv['id']})['versions'][0]
-        ContentView.version_promote({
-            u'id': cvv['id'],
-            u'to-lifecycle-environment-id': env['id'],
-        })
-        new_ak = make_activation_key({
-            u'lifecycle-environment-id': env['id'],
-            u'content-view': new_cv['name'],
-            u'organization-id': self.org['id'],
-            u'max-hosts': '1',
-        })
+        env = make_lifecycle_environment({'organization-id': self.org['id']})
+        new_cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({'id': new_cv['id']})
+        cvv = ContentView.info({'id': new_cv['id']})['versions'][0]
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
+        new_ak = make_activation_key(
+            {
+                'lifecycle-environment-id': env['id'],
+                'content-view': new_cv['name'],
+                'organization-id': self.org['id'],
+                'max-hosts': '1',
+            }
+        )
         with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
             with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
                 vm1.install_katello_ca()
                 vm1.register_contenthost(self.org['label'], new_ak['name'])
                 self.assertTrue(vm1.subscribed)
                 vm2.install_katello_ca()
-                result = vm2.register_contenthost(
-                    self.org['label'], new_ak['name'])
+                result = vm2.register_contenthost(self.org['label'], new_ak['name'])
                 self.assertFalse(vm2.subscribed)
                 self.assertEqual(result.return_code, 70)
                 self.assertGreater(len(result.stderr), 0)
@@ -709,24 +671,20 @@ class ActivationKeyTestCase(CLITestCase):
         for host_col_name in valid_data_list():
             with self.subTest(host_col_name):
                 activation_key = self._make_activation_key()
-                new_host_col_name = make_host_collection({
-                    u'name': host_col_name,
-                    u'organization-id': self.org['id'],
-                })['name']
+                new_host_col_name = make_host_collection(
+                    {'name': host_col_name, 'organization-id': self.org['id']}
+                )['name']
                 # Assert that name matches data passed
                 self.assertEqual(new_host_col_name, host_col_name)
-                ActivationKey.add_host_collection({
-                    u'host-collection': new_host_col_name,
-                    u'name': activation_key['name'],
-                    u'organization-id': self.org['id'],
-                })
-                activation_key = ActivationKey.info({
-                    u'id': activation_key['id'],
-                })
-                self.assertEqual(
-                    activation_key['host-collections'][0]['name'],
-                    host_col_name
+                ActivationKey.add_host_collection(
+                    {
+                        'host-collection': new_host_col_name,
+                        'name': activation_key['name'],
+                        'organization-id': self.org['id'],
+                    }
                 )
+                activation_key = ActivationKey.info({'id': activation_key['id']})
+                self.assertEqual(activation_key['host-collections'][0]['name'], host_col_name)
 
     @run_in_one_thread
     @tier2
@@ -741,26 +699,17 @@ class ActivationKeyTestCase(CLITestCase):
 
         :BZ: 1364876
         """
-        Defaults.add({
-            u'param-name': 'organization_id',
-            u'param-value': self.org['id'],
-        })
+        Defaults.add({'param-name': 'organization_id', 'param-value': self.org['id']})
         try:
             activation_key = self._make_activation_key()
             host_col = make_host_collection()
-            ActivationKey.add_host_collection({
-                u'host-collection': host_col['name'],
-                u'name': activation_key['name'],
-            })
-            activation_key = ActivationKey.info({
-                u'id': activation_key['id'],
-            })
-            self.assertEqual(
-                activation_key['host-collections'][0]['name'],
-                host_col['name']
+            ActivationKey.add_host_collection(
+                {'host-collection': host_col['name'], 'name': activation_key['name']}
             )
+            activation_key = ActivationKey.info({'id': activation_key['id']})
+            self.assertEqual(activation_key['host-collections'][0]['name'], host_col['name'])
         finally:
-            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({'param-name': 'organization_id'})
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
@@ -778,19 +727,22 @@ class ActivationKeyTestCase(CLITestCase):
         org = make_org()
         # Using CDN as we need this repo to be RH one no matter are we in
         # downstream or cdn
-        result = setup_org_for_a_rh_repo({
-            u'product': PRDS['rhel'],
-            u'repository-set': REPOSET['rhst7'],
-            u'repository': REPOS['rhst7']['name'],
-            u'organization-id': org['id'],
-        }, force_use_cdn=True)
-        content = ActivationKey.product_content({
-            u'id': result['activationkey-id'],
-            u'organization-id': org['id'],
-        })
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org['id'],
+            },
+            force_use_cdn=True,
+        )
+        content = ActivationKey.product_content(
+            {'id': result['activationkey-id'], 'organization-id': org['id']}
+        )
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
@@ -803,21 +755,20 @@ class ActivationKeyTestCase(CLITestCase):
 
         :BZ: 1426386
         """
-        result = setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
-        })
-        repo = Repository.info({u'id': result['repository-id']})
-        content = ActivationKey.product_content({
-            u'id': result['activationkey-id'],
-            u'organization-id': self.org['id'],
-        })
+        result = setup_org_for_a_custom_repo(
+            {'url': FAKE_0_YUM_REPO, 'organization-id': self.org['id']}
+        )
+        repo = Repository.info({'id': result['repository-id']})
+        content = ActivationKey.product_content(
+            {'id': result['activationkey-id'], 'organization-id': self.org['id']}
+        )
         self.assertEqual(content[0]['name'], repo['name'])
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
@@ -839,29 +790,32 @@ class ActivationKeyTestCase(CLITestCase):
         org = make_org()
         # Using CDN as we need this repo to be RH one no matter are we in
         # downstream or cdn
-        result = setup_org_for_a_rh_repo({
-            u'product': PRDS['rhel'],
-            u'repository-set': REPOSET['rhst7'],
-            u'repository': REPOS['rhst7']['name'],
-            u'organization-id': org['id'],
-        }, force_use_cdn=True)
-        result = setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': org['id'],
-            u'activationkey-id': result['activationkey-id'],
-            u'content-view-id': result['content-view-id'],
-            u'lifecycle-environment-id': result['lifecycle-environment-id'],
-        })
-        repo = Repository.info({u'id': result['repository-id']})
-        content = ActivationKey.product_content({
-            u'id': result['activationkey-id'],
-            u'organization-id': org['id'],
-        })
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org['id'],
+            },
+            force_use_cdn=True,
+        )
+        result = setup_org_for_a_custom_repo(
+            {
+                'url': FAKE_0_YUM_REPO,
+                'organization-id': org['id'],
+                'activationkey-id': result['activationkey-id'],
+                'content-view-id': result['content-view-id'],
+                'lifecycle-environment-id': result['lifecycle-environment-id'],
+            }
+        )
+        repo = Repository.info({'id': result['repository-id']})
+        content = ActivationKey.product_content(
+            {'id': result['activationkey-id'], 'organization-id': org['id']}
+        )
         self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {REPOSET['rhst7'], repo['name']}, {pc['name'] for pc in content})
+        self.assertEqual({REPOSET['rhst7'], repo['name']}, {pc['name'] for pc in content})
 
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key
 
@@ -896,29 +850,24 @@ class ActivationKeyTestCase(CLITestCase):
         org = make_org()
         new_ak = self._make_activation_key({'organization-id': org['id']})
         self.upload_manifest(org['id'], manifests.clone())
-        subscription_result = Subscription.list({
-            'organization-id': org['id'],
-            'order': 'id desc'
-        }, per_page=False)
-        result = ActivationKey.add_subscription({
-            u'id': new_ak['id'],
-            u'subscription-id': subscription_result[-1]['id'],
-        })
+        subscription_result = Subscription.list(
+            {'organization-id': org['id'], 'order': 'id desc'}, per_page=False
+        )
+        result = ActivationKey.add_subscription(
+            {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
+        )
         self.assertIn('Subscription added to activation key.', result)
-        ak_subs_info = ActivationKey.subscriptions({
-            u'id': new_ak['id'],
-            u'organization-id': org['id'],
-        })
+        ak_subs_info = ActivationKey.subscriptions(
+            {'id': new_ak['id'], 'organization-id': org['id']}
+        )
         self.assertEqual(len(ak_subs_info), 6)
-        result = ActivationKey.remove_subscription({
-            u'id': new_ak['id'],
-            u'subscription-id': subscription_result[-1]['id'],
-        })
+        result = ActivationKey.remove_subscription(
+            {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
+        )
         self.assertIn('Subscription removed from activation key.', result)
-        ak_subs_info = ActivationKey.subscriptions({
-            u'id': new_ak['id'],
-            u'organization-id': org['id'],
-        })
+        ak_subs_info = ActivationKey.subscriptions(
+            {'id': new_ak['id'], 'organization-id': org['id']}
+        )
         self.assertEqual(len(ak_subs_info), 4)
 
     @skip_if_not_set('clients')
@@ -935,31 +884,29 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        env = make_lifecycle_environment({u'organization-id': self.org['id']})
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        ContentView.publish({u'id': new_cv['id']})
-        cvv = ContentView.info({u'id': new_cv['id']})['versions'][0]
-        ContentView.version_promote({
-            u'id': cvv['id'],
-            u'to-lifecycle-environment-id': env['id'],
-        })
+        env = make_lifecycle_environment({'organization-id': self.org['id']})
+        new_cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({'id': new_cv['id']})
+        cvv = ContentView.info({'id': new_cv['id']})['versions'][0]
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
         new_aks = [
-            make_activation_key({
-                u'lifecycle-environment-id': env['id'],
-                u'content-view': new_cv['name'],
-                u'organization-id': self.org['id'],
-            })
+            make_activation_key(
+                {
+                    'lifecycle-environment-id': env['id'],
+                    'content-view': new_cv['name'],
+                    'organization-id': self.org['id'],
+                }
+            )
             for _ in range(2)
         ]
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
             for i in range(2):
-                vm.register_contenthost(
-                    self.org['label'], new_aks[i]['name'])
+                vm.register_contenthost(self.org['label'], new_aks[i]['name'])
                 self.assertTrue(vm.subscribed)
 
     @skip_if_not_set('clients')
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_update_aks_to_chost_in_one_command(self):
         """Check if multiple Activation keys can be attached to a
@@ -997,11 +944,8 @@ class ActivationKeyTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                self._make_activation_key({u'name': name})
-                result = ActivationKey.list({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
+                self._make_activation_key({'name': name})
+                result = ActivationKey.list({'name': name, 'organization-id': self.org['id']})
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['name'], name)
 
@@ -1015,12 +959,11 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        cv = make_content_view({u'organization-id': self.org['id']})
-        self._make_activation_key({u'content-view-id': cv['id']})
-        result = ActivationKey.list({
-            'content-view-id': cv['id'],
-            'organization-id': self.org['id'],
-        })
+        cv = make_content_view({'organization-id': self.org['id']})
+        self._make_activation_key({'content-view-id': cv['id']})
+        result = ActivationKey.list(
+            {'content-view-id': cv['id'], 'organization-id': self.org['id']}
+        )
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['content-view'], cv['name'])
 
@@ -1038,17 +981,14 @@ class ActivationKeyTestCase(CLITestCase):
         name = gen_string('utf8')
         activation_key = self._make_activation_key({'name': name})
         new_name = gen_string('utf8')
-        ActivationKey.update({
-            u'id': activation_key['id'],
-            u'new-name': new_name,
-            u'organization-id': self.org['id'],
-        })
+        ActivationKey.update(
+            {'id': activation_key['id'], 'new-name': new_name, 'organization-id': self.org['id']}
+        )
         activation_key = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(activation_key['name'], new_name)
-        new_activation_key = self._make_activation_key({
-            u'name': name,
-            u'organization-id': self.org['id'],
-        })
+        new_activation_key = self._make_activation_key(
+            {'name': name, 'organization-id': self.org['id']}
+        )
         self.assertEqual(new_activation_key['name'], name)
 
     @tier2
@@ -1076,23 +1016,26 @@ class ActivationKeyTestCase(CLITestCase):
         :BZ: 1336716
         """
         activation_key = self._make_activation_key()
-        new_host_col = make_host_collection({
-            u'name': gen_string('alpha'),
-            u'organization-id': self.org['id'],
-        })
-        ActivationKey.add_host_collection({
-            u'host-collection-id': new_host_col['id'],
-            u'name': activation_key['name'],
-            u'organization': self.org['name'],
-        })
-        activation_key = ActivationKey.info({u'id': activation_key['id']})
+        new_host_col = make_host_collection(
+            {'name': gen_string('alpha'), 'organization-id': self.org['id']}
+        )
+        ActivationKey.add_host_collection(
+            {
+                'host-collection-id': new_host_col['id'],
+                'name': activation_key['name'],
+                'organization': self.org['name'],
+            }
+        )
+        activation_key = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 1)
-        ActivationKey.remove_host_collection({
-            u'host-collection-id': new_host_col['id'],
-            u'name': activation_key['name'],
-            u'organization': self.org['name'],
-        })
-        activation_key = ActivationKey.info({u'id': activation_key['id']})
+        ActivationKey.remove_host_collection(
+            {
+                'host-collection-id': new_host_col['id'],
+                'name': activation_key['name'],
+                'organization': self.org['name'],
+            }
+        )
+        activation_key = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 0)
 
     @tier2
@@ -1120,34 +1063,143 @@ class ActivationKeyTestCase(CLITestCase):
         for host_col in valid_data_list():
             with self.subTest(host_col):
                 activation_key = self._make_activation_key()
-                new_host_col = make_host_collection({
-                    u'name': host_col,
-                    u'organization-id': self.org['id'],
-                })
+                new_host_col = make_host_collection(
+                    {'name': host_col, 'organization-id': self.org['id']}
+                )
                 # Assert that name matches data passed
                 self.assertEqual(new_host_col['name'], host_col)
-                ActivationKey.add_host_collection({
-                    u'host-collection': new_host_col['name'],
-                    u'name': activation_key['name'],
-                    u'organization-id': self.org['id'],
-                })
-                activation_key = ActivationKey.info({
-                    'id': activation_key['id'],
-                })
-                self.assertEqual(len(activation_key['host-collections']), 1)
-                self.assertEqual(
-                    activation_key['host-collections'][0]['name'],
-                    host_col,
+                ActivationKey.add_host_collection(
+                    {
+                        'host-collection': new_host_col['name'],
+                        'name': activation_key['name'],
+                        'organization-id': self.org['id'],
+                    }
                 )
-                ActivationKey.remove_host_collection({
-                    u'host-collection': new_host_col['name'],
-                    u'name': activation_key['name'],
-                    u'organization-id': self.org['id'],
-                })
-                activation_key = ActivationKey.info({
-                    u'id': activation_key['id'],
-                })
+                activation_key = ActivationKey.info({'id': activation_key['id']})
+                self.assertEqual(len(activation_key['host-collections']), 1)
+                self.assertEqual(activation_key['host-collections'][0]['name'], host_col)
+                ActivationKey.remove_host_collection(
+                    {
+                        'host-collection': new_host_col['name'],
+                        'name': activation_key['name'],
+                        'organization-id': self.org['id'],
+                    }
+                )
+                activation_key = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(len(activation_key['host-collections']), 0)
+
+    @tier2
+    def test_create_ak_with_syspurpose_set(self):
+        """Test that an activation key can be created with system purpose values set.
+
+        :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
+
+        :Steps:
+            1. Create Activation key with system purpose values set
+            2. Read Activation key values and assert system purpose values are set
+            3. Clear AK system purpose values
+            4. Read the AK system purpose values and assert system purpose values are unset
+
+        :CaseImportance: Medium
+
+        :BZ: 1789028
+        """
+        # Requires Cls org and manifest. Manifest is for self-support values.
+        new_ak = self._make_activation_key(
+            {
+                'purpose-addons': "test-addon1, test-addon2",
+                'purpose-role': "test-role",
+                'purpose-usage': "test-usage",
+                'service-level': "Self-Support",
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(new_ak['system-purpose']['purpose-addons'], "test-addon1, test-addon2")
+        self.assertEqual(new_ak['system-purpose']['purpose-role'], "test-role")
+        self.assertEqual(new_ak['system-purpose']['purpose-usage'], "test-usage")
+        if not is_open('BZ:1789028'):
+            self.assertEqual(new_ak['system-purpose']['service-level'], "Self-Support")
+        # Check that system purpose values can be deleted.
+        ActivationKey.update(
+            {
+                'id': new_ak['id'],
+                'purpose-addons': '',
+                'purpose-role': '',
+                'purpose-usage': '',
+                'service-level': '',
+                'organization-id': self.org['id'],
+            }
+        )
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(updated_ak['system-purpose']['purpose-addons'], '')
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], '')
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], '')
+        self.assertEqual(updated_ak['system-purpose']['service-level'], '')
+
+    @tier2
+    def test_update_ak_with_syspurpose_values(self):
+        """Test that system purpose values can be added to an existing activation key
+        and can then be changed.
+
+        :id: db943c05-70f1-4385-9537-fe23368a9dfd
+
+        :Steps:
+
+            1. Create Activation key with no system purpose values set
+            2. Assert system purpose values are not set
+            3. Add system purpose values
+            4. Read the AK system purpose values and assert system purpose values are set
+            5. Update the system purpose values
+            6. Read the AK system purpose values and assert system purpose values have changed
+
+        :CaseImportance: Medium
+
+        :BZ: 1789028
+        """
+        # Requires Cls org and manifest. Manifest is for self-support values.
+        # Create an AK with no system purpose values set
+        new_ak = self._make_activation_key({'organization-id': self.org['id']})
+        # Assert system purpose values are null after creating the AK and adding the manifest.
+        self.assertEqual(new_ak['system-purpose']['purpose-addons'], '')
+        self.assertEqual(new_ak['system-purpose']['purpose-role'], '')
+        self.assertEqual(new_ak['system-purpose']['purpose-usage'], '')
+        self.assertEqual(new_ak['system-purpose']['service-level'], '')
+        # Check that system purpose values can be added to an AK.
+        ActivationKey.update(
+            {
+                'id': new_ak['id'],
+                'purpose-addons': "test-addon1, test-addon2",
+                'purpose-role': "test-role1",
+                'purpose-usage': "test-usage1",
+                'service-level': "Self-Support",
+                'organization-id': self.org['id'],
+            }
+        )
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(
+            updated_ak['system-purpose']['purpose-addons'], "test-addon1, test-addon2"
+        )
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], "test-role1")
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], "test-usage1")
+        self.assertEqual(updated_ak['system-purpose']['service-level'], "Self-Support")
+        # Check that system purpose values can be updated
+        ActivationKey.update(
+            {
+                'id': new_ak['id'],
+                'purpose-addons': "test-addon3, test-addon4",
+                'purpose-role': "test-role2",
+                'purpose-usage': "test-usage2",
+                'service-level': "Premium",
+                'organization-id': self.org['id'],
+            }
+        )
+        updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': self.org['id']})
+        self.assertEqual(
+            updated_ak['system-purpose']['purpose-addons'], "test-addon3, test-addon4"
+        )
+        self.assertEqual(updated_ak['system-purpose']['purpose-role'], "test-role2")
+        self.assertEqual(updated_ak['system-purpose']['purpose-usage'], "test-usage2")
+        self.assertEqual(updated_ak['system-purpose']['service-level'], "Premium")
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
@@ -1175,18 +1227,11 @@ class ActivationKeyTestCase(CLITestCase):
             upload_file(manifest.content, manifest.filename)
         org_id = make_org()['id']
         ackey_id = self._make_activation_key({'organization-id': org_id})['id']
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': org_id,
-        })
-        subs_id = Subscription.list(
-            {'organization-id': org_id},
-            per_page=False
+        Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
+        subs_id = Subscription.list({'organization-id': org_id}, per_page=False)
+        result = ActivationKey.add_subscription(
+            {'id': ackey_id, 'subscription-id': subs_id[0]['id']}
         )
-        result = ActivationKey.add_subscription({
-            u'id': ackey_id,
-            u'subscription-id': subs_id[0]['id'],
-        })
         self.assertIn('Subscription added to activation key.', result)
 
     @tier1
@@ -1203,12 +1248,14 @@ class ActivationKeyTestCase(CLITestCase):
         parent_ak = self._make_activation_key()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                result = ActivationKey.copy({
-                    u'id': parent_ak['id'],
-                    u'new-name': new_name,
-                    u'organization-id': self.org['id'],
-                })
-                self.assertEqual(result[0], u'Activation key copied.')
+                result = ActivationKey.copy(
+                    {
+                        'id': parent_ak['id'],
+                        'new-name': new_name,
+                        'organization-id': self.org['id'],
+                    }
+                )
+                self.assertEqual(result[0], 'Activation key copied.')
 
     @tier1
     def test_positive_copy_by_parent_name(self):
@@ -1221,12 +1268,14 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         parent_ak = self._make_activation_key()
-        result = ActivationKey.copy({
-            u'name': parent_ak['name'],
-            u'new-name': gen_string('alpha'),
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(result[0], u'Activation key copied.')
+        result = ActivationKey.copy(
+            {
+                'name': parent_ak['name'],
+                'new-name': gen_string('alpha'),
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(result[0], 'Activation key copied.')
 
     @tier1
     def test_negative_copy_with_same_name(self):
@@ -1239,16 +1288,15 @@ class ActivationKeyTestCase(CLITestCase):
         """
         parent_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-            ActivationKey.copy({
-                u'name': parent_ak['name'],
-                u'new-name': parent_ak['name'],
-                u'organization-id': self.org['id'],
-            })
+            ActivationKey.copy(
+                {
+                    'name': parent_ak['name'],
+                    'new-name': parent_ak['name'],
+                    'organization-id': self.org['id'],
+                }
+            )
         self.assertEqual(raise_ctx.exception.return_code, 65)
-        self.assert_error_msg(
-            raise_ctx,
-            u'Validation failed: Name has already been taken'
-        )
+        self.assert_error_msg(raise_ctx, 'Validation failed: Name has already been taken')
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
@@ -1273,28 +1321,20 @@ class ActivationKeyTestCase(CLITestCase):
         org = make_org()
         parent_ak = self._make_activation_key({'organization-id': org['id']})
         self.upload_manifest(org['id'], manifests.clone())
-        subscription_result = Subscription.list(
-            {'organization-id': org['id']}, per_page=False)
-        ActivationKey.add_subscription({
-            u'id': parent_ak['id'],
-            u'subscription-id': subscription_result[0]['id'],
-        })
+        subscription_result = Subscription.list({'organization-id': org['id']}, per_page=False)
+        ActivationKey.add_subscription(
+            {'id': parent_ak['id'], 'subscription-id': subscription_result[0]['id']}
+        )
         # End test setup
         new_name = gen_string('utf8')
-        result = ActivationKey.copy({
-            u'id': parent_ak['id'],
-            u'new-name': new_name,
-            u'organization-id': org['id'],
-        })
-        self.assertEqual(result[0], u'Activation key copied.')
-        result = ActivationKey.subscriptions({
-            u'name': new_name,
-            u'organization-id': org['id'],
-        })
+        result = ActivationKey.copy(
+            {'id': parent_ak['id'], 'new-name': new_name, 'organization-id': org['id']}
+        )
+        self.assertEqual(result[0], 'Activation key copied.')
+        result = ActivationKey.subscriptions({'name': new_name, 'organization-id': org['id']})
         # Verify that the subscription copied over
         self.assertIn(
-            subscription_result[0]['name'],  # subscription name
-            result[3]  # subscription list
+            subscription_result[0]['name'], result[3]  # subscription name  # subscription list
         )
 
     @tier1
@@ -1316,12 +1356,10 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key()
         attach_value = new_ak['auto-attach']
         # invert value
-        new_value = u'false' if attach_value == u'true' else u'true'
-        ActivationKey.update({
-            u'auto-attach': new_value,
-            u'id': new_ak['id'],
-            u'organization-id': self.org['id'],
-        })
+        new_value = 'false' if attach_value == 'true' else 'true'
+        ActivationKey.update(
+            {'auto-attach': new_value, 'id': new_ak['id'], 'organization-id': self.org['id']}
+        )
         updated_ak = ActivationKey.info({'id': new_ak['id']})
         self.assertEqual(updated_ak['auto-attach'], new_value)
 
@@ -1336,15 +1374,16 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
-        for new_value in (u'1', u'0', u'true', u'false', u'yes', u'no'):
+        for new_value in ('1', '0', 'true', 'false', 'yes', 'no'):
             with self.subTest(new_value):
-                result = ActivationKey.update({
-                    u'auto-attach': new_value,
-                    u'id': new_ak['id'],
-                    u'organization-id': self.org['id'],
-                })
-                self.assertEqual(
-                    u'Activation key updated.', result[0]['message'])
+                result = ActivationKey.update(
+                    {
+                        'auto-attach': new_value,
+                        'id': new_ak['id'],
+                        'organization-id': self.org['id'],
+                    }
+                )
+                self.assertEqual('Activation key updated.', result[0]['message'])
 
     @tier2
     def test_negative_update_autoattach(self):
@@ -1364,17 +1403,17 @@ class ActivationKeyTestCase(CLITestCase):
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as exe:
-            ActivationKey.update({
-                u'auto-attach': gen_string('utf8'),
-                u'id': new_ak['id'],
-                u'organization-id': self.org['id'],
-            })
-        self.assertIn(
-            u"'--auto-attach': value must be one of",
-            exe.exception.stderr.lower()
-        )
+            ActivationKey.update(
+                {
+                    'auto-attach': gen_string('utf8'),
+                    'id': new_ak['id'],
+                    'organization-id': self.org['id'],
+                }
+            )
+        self.assertIn("'--auto-attach': value must be one of", exe.exception.stderr.lower())
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_content_override(self):
         """Positive content override
 
@@ -1391,31 +1430,27 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        result = setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
-        })
-        content = ActivationKey.product_content({
-            u'id': result['activationkey-id'],
-            u'organization-id': self.org['id'],
-        })
+        result = setup_org_for_a_custom_repo(
+            {'url': FAKE_0_YUM_REPO, 'organization-id': self.org['id']}
+        )
+        content = ActivationKey.product_content(
+            {'id': result['activationkey-id'], 'organization-id': self.org['id']}
+        )
         for override_value in (True, False):
             with self.subTest(override_value):
-                ActivationKey.content_override({
-                    u'content-label': content[0]['label'],
-                    u'id': result['activationkey-id'],
-                    u'organization-id': self.org['id'],
-                    u'value': int(override_value),
-                })
-                # Retrieve the product content enabled flag
-                content = ActivationKey.product_content({
-                    u'id': result['activationkey-id'],
-                    u'organization-id': self.org['id'],
-                })
-                self.assertEqual(
-                    content[0]['override'],
-                    'enabled:{}'.format(int(override_value))
+                ActivationKey.content_override(
+                    {
+                        'content-label': content[0]['label'],
+                        'id': result['activationkey-id'],
+                        'organization-id': self.org['id'],
+                        'value': int(override_value),
+                    }
                 )
+                # Retrieve the product content enabled flag
+                content = ActivationKey.product_content(
+                    {'id': result['activationkey-id'], 'organization-id': self.org['id']}
+                )
+                self.assertEqual(content[0]['override'], 'enabled:{}'.format(int(override_value)))
 
     @tier2
     def test_positive_remove_user(self):
@@ -1430,13 +1465,9 @@ class ActivationKeyTestCase(CLITestCase):
         """
         password = gen_string('alpha')
         user = make_user({'password': password, 'admin': 'true'})
-        ak = ActivationKey.with_user(
-            username=user['login'],
-            password=password
-        ).create({
-            'name': gen_string('alpha'),
-            'organization-id': self.org['id'],
-        })
+        ak = ActivationKey.with_user(username=user['login'], password=password).create(
+            {'name': gen_string('alpha'), 'organization-id': self.org['id']}
+        )
         User.delete({'id': user['id']})
         try:
             ActivationKey.info({'id': ak['id']})
@@ -1483,31 +1514,24 @@ class ActivationKeyTestCase(CLITestCase):
         ak_name_like = 'ak_{0}'.format(gen_string('alpha'))
         hc_names_like = (
             'Test_*_{0}'.format(gen_string('alpha')),
-            'Test_*_{0}'.format(gen_string('alpha'))
+            'Test_*_{0}'.format(gen_string('alpha')),
         )
         ak_name = '{0}_{1}'.format(ak_name_like, gen_string('alpha'))
         org = make_org()
         self.upload_manifest(org['id'], manifests.clone())
-        available_subscriptions = Subscription.list(
-            {'organization-id': org['id']}, per_page=False)
+        available_subscriptions = Subscription.list({'organization-id': org['id']}, per_page=False)
         self.assertGreater(len(available_subscriptions), 0)
         available_subscription_ids = [
-            subscription['id']
-            for subscription in available_subscriptions
+            subscription['id'] for subscription in available_subscriptions
         ]
         subscription_id = choice(available_subscription_ids)
-        activation_key = self._make_activation_key({
-            'name': ak_name,
-            'organization-id': org['id']
-        })
-        ActivationKey.add_subscription({
-            u'id': activation_key['id'],
-            u'subscription-id': subscription_id,
-        })
-        subscriptions = ActivationKey.subscriptions({
-            'organization-id': org['id'],
-            'id': activation_key['id'],
-        }, output_format='csv')
+        activation_key = self._make_activation_key({'name': ak_name, 'organization-id': org['id']})
+        ActivationKey.add_subscription(
+            {'id': activation_key['id'], 'subscription-id': subscription_id}
+        )
+        subscriptions = ActivationKey.subscriptions(
+            {'organization-id': org['id'], 'id': activation_key['id']}, output_format='csv'
+        )
         self.assertEqual(len(subscriptions), 1)
         role = make_role({'organization-id': org['id']})
         resource_permissions = {
@@ -1516,50 +1540,44 @@ class ActivationKeyTestCase(CLITestCase):
                     'view_activation_keys',
                     'create_activation_keys',
                     'edit_activation_keys',
-                    'destroy_activation_keys'
+                    'destroy_activation_keys',
                 ],
-                'search': "name ~ {}".format(ak_name_like)
+                'search': "name ~ {}".format(ak_name_like),
             },
             'Katello::HostCollection': {
-                'permissions': [
-                    'view_host_collections',
-                    'edit_host_collections'
-                ],
-                'search': "name ~ {0} || name ~ {1}".format(*hc_names_like)
+                'permissions': ['view_host_collections', 'edit_host_collections'],
+                'search': "name ~ {0} || name ~ {1}".format(*hc_names_like),
             },
-            'Organization': {
-                'permissions': [
-                    'view_organizations',
-                    'assign_organizations',
-                ],
-            },
+            'Organization': {'permissions': ['view_organizations', 'assign_organizations']},
             'Katello::Subscription': {
                 'permissions': [
                     'view_subscriptions',
                     'attach_subscriptions',
-                    'unattach_subscriptions'
-                ],
-            }
+                    'unattach_subscriptions',
+                ]
+            },
         }
         add_role_permissions(role['id'], resource_permissions)
-        user = make_user({
-            'admin': False,
-            'default-organization-id': org['id'],
-            'organization-ids': [org['id']],
-            'login': user_name,
-            'password': user_password,
-        })
+        user = make_user(
+            {
+                'admin': False,
+                'default-organization-id': org['id'],
+                'organization-ids': [org['id']],
+                'login': user_name,
+                'password': user_password,
+            }
+        )
         User.add_role({'id': user['id'], 'role-id': role['id']})
         ak_user_cli_session = ActivationKey.with_user(user_name, user_password)
-        subscriptions = ak_user_cli_session.subscriptions({
-            'organization-id': org['id'],
-            'id': activation_key['id'],
-        }, output_format='csv')
+        subscriptions = ak_user_cli_session.subscriptions(
+            {'organization-id': org['id'], 'id': activation_key['id']}, output_format='csv'
+        )
         self.assertEqual(len(subscriptions), 1)
         self.assertEqual(subscriptions[0]['id'], subscription_id)
 
     @skip_if_not_set('clients')
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_subscription_quantity_attached(self):
         """ Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 
@@ -1577,20 +1595,25 @@ class ActivationKeyTestCase(CLITestCase):
 
         """
         org = make_org()
-        result = setup_org_for_a_rh_repo({
-            u'product': PRDS['rhel'],
-            u'repository-set': REPOSET['rhst7'],
-            u'repository': REPOS['rhst7']['name'],
-            u'organization-id': org['id'],
-        }, force_use_cdn=True)
-        ak = ActivationKey.info({'id': result[u'activationkey-id']})
-        setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': org['id'],
-            u'activationkey-id': result['activationkey-id'],
-            u'content-view-id': result['content-view-id'],
-            u'lifecycle-environment-id': result['lifecycle-environment-id'],
-        })
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org['id'],
+            },
+            force_use_cdn=True,
+        )
+        ak = ActivationKey.info({'id': result['activationkey-id']})
+        setup_org_for_a_custom_repo(
+            {
+                'url': FAKE_0_YUM_REPO,
+                'organization-id': org['id'],
+                'activationkey-id': result['activationkey-id'],
+                'content-view-id': result['content-view-id'],
+                'lifecycle-environment-id': result['lifecycle-environment-id'],
+            }
+        )
         subs = Subscription.list({'organization-id': org['id']}, per_page=False)
         subs_lookup = {s['id']: s for s in subs}
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
@@ -1599,7 +1622,8 @@ class ActivationKeyTestCase(CLITestCase):
             self.assertTrue(vm.subscribed)
 
             ak_subs = ActivationKey.subscriptions(
-                {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json')
+                {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json'
+            )
             self.assertEqual(len(ak_subs), 2)  # one for #rh product, one for custom product
             for ak_sub in ak_subs:
                 self.assertIn(ak_sub['id'], subs_lookup)

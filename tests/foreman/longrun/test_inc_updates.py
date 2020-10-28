@@ -14,37 +14,34 @@
 
 :Upstream: No
 """
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 
-from datetime import date, timedelta, datetime
 from fauxfactory import gen_alpha
 from nailgun import entities
 from nailgun import entity_mixins
+
 from robottelo import manifests
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    enable_rhrepo_and_fetchid,
-    promote,
-    upload_manifest,
-    wait_for_tasks,
-)
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import promote
+from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_RELEASE_VERSION,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    PRDS,
-    REAL_0_RH_PACKAGE,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier4,
-    upgrade
-)
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_RELEASE_VERSION
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_RH_PACKAGE
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
@@ -63,14 +60,9 @@ class IncrementalUpdateTestCase(TestCase):
         cls.org = entities.Organization(name=gen_alpha()).create()
 
         # Create two lifecycle environments - DEV, QE
-        cls.dev_lce = entities.LifecycleEnvironment(
-            name='DEV',
-            organization=cls.org
-        ).create()
+        cls.dev_lce = entities.LifecycleEnvironment(name='DEV', organization=cls.org).create()
         cls.qe_lce = entities.LifecycleEnvironment(
-            name='QE',
-            prior=cls.dev_lce,
-            organization=cls.org
+            name='QE', prior=cls.dev_lce, organization=cls.org
         ).create()
 
         # Upload manifest
@@ -97,9 +89,7 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Read the repositories
         cls.rhva_6_repo = entities.Repository(id=rhva_6_repo_id).read()
-        cls.rhel6_sat6tools_repo = entities.Repository(
-            id=rhel6_sat6tools_repo_id
-        ).read()
+        cls.rhel6_sat6tools_repo = entities.Repository(id=rhel6_sat6tools_repo_id).read()
 
         # Sync the enabled repositories
         try:
@@ -107,7 +97,7 @@ class IncrementalUpdateTestCase(TestCase):
             # Update timeout to 15 minutes to finish sync
             entity_mixins.TASK_TIMEOUT = 900
             for repo in [cls.rhva_6_repo, cls.rhel6_sat6tools_repo]:
-                assert repo.sync()['result'] == u'success'
+                assert repo.sync()['result'] == 'success'
         finally:
             entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
@@ -119,7 +109,7 @@ class IncrementalUpdateTestCase(TestCase):
         self.rhel_6_partial_cv = entities.ContentView(
             organization=self.org,
             name=gen_alpha(),
-            repository=[self.rhva_6_repo, self.rhel6_sat6tools_repo]
+            repository=[self.rhva_6_repo, self.rhel6_sat6tools_repo],
         ).create()
 
         # Create a content view filter to filter out errata
@@ -127,7 +117,7 @@ class IncrementalUpdateTestCase(TestCase):
             content_view=self.rhel_6_partial_cv,
             type='erratum',
             name='rhel_6_partial_cv_filter',
-            repository=[self.rhva_6_repo]
+            repository=[self.rhva_6_repo],
         ).create()
 
         # Create a content view filter rule - filtering out errata in the last
@@ -137,7 +127,7 @@ class IncrementalUpdateTestCase(TestCase):
             content_view_filter=rhel_6_partial_cvf,
             types=['security', 'enhancement', 'bugfix'],
             start_date=start_date,
-            end_date=date.today().strftime('%Y-%m-%d')
+            end_date=date.today().strftime('%Y-%m-%d'),
         ).create()
 
         # Publish content view and re-read it
@@ -152,7 +142,8 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Create host collection
         self.rhel_6_partial_hc = entities.HostCollection(
-            organization=self.org, name=gen_alpha(), max_hosts=5).create()
+            organization=self.org, name=gen_alpha(), max_hosts=5
+        ).create()
 
         # Create activation key for content view
         kwargs = {'organization': self.org, 'environment': self.qe_lce.id}
@@ -163,25 +154,22 @@ class IncrementalUpdateTestCase(TestCase):
             **kwargs
         ).create()
 
-        # Assign subscription to activation key. Fetch available subscriptions
+        # Fetch available subscriptions
         subs = entities.Subscription(organization=self.org).search()
         assert len(subs) > 0
 
-        # Add subscription to activation key
+        # Add default subscription to activation key
         sub_found = False
         for sub in subs:
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                rhel_6_partial_ak.add_subscriptions(data={
-                    u'subscription_id': sub.id
-                })
+            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
+                rhel_6_partial_ak.add_subscriptions(data={'subscription_id': sub.id})
                 sub_found = True
         assert sub_found
 
         # Enable product content in activation key
-        rhel_6_partial_ak.content_override(data={'content_override': {
-            u'content_label': REPOS['rhst6']['id'],
-            u'value': u'1'
-        }})
+        rhel_6_partial_ak.content_override(
+            data={'content_overrides': [{'content_label': REPOS['rhst6']['id'], 'value': '1'}]}
+        )
 
         # Create client machine and register it to satellite with
         # rhel_6_partial_ak
@@ -194,17 +182,14 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Find the content host and ensure that tasks started by package
         # installation has finished
-        host = entities.Host().search(
-            query={'search': 'name={}'.format(self.vm.hostname)})
+        host = entities.Host().search(query={'search': 'name={}'.format(self.vm.hostname)})
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadPackageProfile'
-                         ' and resource_id = {}'
-                         ' and started_at >= "{}"'.format(
-                            host[0].id, timestamp)
+            ' and resource_id = {}'
+            ' and started_at >= "{}"'.format(host[0].id, timestamp)
         )
         # Force host to generate or refresh errata applicability
-        call_entity_method_with_timeout(host[0].errata_applicability,
-                                        timeout=600)
+        call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
 
     @staticmethod
     def setup_vm(client, act_key, org_name):
@@ -213,11 +198,7 @@ class IncrementalUpdateTestCase(TestCase):
         client.install_katello_ca()
 
         # Register content host, install katello-agent
-        client.register_contenthost(
-            org_name,
-            act_key,
-            releasever=DEFAULT_RELEASE_VERSION
-        )
+        client.register_contenthost(org_name, act_key, releasever=DEFAULT_RELEASE_VERSION)
         assert client.subscribed
         client.install_katello_agent()
         client.run('katello-package-upload')
@@ -225,9 +206,7 @@ class IncrementalUpdateTestCase(TestCase):
     @staticmethod
     def get_applicable_errata(repo):
         """Retrieves applicable errata for the given repo"""
-        return entities.Errata(repository=repo).search(
-            query={'errata_restrict_applicable': True}
-        )
+        return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
 
     @tier4
     @upgrade
@@ -261,22 +240,21 @@ class IncrementalUpdateTestCase(TestCase):
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
-        entities.ContentViewVersion().incremental_update(data={
-            'content_view_version_environments': [{
-                'content_view_version_id': cv_versions[-1].id,
-                'environment_ids': [self.qe_lce.id]
-            }],
-            'add_content': {
-                'errata_ids': [errata_list[0].id]
+        entities.ContentViewVersion().incremental_update(
+            data={
+                'content_view_version_environments': [
+                    {
+                        'content_view_version_id': cv_versions[-1].id,
+                        'environment_ids': [self.qe_lce.id],
+                    }
+                ],
+                'add_content': {'errata_ids': [errata_list[0].id]},
             }
-        })
+        )
 
         # Re-read the content view to get the latest versions
         self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
-        self.assertGreater(
-            len(self.rhel_6_partial_cv.version),
-            len(cv_versions)
-        )
+        self.assertGreater(len(self.rhel_6_partial_cv.version), len(cv_versions))
 
     @tier4
     @upgrade
@@ -302,15 +280,14 @@ class IncrementalUpdateTestCase(TestCase):
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
-        ContentViewCLI.version_incremental_update({
-            u'content-view-version-id': cv_versions[-1].id,
-            u'lifecycle-environment-ids': self.qe_lce.id,
-            u'errata-ids': errata_list[0].id,
-        })
+        ContentViewCLI.version_incremental_update(
+            {
+                'content-view-version-id': cv_versions[-1].id,
+                'lifecycle-environment-ids': self.qe_lce.id,
+                'errata-ids': errata_list[0].id,
+            }
+        )
 
         # Re-read the content view to get the latest versions
         self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
-        self.assertGreater(
-            len(self.rhel_6_partial_cv.version),
-            len(cv_versions)
-        )
+        self.assertGreater(len(self.rhel_6_partial_cv.version), len(cv_versions))

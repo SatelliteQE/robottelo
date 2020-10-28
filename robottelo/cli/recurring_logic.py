@@ -12,7 +12,6 @@ Subcommands:
  info                          Show recurring logic details
  list                          List recurring logics
 """
-
 from robottelo.cli.base import Base
 
 

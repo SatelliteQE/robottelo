@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=no-self-use
 """Test class for Organization CLI
 
 :Requirement: Organization
@@ -16,40 +15,36 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
+
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_compute_resource,
-    make_domain,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_location,
-    make_medium,
-    make_org,
-    make_proxy,
-    make_subnet,
-    make_template,
-    make_user,
-)
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_medium
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import make_template
+from robottelo.cli.factory import make_user
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-    valid_org_names_list,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import valid_org_names_list
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -102,7 +97,7 @@ class OrganizationTestCase(CLITestCase):
         # org list --help:
         result = Org.list({'help': True}, output_format=None)
         # get list of lines and check they all are unique
-        lines = [line for line in result if line != '']
+        lines = [line for line in result if line != '' and '----' not in line]
         self.assertEqual(len(set(lines)), len(lines))
 
         # org info --help:info returns more lines (obviously), ignore exception
@@ -127,12 +122,8 @@ class OrganizationTestCase(CLITestCase):
         # Create
         name = valid_org_names_list()[0]
         label = valid_labels_list()[0]
-        desc = valid_data_list()[0]
-        org = make_org({
-            'name': name,
-            'label': label,
-            'description': desc,
-            })
+        desc = list(valid_data_list().values())[0]
+        org = make_org({'name': name, 'label': label, 'description': desc})
         self.assertEqual(org['name'], name)
         self.assertEqual(org['label'], label)
         self.assertEqual(org['description'], desc)
@@ -207,28 +198,14 @@ class OrganizationTestCase(CLITestCase):
         """
         subnet_a = make_subnet()
         subnet_b = make_subnet()
-        Org.add_subnet({
-            'name': self.org['name'],
-            'subnet': subnet_a['name'],
-        })
-        Org.add_subnet({
-            'name': self.org['name'],
-            'subnet-id': subnet_b['id'],
-        })
+        Org.add_subnet({'name': self.org['name'], 'subnet': subnet_a['name']})
+        Org.add_subnet({'name': self.org['name'], 'subnet-id': subnet_b['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['subnets']), 2,
-                         "Failed to add subnets")
-        Org.remove_subnet({
-            'name': self.org['name'],
-            'subnet': subnet_a['name'],
-        })
-        Org.remove_subnet({
-            'name': self.org['name'],
-            'subnet-id': subnet_b['id'],
-        })
+        self.assertEqual(len(org_info['subnets']), 2, "Failed to add subnets")
+        Org.remove_subnet({'name': self.org['name'], 'subnet': subnet_a['name']})
+        Org.remove_subnet({'name': self.org['name'], 'subnet-id': subnet_b['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['subnets']), 0,
-                         "Failed to remove subnets")
+        self.assertEqual(len(org_info['subnets']), 0, "Failed to remove subnets")
 
     @tier2
     def test_positive_add_and_remove_users(self):
@@ -253,62 +230,34 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(admin_user['admin'], 'yes')
 
         # add and remove user and admin user by name
-        Org.add_user({
-            'name': self.org['name'],
-            'user': user['login'],
-        })
-        Org.add_user({
-            'name': self.org['name'],
-            'user': admin_user['login'],
-        })
+        Org.add_user({'name': self.org['name'], 'user': user['login']})
+        Org.add_user({'name': self.org['name'], 'user': admin_user['login']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertIn(user['login'], org_info['users'],
-                      "Failed to add user by name")
-        self.assertIn(admin_user['login'], org_info['users'],
-                      "Failed to add admin user by name")
+        self.assertIn(user['login'], org_info['users'], "Failed to add user by name")
+        self.assertIn(admin_user['login'], org_info['users'], "Failed to add admin user by name")
 
-        Org.remove_user({
-            'name': self.org['name'],
-            'user': user['login'],
-        })
-        Org.remove_user({
-            'name': self.org['name'],
-            'user': admin_user['login'],
-        })
+        Org.remove_user({'name': self.org['name'], 'user': user['login']})
+        Org.remove_user({'name': self.org['name'], 'user': admin_user['login']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertNotIn(user['login'], org_info['users'],
-                         "Failed to remove user by name")
-        self.assertNotIn(admin_user['login'], org_info['users'],
-                         "Failed to remove admin user by name")
+        self.assertNotIn(user['login'], org_info['users'], "Failed to remove user by name")
+        self.assertNotIn(
+            admin_user['login'], org_info['users'], "Failed to remove admin user by name"
+        )
 
         # add and remove user and admin user by id
-        Org.add_user({
-            'id': self.org['id'],
-            'user-id': user['id'],
-        })
-        Org.add_user({
-            'id': self.org['id'],
-            'user-id': admin_user['id'],
-        })
+        Org.add_user({'id': self.org['id'], 'user-id': user['id']})
+        Org.add_user({'id': self.org['id'], 'user-id': admin_user['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertIn(user['login'], org_info['users'],
-                      "Failed to add user by id")
-        self.assertIn(admin_user['login'], org_info['users'],
-                      "Failed to add admin user by id")
+        self.assertIn(user['login'], org_info['users'], "Failed to add user by id")
+        self.assertIn(admin_user['login'], org_info['users'], "Failed to add admin user by id")
 
-        Org.remove_user({
-            'id': self.org['id'],
-            'user-id': user['id'],
-        })
-        Org.remove_user({
-            'id': self.org['id'],
-            'user-id': admin_user['id'],
-        })
+        Org.remove_user({'id': self.org['id'], 'user-id': user['id']})
+        Org.remove_user({'id': self.org['id'], 'user-id': admin_user['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertNotIn(user['login'], org_info['users'],
-                         "Failed to remove user by id")
-        self.assertNotIn(admin_user['login'], org_info['users'],
-                         "Failed to remove admin user by id")
+        self.assertNotIn(user['login'], org_info['users'], "Failed to remove user by id")
+        self.assertNotIn(
+            admin_user['login'], org_info['users'], "Failed to remove admin user by id"
+        )
 
     @tier2
     def test_positive_add_and_remove_hostgroups(self):
@@ -328,32 +277,22 @@ class OrganizationTestCase(CLITestCase):
         """
         hostgroup_a = make_hostgroup()
         hostgroup_b = make_hostgroup()
-        Org.add_hostgroup({
-            'hostgroup-id': hostgroup_a['id'],
-            'id': self.org['id'],
-        })
-        Org.add_hostgroup({
-            'hostgroup': hostgroup_b['name'],
-            'name': self.org['name'],
-        })
+        Org.add_hostgroup({'hostgroup-id': hostgroup_a['id'], 'id': self.org['id']})
+        Org.add_hostgroup({'hostgroup': hostgroup_b['name'], 'name': self.org['name']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertIn(hostgroup_a['name'], org_info['hostgroups'],
-                      "Failed to add hostgroup by id")
-        self.assertIn(hostgroup_b['name'], org_info['hostgroups'],
-                      "Failed to add hostgroup by name")
-        Org.remove_hostgroup({
-            'hostgroup-id': hostgroup_b['id'],
-            'id': self.org['id'],
-        })
-        Org.remove_hostgroup({
-            'hostgroup': hostgroup_a['name'],
-            'name': self.org['name'],
-        })
+        self.assertIn(hostgroup_a['name'], org_info['hostgroups'], "Failed to add hostgroup by id")
+        self.assertIn(
+            hostgroup_b['name'], org_info['hostgroups'], "Failed to add hostgroup by name"
+        )
+        Org.remove_hostgroup({'hostgroup-id': hostgroup_b['id'], 'id': self.org['id']})
+        Org.remove_hostgroup({'hostgroup': hostgroup_a['name'], 'name': self.org['name']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertNotIn(hostgroup_a['name'], org_info['hostgroups'],
-                         "Failed to remove hostgroup by name")
-        self.assertNotIn(hostgroup_b['name'], org_info['hostgroups'],
-                         "Failed to remove hostgroup by id")
+        self.assertNotIn(
+            hostgroup_a['name'], org_info['hostgroups'], "Failed to remove hostgroup by name"
+        )
+        self.assertNotIn(
+            hostgroup_b['name'], org_info['hostgroups'], "Failed to remove hostgroup by id"
+        )
 
     @skip_if_not_set('compute_resources')
     @tier2
@@ -373,47 +312,42 @@ class OrganizationTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        compute_res_a = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
-        })
-        compute_res_b = make_compute_resource({
-            'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': u'qemu+ssh://root@{0}/system'.format(
-                settings.compute_resources.libvirt_hostname
-            )
-        })
-        Org.add_compute_resource({
-            'compute-resource-id': compute_res_a['id'],
-            'id': self.org['id'],
-        })
-        Org.add_compute_resource({
-            'compute-resource': compute_res_b['name'],
-            'name': self.org['name'],
-        })
+        compute_res_a = make_compute_resource(
+            {
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'url': 'qemu+ssh://root@{0}/system'.format(
+                    settings.compute_resources.libvirt_hostname
+                ),
+            }
+        )
+        compute_res_b = make_compute_resource(
+            {
+                'provider': FOREMAN_PROVIDERS['libvirt'],
+                'url': 'qemu+ssh://root@{0}/system'.format(
+                    settings.compute_resources.libvirt_hostname
+                ),
+            }
+        )
+        Org.add_compute_resource(
+            {'compute-resource-id': compute_res_a['id'], 'id': self.org['id']}
+        )
+        Org.add_compute_resource(
+            {'compute-resource': compute_res_b['name'], 'name': self.org['name']}
+        )
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['compute-resources']), 2,
-                         "Failed to add compute resources")
-        Org.remove_compute_resource({
-            'compute-resource-id': compute_res_a['id'],
-            'id': self.org['id'],
-        })
-        Org.remove_compute_resource({
-            'compute-resource': compute_res_b['name'],
-            'name': self.org['name'],
-        })
+        self.assertEqual(len(org_info['compute-resources']), 2, "Failed to add compute resources")
+        Org.remove_compute_resource(
+            {'compute-resource-id': compute_res_a['id'], 'id': self.org['id']}
+        )
+        Org.remove_compute_resource(
+            {'compute-resource': compute_res_b['name'], 'name': self.org['name']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
-            compute_res_a['name'],
-            org_info['compute-resources'],
-            "Failed to remove cr by id"
+            compute_res_a['name'], org_info['compute-resources'], "Failed to remove cr by id"
         )
         self.assertNotIn(
-            compute_res_b['name'],
-            org_info['compute-resources'],
-            "Failed to remove cr by name"
+            compute_res_b['name'], org_info['compute-resources'], "Failed to remove cr by name"
         )
 
     @tier2
@@ -434,40 +368,35 @@ class OrganizationTestCase(CLITestCase):
         """
         medium_a = make_medium()
         medium_b = make_medium()
-        Org.add_medium({
-            'id': self.org['id'],
-            'medium-id': medium_a['id'],
-        })
-        Org.add_medium({
-            'name': self.org['name'],
-            'medium': medium_b['name'],
-        })
+        Org.add_medium({'id': self.org['id'], 'medium-id': medium_a['id']})
+        Org.add_medium({'name': self.org['name'], 'medium': medium_b['name']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertIn(medium_a['name'], org_info['installation-media'],
-                      "Failed to add medium by id")
-        self.assertIn(medium_b['name'], org_info['installation-media'],
-                      "Failed to add medium by name")
-        Org.remove_medium({
-            'name': self.org['name'],
-            'medium': medium_a['name'],
-        })
-        Org.remove_medium({
-            'id': self.org['id'],
-            'medium-id': medium_b['id'],
-        })
+        self.assertIn(
+            medium_a['name'], org_info['installation-media'], "Failed to add medium by id"
+        )
+        self.assertIn(
+            medium_b['name'], org_info['installation-media'], "Failed to add medium by name"
+        )
+        Org.remove_medium({'name': self.org['name'], 'medium': medium_a['name']})
+        Org.remove_medium({'id': self.org['id'], 'medium-id': medium_b['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertNotIn(medium_a['name'], org_info['installation-media'],
-                         "Failed to remove medium by name")
-        self.assertNotIn(medium_b['name'], org_info['installation-media'],
-                         "Failed to remove medium by id")
+        self.assertNotIn(
+            medium_a['name'], org_info['installation-media'], "Failed to remove medium by name"
+        )
+        self.assertNotIn(
+            medium_b['name'], org_info['installation-media'], "Failed to remove medium by id"
+        )
 
     @tier2
+    @pytest.mark.skip_if_open("BZ:1845860")
     def test_positive_add_and_remove_templates(self):
         """Add and remove provisioning templates to organization
 
         :id: bd46a192-488f-4da0-bf47-1f370ae5f55c
 
         :expectedresults: Templates are handled as expected
+
+        :BZ: 1845860
 
         :steps:
             1. Add and remove template by id
@@ -476,57 +405,50 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         # create and remove templates by name
-        name = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
 
-        template = make_template({
-            'content': gen_string('alpha'),
-            'name': name,
-        })
-        # Add config-template
-        Org.add_config_template({
-            'name': self.org['name'],
-            'config-template': template['name'],
-        })
+        template = make_template({'content': gen_string('alpha'), 'name': name})
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'name': self.org['name'], 'provisioning-template': template['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
-            "Failed to add template by name"
+            "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({
-            'config-template': template['name'],
-            'name': self.org['name'],
-        })
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template': template['name'], 'name': self.org['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
-            "Failed to remove template by name"
+            "Failed to remove template by name",
         )
 
         # add and remove templates by id
-        # Add config-template
-        Org.add_config_template({
-            'config-template-id': template['id'],
-            'id': self.org['id'],
-        })
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
-            "Failed to add template by name"
+            "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({
-            'config-template-id': template['id'],
-            'id': self.org['id'],
-        })
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
+            '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
-            "Failed to remove template by id"
+            "Failed to remove template by id",
         )
 
     @tier2
@@ -547,30 +469,16 @@ class OrganizationTestCase(CLITestCase):
         """
         domain_a = make_domain()
         domain_b = make_domain()
-        Org.add_domain({
-            'domain-id': domain_a['id'],
-            'name': self.org['name'],
-        })
-        Org.add_domain({
-            'domain': domain_b['name'],
-            'name': self.org['name'],
-        })
+        Org.add_domain({'domain-id': domain_a['id'], 'name': self.org['name']})
+        Org.add_domain({'domain': domain_b['name'], 'name': self.org['name']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['domains']), 2,
-                         "Failed to add domains")
+        self.assertEqual(len(org_info['domains']), 2, "Failed to add domains")
         self.assertIn(domain_a['name'], org_info['domains'])
         self.assertIn(domain_b['name'], org_info['domains'])
-        Org.remove_domain({
-            'domain': domain_a['name'],
-            'name': self.org['name'],
-        })
-        Org.remove_domain({
-            'domain-id': domain_b['id'],
-            'id': self.org['id'],
-        })
+        Org.remove_domain({'domain': domain_a['name'], 'name': self.org['name']})
+        Org.remove_domain({'domain-id': domain_b['id'], 'id': self.org['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['domains']), 0,
-                         "Failed to remove domains")
+        self.assertEqual(len(org_info['domains']), 0, "Failed to remove domains")
 
     @tier2
     @upgrade
@@ -589,12 +497,8 @@ class OrganizationTestCase(CLITestCase):
         """
         # Create a lifecycle environment.
         org_id = self.org['id']
-        lc_env_name = make_lifecycle_environment(
-            {'organization-id': org_id})['name']
-        lc_env_attrs = {
-            'name': lc_env_name,
-            'organization-id': org_id,
-        }
+        lc_env_name = make_lifecycle_environment({'organization-id': org_id})['name']
+        lc_env_attrs = {'name': lc_env_name, 'organization-id': org_id}
         # Read back information about the lifecycle environment. Verify the
         # sanity of that information.
         response = LifecycleEnvironment.list(lc_env_attrs)
@@ -622,34 +526,20 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         proxy = self._make_proxy()
-        Org.add_smart_proxy({
-            'id': self.org['id'],
-            'smart-proxy-id': proxy['id'],
-        })
+        Org.add_smart_proxy({'id': self.org['id'], 'smart-proxy-id': proxy['id']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertIn(proxy['name'], org_info['smart-proxies'],
-                      "Failed to add capsule by id")
-        Org.remove_smart_proxy({
-            'id': self.org['id'],
-            'smart-proxy-id': proxy['id'],
-        })
+        self.assertIn(proxy['name'], org_info['smart-proxies'], "Failed to add capsule by id")
+        Org.remove_smart_proxy({'id': self.org['id'], 'smart-proxy-id': proxy['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
-                         "Failed to remove capsule by id")
-        Org.add_smart_proxy({
-            'name': self.org['name'],
-            'smart-proxy': proxy['name'],
-        })
+        self.assertNotIn(
+            proxy['name'], org_info['smart-proxies'], "Failed to remove capsule by id"
+        )
+        Org.add_smart_proxy({'name': self.org['name'], 'smart-proxy': proxy['name']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertIn(proxy['name'], org_info['smart-proxies'],
-                      "Failed to add capsule by name")
-        Org.remove_smart_proxy({
-            'name': self.org['name'],
-            'smart-proxy': proxy['name'],
-        })
+        self.assertIn(proxy['name'], org_info['smart-proxies'], "Failed to add capsule by name")
+        Org.remove_smart_proxy({'name': self.org['name'], 'smart-proxy': proxy['name']})
         org_info = Org.info({'name': self.org['name']})
-        self.assertNotIn(proxy['name'], org_info['smart-proxies'],
-                         "Failed to add capsule by name")
+        self.assertNotIn(proxy['name'], org_info['smart-proxies'], "Failed to add capsule by name")
 
     @tier2
     @upgrade
@@ -670,30 +560,16 @@ class OrganizationTestCase(CLITestCase):
         """
         loc_a = make_location()
         loc_b = make_location()
-        Org.add_location({
-            'location-id': loc_a['id'],
-            'name': self.org['name'],
-        })
-        Org.add_location({
-            'location': loc_b['name'],
-            'name': self.org['name'],
-        })
+        Org.add_location({'location-id': loc_a['id'], 'name': self.org['name']})
+        Org.add_location({'location': loc_b['name'], 'name': self.org['name']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertEqual(len(org_info['locations']), 2,
-                         "Failed to add locations")
+        self.assertEqual(len(org_info['locations']), 2, "Failed to add locations")
         self.assertIn(loc_a['name'], org_info['locations'])
         self.assertIn(loc_b['name'], org_info['locations'])
-        Org.remove_location({
-            'location-id': loc_a['id'],
-            'id': self.org['id'],
-        })
-        Org.remove_location({
-            'location': loc_b['name'],
-            'id': self.org['id'],
-        })
+        Org.remove_location({'location-id': loc_a['id'], 'id': self.org['id']})
+        Org.remove_location({'location': loc_b['name'], 'id': self.org['id']})
         org_info = Org.info({'id': self.org['id']})
-        self.assertNotIn('locations', org_info,
-                         "Failed to remove locations")
+        self.assertNotIn('locations', org_info, "Failed to remove locations")
 
     @tier1
     @upgrade
@@ -713,30 +589,22 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org_info['parameters']), 0)
 
         # Create parameter
-        Org.set_parameter({
-            'name': param_name,
-            'value': gen_string('alpha'),
-            'organization-id': self.org['id'],
-        })
+        Org.set_parameter(
+            {'name': param_name, 'value': gen_string('alpha'), 'organization-id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertEqual(len(org_info['parameters']), 1)
 
         # Update
-        Org.set_parameter({
-            'name': param_name,
-            'value': param_new_value,
-            'organization': self.org['name'],
-        })
+        Org.set_parameter(
+            {'name': param_name, 'value': param_new_value, 'organization': self.org['name']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertEqual(len(org_info['parameters']), 1)
-        self.assertEqual(
-            param_new_value, org_info['parameters'][param_name.lower()])
+        self.assertEqual(param_new_value, org_info['parameters'][param_name.lower()])
 
         # Delete parameter
-        Org.delete_parameter({
-            'name': param_name,
-            'organization': self.org['name'],
-        })
+        Org.delete_parameter({'name': param_name, 'organization': self.org['name']})
         org_info = Org.info({'id': self.org['id']})
         self.assertEqual(len(org_info['parameters']), 0)
         self.assertNotIn(param_name.lower(), org_info['parameters'])
@@ -754,11 +622,13 @@ class OrganizationTestCase(CLITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
-                    Org.create({
-                        'description': gen_string('alpha'),
-                        'label': gen_string('alpha'),
-                        'name': name,
-                    })
+                    Org.create(
+                        {
+                            'description': gen_string('alpha'),
+                            'label': gen_string('alpha'),
+                            'name': name,
+                        }
+                    )
 
     @tier1
     def test_negative_create_same_name(self):
@@ -772,20 +642,12 @@ class OrganizationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = valid_org_names_list()[0]
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         label = valid_labels_list()[0]
 
-        Org.create({
-            'description': desc,
-            'label': label,
-            'name': name,
-        })
+        Org.create({'description': desc, 'label': label, 'name': name})
         with self.assertRaises(CLIReturnCodeError):
-            Org.create({
-                'description': desc,
-                'label': label,
-                'name': name,
-            })
+            Org.create({'description': desc, 'label': label, 'name': name})
 
     @tier1
     def test_positive_update(self):
@@ -798,22 +660,16 @@ class OrganizationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_name = valid_org_names_list()[0]
-        new_desc = valid_data_list()[0]
+        new_desc = list(valid_data_list().values())[0]
         org = make_org()
 
         # upgrade name
-        Org.update({
-            'id': org['id'],
-            'new-name': new_name,
-        })
+        Org.update({'id': org['id'], 'new-name': new_name})
         org = Org.info({'id': org['id']})
         self.assertEqual(org['name'], new_name)
 
         # upgrade description
-        Org.update({
-            'description': new_desc,
-            'id': org['id'],
-        })
+        Org.update({'description': new_desc, 'id': org['id']})
         org = Org.info({'id': org['id']})
         self.assertEqual(org['description'], new_desc)
 
@@ -830,7 +686,4 @@ class OrganizationTestCase(CLITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
-                    Org.update({
-                        'id': org['id'],
-                        'new-name': new_name,
-                    })
+                    Org.update({'id': org['id'], 'new-name': new_name})
