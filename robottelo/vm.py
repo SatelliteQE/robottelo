@@ -78,12 +78,13 @@ class VirtualMachine(object):
         bridge=None,
         network=None,
     ):
-        distro_mapping = {
+        image_map = {
             DISTRO_RHEL6: settings.distro.image_el6,
             DISTRO_RHEL7: settings.distro.image_el7,
             DISTRO_RHEL8: settings.distro.image_el8,
             DISTRO_SLES11: settings.distro.image_sles11,
             DISTRO_SLES12: settings.distro.image_sles12,
+            'image_docker': settings.docker.docker_image,
         }
         self.cpu = cpu
         self.mac = None
@@ -115,7 +116,7 @@ class VirtualMachine(object):
                     f'host OS version: {server_host_os_version}'
                 )
 
-        self.distro = distro_mapping.get(distro) or distro
+        self.distro = distro
         if self.distro not in self.allowed_distros:
             raise VirtualMachineError(
                 f'{self.distro} is not a supported distro. Choose one of {self.allowed_distros}'
@@ -140,7 +141,7 @@ class VirtualMachine(object):
         self._domain = domain
         self._created = False
         self._subscribed = False
-        self._source_image = source_image or '{0}-base'.format(self.distro)
+        self._source_image = source_image or '{0}-base'.format(image_map.get(self.distro))
         self._target_image = target_image or gen_string('alphanumeric', 16).lower()
         if tag:
             self._target_image = tag + self._target_image
@@ -159,8 +160,7 @@ class VirtualMachine(object):
         """This is needed in construction, record it for easy reference
         Property instead of a class attribute to delay reading of the settings
         """
-        distro_docker = settings.docker.docker_image
-        return list(settings.distro.__dict__.values()) + [distro_docker]
+        return [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8, DISTRO_SLES11, DISTRO_SLES12]
 
     @property
     def subscribed(self):
@@ -539,7 +539,7 @@ gpgcheck=0'''.format(
                 password = settings.server.admin_password
 
             cmd += ' --consumerid {0} --username {1} --password {2}'.format(
-                consumerid, username, password,
+                consumerid, username, password
             )
             if auto_attach:
                 cmd += ' --auto-attach'
@@ -649,7 +649,7 @@ gpgcheck=0'''.format(
         # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests as they are huge(in GB's)
         # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
-        self.run('wget -O /etc/yum.repos.d/rhel.repo {0}'.format(rhel_repo))
+        self.run('curl -o /etc/yum.repos.d/rhel.repo {0}'.format(rhel_repo))
 
     def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
         """Configures puppet on the virtual machine/Host.
@@ -671,19 +671,20 @@ gpgcheck=0'''.format(
             'pluginsync      = true\n'
             'report          = true\n'
             'ignoreschedules = true\n'
-            'ca_server       = {0}\n'
+            f'ca_server       = {proxy_hostname}\n'
+            f'certname        = {self.hostname}\n'
             'environment     = production\n'
-            'server          = {1}\n'.format(proxy_hostname, proxy_hostname)
+            f'server          = {proxy_hostname}\n'
         )
         result = self.run('yum install puppet -y')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install the puppet rpm')
-        self.run('echo "{0}" >> /etc/puppetlabs/puppet/puppet.conf'.format(puppet_conf))
+        self.run(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
         # This particular puppet run on client would populate a cert on
-        # sat6 under the capsule --> certifcates or on capsule via cli "puppet
-        # cert list", so that we sign it.
+        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # ca list", so that we sign it.
         self.run('puppet agent -t')
-        ssh.command(cmd='puppet cert sign --all', hostname=proxy_hostname)
+        ssh.command(cmd='puppetserver ca sign --all', hostname=proxy_hostname)
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
@@ -702,7 +703,7 @@ gpgcheck=0'''.format(
                 'awk -F "/" \'/download_path/ {print $4}\' /etc/foreman_scap_client/config.yaml'
             )
             policy_id = result.stdout[0]
-        self.run('foreman_scap_client {0}'.format(policy_id))
+        self.run(f'foreman_scap_client {policy_id}', timeout=600)
         if result.return_code != 0:
             raise VirtualMachineError('Failed to execute foreman_scap_client run.')
 
@@ -764,6 +765,21 @@ gpgcheck=0'''.format(
             raise VirtualMachineError(
                 'Unable to register client to Access Insights through Satellite'
             )
+
+    def set_infrastructure_type(self, infrastructure_type="physical"):
+        """Force host to appear as bare-metal or virtual machine in
+        subscription-manager fact.
+
+        :param str infrastructure_type: One of "physical", "virtual"
+        """
+        script_path = "/usr/sbin/virt-what"
+        self.run(f"cp -n {script_path} {script_path}.old")
+
+        script_content = ["#!/bin/sh -"]
+        if infrastructure_type == "virtual":
+            script_content.append("echo kvm")
+        script_content = "\n".join(script_content)
+        self.run(f"echo -e '{script_content}' > {script_path}")
 
     def patch_os_release_version(self, distro=DISTRO_RHEL7):
         """Patch VM OS release version.

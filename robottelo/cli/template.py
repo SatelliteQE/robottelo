@@ -1,28 +1,24 @@
 # -*- encoding: utf-8 -*-
 """
 Usage::
-
     hammer template [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
-
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
+    SUBCOMMAND                    Subcommand
+    [ARG] ...                     Subcommand arguments
 
 Subcommands::
-
-    add_operatingsystem           Associate an operating system
-    build-pxe-default             Update the default PXE menu on all configured
-                                  TFTP servers
+    add-operatingsystem           Associate an operating system
+    build-pxe-default             Update the default PXE menu on all configured TFTP servers
     clone                         Clone a provision template
-
+    combination                   Manage template combinations
     create                        Create a provisioning template
     delete                        Delete a provisioning template
-    dump                          View config template content.
+    dump                          View provisioning template content
     info                          Show provisioning template details
-    kinds                         List available config template kinds.
+    kinds                         List available provisioning template kinds
     list                          List provisioning templates
-    remove_operatingsystem        Disassociate an operating system
+    remove-operatingsystem        Disassociate an operating system
     update                        Update a provisioning template
 """
 from robottelo.cli.base import Base

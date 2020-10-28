@@ -33,49 +33,43 @@ class SmartClassParameter(Base):
         return super(SmartClassParameter, cls).info(options=options, output_format='json')
 
     @classmethod
-    def add_override_value(cls, options=None):
-        """Create an override value for a specific smart class parameter
+    def add_matcher(cls, options=None):
+        """Create a matcher for a specific smart class parameter
 
         Usage::
 
-            hammer sc-param add-override-value [OPTIONS]
+            hammer sc-param add-matcher [OPTIONS]
 
         Options::
 
-            --match MATCH                                       Override match
-            --puppet-class PUPPET_CLASS_NAME                    Puppet class
-                                                                name
-            --puppet-class-id PUPPET_CLASS_ID                   ID of Puppet
-                                                                class
-            --smart-class-parameter SMART_CLASS_PARAMETER_NAME  Smart class
-                                                                parameter name
-            --smart-class-parameter-id SMART_CLASS_PARAMETER_ID
-            --use-puppet-default USE_PUPPET_DEFAULT             One of
-                                                                true/false,
-                                                                yes/no, 1/0.
-            --value VALUE                                       Override value
+            --location[-id|-title]        Name/Title/Id of associated location
+            --match MATCH                 Override match
+            --omit OMIT                   Satellite will not send this parameter in
+                                          classificationoutput
+                                          One of true/false, yes/no, 1/0.
+            --organization[-id|-title]    Name/Title/Id of associated organization
+            --puppet-class[-id]           Name/Id of associated puppetclass
+            --smart-class-parameter[-id]  Name/Id of associated smart class parameter
+            --value VALUE                 Override value, required if omit is false
         """
-        cls.command_sub = 'add-override-value'
+        cls.command_sub = 'add-matcher'
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def remove_override_value(cls, options=None):
-        """Delete an override value for a specific smart class parameter
+    def remove_matcher(cls, options=None):
+        """Delete a matcher for a specific smart class parameter
 
         Usage::
 
-            hammer sc-param remove-override-value [OPTIONS]
+            hammer sc-param remove-matcher [OPTIONS]
 
         Options::
 
             --id ID
-            --puppet-class PUPPET_CLASS_NAME                    Puppet class
-                                                                name
-            --puppet-class-id PUPPET_CLASS_ID                   ID of Puppet
-                                                                class
-            --smart-class-parameter SMART_CLASS_PARAMETER_NAME  Smart class
-                                                                parameter name
-            --smart-class-parameter-id SMART_CLASS_PARAMETER_ID
+            --location[-id|-title]        Name/Title/Id of associated location
+            --organization[-id|-title]    Name/Title/Id of associated organization
+            --puppet-class[-id]           Name/Id of associated puppetclass
+            --smart-class-parameter[-id]  Name/Id of associated smart class parameter
         """
-        cls.command_sub = 'remove-override-value'
+        cls.command_sub = 'remove-matcher'
         return cls.execute(cls._construct_command(options), output_format='csv')

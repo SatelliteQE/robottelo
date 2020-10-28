@@ -26,6 +26,7 @@ Subcommands::
      list                          List all hosts
      package                       Manage packages on your hosts
      package-group                 Manage package-groups on your hosts
+     policies-enc                  View policies ENC for host
      puppet-classes                List all Puppet classes
      puppetrun                     Force a Puppet agent run on the host
      reboot                        Reboot a host
@@ -34,9 +35,8 @@ Subcommands::
      reset                         Reset a host
      sc-params                     List all smart class parameters
      set-parameter                 Create or append a parameter for a host
-     smart-variables               List all smart variables
      start                         Power a host on
-     status                        Get configuration status of host
+     status                        Get status of host
      stop                          Power a host off
      subscription                  Manage subscription information on your hosts
      update                        Update a host
@@ -461,26 +461,6 @@ class Host(Base):
             --search SEARCH               filter results
         """
         cls.command_sub = 'sc-params'
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def smart_variables(cls, options=None):
-        """List all smart variables
-
-        Usage::
-
-            hammer host smart-variables [OPTIONS]
-
-        Options::
-
-            --host HOST_NAME              Host name
-            --host-id HOST_ID
-            --order ORDER                 sort results
-            --page PAGE                   paginate results
-            --per-page PER_PAGE           number of entries per request
-            --search SEARCH               filter results
-        """
-        cls.command_sub = 'smart-variables'
         return cls.execute(cls._construct_command(options), output_format='csv')
 
 

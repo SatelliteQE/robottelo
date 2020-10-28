@@ -5,37 +5,12 @@ import logging
 
 import pytest
 
-from robottelo.api.entity_fixtures import azurerm_settings  # noqa: F401
-from robottelo.api.entity_fixtures import azurermclient  # noqa: F401
-from robottelo.api.entity_fixtures import module_architecture  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_cloudimg  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_cr  # noqa: F401
-from robottelo.api.entity_fixtures import module_azurerm_finishimg  # noqa: F401
-from robottelo.api.entity_fixtures import module_configtemaplate  # noqa: F401
-from robottelo.api.entity_fixtures import module_cv  # noqa: F401
-from robottelo.api.entity_fixtures import module_domain  # noqa: F401
-from robottelo.api.entity_fixtures import module_gce_compute  # noqa: F401
-from robottelo.api.entity_fixtures import module_lce  # noqa: F401
-from robottelo.api.entity_fixtures import module_location  # noqa: F401
-from robottelo.api.entity_fixtures import module_org  # noqa: F401
-from robottelo.api.entity_fixtures import module_os  # noqa: F401
-from robottelo.api.entity_fixtures import module_partiontable  # noqa: F401
-from robottelo.api.entity_fixtures import module_product  # noqa: F401
-from robottelo.api.entity_fixtures import module_provisioingtemplate  # noqa: F401
-from robottelo.api.entity_fixtures import module_puppet_environment  # noqa: F401
-from robottelo.api.entity_fixtures import module_smart_proxy  # noqa: F401
-from robottelo.api.entity_fixtures import module_subnet  # noqa: F401
-
-# TODO: load fixtures consistently without hanging imports here, entry_points or module inclusion
-
-
 try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.helpers import generate_issue_collection, is_open
 
 
 def log(message, level="DEBUG"):
@@ -65,11 +40,6 @@ def pytest_report_header(config):
         if not scope:
             scope = ''
         storage = settings.shared_function.storage
-    if pytest.config.pluginmanager.hasplugin("junitxml"):
-        junit = getattr(config, "_xml", None)
-        if junit is not None:
-            now = datetime.datetime.utcnow()
-            junit.add_global_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
             shared_function_enabled, scope, storage
@@ -144,17 +114,12 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-def pytest_collection_modifyitems(items, config):
+def pytest_collection_modifyitems(session, items, config):
     """Called after collection has been performed, may filter or re-order
     the items in-place.
     """
 
     log("Collected %s test cases" % len(items))
-
-    # First collect all issues in use and build an issue collection
-    # This collection includes pre-processed `is_open` status for each issue
-    # generate_issue_collection will save a file `bz_cache.json` on each run.
-    pytest.issue_data = generate_issue_collection(items, config)
 
     # Modify items based on collected issue_data
     deselected_items = []
@@ -170,50 +135,17 @@ def pytest_collection_modifyitems(items, config):
             # Do nothing more with deselected tests
             continue
 
-        # 2. Skip items based on skip_if_open marker
-        skip_if_open = item.get_closest_marker('skip_if_open')
-        if skip_if_open:
-            # marker must have `BZ:123456` as argument.
-            issue = skip_if_open.kwargs.get('reason') or skip_if_open.args[0]
-            item.add_marker(pytest.mark.skipif(is_open(issue), reason=issue))
-
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
+
+
+@pytest.fixture(autouse=True, scope="session")
+def record_testsuite_timestamp_xml(record_testsuite_property):
+    now = datetime.datetime.utcnow()
+    record_testsuite_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
 @pytest.fixture(autouse=True, scope="function")
 def record_test_timestamp_xml(record_property):
     now = datetime.datetime.utcnow()
     record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
-
-
-def pytest_configure(config):
-    """Register custom markers to avoid warnings."""
-    markers = [
-        "stubbed: Tests that are not automated yet.",
-        "deselect(reason=None): Mark test to be removed from collection.",
-        "skip_if_open(issue): Skip test based on issue status.",
-        "tier1: Tier 1 tests",
-        "tier2: Tier 2 tests",
-        "tier3: Tier 3 tests",
-        "tier4: Tier 4 tests",
-        "destructive: Destructive tests",
-        "upgrade: Upgrade tests",
-        "run_in_one_thread: Sequential tests",
-    ]
-    for marker in markers:
-        config.addinivalue_line("markers", marker)
-
-    # ignore warnings about dynamically added markers e.g: component markers
-    config.addinivalue_line('filterwarnings', 'ignore::pytest.PytestUnknownMarkWarning')
-
-
-def pytest_addoption(parser):
-    """Adds custom options to pytest runner."""
-    parser.addoption(
-        "--bz-cache",
-        nargs='?',
-        default=None,
-        const='bz_cache.json',
-        help="Use a bz_cache.json instead of calling BZ API.",
-    )

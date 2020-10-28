@@ -14,13 +14,9 @@
 
 :Upstream: No
 """
-import os
-
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import promote
-from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.datafactory import gen_string
@@ -28,7 +24,6 @@ from robottelo.decorators import fixture
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
 
 
 @fixture(scope='module')
@@ -44,20 +39,6 @@ def module_loc(module_org):
 @fixture(scope='module')
 def module_host_group(module_loc, module_org):
     return entities.HostGroup(location=[module_loc], organization=[module_org]).create()
-
-
-@fixture(scope='module')
-def oscap_content_path():
-    # download scap content from satellite
-    _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = "/tmp/{}".format(file_name)
-    ssh.download_file(settings.oscap.content_path, local_file)
-    return local_file
-
-
-@fixture(scope='module')
-def oscap_tailoring_path():
-    return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier2
@@ -125,13 +106,13 @@ def test_positive_check_dashboard(
         )
         policy_details = session.oscappolicy.details(name)
         assert policy_details['HostsBreakdownStatus']['total_count'] == 1
-        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%'
+        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%Not audited'
 
 
 @tier1
 @upgrade
 def test_positive_end_to_end(
-    session, module_host_group, module_loc, module_org, oscap_content_path, oscap_tailoring_path
+    session, module_host_group, module_loc, module_org, oscap_content_path, tailoring_file_path
 ):
     """Perform end to end testing for oscap policy component
 
@@ -159,7 +140,10 @@ def test_positive_end_to_end(
         )
         # Upload tailoring file to the application
         session.oscaptailoringfile.create(
-            {'file_upload.name': tailoring_name, 'file_upload.scap_file': oscap_tailoring_path}
+            {
+                'file_upload.name': tailoring_name,
+                'file_upload.scap_file': tailoring_file_path['local'],
+            }
         )
         # Create new oscap policy with assigned content and tailoring file
         session.oscappolicy.create(

@@ -26,13 +26,12 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class RoleTestCase(APITestCase):
@@ -112,6 +111,8 @@ class CannedRoleTestCases(APITestCase):
                 'role': {'name': name, 'organization_ids': orgs or [], 'location_ids': locs or []}
             }
         )
+        if 'role' in org_admin:
+            return entities.Role(id=org_admin['role']['id']).read()
         return entities.Role(id=org_admin['id']).read()
 
     def create_org_admin_user(self, role_taxos, user_taxos, same_taxos):
@@ -267,7 +268,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(permission=dom_perm, role=role.id).create()
         self.assertEqual(role.id, filtr.role.id)
         self.assertEqual(self.role_org.id, filtr.organization[0].id)
@@ -293,7 +294,7 @@ class CannedRoleTestCases(APITestCase):
         role_name = gen_string('alpha')
         role = entities.Role(name=role_name).create()
         self.assertEqual(role.name, role_name)
-        arch_perm = entities.Permission(resource_type='Architecture').search()
+        arch_perm = entities.Permission().search(query={'search': 'resource_type="Architecture"'})
         filtr = entities.Filter(permission=arch_perm, role=role.id).create()
         self.assertEqual(role.id, filtr.role.id)
         self.assertFalse(filtr.override)
@@ -315,7 +316,7 @@ class CannedRoleTestCases(APITestCase):
         role_name = gen_string('alpha')
         role = entities.Role(name=role_name).create()
         self.assertEqual(role.name, role_name)
-        arch_perm = entities.Permission(resource_type='Architecture').search()
+        arch_perm = entities.Permission().search(query={'search': 'resource_type="Architecture"'})
         with self.assertRaises(HTTPError):
             entities.Filter(
                 permission=arch_perm,
@@ -351,7 +352,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -384,7 +385,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(permission=dom_perm, role=role.id).create()
         self.assertEqual(role.id, filtr.role.id)
         role.organization = [self.filter_org]
@@ -418,7 +419,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -467,7 +468,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -600,7 +601,7 @@ class CannedRoleTestCases(APITestCase):
         """
         role_name = gen_string('alpha')
         role = entities.Role(name=role_name).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id).create()
         cloned_role_name = gen_string('alpha')
         cloned_role = entities.Role(id=role.id).clone(data={'name': cloned_role_name})
@@ -642,7 +643,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -681,7 +682,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -725,7 +726,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id).create()
         cloned_role = entities.Role(id=role.id).clone(
             data={
@@ -762,7 +763,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
         cloned_role = entities.Role(id=role.id).clone(
             data={
@@ -799,7 +800,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(
             permission=dom_perm,
             role=role.id,
@@ -840,7 +841,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id).create()
         cloned_role = entities.Role(id=role.id).clone(
             data={
@@ -878,7 +879,7 @@ class CannedRoleTestCases(APITestCase):
         role = entities.Role(
             name=gen_string('alpha'), organization=[self.role_org], location=[self.role_loc]
         ).create()
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
         cloned_role = entities.Role(id=role.id).clone(
             data={
@@ -915,7 +916,7 @@ class CannedRoleTestCases(APITestCase):
             name=role_name, organization=[self.role_org], location=[self.role_loc]
         ).create()
         self.assertEqual(role_name, role.name)
-        dom_perm = entities.Permission(resource_type='Domain').search()
+        dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         filtr = entities.Filter(permission=dom_perm, role=role.id).create()
         self.assertEqual(role.id, filtr.role.id)
         self.assertFalse(filtr.override)
@@ -1528,7 +1529,7 @@ class CannedRoleTestCases(APITestCase):
             ]:
                 entity(sc).search()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_access_entities_from_ldap_org_admin(self):
         """LDAP User can not access resources in taxonomies assigned to role if
@@ -1552,7 +1553,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_access_entities_from_ldap_user(self):
         """LDAP User can not access resources within its own taxonomies if
@@ -1576,7 +1577,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can access to the resources in taxonomies if
@@ -1601,7 +1602,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can not have access to the resources in
@@ -1632,7 +1633,7 @@ class RoleSearchFilterTestCase(APITestCase):
     Tests adding additional search filters to role filters.
     """
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier3
     def test_positive_role_lce_search(self):
         """Test role with search filter using lifecycle enviroment.
@@ -1656,7 +1657,7 @@ class RoleSearchFilterTestCase(APITestCase):
         :BZ: 1651699
         """
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier3
     def test_negative_role_lce_search(self):
         """Test role with search filter using lifecycle environment.

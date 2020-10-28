@@ -18,47 +18,31 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.cli.ansible import Ansible
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_scap_policy
 from robottelo.cli.factory import make_scapcontent
 from robottelo.cli.factory import make_tailoringfile
-from robottelo.cli.factory import make_user
 from robottelo.cli.host import Host
-from robottelo.cli.role import Role
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
-from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier4
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
-from robottelo.test import CLITestCase
 
 
-class OpenScapTestCase(CLITestCase):
+class TestOpenScap:
     """Tests related to the oscap cli hammer plugin"""
-
-    @classmethod
-    def create_test_user_viewer_role(cls):
-        """Create's a user with Viewer role"""
-        cls.login = gen_string('alpha')
-        cls.password = gen_string('alpha')
-        user = make_user({'login': cls.login, 'password': cls.password, 'admin': False})
-        role = Role.info({'name': 'Viewer'})
-        User.add_role({'login': user['login'], 'role-id': role['id']})
-        return cls.login, cls.password
 
     @classmethod
     def fetch_scap_and_profile_id(cls, scap_name, scap_profile):
@@ -78,22 +62,6 @@ class OpenScapTestCase(CLITestCase):
         ]
         return scap_id, scap_profile_ids
 
-    @classmethod
-    def setUpClass(cls):
-        super(OpenScapTestCase, cls).setUpClass()
-        cls.title = gen_string('alpha')
-        result = [scap['title'] for scap in Scapcontent.list() if scap.get('title') in cls.title]
-        if not result:
-            make_scapcontent({'title': cls.title, 'scap-file': settings.oscap.content_path})
-        cls.scap_id_rhel7, cls.scap_profile_id_rhel7 = cls.fetch_scap_and_profile_id(
-            cls.title, OSCAP_PROFILE['security7']
-        )
-        cls.tailoring_file_path = file_downloader(
-            file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
-        )[0]
-        Ansible.roles_import({'proxy-id': 1})
-        Ansible.variables_import({'proxy-id': 1})
-
     @tier1
     def test_positive_list_default_content_with_admin(self):
         """List the default scap content with admin account
@@ -111,15 +79,22 @@ class OpenScapTestCase(CLITestCase):
             1. Login to shell from admin account.
             2. Execute the scap-content command with list as sub-command.
 
-        :expectedresults: The scap-content are listed.
+        :expectedresults: Default scap-content are listed.
+
+        :BZ: 1749692
+
+        :customerscenario: true
 
         :CaseImportance: Critical
         """
-        result = Scapcontent.list()
-        assert OSCAP_DEFAULT_CONTENT['rhel7_content'] in [scap['title'] for scap in result]
+        scap_contents = [content['title'] for content in Scapcontent.list()]
+        for title in OSCAP_DEFAULT_CONTENT.values():
+            assert title in scap_contents
 
     @tier1
-    def test_negative_list_default_content_with_viewer_role(self):
+    def test_negative_list_default_content_with_viewer_role(
+        self, scap_content, default_viewer_role
+    ):
         """List the default scap content by user with viewer role
 
         :id: 1e909ffc-10d9-4bcd-b4bb-c26981912bb4
@@ -132,16 +107,23 @@ class OpenScapTestCase(CLITestCase):
 
         :steps:
 
-            1. Login to shell from user account.
+            1. Login to hammer shell with viewer role.
             2. Execute the scap-content command with list as sub-Command.
+            3. Execute the "scap-content" command with info as sub-command.
+            4. Pass valid parameters.
 
-        :expectedresults: The scap-content is not listed.
+        :expectedresults: The scap-content and it's info is not listed.
 
         :CaseImportance: Critical
         """
-        login, password = self.create_test_user_viewer_role()
-        result = Scapcontent.with_user(login, password).list()
+        result = Scapcontent.with_user(
+            default_viewer_role.login, default_viewer_role.password
+        ).list()
         assert len(result) == 0
+        with pytest.raises(CLIReturnCodeError):
+            Scapcontent.with_user(default_viewer_role.login, default_viewer_role.password).info(
+                {'title': scap_content['title']}
+            )
 
     @tier1
     def test_positive_view_scap_content_info_admin(self):
@@ -171,34 +153,6 @@ class OpenScapTestCase(CLITestCase):
         assert result['title'] == title
 
     @tier1
-    def test_negative_info_scap_content_viewer_role(self):
-        """View info of scap content with viewer role
-
-        :id: 15eb035b-d301-4dbd-b66a-c4621d2003a3
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Default content should already be populated.
-            3. Oscap-cli hammer plugin installed.
-
-        :steps:
-
-            1. Login to hammer shell with user with viewer role.
-            2. Execute the "scap-content" command with info as sub-command.
-            3. Pass valid parameters.
-
-        :expectedresults: The info of the scap-content is not listed.
-
-        :CaseImportance: Critical
-        """
-        title = gen_string('alpha')
-        make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
-        login, password = self.create_test_user_viewer_role()
-        with pytest.raises(CLIReturnCodeError):
-            Scapcontent.with_user(login, password).info({'title': title})
-
-    @tier1
     def test_negative_info_scap_content(self):
         """View info of scap content with invalid ID as parameter
 
@@ -224,11 +178,14 @@ class OpenScapTestCase(CLITestCase):
         with pytest.raises(CLIReturnCodeError):
             Scapcontent.info({'id': invalid_scap_id})
 
+    @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
     @tier1
-    def test_positive_create_scap_content_with_valid_title(self):
+    def test_positive_create_scap_content_with_valid_title(self, title):
         """Create scap-content with valid title
 
         :id: 68e9fbe2-e3c3-48e7-a774-f1260a3b7f4f
+
+        :parametrized: yes
 
         :setup:
 
@@ -248,12 +205,8 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for title in valid_data_list():
-            with self.subTest(title):
-                scap_content = make_scapcontent(
-                    {'title': title, 'scap-file': settings.oscap.content_path}
-                )
-                assert scap_content['title'] == title
+        scap_content = make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
+        assert scap_content['title'] == title
 
     @tier1
     def test_negative_create_scap_content_with_same_title(self):
@@ -289,11 +242,14 @@ class OpenScapTestCase(CLITestCase):
         with pytest.raises(CLIFactoryError):
             make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
 
+    @pytest.mark.parametrize('title', **parametrized(invalid_names_list()))
     @tier1
-    def test_negative_create_scap_content_with_invalid_title(self):
+    def test_negative_create_scap_content_with_invalid_title(self, title):
         """Create scap-content with invalid title
 
         :id: 90a2590e-a6ff-41f1-9e0a-67d4b16435c0
+
+        :parametrized: yes
 
         :setup:
 
@@ -311,16 +267,17 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for title in invalid_names_list():
-            with self.subTest(title):
-                with pytest.raises(CLIFactoryError):
-                    make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
+        with pytest.raises(CLIFactoryError):
+            make_scapcontent({'title': title, 'scap-file': settings.oscap.content_path})
 
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier1
-    def test_positive_create_scap_content_with_valid_originalfile_name(self):
+    def test_positive_create_scap_content_with_valid_originalfile_name(self, name):
         """Create scap-content with valid original file name
 
         :id: 25441174-11cb-4d9b-9ec5-b1c69411b5bc
+
+        :parametrized: yes
 
         :setup:
 
@@ -338,18 +295,19 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                scap_content = make_scapcontent(
-                    {'original-filename': name, 'scap-file': settings.oscap.content_path}
-                )
-                assert scap_content['original-filename'] == name
+        scap_content = make_scapcontent(
+            {'original-filename': name, 'scap-file': settings.oscap.content_path}
+        )
+        assert scap_content['original-filename'] == name
 
+    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @tier1
-    def test_negative_create_scap_content_with_invalid_originalfile_name(self):
+    def test_negative_create_scap_content_with_invalid_originalfile_name(self, name):
         """Create scap-content with invalid original file name
 
         :id: 83feb67a-a6bf-4a99-923d-889e8d1013fa
+
+        :parametrized: yes
 
         :setup:
 
@@ -369,18 +327,17 @@ class OpenScapTestCase(CLITestCase):
 
         :BZ: 1482395
         """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with pytest.raises(CLIFactoryError):
-                    make_scapcontent(
-                        {'original-filename': name, 'scap-file': settings.oscap.content_path}
-                    )
+        with pytest.raises(CLIFactoryError):
+            make_scapcontent({'original-filename': name, 'scap-file': settings.oscap.content_path})
 
+    @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
     @tier1
-    def test_negative_create_scap_content_without_dsfile(self):
+    def test_negative_create_scap_content_without_dsfile(self, title):
         """Create scap-content without scap data stream xml file
 
         :id: ea811994-12cd-4382-9382-37fa806cc26f
+
+        :parametrized: yes
 
         :setup:
 
@@ -397,10 +354,8 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for title in valid_data_list():
-            with self.subTest(title):
-                with pytest.raises(CLIFactoryError):
-                    make_scapcontent({'title': title})
+        with pytest.raises(CLIFactoryError):
+            make_scapcontent({'title': title})
 
     @tier1
     def test_positive_update_scap_content_with_newtitle(self):
@@ -487,11 +442,14 @@ class OpenScapTestCase(CLITestCase):
         with pytest.raises(CLIReturnCodeError):
             Scapcontent.info({'title': scap_content['title']})
 
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @tier2
-    def test_postive_create_scap_policy_with_valid_name(self):
+    def test_postive_create_scap_policy_with_valid_name(self, name, scap_content):
         """Create scap policy with valid name
 
         :id: c9327675-62b2-4e22-933a-02818ef68c11
+
+        :parametrized: yes
 
         :setup:
 
@@ -506,25 +464,26 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The policy is created successfully.
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                scap_policy = make_scap_policy(
-                    {
-                        'name': name,
-                        'deploy-by': 'puppet',
-                        'scap-content-id': self.scap_id_rhel7,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                    }
-                )
-                assert scap_policy['name'] == name
+        scap_policy = make_scap_policy(
+            {
+                'name': name,
+                'deploy-by': 'puppet',
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            }
+        )
+        assert scap_policy['name'] == name
 
+    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     @tier2
-    def test_negative_create_scap_policy_with_invalid_name(self):
+    def test_negative_create_scap_policy_with_invalid_name(self, name, scap_content):
         """Create scap policy with invalid name
 
         :id: 0d163968-7759-4cfd-9c4d-98533d8db925
+
+        :parametrized: yes
 
         :setup:
 
@@ -539,22 +498,20 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The policy is not created.
         """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with pytest.raises(CLIFactoryError):
-                    make_scap_policy(
-                        {
-                            'name': name,
-                            'deploy-by': 'puppet',
-                            'scap-content-id': self.scap_id_rhel7,
-                            'scap-content-profile-id': self.scap_profile_id_rhel7,
-                            'period': OSCAP_PERIOD['weekly'].lower(),
-                            'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                        }
-                    )
+        with pytest.raises(CLIFactoryError):
+            make_scap_policy(
+                {
+                    'name': name,
+                    'deploy-by': 'puppet',
+                    'scap-content-id': scap_content["scap_id"],
+                    'scap-content-profile-id': scap_content["scap_profile_id"],
+                    'period': OSCAP_PERIOD['weekly'].lower(),
+                    'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                }
+            )
 
     @tier2
-    def test_negative_create_scap_policy_without_content(self):
+    def test_negative_create_scap_policy_without_content(self, scap_content):
         """Create scap policy without scap content
 
         :id: 88a8fba3-f45a-4e22-9ee1-f0d701f1135f
@@ -576,14 +533,14 @@ class OpenScapTestCase(CLITestCase):
             make_scap_policy(
                 {
                     'deploy-by': 'puppet',
-                    'scap-content-profile-id': self.scap_profile_id_rhel7,
+                    'scap-content-profile-id': scap_content["scap_profile_id"],
                     'period': OSCAP_PERIOD['weekly'].lower(),
                     'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 }
             )
 
     @tier2
-    def test_positive_associate_scap_policy_with_hostgroups(self):
+    def test_positive_associate_scap_policy_with_hostgroups(self, scap_content):
         """Associate hostgroups to scap policy
 
         :id: 916403a0-572d-4cf3-9155-3e3d0373577f
@@ -609,8 +566,8 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -619,7 +576,7 @@ class OpenScapTestCase(CLITestCase):
         assert scap_policy['hostgroups'][0] == hostgroup['name']
 
     @tier2
-    def test_positive_associate_scap_policy_with_hostgroup_via_ansible(self):
+    def test_positive_associate_scap_policy_with_hostgroup_via_ansible(self, scap_content):
         """Associate hostgroup to scap policy via ansible
 
         :id: 2df303c6-bff5-4977-a865-a3afabfb8726
@@ -647,8 +604,8 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'ansible',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -657,79 +614,101 @@ class OpenScapTestCase(CLITestCase):
         assert scap_policy['deployment-option'] == 'ansible'
         assert scap_policy['hostgroups'][0] == hostgroup['name']
 
+    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'puppet', 'ansible']))
+    @upgrade
     @tier2
-    def test_positive_associate_scap_policy_with_tailoringfiles_id(self):
-        """Associate tailoring file by id to scap policy with all deployments
-
-        :id: 4d60333d-ffd7-4c6c-9ba5-6a311ccf2910
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "create" as sub-command.
-            3. Pass valid parameters.
-            4. Associate tailoring file by "tailoring-file-id" with policy
-
-        :expectedresults: The policy is created and associated successfully.
-        """
-        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
-        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
-        for deploy in ['puppet', 'ansible', 'manual']:
-            with self.subTest(deploy):
-                scap_policy = make_scap_policy(
-                    {
-                        'scap-content-id': self.scap_id_rhel7,
-                        'deploy-by': deploy,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                        'tailoring-file-id': tailoring_file['id'],
-                        'tailoring-file-profile-id': tailor_profile_id,
-                    }
-                )
-                assert scap_policy['deployment-option'] == deploy
-                assert scap_policy['tailoring-file-id'] == tailoring_file['id']
-                assert scap_policy['tailoring-file-profile-id'] == tailor_profile_id
-
-    @tier2
-    def test_positive_associate_scap_policy_with_tailoringfiles_name(self):
-        """Associate tailoring file by name to scap policy with all deployments
+    def test_positive_associate_scap_policy_with_tailoringfiles(
+        self, deploy, scap_content, tailoring_file_path
+    ):
+        """Associate tailoring file by name/id to scap policy with all deployments
 
         :id: d0f9b244-b92d-4889-ba6a-8973ea05bf43
 
+        :parametrized: yes
+
         :steps:
 
             1. Login to hammer shell.
             2. Execute "policy" command with "create" as sub-command.
             3. Pass valid parameters.
-            4. Associate tailoring file by "tailoring-file" with policy
+            4. Associate tailoring file by name/id with policy
 
         :expectedresults: The policy is created and associated successfully.
         """
-        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
-        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
-        for deploy in ['puppet', 'ansible', 'manual']:
-            with self.subTest(deploy):
-                scap_policy = make_scap_policy(
-                    {
-                        'scap-content-id': self.scap_id_rhel7,
-                        'deploy-by': deploy,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                        'tailoring-file': tailoring_file['name'],
-                        'tailoring-file-profile-id': tailor_profile_id,
-                    }
-                )
-                assert scap_policy['deployment-option'] == deploy
-                assert scap_policy['tailoring-file-id'] == tailoring_file['id']
-                assert scap_policy['tailoring-file-profile-id'] == tailor_profile_id
+        tailoring_file_a = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
+        tailoring_file_profile_a_id = tailoring_file_a['tailoring-file-profiles'][0]['id']
+        tailoring_file_b = make_tailoringfile({'scap-file': tailoring_file_path['satellite']})
+        tailoring_file_profile_b_id = tailoring_file_b['tailoring-file-profiles'][0]['id']
 
+        scap_policy = make_scap_policy(
+            {
+                'scap-content-id': scap_content["scap_id"],
+                'deploy-by': deploy,
+                'scap-content-profile-id': scap_content["scap_profile_id"],
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                'tailoring-file': tailoring_file_a['name'],
+                'tailoring-file-profile-id': tailoring_file_profile_a_id,
+            }
+        )
+        assert scap_policy['deployment-option'] == deploy
+        assert scap_policy['tailoring-file-id'] == tailoring_file_a['id']
+        assert scap_policy['tailoring-file-profile-id'] == tailoring_file_profile_a_id
+
+        Scappolicy.update(
+            {
+                'name': scap_policy['name'],
+                'tailoring-file': tailoring_file_b['name'],
+                'tailoring-file-profile-id': tailoring_file_profile_b_id,
+            }
+        )
+        scap_info = Scappolicy.info({'name': scap_policy['name']})
+        assert scap_info['tailoring-file-id'] == tailoring_file_b['id']
+        assert scap_info['tailoring-file-profile-id'] == tailoring_file_profile_b_id
+
+        Scappolicy.delete({'name': scap_policy['name']})
+        with pytest.raises(CLIReturnCodeError):
+            Scapcontent.info({'name': scap_policy['name']})
+
+        scap_policy = make_scap_policy(
+            {
+                'scap-content-id': scap_content["scap_id"],
+                'deploy-by': deploy,
+                'scap-content-profile-id': scap_content["scap_profile_id"],
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                'tailoring-file-id': tailoring_file_a['id'],
+                'tailoring-file-profile-id': tailoring_file_profile_a_id,
+            }
+        )
+        assert scap_policy['deployment-option'] == deploy
+        assert scap_policy['tailoring-file-id'] == tailoring_file_a['id']
+        assert scap_policy['tailoring-file-profile-id'] == tailoring_file_profile_a_id
+
+        Scappolicy.update(
+            {
+                'id': scap_policy['id'],
+                'tailoring-file-id': tailoring_file_b['id'],
+                'tailoring-file-profile-id': tailoring_file_profile_b_id,
+            }
+        )
+        scap_info = Scappolicy.info({'id': scap_policy['id']})
+        assert scap_info['tailoring-file-id'] == tailoring_file_b['id']
+        assert scap_info['tailoring-file-profile-id'] == tailoring_file_profile_b_id
+
+        Scappolicy.delete({'id': scap_policy['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Scapcontent.info({'name': scap_policy['name']})
+
+    @pytest.mark.parametrize('deploy', **parametrized(['manual', 'puppet', 'ansible']))
+    @upgrade
     @tier2
-    def test_positive_list_scap_policy(self):
-        """List all scap policies
+    def test_positive_scap_policy_end_to_end(self, deploy, scap_content):
+        """List all scap policies and read info using id, name
 
         :id: d14ab43e-c7a9-4eee-b61c-420b07ca1da9
+
+        :parametrized: yes
 
         :setup:
 
@@ -741,97 +720,47 @@ class OpenScapTestCase(CLITestCase):
 
             1. Login to hammer shell.
             2. Execute "policy" command with "list" as sub-command.
+            3. Execute "policy" command with "info" as sub-command.
+            4. Pass ID as the parameter.
+            5. Pass name as the parameter.
 
-        :expectedresults: The policies are listed successfully.
+        :expectedresults: The policies are listed successfully and information is displayed.
         """
-        for deploy in ['puppet', 'ansible', 'manual']:
-            with self.subTest(deploy):
-                name = gen_string('alphanumeric')
-                make_scap_policy(
-                    {
-                        'name': name,
-                        'deploy-by': deploy,
-                        'scap-content-id': self.scap_id_rhel7,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                    }
-                )
-                result = Scappolicy.list()
-                assert name in [policy['name'] for policy in result]
+        hostgroup = make_hostgroup()
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy(
+            {
+                'name': name,
+                'deploy-by': deploy,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower(),
+                'hostgroups': hostgroup['name'],
+            }
+        )
+        result = Scappolicy.list()
+        assert name in [policy['name'] for policy in result]
+        assert Scappolicy.info({'id': scap_policy['id']})['id'] == scap_policy['id']
+        assert Scappolicy.info({'name': scap_policy['name']})['name'] == name
 
+        Scappolicy.update(
+            {
+                'id': scap_policy['id'],
+                'period': OSCAP_PERIOD['monthly'].lower(),
+                'day-of-month': 15,
+            }
+        )
+        scap_info = Scappolicy.info({'name': name})
+        assert scap_info['period'] == OSCAP_PERIOD['monthly'].lower()
+        assert scap_info['day-of-month'] == '15'
+        Scappolicy.delete({'id': scap_policy['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Scappolicy.info({'id': scap_policy['id']})
+
+    @upgrade
     @tier2
-    def test_positive_info_scap_policy_with_id(self):
-        """View info of policy with id as parameter
-
-        :id: d309000b-777e-4cfb-bf6c-7f02ab130b9d
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "info" as sub-command.
-            3. Pass ID as the parameter.
-
-        :expectedresults: The information is displayed.
-        """
-        for deploy in ['puppet', 'ansible', 'manual']:
-            with self.subTest(deploy):
-                scap_policy = make_scap_policy(
-                    {
-                        'scap-content-id': self.scap_id_rhel7,
-                        'deploy-by': deploy,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                    }
-                )
-                assert scap_policy['deployment-option'] == deploy
-                assert Scappolicy.info({'id': scap_policy['id']})['id'] == scap_policy['id']
-
-    @tier2
-    def test_positive_info_scap_policy_with_name(self):
-        """View info of policy with name as parameter
-
-        :id: eece98b2-3e6a-4ac0-b742-913482343e9d
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "info" as sub-command.
-            3. Pass name as the parameter.
-
-        :expectedresults: The information is displayed.
-        """
-        for deploy in ['puppet', 'ansible', 'manual']:
-            name = gen_string('alphanumeric')
-            with self.subTest(deploy):
-                scap_policy = make_scap_policy(
-                    {
-                        'name': name,
-                        'deploy-by': deploy,
-                        'scap-content-id': self.scap_id_rhel7,
-                        'scap-content-profile-id': self.scap_profile_id_rhel7,
-                        'period': OSCAP_PERIOD['weekly'].lower(),
-                        'weekday': OSCAP_WEEKDAY['friday'].lower(),
-                    }
-                )
-                assert scap_policy['deployment-option'] == deploy
-                assert Scappolicy.info({'name': scap_policy['name']})['name'] == name
-
-    @tier2
-    def test_positive_update_scap_policy_with_hostgroup(self):
+    def test_positive_update_scap_policy_with_hostgroup(self, scap_content):
         """Update scap policy by addition of hostgroup
 
         :id: 21b9b82b-7c6c-4944-bc2f-67631e1d4086
@@ -856,8 +785,8 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
                 'hostgroups': hostgroup['name'],
@@ -875,7 +804,7 @@ class OpenScapTestCase(CLITestCase):
         assert scap_info['deployment-option'] == 'ansible'
 
     @tier2
-    def test_positive_update_scap_policy_period(self):
+    def test_positive_update_scap_policy_period(self, scap_content):
         """Update scap policy by updating the period strategy
         from monthly to weekly
 
@@ -900,8 +829,8 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
@@ -920,7 +849,7 @@ class OpenScapTestCase(CLITestCase):
 
     @tier2
     @upgrade
-    def test_positive_update_scap_policy_with_content(self):
+    def test_positive_update_scap_policy_with_content(self, scap_content):
         """Update the scap policy by updating the scap content
         associated with the policy
 
@@ -945,13 +874,13 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
         )
-        assert scap_policy['scap-content-id'] == self.scap_id_rhel7
+        assert scap_policy['scap-content-id'] == scap_content["scap_id"]
         scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
             OSCAP_DEFAULT_CONTENT['rhel_firefox'], OSCAP_PROFILE['firefox']
         )
@@ -963,161 +892,7 @@ class OpenScapTestCase(CLITestCase):
         assert scap_info['scap-content-profile-id'] == scap_profile_id[0]
 
     @tier2
-    def test_positive_update_scap_policy_with_tailoringfiles_id(self):
-        """Update the scap policy by updating the scap tailoring file id
-        associated with the policy
-
-        :id: 91a25e0b-d5d2-49d8-a3cd-1f3836ac323c
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "update" as sub-command.
-            3. Pass tailoring-file-id as parameter.
-
-        :expectedresults: The scap policy is updated.
-        """
-        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
-        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
-        name = gen_string('alphanumeric')
-        scap_policy = make_scap_policy(
-            {
-                'name': name,
-                'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
-                'period': OSCAP_PERIOD['weekly'].lower(),
-                'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            }
-        )
-        assert scap_policy['scap-content-id'] == self.scap_id_rhel7
-        Scappolicy.update(
-            {
-                'name': name,
-                'tailoring-file-id': tailoring_file['id'],
-                'tailoring-file-profile-id': tailor_profile_id,
-            }
-        )
-        scap_info = Scappolicy.info({'name': name})
-        assert scap_info['tailoring-file-id'] == tailoring_file['id']
-        assert scap_info['tailoring-file-profile-id'] == tailor_profile_id
-
-    @tier2
-    @upgrade
-    def test_positive_update_scap_policy_with_tailoringfiles_name(self):
-        """Update the scap policy by updating the scap tailoring file name
-        associated with the policy
-
-        :id: a2403170-51df-4561-9a58-820f77a5e048
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "update" as sub-command.
-            3. Pass tailoring-file as parameter.
-
-        :expectedresults: The scap policy is updated.
-        """
-        tailoring_file = make_tailoringfile({'scap-file': self.tailoring_file_path})
-        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
-        name = gen_string('alphanumeric')
-        scap_policy = make_scap_policy(
-            {
-                'name': name,
-                'deploy-by': 'ansible',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
-                'period': OSCAP_PERIOD['weekly'].lower(),
-                'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            }
-        )
-        assert scap_policy['scap-content-id'] == self.scap_id_rhel7
-        Scappolicy.update(
-            {
-                'name': name,
-                'tailoring-file': tailoring_file['name'],
-                'tailoring-file-profile-id': tailor_profile_id,
-            }
-        )
-        scap_info = Scappolicy.info({'name': name})
-        assert scap_info['tailoring-file-id'] == tailoring_file['id']
-        assert scap_info['tailoring-file-profile-id'] == tailor_profile_id
-
-    @tier2
-    @upgrade
-    def test_positive_delete_scap_policy_with_id(self):
-        """Delete the scap policy with id as parameter
-
-        :id: db9d925f-c730-4299-ad8e-5aaa08895f6e
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "delete" as sub-command.
-            3. Pass id as parameter.
-
-        :expectedresults: The scap policy is deleted successfully.
-        """
-        name = gen_string('alphanumeric')
-        scap_policy = make_scap_policy(
-            {
-                'name': name,
-                'deploy-by': 'ansible',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
-                'period': OSCAP_PERIOD['weekly'].lower(),
-                'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            }
-        )
-        assert scap_policy['name'] == name
-        Scappolicy.delete({'id': scap_policy['id']})
-        with pytest.raises(CLIReturnCodeError):
-            Scappolicy.info({'id': scap_policy['id']})
-
-    @tier2
-    def test_positive_delete_scap_policy_with_name(self):
-        """Delete the scap policy with name as parameter
-
-        :id: 6c167e7b-cbdd-4059-808c-04c686ba9fe8
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. Atleast 1 policy.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "delete" as sub-command.
-            3. Pass name as parameter.
-
-        :expectedresults: The scap policy is deleted successfully.
-        """
-        name = gen_string('alphanumeric')
-        scap_policy = make_scap_policy(
-            {
-                'name': name,
-                'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
-                'period': OSCAP_PERIOD['weekly'].lower(),
-                'weekday': OSCAP_WEEKDAY['friday'].lower(),
-            }
-        )
-        assert scap_policy['name'] == name
-        Scappolicy.delete({'name': name})
-        with pytest.raises(CLIReturnCodeError):
-            Scapcontent.info({'name': scap_policy['name']})
-
-    @tier2
-    def test_positive_associate_scap_policy_with_single_server(self):
+    def test_positive_associate_scap_policy_with_single_server(self, scap_content):
         """Assign an audit policy to a single server
 
         :id: 30566c27-f466-4b4d-beaf-0a5bfda98b89
@@ -1143,8 +918,8 @@ class OpenScapTestCase(CLITestCase):
             {
                 'name': name,
                 'deploy-by': 'puppet',
-                'scap-content-id': self.scap_id_rhel7,
-                'scap-content-profile-id': self.scap_profile_id_rhel7,
+                'scap-content-id': scap_content["scap_id"],
+                'scap-content-profile-id': scap_content["scap_profile_id"],
                 'period': OSCAP_PERIOD['weekly'].lower(),
                 'weekday': OSCAP_WEEKDAY['friday'].lower(),
             }
@@ -1154,7 +929,7 @@ class OpenScapTestCase(CLITestCase):
         hosts = Host.list({'search': 'compliance_policy_id = {0}'.format(scap_policy['id'])})
         assert host_name in [host['name'] for host in hosts]
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_list_arf_reports(self):
         """List all arf-reports
@@ -1180,7 +955,7 @@ class OpenScapTestCase(CLITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_info_arf_report(self):
         """View information of arf-report
@@ -1206,7 +981,7 @@ class OpenScapTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_delete_arf_report(self):
         """Delete an arf-report

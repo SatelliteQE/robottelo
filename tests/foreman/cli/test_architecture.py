@@ -15,118 +15,105 @@
 
 :Upstream: No
 """
+import pytest
+from fauxfactory import gen_choice
+
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_architecture
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
-from robottelo.test import CLITestCase
 
 
-class ArchitectureTestCase(CLITestCase):
+class TestArchitecture:
     """Architecture CLI related tests."""
 
+    @pytest.fixture(scope='class')
+    def class_architecture(self):
+        """Shared architecture for tests"""
+        return make_architecture()
+
     @tier1
-    def test_positive_create_with_name(self):
-        """Successfully creates an Architecture.
+    def test_positive_CRUD(self):
+        """Create a new Architecture, update the name and delete the Architecture itself.
 
-        :id: a3955346-cfc0-428d-8871-a10386fe7c59
+        :id: cd8654b8-e603-11ea-adc1-0242ac120002
 
-        :expectedresults: Architecture is created.
+        :expectedresults: Architecture is created, modified and deleted successfully
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                architecture = make_architecture({'name': name})
-                self.assertEqual(architecture['name'], name)
+
+        name = gen_choice(list(valid_data_list().values()))
+        new_name = gen_choice(list(valid_data_list().values()))
+
+        architecture = make_architecture({'name': name})
+        assert architecture['name'] == name
+        Architecture.update({'id': architecture['id'], 'new-name': new_name})
+        architecture = Architecture.info({'id': architecture['id']})
+        assert architecture['name'] == new_name
+        Architecture.delete({'id': architecture['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Architecture.info({'id': architecture['id']})
 
     @tier1
-    def test_negative_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_name(self, name):
         """Don't create an Architecture with invalid data.
 
         :id: cfed972e-9b09-4852-bdd2-b5a8a8aed170
+
+        :parametrized: yes
 
         :expectedresults: Architecture is not created.
 
         :CaseImportance: Medium
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    Architecture.create({'name': name})
-                self.assert_error_msg(raise_ctx, 'Could not create the architecture:')
+
+        with pytest.raises(CLIReturnCodeError) as error:
+            Architecture.create({'name': name})
+
+        assert 'Could not create the architecture:' in error.value.message
 
     @tier1
-    def test_positive_update_name(self):
-        """Successfully update an Architecture.
-
-        :id: 67f1e60b-29e2-44a4-8019-498e5ad0e201
-
-        :expectedresults: Architecture is updated.
-
-        :CaseImportance: Critical
-        """
-        architecture = make_architecture()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                Architecture.update({'id': architecture['id'], 'new-name': new_name})
-                architecture = Architecture.info({'id': architecture['id']})
-                self.assertEqual(architecture['name'], new_name)
-
-    @tier1
-    def test_negative_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
+    def test_negative_update_name(self, class_architecture, new_name):
         """Create Architecture then fail to update its name
 
         :id: 037c4892-5e62-46dd-a2ed-92243e870e40
+
+        :parametrized: yes
 
         :expectedresults: Architecture name is not updated
 
         :CaseImportance: Medium
         """
-        architecture = make_architecture()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    Architecture.update({'id': architecture['id'], 'new-name': new_name})
-                self.assert_error_msg(raise_ctx, 'Could not update the architecture:')
-                result = Architecture.info({'id': architecture['id']})
-                self.assertEqual(architecture['name'], result['name'])
+
+        with pytest.raises(CLIReturnCodeError) as error:
+            Architecture.update({'id': class_architecture['id'], 'new-name': new_name})
+
+        assert 'Could not update the architecture:' in error.value.message
+
+        result = Architecture.info({'id': class_architecture['id']})
+        assert class_architecture['name'] == result['name']
 
     @tier1
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Create Architecture with valid values then delete it
-        by ID
-
-        :id: df699e29-29a3-417a-a6ee-81e74b7211a4
-
-        :expectedresults: Architecture is deleted
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                architecture = make_architecture({'name': name})
-                Architecture.delete({'id': architecture['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Architecture.info({'id': architecture['id']})
-
-    @tier1
-    def test_negative_delete_by_id(self):
-        """Create Architecture then delete it by wrong ID
+    @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
+    def test_negative_delete_by_id(self, entity_id):
+        """Delete architecture by invalid ID
 
         :id: 78bae664-6493-4c74-a587-94170f20746e
+
+        :parametrized: yes
 
         :expectedresults: Architecture is not deleted
 
         :CaseImportance: Medium
         """
-        for entity_id in invalid_id_list():
-            with self.subTest(entity_id):
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    Architecture.delete({'id': entity_id})
-                self.assert_error_msg(raise_ctx, "Could not delete the architecture")
+        with pytest.raises(CLIReturnCodeError) as error:
+            Architecture.delete({'id': entity_id})
+
+        assert 'Could not delete the architecture' in error.value.message

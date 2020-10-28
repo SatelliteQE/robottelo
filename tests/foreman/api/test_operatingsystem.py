@@ -33,8 +33,8 @@ from robottelo.datafactory import valid_data_list
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.helpers import is_open
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 
 
 class OperatingSystemParameterTestCase(APITestCase):
@@ -271,19 +271,19 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_template(self):
-        """Create an operating system that points at a config template.
+        """Create an operating system that points at a provisioning template.
 
         :id: df73ecba-5a1c-4201-9c2f-b2e03e8fec25
 
         :expectedresults: The operating system is created and points at the
-            expected config template.
+            expected provisioning template.
 
         :CaseLevel: Integration
         """
-        template = entities.ConfigTemplate(organization=[self.org]).create()
-        operating_sys = entities.OperatingSystem(config_template=[template]).create()
-        self.assertEqual(len(operating_sys.config_template), 1)
-        self.assertEqual(operating_sys.config_template[0].id, template.id)
+        template = entities.ProvisioningTemplate(organization=[self.org]).create()
+        operating_sys = entities.OperatingSystem(provisioning_template=[template]).create()
+        self.assertEqual(len(operating_sys.provisioning_template), 1)
+        self.assertEqual(operating_sys.provisioning_template[0].id, template.id)
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -575,26 +575,26 @@ class OperatingSystemTestCase(APITestCase):
     @tier2
     @upgrade
     def test_positive_update_template(self):
-        """Create an operating system that points at config template and
+        """Create an operating system that points at provisioning template and
         then update it to point to another template
 
         :id: 02125a7a-905a-492a-a49b-768adf4ac00c
 
         :expectedresults: The operating system is updated and points at the
-            expected config template.
+            expected provisioning template.
 
         :CaseLevel: Integration
         """
-        template_1 = entities.ConfigTemplate(organization=[self.org]).create()
-        template_2 = entities.ConfigTemplate(organization=[self.org]).create()
-        os = entities.OperatingSystem(config_template=[template_1]).create()
-        self.assertEqual(len(os.config_template), 1)
-        self.assertEqual(os.config_template[0].id, template_1.id)
-        os = entities.OperatingSystem(id=os.id, config_template=[template_2]).update(
-            ['config_template']
+        template_1 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        template_2 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        os = entities.OperatingSystem(provisioning_template=[template_1]).create()
+        self.assertEqual(len(os.provisioning_template), 1)
+        self.assertEqual(os.provisioning_template[0].id, template_1.id)
+        os = entities.OperatingSystem(id=os.id, provisioning_template=[template_2]).update(
+            ['provisioning_template']
         )
-        self.assertEqual(len(os.config_template), 1)
-        self.assertEqual(os.config_template[0].id, template_2.id)
+        self.assertEqual(len(os.provisioning_template), 1)
+        self.assertEqual(os.provisioning_template[0].id, template_2.id)
 
     @tier1
     def test_negative_update_name(self):

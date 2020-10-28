@@ -20,19 +20,21 @@ from navmazing import NavigationTriesExceeded
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
 from robottelo.constants import REPO_TYPE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -106,6 +108,7 @@ def test_positive_create_chain(session):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_puppet_module(session, module_org):
     """Promote content view with puppet module to a new environment
 
@@ -143,6 +146,7 @@ def test_positive_add_puppet_module(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_packages_by_full_name(session, module_org):
     """Search Lifecycle Environment content view packages by full name
 
@@ -193,6 +197,7 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_packages_by_name(session, module_org):
     """Search Lifecycle Environment content view packages by name
 
@@ -240,6 +245,7 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_module_streams_by_name(session, module_org):
     """Search Lifecycle Environment content view module streams by name
 

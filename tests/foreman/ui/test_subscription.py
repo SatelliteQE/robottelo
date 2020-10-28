@@ -24,12 +24,17 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.decorators import run_in_one_thread
@@ -46,6 +51,40 @@ pytestmark = [run_in_one_thread]
 
 if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
+
+
+@pytest.fixture(scope='module')
+def golden_ticket_host_setup():
+    org = entities.Organization().create()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org.id, manifest.content)
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    custom_product = entities.Product(organization=org).create()
+    custom_repo = entities.Repository(
+        name=gen_string('alphanumeric').upper(), product=custom_product
+    ).create()
+    custom_repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+        auto_attach=True,
+    ).create()
+    subscription = entities.Subscription(organization=org).search(
+        query={'search': 'name="{}"'.format(DEFAULT_SUBSCRIPTION_NAME)}
+    )[0]
+    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    return org, ak
 
 
 @tier2
@@ -418,3 +457,83 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
         assert set(col[1:]) == set(checkbox_dict)
+
+
+@tier3
+def test_positive_subscription_status_disabled_golden_ticket(session, golden_ticket_host_setup):
+    """Verify that Content host Subscription status is set to 'Disabled'
+     for a golden ticket manifest
+
+    :id: 115595ef-929d-4c42-bf34-aadd1bd36a5f
+
+    :expectedresults: subscription status is 'Disabled'
+
+    :BZ: 1789924
+
+    :CaseImportance: Medium
+    """
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        vm.install_katello_ca()
+        org, ak = golden_ticket_host_setup
+        vm.register_contenthost(org.label, ak.name)
+        assert vm.subscribed
+        with session:
+            session.organization.select(org_name=org.name)
+            host = session.contenthost.read(vm.hostname, widget_names='details')['details'][
+                'subscription_status'
+            ]
+            assert "Disabled" in host
+
+
+@tier2
+def test_positive_candlepin_events_processed_by_STOMP(session):
+    """Verify that Candlepin events are being read and processed by
+       attaching subscriptions, validating host subscriptions status,
+       and viewing processed and failed Candlepin events
+
+    :id: 9510fd1c-2efb-4132-8665-9a72273cd1af
+
+    :steps:
+
+        1. Register Content Host without subscriptions attached
+        2. Verify subscriptions status is red "invalid"
+        3. Import a Manifest
+        4. Attach subs to content host
+        5. Verify subscription status is green "valid"
+        6. Check for processed and failed Candlepin events
+
+    :expectedresults: Candlepin events are being read and processed
+                      correctly without any failures
+
+    :BZ: #1826515
+
+    :CaseImportance: High
+    """
+    org = entities.Organization().create()
+    repo = entities.Repository(product=entities.Product(organization=org).create()).create()
+    repo.sync()
+    ak = entities.ActivationKey(
+        content_view=org.default_content_view,
+        max_hosts=100,
+        organization=org,
+        environment=entities.LifecycleEnvironment(id=org.library.id),
+    ).create()
+    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        vm.install_katello_ca()
+        vm.register_contenthost(org.name, ak.name)
+        with session:
+            session.organization.select(org_name=org.name)
+            host = session.contenthost.read(vm.hostname, widget_names='details')['details']
+            sub_status = host['subscription_status']
+            assert "Unentitled" in sub_status
+            with manifests.clone() as manifest:
+                upload_manifest(org.id, manifest.content)
+            session.contenthost.add_subscription(vm.hostname, DEFAULT_SUBSCRIPTION_NAME)
+            session.browser.refresh()
+            updated_sub_status = session.contenthost.read(vm.hostname, widget_names='details')[
+                'details'
+            ]['subscription_status']
+            assert "Fully entitled" in updated_sub_status
+            response = entities.Ping().search_json()["services"]["candlepin_events"]
+            assert response["status"] == "ok"
+            assert "0 Failed" in response["message"]

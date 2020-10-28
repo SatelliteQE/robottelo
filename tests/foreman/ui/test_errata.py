@@ -20,25 +20,34 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM
+from robottelo.constants import FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM
+from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
-from robottelo.constants import FAKE_3_YUM_REPO
-from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -197,7 +206,7 @@ def test_end_to_end(session, module_repos_col, vm):
     :CaseLevel: System
     """
     ERRATA_DETAILS = {
-        'advisory': 'RHEA-2012:0055',
+        'advisory': 'RHSA-2012:0055',
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
@@ -217,7 +226,12 @@ def test_end_to_end(session, module_repos_col, vm):
         'module_stream_packages': [],
     }
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE)
+    value = 'has type = security'
     with session:
+        # Check selection box function for BZ#1688636
+        assert session.errata.search(value, installable=True)[0]['Errata ID']
+        assert session.errata.search(value, applicable=True)[0]['Errata ID']
+        # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
         assert errata['details'] == ERRATA_DETAILS
         assert set(errata['packages']['independent_packages']) == set(
@@ -240,6 +254,7 @@ def test_end_to_end(session, module_repos_col, vm):
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_positive_list(session, module_repos_col, module_lce):
     """View all errata in an Org
 
@@ -295,7 +310,9 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
     role = entities.Role().create()
     entities.Filter(
         organization=[module_org],
-        permission=entities.Permission(resource_type='Katello::Product').search(),
+        permission=entities.Permission().search(
+            query={'search': 'resource_type="Katello::Product"'}
+        ),
         role=role,
         search='name = "{0}"'.format(PRDS['rhel']),
     ).create()
@@ -518,13 +535,16 @@ def test_positive_content_host_library(session, module_org, vm):
 
 @tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
-    """ Search for errata on a content_host by type
+    """ Search for errata on a content host's errata tab by type.
 
     :id: 59e5d6e5-2537-4387-a7d3-637cc4b52d0e
 
-    :Setup: Content Host with applicable security errata
+    :Setup: Content Host with applicable errata
 
-    :Steps: Search for errata on content host by type (ie 'type = security')
+    :Steps: Search for errata on content host by type (e.g. 'type = security')
+     Step 1 Search for "type = security", assert expected amount and IDs found
+     Step 2 Search for "type = bugfix", assert expected amount and IDs found
+     Step 3 Search for "type = enhancement", assert expected amount and IDs found
 
     :BZ: 1653293
 
@@ -535,15 +555,39 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
 
     with session:
+        # Search for RHSA security errata
         ch_erratum = session.contenthost.search_errata(
             erratatype_vm.hostname, "type = security", environment='Library Synced Content'
         )
 
+        # Assert length matches known amount of RHSA errata
         assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
-        # check IDs just to be safe
-        errata_ids = sorted([e['Id'] for e in ch_erratum])
+        # Assert IDs are that of RHSA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
+        # Search for RHBA buxfix errata
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = bugfix", environment='Library Synced Content'
+        )
+
+        # Assert length matches known amount of RHBA errata
+        assert len(ch_erratum) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
+
+        # Assert IDs are that of RHBA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        assert errata_ids == sorted(FAKE_10_YUM_BUGFIX_ERRATUM)
+        # Search for RHEA enhancement errata
+        ch_erratum = session.contenthost.search_errata(
+            erratatype_vm.hostname, "type = enhancement", environment='Library Synced Content'
+        )
+
+        # Assert length matches known amount of RHEA errata
+        assert len(ch_erratum) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
+
+        # Assert IDs are that of RHEA errata
+        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
 @pytest.mark.skip_if_open("BZ:1655130")
@@ -670,6 +714,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
 
 @tier3
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_filtered_errata_status_installable_param(session, errata_status_installable):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in
@@ -741,7 +786,8 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 for key, value in host_details_values['properties']['properties_table'].items()
                 if key in expected_values
             }
-            assert actual_values == expected_values
+            for key in actual_values:
+                assert expected_values[key] in actual_values[key], 'Expected text not found'
             _set_setting_value(errata_status_installable, False)
             expected_values = {
                 'Status': 'Error',
@@ -756,4 +802,75 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 for key, value in host_details_values['properties']['properties_table'].items()
                 if key in expected_values
             }
-            assert actual_values == expected_values
+            for key in actual_values:
+                assert expected_values[key] in actual_values[key], 'Expected text not found'
+
+
+@tier3
+def test_content_host_errata_search_commands(session, module_org, module_repos_col):
+    """ View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
+    filtered with errata status and applicable flags. Applicability is calculated using the
+    Library, but Installability is calculated using the attached CV, and is subject to the
+    CV's own filtering.
+
+    :id: 45114f8e-0fc8-4c7c-85e0-f9b613530dac
+
+    :Setup: Two Content Hosts, one with RHSA and one with RHBA errata.
+
+    :Steps:
+        1.  host list --search "errata_status = security_needed"
+        2.  host list --search "errata_status = errata_needed"
+        3.  host list --search "applicable_errata = RHSA-2012:0055"
+        4.  host list --search "applicable_errata = RHBA-2012:1030"
+        5.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
+        6.  host list --search "applicable_rpms = kangaroo-0.2-1.noarch"
+        7.  host list --search "installable_errata = RHSA-2012:0055"
+        8.  host list --search "installable_errata = RHBA-2012:1030"
+
+    :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
+
+    :BZ: 1707335
+    """
+
+    with VirtualMachine(distro=module_repos_col.distro) as client1, VirtualMachine(
+        distro=module_repos_col.distro
+    ) as client2:
+        for client in client1, client2:
+            module_repos_col.setup_virtual_machine(client)
+        # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
+        assert _install_client_package(client1, FAKE_1_CUSTOM_PACKAGE, errata_applicability=False)
+        # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
+        assert _install_client_package(client2, FAKE_4_CUSTOM_PACKAGE, errata_applicability=False)
+        with session:
+            # Search for hosts needing RHSA security errata
+            result = session.contenthost.search('errata_status = security_needed')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result, 'Needs-RHSA host not found'
+            # Search for hosts needing RHBA bugfix errata
+            result = session.contenthost.search('errata_status = errata_needed')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result, 'Needs-RHBA host not found'
+            # Search for applicable RHSA errata by Errata ID
+            result = session.contenthost.search(f'applicable_errata = {FAKE_2_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for applicable RHBA errata by Errata ID
+            result = session.contenthost.search(f'applicable_errata = {FAKE_5_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result
+            # Search for RHSA applicable RPMs
+            result = session.contenthost.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for RHBA applicable RPMs
+            result = session.contenthost.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result
+            # Search for installable RHSA errata by Errata ID
+            result = session.contenthost.search(f'installable_errata = {FAKE_2_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client1.hostname in result
+            # Search for installable RHBA errata by Errata ID
+            result = session.contenthost.search(f'installable_errata = {FAKE_5_ERRATA_ID}')
+            result = [item['Name'] for item in result]
+            assert client2.hostname in result

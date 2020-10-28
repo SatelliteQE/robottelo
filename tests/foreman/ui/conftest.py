@@ -71,28 +71,6 @@ def module_user(request, module_org, module_loc):
         LOGGER.warning('Unable to delete session user: %s', str(err))
 
 
-@fixture(scope='module')
-def module_viewer_user(module_org):
-    """Custom user with viewer role for tests validating visibility of entities or fields created
-    by some other user. Created only when accessed, unlike `module_user`.
-    """
-    viewer_role = nailgun.entities.Role().search(query={'search': 'name="Viewer"'})[0]
-    default_loc_id = (
-        nailgun.entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
-    )
-    custom_password = gen_string('alphanumeric')
-    custom_user = nailgun.entities.User(
-        admin=False,
-        default_organization=module_org,
-        location=[default_loc_id],
-        organization=[module_org],
-        role=[viewer_role],
-        password=custom_password,
-    ).create()
-    custom_user.password = custom_password
-    return custom_user
-
-
 @fixture()
 def test_name(request):
     """Returns current test full name, prefixed by module name and test class

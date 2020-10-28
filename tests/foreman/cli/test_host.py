@@ -42,7 +42,6 @@ from robottelo.cli.factory import make_domain
 from robottelo.cli.factory import make_environment
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
-from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_location
@@ -51,52 +50,45 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_smart_variable
 from robottelo.cli.factory import make_user
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
-from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_ERRATA_ID
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
 from robottelo.constants import SM_OVERALL_STATUS
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -475,7 +467,7 @@ class HostCreateTestCase(CLITestCase):
         :BZ: 1671148
         """
         help_output = Host.execute('host update --help')
-        for arg in ['lifecycle-environment-id', 'openscap-proxy-id']:
+        for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
             assert any(
                 ('--{}'.format(arg) in line for line in help_output)
             ), "--{} not supported by update subcommand".format(arg)
@@ -530,12 +522,12 @@ class HostCreateTestCase(CLITestCase):
             self.assertEqual(result.return_code, 64)
 
     @tier2
-    def test_positive_list_scparams_and_smartvariables(self):
-        """List all smart class parameters and smart variables using host id
+    def test_positive_list_scparams(self):
+        """List all smart class parameters using host id
 
-        :id: 61814875-5ccd-4c04-a06f-d36fe089d514
+        :id: 61814875-5ccd-4c04-a638-d36fe089d514
 
-        :expectedresults: Overridden sc-param and smart variable from puppet
+        :expectedresults: Overridden sc-param from puppet
             class are listed
 
         :CaseLevel: Integration
@@ -548,11 +540,6 @@ class HostCreateTestCase(CLITestCase):
                 'organization-id': self.new_org['id'],
             }
         )
-        # Create smart variable
-        smart_variable = make_smart_variable({'puppet-class': self.puppet_class['name']})
-        # Verify that affected sc-param is listed
-        host_variables = Host.smart_variables({'host-id': host['id']})
-        self.assertIn(smart_variable['id'], [sv['id'] for sv in host_variables])
 
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list(
@@ -836,7 +823,7 @@ class HostCreateTestCase(CLITestCase):
         hosts = Host.list({'organization-id': options.organization.id})
         self.assertEqual('{0}/{1}'.format(parent_hg_name, nested_hg_name), hosts[0]['host-group'])
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
@@ -1086,14 +1073,14 @@ class HostParameterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = valid_data_list()[0].lower()
-        value = valid_data_list()[0]
+        name = next(iter(valid_data_list()))
+        value = valid_data_list()[name]
         Host.set_parameter({'host-id': self.host['id'], 'name': name, 'value': value})
         self.host = Host.info({'id': self.host['id']})
         self.assertIn(name, self.host['parameters'].keys())
         self.assertEqual(value, self.host['parameters'][name])
 
-        new_value = valid_data_list()[0]
+        new_value = valid_data_list()[name]
         Host.set_parameter({'host-id': self.host['id'], 'name': name, 'value': new_value})
         self.host = Host.info({'id': self.host['id']})
         self.assertIn(name, self.host['parameters'].keys())
@@ -1355,7 +1342,7 @@ class HostParameterTestCase(CLITestCase):
 class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_bios_syslinux(self):
@@ -1393,7 +1380,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
         """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
@@ -1430,7 +1417,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
         """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
@@ -1470,7 +1457,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_provision_baremetal_with_uefi_grub2(self):
@@ -1512,7 +1499,7 @@ class HostProvisionTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
         """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
@@ -1545,295 +1532,6 @@ class HostProvisionTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-
-
-@run_in_one_thread
-class KatelloAgentTestCase(CLITestCase):
-    """Host tests, which require VM with installed katello-agent."""
-
-    org = None
-    env = None
-    content_view = None
-    activation_key = None
-
-    @classmethod
-    @skip_if_not_set('clients', 'fake_manifest')
-    def setUpClass(cls):
-        """Create Org, Lifecycle Environment, Content View, Activation key
-
-        """
-        super(KatelloAgentTestCase, cls).setUpClass()
-        # Create new org, environment, CV and activation key
-        KatelloAgentTestCase.org = make_org()
-        KatelloAgentTestCase.env = make_lifecycle_environment(
-            {'organization-id': KatelloAgentTestCase.org['id']}
-        )
-        KatelloAgentTestCase.content_view = make_content_view(
-            {'organization-id': KatelloAgentTestCase.org['id']}
-        )
-        KatelloAgentTestCase.activation_key = make_activation_key(
-            {
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'organization-id': KatelloAgentTestCase.org['id'],
-            }
-        )
-        # Add subscription to Satellite Tools repo to activation key
-        setup_org_for_a_rh_repo(
-            {
-                'product': PRDS['rhel'],
-                'repository-set': REPOSET['rhst7'],
-                'repository': REPOS['rhst7']['name'],
-                'organization-id': KatelloAgentTestCase.org['id'],
-                'content-view-id': KatelloAgentTestCase.content_view['id'],
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            }
-        )
-        # Create custom repo, add subscription to activation key
-        setup_org_for_a_custom_repo(
-            {
-                'url': FAKE_1_YUM_REPO,
-                'organization-id': KatelloAgentTestCase.org['id'],
-                'content-view-id': KatelloAgentTestCase.content_view['id'],
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            }
-        )
-
-    def setUp(self):
-        """Create VM, subscribe it to satellite-tools repo, install katello-ca
-        and katello-agent packages
-
-        """
-        super(KatelloAgentTestCase, self).setUp()
-        # Create VM and register content host
-        self.client = VirtualMachine(distro=DISTRO_RHEL7)
-        self.client.create()
-        self.addCleanup(vm_cleanup, self.client)
-        self.client.install_katello_ca()
-        # Register content host, install katello-agent
-        self.client.register_contenthost(
-            KatelloAgentTestCase.org['label'], KatelloAgentTestCase.activation_key['name']
-        )
-        self.assertTrue(self.client.subscribed)
-        self.host = Host.info({'name': self.client.hostname})
-        self.client.enable_repo(REPOS['rhst7']['id'])
-        self.client.install_katello_agent()
-
-    @tier3
-    def test_positive_get_errata_info(self):
-        """Get errata info
-
-        :id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
-
-        :expectedresults: Errata info was displayed
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        result = Host.errata_info({'host-id': self.host['id'], 'id': FAKE_1_ERRATA_ID})
-        self.assertEqual(result[0]['errata-id'], FAKE_1_ERRATA_ID)
-        self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
-
-    @tier3
-    @upgrade
-    def test_positive_apply_errata(self):
-        """Apply errata to a host
-
-        :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
-
-        :expectedresults: Errata is scheduled for installation
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': self.host['id']})
-
-    @pytest.mark.skip_if_open("BZ:1740790")
-    @tier3
-    def test_positive_apply_security_erratum(self):
-        """Apply security erratum to a host
-
-        :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
-
-        :expectedresults: erratum is recognized by the
-            `yum update --security` command on client
-
-        :CaseLevel: System
-
-        :BZ: 1420671, 1740790
-        """
-        self.client.download_install_rpm(FAKE_1_YUM_REPO, FAKE_2_CUSTOM_PACKAGE)
-        # Check the system is up to date
-        result = self.client.run('yum update --security | grep "No packages needed for security"')
-        self.assertEqual(result.return_code, 0)
-        before_downgrade = int(time.time())
-        # Downgrade walrus package
-        self.client.run('yum downgrade -y {0}'.format(FAKE_2_CUSTOM_PACKAGE_NAME))
-        # Wait for errata applicability cache is counted
-        wait_for_errata_applicability_task(int(self.host['id']), before_downgrade)
-        # Check that host has applicable errata
-        host_errata = Host.errata_list({'host-id': self.host['id']})
-        self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
-        self.assertEqual(host_errata[0]['installable'], 'true')
-        # Check the erratum becomes available
-        result = self.client.run(
-            'yum update --assumeno --security | grep "No packages needed for security"'
-        )
-        self.assertEqual(result.return_code, 1)
-
-    @tier3
-    @upgrade
-    def test_positive_install_package(self):
-        """Install a package to a host remotely
-
-        :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
-
-        :expectedresults: Package was successfully installed
-
-
-        :CaseLevel: System
-        """
-        Host.package_install({'host-id': self.host['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_remove_package(self):
-        """Remove a package from a host remotely
-
-        :id: 573dec11-8f14-411f-9e41-84426b0f23b5
-
-        :expectedresults: Package was successfully removed
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_remove({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME))
-        self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_upgrade_package(self):
-        """Upgrade a host package remotely
-
-        :id: ad751c63-7175-40ae-8bc4-800462cd9c29
-
-        :expectedresults: Package was successfully upgraded
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_upgrade({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_upgrade_packages_all(self):
-        """Upgrade all the host packages remotely
-
-        :id: 003101c7-bb95-4e51-a598-57977b2858a9
-
-        :expectedresults: Packages (at least 1 with newer version available)
-            were successfully upgraded
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_upgrade_all({'host-id': self.host['id']})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    @upgrade
-    def test_positive_install_and_remove_package_group(self):
-        """Install and remove a package group to a host remotely
-
-        :id: ded20a89-cfd9-48d5-8829-739b1a4d4042
-
-        :expectedresults: Package group was successfully installed
-            and removed
-
-        :CaseLevel: System
-        """
-        hammer_args = {'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, 'host-id': self.host['id']}
-        Host.package_group_install(hammer_args)
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertEqual(result.return_code, 0)
-        Host.package_group_remove(hammer_args)
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    def test_negative_unregister_and_pull_content(self):
-        """Attempt to retrieve content after host has been unregistered from
-        Satellite
-
-        :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
-
-        :expectedresults: Host can no longer retrieve content from satellite
-
-        :CaseLevel: System
-        """
-        result = self.client.run('subscription-manager unregister')
-        self.assertEqual(result.return_code, 0)
-        result = self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    @upgrade
-    def test_positive_register_host_ak_with_host_collection(self):
-        """Attempt to register a host using activation key with host collection
-
-        :id: 7daf4e40-3fa6-42af-b3f7-1ca1a5c9bfeb
-
-        :BZ: 1385814
-
-        :expectedresults: Host successfully registered and listed in host
-            collection
-
-        :CaseLevel: System
-        """
-        # create a new activation key
-        activation_key = make_activation_key(
-            {
-                'lifecycle-environment-id': self.env['id'],
-                'organization-id': self.org['id'],
-                'content-view-id': self.content_view['id'],
-            }
-        )
-        hc = make_host_collection({'organization-id': self.org['id']})
-        ActivationKey.add_host_collection(
-            {
-                'id': activation_key['id'],
-                'organization-id': self.org['id'],
-                'host-collection-id': hc['id'],
-            }
-        )
-        # add the registered instance host to collection
-        HostCollection.add_host(
-            {'id': hc['id'], 'organization-id': self.org['id'], 'host-ids': self.host['id']}
-        )
-        with VirtualMachine() as client:
-            client.create()
-            client.install_katello_ca()
-            # register the client host with the current activation key
-            client.register_contenthost(self.org['name'], activation_key=activation_key['name'])
-            self.assertTrue(client.subscribed)
-            # note: when registering the host, it should be automatically added
-            # to the host collection
-            client_host = Host.info({'name': client.hostname})
-            hosts = HostCollection.hosts({'id': hc['id'], 'organization-id': self.org['id']})
-            self.assertEqual(len(hosts), 2)
-            expected_hosts_ids = {self.host['id'], client_host['id']}
-            hosts_ids = {host['id'] for host in hosts}
-            self.assertEqual(hosts_ids, expected_hosts_ids)
 
 
 @run_in_one_thread
@@ -2128,12 +1826,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self.client.install_katello_ca()
 
     def _register_client(
-        self,
-        activation_key=None,
-        lce=False,
-        enable_repo=False,
-        auto_attach=False,
-        attach_to_default=False,
+        self, activation_key=None, lce=False, enable_repo=False, auto_attach=False,
     ):
         """Register the client as a content host consumer
 
@@ -2145,13 +1838,8 @@ class HostSubscriptionTestCase(CLITestCase):
         :param auto_attach: boolean to indicate whether to register with
             auto-attach option, in case of registration with activation key a
             command is launched
-        :param attach_to_default: boolean to indicate whether to attach to
-            plain RHEL subsctiption
         :return: the registration result
         """
-        assert (
-            not auto_attach or not attach_to_default
-        ), 'Only one of auto_attach or attach_to_default must be set'
 
         if activation_key is None:
             activation_key = self.activation_key
@@ -2168,14 +1856,6 @@ class HostSubscriptionTestCase(CLITestCase):
             )
             if auto_attach and self.client.subscribed:
                 result = self.client.run('subscription-manager attach --auto')
-
-        if attach_to_default:
-            result = self.client.run(
-                'subscription-manager list --available --matches "%s" --pool-only'
-                % DEFAULT_SUBSCRIPTION_NAME
-            )
-            pool_id = result.stdout[0]
-            result = self.client.run('subscription-manager attach --pool "%s"' % pool_id)
 
         if self.client.subscribed and enable_repo:
             self.client.enable_repo(self.repository_id)
@@ -2323,7 +2003,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self._host_subscription_register()
         host = Host.info({'name': self.client.hostname})
         self.client.register_contenthost(
-            self.org['name'], consumerid=host['subscription-information']['uuid'], force=False,
+            self.org['name'], consumerid=host['subscription-information']['uuid'], force=False
         )
         client_status = self.client.subscription_manager_status()
         self.assertIn(SM_OVERALL_STATUS['current'], client_status.stdout)
@@ -2334,6 +2014,7 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_negative_without_attach_with_lce(self):
         """Attempt to enable a repository of a subscription that was not
         attached to a host
+        This test is not using the setUpClass Entities except subscription_name and repository_id
 
         :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
@@ -2341,7 +2022,81 @@ class HostSubscriptionTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self._register_client(lce=True, attach_to_default=True)
+        # Setup as in Setup Class
+        org = make_org()
+        lce_env = make_lifecycle_environment({'organization-id': org['id']})
+        content_view = make_content_view({'organization-id': org['id']})
+        activation_key = make_activation_key(
+            {'lifecycle-environment-id': lce_env['id'], 'organization-id': org['id']}
+        )
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': org['id'],
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lce_env['id'],
+                'activationkey-id': activation_key['id'],
+                'subscription': self.subscription_name,
+            },
+            force_use_cdn=True,
+        )
+        hosts_env = make_lifecycle_environment({'organization-id': org['id']})
+        # refresh content view data
+        content_view = ContentView.info({'id': content_view['id']})
+        content_view_version = content_view['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': org['id'],
+                'to-lifecycle-environment-id': hosts_env['id'],
+            }
+        )
+
+        # register client
+        self.client.register_contenthost(
+            org['name'],
+            lce='{0}/{1}'.format(hosts_env['name'], content_view['name']),
+            auto_attach=False,
+        )
+
+        # disable repository set to
+        default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': org['id']})
+        default_lce = LifecycleEnvironment.info(
+            {'name': ENVIRONMENT, 'organization-id': org['id']}
+        )
+        ContentView.remove(
+            {
+                'id': content_view['id'],
+                'lifecycle-environments': ",".join(
+                    [ENVIRONMENT, lce_env['name'], hosts_env['name']]
+                ),
+                'organization-id': org['id'],
+                'system-content-view-id': default_cv['id'],
+                'system-environment-id': default_lce['id'],
+                'key-content-view-id': default_cv['id'],
+                'key-environment-id': default_lce['id'],
+            }
+        )
+        ContentView.delete({'id': content_view['id']})
+        RepositorySet.disable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhst7'],
+                'organization-id': org['id'],
+                'product': PRDS['rhel'],
+            }
+        )
+
+        # get list of available subscriptions which are matched with default subscription
+        subscriptions = self.client.run(
+            'subscription-manager list --available --matches "%s" --pool-only'
+            % DEFAULT_SUBSCRIPTION_NAME
+        )
+        pool_id = subscriptions.stdout[0]
+        # attach to plain RHEL subsctiption
+        self.client.run('subscription-manager attach --pool "%s"' % pool_id)
         self.assertTrue(self.client.subscribed)
         result = self._client_enable_repo()
         self.assertNotEqual(result.return_code, 0)
@@ -2459,6 +2214,13 @@ class HostSubscriptionTestCase(CLITestCase):
                 'content-view-id': self.content_view['id'],
             }
         )
+        ActivationKey.add_subscription(
+            {
+                'organization-id': self.org['id'],
+                'id': activation_key['id'],
+                'subscription-id': self.default_subscription_id,
+            }
+        )
         # Register a host using the activation key
         self._register_client(activation_key=activation_key, enable_repo=True, auto_attach=True)
         self.assertTrue(self.client.subscribed)
@@ -2501,13 +2263,12 @@ class HostSubscriptionTestCase(CLITestCase):
         self.assertEqual(
             host['subscription-information']['system-purpose']['service-level'], "Self-Support2"
         )
-        # Assert subscriptions present
         host_subscriptions = ActivationKey.subscriptions(
             {'organization-id': self.org['id'], 'id': activation_key['id'], 'host-id': host['id']},
             output_format='json',
         )
         self.assertGreater(len(host_subscriptions), 0)
-        self.assertEqual(self.subscription_name, host_subscriptions[0]['name'])
+        self.assertEqual(host_subscriptions[0]['name'], self.subscription_name)
         # Unregister host
         Host.subscription_unregister({'host': self.client.hostname})
         with self.assertRaises(CLIReturnCodeError):

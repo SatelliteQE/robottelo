@@ -16,9 +16,7 @@
 :Upstream: No
 """
 from fauxfactory import gen_alphanumeric
-from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from fauxfactory import gen_url
 
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
@@ -34,12 +32,14 @@ from robottelo.cli.http_proxy import HttpProxy
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_labels_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -61,6 +61,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_CRUD(self):
         """Check if product can be created, updated, synchronized and deleted
 
@@ -72,9 +73,9 @@ class ProductTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
-        name = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
         label = valid_labels_list()[0]
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
         product = make_product(
@@ -95,7 +96,7 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(product['sync-plan-id'], sync_plan['id'])
 
         # update
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
         new_sync_plan = make_sync_plan({'organization-id': self.org['id']})
         new_prod_name = gen_string('alpha', 8)
@@ -180,6 +181,7 @@ class ProductTestCase(CLITestCase):
 
     @run_in_one_thread
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_product_list_with_default_settings(self):
         """Listing product of an organization apart from default organization using hammer
          does not return output if a defaults settings are applied on org.
@@ -226,40 +228,34 @@ class ProductTestCase(CLITestCase):
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_assign_http_proxy_to_products(self):
-        """Assign http_proxy to Products and check whether http-proxy is
-         used during sync.
+        """Assign http_proxy to Products and perform product sync.
 
         :id: 6af7b2b8-15d5-4d9f-9f87-e76b404a966f
 
         :expectedresults: HTTP Proxy is assigned to all repos present
-            in Products and sync operation uses assigned http-proxy.
+            in Products and sync operation performed successfully.
 
         :CaseImportance: Critical
         """
         # create HTTP proxies
-        http_proxy_url_a = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
-        http_proxy_url_b = '{}:{}'.format(
-            gen_url(scheme='http'), gen_integer(min_value=10, max_value=9999)
-        )
         http_proxy_a = HttpProxy.create(
             {
                 'name': gen_string('alpha', 15),
-                'url': http_proxy_url_a,
+                'url': settings.http_proxy.un_auth_proxy_url,
                 'organization-id': self.org['id'],
             }
         )
         http_proxy_b = HttpProxy.create(
             {
                 'name': gen_string('alpha', 15),
-                'url': http_proxy_url_b,
+                'url': settings.http_proxy.auth_proxy_url,
+                'username': settings.http_proxy.username,
+                'password': settings.http_proxy.password,
                 'organization-id': self.org['id'],
             }
         )
-        proxy_fqdn = http_proxy_b['url'].split(":")[1].strip("//")
-        repo_fqdn = FAKE_0_YUM_REPO.split("/")[2]
         # Create products and repositories
         product_a = make_product({'organization-id': self.org['id']})
         product_b = make_product({'organization-id': self.org['id']})
@@ -286,6 +282,9 @@ class ProductTestCase(CLITestCase):
                 'http-proxy-id': http_proxy_b['id'],
             }
         )
+        # Perform sync and verify packages count
+        Product.synchronize({'id': product_a['id'], 'organization-id': self.org['id']})
+        Product.synchronize({'id': product_b['id'], 'organization-id': self.org['id']})
         repo_a1 = Repository.info({'id': repo_a1['id']})
         repo_a2 = Repository.info({'id': repo_a2['id']})
         repo_b1 = Repository.info({'id': repo_b1['id']})
@@ -298,14 +297,10 @@ class ProductTestCase(CLITestCase):
         assert repo_a2['http-proxy']['id'] == http_proxy_b['id']
         assert repo_b1['http-proxy']['id'] == http_proxy_b['id']
         assert repo_b2['http-proxy']['id'] == http_proxy_b['id']
-        # check if proxy fqdn is present in log during sync
-        with self.assertRaises(CLIReturnCodeError):
-            Product.synchronize({'id': product_a['id'], 'organization-id': self.org['id']})
-        result = ssh.command(
-            'grep -F "HTTP connection (1): {}" /var/log/messages'.format(proxy_fqdn)
-        )
-        assert result.return_code == 0
-        # Add http_proxy to products
+        assert int(repo_a1['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
+        assert int(repo_a2['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
+        assert int(repo_b1['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
+        assert int(repo_b2['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
         Product.update_proxy(
             {'ids': '{},{}'.format(product_a['id'], product_b['id']), 'http-proxy-policy': 'none'}
         )
@@ -317,11 +312,3 @@ class ProductTestCase(CLITestCase):
         assert repo_a2['http-proxy']['http-proxy-policy'] == "none"
         assert repo_b1['http-proxy']['http-proxy-policy'] == "none"
         assert repo_b2['http-proxy']['http-proxy-policy'] == "none"
-        # verify that proxy fqdn is not present in log during sync.
-        Product.synchronize({'id': product_a['id'], 'organization-id': self.org['id']})
-        result = ssh.command(
-            'tail -n 50 /var/log/messages | grep -F "HTTP connection (1): {}"'.format(repo_fqdn)
-        )
-        assert result.return_code == 0
-        result = ssh.command('tail -n 50 /var/log/messages | grep -F "{}"'.format(proxy_fqdn))
-        assert result.return_code == 1

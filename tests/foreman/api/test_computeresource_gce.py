@@ -45,14 +45,14 @@ finishuser = gen_string('alpha')
 
 @pytest.fixture(scope='module')
 def module_gce_cloudimg(
-    module_architecture, module_gce_compute, module_os, gce_custom_cloudinit_uuid
+    default_architecture, module_gce_compute, default_os, gce_custom_cloudinit_uuid
 ):
     """Creates cloudinit image on GCE Compute Resource"""
     cloud_image = entities.Image(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_gce_compute,
         name=gen_string('alpha'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=clouduser,
         uuid=gce_custom_cloudinit_uuid,
         user_data=True,
@@ -61,13 +61,15 @@ def module_gce_cloudimg(
 
 
 @pytest.fixture(scope='module')
-def module_gce_finishimg(module_architecture, module_gce_compute, module_os, gce_latest_rhel_uuid):
+def module_gce_finishimg(
+    default_architecture, module_gce_compute, default_os, gce_latest_rhel_uuid
+):
     """Creates finish image on GCE Compute Resource"""
     finish_image = entities.Image(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_gce_compute,
         name=gen_string('alpha'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         username=finishuser,
         uuid=gce_latest_rhel_uuid,
     ).create()
@@ -75,44 +77,44 @@ def module_gce_finishimg(module_architecture, module_gce_compute, module_os, gce
 
 
 @pytest.fixture(scope='class')
-def gce_domain(module_org, module_location, module_smart_proxy):
+def gce_domain(module_org, module_location, default_smart_proxy):
     """Sets Domain for GCE Host Provisioning"""
     _, _, dom = settings.server.hostname.partition('.')
     domain = entities.Domain().search(query={'search': 'name="{0}"'.format(dom)})
     domain = domain[0].read()
     domain.location.append(module_location)
     domain.organization.append(module_org)
-    domain.dns = module_smart_proxy
+    domain.dns = default_smart_proxy
     domain.update(['dns', 'location', 'organization'])
     return entities.Domain(id=domain.id).read()
 
 
 @pytest.fixture(scope='class')
 def gce_hostgroup(
-    module_architecture,
+    default_architecture,
     module_gce_compute,
     gce_domain,
     module_location,
     module_puppet_environment,
-    module_smart_proxy,
-    module_os,
+    default_smart_proxy,
+    default_os,
     module_org,
-    module_partiontable,
+    default_partiontable,
     googleclient,
 ):
     """Sets Hostgroup for GCE Host Provisioning"""
     hgroup = entities.HostGroup(
-        architecture=module_architecture,
+        architecture=default_architecture,
         compute_resource=module_gce_compute,
         domain=gce_domain,
         location=[module_location],
         environment=module_puppet_environment,
-        puppet_proxy=module_smart_proxy,
-        puppet_ca_proxy=module_smart_proxy,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
         root_pass=gen_string('alphanumeric'),
-        operatingsystem=module_os,
+        operatingsystem=default_os,
         organization=[module_org],
-        ptable=module_partiontable,
+        ptable=default_partiontable,
     ).create()
     return hgroup
 
@@ -283,11 +285,11 @@ class TestGCEHostProvisioningTestCase:
     def class_host(
         self,
         googleclient,
-        module_architecture,
+        default_architecture,
         gce_domain,
         gce_hostgroup,
         module_org,
-        module_os,
+        default_os,
         module_location,
         gce_latest_rhel_uuid,
         module_gce_finishimg,
@@ -297,12 +299,12 @@ class TestGCEHostProvisioningTestCase:
         Later in tests this host will be used to perform assertions
         """
         host = entities.Host(
-            architecture=module_architecture,
+            architecture=default_architecture,
             compute_attributes=self.compute_attrs,
             domain=gce_domain,
             hostgroup=gce_hostgroup,
             organization=module_org,
-            operatingsystem=module_os,
+            operatingsystem=default_os,
             location=module_location,
             name=self.hostname,
             provision_method='image',
