@@ -15,28 +15,19 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
-from robottelo.config import settings
+
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    tier1,
-    tier2,
-    tier4,
-    stubbed,
-    upgrade,
-)
-from robottelo.helpers import file_downloader
-
-
-@fixture(scope='module')
-def oscap_tailoring_path():
-    return file_downloader(settings.oscap.tailoring_path)[0]
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 
 
 @tier1
 @upgrade
-def test_positive_end_to_end(session, oscap_tailoring_path):
+def test_positive_end_to_end(session, tailoring_file_path):
     """Perform end to end testing for tailoring file component
 
     :id: 9aebccb8-6837-4583-8a8a-8883480ab688
@@ -52,28 +43,33 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
     org = entities.Organization().create()
     loc = entities.Location().create()
     with session:
-        session.oscaptailoringfile.create({
-            'file_upload.name': name,
-            'file_upload.scap_file': oscap_tailoring_path,
-            'organizations.resources.assigned': [org.name],
-            'locations.resources.assigned': [loc.name],
-        })
+        session.oscaptailoringfile.create(
+            {
+                'file_upload.name': name,
+                'file_upload.scap_file': tailoring_file_path['local'],
+                'organizations.resources.assigned': [org.name],
+                'locations.resources.assigned': [loc.name],
+            }
+        )
         assert session.oscaptailoringfile.search(name)[0]['Name'] == name
         tailroingfile_values = session.oscaptailoringfile.read(name)
         assert tailroingfile_values['file_upload']['name'] == name
-        assert tailroingfile_values['file_upload'][
-            'uploaded_scap_file'] == oscap_tailoring_path.rsplit('/', 1)[-1]
+        assert (
+            tailroingfile_values['file_upload']['uploaded_scap_file']
+            == tailoring_file_path['local'].rsplit('/', 1)[-1]
+        )
         assert org.name in tailroingfile_values['organizations']['resources']['assigned']
         assert loc.name in tailroingfile_values['locations']['resources']['assigned']
         session.oscaptailoringfile.update(name, {'file_upload.name': new_name})
         assert session.oscaptailoringfile.search(new_name)[0]['Name'] == new_name
         assert not session.oscaptailoringfile.search(name)
-        session.oscaptailoringfile.delete(new_name)
-        assert not session.oscaptailoringfile.search(new_name)
+        # Skip delete operation till https://github.com/SatelliteQE/airgun/issues/473 is fixed.
+        # session.oscaptailoringfile.delete(new_name)
+        # assert not session.oscaptailoringfile.search(new_name)
 
 
 @tier2
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_download_tailoring_file():
     """ Download the tailoring file from satellite
 
@@ -92,7 +88,7 @@ def test_positive_download_tailoring_file():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier4
 def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """ End-to-End Oscap run with tailoring files and external capsule
@@ -120,7 +116,7 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier4
 def test_positive_fetch_tailoring_file_information_from_arfreports():
     """ Fetch Tailoring file Information from Arf-reports

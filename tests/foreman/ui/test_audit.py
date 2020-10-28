@@ -12,18 +12,17 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import ANY_CONTEXT, ENVIRONMENT
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_bug_open,
-    tier2,
-    upgrade,
-)
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import ENVIRONMENT
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -41,7 +40,6 @@ pytestmark = [run_in_one_thread]
 
 @tier2
 @upgrade
-@skip_if_bug_open('bugzilla', 1730360)
 def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
@@ -54,13 +52,15 @@ def test_positive_create_event(session, module_org, module_loc):
     :CaseLevel: Integration
 
     :CaseImportance: Medium
+
+    :BZ: 1730360
     """
     host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
         values = session.audit.search('type=host')
-        assert values.get('action_type') == 'created'
+        assert values.get('action_type') == 'create'
         assert values.get('resource_type') == 'HOST'
         assert values.get('resource_name') == host.name
         assert values.get('created_at')
@@ -68,7 +68,8 @@ def test_positive_create_event(session, module_org, module_loc):
         assert values.get('affected_location') == module_loc.name
         summary = {
             prop['column0']: prop['column1']
-            for prop in values.get('action_summary') if prop.get('column1')
+            for prop in values.get('action_summary')
+            if prop.get('column1')
         }
         assert summary.get('Name') == host.name
         assert summary.get('Architecture') == host.architecture.read().name
@@ -103,16 +104,18 @@ def test_positive_audit_comment(session, module_org):
     name = gen_string('alpha')
     audit_comment = gen_string('alpha')
     with session:
-        session.partitiontable.create({
-            'template.name': name,
-            'template.template_editor': gen_string('alpha'),
-            'template.audit_comment': audit_comment,
-        })
+        session.partitiontable.create(
+            {
+                'template.name': name,
+                'template.template_editor': gen_string('alpha'),
+                'template.audit_comment': audit_comment,
+            }
+        )
         assert session.partitiontable.search(name)[0]['Name'] == name
         current_user = session.partitiontable.read(name, 'current_user')['current_user']
         values = session.audit.search('type=ptable and username={}'.format(current_user))
         assert values['user'] == current_user
-        assert values['action_type'] == 'created'
+        assert values['action_type'] == 'create'
         assert values['resource_type'] == 'PARTITION TABLE'
         assert values['resource_name'] == name
         assert values['comment'] == audit_comment
@@ -140,7 +143,7 @@ def test_positive_update_event(session, module_org):
     cv.update(['name'])
     with session:
         values = session.audit.search('type=katello/content_view and action=update')
-        assert values['action_type'] == 'updated'
+        assert values['action_type'] == 'update'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW'
         assert values['resource_name'] == name
         assert values['affected_organization'] == module_org.name
@@ -168,8 +171,8 @@ def test_positive_delete_event(session, module_org):
     architecture = entities.Architecture().create()
     architecture.delete()
     with session:
-        values = session.audit.search('type=architecture and action=delete')
-        assert values['action_type'] == 'deleted'
+        values = session.audit.search('type=architecture and action=destroy')
+        assert values['action_type'] == 'destroy'
         assert values['resource_type'] == 'ARCHITECTURE'
         assert values['resource_name'] == architecture.name
         assert len(values['action_summary']) == 1
@@ -198,16 +201,17 @@ def test_positive_add_event(session, module_org):
         values = session.audit.search(
             'type=katello/content_view_environment and organization={}'.format(module_org.name)
         )
-        assert values['action_type'] == 'added'
+        assert values['action_type'] == 'add'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW ENVIRONMENT'
         assert values['resource_name'] == '{}/{} / {}'.format(ENVIRONMENT, cv.name, cv.name)
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {}/{} to {}'.format(
-            ENVIRONMENT, cv.name, cv.name)
+            ENVIRONMENT, cv.name, cv.name
+        )
 
 
-@skip_if_bug_open('bugzilla', 1701118)
-@skip_if_bug_open('bugzilla', 1701132)
+@pytest.mark.skip_if_open("BZ:1701118")
+@pytest.mark.skip_if_open("BZ:1701132")
 @tier2
 def test_positive_create_role_filter(session, module_org):
     """Update a role with new filter and check that corresponding event
@@ -231,21 +235,20 @@ def test_positive_create_role_filter(session, module_org):
     role = entities.Role(organization=[module_org]).create()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
-        values = session.audit.search(
-            'type=role and organization={}'.format(module_org.name)
-        )
-        assert values['action_type'] == 'created'
+        values = session.audit.search('type=role and organization={}'.format(module_org.name))
+        assert values['action_type'] == 'create'
         assert values['resource_type'] == 'ROLE'
         assert values['resource_name'] == role.name
         create_role_permissions(
-            role,
-            {'Architecture': ['view_architectures', 'edit_architectures']}
+            role, {'Architecture': ['view_architectures', 'edit_architectures']}
         )
         values = session.audit.search('type=filter')
         assert values['action_type'] == 'added'
         assert values['resource_type'] == 'Filter'
         assert values['resource_name'] == '{} and {} / {}'.format(
-            'view_architectures', 'edit_architectures', role.name)
+            'view_architectures', 'edit_architectures', role.name
+        )
         assert len(values['action_summary']) == 1
         assert values['action_summary'][0]['column0'] == 'Added {} and {} to {}'.format(
-            'view_architectures', 'edit_architectures', role.name)
+            'view_architectures', 'edit_architectures', role.name
+        )

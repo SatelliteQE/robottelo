@@ -14,33 +14,27 @@
 
 :Upstream: No
 """
-from wait_for import wait_for
-
 from fabric.api import execute
 from nailgun import entities
-from robottelo.api.utils import (
-    attach_custom_product_subscription,
-    call_entity_method_with_timeout,
-)
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DISTRO_RHEL7,
-    REPOS,
-)
-from robottelo.test import APITestCase, settings
 from upgrade.helpers.docker import docker_execute_command
-from robottelo.upgrade_utility import (
-    install_or_update_package,
-    publish_content_view,
-    run_goferd
-)
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import (
-    create_dict,
-    dockerize,
-    get_entity_data
-)
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import dockerize
+from upgrade_tests.helpers.scenarios import get_entity_data
+from wait_for import wait_for
+
+from robottelo.api.utils import attach_custom_product_subscription
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import REPOS
+from robottelo.test import APITestCase
+from robottelo.test import settings
+from robottelo.upgrade_utility import install_or_update_package
+from robottelo.upgrade_utility import publish_content_view
+from robottelo.upgrade_utility import run_goferd
 
 
 class Scenario_yum_plugins_count(APITestCase):
@@ -56,34 +50,36 @@ class Scenario_yum_plugins_count(APITestCase):
         5. Create a content host, register and install katello-agent on it.
         6. Upgrade Satellite/Capsule.
         7. Create Product, custom tools repo, sync them.
-        8  Attached custom subscription to content host.
+        8. Attached custom subscription to content host.
         9. Upgrade Katello-agent and restart goferd.
         10. Verifying the loaded yum plugins count.
 
     BZ: 1625649
 
     """
+
     @classmethod
     def setUpClass(cls):
         cls.docker_vm = settings.upgrade.docker_vm
         cls.client_os = DISTRO_RHEL7
         cls.org = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0]
-        cls.loc = entities.Location().search(
-            query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
+            query={'search': 'name="{}"'.format(DEFAULT_ORG)}
+        )[0]
+        cls.loc = entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0]
 
     def _check_yum_plugins_count(self, client_container_id):
         """Check yum loaded plugins counts """
 
         kwargs = {'host': self.docker_vm}
-        execute(
-            docker_execute_command, client_container_id, 'yum clean all', **kwargs
-        )[self.docker_vm]
+        execute(docker_execute_command, client_container_id, 'yum clean all', **kwargs)[
+            self.docker_vm
+        ]
         plugins_count = execute(
             docker_execute_command,
             client_container_id,
             'yum repolist|grep "Loaded plugins"|wc -l',
-            **kwargs)[self.docker_vm]
+            **kwargs
+        )[self.docker_vm]
         self.assertEqual(int(plugins_count), 2)
 
     def _create_custom_tools_repos(self, product):
@@ -93,10 +89,9 @@ class Scenario_yum_plugins_count(APITestCase):
         if None in [tools_repo_url]:
             raise ValueError('The Tools Repo URL {} is not provided!'.format(self.client_os))
 
-        tools_repo = entities.Repository(product=product,
-                                         content_type='yum',
-                                         url=tools_repo_url
-                                         ).create()
+        tools_repo = entities.Repository(
+            product=product, content_type='yum', url=tools_repo_url
+        ).create()
         call_entity_method_with_timeout(tools_repo.sync, timeout=1400)
         return tools_repo
 
@@ -109,10 +104,16 @@ class Scenario_yum_plugins_count(APITestCase):
         from_version = settings.upgrade.from_version
         repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
 
-        repo1_id = entities.Repository(organization=self.org).\
-            search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0].id
-        repo2_id = entities.Repository(organization=self.org).\
-            search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0].id
+        repo1_id = (
+            entities.Repository(organization=self.org)
+            .search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0]
+            .id
+        )
+        repo2_id = (
+            entities.Repository(organization=self.org)
+            .search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0]
+            .id
+        )
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
@@ -135,39 +136,43 @@ class Scenario_yum_plugins_count(APITestCase):
             1. The content host is created.
             2. katello-agent install and goferd run.
         """
-        environment = entities.LifecycleEnvironment(organization=self.org)\
-            .search(query={'search': 'name=Library'})[0]
+        environment = entities.LifecycleEnvironment(organization=self.org).search(
+            query={'search': 'name=Library'}
+        )[0]
         repos = self._get_rh_rhel_tools_repos()
         content_view = publish_content_view(org=self.org, repolist=repos)
-        ak = entities.ActivationKey(content_view=content_view,
-                                    organization=self.org.id,
-                                    environment=environment).create()
+        ak = entities.ActivationKey(
+            content_view=content_view, organization=self.org.id, environment=environment
+        ).create()
 
         rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = [value for value in rhel7_client.values()][0]
         wait_for(
-            lambda: self.org.label in execute(docker_execute_command,
-                                              client_container_id,
-                                              'subscription-manager identity',
-                                              host=self.docker_vm)[self.docker_vm],
+            lambda: self.org.label
+            in execute(
+                docker_execute_command,
+                client_container_id,
+                'subscription-manager identity',
+                host=self.docker_vm,
+            )[self.docker_vm],
             timeout=800,
             delay=2,
-            logger=self.logger
+            logger=self.logger,
         )
-        status = execute(docker_execute_command,
-                         client_container_id,
-                         'subscription-manager identity',
-                         host=self.docker_vm)[self.docker_vm]
+        status = execute(
+            docker_execute_command,
+            client_container_id,
+            'subscription-manager identity',
+            host=self.docker_vm,
+        )[self.docker_vm]
         self.assertIn(self.org.label, status)
 
-        install_or_update_package(client_hostname=client_container_id,
-                                  package="katello-agent")
+        install_or_update_package(client_hostname=client_container_id, package="katello-agent")
         run_goferd(client_hostname=client_container_id)
 
-        scenario_dict = {self.__class__.__name__: {
-            'rhel_client': rhel7_client,
-            'cv_id': content_view.id
-        }}
+        scenario_dict = {
+            self.__class__.__name__: {'rhel_client': rhel7_client, 'cv_id': content_view.id}
+        }
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
@@ -203,9 +208,9 @@ class Scenario_yum_plugins_count(APITestCase):
         cv = cv.update(['repository'])
         call_entity_method_with_timeout(cv.publish, timeout=3400)
 
-        attach_custom_product_subscription(prod_name=product.name,
-                                           host_name=client_container_name)
-        install_or_update_package(client_hostname=client_container_id,
-                                  update=True, package="katello-agent")
+        attach_custom_product_subscription(prod_name=product.name, host_name=client_container_name)
+        install_or_update_package(
+            client_hostname=client_container_id, update=True, package="katello-agent"
+        )
         run_goferd(client_hostname=client_container_id)
         self._check_yum_plugins_count(client_container_id)

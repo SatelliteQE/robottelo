@@ -19,10 +19,13 @@
 from fauxfactory import gen_ipaddr
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo import ssh
-from robottelo.decorators import run_in_one_thread, destructive
+from robottelo.datafactory import valid_hostgroups_list
+from robottelo.datafactory import valid_hosts_list
+from robottelo.decorators import destructive
+from robottelo.decorators import run_in_one_thread
 from robottelo.test import TestCase
-from robottelo.datafactory import valid_hosts_list, valid_hostgroups_list
 
 HOOKS_DIR = '/usr/share/foreman/config/hooks'
 LOGS_DIR = '/usr/share/foreman/tmp/hooks.log'
@@ -40,8 +43,7 @@ class ForemanHooksTestCase(TestCase):
         cls.script_path = "{}/logger.sh".format(HOOKS_DIR)
         ssh.command(
             '''printf '#!/bin/sh\necho "$(date): Executed $1 hook'''
-            + ''' on object $2" > {0}' > {1}'''.format(
-                LOGS_DIR, cls.script_path)
+            + ''' on object $2" > {0}' > {1}'''.format(LOGS_DIR, cls.script_path)
         )
         ssh.command("chmod 774 {}".format(cls.script_path))
         ssh.command("chown foreman:foreman {}".format(cls.script_path))

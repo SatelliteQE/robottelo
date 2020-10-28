@@ -65,7 +65,7 @@ are a few other things you may wish to do before continuing:
 2. You may wish to install the optional dependencies listed in
    ``requirements-optional.txt``. (Use pip, as shown above.) They are required
    for tasks like working with certificates, running the internal robottelo test
-   suite and checking code quality with pylint.
+   suite and checking code quality with pre-commit.
 
 Robottelo on Docker
 -------------------
@@ -76,7 +76,7 @@ Robottelo is also available on `dockerhub`_.::
 
 It also can be built locally using the Dockerfile, in the main directory.::
 
-    $ docker built -t robottelo .
+    $ docker build -t robottelo .
 
 In order to run tests, you will need to mount your robottelo.properties file.::
 
@@ -118,7 +118,7 @@ If you want to run tests without the aid of ``make``, you can do that with
 either `pytest`_ , `unittest`_ or `nose`_. Just specify the path for the test suite you
 want to run::
 
-    $ pytest tests/robotello
+    $ pytest tests/robottelo
     $ pytest tests/foreman
     $ python -m unittest discover -s tests/robottelo -t .
     $ python -m unittest discover -s tests/foreman -t .
@@ -135,23 +135,33 @@ To configure Robottelo, create a file named ``robottelo.properties``. You can
 use the ``robottelo.properties.sample`` file as a starting point. Then, edit the
 configuration file so that at least the following attributes are set::
 
-    server.hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
-    server.ssh.key_private=[PATH TO YOUR SSH KEY]
-    server.ssh.username=root
-    project=sat
-    locale=en_US
-    remote=0
-    smoke=0
+    [server]
+    hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
+    ssh_key=[PATH TO YOUR SSH KEY]
 
-    [foreman]
-    admin.username=admin
-    admin.password=changeme
+    [bugzilla]
+    api_key=sdfsdg654g8df4gdf6g4df8g468dfg
 
 Note that you only need to configure the SSH key if you want to run CLI tests.
 There are other settings to configure what web browser to use for UI tests and
 even configuration to run the automation using `SauceLabs`_. For more
 information about what web browsers you can use, check Selenium's `WebDriver`_
 documentation.
+
+Using environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each of the sections in the ``robottelo.properties`` file can be mapped to an
+environment variable prefixed with ``ROBOTTELO_`` so for example if you want
+to override the ``server.hostname`` without changing the properties file you can do::
+
+    $ export ROBOTTELO_SERVER_HOSTNAME=other.hostname.com
+
+The envars follows the format ``ROBOTTELO_{SECTION}_{VALUE}`` all uppercase, more examples::
+
+    $ export ROBOTTELO_SERVER_SSH_KEY=path/to/your/key
+    $ export ROBOTTELO_BUGZILLA_API_KEY=sdfsdg654g8df4gdf6g4df8g468dfg
+
 
 Running the UI Tests in headless mode
 ---------------------------------------
@@ -309,15 +319,15 @@ Miscellany
     code_standards
     reviewing_PRs
     features/index
-    api/index
+    autoapi/index
 
 Want to contribute? Before submitting code, read through the :doc:`committing
 guide </committing>` and **Robottelo** :doc:`code standards </code_standards>`.
 Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
-for that too! Finally, the :doc:`API reference </api/index>` covers individual
-functions, classes, methods and modules.
+for that too! Finally, the :doc:`API reference </autoapi/index>` covers
+individual functions, classes, methods and modules.
 
-**Robottelo** is compatible with Python 2.7.
+**Robottelo** is compatible with Python 3.6+.
 
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
 If you think you've found a new issue, please do one of the following:
@@ -338,7 +348,8 @@ you have `graphviz`_ installed::
 
 To check for code smells::
 
-    $ make lint
+    $ pre-commit install-hooks
+    $ pre-commit run --all-files
 
 The design and development for this software is led by `Og Maciel`_.
 

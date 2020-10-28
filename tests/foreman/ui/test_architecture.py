@@ -17,7 +17,8 @@
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.decorators import tier2, upgrade
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @tier2
@@ -39,10 +40,7 @@ def test_positive_end_to_end(session):
     os_name = '{} {}'.format(os.name, os.major)
     with session:
         # Create new architecture with assigned operating system
-        session.architecture.create({
-            'name': name,
-            'operatingsystems.assigned': [os_name],
-        })
+        session.architecture.create({'name': name, 'operatingsystems.assigned': [os_name]})
         assert session.architecture.search(name)[0]['Name'] == name
         architecture_values = session.architecture.read(name)
         assert architecture_values['name'] == name
@@ -50,10 +48,8 @@ def test_positive_end_to_end(session):
         assert architecture_values['operatingsystems']['assigned'][0] == os_name
         # Check that architecture is really assigned to operating system
         os_values = session.operatingsystem.read(os_name)
-        assert len(
-            os_values['operating_system']['architectures']['assigned']) == 1
-        assert os_values['operating_system'][
-            'architectures']['assigned'][0] == name
+        assert len(os_values['operating_system']['architectures']['assigned']) == 1
+        assert os_values['operating_system']['architectures']['assigned'][0] == name
         # Update architecture with new name
         session.architecture.update(name, {'name': new_name})
         assert session.architecture.search(new_name)[0]['Name'] == new_name

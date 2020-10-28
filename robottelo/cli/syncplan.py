@@ -17,10 +17,10 @@ Subcommands::
     list                          List sync plans
     update
 """
-
 from robottelo.cli.base import Base
 
 
 class SyncPlan(Base):
     """Manipulates Katello engine's sync-plan command."""
+
     command_base = 'sync-plan'

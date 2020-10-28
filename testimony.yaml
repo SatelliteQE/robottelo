@@ -13,12 +13,8 @@ CaseComponent:
     - ActivationKeys
     - Ansible
     - API
-    - API-Content
-    - Atomic
     - AuditLog
     - Authentication
-    - Authorization
-    - BackupRestore
     - BootdiskPlugin
     - Bootstrap
     - Branding
@@ -33,29 +29,24 @@ CaseComponent:
     - ComputeResources-GCE
     - ComputeResources-libvirt
     - ComputeResources-OpenStack
-    - ComputeResources-Rackspace
     - ComputeResources-RHEV
     - ComputeResources-VMWare
-    - ConfigurationManagement
-    - ContainerManagement
     - ContainerManagement-Content
-    - ContainerManagement-Runtime
+    - ContentCredentials
     - ContentManagement
     - ContentViews
     - Dashboard
     - DHCPDNS
     - DiscoveryImage
     - DiscoveryPlugin
-    - DocsInlineHelp
     - Documentation
+    - Dynflow
     - Email
     - Entitlements
     - ErrataManagement
     - Fact
     - ForemanDebug
     - ForemanMaintain
-    - GPGKeys
-    - Gutterball
     - Hammer
     - Hammer-Content
     - HooksPlugin
@@ -69,21 +60,18 @@ CaseComponent:
     - Installer
     - InterSatelliteSync
     - katello-agent
-    - katello-attach-subscription
     - katello-tracer
     - LDAP
+    - Leappintegration
     - LifecycleEnvironments
     - LocalizationInternationalization
     - Logging
+    - Navigation
     - Networking
     - Notifications
-    - Orchestration
     - OrganizationsLocations
-    - Other
     - Packaging
     - Parameters
-    - Performance
-    - PowerBMC
     - Provisioning
     - ProvisioningTemplates
     - Pulp
@@ -95,31 +83,27 @@ CaseComponent:
     - RemoteExecution
     - Reporting
     - Repositories
+    - RHCloud-CloudConnector
+    - RHCloud-Insights
+    - RHCloud-Inventory
     - rubygem-foreman-redhat_access
-    - rubygem-redhat_access_lib
-    - SatelliteClone
     - satellite-change-hostname
+    - SatelliteClone
     - SCAPPlugin
     - Search
     - Security
     - SELinux
     - Settings
-    - SmartVariables
-    - SubscriptionAssetManagerSAM
     - SubscriptionManagement
     - Subscriptions-virt-who
     - SyncPlans
     - TasksPlugin
     - TemplatesPlugin
     - TFTP
-    - Transitions
     - Trends
-    - Uncategorized
     - Upgrades
-    - Usability
     - UsersRoles
     - Virt-whoConfigurePlugin
-    - WebUI
     required: true
     type: choice
 CaseImportance:
@@ -164,4 +148,11 @@ Upstream:
     - 'Yes'
     - 'No'
     required: true
+    type: choice
+Parametrized:
+    casesensitive: false
+    choices:
+    - 'Yes'
+    - 'No'
+    required: false
     type: choice

@@ -1,22 +1,11 @@
-# -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
-from functools import partial, wraps
+from functools import wraps
 
-import os
 import pytest
 import unittest2
-from robozilla.decorators import (  # noqa
-    bz_bug_is_open, rm_bug_is_open,  # noqa
-    skip_if_bug_open as robozilla_skip_if_bug_is_open,  # noqa
-    # noqa
-    # noqa
-    BugTypeError
-)
 
 from robottelo.config import settings
-from robottelo.constants import NOT_IMPLEMENTED
-from robottelo.host_info import get_host_sat_version
 
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
@@ -34,13 +23,13 @@ tier4 = pytest.mark.tier4
 destructive = pytest.mark.destructive
 # Upgrade
 upgrade = pytest.mark.upgrade
-
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread
 
 # Shortcuts for pytest methods
 parametrize = pytest.mark.parametrize
 fixture = pytest.fixture
+skipif = pytest.mark.skipif
 
 
 def setting_is_set(option):
@@ -133,8 +122,7 @@ def skip_if_not_set(*options):
         invalid = options_set.difference(settings.all_features)
         raise ValueError(
             'Feature(s): "{0}" not found. Available ones are: "{1}".'.format(
-                ', '.join(invalid),
-                ', '.join(settings.all_features)
+                ', '.join(invalid), ', '.join(settings.all_features)
             )
         )
 
@@ -149,30 +137,11 @@ def skip_if_not_set(*options):
                     missing.append(option)
             if not missing:
                 return func(*args, **kwargs)
-            raise unittest2.SkipTest(
-                'Missing configuration for: {0}.'.format(', '.join(missing)))
+            raise unittest2.SkipTest('Missing configuration for: {0}.'.format(', '.join(missing)))
 
         return wrapper
 
     return decorator
-
-
-def stubbed(reason=None):
-    """Skips test due to non-implentation or some other reason."""
-    # Assume 'not implemented' if no reason is given
-    if reason is None:
-        reason = NOT_IMPLEMENTED
-
-    def wrapper(func):
-        # Replicate the same behaviour as doing:
-        #
-        # @unittest2.skip(reason)
-        # @pytest.mark.stubbed
-        # def func(...):
-        #     ...
-        return unittest2.skip(reason)(pytest.mark.stubbed(func))
-
-    return wrapper
 
 
 def cacheable(func):
@@ -275,104 +244,5 @@ def run_only_on(project):
                 return func(*args, **kwargs)
 
         return wrapper
-
-    return decorator
-
-
-def config_picker():
-    """Return a dict with config for robozilla.decorators
-    it is implemented because `settings` object can't be configured
-    at module level, so we make it lazy by this function"""
-    if not settings.configured:
-        settings.configure()
-    config = {'upstream': settings.upstream}
-    if setting_is_set('bugzilla'):
-        config['bz_credentials'] = settings.bugzilla.get_credentials()
-        config['wontfix_lookup'] = settings.bugzilla.wontfix_lookup
-    return config
-
-
-class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
-    """A decorator that sets pytest marker and allows to select test that
-    should be run sequentially only if bug is open.
-
-    TODO// Removed as part of GitHub PR#7027, see Issue #7048
-    """
-
-    '''
-    _wrapper = run_in_one_thread
-
-    def __call__(self, func):
-        """Return unchanged function or function decorated with
-        `pytest.mark.run_in_one_thread` marker decorator if bug is open.
-
-        :param func: The function being decorated.
-
-        :return: The return value of test method ``func``.
-        :raises BugTypeError: If ``bug_type`` is not recognized.
-        """
-        self.register_bug_id(func)
-        if self.bug_type not in ('bugzilla', 'redmine'):
-            raise BugTypeError(
-                '"{0}" is not a recognized bug type. Did you mean '
-                '"bugzilla" or "redmine"?'.format(self.bug_type)
-            )
-
-        if self.bug_type == 'bugzilla':
-            _add_bugzilla_id(func, self.bug_id)
-
-        if (self.bug_type == 'bugzilla' and bz_bug_is_open(
-                self.bug_id,
-                sat_version_picker=self.sat_version_picker,
-                config_picker=self.config_picker
-        )) or (self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id)):
-            func = self._wrapper(func)
-        return func
-    '''
-
-
-# Set the optional version and config pickers for robozilla decorators
-def get_sat_version():
-    """Try to read sat_version from envvar BUGZILLA_SAT_VERSION
-    if not available fallback to ssh connection to get it."""
-    return os.environ.get('BUGZILLA_SAT_VERSION') or get_host_sat_version()
-
-
-'''
-run_in_one_thread_if_bug_open = partial(
-    run_in_one_thread_if_bug_open,
-    sat_version_picker=get_sat_version,
-    config_picker=config_picker
-)
-'''
-
-bz_bug_is_open = partial(
-    bz_bug_is_open,
-    sat_version_picker=get_sat_version,
-    config_picker=config_picker
-)
-
-
-def _add_bugzilla_id(func, bug_id):
-    """ Add buzzila id to a function so it can be introspected
-
-    :param func: function or method
-    :param bug_id: int bugzilla's id
-    """
-    bugzilla_ids = getattr(func, 'bugzilla_ids', [])
-    bugzilla_ids.append(str(bug_id))
-    func.bugzilla_ids = bugzilla_ids
-
-
-def skip_if_bug_open(bug_type, bug_id):
-    def decorator(func):
-        if bug_type == 'bugzilla':
-            _add_bugzilla_id(func, bug_id)
-        return robozilla_skip_if_bug_is_open(
-            bug_type,
-            bug_id,
-            sat_version_picker=get_sat_version,
-            config_picker=config_picker
-        )(func)
 
     return decorator

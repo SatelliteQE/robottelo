@@ -18,9 +18,7 @@ def generate_command_tree(command):
     contents = hammer.parse_help(output)
     if len(contents['subcommands']) > 0:
         for subcommand in contents['subcommands']:
-            subcommand.update(generate_command_tree(
-                '{0} {1}'.format(command, subcommand['name'])
-            ))
+            subcommand.update(generate_command_tree('{0} {1}'.format(command, subcommand['name'])))
     return contents
 
 
@@ -28,8 +26,4 @@ settings.configure()
 
 # Generate the json file in the working directory
 with open('hammer_commands.json', 'w') as f:
-    f.write(json.dumps(
-        generate_command_tree('hammer'),
-        indent=2,
-        sort_keys=True
-    ))
+    f.write(json.dumps(generate_command_tree('hammer'), indent=2, sort_keys=True))

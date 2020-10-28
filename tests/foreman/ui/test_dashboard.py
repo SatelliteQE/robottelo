@@ -20,26 +20,22 @@ from nailgun.entity_mixins import TaskFailedError
 from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    DISTRO_RHEL7,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_2_ERRATA_ID,
-    FAKE_6_YUM_REPO,
-)
+from robottelo.config import settings
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    bz_bug_is_open,
-    run_in_one_thread,
-    skip_if_not_set,
-    tier2,
-    tier3,
-    upgrade,
-)
-from robottelo.products import (
-    RepositoryCollection,
-    SatelliteToolsRepository,
-    YumRepository,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.products import RepositoryCollection
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import YumRepository
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 
@@ -81,13 +77,12 @@ def test_positive_host_configuration_status(session):
         ' status.failed_restarts > 0) and status.enabled = true',
         'last_report > \"30 minutes ago\" and status.enabled = true and'
         ' status.applied = 0 and status.failed = 0 and status.pending = 0',
-        'last_report > \"30 minutes ago\" and status.pending > 0'
-        ' and status.enabled = true',
+        'last_report > \"30 minutes ago\" and status.pending > 0 and status.enabled = true',
         'last_report < \"30 minutes ago\" and status.enabled = true',
         'status.enabled = false',
         'not has last_report and status.enabled = true',
     ]
-    if bz_bug_is_open(1631219):
+    if is_open('BZ:1631219'):
         criteria_list.pop()
         search_strings_list.pop()
 
@@ -103,17 +98,13 @@ def test_positive_host_configuration_status(session):
 
         for criteria, search in zip(criteria_list, search_strings_list):
             if criteria == 'Hosts with no reports':
-                session.dashboard.action({
-                    'HostConfigurationStatus': {'status_list': criteria}
-                })
+                session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
                 assert values['searchbox'] == search
                 assert len(values['table']) == 1
                 assert values['table'][0]['Name'] == host.name
             else:
-                session.dashboard.action({
-                    'HostConfigurationStatus': {'status_list': criteria}
-                })
+                session.dashboard.action({'HostConfigurationStatus': {'status_list': criteria}})
                 values = session.host.read_all()
                 assert values['searchbox'] == search
                 assert len(values['table']) == 0
@@ -142,14 +133,15 @@ def test_positive_host_configuration_chart(session):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
-        assert dashboard_values['chart']['No report'] == '100%'
+        assert dashboard_values['chart'][''] == '100%'
 
 
+@upgrade
 @run_in_one_thread
 @tier2
 def test_positive_task_status(session):
     """Check if the Task Status is working in the Dashboard UI and
-        filter from Tasks dashboard is working correctly
+        filter from Tasks index page is working correctly
 
     :id: fb667d6a-7255-4341-9f79-2f03d19e8e0f
 
@@ -172,57 +164,37 @@ def test_positive_task_status(session):
     url = 'http://www.non_existent_repo_url.org/repos'
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
-    repo = entities.Repository(
-        url=url, product=product, content_type='puppet').create()
+    repo = entities.Repository(url=url, product=product, content_type='puppet').create()
     with raises(TaskFailedError):
         repo.sync()
     with session:
         session.organization.select(org_name=org.name)
-        session.dashboard.action({
-            'TaskStatus': {'state': 'running', 'result': 'pending'}
-        })
+        session.dashboard.action({'TaskStatus': {'state': 'stopped', 'result': 'warning'}})
         searchbox = session.task.read_all('searchbox')
-        assert searchbox['searchbox'] == 'state=running&result=pending'
-        session.task.set_chart_filter('RunningChart')
-        tasks = session.task.read_all(['pagination', 'RunningChart'])
-        assert (
-            tasks['pagination']['total_items'] ==
-            tasks['RunningChart']['total']['Total']
-        )
-        session.dashboard.action({
-            'TaskStatus': {'state': 'stopped', 'result': 'warning'}
-        })
-        tasks = session.task.read_all('searchbox')
-        assert tasks['searchbox'] == 'state=stopped&result=warning'
-        session.task.set_chart_filter(
-            'StoppedChart', {'row': 1, 'focus': 'Total'})
+        assert searchbox['searchbox'] == 'state=stopped&result=warning'
+        session.task.set_chart_filter('ScheduledChart')
+        tasks = session.task.read_all(['pagination', 'ScheduledChart'])
+        assert tasks['pagination']['total_items'] == tasks['ScheduledChart']['total'].split()[0]
+        session.task.set_chart_filter('StoppedChart', {'row': 1, 'focus': 'Total'})
         tasks = session.task.read_all()
-        assert (
-            tasks['pagination']['total_items'] ==
-            tasks['StoppedChart']['table'][1]['Total']
-        )
-        task_name = (
-            "Synchronize repository '{}'; product '{}'; "
-            "organization '{}'".format(repo.name, product.name, org.name)
+        assert tasks['pagination']['total_items'] == tasks['StoppedChart']['table'][1]['Total']
+        task_name = "Synchronize repository '{}'; product '{}'; organization '{}'".format(
+            repo.name, product.name, org.name
         )
         assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'
-        session.dashboard.action({
-            'LatestFailedTasks': {'name': 'Synchronize'}
-        })
+        session.dashboard.action({'LatestFailedTasks': {'name': 'Synchronize'}})
         values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
-        assert (
-            values['task']['errors'] ==
-            'PLP0000: Importer indicated a failed response'
-        )
+        assert values['task']['errors'] == 'PLP0000: Importer indicated a failed response'
 
 
 @upgrade
 @run_in_one_thread
 @skip_if_not_set('clients')
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_user_access_with_host_filter(test_name, module_loc):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -265,17 +237,14 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
         location=[module_loc],
         role=[role],
         login=user_login,
-        password=user_password
+        password=user_password,
     ).create()
     with Session(test_name, user=user_login, password=user_password) as session:
         assert session.dashboard.read('HostConfigurationStatus')['total_count'] == 0
         assert len(session.dashboard.read('LatestErrata')) == 0
         repos_collection = RepositoryCollection(
             distro=DISTRO_RHEL7,
-            repositories=[
-                SatelliteToolsRepository(),
-                YumRepository(url=FAKE_6_YUM_REPO),
-            ]
+            repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_6_YUM_REPO)],
         )
         repos_collection.setup_content(org.id, lce.id)
         with VirtualMachine(distro=repos_collection.distro) as client:

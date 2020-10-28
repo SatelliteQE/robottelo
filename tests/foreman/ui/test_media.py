@@ -18,7 +18,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.constants import INSTALL_MEDIUM_URL
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -49,13 +51,15 @@ def test_positive_end_to_end(session, module_org, module_loc):
     path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
     with session:
         # Create new media
-        session.media.create({
-            'medium.name': name,
-            'medium.path': path,
-            'medium.os_family': 'Windows',
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.media.create(
+            {
+                'medium.name': name,
+                'medium.path': path,
+                'medium.os_family': 'Windows',
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
         assert session.media.search(name)[0]['Name'] == name
         media_values = session.media.read(name)
         assert media_values['medium']['name'] == name

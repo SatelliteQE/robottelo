@@ -16,7 +16,9 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import tier1, upgrade
+
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 

@@ -13,15 +13,25 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string, gen_ipaddr, gen_mac
+import time
+from copy import copy
+
+import pytest
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_mac
+from fauxfactory import gen_string
 from nailgun import entities
+from nailgun import entity_mixins
+
+from robottelo import ssh
+from robottelo.api.utils import create_org_admin_user
+from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    skip_if_bug_open,
-    stubbed,
-    tier2,
-    tier3,
-)
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.helpers import get_nailgun_config
+from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import APITestCase
 
 
@@ -42,24 +52,109 @@ def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
         ipaddress = gen_ipaddr()
     if macaddress is None:
         macaddress = gen_mac(multicast=False)
-    return entities.DiscoveredHost().facts(json={
-        u'facts': {
-            u'name': name,
-            u'discovery_bootip': ipaddress,
-            u'discovery_bootif': macaddress,
-            u'interfaces': 'eth0',
-            u'ipaddress': ipaddress,
-            u'macaddress': macaddress,
-            u'macaddress_eth0': macaddress,
-            u'ipaddress_eth0': ipaddress,
+    return entities.DiscoveredHost().facts(
+        json={
+            'facts': {
+                'name': name,
+                'discovery_bootip': ipaddress,
+                'discovery_bootif': macaddress,
+                'interfaces': 'eth0',
+                'ipaddress': ipaddress,
+                'macaddress': macaddress,
+                'macaddress_eth0': macaddress,
+                'ipaddress_eth0': ipaddress,
+            }
         }
-    })
+    )
+
+
+class HostNotDiscoveredException(Exception):
+    """Raised when host is not discovered"""
 
 
 class DiscoveryTestCase(APITestCase):
     """Implements tests for foreman discovery feature"""
 
-    @stubbed()
+    def _assertdiscoveredhost(self, hostname, user_config=None):
+        """Check if host is discovered and information about it can be
+        retrieved back
+
+        Introduced a delay of 300secs by polling every 10 secs to get expected
+        host
+        """
+        default_config = entity_mixins.DEFAULT_SERVER_CONFIG
+        for _ in range(30):
+            discovered_host = entities.DiscoveredHost(user_config or default_config).search(
+                query={'search': 'name={}'.format(hostname)}
+            )
+            if discovered_host:
+                break
+            time.sleep(10)
+        else:
+            raise HostNotDiscoveredException(
+                "The host {} is not discovered within 300 seconds".format(hostname)
+            )
+        return discovered_host[0]
+
+    @classmethod
+    @skip_if_not_set('vlan_networking')
+    def setUpClass(cls):
+        """Steps to Configure foreman discovery
+
+        1. Build PXE default template
+        2. Create Organization/Location
+        3. Update Global parameters to set default org and location for
+           discovered hosts.
+        4. Enable auto_provision flag to perform discovery via discovery
+           rules.
+        """
+        super(DiscoveryTestCase, cls).setUpClass()
+
+        # Build PXE default template to get default PXE file
+        entities.ProvisioningTemplate().build_pxe_default()
+        # let's just modify the timeouts to speed things up
+        ssh.command(
+            "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
+        ssh.command(
+            "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
+            "/var/lib/tftpboot/pxelinux.cfg/default"
+        )
+        # Create Org and location
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location().create()
+        # Get default settings values
+        cls.default_disco_settings = {
+            i.name: i for i in entities.Setting().search(query={'search': 'name~discovery'})
+        }
+
+        # Update discovery taxonomies settings
+        cls.discovery_loc = copy(cls.default_disco_settings['discovery_location'])
+        cls.discovery_loc.value = cls.loc.name
+        cls.discovery_loc.update(['value'])
+        cls.discovery_org = copy(cls.default_disco_settings['discovery_organization'])
+        cls.discovery_org.value = cls.org.name
+        cls.discovery_org.update(['value'])
+
+        # Enable flag to auto provision discovered hosts via discovery rules
+        cls.discovery_auto = copy(cls.default_disco_settings['discovery_auto'])
+        cls.discovery_auto.value = 'true'
+        cls.discovery_auto.update(['value'])
+
+        # Flag which shows whether environment is fully configured for
+        # discovered host provisioning.
+        cls.configured_env = False
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore default global setting's values"""
+        cls.default_disco_settings['discovery_location'].update(['value'])
+        cls.default_disco_settings['discovery_organization'].update(['value'])
+        cls.default_disco_settings['discovery_auto'].update(['value'])
+        super(DiscoveryTestCase, cls).tearDownClass()
+
+    @pytest.mark.stubbed
     @tier3
     def test_positive_show(self):
         """Show a specific discovered hosts
@@ -78,7 +173,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_create(self):
         """Create a discovered hosts
@@ -97,7 +192,6 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @skip_if_bug_open('bugzilla', 1731112)
     @tier2
     def test_positive_upload_facts(self):
         """Upload fake facts to create a discovered host
@@ -116,17 +210,17 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
 
         :CaseLevel: Integration
+
+        :BZ: 1731112
         """
         for name in valid_data_list():
             with self.subTest(name):
                 result = _create_discovered_host(name)
-                discovered_host = entities.DiscoveredHost(
-                    id=result['id']).read()
-                host_name = 'mac{0}'.format(
-                    discovered_host.mac.replace(':', ''))
-                self.assertEqual(discovered_host.name, host_name)
+                discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
+                host_name = 'mac{0}'.format(discovered_host['mac'].replace(':', ''))
+                self.assertEqual(discovered_host['name'], host_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_less_host(self):
         """Provision a pxe-less discovered hosts
@@ -145,7 +239,6 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
     @tier3
     def test_positive_provision_pxe_host(self):
         """Provision a pxe-based discovered hosts
@@ -159,12 +252,96 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be provisioned successfully
 
-        :CaseAutomation: notautomated
-
         :CaseImportance: Critical
         """
+        if not self.configured_env:
+            self.__class__.configured_env = configure_env_for_provision(
+                org={'id': self.org.id, 'name': self.org.name},
+                loc={'id': self.loc.id, 'name': self.loc.name},
+            )
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            discovered_host = self._assertdiscoveredhost(hostname)
+            # Provision just discovered host
+            discovered_host.hostgroup = entities.HostGroup(
+                id=self.configured_env['hostgroup']['id']
+            ).read()
+            discovered_host.root_pass = gen_string('alphanumeric')
+            discovered_host.update(['hostgroup', 'root_pass'])
+            # Assertions
+            provisioned_host = entities.Host().search(
+                query={
+                    'search': 'name={}.{}'.format(
+                        discovered_host.name, self.configured_env['domain']['name']
+                    )
+                }
+            )[0]
+            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert (
+                provisioned_host.operatingsystem.read().ptable[0].read().name
+                == self.configured_env['ptable']['name']
+            )
+            assert (
+                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
+            )
+            assert not entities.DiscoveredHost().search(
+                query={'search': 'name={}'.format(discovered_host.name)}
+            )
 
-    @stubbed()
+    @tier3
+    def test_positive_provision_pxe_host_non_admin(self):
+        """Provision a pxe-based discovered hosts by non-admin user
+
+        :id: 02144040-6cf6-4251-abaf-b0fad2c83109
+
+        :Setup: Provisioning should be configured and a host should be
+            discovered
+
+        :Steps: PUT /api/v2/discovered_hosts/:id
+
+        :expectedresults: Host should be provisioned successfully by non admin user
+
+        :CaseImportance: Critical
+
+        :bz: 1638403
+        """
+        non_admin = create_org_admin_user(orgs=[self.org.id], locs=[self.loc.id])
+        nonadmin_config = get_nailgun_config(non_admin)
+        if not self.configured_env:
+            self.__class__.configured_env = configure_env_for_provision(
+                org={'id': self.org.id, 'name': self.org.name},
+                loc={'id': self.loc.id, 'name': self.loc.name},
+            )
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            discovered_host = self._assertdiscoveredhost(hostname, nonadmin_config)
+            # Provision just discovered host
+            discovered_host.hostgroup = entities.HostGroup(
+                nonadmin_config, id=self.configured_env['hostgroup']['id']
+            ).read()
+            discovered_host.root_pass = gen_string('alphanumeric')
+            discovered_host.update(['hostgroup', 'root_pass'])
+            # Assertions
+            provisioned_host = entities.Host(nonadmin_config).search(
+                query={
+                    'search': 'name={}.{}'.format(
+                        discovered_host.name, self.configured_env['domain']['name']
+                    )
+                }
+            )[0]
+            assert provisioned_host.subnet.read().name == self.configured_env['subnet']['name']
+            assert (
+                provisioned_host.operatingsystem.read().ptable[0].read().name
+                == self.configured_env['ptable']['name']
+            )
+            assert (
+                provisioned_host.operatingsystem.read().title == self.configured_env['os']['title']
+            )
+            assert not entities.DiscoveredHost(nonadmin_config).search(
+                query={'search': 'name={}'.format(discovered_host.name)}
+            )
+
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_pxe_less_host(self):
         """Delete a pxe-less discovered hosts
@@ -183,7 +360,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_pxe_host(self):
         """Delete a pxe-based discovered hosts
@@ -202,7 +379,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_less_host(self):
         """Auto provision a pxe-less host by executing discovery rules
@@ -221,7 +398,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_host(self):
         """Auto provision a pxe-based host by executing discovery rules
@@ -240,7 +417,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_all(self):
         """Auto provision all host by executing discovery rules
@@ -260,7 +437,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_less_host(self):
         """Refreshing the facts of pxe-less discovered host by adding a new NIC.
@@ -283,7 +460,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_host(self):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
@@ -305,7 +482,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_host(self):
         """Rebooting a pxe based discovered host
@@ -324,7 +501,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_less_host(self):
         """Rebooting a pxe-less discovered host
@@ -343,7 +520,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_host_with_rule(self):
         """Create a new discovery rule that applies on host to provision
@@ -361,7 +538,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_multihost_with_rule(self):
         """Create a new discovery rule with (host_limit = 0)
@@ -379,7 +556,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_rule_priority(self):
         """Create multiple discovery rules with different priority and check
@@ -397,7 +574,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_multi_provision_with_rule_limit(self):
         """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
@@ -415,7 +592,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_updated_discovery_rule(self):
         """Update an existing rule and provision a host with it.
@@ -432,7 +609,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_updated_hostname_in_rule(self):
         """Update the discovered hostname in existing rule and provision a host

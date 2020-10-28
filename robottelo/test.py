@@ -7,11 +7,13 @@ to help writing API and CLI tests.
 """
 import logging
 import re
+
 import unittest2
 
 from robottelo import manifests
 from robottelo.config import settings
-from robottelo.constants import INTERFACE_API, INTERFACE_CLI
+from robottelo.constants import INTERFACE_API
+from robottelo.constants import INTERFACE_CLI
 
 LOGGER = logging.getLogger(__name__)
 
@@ -76,8 +78,15 @@ class _AssertNotRaisesContext(object):
     """A context manager used to implement :meth:`TestCase.assertNotRaises`.
     """
 
-    def __init__(self, expected, value_handler_class, failure_exception,
-                 expected_regex=None, expected_value=None, value_handler=None):
+    def __init__(
+        self,
+        expected,
+        value_handler_class,
+        failure_exception,
+        expected_regex=None,
+        expected_value=None,
+        value_handler=None,
+    ):
         self.expected = expected
         self.expected_regex = expected_regex
         self.value_handler = value_handler
@@ -101,8 +110,7 @@ class _AssertNotRaisesContext(object):
 
         if issubclass(exc_type, self.expected):
             if not any((self.value_handler, self.expected_regex)):
-                raise self.failure_exception(
-                    "{0} raised".format(exc_name))
+                raise self.failure_exception("{0} raised".format(exc_name))
             regex = self.expected_regex
             response_code = None
             if self.value_handler:
@@ -112,8 +120,7 @@ class _AssertNotRaisesContext(object):
 
             if response_code and regex:
                 raise self.failure_exception(
-                    "{0} raised with {1} {2} and {3} found in {4}"
-                    .format(
+                    "{0} raised with {1} {2} and {3} found in {4}".format(
                         exc_name,
                         self.value_handler.value_name,
                         self.value_handler.expected_value,
@@ -124,17 +131,13 @@ class _AssertNotRaisesContext(object):
             elif response_code and regex is None:
                 raise self.failure_exception(
                     "{0} raised with {1} {2}".format(
-                        exc_name,
-                        self.value_handler.value_name,
-                        self.value_handler.expected_value,
+                        exc_name, self.value_handler.value_name, self.value_handler.expected_value
                     )
                 )
             elif regex and response_code is None:
                 raise self.failure_exception(
                     "{0} raised and {1} found in {2}".format(
-                        exc_name,
-                        self.expected_regex.pattern,
-                        str(exc_value),
+                        exc_name, self.expected_regex.pattern, str(exc_value)
                     )
                 )
             else:
@@ -147,20 +150,26 @@ class _AssertNotRaisesContext(object):
 
 
 class AssertCliNotRaisesContextManager(_AssertNotRaisesContext):
-    def __init__(self, expected, expected_regex=None, expected_value=None,
-                 value_handler=None):
+    def __init__(self, expected, expected_regex=None, expected_value=None, value_handler=None):
         super(AssertCliNotRaisesContextManager, self).__init__(
-            expected, CLINotRaisesValueHandler, AssertionError, expected_regex,
-            expected_value, value_handler
+            expected,
+            CLINotRaisesValueHandler,
+            AssertionError,
+            expected_regex,
+            expected_value,
+            value_handler,
         )
 
 
 class AssertApiNotRaisesContextManager(_AssertNotRaisesContext):
-    def __init__(self, expected, expected_regex=None, expected_value=None,
-                 value_handler=None):
+    def __init__(self, expected, expected_regex=None, expected_value=None, value_handler=None):
         super(AssertApiNotRaisesContextManager, self).__init__(
-            expected, APINotRaisesValueHandler, AssertionError, expected_regex,
-            expected_value, value_handler
+            expected,
+            APINotRaisesValueHandler,
+            AssertionError,
+            expected_regex,
+            expected_value,
+            value_handler,
         )
 
 
@@ -176,8 +185,7 @@ class TestCase(unittest2.TestCase):
         if not settings.configured:
             settings.configure()
         cls.logger = logging.getLogger('robottelo')
-        cls.logger.info('Started setUpClass: {0}/{1}'.format(
-            cls.__module__, cls.__name__))
+        cls.logger.info('Started setUpClass: {0}/{1}'.format(cls.__module__, cls.__name__))
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
@@ -185,8 +193,7 @@ class TestCase(unittest2.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.logger.info('Started tearDownClass: {0}/{1}'.format(
-            cls.__module__, cls.__name__))
+        cls.logger.info('Started tearDownClass: {0}/{1}'.format(cls.__module__, cls.__name__))
 
     @classmethod
     def upload_manifest(cls, org_id, manifest, interface=None, timeout=None):
@@ -211,11 +218,18 @@ class TestCase(unittest2.TestCase):
             # upload the manifest with default ssh client command timeout.
             timeout = settings.ssh_client.command_timeout
         return manifests.upload_manifest_locked(
-            org_id, manifest, interface=interface, timeout=timeout)
+            org_id, manifest, interface=interface, timeout=timeout
+        )
 
-    def assertNotRaises(self, expected_exception, callableObj=None,
-                        expected_value=None, value_handler=None, *args,
-                        **kwargs):
+    def assertNotRaises(
+        self,
+        expected_exception,
+        callableObj=None,
+        expected_value=None,
+        value_handler=None,
+        *args,
+        **kwargs
+    ):
         """Fail if an exception of class expected_exception is raised by
         callableObj when invoked with specified positional and keyword
         arguments. If a different type of exception is raised, it will not be
@@ -256,9 +270,16 @@ class TestCase(unittest2.TestCase):
         with context:
             callableObj(*args, **kwargs)
 
-    def assertNotRaisesRegex(self, expected_exception, expected_regex,
-                             callableObj=None, expected_value=None,
-                             value_handler=None, *args, **kwargs):
+    def assertNotRaisesRegex(
+        self,
+        expected_exception,
+        expected_regex,
+        callableObj=None,
+        expected_value=None,
+        value_handler=None,
+        *args,
+        **kwargs
+    ):
         """Fail if an exception of class expected_exception is raised and the
         message in the exception matches a regex.
         """
@@ -280,6 +301,7 @@ class TestCase(unittest2.TestCase):
 
 class APITestCase(TestCase):
     """Test case for API tests."""
+
     _default_interface = INTERFACE_API
     _default_notraises_value_handler = APINotRaisesValueHandler
     _multiprocess_can_split_ = True
@@ -287,6 +309,7 @@ class APITestCase(TestCase):
 
 class CLITestCase(TestCase):
     """Test case for CLI tests."""
+
     _default_interface = INTERFACE_CLI
     _default_notraises_value_handler = CLINotRaisesValueHandler
     _multiprocess_can_split_ = True

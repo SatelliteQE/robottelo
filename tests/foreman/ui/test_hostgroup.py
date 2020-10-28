@@ -18,8 +18,13 @@ from nailgun import entities
 from pytest import raises
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO, DEFAULT_CV, ENVIRONMENT
-from robottelo.decorators import fixture, tier2
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier2
 
 
 @fixture(scope='module')
@@ -49,20 +54,21 @@ def test_positive_end_to_end(session, module_org, module_loc):
     description = gen_string('alpha')
     architecture = entities.Architecture().create()
     os = entities.OperatingSystem(architecture=[architecture]).create()
-    os_name = u'{0} {1}'.format(os.name, os.major)
-    domain = entities.Domain(
-        organization=[module_org], location=[module_loc]).create()
+    os_name = '{0} {1}'.format(os.name, os.major)
+    domain = entities.Domain(organization=[module_org], location=[module_loc]).create()
     with session:
         # Create host group with some data
-        session.hostgroup.create({
-            'host_group.name': name,
-            'host_group.description': description,
-            'host_group.lce': ENVIRONMENT,
-            'host_group.content_view': DEFAULT_CV,
-            'network.domain': domain.name,
-            'operating_system.architecture': architecture.name,
-            'operating_system.operating_system': os_name,
-        })
+        session.hostgroup.create(
+            {
+                'host_group.name': name,
+                'host_group.description': description,
+                'host_group.lce': ENVIRONMENT,
+                'host_group.content_view': DEFAULT_CV,
+                'network.domain': domain.name,
+                'operating_system.architecture': architecture.name,
+                'operating_system.operating_system': os_name,
+            }
+        )
         hostgroup_values = session.hostgroup.read(name)
         assert hostgroup_values['host_group']['name'] == name
         assert hostgroup_values['host_group']['description'] == description
@@ -95,17 +101,16 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
 
     :CaseLevel: Integration
     """
-    hostgroup = entities.HostGroup(
-        organization=[module_org], location=[module_loc]).create()
+    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
     entities.DiscoveryRule(
-        hostgroup=hostgroup, organization=[module_org], location=[module_loc]).create()
+        hostgroup=hostgroup, organization=[module_org], location=[module_loc]
+    ).create()
     with session:
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
         # Make an attempt to delete host group that associated with discovery rule
         with raises(AssertionError) as context:
             session.hostgroup.delete(hostgroup.name)
-        assert "Cannot delete record because dependent discovery rules exist" in str(
-            context.value)
+        assert "Cannot delete record because dependent discovery rules exist" in str(context.value)
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
 
 
@@ -120,23 +125,26 @@ def test_create_with_config_group(session, module_org, module_loc):
     :CaseLevel: Integration
     """
     name = gen_string('alpha')
-    environment = entities.Environment(
-        organization=[module_org], location=[module_loc]).create()
+    environment = entities.Environment(organization=[module_org], location=[module_loc]).create()
     config_group = entities.ConfigGroup().create()
     with session:
         # Create host group with config group
-        session.hostgroup.create({
-            'host_group.name': name,
-            'host_group.puppet_environment': environment.name,
-            'puppet_classes.config_groups.assigned': [config_group.name],
-        })
+        session.hostgroup.create(
+            {
+                'host_group.name': name,
+                'host_group.puppet_environment': environment.name,
+                'puppet_classes.config_groups.assigned': [config_group.name],
+            }
+        )
         hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
         assert len(hostgroup_values['puppet_classes']['config_groups']['assigned']) == 1
-        assert hostgroup_values[
-            'puppet_classes']['config_groups']['assigned'][0] == config_group.name
+        assert (
+            hostgroup_values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
+        )
 
 
 @tier2
+@skip_if(not settings.repos_hosting_url)
 def test_create_with_puppet_class(session, module_org, module_loc):
     """Create new host group with assigned puppet class to it
 
@@ -151,20 +159,29 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     cv = publish_puppet_module(
         [{'author': 'robottelo', 'name': pc_name}],
         CUSTOM_PUPPET_REPO,
-        organization_id=module_org.id
+        organization_id=module_org.id,
     )
-    env = entities.Environment().search(query={
-        'search': u'content_view="{0}" and organization_id={1}'.format(
-            cv.name, module_org.id)})[0].read()
+    env = (
+        entities.Environment()
+        .search(
+            query={
+                'search': 'content_view="{0}" and organization_id={1}'.format(
+                    cv.name, module_org.id
+                )
+            }
+        )[0]
+        .read()
+    )
     env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
     with session:
         # Create host group with puppet class
-        session.hostgroup.create({
-            'host_group.name': name,
-            'host_group.puppet_environment': env.name,
-            'puppet_classes.classes.assigned': [pc_name],
-        })
+        session.hostgroup.create(
+            {
+                'host_group.name': name,
+                'host_group.puppet_environment': env.name,
+                'puppet_classes.classes.assigned': [pc_name],
+            }
+        )
         hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
         assert len(hostgroup_values['puppet_classes']['classes']['assigned']) == 1
-        assert hostgroup_values[
-            'puppet_classes']['classes']['assigned'][0] == pc_name
+        assert hostgroup_values['puppet_classes']['classes']['assigned'][0] == pc_name

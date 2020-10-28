@@ -14,33 +14,30 @@
 
 :Upstream: No
 """
+from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from pytest import raises
 
-from airgun.session import Session
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import (
-    CUSTOM_MODULE_STREAM_REPO_2,
-    ENVIRONMENT,
-    FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_0_PUPPET_REPO,
-    FAKE_0_YUM_REPO,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
-    FAKE_3_CUSTOM_PACKAGE_NAME,
-    REPO_TYPE,
-)
+from robottelo.config import settings
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
+from robottelo.constants import REPO_TYPE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    fixture,
-    skip_if_bug_open,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.decorators import fixture
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -67,11 +64,9 @@ def test_positive_end_to_end(session):
     description = gen_string('alpha')
     with session:
         # Create new lce
-        session.lifecycleenvironment.create({
-            'name': lce_name,
-            'label': label,
-            'description': description
-        })
+        session.lifecycleenvironment.create(
+            {'name': lce_name, 'label': label, 'description': description}
+        )
         lce_values = session.lifecycleenvironment.read(lce_name)
         assert lce_values['details']['name'] == lce_name
         assert lce_values['details']['label'] == label
@@ -102,12 +97,9 @@ def test_positive_create_chain(session):
     lce_path_name = gen_string('alpha')
     lce_name = gen_string('alpha')
     with session:
+        session.lifecycleenvironment.create(values={'name': lce_path_name})
         session.lifecycleenvironment.create(
-            values={'name': lce_path_name}
-        )
-        session.lifecycleenvironment.create(
-            values={'name': lce_name},
-            prior_entity_name=lce_path_name,
+            values={'name': lce_name}, prior_entity_name=lce_path_name
         )
         lce_values = session.lifecycleenvironment.read_all()
         assert lce_name in lce_values['lce']
@@ -116,6 +108,7 @@ def test_positive_create_chain(session):
 
 @tier2
 @upgrade
+@skip_if(not settings.repos_hosting_url)
 def test_positive_add_puppet_module(session, module_org):
     """Promote content view with puppet module to a new environment
 
@@ -136,9 +129,7 @@ def test_positive_add_puppet_module(session, module_org):
     puppet_module = 'httpd'
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        product=product,
-        content_type=REPO_TYPE['puppet'],
-        url=FAKE_0_PUPPET_REPO
+        product=product, content_type=REPO_TYPE['puppet'], url=FAKE_0_PUPPET_REPO
     ).create()
     repo.sync()
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -149,17 +140,14 @@ def test_positive_add_puppet_module(session, module_org):
         result = session.contentview.promote(cv.name, 'Version 1.0', lce.name)
         assert 'Promoted to {}'.format(lce.name) in result['Status']
         lce = session.lifecycleenvironment.search_puppet_module(
-            lce.name,
-            puppet_module,
-            cv_name=cv.name
+            lce.name, puppet_module, cv_name=cv.name
         )
         assert lce[0]['Name'] == puppet_module
 
 
-@skip_if_bug_open('bugzilla', 1432155)
 @tier3
-def test_positive_search_lce_content_view_packages_by_full_name(
-        session, module_org):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_search_lce_content_view_packages_by_full_name(session, module_org):
     """Search Lifecycle Environment content view packages by full name
 
     Note: if package full name looks like "bear-4.1-1.noarch",
@@ -187,31 +175,30 @@ def test_positive_search_lce_content_view_packages_by_full_name(
     :CaseLevel: System
     """
     packages = [
-        {'name': FAKE_0_CUSTOM_PACKAGE_NAME,
-         'full_names': [FAKE_0_CUSTOM_PACKAGE]},
-        {'name': FAKE_1_CUSTOM_PACKAGE_NAME,
-         'full_names': [FAKE_1_CUSTOM_PACKAGE, FAKE_2_CUSTOM_PACKAGE]},
+        {'name': FAKE_0_CUSTOM_PACKAGE_NAME, 'full_names': [FAKE_0_CUSTOM_PACKAGE]},
+        {
+            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            'full_names': [FAKE_1_CUSTOM_PACKAGE, FAKE_2_CUSTOM_PACKAGE],
+        },
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(
-        product=product, url=FAKE_0_YUM_REPO).create()
+    repository = entities.Repository(product=product, url=FAKE_0_YUM_REPO).create()
     repository.sync()
-    content_view = entities.ContentView(
-        organization=module_org, repository=[repository]).create()
+    content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()
     with session:
         for package in packages:
             for package_full_name in package['full_names']:
                 result = session.lifecycleenvironment.search_package(
-                    ENVIRONMENT, package_full_name, cv_name=content_view.name)
+                    ENVIRONMENT, package_full_name, cv_name=content_view.name
+                )
                 assert len(result) == 1
                 assert result[0]['Name'] == package['name']
 
 
-@skip_if_bug_open('bugzilla', 1432155)
 @tier3
-def test_positive_search_lce_content_view_packages_by_name(
-        session, module_org):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_search_lce_content_view_packages_by_name(session, module_org):
     """Search Lifecycle Environment content view packages by name
 
     Note: if package full name looks like "bear-4.1-1.noarch",
@@ -239,30 +226,27 @@ def test_positive_search_lce_content_view_packages_by_name(
     :CaseLevel: System
     """
     packages = [
-        {'name': FAKE_0_CUSTOM_PACKAGE_NAME,
-         'packages_count': 1},
-        {'name': FAKE_1_CUSTOM_PACKAGE_NAME,
-         'packages_count': 2},
+        {'name': FAKE_0_CUSTOM_PACKAGE_NAME, 'packages_count': 1},
+        {'name': FAKE_1_CUSTOM_PACKAGE_NAME, 'packages_count': 2},
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(
-        product=product, url=FAKE_0_YUM_REPO).create()
+    repository = entities.Repository(product=product, url=FAKE_0_YUM_REPO).create()
     repository.sync()
-    content_view = entities.ContentView(
-        organization=module_org, repository=[repository]).create()
+    content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()
     with session:
         for package in packages:
             result = session.lifecycleenvironment.search_package(
-                ENVIRONMENT, package['name'], cv_name=content_view.name)
+                ENVIRONMENT, package['name'], cv_name=content_view.name
+            )
             assert len(result) == package['packages_count']
             for entry in result:
                 assert entry['Name'].startswith(package['name'])
 
 
 @tier3
-def test_positive_search_lce_content_view_module_streams_by_name(
-        session, module_org):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_search_lce_content_view_module_streams_by_name(session, module_org):
     """Search Lifecycle Environment content view module streams by name
 
     :id: e67893b2-a56e-4eac-87e6-63be897ba912
@@ -285,26 +269,19 @@ def test_positive_search_lce_content_view_module_streams_by_name(
     :CaseLevel: System
     """
     module_streams = [
-        {
-            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
-            'streams_count': 2
-        },
-        {
-            'name': FAKE_3_CUSTOM_PACKAGE_NAME,
-            'streams_count': 3
-        },
+        {'name': FAKE_1_CUSTOM_PACKAGE_NAME, 'streams_count': 2},
+        {'name': FAKE_3_CUSTOM_PACKAGE_NAME, 'streams_count': 3},
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(
-        product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
+    repository = entities.Repository(product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
     repository.sync()
-    content_view = entities.ContentView(
-        organization=module_org, repository=[repository]).create()
+    content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()
     with session:
         for module in module_streams:
             result = session.lifecycleenvironment.search_module_stream(
-                ENVIRONMENT, module['name'], cv_name=content_view.name)
+                ENVIRONMENT, module['name'], cv_name=content_view.name
+            )
             assert len(result) == module['streams_count']
             for entry in result:
                 assert entry['Name'].startswith(module['name'])
@@ -363,8 +340,8 @@ def test_positive_custom_user_view_lce(session, test_name):
         'Katello::KTEnvironment': [
             'view_lifecycle_environments',
             'edit_lifecycle_environments',
-            'promote_or_remove_content_views_to_environments'
-        ]
+            'promote_or_remove_content_views_to_environments',
+        ],
     }
     create_role_permissions(role, permissions_types_names)
     entities.User(
@@ -372,7 +349,7 @@ def test_positive_custom_user_view_lce(session, test_name):
         organization=[org],
         role=[role],
         login=user_login,
-        password=user_password
+        password=user_password,
     ).create()
     # create a life cycle environment as admin user and ensure it's visible
     with session:

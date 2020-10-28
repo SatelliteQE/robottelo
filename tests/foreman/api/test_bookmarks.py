@@ -7,7 +7,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: Usability
+:CaseComponent: Search
 
 :TestType: Functional
 
@@ -18,9 +18,11 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 # Create a new list reference to prevent constant modification
@@ -34,11 +36,6 @@ class BookmarkTestCase(APITestCase):
     def setUpClass(cls):
         """Filter entities list if affected by BZ"""
         super(BookmarkTestCase, cls).setUpClass()
-        if bz_bug_is_open(1456833):
-            BOOKMARK_ENTITIES[:] = [
-                entity for entity in BOOKMARK_ENTITIES
-                if entity.get('controller') != 'common_parameters'
-            ]
 
     # CREATE TESTS
     @tier1
@@ -60,12 +57,10 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                for name in valid_data_list():
+                for name in valid_data_list().values():
                     with self.subTest(name):
                         bm = entities.Bookmark(
-                            controller=entity['controller'],
-                            name=name,
-                            public=False,
+                            controller=entity['controller'], name=name, public=False
                         ).create()
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.name, name)
@@ -89,11 +84,10 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                for query in valid_data_list():
+                for query in valid_data_list().values():
                     with self.subTest(query):
                         bm = entities.Bookmark(
-                            controller=entity['controller'],
-                            query=query,
+                            controller=entity['controller'], query=query
                         ).create()
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.query, query)
@@ -119,8 +113,7 @@ class BookmarkTestCase(APITestCase):
                 for public in (True, False):
                     with self.subTest(public):
                         bm = entities.Bookmark(
-                            controller=entity['controller'],
-                            public=public,
+                            controller=entity['controller'], public=public
                         ).create()
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.public, public)
@@ -146,12 +139,11 @@ class BookmarkTestCase(APITestCase):
                     with self.subTest(name):
                         with self.assertRaises(HTTPError):
                             entities.Bookmark(
-                                controller=entity['controller'],
-                                name=name,
-                                public=False,
+                                controller=entity['controller'], name=name, public=False
                             ).create()
                         result = entities.Bookmark().search(
-                            query={'search': u'name="{0}"'.format(name)})
+                            query={'search': 'name="{0}"'.format(name)}
+                        )
                         self.assertEqual(len(result), 0)
 
     @tier1
@@ -175,12 +167,9 @@ class BookmarkTestCase(APITestCase):
                 name = gen_string('alpha')
                 with self.assertRaises(HTTPError):
                     entities.Bookmark(
-                        controller=entity['controller'],
-                        name=name,
-                        query='',
+                        controller=entity['controller'], name=name, query=''
                     ).create()
-                result = entities.Bookmark().search(
-                    query={'search': u'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 0)
 
     @tier1
@@ -207,20 +196,12 @@ class BookmarkTestCase(APITestCase):
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
                 name = gen_string('alphanumeric')
-                entities.Bookmark(
-                    controller=entity['controller'],
-                    name=name,
-                ).create()
+                entities.Bookmark(controller=entity['controller'], name=name).create()
                 with self.assertRaises(HTTPError):
-                    entities.Bookmark(
-                        controller=entity['controller'],
-                        name=name,
-                    ).create()
-                result = entities.Bookmark().search(
-                    query={'search': u'name="{0}"'.format(name)})
+                    entities.Bookmark(controller=entity['controller'], name=name).create()
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 1)
 
-    @skip_if_bug_open('bugzilla', 1302725)
     @tier1
     def test_negative_create_null_public(self):
         """Create a bookmark omitting the public parameter
@@ -245,12 +226,9 @@ class BookmarkTestCase(APITestCase):
                 name = gen_string('alphanumeric')
                 with self.assertRaises(HTTPError):
                     entities.Bookmark(
-                        controller=entity['controller'],
-                        name=name,
-                        public=None,
+                        controller=entity['controller'], name=name, public=None
                     ).create()
-                result = entities.Bookmark().search(
-                    query={'search': u'name="{0}"'.format(name)})
+                result = entities.Bookmark().search(query={'search': 'name="{0}"'.format(name)})
                 self.assertEqual(len(result), 0)
 
     # UPDATE TESTS
@@ -270,11 +248,8 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                bm = entities.Bookmark(
-                    controller=entity['controller'],
-                    public=False,
-                ).create()
-                for new_name in valid_data_list():
+                bm = entities.Bookmark(controller=entity['controller'], public=False).create()
+                for new_name in valid_data_list().values():
                     with self.subTest(new_name):
                         bm.name = new_name
                         bm = bm.update(['name'])
@@ -299,13 +274,8 @@ class BookmarkTestCase(APITestCase):
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
                 name = gen_string('alphanumeric')
-                entities.Bookmark(
-                    controller=entity['controller'],
-                    name=name,
-                ).create()
-                bm = entities.Bookmark(
-                    controller=entity['controller'],
-                ).create()
+                entities.Bookmark(controller=entity['controller'], name=name).create()
+                bm = entities.Bookmark(controller=entity['controller']).create()
                 bm.name = name
                 with self.assertRaises(HTTPError):
                     bm.update(['name'])
@@ -329,10 +299,7 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                bm = entities.Bookmark(
-                    controller=entity['controller'],
-                    public=False,
-                ).create()
+                bm = entities.Bookmark(controller=entity['controller'], public=False).create()
                 for new_name in invalid_values_list():
                     with self.subTest(new_name):
                         bm.name = new_name
@@ -357,10 +324,8 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                bm = entities.Bookmark(
-                    controller=entity['controller'],
-                ).create()
-                for new_query in valid_data_list():
+                bm = entities.Bookmark(controller=entity['controller']).create()
+                for new_query in valid_data_list().values():
                     with self.subTest(new_query):
                         bm.query = new_query
                         bm = bm.update(['query'])
@@ -384,9 +349,7 @@ class BookmarkTestCase(APITestCase):
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
-                bm = entities.Bookmark(
-                    controller=entity['controller'],
-                ).create()
+                bm = entities.Bookmark(controller=entity['controller']).create()
                 bm.query = ''
                 with self.assertRaises(HTTPError):
                     bm.update(['query'])
@@ -416,8 +379,7 @@ class BookmarkTestCase(APITestCase):
                 for public in (True, False):
                     with self.subTest(public):
                         bm = entities.Bookmark(
-                            controller=entity['controller'],
-                            public=not public,
+                            controller=entity['controller'], public=not public
                         ).create()
                         self.assertNotEqual(bm.public, public)
                         bm.public = public

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from setuptools import setup
 
 with open('README.rst', 'r') as f:
     README = f.read()
@@ -10,7 +11,7 @@ setup(
     version='0.1.0',
     description='Robottelo is a test suite which exercises The Foreman.',
     long_description=README,
-    author=u'Satellite QE Team',
+    author='Satellite QE Team',
     url='https://github.com/SatelliteQE/robottelo',
     packages=find_packages(exclude=['tests*']),
     package_data={'': ['LICENSE']},
@@ -24,5 +25,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
     ),
 )

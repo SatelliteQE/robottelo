@@ -19,8 +19,8 @@ Subcommands::
     set_sync_plan                 Assign sync plan to product.
     synchronize                   Sync a repository
     update                        Update a product
+    update-proxy                  Updates an HTTP Proxy for a product
 """
-
 from robottelo.cli.base import Base
 
 
@@ -60,7 +60,16 @@ class Product(Base):
     def synchronize(cls, options=None):
         """Synchronize a product."""
         cls.command_sub = 'synchronize'
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True)
+
+    @classmethod
+    def update_proxy(cls, options=None):
+        """
+        Assign Http Proxy to products.
+        """
+
+        cls.command_sub = 'update-proxy'
+
+        result = cls.execute(cls._construct_command(options))
+
+        return result

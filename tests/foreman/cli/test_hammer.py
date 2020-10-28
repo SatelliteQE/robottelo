@@ -14,15 +14,23 @@
 
 :Upstream: No
 """
+import io
 import json
 import re
 
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open, tier1, upgrade
+from robottelo.cli.defaults import Defaults
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
-from six import StringIO
+from robottelo.utils.issue_handlers import is_open
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 
@@ -46,14 +54,11 @@ def _fetch_command_info(command):
 
 def _format_commands_diff(commands_diff):
     """Format the commands differences into a human readable format."""
-    output = StringIO()
+    output = io.StringIO()
     for key, value in sorted(commands_diff.items()):
         if key == 'hammer':
             continue
-        output.write('{}{}\n'.format(
-            key,
-            ' (new command)' if value['added_command'] else ''
-        ))
+        output.write('{}{}\n'.format(key, ' (new command)' if value['added_command'] else ''))
         if value.get('added_subcommands'):
             output.write('  Added subcommands:\n')
             for subcommand in value.get('added_subcommands'):
@@ -81,6 +86,7 @@ class HammerCommandsTestCase(CLITestCase):
     are present.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
         self.differences = {}
@@ -90,55 +96,37 @@ class HammerCommandsTestCase(CLITestCase):
         options are present.
 
         """
-        raw_output = ssh.command(
-            'hammer full-help', output_format='plain').stdout
+        raw_output = ssh.command('hammer full-help', output_format='plain').stdout
         commands = re.split('.*\n(?=hammer.*\n^[-]+)', raw_output, flags=re.M)
         commands.pop(0)  # remove "Hammer CLI help" line
         for raw_command in commands:
             raw_command = raw_command.splitlines()
             command = raw_command.pop(0).replace(' >', '')
             output = hammer.parse_help(raw_command)
-            command_options = set([
-                option['name'] for option in output['options']])
-            command_subcommands = set(
-                [subcommand['name'] for subcommand in output['subcommands']]
-            )
+            command_options = set([option['name'] for option in output['options']])
+            command_subcommands = set([subcommand['name'] for subcommand in output['subcommands']])
             expected = _fetch_command_info(command)
             expected_options = set()
             expected_subcommands = set()
 
             if expected is not None:
-                expected_options = set(
-                    [option['name'] for option in expected['options']]
+                expected_options = set([option['name'] for option in expected['options']])
+                expected_subcommands = set(
+                    [subcommand['name'] for subcommand in expected['subcommands']]
                 )
-                expected_subcommands = set([
-                    subcommand['name']
-                    for subcommand in expected['subcommands']
-                ])
-            # Below code is added as workaround for Bug 1666687
-            if bz_bug_is_open(1666687):
+            if is_open('BZ:1666687'):
                 cmds = ['hammer report-template create', 'hammer report-template update']
                 if command in cmds:
                     command_options.add('interactive')
                 if 'hammer virt-who-config fetch' in command:
                     command_options.add('output')
-            # Below code is added as workaround for Bug 1655513 on Sat 6.4 release
-            # This will neglect null entry added for hammer ansible roles command
-            if bz_bug_is_open(1655513) and 'hammer ansible roles ' in command and 'help' in (
-                    command_options - expected_options):
-                expected_options.add("help")
             added_options = tuple(command_options - expected_options)
             removed_options = tuple(expected_options - command_options)
-            added_subcommands = tuple(
-                command_subcommands - expected_subcommands)
-            removed_subcommands = tuple(
-                expected_subcommands - command_subcommands)
+            added_subcommands = tuple(command_subcommands - expected_subcommands)
+            removed_subcommands = tuple(expected_subcommands - command_subcommands)
 
-            if (added_options or added_subcommands or removed_options or
-                    removed_subcommands):
-                diff = {
-                    'added_command': expected is None,
-                }
+            if added_options or added_subcommands or removed_options or removed_subcommands:
+                diff = {'added_command': expected is None}
                 if added_options:
                     diff['added_options'] = added_options
                 if removed_options:
@@ -163,6 +151,48 @@ class HammerCommandsTestCase(CLITestCase):
         self.maxDiff = None
         self._traverse_command_tree()
         if self.differences:
-            self.fail(
-                '\n' + _format_commands_diff(self.differences)
-            )
+            self.fail('\n' + _format_commands_diff(self.differences))
+
+
+class HammerTestCase(CLITestCase):
+    """Tests related to hammer sub options. """
+
+    @tier1
+    @upgrade
+    @run_in_one_thread
+    def test_positive_disable_hammer_defaults(self):
+        """Verify hammer disable defaults command.
+
+        :id: d0b65f36-b91f-4f2f-aaf8-8afda3e23708
+
+        :steps:
+            1. Add hammer defaults as organization-id.
+            2. Verify hammer product list successful.
+            3. Run hammer --no-use-defaults product list.
+
+        :expectedresults: Hammer --no-use-defaults product list should fail.
+
+        :CaseImportance: Critical
+
+        :BZ: 1640644
+        """
+        default_org = make_org()
+        default_product_name = gen_string('alpha')
+        make_product({'name': default_product_name, 'organization-id': default_org['id']})
+        try:
+            Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
+            # Verify --organization-id is not required to pass if defaults are set
+            result = ssh.command('hammer product list')
+            self.assertEqual(result.return_code, 0)
+            # Verify product list fail without using defaults
+            result = ssh.command('hammer --no-use-defaults product list')
+            self.assertNotEqual(result.return_code, 0)
+            self.assertFalse(default_product_name in "".join(result.stdout))
+            # Verify --organization-id is not required to pass if defaults are set
+            result = ssh.command('hammer --use-defaults product list')
+            self.assertEqual(result.return_code, 0)
+            self.assertTrue(default_product_name in "".join(result.stdout))
+        finally:
+            Defaults.delete({'param-name': 'organization_id'})
+            result = ssh.command('hammer defaults list')
+            self.assertTrue(default_org['id'] not in "".join(result.stdout))

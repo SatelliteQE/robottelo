@@ -15,7 +15,7 @@ Working with generic repos.
 
 Generic repos has no way to guess the custom repo url in case of
 settings.cdn = false , that why the GenericRHRepo without custom url always
-return cdn repo data:
+return cdn repo data::
 
     sat_repo = GenericRHRepository(key=PRODUCT_KEY_SAT_TOOLS)
     print(sat_repo.cdn) >> True
@@ -182,39 +182,40 @@ return cdn repo data:
     # also test usage located at:
     # tests/foreman/cli/test_vm_install_products_package.py
 """
-from typing import Any, Dict, List, Tuple, Optional, TYPE_CHECKING  # noqa
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
 
-from robottelo.cli.factory import (
-    make_activation_key,
-    make_lifecycle_environment,
-    make_content_view,
-    make_product_wait,
-    make_repository,
-    setup_virtual_machine,
-)
+from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
+from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import (
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_DEFAULT,
-    DISTRO_RHEL6,
-    DISTROS_MAJOR_VERSION,
-    DISTROS_SUPPORTED,
-    ENVIRONMENT,
-    MAJOR_VERSION_DISTRO,
-    REPO_TYPE,
-    REPOS,
-)
-from robottelo.decorators import bz_bug_is_open
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_DEFAULT
+from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import DISTROS_MAJOR_VERSION
+from robottelo.constants import DISTROS_SUPPORTED
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import MAJOR_VERSION_DISTRO
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import REPOS
 from robottelo.helpers import get_host_info
-from robottelo import manifests
+
 if TYPE_CHECKING:
     from robottelo.vm import VirtualMachine  # noqa
 
@@ -273,6 +274,7 @@ def get_server_distro():  # type: () -> str
 
 class BaseRepository(object):
     """Base repository class for custom and RH repositories"""
+
     _url = None  # type: Optional[str]
     _distro = None  # type: Optional[str]
     _type = None  # type: Optional[str]
@@ -311,19 +313,25 @@ class BaseRepository(object):
         self._distro = value
 
     @property
-    def content_type(self):   # type: () -> str
+    def content_type(self):  # type: () -> str
         return self._type
 
     def __repr__(self):
         return '<Repo type: {0}, url: {1}, object: {2}>'.format(
-            self.content_type, self.url, hex(id(self)))
+            self.content_type, self.url, hex(id(self))
+        )
 
     @property
     def repo_info(self):  # type: () -> Optional[Dict]
         return self._repo_info
 
-    def create(self, organization_id, product_id,
-               download_policy=DOWNLOAD_POLICY_ON_DEMAND, synchronize=True):
+    def create(
+        self,
+        organization_id,
+        product_id,
+        download_policy=DOWNLOAD_POLICY_ON_DEMAND,
+        synchronize=True,
+    ):
         # type: (int, int, str, bool) -> Dict
         """Create the repository for the supplied product id"""
         create_options = {
@@ -348,20 +356,24 @@ class BaseRepository(object):
     def add_to_content_view(self, organization_id, content_view_id):
         # type: (int, int) -> None
         """Associate repository content to content-view"""
-        ContentView.add_repository({
-            'id': content_view_id,
-            'organization-id': organization_id,
-            'repository-id': self._repo_info['id'],
-        })
+        ContentView.add_repository(
+            {
+                'id': content_view_id,
+                'organization-id': organization_id,
+                'repository-id': self._repo_info['id'],
+            }
+        )
 
 
 class YumRepository(BaseRepository):
     """Custom Yum repository"""
+
     _type = REPO_TYPE_YUM  # type: str
 
 
 class DockerRepository(BaseRepository):
     """Custom Docker repository"""
+
     _type = REPO_TYPE_DOCKER  # type: str
 
     def __init__(self, url=None, distro=None, upstream_name=None):
@@ -373,12 +385,14 @@ class DockerRepository(BaseRepository):
         return self._upstream_name
 
     def create(self, organization_id, product_id, download_policy=None, synchronize=True):
-        repo_info = make_repository({
-            'product-id': product_id,
-            'content-type': self.content_type,
-            'url': self.url,
-            'docker-upstream-name': self.upstream_name,
-        })
+        repo_info = make_repository(
+            {
+                'product-id': product_id,
+                'content-type': self.content_type,
+                'url': self.url,
+                'docker-upstream-name': self.upstream_name,
+            }
+        )
         self._repo_info = repo_info
         if synchronize:
             self.synchronize()
@@ -387,6 +401,7 @@ class DockerRepository(BaseRepository):
 
 class PuppetRepository(BaseRepository):
     """Custom Puppet repository"""
+
     _type = REPO_TYPE_PUPPET  # type: str
 
     def __init__(self, url=None, distro=None, modules=None):
@@ -401,10 +416,7 @@ class PuppetRepository(BaseRepository):
     def add_to_content_view(self, organization_id, content_view_id):
         # type: (int, int) -> None
         """Associate repository content to content-view"""
-        options = {
-            'content-view-id': content_view_id,
-            'organization-id': organization_id,
-        }
+        options = {'content-view-id': content_view_id, 'organization-id': organization_id}
         for puppet_module in self.puppet_modules:
             module_options = options.copy()
             module_options.update(puppet_module)
@@ -413,11 +425,13 @@ class PuppetRepository(BaseRepository):
 
 class OSTreeRepository(BaseRepository):
     """Custom OSTree repository"""
+
     _type = REPO_TYPE_OSTREE
 
 
 class GenericRHRepository(BaseRepository):
     """Generic RH repository"""
+
     _type = REPO_TYPE_YUM
     _distro = DISTRO_DEFAULT  # type: str
     _key = None  # type: str
@@ -428,8 +442,7 @@ class GenericRHRepository(BaseRepository):
         super(GenericRHRepository, self).__init__()
 
         if key is not None and self.key:
-            raise RepositoryAlreadyDefinedError(
-                'Repository key already defined')
+            raise RepositoryAlreadyDefinedError('Repository key already defined')
 
         if key is not None:
             self._key = key
@@ -464,14 +477,12 @@ class GenericRHRepository(BaseRepository):
         """
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise DistroNotSupportedError(
-                'distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError('distro "{0}" not supported'.format(distro))
         if distro is None:
             distro = self._distro
         repo_data = self._get_repo_data(distro)
         if repo_data is None:
-            raise RepositoryDataNotFound(
-                'Repository data not found for distro {}'.format(distro))
+            raise RepositoryDataNotFound('Repository data not found for distro {}'.format(distro))
         self._distro = distro
         self._repo_data = repo_data
 
@@ -533,8 +544,9 @@ class GenericRHRepository(BaseRepository):
             return self
         distro_repo_data = None
         for _, repo_data in REPOS.items():
-            if (repo_data.get('distro') == self.distro
-                    and self._repo_is_distro(repo_data=repo_data)):
+            if repo_data.get('distro') == self.distro and self._repo_is_distro(
+                repo_data=repo_data
+            ):
                 distro_repo_data = repo_data
                 break
 
@@ -568,69 +580,76 @@ class GenericRHRepository(BaseRepository):
     def __repr__(self):
         if self.cdn:
             return '<RH cdn Repo: {0} within distro:{1}, object: {2}>'.format(
-                self.data['repository'], self.distro, hex(id(self)))
+                self.data['repository'], self.distro, hex(id(self))
+            )
         else:
-            return '<RH custom Repo url: {0} object: {1}>'.format(
-                self.url, hex(id(self)))
+            return '<RH custom Repo url: {0} object: {1}>'.format(self.url, hex(id(self)))
 
-    def create(self, organization_id, product_id=None,
-               download_policy=DOWNLOAD_POLICY_ON_DEMAND, synchronize=True):
+    def create(
+        self,
+        organization_id,
+        product_id=None,
+        download_policy=DOWNLOAD_POLICY_ON_DEMAND,
+        synchronize=True,
+    ):
         # type: (int, Optional[int], Optional[str], Optional[bool]) -> Dict
         """Create an RH repository"""
         if not self.cdn and not self.url:
             raise ValueError('Can not handle Custom repository with url not supplied')
         if self.cdn:
             data = self.data
-            RepositorySet.enable({
-                'organization-id': organization_id,
-                'product': data['product'],
-                'name': data['repository-set'],
-                'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
-                'releasever': data.get('releasever'),
-            })
-            repo_info = Repository.info({
-                'organization-id': organization_id,
-                'name': data['repository'],
-                'product': data['product'],
-            })
+            RepositorySet.enable(
+                {
+                    'organization-id': organization_id,
+                    'product': data['product'],
+                    'name': data['repository-set'],
+                    'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
+                    'releasever': data.get('releasever'),
+                }
+            )
+            repo_info = Repository.info(
+                {
+                    'organization-id': organization_id,
+                    'name': data['repository'],
+                    'product': data['product'],
+                }
+            )
             if download_policy:
                 # Set download policy
-                Repository.update({
-                    'download-policy': download_policy,
-                    'id': repo_info['id'],
-                })
+                Repository.update({'download-policy': download_policy, 'id': repo_info['id']})
             self._repo_info = repo_info
             if synchronize:
                 self.synchronize()
         else:
             repo_info = super(GenericRHRepository, self).create(
-                organization_id, product_id, download_policy=download_policy)
+                organization_id, product_id, download_policy=download_policy
+            )
         return repo_info
 
 
 class RHELRepository(GenericRHRepository):
     """RHEL repository"""
+
     _key = PRODUCT_KEY_RHEL
 
     @property
     def url(self):
-        return getattr(
-            settings, 'rhel{0}_os'.format(self.distro_major_version))
+        return getattr(settings, 'rhel{0}_os'.format(self.distro_major_version))
 
 
 class SatelliteToolsRepository(GenericRHRepository):
     """Satellite Tools Repository"""
+
     _key = PRODUCT_KEY_SAT_TOOLS
 
     @property
     def url(self):
-        return settings.sattools_repo['{0}{1}'.format(
-            PRODUCT_KEY_RHEL, self.distro_major_version
-        )]
+        return settings.sattools_repo['{0}{1}'.format(PRODUCT_KEY_RHEL, self.distro_major_version)]
 
 
 class SatelliteCapsuleRepository(GenericRHRepository):
     """Satellite capsule repository"""
+
     _key = PRODUCT_KEY_SAT_CAPSULE
 
     @property
@@ -642,6 +661,7 @@ class SatelliteCapsuleRepository(GenericRHRepository):
 
 class VirtualizationAgentsRepository(GenericRHRepository):
     """Virtualization Agents repository"""
+
     _key = PRODUCT_KEY_VIRT_AGENTS
     _distro = DISTRO_RHEL6
 
@@ -653,11 +673,13 @@ class RHELCloudFormsTools(GenericRHRepository):
 
 class RHELAnsibleEngineRepository(GenericRHRepository):
     """Red Hat Ansible Engine Repository"""
+
     _key = PRODUCT_KEY_ANSIBLE_ENGINE
 
 
 class RepositoryCollection(object):
     """Repository collection"""
+
     _distro = None  # type: str
     _org = None  # type: Dict
     _items = []  # type: List[BaseRepository]
@@ -671,8 +693,7 @@ class RepositoryCollection(object):
         self._items = []
 
         if distro is not None and distro not in DISTROS_SUPPORTED:
-            raise DistroNotSupportedError(
-                'distro "{0}" not supported'.format(distro))
+            raise DistroNotSupportedError('distro "{0}" not supported'.format(distro))
         if distro is not None:
             self._distro = distro
 
@@ -681,11 +702,11 @@ class RepositoryCollection(object):
         self.add_items(repositories)
 
     @property
-    def distro(self):   # type: () -> str
+    def distro(self):  # type: () -> str
         return self._distro
 
     @property
-    def repos_info(self):   # type: () -> List[Dict]
+    def repos_info(self):  # type: () -> List[Dict]
         return self._repos_info
 
     @property
@@ -699,14 +720,13 @@ class RepositoryCollection(object):
     @os_repo.setter
     def os_repo(self, repo):  # type: (RHELRepository) -> None
         if self.os_repo is not None:
-            raise OnlyOneOSRepositoryAllowed(
-                'OS repo already added.(Only one OS repo allowed)')
+            raise OnlyOneOSRepositoryAllowed('OS repo already added.(Only one OS repo allowed)')
         if not isinstance(repo, RHELRepository):
             raise ValueError('repo: "{0}" is not an RHEL repo'.format(repo))
         self._os_repo = repo
 
     @property
-    def repos_data(self):   # type: () -> List[Dict]
+    def repos_data(self):  # type: () -> List[Dict]
         return [repo.data for repo in self]
 
     @property
@@ -719,24 +739,14 @@ class RepositoryCollection(object):
 
     @property
     def rh_repos_info(self):  # type: () -> List[Dict]
-        if bz_bug_is_open(1660133):
-            return [repo_info
-                    for item, repo_info in zip(self._items, self._repos_info) if item.cdn]
         return [
-            repo_info
-            for repo_info in self._repos_info
-            if repo_info['red-hat-repository'] == 'yes'
+            repo_info for repo_info in self._repos_info if repo_info['red-hat-repository'] == 'yes'
         ]
 
     @property
     def custom_repos_info(self):  # type: () -> List[Dict]
-        if bz_bug_is_open(1660133):
-            return [repo_info
-                    for item, repo_info in zip(self._items, self._repos_info) if not item.cdn]
         return [
-            repo_info
-            for repo_info in self._repos_info
-            if repo_info['red-hat-repository'] == 'no'
+            repo_info for repo_info in self._repos_info if repo_info['red-hat-repository'] == 'no'
         ]
 
     @property
@@ -753,10 +763,15 @@ class RepositoryCollection(object):
     def organization(self):
         return self._org
 
-    def add_item(self, item):  # type: (BaseRepository) -> None
+    def add_item(self, item) -> None:
+        """
+        Add repository to collection
+
+        :param BaseRepository item: Item to add
+        :returns: None
+        """
         if self._repos_info:
-            raise RepositoryAlreadyCreated(
-                'Repositories already created can not add more')
+            raise RepositoryAlreadyCreated('Repositories already created can not add more')
         if not isinstance(item, BaseRepository):
             raise ValueError('item "{0}" is not a repository'.format(item))
         if self.distro is not None:
@@ -765,7 +780,13 @@ class RepositoryCollection(object):
         if isinstance(item, RHELRepository):
             self.os_repo = item
 
-    def add_items(self, items):  # type: (List[BaseRepository]) -> None
+    def add_items(self, items):
+        """
+        Add multiple repositories to collection
+
+        :param List[BaseRepository] items: Items to add
+        :returns: None
+        """
         for item in items:
             self.add_item(item)
 
@@ -788,8 +809,9 @@ class RepositoryCollection(object):
             custom_product = make_product_wait({'organization-id': org_id})
         custom_product_id = custom_product['id'] if custom_product else None
         for repo in self:
-            repo_info = repo.create(org_id, custom_product_id,
-                                    download_policy=download_policy, synchronize=synchronize)
+            repo_info = repo.create(
+                org_id, custom_product_id, download_policy=download_policy, synchronize=synchronize
+            )
             repos_info.append(repo_info)
         self._custom_product_info = custom_product
         self._repos_info = repos_info
@@ -803,10 +825,7 @@ class RepositoryCollection(object):
         if lce_id is None:
             lce = make_lifecycle_environment({'organization-id': org_id})
         else:
-            lce = LifecycleEnvironment.info({
-                'id': lce_id,
-                'organization-id': org_id,
-            })
+            lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org_id})
         content_view = make_content_view({'organization-id': org_id})
         # Add repositories to content view
         for repo in self:
@@ -815,46 +834,53 @@ class RepositoryCollection(object):
         ContentView.publish({'id': content_view['id']})
         if lce['name'] != ENVIRONMENT:
             # Get the latest content view version id
-            content_view_version = ContentView.info({
-                'id': content_view['id']
-            })['versions'][-1]
+            content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
             # Promote content view version to lifecycle environment
-            ContentView.version_promote({
-                'id': content_view_version['id'],
-                'organization-id': org_id,
-                'to-lifecycle-environment-id': lce['id'],
-            })
+            ContentView.version_promote(
+                {
+                    'id': content_view_version['id'],
+                    'organization-id': org_id,
+                    'to-lifecycle-environment-id': lce['id'],
+                }
+            )
         content_view = ContentView.info({'id': content_view['id']})
         return content_view, lce
 
     @staticmethod
     def setup_activation_key(org_id, content_view_id, lce_id, subscription_names=None):
-        # type: (int, int, int, Optional[List[str]], Optional[str]) -> Dict
+        # type: (int, int, int, Optional[List[str]]) -> Dict
         """Create activation and associate content-view, lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []
-        activation_key = make_activation_key({
-            'organization-id': org_id,
-            'lifecycle-environment-id': lce_id,
-            'content-view-id': content_view_id,
-        })
+        activation_key = make_activation_key(
+            {
+                'organization-id': org_id,
+                'lifecycle-environment-id': lce_id,
+                'content-view-id': content_view_id,
+            }
+        )
         # Add subscriptions to activation-key
         # Get organization subscriptions
         subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
         added_subscription_names = []
         for subscription in subscriptions:
-            if (subscription['name'] in subscription_names
-                    and subscription['name'] not in added_subscription_names):
-                ActivationKey.add_subscription({
-                    'id': activation_key['id'],
-                    'subscription-id': subscription['id'],
-                    'quantity': 1,
-                })
+            if (
+                subscription['name'] in subscription_names
+                and subscription['name'] not in added_subscription_names
+            ):
+                ActivationKey.add_subscription(
+                    {
+                        'id': activation_key['id'],
+                        'subscription-id': subscription['id'],
+                        'quantity': 1,
+                    }
+                )
                 added_subscription_names.append(subscription['name'])
                 if len(added_subscription_names) == len(subscription_names):
                     break
         missing_subscription_names = set(subscription_names).difference(
-            set(added_subscription_names))
+            set(added_subscription_names)
+        )
         if missing_subscription_names:
             raise ValueError('Missing subscriptions: {0}'.format(missing_subscription_names))
         return activation_key
@@ -868,8 +894,12 @@ class RepositoryCollection(object):
         return any(bool(sub['account']) for sub in subscriptions)
 
     def setup_content(
-            self, org_id, lce_id, upload_manifest=False,
-            download_policy=DOWNLOAD_POLICY_ON_DEMAND, rh_subscriptions=None
+        self,
+        org_id,
+        lce_id,
+        upload_manifest=False,
+        download_policy=DOWNLOAD_POLICY_ON_DEMAND,
+        rh_subscriptions=None,
     ):
         # type: (int, int, bool, str, Optional[List[str]]) -> Dict[str, Any]
         """
@@ -884,8 +914,7 @@ class RepositoryCollection(object):
             key
         """
         if self._repos_info:
-            raise RepositoryAlreadyCreated(
-                'Repositories already created can not setup content')
+            raise RepositoryAlreadyCreated('Repositories already created can not setup content')
         if rh_subscriptions is None:
             rh_subscriptions = []
         if self.need_subscription:
@@ -902,63 +931,63 @@ class RepositoryCollection(object):
         if custom_product_name:
             subscription_names.append(custom_product_name)
         activation_key = self.setup_activation_key(
-            org_id, content_view['id'], lce_id,
-            subscription_names=subscription_names,
+            org_id, content_view['id'], lce_id, subscription_names=subscription_names
         )
         setup_content_data = dict(
             activation_key=activation_key,
             content_view=content_view,
             product=custom_product,
             repos=repos_info,
-            lce=lce
+            lce=lce,
         )
         self._org = Org.info({'id': org_id})
         self._setup_content_data = setup_content_data
         return setup_content_data
 
     def setup_virtual_machine(
-            self, vm, patch_os_release=False, install_katello_agent=True,
-            enable_rh_repos=True, enable_custom_repos=False, configure_rhel_repo=False):
-        # type: (VirtualMachine, bool, bool, bool, bool, bool) -> None
+        self,
+        vm,
+        patch_os_release=False,
+        install_katello_agent=True,
+        enable_rh_repos=True,
+        enable_custom_repos=False,
+        configure_rhel_repo=False,
+    ):
         """
         Setup The virtual machine basic task, eg: install katello ca,
         register vm host, enable rh repos and install katello-agent
 
-        :param vm: The Virtual machine to setup.
-        :param patch_os_release: whether to patch the VM with os version.
-        :param install_katello_agent: whether to install katello-agent
-        :param enable_rh_repos: whether to enable RH repositories
-        :param enable_custom_repos: whether to enable custom repositories
-        :param configure_rhel_repo: Whether to configure the distro Red Hat repository, this is
-            needed to configure manually RHEL custom repo url as sync time is very big
+        :param VirtualMachine vm: The Virtual machine to setup.
+        :param bool patch_os_release: whether to patch the VM with os version.
+        :param bool install_katello_agent: whether to install katello-agent
+        :param bool enable_rh_repos: whether to enable RH repositories
+        :param bool enable_custom_repos: whether to enable custom repositories
+        :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
+            this is needed to configure manually RHEL custom repo url as sync time is very big
             (more than 2 hours for RHEL 7Server) and not critical for some contexts.
         """
         if not self._setup_content_data:
-            raise ReposContentSetupWasNotPerformed(
-                'Repos content setup was not performed')
+            raise ReposContentSetupWasNotPerformed('Repos content setup was not performed')
 
         patch_os_release_distro = None
         if patch_os_release and self.os_repo:
             patch_os_release_distro = self.os_repo.distro
         rh_repos_id = []  # type: List[str]
         if enable_rh_repos:
-            rh_repos_id = [
-                getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
-        custom_repos_label = []   # type: List[str]
+            rh_repos_id = [getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
+        custom_repos_label = []  # type: List[str]
         if enable_custom_repos:
-            custom_repos_label = [
-                repo['label'] for repo in self.custom_repos_info]
+            custom_repos_label = [repo['label'] for repo in self.custom_repos_info]
 
         setup_virtual_machine(
             vm,
             self.organization['label'],
             rh_repos_id=rh_repos_id,
             repos_label=custom_repos_label,
-            product_label=self.custom_product[
-                'label'] if self.custom_product else None,
+            product_label=self.custom_product['label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=patch_os_release_distro,
-            install_katello_agent=install_katello_agent
+            install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
             rhel_repo_option_name = 'rhel{0}_repo'.format(DISTROS_MAJOR_VERSION[self.distro])
@@ -966,5 +995,7 @@ class RepositoryCollection(object):
             if not rhel_repo_url:
                 raise ValueError(
                     'Settings option "{0}" is whether not set or does not exist'.format(
-                        rhel_repo_option_name))
+                        rhel_repo_option_name
+                    )
+                )
             vm.configure_rhel_repo(rhel_repo_url)

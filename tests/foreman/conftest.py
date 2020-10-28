@@ -4,15 +4,13 @@ import datetime
 import logging
 
 import pytest
+
 try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
-from types import SimpleNamespace
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
-from robottelo.helpers import get_func_name
 
 
 def log(message, level="DEBUG"):
@@ -20,10 +18,8 @@ def log(message, level="DEBUG"):
     so we need to emulate the logger by stdouting the output
     """
     now = datetime.datetime.utcnow()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"),
-        level=level,
-        message=message
+    full_message = "{date} - conftest - {level} - {message}".format(
+        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
     )
     print(full_message)  # noqa
     with open('robottelo.log', 'a') as log_file:
@@ -44,14 +40,11 @@ def pytest_report_header(config):
         if not scope:
             scope = ''
         storage = settings.shared_function.storage
-    if pytest.config.pluginmanager.hasplugin("junitxml"):
-        junit = getattr(config, "_xml", None)
-        if junit is not None:
-            now = datetime.datetime.utcnow()
-            junit.add_global_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
-            shared_function_enabled, scope, storage))
+            shared_function_enabled, scope, storage
+        )
+    )
 
     return messages
 
@@ -81,26 +74,28 @@ def robottelo_logger(request, worker_id):
     a logfile named 'robottelo_gw{worker_id}.log' will be created.
     """
     logger = logging.getLogger('robottelo')
-    if (hasattr(request.session.config, '_reportportal_configured') and
-       request.session.config._reportportal_configured):
+    if (
+        hasattr(request.session.config, '_reportportal_configured')
+        and request.session.config._reportportal_configured
+    ):
         logging.setLoggerClass(RPLogger)
     if '{0}'.format(worker_id) not in [h.get_name() for h in logger.handlers]:
         if worker_id != 'master':
             formatter = logging.Formatter(
                 fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
-                    ' %(message)s'.format(worker_id),
-                datefmt='%Y-%m-%d %H:%M:%S'
+                ' %(message)s'.format(worker_id),
+                datefmt='%Y-%m-%d %H:%M:%S',
             )
-            handler = logging.FileHandler(
-                'robottelo_{0}.log'.format(worker_id)
-            )
+            handler = logging.FileHandler('robottelo_{0}.log'.format(worker_id))
             handler.set_name('{0}'.format(worker_id))
             handler.setFormatter(formatter)
             logger.addHandler(handler)
             # Nailgun HTTP logs should also be included in gw* logs
             logging.getLogger('nailgun').addHandler(handler)
-            if (hasattr(request.session.config, '_reportportal_configured') and
-               request.session.config._reportportal_configured):
+            if (
+                hasattr(request.session.config, '_reportportal_configured')
+                and request.session.config._reportportal_configured
+            ):
                 rp_handler = RPLogHandler(request.node.config.py_test_service)
                 rp_handler.set_name('{0}'.format(worker_id))
                 rp_handler.setFormatter(formatter)
@@ -119,66 +114,35 @@ def log_test_execution(robottelo_logger, request):
     robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
-class NestedDict(SimpleNamespace):
-    def __init__(self, dict_data, **kwargs):
-        super().__init__(**kwargs)
-        for key, value in dict_data.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, NestedDict(value))
-            else:
-                self.__setattr__(key, value)
-
-
-def pytest_configure():
-    """return dict of name->object to be made globally available in
-    the pytest configure.  This hook is called at plugin registration
-    time.
-    Object is accessible only via dotted notation `item.key.nested_key`
-
-    Exposes the list of all WONTFIX bugs and a mapping between decorated
-    functions and Bug IDS (populated by decorator).
-    """
-    log("Registering custom pytest_configure")
-    pytest.bugzilla = NestedDict({
-            'removal_ids': get_deselect_bug_ids(log=log),
-            'decorated_functions': []
-    })
-
-
-def _extract_setup_class_ids(item):
-    setup_class_method = getattr(item.parent.obj, 'setUpClass', None)
-    return getattr(setup_class_method, 'bugzilla_ids', [])
-
-
-def pytest_collection_modifyitems(items, config):
-    """ called after collection has been performed, may filter or re-order
+def pytest_collection_modifyitems(session, items, config):
+    """Called after collection has been performed, may filter or re-order
     the items in-place.
-
-    Deselecting all tests skipped due to WONTFIX BZ.
     """
-    if not settings.configured:
-        settings.configure()
-
-    if settings.bugzilla.wontfix_lookup is not True:
-        # if lookup is disable return all collection unmodified
-        log('BZ deselect is disabled in settings')
-        return items
-
-    deselected_items = []
-    decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
 
     log("Collected %s test cases" % len(items))
 
+    # Modify items based on collected issue_data
+    deselected_items = []
+
     for item in items:
-        name = get_func_name(item.function, test_item=item)
-        bug_ids = list(decorated_functions.get(name, []))
-        bug_ids.extend(_extract_setup_class_ids(item))
-        if any(bug_id in pytest.bugzilla.removal_ids for bug_id in bug_ids):
+        # 1. Deselect tests marked with @pytest.mark.deselect
+        # WONTFIX BZs makes test to be dynamically marked as deselect.
+        deselect = item.get_closest_marker('deselect')
+        if deselect:
             deselected_items.append(item)
-            log("Deselected test %s" % name)
+            reason = deselect.kwargs.get('reason', deselect.args)
+            log(f"Deselected test '{item.name}' reason: {reason}")
+            # Do nothing more with deselected tests
+            continue
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
+
+
+@pytest.fixture(autouse=True, scope="session")
+def record_testsuite_timestamp_xml(record_testsuite_property):
+    now = datetime.datetime.utcnow()
+    record_testsuite_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
 @pytest.fixture(autouse=True, scope="function")

@@ -18,7 +18,6 @@ Subcommands::
      list                          List Tailoring files
      update                        Update a Tailoring file
 """
-
 from robottelo.cli.base import Base
 
 
@@ -31,5 +30,4 @@ class TailoringFiles(Base):
     def download_tailoring_file(cls, options):
         """Downloads the tailoring file from satellite"""
         cls.command_sub = 'download'
-        return cls.execute(
-            cls._construct_command(options), output_format='table')
+        return cls.execute(cls._construct_command(options), output_format='table')

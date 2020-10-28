@@ -14,30 +14,27 @@
 
 :Upstream: No
 """
-
 import os
 
 from fauxfactory import gen_string
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_content_view,
-    make_org,
-    make_product,
-    make_repository,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
-from robottelo.constants import (
-    CUSTOM_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    RPM_TO_UPLOAD,
-)
-from robottelo.test import CLITestCase
+from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.helpers import get_data_file
-from upgrade_tests import post_upgrade, pre_upgrade
+from robottelo.test import CLITestCase
 
 
 class Scenario_contentview_upgrade(CLITestCase):
@@ -77,24 +74,29 @@ class Scenario_contentview_upgrade(CLITestCase):
         """ Create yum, puppet repositories and synchronize them.
         """
         self.org = make_org({'name': self.org_name})
-        self.product = make_product({
-            'name': self.product_name, 'organization-id': self.org['id']})
-        self.yum_repo1 = make_repository({
-            'name': self.yum_repo1_name,
-            'product-id': self.product['id'],
-            'content-type': 'yum',
-            'url': FAKE_1_YUM_REPO})
+        self.product = make_product({'name': self.product_name, 'organization-id': self.org['id']})
+        self.yum_repo1 = make_repository(
+            {
+                'name': self.yum_repo1_name,
+                'product-id': self.product['id'],
+                'content-type': 'yum',
+                'url': FAKE_1_YUM_REPO,
+            }
+        )
         Repository.synchronize({'id': self.yum_repo1['id']})
         self.module = {'name': self.puppet_module_name, 'version': '3.3.3'}
-        self.puppet_repo = make_repository({
-            'name': self.puppet_repo_name,
-            'content-type': 'puppet',
-            'product-id': self.product['id'],
-            'url': CUSTOM_PUPPET_REPO,
-        })
+        self.puppet_repo = make_repository(
+            {
+                'name': self.puppet_repo_name,
+                'content-type': 'puppet',
+                'product-id': self.product['id'],
+                'url': CUSTOM_PUPPET_REPO,
+            }
+        )
         Repository.synchronize({'id': self.puppet_repo['id']})
-        self.puppet_module = PuppetModule.list({
-            'search': 'name={name} and version={version}'.format(**self.module)})[0]
+        self.puppet_module = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**self.module)}
+        )[0]
 
     def make_file_repository_upload_contents(self, options=None):
         """Makes a new File repository, Upload File/Multiple Files
@@ -104,31 +106,28 @@ class Scenario_contentview_upgrade(CLITestCase):
             options = {
                 'name': self.file_repo_name,
                 'product-id': self.product['id'],
-                'content-type': 'file'
+                'content-type': 'file',
             }
         if not options.get('content-type'):
             raise CLIFactoryError('Please provide a valid Content Type.')
         file_repo = make_repository(options)
         remote_path = "/tmp/{0}".format(RPM_TO_UPLOAD)
         if 'multi_upload' not in options or not options['multi_upload']:
-            ssh.upload_file(
-                local_file=get_data_file(RPM_TO_UPLOAD),
-                remote_file=remote_path
-            )
+            ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
         else:
             remote_path = "/tmp/{}/".format(gen_string('alpha'))
-            ssh.upload_files(local_dir=os.getcwd() + "/../data/",
-                             remote_dir=remote_path)
+            ssh.upload_files(local_dir=os.getcwd() + "/../data/", remote_dir=remote_path)
 
-        result = Repository.upload_content({
-            'name': file_repo['name'],
-            'organization': file_repo['organization'],
-            'path': remote_path,
-            'product-id': file_repo['product']['id'],
-        })
+        result = Repository.upload_content(
+            {
+                'name': file_repo['name'],
+                'organization': file_repo['organization'],
+                'path': remote_path,
+                'product-id': file_repo['product']['id'],
+            }
+        )
         self.assertIn(
-            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
-            result[0]['message'],
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD), result[0]['message']
         )
         file_repo = Repository.info({'id': file_repo['id']})
         self.assertGreater(int(file_repo['content-counts']['files']), 0)
@@ -151,23 +150,26 @@ class Scenario_contentview_upgrade(CLITestCase):
          """
         self.setupScenario()
         file_repo = self.make_file_repository_upload_contents()
-        content_view = make_content_view({
-            'name': self.cv_name,
-            'organization-id': self.org['id'],
-            'repository-ids': [
-                self.yum_repo1['id'], file_repo['id']]
-        })
+        content_view = make_content_view(
+            {
+                'name': self.cv_name,
+                'organization-id': self.org['id'],
+                'repository-ids': [self.yum_repo1['id'], file_repo['id']],
+            }
+        )
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(
             content_view['yum-repositories'][0]['name'],
             self.yum_repo1['name'],
             'Repo was not associated to CV',
         )
-        ContentView.puppet_module_add({
-            'content-view-id': content_view['id'],
-            'name': self.puppet_module['name'],
-            'author': self.puppet_module['author'],
-        })
+        ContentView.puppet_module_add(
+            {
+                'content-view-id': content_view['id'],
+                'name': self.puppet_module['name'],
+                'author': self.puppet_module['author'],
+            }
+        )
         content_view = ContentView.info({'id': content_view['id']})
         self.assertGreater(len(content_view['puppet-modules']), 0)
         ContentView.publish({'id': content_view['id']})
@@ -190,62 +192,70 @@ class Scenario_contentview_upgrade(CLITestCase):
 
          :expectedresults: content-view updated with various repositories.
         """
-        product_id = Repository.info({
-            'name': self.yum_repo1_name,
-            'organization': self.org_name,
-            'product': self.product_name
-        })['product']['id']
-        ContentView.remove_repository({
-            'organization': self.org_name,
-            'name': self.cv_name,
-            'repository': self.yum_repo1_name
-        })
-        content_view = ContentView.info({'name': self.cv_name,
-                                         'organization': self.org_name})
-        self.assertNotIn(self.yum_repo1_name,
-                         content_view['yum-repositories'])
-        yum_repo2 = make_repository({
-            'name': self.yum_repo2_name,
-            'organization': self.org_name,
-            'content-type': 'yum',
-            'product-id': product_id,
-            'url': FAKE_2_YUM_REPO})
-        Repository.synchronize({'id': yum_repo2['id'],
-                                'organization': self.org_name})
-        ContentView.add_repository({
-            'name': self.cv_name,
-            'organization': self.org_name,
-            'product': self.product_name,
-            'repository-id': yum_repo2['id']})
-        content_view = ContentView.info({'name': self.cv_name,
-                                         'organization': self.org_name})
+        product_id = Repository.info(
+            {
+                'name': self.yum_repo1_name,
+                'organization': self.org_name,
+                'product': self.product_name,
+            }
+        )['product']['id']
+        ContentView.remove_repository(
+            {
+                'organization': self.org_name,
+                'name': self.cv_name,
+                'repository': self.yum_repo1_name,
+            }
+        )
+        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
+        self.assertNotIn(self.yum_repo1_name, content_view['yum-repositories'])
+        yum_repo2 = make_repository(
+            {
+                'name': self.yum_repo2_name,
+                'organization': self.org_name,
+                'content-type': 'yum',
+                'product-id': product_id,
+                'url': FAKE_2_YUM_REPO,
+            }
+        )
+        Repository.synchronize({'id': yum_repo2['id'], 'organization': self.org_name})
+        ContentView.add_repository(
+            {
+                'name': self.cv_name,
+                'organization': self.org_name,
+                'product': self.product_name,
+                'repository-id': yum_repo2['id'],
+            }
+        )
+        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
         self.assertEqual(
             content_view['yum-repositories'][0]['name'],
             self.yum_repo2_name,
             'Repo was not associated to CV',
         )
-        ContentView.puppet_module_remove({
-            'organization': self.org_name,
-            'content-view': self.cv_name,
-            'name': self.puppet_module_name,
-            'author': self.puppet_module_author,
-        })
-        content_view = ContentView.info({'name': self.cv_name,
-                                         'organization': self.org_name})
+        ContentView.puppet_module_remove(
+            {
+                'organization': self.org_name,
+                'content-view': self.cv_name,
+                'name': self.puppet_module_name,
+                'author': self.puppet_module_author,
+            }
+        )
+        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
         self.assertEqual(len(content_view['puppet-modules']), 0)
         module = {'name': 'versioned', 'version': '2.2.2'}
-        puppet_module = PuppetModule.list({
-            'search': 'name={name} and version={version}'.format(**module)})[0]
-        ContentView.puppet_module_add({
-            'organization': self.org_name,
-            'content-view': self.cv_name,
-            'name': puppet_module['name'],
-            'author': puppet_module['author'],
-        })
+        puppet_module = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**module)}
+        )[0]
+        ContentView.puppet_module_add(
+            {
+                'organization': self.org_name,
+                'content-view': self.cv_name,
+                'name': puppet_module['name'],
+                'author': puppet_module['author'],
+            }
+        )
         content_view = ContentView.info({'id': content_view['id']})
         self.assertGreater(len(content_view['puppet-modules']), 0)
-        ContentView.publish({'name': self.cv_name,
-                             'organization': self.org_name})
-        content_view = ContentView.info({'name': self.cv_name,
-                                         'organization': self.org_name})
+        ContentView.publish({'name': self.cv_name, 'organization': self.org_name})
+        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
         self.assertEqual(len(content_view['versions']), 2)

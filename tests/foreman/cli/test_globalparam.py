@@ -15,17 +15,17 @@
 
 :Upstream: No
 """
-
 from fauxfactory import gen_string
+
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class GlobalParameterTestCase(CLITestCase):
     """GlobalParameter related CLI tests."""
 
-    # pylint: disable=no-self-use
     @tier1
     def test_positive_set(self):
         """Check if Global Param can be set
@@ -38,12 +38,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
 
     @tier1
     def test_positive_list_by_name(self):
@@ -57,12 +53,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['value'], value)
@@ -80,12 +72,8 @@ class GlobalParameterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-%s %s' % (
-            gen_string('alpha', 10), gen_string('alpha', 10))
-        GlobalParameter().set({
-            'name': name,
-            'value': value,
-        })
+        value = 'val-%s %s' % (gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({'name': name, 'value': value})
         GlobalParameter().delete({'name': name})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 0)

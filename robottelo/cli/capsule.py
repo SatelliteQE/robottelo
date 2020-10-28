@@ -20,7 +20,6 @@ Subcommands::
     refresh-features              Refresh capsule features
     update                        Update a capsule
 """
-
 from robottelo.cli.base import Base
 
 
@@ -37,8 +36,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content add-lifecycle-environment'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -48,8 +46,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content available-lifecycle-environments'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -59,8 +56,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content info'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='json')
+        result = cls.execute(cls._construct_command(options), output_format='json')
 
         return result
 
@@ -70,8 +66,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content lifecycle-environments'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -81,8 +76,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content remove-lifecycle-environment'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -92,8 +86,7 @@ class Capsule(Base):
 
         cls.command_sub = 'content synchronization-status'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -108,7 +101,7 @@ class Capsule(Base):
             output_format='csv',
             ignore_stderr=True,
             return_raw_response=return_raw_response,
-            timeout=timeout
+            timeout=timeout,
         )
 
         return result
@@ -119,8 +112,7 @@ class Capsule(Base):
 
         cls.command_sub = 'import-classes'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -130,7 +122,6 @@ class Capsule(Base):
 
         cls.command_sub = 'refresh-features'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result

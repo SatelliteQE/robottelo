@@ -1,117 +1,83 @@
 """Tests for module ``robottelo.datafactory``."""
 import itertools
 import random
-import six
-import unittest2
+from unittest import mock
 
+import pytest
+
+from robottelo import datafactory
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_emails_list,
-    invalid_id_list,
-    invalid_interfaces_list,
-    invalid_names_list,
-    invalid_values_list,
-    invalid_usernames_list,
-    InvalidArgumentError,
-    valid_data_list,
-    valid_docker_repository_names,
-    valid_emails_list,
-    valid_environments_list,
-    valid_hosts_list,
-    valid_hostgroups_list,
-    valid_interfaces_list,
-    valid_labels_list,
-    valid_names_list,
-    valid_org_names_list,
-    valid_usernames_list,
-    valid_cron_expressions
-
-)
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
 
 
-class FilteredDataPointTestCase(unittest2.TestCase):
+class TestFilteredDataPoint:
     """Tests for :meth:`robottelo.datafactory.filtered_datapoint` decorator"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Backup the config smoke property"""
-        cls.backup = settings.run_one_datapoint
+    @pytest.fixture(scope="function")
+    def run_one_datapoint(self, request):
+        # Modify run_one_datapoint on settings singleton based on the indirect param
+        # default to false when not parametrized
+        original = settings.run_one_datapoint
+        settings.run_one_datapoint = getattr(request, 'param', False)
+        yield settings.run_one_datapoint
+        settings.run_one_datapoint = original
 
-    def test_filtered_datapoint_True(self):
+    @pytest.mark.parametrize('run_one_datapoint', [True, False], indirect=True)
+    def test_filtered_datapoint(self, run_one_datapoint):
         """Tests if run_one_datapoint=false returns all data points"""
-        settings.run_one_datapoint = False
-        self.assertEqual(len(generate_strings_list()), 7)
-        self.assertEqual(len(invalid_emails_list()), 8)
-        self.assertEqual(len(invalid_id_list()), 4)
-        self.assertEqual(len(invalid_interfaces_list()), 8)
-        self.assertEqual(len(invalid_names_list()), 7)
-        self.assertEqual(len(invalid_values_list()), 10)
-        self.assertEqual(len(invalid_usernames_list()), 4)
-        self.assertEqual(len(valid_labels_list()), 2)
-        self.assertEqual(len(valid_data_list()), 7)
-        self.assertEqual(len(valid_emails_list()), 8)
-        self.assertEqual(len(valid_environments_list()), 4)
-        self.assertEqual(len(valid_hosts_list()), 3)
-        self.assertEqual(len(valid_hostgroups_list()), 7)
-        self.assertEqual(len(valid_interfaces_list()), 3)
-        self.assertEqual(len(valid_names_list()), 15)
-        self.assertEqual(len(valid_org_names_list()), 7)
-        self.assertEqual(len(valid_usernames_list()), 6)
-        self.assertEqual(len((valid_cron_expressions())), 4)
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=True):
-            self.assertEqual(len(valid_docker_repository_names()), 6)
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            self.assertEqual(len(valid_docker_repository_names()), 7)
-
-    def test_filtered_datapoint_False(self):
-        """Tests if run_one_datapoint=True returns one data point"""
-        settings.run_one_datapoint = True
-        self.assertEqual(len(generate_strings_list()), 1)
-        self.assertEqual(len(invalid_emails_list()), 1)
-        self.assertEqual(len(invalid_id_list()), 1)
-        self.assertEqual(len(invalid_interfaces_list()), 1)
-        self.assertEqual(len(invalid_names_list()), 1)
-        self.assertEqual(len(invalid_values_list()), 1)
-        self.assertEqual(len(valid_data_list()), 1)
-        self.assertEqual(len(valid_docker_repository_names()), 1)
-        self.assertEqual(len(valid_emails_list()), 1)
-        self.assertEqual(len(valid_environments_list()), 1)
-        self.assertEqual(len(valid_hosts_list()), 1)
-        self.assertEqual(len(valid_hostgroups_list()), 1)
-        self.assertEqual(len(valid_interfaces_list()), 1)
-        self.assertEqual(len(valid_labels_list()), 1)
-        self.assertEqual(len(valid_names_list()), 1)
-        self.assertEqual(len(valid_org_names_list()), 1)
-        self.assertEqual(len(valid_usernames_list()), 1)
-        self.assertEqual(len((valid_cron_expressions())), 1)
+        if run_one_datapoint:
+            assert len(datafactory.generate_strings_list()) == 1
+            assert len(datafactory.invalid_emails_list()) == 1
+            assert len(datafactory.invalid_id_list()) == 1
+            assert len(datafactory.invalid_interfaces_list()) == 1
+            assert len(datafactory.invalid_names_list()) == 1
+            assert len(datafactory.invalid_values_list()) == 1
+            assert len(datafactory.valid_data_list()) == 1
+            assert len(datafactory.valid_docker_repository_names()) == 1
+            assert len(datafactory.valid_emails_list()) == 1
+            assert len(datafactory.valid_environments_list()) == 1
+            assert len(datafactory.valid_hosts_list()) == 1
+            assert len(datafactory.valid_hostgroups_list()) == 1
+            assert len(datafactory.valid_interfaces_list()) == 1
+            assert len(datafactory.valid_labels_list()) == 1
+            assert len(datafactory.valid_names_list()) == 1
+            assert len(datafactory.valid_org_names_list()) == 1
+            assert len(datafactory.valid_usernames_list()) == 1
+            assert len((datafactory.valid_cron_expressions())) == 1
+        else:
+            assert len(datafactory.generate_strings_list()) == 7
+            assert len(datafactory.invalid_emails_list()) == 8
+            assert len(datafactory.invalid_id_list()) == 4
+            assert len(datafactory.invalid_interfaces_list()) == 8
+            assert len(datafactory.invalid_names_list()) == 7
+            assert len(datafactory.invalid_values_list()) == 10
+            assert len(datafactory.invalid_usernames_list()) == 4
+            assert len(datafactory.valid_labels_list()) == 2
+            assert len(datafactory.valid_data_list()) == 7
+            assert len(datafactory.valid_emails_list()) == 8
+            assert len(datafactory.valid_environments_list()) == 4
+            assert len(datafactory.valid_hosts_list()) == 3
+            assert len(datafactory.valid_hostgroups_list()) == 7
+            assert len(datafactory.valid_interfaces_list()) == 3
+            assert len(datafactory.valid_names_list()) == 15
+            assert len(datafactory.valid_org_names_list()) == 7
+            assert len(datafactory.valid_usernames_list()) == 6
+            assert len((datafactory.valid_cron_expressions())) == 4
+            assert len(datafactory.valid_docker_repository_names()) == 7
 
     @mock.patch('robottelo.datafactory.gen_string')
-    def test_generate_strings_list_remove_str(self, gen_string):
+    def test_generate_strings_list_remove_str(self, gen_string, run_one_datapoint):
         gen_string.side_effect = lambda str_type, _: str_type
         str_types = STRING_TYPES[:]
         remove_type = random.choice(str_types)
         str_types.remove(remove_type)
         str_types.sort()
-        string_list = generate_strings_list(exclude_types=[remove_type])
+        string_list = datafactory.generate_strings_list(exclude_types=[remove_type])
         string_list.sort()
-        self.assertEqual(string_list, str_types)
-
-    @classmethod
-    def tearDownClass(cls):
-        """Reset the config smoke property"""
-        settings.run_one_datapoint = cls.backup
+        assert string_list == str_types
 
 
-class TestReturnTypes(unittest2.TestCase):
+class TestReturnTypes:
     """Tests for validating return types for different data factory
     functions."""
 
@@ -137,49 +103,48 @@ class TestReturnTypes(unittest2.TestCase):
         17. :meth:`robottelo.datafactory.valid_cron_expressions`
 
         """
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            for item in itertools.chain(
-                    generate_strings_list(),
-                    invalid_emails_list(),
-                    invalid_interfaces_list(),
-                    invalid_names_list(),
-                    valid_data_list(),
-                    valid_docker_repository_names(),
-                    valid_emails_list(),
-                    valid_environments_list(),
-                    valid_hosts_list(),
-                    valid_hostgroups_list(),
-                    valid_interfaces_list(),
-                    valid_labels_list(),
-                    valid_names_list(),
-                    valid_org_names_list(),
-                    valid_cron_expressions(),
-                    valid_usernames_list()):
-                self.assertIsInstance(item, six.text_type)
-            for item in invalid_id_list():
-                if not (
-                        isinstance(item, (six.text_type, int)) or item is None
-                        ):
-                    self.fail('Unexpected data type')
+        for item in itertools.chain(
+            datafactory.generate_strings_list(),
+            datafactory.invalid_emails_list(),
+            datafactory.invalid_interfaces_list(),
+            datafactory.invalid_names_list(),
+            datafactory.valid_data_list(),
+            datafactory.valid_docker_repository_names(),
+            datafactory.valid_emails_list(),
+            datafactory.valid_environments_list(),
+            datafactory.valid_hosts_list(),
+            datafactory.valid_hostgroups_list(),
+            datafactory.valid_interfaces_list(),
+            datafactory.valid_labels_list(),
+            datafactory.valid_names_list(),
+            datafactory.valid_org_names_list(),
+            datafactory.valid_cron_expressions(),
+            datafactory.valid_usernames_list(),
+        ):
+            assert isinstance(item, str)
+        for item in datafactory.invalid_id_list():
+            if not (isinstance(item, (str, int)) or item is None):
+                pytest.fail('Unexpected data type')
 
 
-class InvalidValuesListTestCase(unittest2.TestCase):
+class TestInvalidValuesList:
     """Tests for :meth:`robottelo.datafactory.invalid_values_list`"""
 
     def test_return_values(self):
         """Tests if invalid values list returns right values based on input"""
         # Test valid values
         for value in 'api', 'cli', 'ui', None:
-            return_value = invalid_values_list(value)
-            self.assertIsInstance(return_value, list)
+            return_value = datafactory.invalid_values_list(value)
+            assert isinstance(return_value, list)
             if value == 'ui':
-                self.assertEqual(len(return_value), 9)
+                assert len(return_value) == 9
             else:
-                self.assertEqual(len(return_value), 10)
-        # Test invalid values
-        self.assertRaises(InvalidArgumentError, invalid_values_list, ' ')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'UI')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'CLI')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'API')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'invalid')
+                assert len(return_value) == 10
+
+            # test uppercase values, which are invalid
+            with pytest.raises(datafactory.InvalidArgumentError):
+                datafactory.invalid_values_list(value.upper() if isinstance(value, str) else ' ')
+
+        # Test invalid value
+        with pytest.raises(datafactory.InvalidArgumentError):
+            datafactory.invalid_values_list('invalid')

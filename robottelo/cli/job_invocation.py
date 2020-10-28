@@ -14,7 +14,6 @@ Subcommands:
     list            List job invocations
     output          View the output for a host
 """
-
 from robottelo.cli.base import Base
 
 
@@ -29,5 +28,4 @@ class JobInvocation(Base):
     def get_output(cls, options):
         """Get output of the job invocation"""
         cls.command_sub = 'output'
-        return cls.execute(
-            cls._construct_command(options))
+        return cls.execute(cls._construct_command(options))

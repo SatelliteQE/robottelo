@@ -1,12 +1,8 @@
 """Helpers to interact with hammer command line utility."""
 import csv
+import io
 import json
-
 import re
-import six
-from six import text_type
-from six.moves import cStringIO as StringIO
-from six.moves import zip
 
 
 def _csv_reader(output):
@@ -24,20 +20,15 @@ def _csv_reader(output):
     unicode.
 
     :param output: can be any object which supports the iterator protocol and
-    returns a unicode string each time its next() method is called.
+        returns a unicode string each time its next() method is called.
     :return: generator that will yield a list of unicode string values.
 
     """
     data = '\n'.join(output)
-    if six.PY2:
-        data = data.encode('utf8')
-    handler = StringIO(data)
+    handler = io.StringIO(data)
 
     for row in csv.reader(handler):  # pragma: no cover
-        if six.PY2:
-            yield [value.decode('utf8') for value in row]
-        else:
-            yield row
+        yield row
 
 
 def _normalize(header):
@@ -50,6 +41,9 @@ def parse_json(stdout):
     """Parse JSON output from Hammer CLI and convert it to python dictionary
     while normalizing keys.
     """
+    new_object_index = stdout.find('\n}\n{')
+    if new_object_index > -1:
+        stdout = stdout[new_object_index + 3 :]  # noqa: E203
     parsed = json.loads(stdout)
     return _normalize_obj(parsed)
 
@@ -64,12 +58,19 @@ def _normalize_obj(obj):
         return [_normalize_obj(v) for v in obj]
     # doing this to conform to csv parser
     elif isinstance(obj, int) and not isinstance(obj, bool):
-        return text_type(obj)
+        return str(obj)
     return obj
 
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
+    try:
+        warning_index = output.index(
+            'Puppet and OSTree will no longer be supported in Katello 3.16'
+        )
+        output = output[warning_index + 1 :]  # noqa: E203
+    except ValueError:
+        pass
     reader = _csv_reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
@@ -87,17 +88,12 @@ def parse_help(output):
     subcommands_section_state = 1
     options_section_state = 2
 
-    contents = {
-        'subcommands': [],
-        'options': [],
-    }
+    contents = {'subcommands': [], 'options': []}
     option_regex = re.compile(
-        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w-]+))?'
-        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>\w+))?\s+(?P<help>.*)$'
+        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w\[\]|-]+))?'
+        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>[\w-]+))?\s+(?P<help>.*)$'
     )
-    subcommand_regex = re.compile(
-        r'^ (?P<name>[\w-]+)?\s+(?P<description>.*)$'
-    )
+    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?(, [\w-]+)?\s+(?P<description>.*)$')
 
     for line in output:
         if len(line.strip()) == 0:
@@ -114,29 +110,45 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['subcommands'][-1]['description'] += (
-                    u' {0}'.format(match.group('description'))
+                contents['subcommands'][-1]['description'] += ' {0}'.format(
+                    match.group('description')
                 )
             else:
-                contents['subcommands'].append({
-                    u'name': match.group('name'),
-                    u'description': match.group('description'),
-                })
+                contents['subcommands'].append(
+                    {'name': match.group('name'), 'description': match.group('description')}
+                )
         if state == options_section_state:
             match = option_regex.search(line)
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['options'][-1]['help'] += (
-                    u' {0}'.format(match.group('help'))
-                )
+                contents['options'][-1]['help'] += ' {0}'.format(match.group('help'))
             else:
-                contents['options'].append({
-                    u'name': match.group('name'),
-                    u'shortname': match.group('shortname'),
-                    u'value': match.group('value'),
-                    u'help': match.group('help'),
-                })
+                contents['options'].append(
+                    {
+                        'name': match.group('name'),
+                        'shortname': match.group('shortname'),
+                        'value': match.group('value'),
+                        'help': match.group('help'),
+                    }
+                )
+
+    # handle multiple options disguised as one, e.g. --hostgroup[s|-ids|-titles]
+    grouped_option_regex = re.compile(r'^(?P<prefix>[\w-]+)\[(?P<postfixes>\S+)\]$')
+    new_options = []
+    for option in contents['options']:
+        match = grouped_option_regex.search(option['name'])
+        if not match:
+            new_options.append(option)
+            continue
+        prefix = match.group('prefix')
+        postfixes = match.group('postfixes').split('|')
+        if postfixes[0].startswith('-'):
+            postfixes.insert(0, '')
+        names = [f'{prefix}{postfix}' for postfix in postfixes]
+        exploded = [{**option, **{'name': name}} for name in names]
+        new_options.extend(exploded)
+    contents['options'] = new_options
 
     return contents
 
@@ -181,8 +193,7 @@ def get_line_indentation_level(line, tab_spaces=4, indentation_spaces=4):
         assert get_line_indentation_level('        level 2') == 2
 
     """
-    return get_line_indentation_spaces(
-        line, tab_spaces=tab_spaces)//indentation_spaces
+    return get_line_indentation_spaces(line, tab_spaces=tab_spaces) // indentation_spaces
 
 
 def parse_info(output):
@@ -207,8 +218,7 @@ def parse_info(output):
             # entity name like 'test::params::keys'
             if line.find(':') != -1 and not line.find('::') != -1:
                 key, value = line.lstrip().split(":", 1)
-            elif line.find('=>') != -1 and len(
-                    line.lstrip().split(" =>", 1)) == 2:
+            elif line.find('=>') != -1 and len(line.lstrip().split(" =>", 1)) == 2:
                 key, value = line.lstrip().split(" =>", 1)
             else:
                 key = value = None
@@ -230,10 +240,23 @@ def parse_info(output):
 
                 value = match.group(1)
 
-                if isinstance(contents[sub_prop], dict):
+                # adding list to 1 level, for example:
+                # {'template': ['template1', 'template2']}
+                if isinstance(contents[sub_prop], dict) and not contents[sub_prop]:
                     contents[sub_prop] = []
-
-                contents[sub_prop].append(value)
+                    contents[sub_prop].append(value)
+                elif isinstance(contents[sub_prop], list):
+                    contents[sub_prop].append(value)
+                else:
+                    # adding list to 2 level, for example:
+                    # {'subscription-information':
+                    #      {'registered-by-activation-keys': ['ak1', 'ak2']}
+                    #  }
+                    last_key = list(contents[sub_prop].keys())[-1]
+                    if not contents[sub_prop][last_key]:
+                        contents[sub_prop][last_key] = [value]
+                    else:
+                        contents[sub_prop][last_key].append(value)
             else:
                 # some properties have many numbered values
                 # Example:

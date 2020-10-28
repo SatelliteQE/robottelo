@@ -16,9 +16,7 @@ The command manager specification is located at `robottelo/manage.yml` and
 it is easy to add new commands to framework by creating new functions or
 click commands and referring on `manage.yml` file.
 
-Existing commands are located at
-:doc:`commands package </api/robottelo.commands>`. There are commands to
-open an interactive shell, interact with UI browser, API and other utilities.
+There are commands to open an interactive shell, interact with UI browser, API and other utilities.
 
 requisites
 ----------
@@ -69,7 +67,7 @@ Assuming you have ipython installed you will see a console like:
 
     In [1]: rt.ssh.command('uname -r')
     2016-09-16 13:54:57 - robottelo.ssh - DEBUG - Connected to [foreman-server.com]
-    Out[1]: SSHCommandResult(stdout=[u'3.10.0-327.el7.x86_64', u''], stderr='', return_code=0, output_format=None)
+    Out[1]: SSHCommandResult(stdout=['3.10.0-327.el7.x86_64', ''], stderr='', return_code=0, output_format=None)
     In [2]: exit
 
 This is the Robottelo's interactive shell welcome screen and you can see some
@@ -102,13 +100,13 @@ Open a new REPL connected to a browser session:
     Out[1]: <robottelo.ui.browser.Chrome (session="0968e34f29e2c3208554ada58023fa4f")>
 
     In [2]: session.nav.go_to_users()
-    2016-09-16 14:01:15 - robottelo.ui.browser - DEBUG - mouseMoveTo:  {'element': u'0.8036987570003233-1'}
+    2016-09-16 14:01:15 - robottelo.ui.browser - DEBUG - mouseMoveTo:  {'element': '0.8036987570003233-1'}
 
     In [3]: session.ui.user.click(locators.locators.users.new)
-    2016-09-16 14:01:46 - robottelo.ui.browser - DEBUG - clickElement:  {'id': u'0.12969267888817115-2'}
+    2016-09-16 14:01:46 - robottelo.ui.browser - DEBUG - clickElement:  {'id': '0.12969267888817115-2'}
 
     In [4]: session.ui.user.assign_value(locators.locators.users.username, "my_username")
-    2016-09-16 14:02:13 - robottelo.ui.browser - DEBUG - sendKeysToElement:  {'id': u'0.12969267888817115-3', 'value': 'my_username'}
+    2016-09-16 14:02:13 - robottelo.ui.browser - DEBUG - sendKeysToElement:  {'id': '0.12969267888817115-3', 'value': 'my_username'}
 
     In [5]: exit
     2016-09-16 14:05:46 - robottelo.ui.browser - DEBUG - logout
@@ -127,5 +125,3 @@ It is also possible to open the `browse` session in specific page if you specify
 
     # create user using factory
     In [1]:  session.ui.make_user(username="my_username")
-
-

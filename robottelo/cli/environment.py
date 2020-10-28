@@ -18,7 +18,6 @@ Subcommands::
     sc-params                     List all smart class parameters
     update                        Update an environment
 """
-
 from robottelo.cli.base import Base
 
 
@@ -31,5 +30,4 @@ class Environment(Base):
     def sc_params(cls, options=None):
         """List all smart class parameters."""
         cls.command_sub = 'sc-params'
-        return cls.execute(
-            cls._construct_command(options), output_format='json')
+        return cls.execute(cls._construct_command(options), output_format='json')

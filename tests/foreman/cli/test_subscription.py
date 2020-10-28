@@ -16,26 +16,56 @@
 """
 import csv
 
+import pytest
+from fauxfactory import gen_string
+from nailgun import entities
+
 from robottelo import manifests
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.host import Host
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import (
-    PRDS,
-    REPOS,
-    REPOSET,
-)
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_bug_open,
-    tier1,
-    tier2,
-    tier3,
-    upgrade
-)
+from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
+
+
+@pytest.fixture(scope='class')
+def golden_ticket_host_setup(request):
+    org = make_org()
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(org['id'], manifest.content)
+    new_product = make_product({'organization-id': org['id']})
+    new_repo = make_repository({'product-id': new_product['id']})
+    Repository.synchronize({'id': new_repo['id']})
+    new_ak = make_activation_key(
+        {
+            'lifecycle-environment': 'Library',
+            'content-view': 'Default Organization View',
+            'organization-id': org['id'],
+            'auto-attach': False,
+        }
+    )
+    subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
+    ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
+    request.cls.org_setup = org
+    request.cls.ak_setup = new_ak
 
 
 @run_in_one_thread
@@ -47,7 +77,6 @@ class SubscriptionTestCase(CLITestCase):
         super(SubscriptionTestCase, self).setUp()
         self.org = make_org()
 
-    # pylint: disable=no-self-use
     def _upload_manifest(self, org_id, manifest=None):
         """Uploads a manifest into an organization.
 
@@ -98,10 +127,7 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
     @tier1
     @upgrade
@@ -115,17 +141,9 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        Subscription.delete_manifest({
-            'organization-id': self.org['id'],
-        })
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        Subscription.delete_manifest({'organization-id': self.org['id']})
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
 
     @tier2
     @upgrade
@@ -142,22 +160,23 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        RepositorySet.enable(
+            {
+                'basearch': 'x86_64',
+                'name': REPOSET['rhva6'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+            }
         )
-        RepositorySet.enable({
-            'basearch': 'x86_64',
-            'name': REPOSET['rhva6'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-            'releasever': '6Server',
-        })
-        Repository.synchronize({
-            'name': REPOS['rhva6']['name'],
-            'organization-id': self.org['id'],
-            'product': PRDS['rhel'],
-        })
+        Repository.synchronize(
+            {
+                'name': REPOS['rhva6']['name'],
+                'organization-id': self.org['id'],
+                'product': PRDS['rhel'],
+            }
+        )
 
     @tier3
     def test_positive_manifest_history(self):
@@ -170,17 +189,9 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=None,
-        )
-        history = Subscription.manifest_history({
-            'organization-id': self.org['id'],
-        })
-        self.assertIn(
-            '{0} file imported successfully.'.format(self.org['name']),
-            ''.join(history),
-        )
+        Subscription.list({'organization-id': self.org['id']}, per_page=None)
+        history = Subscription.manifest_history({'organization-id': self.org['id']})
+        assert '{0} file imported successfully.'.format(self.org['name']) in ''.join(history)
 
     @tier1
     @upgrade
@@ -193,43 +204,12 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        self._upload_manifest(
-            self.org['id'], manifests.original_manifest())
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        Subscription.refresh_manifest({
-            'organization-id': self.org['id'],
-        })
-        Subscription.delete_manifest({
-            'organization-id': self.org['id'],
-        })
+        self._upload_manifest(self.org['id'], manifests.original_manifest())
+        Subscription.list({'organization-id': self.org['id']}, per_page=False)
+        Subscription.refresh_manifest({'organization-id': self.org['id']})
+        Subscription.delete_manifest({'organization-id': self.org['id']})
 
-    @skip_if_bug_open('bugzilla', 1226425)
-    @tier2
-    def test_negative_manifest_refresh(self):
-        """manifest refresh must fail with a cloned manifest
-
-        :id: 7f40795f-7841-4063-8a43-de0325c92b1f
-
-        :expectedresults: the refresh command returns a non-zero return code
-
-        :BZ: 1226425
-
-        :CaseImportance: High
-        """
-        self._upload_manifest(self.org['id'])
-        Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
-        with self.assertRaises(CLIReturnCodeError):
-            Subscription.refresh_manifest({
-                'organization-id': self.org['id'],
-            })
-
-    @skip_if_bug_open('bugzilla', 1686916)
+    @pytest.mark.skip_if_open("BZ:1686916")
     @tier2
     def test_positive_subscription_list(self):
         """Verify that subscription list contains start and end date
@@ -243,9 +223,106 @@ class SubscriptionTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         self._upload_manifest(self.org['id'])
-        subscription_list = Subscription.list(
-            {'organization-id': self.org['id']},
-            per_page=False,
-        )
+        subscription_list = Subscription.list({'organization-id': self.org['id']}, per_page=False)
         for column in ['start-date', 'end-date']:
-            self.assertIn(column, subscription_list[0].keys())
+            assert column in subscription_list[0].keys()
+
+    @tier2
+    def test_positive_delete_manifest_as_another_user(self):
+        """Verify that uploaded manifest if visible and deletable
+            by a different user than the one who uploaded it
+
+        :id: 4861bcbc-785a-436d-98cf-13cfef7d6907
+
+        :expectedresults: manifest is refreshed
+
+        :BZ: 1669241
+
+        :CaseImportance: Medium
+        """
+        org = entities.Organization().create()
+        user1_password = gen_string('alphanumeric')
+        user1 = entities.User(
+            admin=True, password=user1_password, organization=[org], default_organization=org
+        ).create()
+        user2_password = gen_string('alphanumeric')
+        user2 = entities.User(
+            admin=True, password=user2_password, organization=[org], default_organization=org
+        ).create()
+        # use the first admin to upload a manifest
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        Subscription.with_user(username=user1.login, password=user1_password).upload(
+            {'file': manifest.filename, 'organization-id': org.id}
+        )
+        # try to search and delete the manifest with another admin
+        Subscription.with_user(username=user2.login, password=user2_password).delete_manifest(
+            {'organization-id': org.id}
+        )
+        assert len(Subscription.list({'organization-id': org.id})) == 0
+
+    @tier2
+    @pytest.mark.stubbed
+    @pytest.mark.usefixtures("golden_ticket_host_setup")
+    def test_positive_subscription_status_disabled_golden_ticket(self):
+        """Verify that Content host Subscription status is set to 'Disabled'
+         for a golden ticket manifest
+
+        :id: 42e10499-3a0d-48cd-ab71-022421a74add
+
+        :expectedresults: subscription status is 'Disabled'
+
+        :BZ: 1789924
+
+        :CaseImportance: Medium
+        """
+
+    @pytest.mark.stubbed
+    def test_positive_candlepin_events_processed_by_STOMP(self):
+        """Verify that Candlepin events are being read and processed by
+           attaching subscriptions, validating host subscriptions status,
+           and viewing processed and failed Candlepin events
+
+        :id: d54a7652-f87d-4277-a0ec-a153e27b4487
+
+        :steps:
+
+            1. Register Content Host without subscriptions attached
+            2. Verify subscriptions status is invalid
+            3. Import a Manifest
+            4. Attach subs to content host
+            5. Verify subscription status is green, "valid", with
+               "hammer subscription list --host-id x"
+            6. Check for processed and failed Candlepin events
+
+        :expectedresults: Candlepin events are being read and processed
+                          correctly without any failures
+        :BZ: #1826515
+
+        :CaseImportance: High
+        """
+
+    @tier2
+    @pytest.mark.usefixtures("golden_ticket_host_setup")
+    def test_positive_auto_attach_disabled_golden_ticket(self):
+        """Verify that Auto-Attach is disabled or "Not Applicable"
+        when a host organization is in Simple Content Access mode (Golden Ticket)
+
+        :id: 668fae4d-7364-4167-967f-6fc31ba52d26
+
+        :expectedresults: auto attaching a subscription is not allowed
+            and returns an error message
+
+        :BZ: 1718954
+
+        :CaseImportance: Medium
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
+            assert vm.subscribed
+            host = Host.list({'search': vm.hostname})
+            host_id = host[0]['id']
+            with pytest.raises(CLIReturnCodeError) as context:
+                Host.subscription_auto_attach({'host-id': host_id})
+            assert 'Auto-attach is disabled' in str(context.value)

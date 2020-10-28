@@ -19,7 +19,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 from pytest import raises
 
-from robottelo.decorators import fixture, tier2, upgrade
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 
 
 @fixture(scope='module')
@@ -45,12 +47,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseImportance: High
     """
-    variable_name = gen_string('alpha')
     name = gen_string('alpha')
-    hostgroup = entities.HostGroup(
-        organization=[module_org], location=[module_loc]).create()
+    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
     puppet_class = entities.PuppetClass(name=name).create()
-    entities.SmartVariable(variable=variable_name, puppetclass=puppet_class).create()
     with session:
         # Check that created puppet class can be found in UI
         assert session.puppetclass.search(name)[0]['Class name'] == name
@@ -59,23 +58,21 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert pc_values['puppet_class']['name'] == name
         assert not pc_values['puppet_class']['puppet_environment']
         assert not pc_values['puppet_class']['host_group']['assigned']
-        assert pc_values['smart_variables']['variable']['key'] == variable_name
         # Update puppet class
         session.puppetclass.update(
-            puppet_class.name,
-            {'puppet_class.host_group.assigned': [hostgroup.name]}
+            puppet_class.name, {'puppet_class.host_group.assigned': [hostgroup.name]}
         )
         pc_values = session.puppetclass.read(name)
         assert pc_values['puppet_class']['host_group']['assigned'] == [hostgroup.name]
         # Make an attempt to delete puppet class that associated with host group
         with raises(AssertionError) as context:
             session.puppetclass.delete(name)
-        assert "error: '{} is used by {}'".format(
-            puppet_class.name, hostgroup.name) in str(context.value)
+        assert "error: '{} is used by {}'".format(puppet_class.name, hostgroup.name) in str(
+            context.value
+        )
         # Unassign puppet class from host group
         session.puppetclass.update(
-            puppet_class.name,
-            {'puppet_class.host_group.unassigned': [hostgroup.name]}
+            puppet_class.name, {'puppet_class.host_group.unassigned': [hostgroup.name]}
         )
         # Delete puppet class
         session.puppetclass.delete(name)

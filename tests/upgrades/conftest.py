@@ -1,19 +1,21 @@
 """
 This module is intended to be used for upgrade tests, that have two run stages,
 
-    First stage: pre_upgrade
+    First stage: pre_upgrade::
+
         The test marked as pre_upgrade will be run the tests can save data, to be restored later in
         post upgrade stage.
 
         pytest -m "pre_upgrade" tests/foreman/upgrade
 
-    Second stage: post_upgrade
+    Second stage: post_upgrade::
+
         The test marked as post upgrade will be run, any saved data in dependent pre_upgrade stage
         can be restored, if a dependent test fail, the post upgrade test will be skipped
 
         pytest -m "post_upgrade" tests/foreman/upgrade
 
-    Example upgrade test module content: file test_upgrade.py
+    Example upgrade test module content: file test_upgrade.py::
 
         import pytest
 
@@ -81,7 +83,6 @@ This module is intended to be used for upgrade tests, that have two run stages,
         # in post_upgrade scenario, test results should be
         #  2 passed, 6 deselected
 """
-
 import datetime
 import functools
 import json
@@ -118,9 +119,7 @@ def log(message, level="DEBUG"):
     """
     now = datetime.datetime.now()
     full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"),
-        level=level,
-        message=message
+        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
     )
     print(full_message)  # noqa
     with open('robottelo.log', 'a') as log_file:
@@ -152,9 +151,9 @@ def get_entity_data(scenario_name):
     """Fetches the dictionary of entities from the disk depending on the
     Scenario name (class name in which test is defined)
 
-    :param string scenario_name : The name of the class for which the data is
+    :param str scenario_name: The name of the class for which the data is
         to fetched
-    :returns dict entity_data : Returns a dictionary of entities
+    :returns dict entity_data: Returns a dictionary of entities
     """
     with open('scenario_entities') as pref:
         entity_data = json.load(pref)
@@ -191,7 +190,7 @@ def _save_test_data(test_node_id, value):
 def save_test_data(request):
     """A fixture to allow saving test data
 
-    Usage:
+    Usage::
 
         @pre_upgrade
         def test_something_pre_upgrade(save_test_data):
@@ -207,7 +206,7 @@ def save_test_data(request):
 def pre_upgrade_data(request):
     """A fixture to allow restoring the saved data in pre_upgrade stage
 
-     Usage:
+     Usage::
 
         @post_upgrade(depend_on=test_something_pre_upgrade)
         def test_something_post_upgrade(pre_upgrade_data):
@@ -232,7 +231,7 @@ def pytest_addoption(parser):
     """This will add an option to the runner to be able to customize the location of the failed
     tests file.
 
-    Usage:
+    Usage::
 
         pytest --pre_upgrade_tests_file file_location
 
@@ -241,7 +240,7 @@ def pytest_addoption(parser):
     parser.addoption(
         '--{0}'.format(PRE_UPGRADE_TESTS_FILE_OPTION),
         action='store',
-        default=PRE_UPGRADE_TESTS_FILE_PATH
+        default=PRE_UPGRADE_TESTS_FILE_PATH,
     )
 
 
@@ -255,8 +254,11 @@ def __initiate(config):
     global POST_UPGRADE
     global PRE_UPGRADE_TESTS_FILE_PATH
     PRE_UPGRADE_TESTS_FILE_PATH = getattr(config.option, PRE_UPGRADE_TESTS_FILE_OPTION)
-    if not [upgrade_mark for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
-            if upgrade_mark in config.option.markexpr]:
+    if not [
+        upgrade_mark
+        for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
+        if upgrade_mark in config.option.markexpr
+    ]:
         raise OptionMarksError('options error: pre_upgrade or post_upgrade marks must be selected')
     if PRE_UPGRADE_MARK in config.option.markexpr:
         pre_upgrade_failed_tests = []
@@ -267,7 +269,8 @@ def __initiate(config):
     if POST_UPGRADE_MARK in config.option.markexpr:
         if PRE_UPGRADE:
             raise OptionMarksError(
-                'options error: cannot do pre_upgrade and post_upgrade at the same time')
+                'options error: cannot do pre_upgrade and post_upgrade at the same time'
+            )
         POST_UPGRADE = True
         pre_upgrade_failed_tests = []
         if os.path.exists(PRE_UPGRADE_TESTS_FILE_PATH):
@@ -301,8 +304,7 @@ def pytest_collection_modifyitems(items, config):
 
     # mark the pre upgrade test functions with node_id
     pre_upgrade_items = [
-        item
-        for item in items if item.get_closest_marker(PRE_UPGRADE_MARK) is not None
+        item for item in items if item.get_closest_marker(PRE_UPGRADE_MARK) is not None
     ]
     for item in pre_upgrade_items:
         _set_test_node_id(item.function, item.nodeid)
@@ -310,8 +312,7 @@ def pytest_collection_modifyitems(items, config):
     if POST_UPGRADE:
         # will skip item/post_upgrade test if pre_upgrade test status failed.
         post_upgrade_items = [
-            item
-            for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
+            item for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
         ]
         deselected_items = []
         for item in post_upgrade_items:
@@ -322,12 +323,14 @@ def pytest_collection_modifyitems(items, config):
                     dependant_on_functions.extend(depend_on)
                 elif depend_on is not None:
                     dependant_on_functions.append(depend_on)
-                depend_on_node_ids = [
-                    _get_test_node_id(f) for f in dependant_on_functions]
+                depend_on_node_ids = [_get_test_node_id(f) for f in dependant_on_functions]
                 for depend_on_node_id in depend_on_node_ids:
                     if depend_on_node_id in pre_upgrade_failed_tests:
-                        log('Deselected (because of dependant test failed): {}'.format(
-                            item.nodeid, 'INFO'))
+                        log(
+                            'Deselected (because of dependant test failed): {}'.format(
+                                item.nodeid, 'INFO'
+                            )
+                        )
                         deselected_items.append(item)
 
         config.hook.pytest_deselected(items=deselected_items)

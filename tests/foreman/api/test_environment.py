@@ -10,7 +10,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :CaseLevel: Component
 
-:CaseComponent: ConfigurationManagement
+:CaseComponent: Puppet
 
 :TestType: Functional
 
@@ -21,9 +21,12 @@ http://theforeman.org/api/apidoc/v2/environments.html
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import one_to_many_names
-from robottelo.datafactory import filtered_datapoint, invalid_names_list
-from robottelo.decorators import tier1, tier2
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_names_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 
@@ -31,11 +34,7 @@ from robottelo.test import APITestCase
 def valid_data_list():
     """Return a list of various kinds of valid strings for Environment entity
     """
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
+    return [gen_string('alpha'), gen_string('numeric'), gen_string('alphanumeric')]
 
 
 class EnvironmentTestCase(APITestCase):
@@ -75,9 +74,7 @@ class EnvironmentTestCase(APITestCase):
         :CaseImportance: Critical
         """
         env = entities.Environment(
-            name=gen_string('alphanumeric'),
-            organization=[self.org],
-            location=[self.loc],
+            name=gen_string('alphanumeric'), organization=[self.org], location=[self.loc]
         ).create()
         self.assertEqual(len(env.organization), 1)
         self.assertEqual(env.organization[0].id, self.org.id)
@@ -126,8 +123,7 @@ class EnvironmentTestCase(APITestCase):
         env = entities.Environment().create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                env = entities.Environment(
-                    id=env.id, name=new_name).update(['name'])
+                env = entities.Environment(id=env.id, name=new_name).update(['name'])
                 self.assertEqual(env.name, new_name)
 
     @tier2
@@ -147,13 +143,11 @@ class EnvironmentTestCase(APITestCase):
         env = entities.Environment().create()
         self.assertEqual(len(env.organization), 0)
         self.assertEqual(len(env.location), 0)
-        env = entities.Environment(
-            id=env.id, organization=[self.org]).update(['organization'])
+        env = entities.Environment(id=env.id, organization=[self.org]).update(['organization'])
         self.assertEqual(len(env.organization), 1)
         self.assertEqual(env.organization[0].id, self.org.id)
 
-        env = entities.Environment(
-            id=env.id, location=[self.loc]).update(['location'])
+        env = entities.Environment(id=env.id, location=[self.loc]).update(['location'])
         self.assertEqual(len(env.location), 1)
         self.assertEqual(env.location[0].id, self.loc.id)
 
@@ -175,8 +169,7 @@ class EnvironmentTestCase(APITestCase):
         for new_name in invalid_names_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    entities.Environment(
-                        id=env.id, name=new_name).update(['name'])
+                    entities.Environment(id=env.id, name=new_name).update(['name'])
 
 
 class MissingAttrEnvironmentTestCase(APITestCase):
@@ -211,9 +204,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         """
         names = one_to_many_names('location')
         self.assertGreaterEqual(
-            len(names & self.env_attrs),
-            1,
-            'None of {0} are in {1}'.format(names, self.env_attrs),
+            len(names & self.env_attrs), 1, 'None of {0} are in {1}'.format(names, self.env_attrs)
         )
 
     @tier2
@@ -231,7 +222,5 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         """
         names = one_to_many_names('organization')
         self.assertGreaterEqual(
-            len(names & self.env_attrs),
-            1,
-            'None of {0} are in {1}'.format(names, self.env_attrs),
+            len(names & self.env_attrs), 1, 'None of {0} are in {1}'.format(names, self.env_attrs)
         )

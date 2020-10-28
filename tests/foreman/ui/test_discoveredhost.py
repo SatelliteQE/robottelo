@@ -13,19 +13,18 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_ipaddr, gen_string
+from fauxfactory import gen_ipaddr
+from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
-from robottelo.api.utils import configure_provisioning, create_discovered_host
-from robottelo.decorators import (
-    fixture,
-    run_in_one_thread,
-    skip_if_bug_open,
-    skip_if_not_set,
-    tier3,
-    upgrade,
-)
+from robottelo.api.utils import configure_provisioning
+from robottelo.api.utils import create_discovered_host
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
 
@@ -36,8 +35,7 @@ pytestmark = [run_in_one_thread]
 def module_org():
     org = entities.Organization().create()
     # Update default discovered host organization
-    discovery_org = entities.Setting().search(
-        query={'search': 'name="discovery_organization"'})[0]
+    discovery_org = entities.Setting().search(query={'search': 'name="discovery_organization"'})[0]
     default_discovery_org = discovery_org.value
     discovery_org.value = org.name
     discovery_org.update(['value'])
@@ -48,13 +46,9 @@ def module_org():
 
 @fixture(scope='module')
 def module_loc(module_org):
-    loc = entities.Location(
-        name=gen_string('alpha'),
-        organization=[module_org],
-    ).create()
+    loc = entities.Location(name=gen_string('alpha'), organization=[module_org]).create()
     # Update default discovered host location
-    discovery_loc = entities.Setting().search(
-        query={'search': 'name="discovery_location"'})[0]
+    discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
     default_discovery_loc = discovery_loc.value
     discovery_loc.value = loc.name
     discovery_loc.update(['value'])
@@ -66,7 +60,7 @@ def module_loc(module_org):
 @fixture(scope='module')
 def provisioning_env(module_org, module_loc):
     # Build PXE default template to get default PXE file
-    entities.ConfigTemplate().build_pxe_default()
+    entities.ProvisioningTemplate().build_pxe_default()
     return configure_provisioning(
         org=module_org,
         loc=module_loc,
@@ -95,8 +89,7 @@ def module_host_group(module_org, module_loc):
     ).create()
 
 
-def _is_host_reachable(host, retries=12, iteration_sleep=5,
-                       expect_reachable=True):
+def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=True):
     """Helper to ensure given IP/hostname is reachable or not. The return value
     returned depend from expect reachable value.
 
@@ -104,16 +97,14 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
     :param int retries: The polling retries.
     :param int iteration_sleep: time to wait after each retry iteration.
     :param bool expect_reachable: Whether we expect the host to be reachable.
-    :return bool
+    :return: bool
     """
     operator = '&&'
     if not expect_reachable:
         operator = '||'
-    cmd = ('for i in {{1..{0}}}; do ping -c1 {1} {2} exit 0; sleep {3};'
-           ' done; exit 1')
+    cmd = 'for i in {{1..{0}}}; do ping -c1 {1} {2} exit 0; sleep {3}; done; exit 1'
     result = ssh.command(
-        cmd.format(retries, host, operator, iteration_sleep),
-        connection_timeout=30
+        cmd.format(retries, host, operator, iteration_sleep), connection_timeout=30
     )
     if expect_reachable:
         return not result.return_code
@@ -121,7 +112,6 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5,
         return bool(result.return_code)
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 @upgrade
@@ -144,12 +134,10 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name
         with session:
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(host_name)
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @tier3
 @upgrade
@@ -172,17 +160,15 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
     with LibvirtGuest(boot_iso=True) as pxe_less_host:
         host_name = pxe_less_host.guest_name
         with session:
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(host_name)
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_bug_open('bugzilla', 1728306)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_provision_using_quick_host_button(
-        session, module_org, module_loc, discovered_host, module_host_group):
+    session, module_org, module_loc, discovered_host, module_host_group
+):
     """Associate hostgroup while provisioning a discovered host from
     host properties model window and select quick host.
 
@@ -205,22 +191,15 @@ def test_positive_provision_using_quick_host_button(
     host_name = '{0}.{1}'.format(discovered_host_name, domain_name)
     with session:
         session.discoveredhosts.provision(
-            discovered_host_name,
-            module_host_group.name,
-            module_org.name,
-            module_loc.name,
+            discovered_host_name, module_host_group.name, module_org.name, module_loc.name
         )
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert not session.discoveredhosts.search(
-            'name = {0}'.format(discovered_host_name))
+        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1728306)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
-def test_positive_update_name(
-        session, module_org, module_loc, module_host_group, discovered_host):
+def test_positive_update_name(session, module_org, module_loc, module_host_group, discovered_host):
     """Update the discovered host name and provision it
 
     :id: 3770b007-5006-4815-ae03-fbd330aad304
@@ -239,8 +218,7 @@ def test_positive_update_name(
     new_name = gen_string('alpha').lower()
     new_host_name = '{0}.{1}'.format(new_name, domain_name)
     with session:
-        discovered_host_values = session.discoveredhosts.wait_for_entity(
-            discovered_host_name)
+        discovered_host_values = session.discoveredhosts.wait_for_entity(discovered_host_name)
         assert discovered_host_values['Name'] == discovered_host_name
         session.discoveredhosts.provision(
             discovered_host_name,
@@ -248,22 +226,19 @@ def test_positive_update_name(
             module_org.name,
             module_loc.name,
             quick=False,
-            host_values={'host.name': new_name}
+            host_values={'host.name': new_name},
         )
-        assert (session.host.search(new_host_name)[0]['Name']
-                == new_host_name)
+        assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         values = session.host.get_details(new_host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert not session.discoveredhosts.search(
-            'name = {0}'.format(discovered_host_name))
+        assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1665471)
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 @upgrade
 def test_positive_auto_provision_host_with_rule(
-        session, module_org, module_loc, module_host_group):
+    session, module_org, module_loc, module_host_group
+):
     """Create a new discovery rule and automatically create host from discovered host using that
     discovery rule.
 
@@ -290,21 +265,18 @@ def test_positive_auto_provision_host_with_rule(
         organization=[module_org],
     ).create()
     with session:
-        session.discoveredhosts.apply_action(
-            'Auto Provision',
-            [discovered_host_name]
-        )
+        session.discoveredhosts.apply_action('Auto Provision', [discovered_host_name])
         host_name = '{0}.{1}'.format(discovered_host_name, domain.name)
         assert session.host.search(host_name)[0]['Name'] == host_name
         host_values = session.host.get_details(host_name)
         assert host_values['properties']['properties_table']['Status'] == 'OK'
         assert host_values['properties']['properties_table']['IP Address'] == host_ip
-        assert (host_values['properties']['properties_table']['Comment']
-                == "Auto-discovered and provisioned via rule '{0}'".format(discovery_rule.name))
+        assert host_values['properties']['properties_table'][
+            'Comment'
+        ] == "Auto-discovered and provisioned via rule '{0}'".format(discovery_rule.name)
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
@@ -325,7 +297,6 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search('name = {0}'.format(discovered_host_name))
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @tier3
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one
@@ -348,41 +319,30 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
     module_loc.update(['organization'])
     new_loc = entities.Location(organization=[module_org]).create()
     with session:
-        values = session.discoveredhosts.search(
-            'name = "{0}" or name = "{1}"'.format(*host_names)
-        )
+        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         session.discoveredhosts.apply_action(
-            'Assign Organization',
-            host_names,
-            values=dict(organization=new_org.name)
+            'Assign Organization', host_names, values=dict(organization=new_org.name)
         )
         assert not session.discoveredhosts.search(
             'name = "{0}" or name = "{1}"'.format(*host_names)
         )
         session.organization.select(org_name=new_org.name)
-        values = session.discoveredhosts.search(
-            'name = "{0}" or name = "{1}"'.format(*host_names)
-        )
+        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         session.discoveredhosts.apply_action(
-            'Assign Location',
-            host_names,
-            values=dict(location=new_loc.name)
+            'Assign Location', host_names, values=dict(location=new_loc.name)
         )
         assert not session.discoveredhosts.search(
             'name = "{0}" or name = "{1}"'.format(*host_names)
         )
         session.location.select(loc_name=new_loc.name)
-        values = session.discoveredhosts.search(
-            'name = "{0}" or name = "{1}"'.format(*host_names)
-        )
+        values = session.discoveredhosts.search('name = "{0}" or name = "{1}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}
         values = session.dashboard.read('DiscoveredHosts')
         assert len(values['hosts']) == 2
 
 
-@skip_if_bug_open('bugzilla', 1731112)
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @tier3
 def test_positive_reboot(session, provisioning_env):
@@ -402,8 +362,7 @@ def test_positive_reboot(session, provisioning_env):
     with LibvirtGuest() as pxe_host:
         host_name = pxe_host.guest_name
         with session:
-            discovered_host_values = session.discoveredhosts.wait_for_entity(
-                host_name)
+            discovered_host_values = session.discoveredhosts.wait_for_entity(host_name)
             assert discovered_host_values['Name'] == host_name
             host_ip = discovered_host_values['IP Address']
             assert host_ip

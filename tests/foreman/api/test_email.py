@@ -14,14 +14,16 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, tier1
+import pytest
+
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
 class EmailTestCase(APITestCase):
     """API Tests for the email notification feature"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_enable_and_disable_notification(self):
         """Manage user email notification preferences.

@@ -15,27 +15,28 @@
 :Upstream: No
 """
 import random
+
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import promote
-from robottelo.constants import (
-    DOCKER_REGISTRY_HUB,
-    DEFAULT_CV,
-    ENVIRONMENT,
-    FAKE_0_PUPPET_REPO,
-    FAKE_1_YUM_REPO,
-    PUPPET_MODULE_NTP_PUPPETLABS,
-    REPO_TYPE,
-    ZOO_CUSTOM_GPG_KEY,
-)
-from robottelo.decorators import (
-    stubbed,
-    tier2,
-    tier3,
-    upgrade
-)
-from robottelo.helpers import get_data_file, read_data_file
+from robottelo.config import settings
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.constants import REPO_TYPE
+from robottelo.constants import ZOO_CUSTOM_GPG_KEY
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.decorators import skip_if
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
+from robottelo.helpers import get_data_file
+from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
 
@@ -51,9 +52,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
     def setUp(self):
         """Init content view with repo per each test"""
         super(ContentViewVersionCreateTestCase, self).setUp()
-        self.content_view = entities.ContentView(
-            organization=self.org,
-        ).create()
+        self.content_view = entities.ContentView(organization=self.org).create()
 
     @tier2
     def test_positive_create(self):
@@ -91,10 +90,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
         :CaseImportance: Critical
         """
         # The default content view cannot be published
-        cv = entities.ContentView(
-            organization=self.org,
-            name=DEFAULT_CV
-        ).search()
+        cv = entities.ContentView(organization=self.org, name=DEFAULT_CV).search()
         # There should be only 1 record returned
         self.assertEqual(len(cv), 1)
         with self.assertRaises(HTTPError):
@@ -110,14 +106,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         super(ContentViewVersionPromoteTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.lce1 = entities.LifecycleEnvironment(organization=cls.org).create()
-        cls.lce2 = entities.LifecycleEnvironment(
-            organization=cls.org,
-            prior=cls.lce1
-        ).create()
-        default_cv = entities.ContentView(
-            organization=cls.org,
-            name=DEFAULT_CV
-        ).search()
+        cls.lce2 = entities.LifecycleEnvironment(organization=cls.org, prior=cls.lce1).create()
+        default_cv = entities.ContentView(organization=cls.org, name=DEFAULT_CV).search()
         # There should be only 1 record returned
         assert len(default_cv) == 1
         # There should be only 1 version
@@ -227,6 +217,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -244,18 +235,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
-        gpgkey = entities.GPGKey(
-            content=key_content,
-            organization=org,
-        ).create()
+        gpgkey = entities.GPGKey(content=key_content, organization=org).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(organization=org).create()
         # Creates new repository with GPGKey
-        repo = entities.Repository(
-            gpg_key=gpgkey,
-            product=product,
-            url=FAKE_1_YUM_REPO,
-        ).create()
+        repo = entities.Repository(gpg_key=gpgkey, product=product, url=FAKE_1_YUM_REPO).create()
         # sync repository
         repo.sync()
         # Create content view
@@ -313,6 +297,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_composite_version(self):
         """Create composite content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -331,18 +316,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         org = entities.Organization().create()
         # Create and publish product/repository
         product = entities.Product(organization=org).create()
-        repo = entities.Repository(
-            product=product, url=FAKE_1_YUM_REPO).create()
+        repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
         repo.sync()
         # Create and publish content views
-        content_view = entities.ContentView(
-            organization=org, repository=[repo]).create()
+        content_view = entities.ContentView(organization=org, repository=[repo]).create()
         content_view.publish()
         # Create and publish composite content view
         composite_cv = entities.ContentView(
-            organization=org,
-            composite=True,
-            component=[content_view.read().version[0]],
+            organization=org, composite=True, component=[content_view.read().version[0]]
         ).create()
         composite_cv.publish()
         composite_cv = composite_cv.read()
@@ -359,6 +340,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @upgrade
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_with_puppet_content(self):
         """Delete content view version with puppet module content
 
@@ -378,28 +360,22 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
-        lce_library = entities.LifecycleEnvironment(
-            organization=org, name=ENVIRONMENT).search()[0].read()
-        lce = entities.LifecycleEnvironment(
-            organization=org, prior=lce_library).create()
+        lce_library = (
+            entities.LifecycleEnvironment(organization=org, name=ENVIRONMENT).search()[0].read()
+        )
+        lce = entities.LifecycleEnvironment(organization=org, prior=lce_library).create()
         product = entities.Product(organization=org).create()
         puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type=REPO_TYPE['puppet'],
-            product=product,
+            url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
         ).create()
         puppet_repo.sync()
         # create a content view and add the yum repo to it
         content_view = entities.ContentView(organization=org).create()
         # get a random puppet module
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         # add the puppet module to content view
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         # publish the content view
         content_view.publish()
@@ -408,14 +384,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to the created lifecycle environment
         promote(content_view_version, lce.id)
         content_view_version = content_view_version.read()
         self.assertEqual(
-            {lce_library.id, lce.id},
-            {lce.id for lce in content_view_version.environment}
+            {lce_library.id, lce.id}, {lce.id for lce in content_view_version.environment}
         )
         # remove the content view versions from all lifecycle environments
         for env in (lce_library, lce):
@@ -452,6 +428,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -474,10 +451,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         org = entities.Organization().create()
         # create yum product and repo
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         # create a content view and add to it the yum repo
         content_view = entities.ContentView(organization=org).create()
@@ -527,14 +501,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
-        lce_qe = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_dev
-        ).create()
+        lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
         product = entities.Product(organization=org).create()
         docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=product,
             url=DOCKER_REGISTRY_HUB,
         ).create()
@@ -550,25 +521,26 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to DEV QE lifecycle environments
         for lce in [lce_dev, lce_qe]:
             promote(content_view_version, lce.id)
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
         # remove the content view version from Library environment
         content_view.delete_from_environment(lce_library.id)
         # assert that the content view version does not exist in Library
         # environment
         self.assertEqual(
-            {lce_dev.id, lce_qe.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce_dev.id, lce_qe.id}, {lce.id for lce in content_view_version.read().environment}
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -590,31 +562,20 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
-        lce_qe = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_dev
-        ).create()
-        lce_prod = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_qe
-        ).create()
+        lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
+        lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         docker_repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
+            content_type='docker',
+            docker_upstream_name='busybox',
             product=product,
             url=DOCKER_REGISTRY_HUB,
         ).create()
         docker_repo.sync()
         puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=product,
+            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
         ).create()
         puppet_repo.sync()
         # create a content view and add to it the yum and docker repos
@@ -622,13 +583,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view.repository = [yum_repo, docker_repo]
         content_view = content_view.update(['repository'])
         # get a random puppet module and add it to content view
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         # publish the content view
         content_view.publish()
@@ -637,14 +594,15 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to DEV QE PROD lifecycle environments
         for lce in [lce_dev, lce_qe, lce_prod]:
             promote(content_view_version, lce.id)
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_prod.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
         # remove the content view version from Library environment
         content_view.delete_from_environment(lce_library.id)
@@ -652,10 +610,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # not in Library environment
         self.assertEqual(
             {lce_dev.id, lce_qe.id, lce_prod.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -680,28 +639,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
-        lce_qe = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_dev
-        ).create()
-        lce_stage = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_qe
-        ).create()
-        lce_prod = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_stage
-        ).create()
+        lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
+        lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
+        lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=product,
+            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
         ).create()
         puppet_repo.sync()
         # create a content view and add to it the yum repo
@@ -709,13 +654,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view.repository = [yum_repo]
         content_view = content_view.update(['repository'])
         # get a random puppet module and add it to content view
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         # publish the content view
         content_view.publish()
@@ -724,7 +665,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to DEV QE STAGE PROD lifecycle
         # environments
@@ -732,7 +674,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             promote(content_view_version, lce.id)
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
         # remove the content view version from Library environment
         content_view.delete_from_environment(lce_prod.id)
@@ -740,16 +682,17 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # STAGE and not in PROD environment
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
         # promote content view version to PROD environment again
         promote(content_view_version, lce_prod.id)
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -772,28 +715,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
-        lce_qe = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_dev
-        ).create()
-        lce_stage = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_qe
-        ).create()
-        lce_prod = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_stage
-        ).create()
+        lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
+        lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
+        lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=product,
+            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
         ).create()
         puppet_repo.sync()
         # create a content view and add to it the yum repo
@@ -801,13 +730,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view.repository = [yum_repo]
         content_view = content_view.update(['repository'])
         # get a random puppet module and add it to content view
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         # publish the content view
         content_view.publish()
@@ -816,7 +741,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to DEV QE STAGE PROD lifecycle
         # environments
@@ -824,7 +750,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             promote(content_view_version, lce.id)
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
         # remove the content view version from QE STAGE and PROD environments
         for lce in [lce_qe, lce_stage, lce_prod]:
@@ -833,11 +759,12 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # environments
         self.assertEqual(
             {lce_library.id, lce_dev.id},
-            {lce.id for lce in content_view_version.read().environment}
+            {lce.id for lce in content_view_version.read().environment},
         )
 
     @upgrade
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments
@@ -862,28 +789,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
-        lce_qe = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_dev
-        ).create()
-        lce_stage = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_qe
-        ).create()
-        lce_prod = entities.LifecycleEnvironment(
-            organization=org,
-            prior=lce_stage
-        ).create()
+        lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
+        lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
+        lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
         product = entities.Product(organization=org).create()
-        yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
         yum_repo.sync()
         puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=product,
+            url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
         ).create()
         puppet_repo.sync()
         # create a content view and add to it the yum repo
@@ -891,13 +804,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view.repository = [yum_repo]
         content_view = content_view.update(['repository'])
         # get a random puppet module and add it to content view
-        puppet_module = random.choice(
-            content_view.available_puppet_modules()['results']
-        )
+        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
         entities.ContentViewPuppetModule(
-            author=puppet_module['author'],
-            name=puppet_module['name'],
-            content_view=content_view,
+            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
         ).create()
         # publish the content view
         content_view.publish()
@@ -906,7 +815,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view.version[0].read()
         self.assertEqual(len(content_view_version.environment), 1)
         lce_library = entities.LifecycleEnvironment(
-            id=content_view_version.environment[0].id).read()
+            id=content_view_version.environment[0].id
+        ).read()
         self.assertEqual(lce_library.name, ENVIRONMENT)
         # promote content view version to DEV QE STAGE PROD lifecycle
         # environments
@@ -915,7 +825,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version = content_view_version.read()
         self.assertEqual(
             {lce_library.id, lce_dev.id, lce_qe.id, lce_stage.id, lce_prod.id},
-            {lce.id for lce in content_view_version.environment}
+            {lce.id for lce in content_view_version.environment},
         )
         # remove content view version from all lifecycle environments
         for lce in content_view_version.environment:
@@ -925,7 +835,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             content_view.read()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
@@ -963,7 +873,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
 
     @upgrade
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
@@ -1003,7 +913,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
@@ -1059,22 +969,15 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         """
         # Create a content view and add a yum repository to it. Publish the CV.
         product = entities.Product().create()
-        yum_repo = entities.Repository(
-            content_type='yum',
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(content_type='yum', product=product).create()
         content_view = entities.ContentView(
-            organization=product.organization,
-            repository=[yum_repo],
+            organization=product.organization, repository=[yum_repo]
         ).create()
         content_view.publish()
         content_view = content_view.read()
 
         # Create a puppet repository and upload a puppet module into it.
-        puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=product,
-        ).create()
+        puppet_repo = entities.Repository(content_type='puppet', product=product).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             puppet_repo.upload_content(files={'content': handle})
         # Extract all the available puppet modules.
@@ -1084,20 +987,19 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         # should then check that we have some results back before
         # proceeding.
         self.assertGreater(len(puppet_modules), 0)
-        puppet_module = entities.PuppetModule(
-            id=puppet_modules[0]['id']
-        )
+        puppet_module = entities.PuppetModule(id=puppet_modules[0]['id'])
 
         # Incrementally update the CVV with the puppet module.
         payload = {
-            'content_view_version_environments': [{
-                'content_view_version_id': content_view.version[0].id,
-                'environment_ids': [
-                    environment.id
-                    for environment
-                    in content_view.version[0].read().environment
-                ],
-            }],
+            'content_view_version_environments': [
+                {
+                    'content_view_version_id': content_view.version[0].id,
+                    'environment_ids': [
+                        environment.id
+                        for environment in content_view.version[0].read().environment
+                    ],
+                }
+            ],
             'add_content': {'puppet_module_ids': [puppet_module.id]},
         }
         content_view.version[0].incremental_update(data=payload)
@@ -1113,10 +1015,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         content_view.version.sort(key=lambda cvv: cvv.read_json()['minor'])
         self.assertEqual(len(content_view.version[0].puppet_module), 0)
         self.assertEqual(len(content_view.version[1].puppet_module), 1)
-        self.assertEqual(
-            content_view.version[1].puppet_module[0].id,
-            puppet_module.id,
-        )
+        self.assertEqual(content_view.version[1].puppet_module[0].id, puppet_module.id)
 
     @tier3
     def test_positive_incremental_update_propagate_composite(self):
@@ -1149,14 +1048,10 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         :CaseImportance: Medium
         """
         product = entities.Product().create()
-        yum_repo = entities.Repository(
-            content_type='yum',
-            product=product,
-        ).create()
+        yum_repo = entities.Repository(content_type='yum', product=product).create()
         yum_repo.sync()
         content_view = entities.ContentView(
-            organization=product.organization,
-            repository=[yum_repo],
+            organization=product.organization, repository=[yum_repo]
         ).create()
         content_view.publish()
         content_view = content_view.read()
@@ -1170,31 +1065,28 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         comp_content_view.publish()
         comp_content_view = comp_content_view.read()
         self.assertEqual(len(comp_content_view.version), 1)
-        self.assertEqual(
-            len(comp_content_view.version[0].read().puppet_module), 0)
-        puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=product,
-        ).create()
+        self.assertEqual(len(comp_content_view.version[0].read().puppet_module), 0)
+        puppet_repo = entities.Repository(content_type='puppet', product=product).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             puppet_repo.upload_content(files={'content': handle})
         puppet_modules = content_view.available_puppet_modules()['results']
         self.assertGreater(len(puppet_modules), 0)
-        puppet_module = entities.PuppetModule(
-            id=puppet_modules[0]['id']
-        )
-        content_view.version[0].incremental_update(data={
-            'content_view_version_environments': [{
-                'content_view_version_id': content_view.version[0].id,
-                'environment_ids': [
-                    environment.id
-                    for environment
-                    in content_view.version[0].read().environment
+        puppet_module = entities.PuppetModule(id=puppet_modules[0]['id'])
+        content_view.version[0].incremental_update(
+            data={
+                'content_view_version_environments': [
+                    {
+                        'content_view_version_id': content_view.version[0].id,
+                        'environment_ids': [
+                            environment.id
+                            for environment in content_view.version[0].read().environment
+                        ],
+                    }
                 ],
-            }],
-            'add_content': {'puppet_module_ids': [puppet_module.id]},
-            'propagate_all_composites': True,
-        })
+                'add_content': {'puppet_module_ids': [puppet_module.id]},
+                'propagate_all_composites': True,
+            }
+        )
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 2)
         cvv = content_view.version[-1].read()

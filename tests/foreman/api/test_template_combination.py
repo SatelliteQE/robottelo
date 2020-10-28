@@ -15,7 +15,9 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open, tier1, upgrade
+
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
@@ -41,25 +43,25 @@ class TemplateCombinationTestCase(APITestCase):
             entity.delete()
 
     def setUp(self):
-        """Create ConfigTemplate and TemplateConfiguration for each test"""
+        """Create ProvisioningTemplate and TemplateConfiguration for each test"""
         super(TemplateCombinationTestCase, self).setUp()
-        self.template = entities.ConfigTemplate(
+        self.template = entities.ProvisioningTemplate(
             snippet=False,
-            template_combinations=[{
-                'hostgroup_id': self.hostgroup.id,
-                'environment_id': self.env.id
-            }])
+            template_combinations=[
+                {'hostgroup_id': self.hostgroup.id, 'environment_id': self.env.id}
+            ],
+        )
         self.template = self.template.create()
         template_combination_dct = self.template.template_combinations[0]
         self.template_combination = entities.TemplateCombination(
             id=template_combination_dct['id'],
             environment=self.env,
-            config_template=self.template,
-            hostgroup=self.hostgroup
+            provisioning_template=self.template,
+            hostgroup=self.hostgroup,
         )
 
     def tearDown(self):
-        """Delete ConfigTemplate used on tests"""
+        """Delete ProvisioningTemplate used on tests"""
         super(TemplateCombinationTestCase, self).tearDown()
         # Clean combination if it is not already deleted
         try:
@@ -69,7 +71,6 @@ class TemplateCombinationTestCase(APITestCase):
         self.template.delete()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1369737)
     def test_positive_get_combination(self):
         """Assert API template combination get method works.
 
@@ -80,15 +81,16 @@ class TemplateCombinationTestCase(APITestCase):
         :expectedresults: TemplateCombination can be retrieved through API
 
         :CaseImportance: Critical
+
+        :BZ: 1369737
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)
-        self.assertEqual(self.template.id, combination.config_template.id)
+        self.assertEqual(self.template.id, combination.provisioning_template.id)
         self.assertEqual(self.env.id, combination.environment.id)
         self.assertEqual(self.hostgroup.id, combination.hostgroup.id)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1369737)
     @upgrade
     def test_positive_delete_combination(self):
         """Assert API template combination delete method works.
@@ -100,6 +102,8 @@ class TemplateCombinationTestCase(APITestCase):
         :expectedresults: TemplateCombination can be deleted through API
 
         :CaseImportance: Critical
+
+        :BZ: 1369737
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)

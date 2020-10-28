@@ -20,6 +20,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
@@ -32,8 +33,8 @@ class FilterTestCase(APITestCase):
         """Search for provisioning template permissions. Set ``cls.ct_perms``.
         """
         super(FilterTestCase, cls).setUpClass()
-        cls.ct_perms = (
-            entities.Permission(resource_type='ProvisioningTemplate').search()
+        cls.ct_perms = entities.Permission().search(
+            query={'search': 'resource_type="ProvisioningTemplate"'}
         )
 
     @tier1
@@ -49,8 +50,7 @@ class FilterTestCase(APITestCase):
         # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
         self.assertListEqual(
-            [perm.id for perm in filter_.permission],
-            [perm.id for perm in self.ct_perms],
+            [perm.id for perm in filter_.permission], [perm.id for perm in self.ct_perms]
         )
 
     @tier1

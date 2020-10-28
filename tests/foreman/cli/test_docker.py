@@ -1,4 +1,3 @@
-# pylint: attribute-defined-outside-init
 """Unit tests for the Docker feature.
 
 :Requirement: Docker
@@ -13,52 +12,40 @@
 
 :Upstream: No
 """
-from random import choice, randint
+from random import choice
+from random import randint
 
-from fauxfactory import gen_string, gen_url
+import pytest
+from fauxfactory import gen_string
+from fauxfactory import gen_url
 from wait_for import wait_for
 
 from robottelo import ssh
-from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.docker import Docker
-from robottelo.cli.factory import (
-    make_activation_key,
-    make_compute_resource,
-    make_container,
-    make_content_view,
-    make_lifecycle_environment,
-    make_org,
-    make_product_wait,  # workaround for BZ 1332650
-    make_registry,
-    make_repository,
-    CLIFactoryError
-)
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.docker import Docker
+from robottelo.cli.factory import make_activation_key
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_product_wait
+from robottelo.cli.factory import make_repository
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import (
-    DOCKER_REGISTRY_HUB,
-    DOCKER_RH_REGISTRY_UPSTREAM_NAME,
-)
-from robottelo.datafactory import (
-    generate_strings_list,
-    invalid_docker_upstream_names,
-    valid_data_list,
-    valid_docker_repository_names,
-    valid_docker_upstream_names,
-)
-from robottelo.decorators import (
-    skip_if_bug_open,
-    skip_if_not_set,
-    stubbed,
-    tier1,
-    tier2,
-    tier3,
-    upgrade,
-)
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_RH_REGISTRY_UPSTREAM_NAME
+from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_docker_upstream_names
+from robottelo.datafactory import valid_docker_repository_names
+from robottelo.datafactory import valid_docker_upstream_names
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
@@ -79,13 +66,15 @@ def _make_docker_repo(product_id, name=None, upstream_name=None, url=None):
         DOCKER_REGISTRY_HUB constant.
     :return: A ``Repository`` object.
     """
-    return make_repository({
-        'content-type': REPO_CONTENT_TYPE,
-        'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
-        'name': name or choice(generate_strings_list(15, ['numeric', 'html'])),
-        'product-id': product_id,
-        'url': url or DOCKER_REGISTRY_HUB,
-    })
+    return make_repository(
+        {
+            'content-type': REPO_CONTENT_TYPE,
+            'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
+            'name': name or choice(generate_strings_list(15, ['numeric', 'html'])),
+            'product-id': product_id,
+            'url': url or DOCKER_REGISTRY_HUB,
+        }
+    )
 
 
 class DockerManifestTestCase(CLITestCase):
@@ -95,7 +84,6 @@ class DockerManifestTestCase(CLITestCase):
     """
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1658274)
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
@@ -105,31 +93,27 @@ class DockerManifestTestCase(CLITestCase):
             manifest
 
         :CaseImportance: Medium
+
+        :BZ: 1658274
         """
         organization = make_org()
-        product = make_product_wait({
-            u'organization-id': organization['id'],
-        })
-        repository = make_repository({
-            u'content-type': REPO_CONTENT_TYPE,
-            u'docker-upstream-name': REPO_UPSTREAM_NAME,
-            u'product-id': product['id'],
-            u'url': DOCKER_REGISTRY_HUB,
-        })
+        product = make_product_wait({'organization-id': organization['id']})
+        repository = make_repository(
+            {
+                'content-type': REPO_CONTENT_TYPE,
+                'docker-upstream-name': REPO_UPSTREAM_NAME,
+                'product-id': product['id'],
+                'url': DOCKER_REGISTRY_HUB,
+            }
+        )
         Repository.synchronize({'id': repository['id']})
         # Grab all available manifests related to repository
-        manifests_list = Docker.manifest.list({
-            u'repository-id': repository['id'],
-        })
+        manifests_list = Docker.manifest.list({'repository-id': repository['id']})
         # Some manifests do not have tags associated with it, ignore those
         # because we want to check the tag information
-        manifests = [
-            m_iter for m_iter in manifests_list if not m_iter['tags'] == ''
-        ]
+        manifests = [m_iter for m_iter in manifests_list if not m_iter['tags'] == '']
         self.assertTrue(manifests)
-        tags_list = Docker.tag.list({
-            u'repository-id': repository['id'],
-        })
+        tags_list = Docker.tag.list({'repository-id': repository['id']})
         # Extract tag names for the repository out of docker tag list
         repo_tag_names = [tag['tag'] for tag in tags_list]
         for manifest in manifests:
@@ -166,12 +150,10 @@ class DockerRepositoryTestCase(CLITestCase):
         for name in valid_docker_repository_names():
             with self.subTest(name):
                 repo = _make_docker_repo(
-                    make_product_wait({'organization-id': self.org_id})['id'],
-                    name,
+                    make_product_wait({'organization-id': self.org_id})['id'], name
                 )
                 self.assertEqual(repo['name'], name)
-                self.assertEqual(
-                    repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
+                self.assertEqual(repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
                 self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
     @tier2
@@ -190,14 +172,8 @@ class DockerRepositoryTestCase(CLITestCase):
         for _ in range(randint(2, 5)):
             repo = _make_docker_repo(product['id'])
             repo_names.add(repo['name'])
-        product = Product.info({
-            'id': product['id'],
-            'organization-id': self.org_id,
-        })
-        self.assertEqual(
-            repo_names,
-            set([repo_['repo-name'] for repo_ in product['content']]),
-        )
+        product = Product.info({'id': product['id'], 'organization-id': self.org_id})
+        self.assertEqual(repo_names, set([repo_['repo-name'] for repo_ in product['content']]))
 
     @tier2
     def test_positive_create_repos_using_multiple_products(self):
@@ -218,14 +194,8 @@ class DockerRepositoryTestCase(CLITestCase):
             for _ in range(randint(2, 3)):
                 repo = _make_docker_repo(product['id'])
                 repo_names.add(repo['name'])
-            product = Product.info({
-                'id': product['id'],
-                'organization-id': self.org_id,
-            })
-            self.assertEqual(
-                repo_names,
-                set([repo_['repo-name'] for repo_ in product['content']]),
-            )
+            product = Product.info({'id': product['id'], 'organization-id': self.org_id})
+            self.assertEqual(repo_names, set([repo_['repo-name'] for repo_ in product['content']]))
 
     @tier1
     def test_positive_sync(self):
@@ -238,14 +208,11 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
-        self.assertEqual(
-            int(repo['content-counts']['container-image-manifests']), 0)
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
+        self.assertEqual(int(repo['content-counts']['container-image-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        self.assertGreaterEqual(
-            int(repo['content-counts']['container-image-manifests']), 1)
+        self.assertGreaterEqual(int(repo['content-counts']['container-image-manifests']), 1)
 
     @tier1
     def test_positive_update_name(self):
@@ -258,15 +225,10 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
         for new_name in valid_docker_repository_names():
             with self.subTest(new_name):
-                Repository.update({
-                    'id': repo['id'],
-                    'new-name': new_name,
-                    'url': repo['url'],
-                })
+                Repository.update({'id': repo['id'], 'new-name': new_name, 'url': repo['url']})
                 repo = Repository.info({'id': repo['id']})
                 self.assertEqual(repo['name'], new_name)
 
@@ -281,20 +243,19 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
 
         for new_upstream_name in valid_docker_upstream_names():
             with self.subTest(new_upstream_name):
-                Repository.update({
-                    'docker-upstream-name': new_upstream_name,
-                    'id': repo['id'],
-                    'url': repo['url'],
-                })
+                Repository.update(
+                    {
+                        'docker-upstream-name': new_upstream_name,
+                        'id': repo['id'],
+                        'url': repo['url'],
+                    }
+                )
                 repo = Repository.info({'id': repo['id']})
-                self.assertEqual(
-                    repo['upstream-repository-name'],
-                    new_upstream_name)
+                self.assertEqual(repo['upstream-repository-name'], new_upstream_name)
 
     @tier1
     def test_negative_update_upstream_name(self):
@@ -308,21 +269,19 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
 
         for new_upstream_name in invalid_docker_upstream_names():
             with self.subTest(new_upstream_name):
                 with self.assertRaises(CLIReturnCodeError) as context:
-                    Repository.update({
-                        'docker-upstream-name': new_upstream_name,
-                        'id': repo['id'],
-                        'url': repo['url'],
-                    })
-                self.assertIn(
-                    'Validation failed: Docker upstream name',
-                    str(context.exception)
-                )
+                    Repository.update(
+                        {
+                            'docker-upstream-name': new_upstream_name,
+                            'id': repo['id'],
+                            'url': repo['url'],
+                        }
+                    )
+                self.assertIn('Validation failed: Docker upstream name', str(context.exception))
 
     @skip_if_not_set('docker')
     @tier1
@@ -345,8 +304,7 @@ class DockerRepositoryTestCase(CLITestCase):
             upstream_name=DOCKER_RH_REGISTRY_UPSTREAM_NAME,
             url=settings.docker.external_registry_1,
         )
-        self.assertEqual(
-            repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
+        self.assertEqual(repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
 
     @skip_if_not_set('docker')
     @tier1
@@ -362,16 +320,16 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
-        Repository.update({
-            'docker-upstream-name': DOCKER_RH_REGISTRY_UPSTREAM_NAME,
-            'id': repo['id'],
-            'url': settings.docker.external_registry_1,
-        })
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
+        Repository.update(
+            {
+                'docker-upstream-name': DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+                'id': repo['id'],
+                'url': settings.docker.external_registry_1,
+            }
+        )
         repo = Repository.info({'id': repo['id']})
-        self.assertEqual(
-            repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
+        self.assertEqual(repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
 
     @tier2
     def test_positive_update_url(self):
@@ -383,12 +341,8 @@ class DockerRepositoryTestCase(CLITestCase):
             repository and that its URL can be updated.
         """
         new_url = gen_url()
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
-        Repository.update({
-            'id': repo['id'],
-            'url': new_url,
-        })
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
+        Repository.update({'id': repo['id'], 'url': new_url})
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['url'], new_url)
 
@@ -403,8 +357,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
         Repository.delete({'id': repo['id']})
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': repo['id']})
@@ -420,9 +373,7 @@ class DockerRepositoryTestCase(CLITestCase):
             without altering the other products.
         """
         products = [
-            make_product_wait({'organization-id': self.org_id})
-            for _
-            in range(randint(2, 5))
+            make_product_wait({'organization-id': self.org_id}) for _ in range(randint(2, 5))
         ]
         repos = []
         for product in products:
@@ -437,10 +388,7 @@ class DockerRepositoryTestCase(CLITestCase):
         # Verify other repositories were not touched
         for repo in repos:
             result = Repository.info({'id': repo['id']})
-            self.assertIn(
-                result['product']['id'],
-                [product['id'] for product in products],
-            )
+            self.assertIn(result['product']['id'], [product['id'] for product in products])
 
 
 class DockerContentViewTestCase(CLITestCase):
@@ -461,26 +409,15 @@ class DockerContentViewTestCase(CLITestCase):
         """Create a Docker-based repository and content view and associate
         them.
         """
-        self.repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
-        self.content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': self.content_view['id'],
-            'repository-id': self.repo['id'],
-        })
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']
-        })
+        self.repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
+        self.content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository(
+            {'id': self.content_view['id'], 'repository-id': self.repo['id']}
+        )
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertIn(
             self.repo['id'],
-            [
-                repo_['id']
-                for repo_
-                in self.content_view['container-image-repositories']
-            ],
+            [repo_['id'] for repo_ in self.content_view['container-image-repositories']],
         )
 
     @tier2
@@ -492,21 +429,12 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a non-composite content view
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
-            repo['id'],
-            [repo_['id'] for repo_ in
-             content_view['container-image-repositories']],
+            repo['id'], [repo_['id'] for repo_ in content_view['container-image-repositories']]
         )
 
     @tier2
@@ -520,25 +448,14 @@ class DockerContentViewTestCase(CLITestCase):
             view.
         """
         product = make_product_wait({'organization-id': self.org_id})
-        repos = [
-            _make_docker_repo(product['id'])
-            for _
-            in range(randint(2, 5))
-        ]
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
+        repos = [_make_docker_repo(product['id']) for _ in range(randint(2, 5))]
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
         for repo in repos:
-            ContentView.add_repository({
-                'id': content_view['id'],
-                'repository-id': repo['id'],
-            })
+            ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(
             set([repo['id'] for repo in repos]),
-            set([repo['id'] for repo in
-                 content_view['container-image-repositories']]),
+            set([repo['id'] for repo in content_view['container-image-repositories']]),
         )
 
     @tier2
@@ -550,29 +467,18 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
         """
-        repo = _make_docker_repo(
-            make_product_wait({'organization-id': self.org_id})['id'])
+        repo = _make_docker_repo(make_product_wait({'organization-id': self.org_id})['id'])
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
-        self.assertGreaterEqual(
-            int(repo['content-counts']['container-image-manifests']), 1)
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        self.assertGreaterEqual(int(repo['content-counts']['container-image-manifests']), 1)
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
-            repo['id'],
-            [repo_['id'] for repo_ in
-             content_view['container-image-repositories']],
+            repo['id'], [repo_['id'] for repo_ in content_view['container-image-repositories']]
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -586,27 +492,22 @@ class DockerContentViewTestCase(CLITestCase):
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'id': comp_content_view['id'],
-            'component-ids': self.content_view['versions'][0]['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'id': comp_content_view['id'],
+                'component-ids': self.content_view['versions'][0]['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
             [component['id'] for component in comp_content_view['components']],
         )
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -621,38 +522,25 @@ class DockerContentViewTestCase(CLITestCase):
         cv_versions = []
         product = make_product_wait({'organization-id': self.org_id})
         for _ in range(randint(2, 5)):
-            content_view = make_content_view({
-                'composite': False,
-                'organization-id': self.org_id,
-            })
+            content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
             repo = _make_docker_repo(product['id'])
-            ContentView.add_repository({
-                'id': content_view['id'],
-                'repository-id': repo['id'],
-            })
+            ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
             ContentView.publish({'id': content_view['id']})
             content_view = ContentView.info({'id': content_view['id']})
             self.assertEqual(len(content_view['versions']), 1)
             cv_versions.append(content_view['versions'][0])
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'component-ids': [cv_version['id'] for cv_version in cv_versions],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'component-ids': [cv_version['id'] for cv_version in cv_versions],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         for cv_version in cv_versions:
             self.assertIn(
                 cv_version['id'],
-                [
-                    component['id']
-                    for component
-                    in comp_content_view['components']
-                ],
+                [component['id'] for component in comp_content_view['components']],
             )
 
     @tier2
@@ -668,9 +556,7 @@ class DockerContentViewTestCase(CLITestCase):
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id'],
-        })
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
 
     @tier2
@@ -689,33 +575,22 @@ class DockerContentViewTestCase(CLITestCase):
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id'],
-        })
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertEqual(len(comp_content_view['versions']), 1)
 
     @tier2
@@ -734,9 +609,7 @@ class DockerContentViewTestCase(CLITestCase):
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id'],
-        })
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), publish_amount)
 
     @tier2
@@ -756,34 +629,24 @@ class DockerContentViewTestCase(CLITestCase):
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertEqual(len(comp_content_view['versions']), publish_amount)
 
     @tier2
@@ -799,20 +662,12 @@ class DockerContentViewTestCase(CLITestCase):
         lce = make_lifecycle_environment({'organization-id': self.org_id})
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        cvv = ContentView.version_info({
-            'id': self.content_view['versions'][0]['id'],
-        })
+        cvv = ContentView.version_info({'id': self.content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 1)
-        ContentView.version_promote({
-            'id': cvv['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        cvv = ContentView.version_info({
-            'id': self.content_view['versions'][0]['id'],
-        })
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
+        cvv = ContentView.version_info({'id': self.content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
     @tier2
@@ -828,22 +683,16 @@ class DockerContentViewTestCase(CLITestCase):
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        cvv = ContentView.version_info({
-            'id': self.content_view['versions'][0]['id'],
-        })
+        cvv = ContentView.version_info({'id': self.content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 1)
         for i in range(1, randint(3, 6)):
             lce = make_lifecycle_environment({'organization-id': self.org_id})
-            ContentView.version_promote({
-                'id': cvv['id'],
-                'to-lifecycle-environment-id': lce['id'],
-            })
-            cvv = ContentView.version_info({
-                'id': self.content_view['versions'][0]['id'],
-            })
+            ContentView.version_promote(
+                {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
+            )
+            cvv = ContentView.version_info({'id': self.content_view['versions'][0]['id']})
             self.assertEqual(len(cvv['lifecycle-environments']), i + 1)
 
     @tier2
@@ -860,44 +709,32 @@ class DockerContentViewTestCase(CLITestCase):
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
-        cvv = ContentView.version_info({
-            'id': comp_content_view['versions'][0]['id'],
-        })
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 1)
         lce = make_lifecycle_environment({'organization-id': self.org_id})
-        ContentView.version_promote({
-            'id': comp_content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        cvv = ContentView.version_info({
-            'id': comp_content_view['versions'][0]['id'],
-        })
+        ContentView.version_promote(
+            {
+                'id': comp_content_view['versions'][0]['id'],
+                'to-lifecycle-environment-id': lce['id'],
+            }
+        )
+        cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
     @tier2
@@ -915,45 +752,33 @@ class DockerContentViewTestCase(CLITestCase):
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
-        self.content_view = ContentView.info({
-            'id': self.content_view['id']})
+        self.content_view = ContentView.info({'id': self.content_view['id']})
         self.assertEqual(len(self.content_view['versions']), 1)
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org_id,
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view({'composite': True, 'organization-id': self.org_id})
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
-        cvv = ContentView.version_info({
-            'id': comp_content_view['versions'][0]['id'],
-        })
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
         self.assertEqual(len(cvv['lifecycle-environments']), 1)
         for i in range(1, randint(3, 6)):
             lce = make_lifecycle_environment({'organization-id': self.org_id})
-            ContentView.version_promote({
-                'id': comp_content_view['versions'][0]['id'],
-                'to-lifecycle-environment-id': lce['id'],
-            })
-            cvv = ContentView.version_info({
-                'id': comp_content_view['versions'][0]['id'],
-            })
+            ContentView.version_promote(
+                {
+                    'id': comp_content_view['versions'][0]['id'],
+                    'to-lifecycle-environment-id': lce['id'],
+                }
+            )
+            cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
             self.assertEqual(len(cvv['lifecycle-environments']), i + 1)
 
     @tier2
@@ -970,52 +795,36 @@ class DockerContentViewTestCase(CLITestCase):
         """
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'hello-world'
-        new_pattern = ("{}-<%= content_view.label %>"
-                       + "/<%= repository.docker_upstream_name %>").format(
-            pattern_prefix)
+        new_pattern = (
+            "{}-<%= content_view.label %>" + "/<%= repository.docker_upstream_name %>"
+        ).format(pattern_prefix)
 
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'],
-            upstream_name=docker_upstream_name)
+            upstream_name=docker_upstream_name,
+        )
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org_id})
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        LifecycleEnvironment.update({
-            'registry-name-pattern': new_pattern,
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        lce = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        repos = Repository.list({
-            'environment-id': lce['id'],
-            'organization-id': self.org_id,
-        })
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        LifecycleEnvironment.update(
+            {'registry-name-pattern': new_pattern, 'id': lce['id'], 'organization-id': self.org_id}
+        )
+        lce = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': self.org_id})
+        repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}-{}/{}".format(pattern_prefix,
-                                             content_view['label'],
-                                             docker_upstream_name).lower()
+        expected_pattern = "{}-{}/{}".format(
+            pattern_prefix, content_view['label'], docker_upstream_name
+        ).lower()
         self.assertEqual(lce['registry-name-pattern'], new_pattern)
         self.assertEqual(
-            Repository.info({'id': repos[0]['id']})['container-repository-name'],
-            expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
+        )
 
     @tier2
     def test_positive_product_name_change_after_promotion(self):
@@ -1033,73 +842,41 @@ class DockerContentViewTestCase(CLITestCase):
         docker_upstream_name = 'hello-world'
         new_pattern = "<%= content_view.label %>/<%= product.name %>"
 
-        prod = make_product_wait({
-            'organization-id': self.org_id,
-            'name': old_prod_name
-        })
-        repo = _make_docker_repo(prod['id'],
-                                 upstream_name=docker_upstream_name)
+        prod = make_product_wait({'organization-id': self.org_id, 'name': old_prod_name})
+        repo = _make_docker_repo(prod['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org_id})
-        LifecycleEnvironment.update({
-            'registry-name-pattern': new_pattern,
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        lce = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        Product.update({
-            'name': new_prod_name,
-            'id': prod['id'],
-        })
-        repos = Repository.list({
-            'environment-id': lce['id'],
-            'organization-id': self.org_id,
-        })
+        LifecycleEnvironment.update(
+            {'registry-name-pattern': new_pattern, 'id': lce['id'], 'organization-id': self.org_id}
+        )
+        lce = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': self.org_id})
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        Product.update({'name': new_prod_name, 'id': prod['id']})
+        repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'],
-                                          old_prod_name).lower()
+        expected_pattern = "{}/{}".format(content_view['label'], old_prod_name).lower()
         self.assertEqual(lce['registry-name-pattern'], new_pattern)
         self.assertEqual(
-            Repository.info({'id': repos[0]['id']})['container-repository-name'],
-            expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
+        )
 
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
-        ContentView.version_promote({
-            'id': content_view['versions'][-1]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        repos = Repository.list({
-            'environment-id': lce['id'],
-            'organization-id': self.org_id,
-        })
+        content_view = ContentView.info({'id': content_view['id']})
+        ContentView.version_promote(
+            {'id': content_view['versions'][-1]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'],
-                                          new_prod_name).lower()
+        expected_pattern = "{}/{}".format(content_view['label'], new_prod_name).lower()
         self.assertEqual(
-            Repository.info({'id': repos[0]['id']})['container-repository-name'],
-            expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
+        )
 
     @tier2
     def test_positive_repo_name_change_after_promotion(self):
@@ -1118,70 +895,41 @@ class DockerContentViewTestCase(CLITestCase):
         new_pattern = "<%= content_view.label %>/<%= repository.name %>"
 
         prod = make_product_wait({'organization-id': self.org_id})
-        repo = _make_docker_repo(prod['id'],
-                                 name=old_repo_name,
-                                 upstream_name=docker_upstream_name)
+        repo = _make_docker_repo(
+            prod['id'], name=old_repo_name, upstream_name=docker_upstream_name
+        )
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org_id})
-        LifecycleEnvironment.update({
-            'registry-name-pattern': new_pattern,
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        lce = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org_id,
-        })
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        Repository.update({
-            'name': new_repo_name,
-            'id': repo['id'],
-            'product-id': prod['id'],
-        })
-        repos = Repository.list({
-            'environment-id': lce['id'],
-            'organization-id': self.org_id,
-        })
+        LifecycleEnvironment.update(
+            {'registry-name-pattern': new_pattern, 'id': lce['id'], 'organization-id': self.org_id}
+        )
+        lce = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': self.org_id})
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        Repository.update({'name': new_repo_name, 'id': repo['id'], 'product-id': prod['id']})
+        repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'],
-                                          old_repo_name).lower()
+        expected_pattern = "{}/{}".format(content_view['label'], old_repo_name).lower()
         self.assertEqual(
-            Repository.info({'id': repos[0]['id']})['container-repository-name'],
-            expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
+        )
 
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
-        ContentView.version_promote({
-            'id': content_view['versions'][-1]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        repos = Repository.list({
-            'environment-id': lce['id'],
-            'organization-id': self.org_id,
-        })
+        content_view = ContentView.info({'id': content_view['id']})
+        ContentView.version_promote(
+            {'id': content_view['versions'][-1]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'],
-                                          new_repo_name).lower()
+        expected_pattern = "{}/{}".format(content_view['label'], new_repo_name).lower()
         self.assertEqual(
-            Repository.info({'id': repos[0]['id']})['container-repository-name'],
-            expected_pattern)
+            Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
+        )
 
     @tier2
     def test_negative_set_non_unique_name_pattern_and_promote(self):
@@ -1196,33 +944,22 @@ class DockerContentViewTestCase(CLITestCase):
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
 
-        lce = make_lifecycle_environment({
-            'organization-id': self.org_id,
-            'registry-name-pattern': new_pattern,
-        })
+        lce = make_lifecycle_environment(
+            {'organization-id': self.org_id, 'registry-name-pattern': new_pattern}
+        )
 
         prod = make_product_wait({'organization-id': self.org_id})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
         for docker_name in docker_upstream_names:
-            repo = _make_docker_repo(prod['id'],
-                                     upstream_name=docker_name)
+            repo = _make_docker_repo(prod['id'], upstream_name=docker_name)
             Repository.synchronize({'id': repo['id']})
-            ContentView.add_repository({
-                'id': content_view['id'],
-                'repository-id': repo['id'],
-            })
+            ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         with self.assertRaises(CLIReturnCodeError):
-            ContentView.version_promote({
-                'id': content_view['versions'][0]['id'],
-                'to-lifecycle-environment-id': lce['id'],
-            })
+            ContentView.version_promote(
+                {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+            )
 
     @tier2
     def test_negative_promote_and_set_non_unique_name_pattern(self):
@@ -1239,34 +976,26 @@ class DockerContentViewTestCase(CLITestCase):
         new_pattern = "<%= organization.label %>"
 
         prod = make_product_wait({'organization-id': self.org_id})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org_id})
         for docker_name in docker_upstream_names:
-            repo = _make_docker_repo(prod['id'],
-                                     upstream_name=docker_name)
+            repo = _make_docker_repo(prod['id'], upstream_name=docker_name)
             Repository.synchronize({'id': repo['id']})
-            ContentView.add_repository({
-                'id': content_view['id'],
-                'repository-id': repo['id'],
-            })
+            ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org_id})
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
 
         with self.assertRaises(CLIReturnCodeError):
-            LifecycleEnvironment.update({
-                'registry-name-pattern': new_pattern,
-                'id': lce['id'],
-                'organization-id': self.org_id,
-            })
+            LifecycleEnvironment.update(
+                {
+                    'registry-name-pattern': new_pattern,
+                    'id': lce['id'],
+                    'organization-id': self.org_id,
+                }
+            )
 
 
 class DockerActivationKeyTestCase(CLITestCase):
@@ -1282,37 +1011,24 @@ class DockerActivationKeyTestCase(CLITestCase):
         """Create necessary objects which can be re-used in tests."""
         super(DockerActivationKeyTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.lce = make_lifecycle_environment({
-            'organization-id': cls.org['id'],
-        })
-        cls.product = make_product_wait({
-            'organization-id': cls.org['id'],
-        })
+        cls.lce = make_lifecycle_environment({'organization-id': cls.org['id']})
+        cls.product = make_product_wait({'organization-id': cls.org['id']})
         cls.repo = _make_docker_repo(cls.product['id'])
-        cls.content_view = make_content_view({
-            'composite': False,
-            'organization-id': cls.org['id'],
-        })
-        ContentView.add_repository({
-            'id': cls.content_view['id'],
-            'repository-id': cls.repo['id'],
-        })
-        cls.content_view = ContentView.info({
-            'id': cls.content_view['id']
-        })
+        cls.content_view = make_content_view(
+            {'composite': False, 'organization-id': cls.org['id']}
+        )
+        ContentView.add_repository({'id': cls.content_view['id'], 'repository-id': cls.repo['id']})
+        cls.content_view = ContentView.info({'id': cls.content_view['id']})
         ContentView.publish({'id': cls.content_view['id']})
-        cls.content_view = ContentView.info({
-            'id': cls.content_view['id']})
-        cls.cvv = ContentView.version_info({
-            'id': cls.content_view['versions'][0]['id'],
-        })
-        ContentView.version_promote({
-            'id': cls.content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': cls.lce['id'],
-        })
-        cls.cvv = ContentView.version_info({
-            'id': cls.content_view['versions'][0]['id'],
-        })
+        cls.content_view = ContentView.info({'id': cls.content_view['id']})
+        cls.cvv = ContentView.version_info({'id': cls.content_view['versions'][0]['id']})
+        ContentView.version_promote(
+            {
+                'id': cls.content_view['versions'][0]['id'],
+                'to-lifecycle-environment-id': cls.lce['id'],
+            }
+        )
+        cls.cvv = ContentView.version_info({'id': cls.content_view['versions'][0]['id']})
 
     @tier2
     def test_positive_add_docker_repo_cv(self):
@@ -1325,13 +1041,14 @@ class DockerActivationKeyTestCase(CLITestCase):
         :expectedresults: Docker-based content view can be added to activation
             key
         """
-        activation_key = make_activation_key({
-            'content-view-id': self.content_view['id'],
-            'lifecycle-environment-id': self.lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            activation_key['content-view'], self.content_view['name'])
+        activation_key = make_activation_key(
+            {
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(activation_key['content-view'], self.content_view['name'])
 
     @tier2
     def test_positive_remove_docker_repo_cv(self):
@@ -1345,38 +1062,33 @@ class DockerActivationKeyTestCase(CLITestCase):
         :expectedresults: Docker-based content view can be added and then
             removed from the activation key.
         """
-        activation_key = make_activation_key({
-            'content-view-id': self.content_view['id'],
-            'lifecycle-environment-id': self.lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            activation_key['content-view'], self.content_view['name'])
+        activation_key = make_activation_key(
+            {
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(activation_key['content-view'], self.content_view['name'])
 
         # Create another content view replace with
-        another_cv = make_content_view({
-            'composite': False,
-            'organization-id': self.org['id'],
-        })
+        another_cv = make_content_view({'composite': False, 'organization-id': self.org['id']})
         ContentView.publish({'id': another_cv['id']})
-        another_cv = ContentView.info({
-            'id': another_cv['id']})
-        ContentView.version_promote({
-            'id': another_cv['versions'][0]['id'],
-            'to-lifecycle-environment-id': self.lce['id'],
-        })
+        another_cv = ContentView.info({'id': another_cv['id']})
+        ContentView.version_promote(
+            {'id': another_cv['versions'][0]['id'], 'to-lifecycle-environment-id': self.lce['id']}
+        )
 
-        ActivationKey.update({
-            'id': activation_key['id'],
-            'organization-id': self.org['id'],
-            'content-view-id': another_cv['id'],
-            'lifecycle-environment-id': self.lce['id'],
-        })
-        activation_key = ActivationKey.info({
-            'id': activation_key['id'],
-        })
-        self.assertNotEqual(
-            activation_key['content-view'], self.content_view['name'])
+        ActivationKey.update(
+            {
+                'id': activation_key['id'],
+                'organization-id': self.org['id'],
+                'content-view-id': another_cv['id'],
+                'lifecycle-environment-id': self.lce['id'],
+            }
+        )
+        activation_key = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(activation_key['content-view'], self.content_view['name'])
 
     @tier2
     def test_positive_add_docker_repo_ccv(self):
@@ -1392,43 +1104,34 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :BZ: 1359665
         """
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org['id'],
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view(
+            {'composite': True, 'organization-id': self.org['id']}
+        )
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
-        comp_cvv = ContentView.version_info({
-            'id': comp_content_view['versions'][0]['id'],
-        })
-        ContentView.version_promote({
-            'id': comp_cvv['id'],
-            'to-lifecycle-environment-id': self.lce['id'],
-        })
-        activation_key = make_activation_key({
-            'content-view-id': comp_content_view['id'],
-            'lifecycle-environment-id': self.lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            activation_key['content-view'], comp_content_view['name'])
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        comp_cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
+        ContentView.version_promote(
+            {'id': comp_cvv['id'], 'to-lifecycle-environment-id': self.lce['id']}
+        )
+        activation_key = make_activation_key(
+            {
+                'content-view-id': comp_content_view['id'],
+                'lifecycle-environment-id': self.lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(activation_key['content-view'], comp_content_view['name'])
 
     @tier2
     def test_positive_remove_docker_repo_ccv(self):
@@ -1445,68 +1148,53 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :BZ: 1359665
         """
-        comp_content_view = make_content_view({
-            'composite': True,
-            'organization-id': self.org['id'],
-        })
-        ContentView.update({
-            'component-ids': self.content_view['versions'][0]['id'],
-            'id': comp_content_view['id'],
-        })
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
+        comp_content_view = make_content_view(
+            {'composite': True, 'organization-id': self.org['id']}
+        )
+        ContentView.update(
+            {
+                'component-ids': self.content_view['versions'][0]['id'],
+                'id': comp_content_view['id'],
+            }
+        )
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
         self.assertIn(
             self.content_view['versions'][0]['id'],
-            [
-                component['id']
-                for component
-                in comp_content_view['components']
-            ],
+            [component['id'] for component in comp_content_view['components']],
         )
         ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({
-            'id': comp_content_view['id'],
-        })
-        comp_cvv = ContentView.version_info({
-            'id': comp_content_view['versions'][0]['id'],
-        })
-        ContentView.version_promote({
-            'id': comp_cvv['id'],
-            'to-lifecycle-environment-id': self.lce['id'],
-        })
-        activation_key = make_activation_key({
-            'content-view-id': comp_content_view['id'],
-            'lifecycle-environment-id': self.lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            activation_key['content-view'], comp_content_view['name'])
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        comp_cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
+        ContentView.version_promote(
+            {'id': comp_cvv['id'], 'to-lifecycle-environment-id': self.lce['id']}
+        )
+        activation_key = make_activation_key(
+            {
+                'content-view-id': comp_content_view['id'],
+                'lifecycle-environment-id': self.lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
+        self.assertEqual(activation_key['content-view'], comp_content_view['name'])
 
         # Create another content view replace with
-        another_cv = make_content_view({
-            'composite': False,
-            'organization-id': self.org['id'],
-        })
+        another_cv = make_content_view({'composite': False, 'organization-id': self.org['id']})
         ContentView.publish({'id': another_cv['id']})
-        another_cv = ContentView.info({
-            'id': another_cv['id']})
-        ContentView.version_promote({
-            'id': another_cv['versions'][0]['id'],
-            'to-lifecycle-environment-id': self.lce['id'],
-        })
+        another_cv = ContentView.info({'id': another_cv['id']})
+        ContentView.version_promote(
+            {'id': another_cv['versions'][0]['id'], 'to-lifecycle-environment-id': self.lce['id']}
+        )
 
-        ActivationKey.update({
-            'id': activation_key['id'],
-            'organization-id': self.org['id'],
-            'content-view-id': another_cv['id'],
-            'lifecycle-environment-id': self.lce['id'],
-        })
-        activation_key = ActivationKey.info({
-            'id': activation_key['id'],
-        })
-        self.assertNotEqual(
-            activation_key['content-view'], comp_content_view['name'])
+        ActivationKey.update(
+            {
+                'id': activation_key['id'],
+                'organization-id': self.org['id'],
+                'content-view-id': another_cv['id'],
+                'lifecycle-environment-id': self.lce['id'],
+            }
+        )
+        activation_key = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(activation_key['content-view'], comp_content_view['name'])
 
 
 class DockerClientTestCase(CLITestCase):
@@ -1526,14 +1214,11 @@ class DockerClientTestCase(CLITestCase):
         super(DockerClientTestCase, cls).setUpClass()
         cls.org = make_org()
         """Instantiate and setup a docker host VM"""
-        cls.logger.info(u'Creating an external docker host')
+        cls.logger.info('Creating an external docker host')
         docker_image = settings.docker.docker_image
-        cls.docker_host = VirtualMachine(
-            source_image=docker_image,
-            tag=u'docker'
-        )
+        cls.docker_host = VirtualMachine(source_image=docker_image, tag='docker')
         cls.docker_host.create()
-        cls.logger.info(u'Installing katello-ca on the external docker host')
+        cls.logger.info('Installing katello-ca on the external docker host')
         cls.docker_host.install_katello_ca()
 
     @classmethod
@@ -1565,40 +1250,37 @@ class DockerClientTestCase(CLITestCase):
             result, _ = wait_for(
                 lambda: ssh.command(
                     'docker pull {0}'.format(repo['published-at']),
-                    hostname=self.docker_host.ip_addr
+                    hostname=self.docker_host.ip_addr,
                 ),
                 num_sec=60,
                 delay=2,
                 fail_condition=lambda out: out.return_code != 0,
-                logger=self.logger
+                logger=self.logger,
             )
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
                     'docker run {0}'.format(repo['published-at']),
-                    hostname=self.docker_host.ip_addr
+                    hostname=self.docker_host.ip_addr,
                 )
                 self.assertEqual(result.return_code, 0)
             finally:
                 # Stop and remove the container
                 result = ssh.command(
                     'docker ps -a | grep {0}'.format(repo['published-at']),
-                    hostname=self.docker_host.ip_addr
+                    hostname=self.docker_host.ip_addr,
                 )
                 container_id = result.stdout[0].split()[0]
                 ssh.command(
-                    'docker stop {0}'.format(container_id),
-                    hostname=self.docker_host.ip_addr
+                    'docker stop {0}'.format(container_id), hostname=self.docker_host.ip_addr
                 )
                 ssh.command(
-                    'docker rm {0}'.format(container_id),
-                    hostname=self.docker_host.ip_addr
+                    'docker rm {0}'.format(container_id), hostname=self.docker_host.ip_addr
                 )
         finally:
             # Remove docker image
             ssh.command(
-                'docker rmi {0}'.format(repo['published-at']),
-                hostname=self.docker_host.ip_addr
+                'docker rmi {0}'.format(repo['published-at']), hostname=self.docker_host.ip_addr
             )
 
     @skip_if_not_set('docker')
@@ -1636,111 +1318,76 @@ class DockerClientTestCase(CLITestCase):
         # create content view and add Docker repository;
         # create lifecycle environment and promote content view to it
         product = make_product_wait({'organization-id': self.org['id']})
-        repo = _make_docker_repo(
-            product['id'], upstream_name=docker_upstream_name)
+        repo = _make_docker_repo(product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org['id'],
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org['id']})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        LifecycleEnvironment.update({
-            'registry-name-pattern': registry_name_pattern,
-            'registry-unauthenticated-pull': 'false',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        LifecycleEnvironment.update(
+            {
+                'registry-name-pattern': registry_name_pattern,
+                'registry-unauthenticated-pull': 'false',
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
         docker_repo_uri = " {}/{}-{}/{} ".format(
-            settings.server.hostname,
-            pattern_prefix,
-            content_view['label'],
-            docker_upstream_name
+            settings.server.hostname, pattern_prefix, content_view['label'], docker_upstream_name
         ).lower()
 
         # 3. Try to search for docker images on Satellite
         remote_search_command = 'docker search {0}/{1}'.format(
-            settings.server.hostname,
-            docker_upstream_name
+            settings.server.hostname, docker_upstream_name
         )
-        result = ssh.command(
-            remote_search_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(remote_search_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
-        self.assertNotIn(
-            docker_repo_uri,
-            "\n".join(result.stdout)
-        )
+        self.assertNotIn(docker_repo_uri, "\n".join(result.stdout))
 
         # 4. Use Docker client to login to Satellite docker hub
         result = ssh.command(
             'docker login -u {} -p {} {}'.format(
                 settings.server.admin_username,
                 settings.server.admin_password,
-                settings.server.hostname
+                settings.server.hostname,
             ),
-            hostname=self.docker_host.ip_addr
+            hostname=self.docker_host.ip_addr,
         )
         self.assertEqual(result.return_code, 0)
 
         # 5. Search for docker images
-        result = ssh.command(
-            remote_search_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(remote_search_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
-        self.assertIn(
-            docker_repo_uri,
-            "\n".join(result.stdout)
-        )
+        self.assertIn(docker_repo_uri, "\n".join(result.stdout))
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-            'docker logout {}'.format(settings.server.hostname),
-            hostname=self.docker_host.ip_addr
+            'docker logout {}'.format(settings.server.hostname), hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 7. Try to search for docker images
-        result = ssh.command(
-            remote_search_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(remote_search_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
-        self.assertNotIn(
-            docker_repo_uri,
-            "\n".join(result.stdout)
-        )
+        self.assertNotIn(docker_repo_uri, "\n".join(result.stdout))
 
         # 8. Set "Unauthenticated Pull" option to true
-        LifecycleEnvironment.update({
-            'registry-unauthenticated-pull': 'true',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        LifecycleEnvironment.update(
+            {
+                'registry-unauthenticated-pull': 'true',
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
 
         # 9. Search for docker images
-        result = ssh.command(
-            remote_search_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(remote_search_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
-        self.assertIn(
-            docker_repo_uri,
-            "\n".join(result.stdout)
-        )
+        self.assertIn(docker_repo_uri, "\n".join(result.stdout))
 
     @skip_if_not_set('docker')
     @tier3
@@ -1777,45 +1424,31 @@ class DockerClientTestCase(CLITestCase):
         # create content view and add Docker repository;
         # create lifecycle environment and promote content view to it
         product = make_product_wait({'organization-id': self.org['id']})
-        repo = _make_docker_repo(
-            product['id'], upstream_name=docker_upstream_name)
+        repo = _make_docker_repo(product['id'], upstream_name=docker_upstream_name)
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org['id'],
-        })
-        ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        content_view = make_content_view({'composite': False, 'organization-id': self.org['id']})
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({
-            'id': content_view['id'],
-        })
+        content_view = ContentView.info({'id': content_view['id']})
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
-        ContentView.version_promote({
-            'id': content_view['versions'][0]['id'],
-            'to-lifecycle-environment-id': lce['id'],
-        })
-        LifecycleEnvironment.update({
-            'registry-name-pattern': registry_name_pattern,
-            'registry-unauthenticated-pull': 'false',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        ContentView.version_promote(
+            {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
+        )
+        LifecycleEnvironment.update(
+            {
+                'registry-name-pattern': registry_name_pattern,
+                'registry-unauthenticated-pull': 'false',
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
         docker_repo_uri = "{}/{}-{}/{}".format(
-            settings.server.hostname,
-            pattern_prefix,
-            content_view['label'],
-            docker_upstream_name
+            settings.server.hostname, pattern_prefix, content_view['label'], docker_upstream_name
         ).lower()
 
         # 3. Try to pull in docker image from Satellite
         docker_pull_command = 'docker pull {0}'.format(docker_repo_uri)
-        result = ssh.command(
-            docker_pull_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 1)
 
         # 4. Use Docker client to login to Satellite docker hub
@@ -1823,55 +1456,47 @@ class DockerClientTestCase(CLITestCase):
             'docker login -u {} -p {} {}'.format(
                 settings.server.admin_username,
                 settings.server.admin_password,
-                settings.server.hostname
+                settings.server.hostname,
             ),
-            hostname=self.docker_host.ip_addr
+            hostname=self.docker_host.ip_addr,
         )
         self.assertEqual(result.return_code, 0)
 
         # 5. Pull in docker image
         # publishing takes few seconds sometimes
         result, _ = wait_for(
-            lambda: ssh.command(
-                docker_pull_command,
-                hostname=self.docker_host.ip_addr
-            ),
+            lambda: ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr),
             num_sec=60,
             delay=2,
             fail_condition=lambda out: out.return_code != 0,
-            logger=self.logger
+            logger=self.logger,
         )
         self.assertEqual(result.return_code, 0)
 
         # 6. Use Docker client to log out of Satellite docker hub
         result = ssh.command(
-            'docker logout {}'.format(settings.server.hostname),
-            hostname=self.docker_host.ip_addr
+            'docker logout {}'.format(settings.server.hostname), hostname=self.docker_host.ip_addr
         )
         self.assertEqual(result.return_code, 0)
 
         # 7. Try to pull in docker image
-        result = ssh.command(
-            docker_pull_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 1)
 
         # 8. Set "Unauthenticated Pull" option to true
-        LifecycleEnvironment.update({
-            'registry-unauthenticated-pull': 'true',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
+        LifecycleEnvironment.update(
+            {
+                'registry-unauthenticated-pull': 'true',
+                'id': lce['id'],
+                'organization-id': self.org['id'],
+            }
+        )
 
         # 9. Pull in docker image
-        result = ssh.command(
-            docker_pull_command,
-            hostname=self.docker_host.ip_addr
-        )
+        result = ssh.command(docker_pull_command, hostname=self.docker_host.ip_addr)
         self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @skip_if_not_set('docker')
     @tier3
     @upgrade
@@ -1897,148 +1522,61 @@ class DockerClientTestCase(CLITestCase):
             Docker image from a Satellite 6 instance, add a new package and
             upload the modified image (plus layer) back to the Satellite 6.
         """
-        compute_resource = make_compute_resource({
-            'organization-ids': [self.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': u'http://{0}:2375'.format(self.docker_host.ip_addr),
-        })
         try:
+            """
+            These functions were removed, but let's leave them here
+            to maintain overall test logic - in case required functionality
+            is eventually implemented
+
+            compute_resource = make_compute_resource({
+                'organization-ids': [self.org['id']],
+                'provider': DOCKER_PROVIDER,
+                'url': 'http://{0}:2375'.format(self.docker_host.ip_addr),
+            })
             container = make_container({
                 'compute-resource-id': compute_resource['id'],
                 'organization-ids': [self.org['id']],
             })
             Docker.container.start({'id': container['id']})
+            """
+            container = {'uuid': 'stubbed test'}
             repo_name = gen_string('alphanumeric').lower()
             # Commit a new docker image and verify image was created
             result = ssh.command(
                 'docker commit {0} {1}/{2}:latest && '
                 'docker images --all | grep {1}/{2}'.format(
-                    container['uuid'],
-                    repo_name,
-                    REPO_UPSTREAM_NAME,
+                    container['uuid'], repo_name, REPO_UPSTREAM_NAME
                 ),
-                self.docker_host.ip_addr
+                self.docker_host.ip_addr,
             )
             self.assertEqual(result.return_code, 0)
             # Save the image to a tar archive
             result = ssh.command(
-                'docker save -o {0}.tar {0}/{1}'.format(
-                    repo_name,
-                    REPO_UPSTREAM_NAME,
-                ),
-                self.docker_host.ip_addr
+                'docker save -o {0}.tar {0}/{1}'.format(repo_name, REPO_UPSTREAM_NAME),
+                self.docker_host.ip_addr,
             )
             self.assertEqual(result.return_code, 0)
             tar_file = '{0}.tar'.format(repo_name)
-            ssh.download_file(
-                tar_file,
-                hostname=self.docker_host.ip_addr
-            )
+            ssh.download_file(tar_file, hostname=self.docker_host.ip_addr)
 
             ssh.upload_file(
                 local_file=tar_file,
                 remote_file='/tmp/{0}'.format(tar_file),
-                hostname=settings.server.hostname
+                hostname=settings.server.hostname,
             )
             # Upload tarred repository
             product = make_product_wait({'organization-id': self.org['id']})
             repo = _make_docker_repo(product['id'])
-            Repository.upload_content({
-                'id': repo['id'],
-                'path': '/tmp/{0}.tar'.format(repo_name),
-            })
+            Repository.upload_content({'id': repo['id'], 'path': '/tmp/{0}.tar'.format(repo_name)})
             # Verify repository was uploaded successfully
             repo = Repository.info({'id': repo['id']})
             self.assertIn(settings.server.hostname, repo['published-at'])
             self.assertIn(
                 '{0}-{1}-{2}'.format(
-                    self.org['label'].lower(),
-                    product['label'].lower(),
-                    repo['label'].lower(),
+                    self.org['label'].lower(), product['label'].lower(), repo['label'].lower()
                 ),
                 repo['published-at'],
             )
         finally:
             # Remove the archive
             ssh.command('rm -f /tmp/{0}.tar'.format(repo_name))
-
-
-@skip_if_bug_open('bugzilla', 1414821)
-class DockerUnixSocketContainerTestCase(CLITestCase):
-    """Tests specific to using ``Containers`` with internal unix-socket
-      Docker Compute Resource
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Create an organization which can be re-used in tests."""
-        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
-        cls.org = make_org()
-        cls.cr_internal = make_compute_resource({
-            'organization-ids': [cls.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': settings.docker.get_unix_socket_url(),
-        })
-
-    @tier3
-    @upgrade
-    def test_positive_create_with_compresource(self):
-        """Create containers on a docker compute resource
-
-        :id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
-
-        :expectedresults: The docker container is created
-
-        :CaseLevel: System
-        """
-        container = make_container({
-            'compute-resource-id': self.cr_internal['id'],
-            'organization-ids': [self.org['id']],
-        })
-        self.assertEqual(
-            container['compute-resource'], self.cr_internal['name'])
-
-
-class DockerRegistryTestCase(CLITestCase):
-    """Tests specific to performing CRUD methods against ``Registries``
-    repositories.
-
-    :CaseComponent: ContainerManagement-Content
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-
-    @classmethod
-    @skip_if_not_set('docker')
-    def setUpClass(cls):
-        """Skip the tests if docker section is not set in properties file and
-        set external docker registry url which can be re-used in tests.
-        """
-        super(DockerRegistryTestCase, cls).setUpClass()
-        cls.url = settings.docker.external_registry_1
-
-    @tier3
-    def test_negative_create_with_name(self):
-        """Create an external docker registry
-
-        :id: c2380323-56d6-4465-ad79-0f9c6b97be16
-
-        :expectedresults: the external registry is not created
-        """
-        for name in valid_data_list():
-            description = gen_string('alphanumeric')
-            with self.assertRaises(CLIFactoryError):
-                make_registry({
-                    'description': description,
-                    'name': name,
-                    'url': self.url,
-                })

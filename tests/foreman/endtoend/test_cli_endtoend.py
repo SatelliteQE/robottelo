@@ -17,8 +17,13 @@
 """
 import random
 
-from fauxfactory import gen_alphanumeric, gen_ipaddr
-from robottelo import manifests, ssh
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_ipaddr
+
+from .utils import AK_CONTENT_LABEL
+from .utils import ClientProvisioningMixin
+from robottelo import manifests
+from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -36,26 +41,22 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.constants import (
-    DEFAULT_LOC,
-    DEFAULT_ORG,
-    DEFAULT_SUBSCRIPTION_NAME,
-    FAKE_0_PUPPET_REPO,
-    CUSTOM_RPM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET,
-)
 from robottelo.config import settings
-from robottelo.decorators import (
-    bz_bug_is_open,
-    setting_is_set,
-    skip_if_not_set,
-)
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
-
-from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
-# (too many public methods) pylint: disable=R0904
 
 
 class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
@@ -66,6 +67,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         super(EndToEndTestCase, cls).setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
+    @tier1
+    @upgrade
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -73,9 +76,11 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         :expectedresults: 'Default Organization' is found
         """
-        result = Org.info({u'name': DEFAULT_ORG})
+        result = Org.info({'name': DEFAULT_ORG})
         self.assertEqual(result['name'], DEFAULT_ORG)
 
+    @tier1
+    @upgrade
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -83,9 +88,11 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         :expectedresults: 'Default Location' is found
         """
-        result = Location.info({u'name': DEFAULT_LOC})
+        result = Location.info({'name': DEFAULT_LOC})
         self.assertEqual(result['name'], DEFAULT_LOC)
 
+    @tier1
+    @upgrade
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -93,11 +100,14 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         :expectedresults: Admin User is found and has Admin role
         """
-        result = User.info({u'login': u'admin'})
+        result = User.info({'login': 'admin'})
         self.assertEqual(result['login'], 'admin')
         self.assertEqual(result['admin'], 'yes')
 
     @skip_if_not_set('compute_resources')
+    @tier4
+    @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
@@ -131,40 +141,28 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         """
         # step 1: Create a new user with admin permissions
         password = gen_alphanumeric()
-        user = make_user({u'admin': u'true', u'password': password})
+        user = make_user({'admin': 'true', 'password': password})
         user['password'] = password
 
         # step 2.1: Create a new organization
-        org = self._create(user, Org, {u'name': gen_alphanumeric()})
+        org = self._create(user, Org, {'name': gen_alphanumeric()})
 
         # step 2.2: Clone and upload manifest
         if self.fake_manifest_is_set:
             with manifests.clone() as manifest:
                 ssh.upload_file(manifest.content, manifest.filename)
-            Subscription.upload({
-                u'file': manifest.filename,
-                u'organization-id': org['id'],
-            })
+            Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
 
         # step 2.3: Create a new lifecycle environment
         lifecycle_environment = self._create(
             user,
             LifecycleEnvironment,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-                u'prior': u'Library',
-            }
+            {'name': gen_alphanumeric(), 'organization-id': org['id'], 'prior': 'Library'},
         )
 
         # step 2.4: Create a custom product
         product = self._create(
-            user,
-            Product,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
+            user, Product, {'name': gen_alphanumeric(), 'organization-id': org['id']}
         )
         repositories = []
 
@@ -173,12 +171,12 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             user,
             Repository,
             {
-                u'content-type': u'yum',
-                u'name': gen_alphanumeric(),
-                u'product-id': product['id'],
-                u'publish-via-http': u'true',
-                u'url': CUSTOM_RPM_REPO,
-            }
+                'content-type': 'yum',
+                'name': gen_alphanumeric(),
+                'product-id': product['id'],
+                'publish-via-http': 'true',
+                'url': CUSTOM_RPM_REPO,
+            },
         )
         repositories.append(yum_repo)
 
@@ -187,116 +185,90 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             user,
             Repository,
             {
-                u'content-type': u'puppet',
-                u'name': gen_alphanumeric(),
-                u'product-id': product['id'],
-                u'publish-via-http': u'true',
-                u'url': FAKE_0_PUPPET_REPO,
-            }
+                'content-type': 'puppet',
+                'name': gen_alphanumeric(),
+                'product-id': product['id'],
+                'publish-via-http': 'true',
+                'url': FAKE_0_PUPPET_REPO,
+            },
         )
         repositories.append(puppet_repo)
 
         # step 2.7: Enable a Red Hat repository
         if self.fake_manifest_is_set:
-            RepositorySet.enable({
-                u'basearch': 'x86_64',
-                u'name': REPOSET['rhva6'],
-                u'organization-id': org['id'],
-                u'product': PRDS['rhel'],
-                u'releasever': '6Server',
-            })
-            rhel_repo = Repository.info({
-                u'name': REPOS['rhva6']['name'],
-                u'organization-id': org['id'],
-                u'product': PRDS['rhel'],
-            })
+            RepositorySet.enable(
+                {
+                    'basearch': 'x86_64',
+                    'name': REPOSET['rhva6'],
+                    'organization-id': org['id'],
+                    'product': PRDS['rhel'],
+                    'releasever': '6Server',
+                }
+            )
+            rhel_repo = Repository.info(
+                {
+                    'name': REPOS['rhva6']['name'],
+                    'organization-id': org['id'],
+                    'product': PRDS['rhel'],
+                }
+            )
             repositories.append(rhel_repo)
 
         # step 2.8: Synchronize the three repositories
         for repo in repositories:
-            Repository.with_user(
-                user['login'],
-                user['password']
-            ).synchronize({u'id': repo['id']})
+            Repository.with_user(user['login'], user['password']).synchronize({'id': repo['id']})
 
         # step 2.9: Create content view
         content_view = self._create(
-            user,
-            ContentView,
-            {
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
+            user, ContentView, {'name': gen_alphanumeric(), 'organization-id': org['id']}
         )
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
         repositories.remove(puppet_repo)
         for repo in repositories:
-            ContentView.add_repository({
-                u'id': content_view['id'],
-                u'organization-id': org['id'],
-                u'repository-id': repo['id'],
-            })
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': org['id'],
+                    'repository-id': repo['id'],
+                }
+            )
 
         # step 2.11: Add a PUPPET module to new content view
-        result = PuppetModule.with_user(
-            user['login'],
-            user['password']
-        ).list({
-            u'repository-id': puppet_repo['id'],
-            u'per-page': False,
-        })
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).puppet_module_add({
-            u'content-view-id': content_view['id'],
-            u'id': random.choice(result)['id'],
-        })
+        result = PuppetModule.with_user(user['login'], user['password']).list(
+            {'repository-id': puppet_repo['id'], 'per-page': False}
+        )
+        ContentView.with_user(user['login'], user['password']).puppet_module_add(
+            {'content-view-id': content_view['id'], 'id': random.choice(result)['id']}
+        )
 
         # step 2.12: Publish content view
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).publish({u'id': content_view['id']})
+        ContentView.with_user(user['login'], user['password']).publish({'id': content_view['id']})
 
         # step 2.13: Promote content view to the lifecycle environment
-        content_view = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).info({u'id': content_view['id']})
+        content_view = ContentView.with_user(user['login'], user['password']).info(
+            {'id': content_view['id']}
+        )
         self.assertEqual(len(content_view['versions']), 1)
-        cv_version = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_info({
-            'id': content_view['versions'][0]['id'],
-        })
+        cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+            {'id': content_view['versions'][0]['id']}
+        )
         self.assertEqual(len(cv_version['lifecycle-environments']), 1)
-        ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_promote({
-            u'id': cv_version['id'],
-            u'to-lifecycle-environment-id': lifecycle_environment['id'],
-        })
+        ContentView.with_user(user['login'], user['password']).version_promote(
+            {'id': cv_version['id'], 'to-lifecycle-environment-id': lifecycle_environment['id']}
+        )
         # check that content view exists in lifecycle
-        content_view = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).info({u'id': content_view['id']})
+        content_view = ContentView.with_user(user['login'], user['password']).info(
+            {'id': content_view['id']}
+        )
         self.assertEqual(len(content_view['versions']), 1)
-        cv_version = ContentView.with_user(
-            user['login'],
-            user['password']
-        ).version_info({
-            'id': content_view['versions'][0]['id'],
-        })
+        cv_version = ContentView.with_user(user['login'], user['password']).version_info(
+            {'id': content_view['versions'][0]['id']}
+        )
         self.assertEqual(len(cv_version['lifecycle-environments']), 2)
         self.assertEqual(
-            cv_version['lifecycle-environments'][-1]['id'],
-            lifecycle_environment['id']
+            cv_version['lifecycle-environments'][-1]['id'], lifecycle_environment['id']
         )
 
         # step 2.14: Create a new activation key
@@ -304,82 +276,61 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             user,
             ActivationKey,
             {
-                u'content-view-id': content_view['id'],
-                u'lifecycle-environment-id': lifecycle_environment['id'],
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lifecycle_environment['id'],
+                'name': gen_alphanumeric(),
+                'organization-id': org['id'],
+            },
         )
 
         # step 2.15: Add the products to the activation key
-        subscription_list = Subscription.with_user(
-            user['login'],
-            user['password']
-        ).list(
-            {u'organization-id': org['id']},
-            per_page=False
+        subscription_list = Subscription.with_user(user['login'], user['password']).list(
+            {'organization-id': org['id']}, per_page=False
         )
         for subscription in subscription_list:
             if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
-                ActivationKey.with_user(
-                    user['login'],
-                    user['password']
-                ).add_subscription({
-                    u'id': activation_key['id'],
-                    u'quantity': 1,
-                    u'subscription-id': subscription['id'],
-                })
+                ActivationKey.with_user(user['login'], user['password']).add_subscription(
+                    {
+                        'id': activation_key['id'],
+                        'quantity': 1,
+                        'subscription-id': subscription['id'],
+                    }
+                )
 
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
-            ActivationKey.with_user(
-                user['login'],
-                user['password']
-            ).content_override({
-                u'content-label': AK_CONTENT_LABEL,
-                u'id': activation_key['id'],
-                u'organization-id': org['id'],
-                u'value': '1',
-            })
+            ActivationKey.with_user(user['login'], user['password']).content_override(
+                {
+                    'content-label': AK_CONTENT_LABEL,
+                    'id': activation_key['id'],
+                    'organization-id': org['id'],
+                    'value': '1',
+                }
+            )
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host_name = gen_alphanumeric()
-        content_host = Host.with_user(
-            user['login'],
-            user['password']
-        ).subscription_register({
-            u'content-view-id': content_view['id'],
-            u'lifecycle-environment-id': lifecycle_environment['id'],
-            u'name': content_host_name,
-            u'organization-id': org['id'],
-        })
-        if bz_bug_is_open(1328202):
-            results = Host.with_user(
-                user['login'],
-                user['password']
-            ).list({'organization-id': org['id']})
-            # Content host registration converts the name to lowercase, make
-            # sure to use the same format while matching against the result
-            content_host_name = content_host_name.lower()
-            for result in results:
-                if result['name'] == content_host_name:
-                    content_host = result
-        content_host = Host.with_user(
-            user['login'],
-            user['password']
-        ).info({'id': content_host['id']})
+        content_host = Host.with_user(user['login'], user['password']).subscription_register(
+            {
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lifecycle_environment['id'],
+                'name': content_host_name,
+                'organization-id': org['id'],
+            }
+        )
+
+        content_host = Host.with_user(user['login'], user['password']).info(
+            {'id': content_host['id']}
+        )
         # check that content view matches what we passed
         self.assertEqual(
-            content_host['content-information'][
-                'content-view']['name'],
-            content_view['name']
+            content_host['content-information']['content-view']['name'], content_view['name']
         )
         # check that lifecycle environment matches
         self.assertEqual(
-            content_host['content-information'][
-                'lifecycle-environment']['name'],
-            lifecycle_environment['name']
+            content_host['content-information']['lifecycle-environment']['name'],
+            lifecycle_environment['name'],
         )
 
         # step 2.16: Create a new libvirt compute resource
@@ -387,12 +338,12 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             user,
             ComputeResource,
             {
-                u'name': gen_alphanumeric(),
-                u'provider': u'Libvirt',
-                u'url': u'qemu+ssh://root@{0}/system'.format(
+                'name': gen_alphanumeric(),
+                'provider': 'Libvirt',
+                'url': 'qemu+ssh://root@{0}/system'.format(
                     settings.compute_resources.libvirt_hostname
                 ),
-            }
+            },
         )
 
         # step 2.17: Create a new subnet
@@ -400,35 +351,30 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             user,
             Subnet,
             {
-                u'name': gen_alphanumeric(),
-                u'network': gen_ipaddr(ip3=True),
-                u'mask': u'255.255.255.0',
-            }
+                'name': gen_alphanumeric(),
+                'network': gen_ipaddr(ip3=True),
+                'mask': '255.255.255.0',
+            },
         )
 
         # step 2.18: Create a new domain
-        domain = self._create(user, Domain, {u'name': gen_alphanumeric()})
+        domain = self._create(user, Domain, {'name': gen_alphanumeric()})
 
         # step 2.19: Create a new hostgroup and associate previous entities to
         # it
         host_group = self._create(
             user,
             HostGroup,
+            {'domain-id': domain['id'], 'name': gen_alphanumeric(), 'subnet-id': subnet['id']},
+        )
+        HostGroup.with_user(user['login'], user['password']).update(
             {
-                u'domain-id': domain['id'],
-                u'name': gen_alphanumeric(),
-                u'subnet-id': subnet['id'],
+                'id': host_group['id'],
+                'organization-ids': org['id'],
+                'content-view-id': content_view['id'],
+                'lifecycle-environment-id': lifecycle_environment['id'],
             }
         )
-        HostGroup.with_user(
-            user['login'],
-            user['password']
-        ).update({
-            'id': host_group['id'],
-            'organization-ids': org['id'],
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lifecycle_environment['id'],
-        })
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key['name'], org['label'])
@@ -437,7 +383,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         """Creates a Foreman entity and returns it.
 
         :param dict user: A python dictionary representing a User
-        :param obj entity: A valid CLI entity.
+        :param object entity: A valid CLI entity.
         :param dict attrs: A python dictionary with attributes to use when
             creating entity.
         :return: A ``dict`` representing the Foreman entity.
@@ -445,7 +391,4 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         """
 
         # Create new entity as new user
-        return entity.with_user(
-            user['login'],
-            user['password']
-        ).create(attrs)
+        return entity.with_user(user['login'], user['password']).create(attrs)

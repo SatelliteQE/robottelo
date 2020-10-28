@@ -22,6 +22,7 @@ Linting
 * All code will be linted to `PEP8`_ standards using `flake8`_.
 * In the root of the **Robottelo** directory, run :code:`flake8 .`
 * If flake8 returns errors, make corrections before submitting a pull request.
+* pre-commit configuration is available, and its use is strongly encouraged in local development.
 
 Docstrings
 
@@ -60,7 +61,7 @@ Naming
 Style
 
 * Absolutely no semi colons.
-* Lines are not to exceed 79 characters in length.
+* Lines are not to exceed 99 characters in length.
 * Code will be indented with **4 spaces** instead of tabs.
 
 
@@ -97,7 +98,7 @@ Read More!
 
 `Python Style Guide`_
 
-`Pylint Tutorial`_
+`pre-commit Tutorial`_
 
 `Code Like a Pythonista`_
 
@@ -116,5 +117,5 @@ Categorize each standard into how strictly they are enforced
 .. _sphinx: http://sphinx-doc.org/markup/para.html
 .. _properly format strings: https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting
 .. _Python Style Guide: http://docs.python-guide.org/en/latest/writing/style/
-.. _Pylint Tutorial: http://docs.pylint.org/tutorial.html
+.. _pre-commit Tutorial: https://pre-commit.com/#usage
 .. _Code Like a Pythonista: http://python.net/~goodger/projects/pycon/2007/idiomatic/handout.html

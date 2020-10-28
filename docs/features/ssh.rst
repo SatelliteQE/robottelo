@@ -21,7 +21,7 @@ It holds ``stdout`` on attribute with same name.
 An example of typical result is presented bellow::
 
     SSHCommandResult(
-        stdout=[u'Red Hat Enterprise Linux Server release 7.2 (Maipo)', u''],
+        stdout=['Red Hat Enterprise Linux Server release 7.2 (Maipo)', ''],
         stderr='',
         return_code=0,
         output_format=None
@@ -50,7 +50,7 @@ this document::
     >>> from robottelo import ssh
     >>> print(ssh.command('cat /etc/redhat-release'))
     SSHCommandResult(
-        stdout=[u'Red Hat Enterprise Linux Server release 7.2 (Maipo)', u''],
+        stdout=['Red Hat Enterprise Linux Server release 7.2 (Maipo)', ''],
         stderr='',
         return_code=0,
         output_format=None

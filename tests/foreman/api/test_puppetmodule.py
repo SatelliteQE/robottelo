@@ -15,8 +15,10 @@
 :Upstream: No
 """
 from nailgun import entities
+
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -36,10 +38,7 @@ class RepositorySearchTestCase(APITestCase):
         The repository belongs to ``cls.product``.
         """
         super(RepositorySearchTestCase, self).setUp()
-        self.repository = entities.Repository(
-            content_type='puppet',
-            product=self.product,
-        ).create()
+        self.repository = entities.Repository(content_type='puppet', product=self.product).create()
 
     @tier1
     def test_positive_search_no_results(self):
@@ -62,7 +61,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :expectedresults: Only the modules in that repository are returned.
 
-        :bz: 1711929
+        :BZ: 1711929
 
         :CaseImportance: Critical
         """
@@ -80,10 +79,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
         """Create a product. Make it available as ``cls.product``."""
         super(ContentViewVersionSearchTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
-        repository = entities.Repository(
-            content_type='puppet',
-            product=cls.product,
-        ).create()
+        repository = entities.Repository(content_type='puppet', product=cls.product).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             repository.upload_content(files={'content': handle})
 
@@ -93,9 +89,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
         The content view belongs to organization ``cls.product.organization``.
         """
         super(ContentViewVersionSearchTestCase, self).setUp()
-        self.content_view = entities.ContentView(
-            organization=self.product.organization,
-        ).create()
+        self.content_view = entities.ContentView(organization=self.product.organization).create()
 
     @tier1
     def test_positive_search_no_results(self):
@@ -129,8 +123,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
             id=self.content_view.available_puppet_modules()['results'][0]['id']
         )
         entities.ContentViewPuppetModule(
-            content_view=self.content_view,
-            id=puppet_module.id,
+            content_view=self.content_view, id=puppet_module.id
         ).create()
         self.content_view.publish()
 

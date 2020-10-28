@@ -15,13 +15,19 @@
 :Upstream: No
 """
 from nailgun import entities
+from upgrade_tests import post_upgrade
+from upgrade_tests import pre_upgrade
+from upgrade_tests.helpers.scenarios import create_dict
+from upgrade_tests.helpers.scenarios import get_entity_data
+
 from robottelo.cleanup import cleanup_of_provisioned_server
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DISTRO_RHEL7
+from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.test import APITestCase
+from robottelo.test import settings
 from robottelo.vm import VirtualMachine
-from robottelo.test import APITestCase, settings
-from upgrade_tests import post_upgrade, pre_upgrade
-from upgrade_tests.helpers.scenarios import create_dict, get_entity_data
 
 
 class Scenario_remoteexecution_external_capsule(APITestCase):
@@ -45,18 +51,19 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = settings.compute_resources.libvirt_hostname
-        cls.default_org_id = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.default_org_id = (
+            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        )
         cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = settings.vlan_networking.bridge
         cls.subnet = settings.vlan_networking.subnet
         cls.gateway = settings.vlan_networking.gateway
         cls.netmask = settings.vlan_networking.netmask
         cls.vm_domain_name = settings.upgrade.vm_domain
-        cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
-                                                 .format(cls.vm_domain_name)})
-        cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.\
-            capsule_hostname
+        cls.vm_domain = entities.Domain().search(
+            query={'search': 'name="{}"'.format(cls.vm_domain_name)}
+        )
+        cls.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
 
     @pre_upgrade
     def test_pre_scenario_remoteexecution_external_capsule(self):
@@ -76,8 +83,9 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             2. REX job should run on it.
         """
         try:
-            default_loc_id = entities.Location().search(
-                query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            default_loc_id = (
+                entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            )
             sn = entities.Subnet(
                 domain=self.vm_domain,
                 gateway=self.gateway,
@@ -89,33 +97,33 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
                 remote_execution_proxy=[entities.SmartProxy(id=2)],
             ).create()
             client = VirtualMachine(
-                distro=DISTRO_RHEL7,
-                provisioning_server=self.libvirt_vm,
-                bridge=self.bridge)
+                distro=DISTRO_RHEL7, provisioning_server=self.libvirt_vm, bridge=self.bridge
+            )
             client.create()
             client.install_capsule_katello_ca(capsule=self.proxy_name)
             client.register_contenthost(org=self.org.label, lce='Library')
-            add_remote_execution_ssh_key(hostname=client.ip_addr,
-                                         proxy_hostname=self.proxy_name)
-            host = entities.Host().search(
-                query={'search': 'name="{}"'.format(client.hostname)})
+            add_remote_execution_ssh_key(hostname=client.ip_addr, proxy_hostname=self.proxy_name)
+            host = entities.Host().search(query={'search': 'name="{}"'.format(client.hostname)})
             host[0].subnet = sn
             host[0].update(['subnet'])
-            job = entities.JobInvocation().run(data={
-                'job_template_id': 89, 'inputs': {'command': "ls"},
-                'targeting_type': 'static_query', 'search_query': "name = {0}"
-                .format(client.hostname)})
+            job = entities.JobInvocation().run(
+                data={
+                    'job_template_id': 89,
+                    'inputs': {'command': "ls"},
+                    'targeting_type': 'static_query',
+                    'search_query': "name = {0}".format(client.hostname),
+                }
+            )
             self.assertEqual(job['output']['success_count'], 1)
-            global_dict = {
-                self.__class__.__name__: {'client_name': client.hostname}
-            }
+            global_dict = {self.__class__.__name__: {'client_name': client.hostname}}
             create_dict(global_dict)
         except Exception as exp:
             if client._created:
                 cleanup_of_provisioned_server(
                     hostname=client.hostname,
                     provisioning_server=self.libvirt_vm,
-                    distro=DISTRO_RHEL7)
+                    distro=DISTRO_RHEL7,
+                )
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
@@ -132,14 +140,18 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
             1. The job should successfully executed on pre-upgrade created client.
         """
         client_name = get_entity_data(self.__class__.__name__)['client_name']
-        job = entities.JobInvocation().run(data={
-            'job_template_id': 89, 'inputs': {'command': "ls"},
-            'targeting_type': 'static_query', 'search_query': "name = {0}".format(client_name)})
+        job = entities.JobInvocation().run(
+            data={
+                'job_template_id': 89,
+                'inputs': {'command': "ls"},
+                'targeting_type': 'static_query',
+                'search_query': "name = {0}".format(client_name),
+            }
+        )
         self.assertEqual(job['output']['success_count'], 1)
         cleanup_of_provisioned_server(
-            hostname=client_name,
-            provisioning_server=self.libvirt_vm,
-            distro=DISTRO_RHEL7)
+            hostname=client_name, provisioning_server=self.libvirt_vm, distro=DISTRO_RHEL7
+        )
 
 
 class Scenario_remoteexecution_satellite(APITestCase):
@@ -163,16 +175,18 @@ class Scenario_remoteexecution_satellite(APITestCase):
     @classmethod
     def setUpClass(cls):
         cls.libvirt_vm = settings.compute_resources.libvirt_hostname
-        cls.default_org_id = entities.Organization().search(
-            query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        cls.default_org_id = (
+            entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
+        )
         cls.org = entities.Organization(id=cls.default_org_id).read()
         cls.bridge = settings.vlan_networking.bridge
         cls.subnet = settings.vlan_networking.subnet
         cls.gateway = settings.vlan_networking.gateway
         cls.netmask = settings.vlan_networking.netmask
         cls.vm_domain_name = settings.upgrade.vm_domain
-        cls.vm_domain = entities.Domain().search(query={'search': 'name="{}"'
-                                                 .format(cls.vm_domain_name)})
+        cls.vm_domain = entities.Domain().search(
+            query={'search': 'name="{}"'.format(cls.vm_domain_name)}
+        )
         cls.proxy_name = settings.server.hostname
 
     @pre_upgrade
@@ -193,8 +207,9 @@ class Scenario_remoteexecution_satellite(APITestCase):
             2. REX job should run on it.
         """
         try:
-            default_loc_id = entities.Location().search(
-                query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            default_loc_id = (
+                entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
+            )
             sn = entities.Subnet(
                 domain=self.vm_domain,
                 gateway=self.gateway,
@@ -206,32 +221,33 @@ class Scenario_remoteexecution_satellite(APITestCase):
                 remote_execution_proxy=[entities.SmartProxy(id=1)],
             ).create()
             client = VirtualMachine(
-                distro=DISTRO_RHEL7,
-                provisioning_server=self.libvirt_vm,
-                bridge=self.bridge)
+                distro=DISTRO_RHEL7, provisioning_server=self.libvirt_vm, bridge=self.bridge
+            )
             client.create()
             client.install_katello_ca()
             client.register_contenthost(org=self.org.label, lce='Library')
             add_remote_execution_ssh_key(hostname=client.ip_addr)
-            host = entities.Host().search(
-                query={'search': 'name="{}"'.format(client.hostname)})
+            host = entities.Host().search(query={'search': 'name="{}"'.format(client.hostname)})
             host[0].subnet = sn
             host[0].update(['subnet'])
-            job = entities.JobInvocation().run(data={
-                'job_template_id': 89, 'inputs': {'command': "ls"},
-                'targeting_type': 'static_query', 'search_query': "name = {0}"
-                .format(client.hostname)})
+            job = entities.JobInvocation().run(
+                data={
+                    'job_template_id': 89,
+                    'inputs': {'command': "ls"},
+                    'targeting_type': 'static_query',
+                    'search_query': "name = {0}".format(client.hostname),
+                }
+            )
             self.assertEqual(job['output']['success_count'], 1)
-            global_dict = {
-                self.__class__.__name__: {'client_name': client.hostname}
-            }
+            global_dict = {self.__class__.__name__: {'client_name': client.hostname}}
             create_dict(global_dict)
         except Exception as exp:
             if client._created:
                 cleanup_of_provisioned_server(
                     hostname=client.hostname,
                     provisioning_server=self.libvirt_vm,
-                    distro=DISTRO_RHEL7)
+                    distro=DISTRO_RHEL7,
+                )
             raise Exception(exp)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
@@ -248,12 +264,15 @@ class Scenario_remoteexecution_satellite(APITestCase):
             1. The job should successfully executed on pre-upgrade created client.
         """
         client_name = get_entity_data(self.__class__.__name__)['client_name']
-        job = entities.JobInvocation().run(data={
-            'job_template_id': 89, 'inputs': {'command': "ls"},
-            'targeting_type': 'static_query', 'search_query': "name = {0}".
-            format(client_name)})
+        job = entities.JobInvocation().run(
+            data={
+                'job_template_id': 89,
+                'inputs': {'command': "ls"},
+                'targeting_type': 'static_query',
+                'search_query': "name = {0}".format(client_name),
+            }
+        )
         self.assertEqual(job['output']['success_count'], 1)
         cleanup_of_provisioned_server(
-            hostname=client_name,
-            provisioning_server=self.libvirt_vm,
-            distro=DISTRO_RHEL7)
+            hostname=client_name, provisioning_server=self.libvirt_vm, distro=DISTRO_RHEL7
+        )

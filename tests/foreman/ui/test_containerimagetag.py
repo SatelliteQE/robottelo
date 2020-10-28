@@ -16,13 +16,12 @@
 """
 from nailgun import entities
 
-from robottelo.constants import (
-    ENVIRONMENT,
-    DOCKER_REGISTRY_HUB,
-    DOCKER_UPSTREAM_NAME,
-    REPO_TYPE,
-)
-from robottelo.decorators import fixture, tier2
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import REPO_TYPE
+from robottelo.decorators import fixture
+from robottelo.decorators import tier2
 
 
 @fixture(scope="module")
@@ -48,8 +47,7 @@ def module_repository(module_product):
 
 
 @tier2
-def test_positive_search(
-        session, module_org, module_product, module_repository):
+def test_positive_search(session, module_org, module_product, module_repository):
     """Search for a docker image tag and reads details of it
 
     :id: 28640396-c44d-4487-9d6d-3d5f2ed599d7

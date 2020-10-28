@@ -1,0 +1,32 @@
+# configuration for pre-commit git hooks
+
+repos:
+- repo: https://github.com/asottile/reorder_python_imports
+  rev: v1.9.0
+  hooks:
+  - id: reorder-python-imports
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.5.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: debug-statements
+- repo: https://github.com/psf/black
+  rev: 19.10b0
+  hooks:
+  - id: black
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.7.9
+  hooks:
+  - id: flake8
+- repo: local
+  hooks:
+    - id: fix-uuids
+      name: Robottelo Custom Fix UUIDs script
+      description: This hook runs the scripts/fix_uuids.sh script
+      language: script
+      entry: scripts/fix_uuids.sh
+      verbose: true
+      types: [text]
+      require_serial: true

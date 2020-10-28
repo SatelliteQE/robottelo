@@ -14,14 +14,12 @@
 
 :Upstream: No
 """
+import pytest
 
-from robottelo.decorators import (
-    stubbed,
-    tier3,
-)
+from robottelo.decorators import tier3
 
 
-@stubbed
+@pytest.mark.stubbed
 @tier3
 def test_rhel_pxe_provisioning_on_libvirt():
     """Provision RHEL system via PXE on libvirt and make sure it behaves

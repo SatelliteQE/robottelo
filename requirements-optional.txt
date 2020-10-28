@@ -2,18 +2,16 @@
 codecov
 flake8
 pytest-cov
-pytest-xdist
 redis
 tox
-
-# Voluntary (recommended!) tool for checking code quality.
-pylint
+pre-commit
 
 # For reporting test results on SauceLabs
 sauceclient==1.0.0
 
 # For generating documentation.
 sphinx
+sphinx-autoapi
 
 # For running UI tests within a docker browser
 docker-py

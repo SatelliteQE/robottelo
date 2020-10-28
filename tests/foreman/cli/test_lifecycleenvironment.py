@@ -15,344 +15,171 @@
 
 :Upstream: No
 """
-
-from fauxfactory import gen_alphanumeric, gen_string
 from math import ceil
+
+import pytest
+from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_lifecycle_environment, make_org
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
-from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1, tier2, upgrade
-from robottelo.test import CLITestCase
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
 
 
-class LifeCycleEnvironmentTestCase(CLITestCase):
-    """Test class for Lifecycle Environment CLI"""
-
-    org = None
-
-    @classmethod
-    def setUpClass(cls):
-        """Create a new Test Case Organization"""
-        super(LifeCycleEnvironmentTestCase, cls).setUpClass()
-        cls.org = make_org()
-
-    # Issues validation
-    @tier2
-    def test_verify_bugzilla_1077386(self):
-        """List subcommand returns standard output
-
-        :id: cca249d0-fb77-422b-aae3-3361887269db
-
-        :expectedresults: There should not be an error returned
-
-        :CaseImportance: High
-        """
-
-        # List available lifecycle environments using default Table
-        # output
-        cmd = u'lifecycle-environment list --organization-id="%s"'
-        result = LifecycleEnvironment.execute(
-            cmd % self.org['id'],
-            None,
-            None,
-            False,
-        )
-        self.assertGreater(len(result), 0)
-
-    @tier2
-    def test_verify_bugzilla_1077333(self):
-        """Search lifecycle environment via its name containing UTF-8
-        chars
-
-        :id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
-
-        :expectedresults: Can get info for lifecycle by its name
-
-
-        :CaseImportance: High
-        """
-        test_data = {
-            'name': gen_string('utf8', 15),
-            'organization-id': self.org['id'],
+@pytest.fixture(scope='class')
+def module_lce(module_org):
+    return make_lifecycle_environment(
+        {
+            'name': module_org.name,
+            'organization-id': module_org.id,
+            'description': gen_string('alpha'),
         }
-        # Can we find the new object
-        result = LifecycleEnvironment.info({
-            'name': make_lifecycle_environment(test_data)['name'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result['name'], test_data['name'])
-
-    # CRUD
-    @tier1
-    def test_positive_create_with_name(self):
-        """Create lifecycle environment with valid name, prior to
-        Library
-
-        :id: fffe67e2-9a45-478d-a538-99f04a9c40ff
-
-        :expectedresults: Lifecycle environment is created with Library as
-            prior
-
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                lc_env = make_lifecycle_environment({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
-                self.assertEqual(
-                    lc_env['prior-lifecycle-environment'], ENVIRONMENT)
-
-    @tier2
-    def test_positive_create_with_description(self):
-        """Create lifecycle environment with valid description prior to
-        Library
-
-        :id: 714c42f8-d09e-4e48-9f35-bbc25fe9e229
-
-        :expectedresults: Lifecycle environment is created with Library as
-            prior
-
-        """
-        for desc in valid_data_list():
-            name = gen_alphanumeric()
-            with self.subTest(desc):
-                lc_env = make_lifecycle_environment({
-                    'description': desc,
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
-                self.assertEqual(lc_env['name'], name)
-                self.assertEqual(lc_env['description'], desc)
-                self.assertEqual(
-                    lc_env['prior-lifecycle-environment'], ENVIRONMENT)
-
-    @tier2
-    def test_positive_create_with_label(self):
-        """Create lifecycle environment with valid name and label
-
-        :id: 8d82932f-dedf-46f0-a6dc-280cfb228f44
-
-        :expectedresults: Lifecycle environment with label is created
-
-        """
-        for label in (gen_string("alpha", 15), gen_string("alphanumeric", 15),
-                      gen_string("numeric", 15)):
-            with self.subTest(label):
-                new_lce = make_lifecycle_environment({
-                    'label': label,
-                    'name': gen_alphanumeric(),
-                    'organization-id': self.org['id'],
-                })
-                self.assertEqual(new_lce['label'], label)
-
-    @tier1
-    def test_positive_create_with_organization_name(self):
-        """Create lifecycle environment, specifying organization name
-
-        :id: e62ddb5a-7a38-4b7c-9346-b4dce31448c1
-
-        :expectedresults: Lifecycle environment is created for correct
-            organization
-
-        :CaseImportance: Critical
-
-        """
-        new_lce = make_lifecycle_environment({
-            'name': gen_string('alpha'),
-            'organization': self.org['name'],
-        })
-        self.assertEqual(new_lce['organization'], self.org['name'])
-
-    @tier1
-    def test_positive_create_with_organization_label(self):
-        """Create lifecycle environment, specifying organization label
-
-        :id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
-
-        :expectedresults: Lifecycle environment is created for correct
-            organization
+    )
 
 
-        :CaseImportance: Critical
-        """
-        new_lce = make_lifecycle_environment({
-            'name': gen_string('alpha'),
-            'organization-label': self.org['label'],
-        })
-        self.assertEqual(new_lce['organization'], self.org['name'])
+# Issues validation
+@tier2
+def test_positive_list_subcommand(module_org):
+    """List subcommand returns standard output
 
-    @tier1
-    @upgrade
-    def test_positive_delete_by_id(self):
-        """Create lifecycle environment with valid name, prior to
-        Library
+    :id: cca249d0-fb77-422b-aae3-3361887269db
 
-        :id: 76989039-5389-4136-9f7c-220eb38f157b
+    :expectedresults: There should not be an error returned
 
-        :expectedresults: Lifecycle environment is deleted
+    :BZ: 1077386
 
+    :CaseImportance: High
+    """
 
-        :CaseImportance: Critical
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                new_lce = make_lifecycle_environment({
-                    'name': name,
-                    'organization-id': self.org['id'],
-                })
-                LifecycleEnvironment.delete({'id': new_lce['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    LifecycleEnvironment.info({
-                        'id': new_lce['id'],
-                        'organization-id': self.org['id'],
-                    })
-
-    @tier1
-    def test_positive_update_name(self):
-        """Create lifecycle environment then update its name
-
-        :id: de67a44e-6c6a-430e-927b-4fa43c7c2771
-
-        :expectedresults: Lifecycle environment name is updated
+    # List available lifecycle environments using default Table
+    # output
+    cmd = 'lifecycle-environment list --organization-id="%s"'
+    result = LifecycleEnvironment.execute(cmd % module_org.id, None, None, False)
+    assert len(result) > 0
 
 
-        :CaseImportance: Critical
-        """
-        new_lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                LifecycleEnvironment.update({
-                    'id': new_lce['id'],
-                    'new-name': new_name,
-                    'organization-id': self.org['id'],
-                })
-                result = LifecycleEnvironment.info({
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
-                self.assertGreater(len(result), 0)
-                self.assertEqual(result['name'], new_name)
+@tier2
+def test_positive_search_lce_via_UTF8(module_org):
+    """Search lifecycle environment via its name containing UTF-8
+    chars
 
-    @tier1
-    def test_positive_update_description(self):
-        """Create lifecycle environment then update its description
+    :id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
 
-        :id: 15b82949-3c3a-4942-b42b-db1de34cf5be
+    :expectedresults: Can get info for lifecycle by its name
 
-        :expectedresults: Lifecycle environment description is updated
+    :BZ: 1077333
+
+    :CaseImportance: High
+    """
+    test_data = {'name': gen_string('utf8', 15), 'organization-id': module_org.id}
+    # Can we find the new object
+    result = LifecycleEnvironment.info(
+        {'name': make_lifecycle_environment(test_data)['name'], 'organization-id': module_org.id}
+    )
+    assert result['name'] == test_data['name']
 
 
-        :CaseImportance: Critical
-        """
-        new_lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                LifecycleEnvironment.update({
-                    'description': new_desc,
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
-                result = LifecycleEnvironment.info({
-                    'id': new_lce['id'],
-                    'organization-id': self.org['id'],
-                })
-                self.assertGreater(len(result), 0)
-                self.assertEqual(result['description'], new_desc)
+# CRUD
+@tier1
+def test_positive_lce_crud(module_org):
+    """CRUD test case for lifecycle environment for name, description, label, registry name pattern,
+    and unauthenticated pull
 
-    @tier1
-    def test_positive_update_registry_name_pattern(self):
-        """Create lifecycle environment and then update registry name pattern
+    :id: 6b0fbf4f-528c-4983-bc3f-e81ccb7438fd
 
-        :id: 131aaed7-d74f-4c9a-be7e-04226d48e64a
+    :expectedresults: Lifecycle environment is created, read, updated, and deleted successfull
 
-        :expectedresults: Lifecycle environment registry name pattern is updated
+    :CaseImportance: High
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    desc = gen_string('alpha')
+    new_desc = gen_string('alpha')
+    label = gen_string('alpha')
+    org_name = module_org.name
+    registry_name_pattern = (
+        "{}-<%= organization.label %>/<%= repository.docker_upstream_name %>"
+    ).format(gen_string('alpha', 5))
 
+    # create
+    lce = make_lifecycle_environment(
+        {
+            'organization': org_name,
+            'organization-id': module_org.id,
+            'name': name,
+            'label': label,
+            'description': desc,
+        }
+    )
 
-        :CaseImportance: Critical
-        """
-        lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
-        registry_name_pattern = ("{}-<%= organization.label %>"
-                                 "/<%= repository.docker_upstream_name %>").format(
-                                     gen_string('alpha', 5))
+    assert lce['prior-lifecycle-environment'] == ENVIRONMENT
+    assert lce['name'] == name
+    assert lce['description'] == desc
+    assert lce['label'] == label
+    assert lce['organization'] == org_name
 
-        LifecycleEnvironment.update({
-            'registry-name-pattern': registry_name_pattern,
+    # update
+    LifecycleEnvironment.update(
+        {
             'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        result = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertGreater(len(result), 0)
-        self.assertEqual(result['registry-name-pattern'], registry_name_pattern)
-
-    @tier1
-    def test_positive_update_unauthenticated_pull(self):
-        """Create lifecycle environment and then update registry's
-        unauthenticated pull
-
-        :id: 8b73e0b7-30c9-4211-87a4-53dc0b0f3e21
-
-        :expectedresults: Lifecycle environment registry's unauthenticated pull
-            is updated
-
-
-        :CaseImportance: Critical
-        """
-        lce = make_lifecycle_environment({
-            'organization-id': self.org['id'],
-        })
-
-        LifecycleEnvironment.update({
+            'new-name': new_name,
+            'description': new_desc,
             'registry-unauthenticated-pull': 'true',
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        result = LifecycleEnvironment.info({
-            'id': lce['id'],
-            'organization-id': self.org['id'],
-        })
-        self.assertGreater(len(result), 0)
-        self.assertEqual(result['unauthenticated-pull'], 'true')
+            'registry-name-pattern': registry_name_pattern,
+        }
+    )
+    lce = LifecycleEnvironment.info({'id': lce['id'], 'organization-id': module_org.id})
+    assert lce['name'] == new_name
+    assert lce['registry-name-pattern'] == registry_name_pattern
+    assert lce['unauthenticated-pull'] == 'true'
 
-    @tier1
-    def test_positve_list_paths(self):
-        """List the environment paths under a given organization
-
-        :id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
-
-        :expectedresults: Lifecycle environment paths listed
+    # delete
+    LifecycleEnvironment.delete({'id': lce['id']})
+    with pytest.raises(CLIReturnCodeError):
+        LifecycleEnvironment.info({'id': lce['id'], 'organization-id': module_org.id})
 
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        lc_env = make_lifecycle_environment({
-            'organization-id': org['id'],
-        })
-        # Add paths to lifecycle environments
-        result = LifecycleEnvironment.paths({
-            'organization-id': org['id'],
-            'permission-type': 'readable',
-        })
-        self.assertIn(
-            u'Library >> {0}'.format(lc_env['name']),
-            u''.join(result)
-        )
+@tier1
+def test_positive_create_with_organization_label(module_org):
+    """Create lifecycle environment, specifying organization label
+
+    :id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
+
+    :expectedresults: Lifecycle environment is created for correct
+        organization
 
 
-class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
+    :CaseImportance: Critical
+    """
+    new_lce = make_lifecycle_environment(
+        {'name': gen_string('alpha'), 'organization-label': module_org.label}
+    )
+    assert new_lce['organization'] == module_org.label
+
+
+@tier1
+def test_positve_list_paths(module_org):
+    """List the environment paths under a given organization
+
+    :id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
+
+    :expectedresults: Lifecycle environment paths listed
+
+
+    :CaseImportance: Critical
+    """
+    lc_env = make_lifecycle_environment({'organization-id': module_org.id})
+    # Add paths to lifecycle environments
+    result = LifecycleEnvironment.paths(
+        {'organization-id': module_org.id, 'permission-type': 'readable'}
+    )
+    assert f"Library >> {lc_env['name']}" in ''.join(result)
+
+
+class LifeCycleEnvironmentPaginationTestCase:
     """Test class for LifeCycle Environment pagination tests"""
 
     @classmethod
@@ -367,11 +194,9 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         cls.env_names = [last_env_name]
         for env_index in range(cls.lces_count):
             env_name = '{0}-{1}'.format(env_base_name, env_index)
-            make_lifecycle_environment({
-                'name': env_name,
-                'organization-id': cls.org['id'],
-                'prior': last_env_name
-            })
+            make_lifecycle_environment(
+                {'name': env_name, 'organization-id': cls.org['id'], 'prior': last_env_name}
+            )
             last_env_name = env_name
             cls.env_names.append(env_name)
 
@@ -391,14 +216,13 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         """
         per_page_count = self.lces_count + 5
 
-        lifecycle_environments = LifecycleEnvironment.list({
-            'organization-id': self.org['id'],
-            'per-page': per_page_count
-        })
+        lifecycle_environments = LifecycleEnvironment.list(
+            {'organization-id': self.org['id'], 'per-page': per_page_count}
+        )
 
-        self.assertEqual(len(lifecycle_environments), self.lces_count)
+        assert len(lifecycle_environments) == self.lces_count
         env_name_set = {env['name'] for env in lifecycle_environments}
-        self.assertEqual(env_name_set, set(self.env_names))
+        assert env_name_set == set(self.env_names)
 
     @tier2
     def test_positive_list_with_pagination(self):
@@ -416,21 +240,17 @@ class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
         """
         # Test different `per-page` values
         for per_page in (1, 5, 20):
+            # Verify the first page contains exactly the same items count
+            # as `per-page` value
             with self.subTest(per_page):
-                # Verify the first page contains exactly the same items count
-                # as `per-page` value
-                lces = LifecycleEnvironment.list({
-                    'organization-id': self.org['id'],
-                    'per-page': per_page,
-                })
-                self.assertEqual(len(lces), per_page)
+                lces = LifecycleEnvironment.list(
+                    {'organization-id': self.org['id'], 'per-page': per_page}
+                )
+                assert len(lces) == per_page
                 # Verify pagination and total amount of pages by checking the
                 # items count on the last page
                 last_page = ceil(self.lces_count / per_page)
-                lces = LifecycleEnvironment.list({
-                    'organization-id': self.org['id'],
-                    'page': last_page,
-                    'per-page': per_page,
-                })
-                self.assertEqual(
-                    len(lces), self.lces_count % per_page or per_page)
+                lces = LifecycleEnvironment.list(
+                    {'organization-id': self.org['id'], 'page': last_page, 'per-page': per_page}
+                )
+                assert len(lces) == self.lces_count % per_page or per_page

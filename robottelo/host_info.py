@@ -1,10 +1,14 @@
 """Module that gather several informations about host"""
 import functools
 import logging
+import os
 import re
-from robottelo.cli.base import CLIReturnCodeError
+
+from packaging.version import Version
 
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -16,9 +20,7 @@ def get_host_os_version():
     cmd = ssh.command('cat /etc/redhat-release')
     if cmd.stdout:
         version_description = cmd.stdout[0]
-        version_re = (
-            r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*)'
-        )
+        version_re = r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*)'
         result = re.search(version_re, version_description)
         if result:
             host_os_version = 'RHEL{}'.format(result.group('version'))
@@ -29,11 +31,9 @@ def get_host_os_version():
     return 'Not Available'
 
 
-_SAT_6_2_VERSION_COMMAND = u'rpm -q satellite'
+_SAT_6_2_VERSION_COMMAND = 'rpm -q satellite'
 
-_SAT_6_1_VERSION_COMMAND = (
-    u'grep "VERSION" /usr/share/foreman/lib/satellite/version.rb'
-)
+_SAT_6_1_VERSION_COMMAND = 'grep "VERSION" /usr/share/foreman/lib/satellite/version.rb'
 
 
 @functools.lru_cache(maxsize=1)
@@ -43,17 +43,14 @@ def get_host_sat_version():
     :rtype: version
     """
     commands = (
-        _extract_sat_version(c) for c in
-        (_SAT_6_2_VERSION_COMMAND, _SAT_6_1_VERSION_COMMAND)
+        _extract_sat_version(c) for c in (_SAT_6_2_VERSION_COMMAND, _SAT_6_1_VERSION_COMMAND)
     )
     for version, ssh_result in commands:
         if version != 'Not Available':
             LOGGER.debug('Host Satellite version: {}'.format(version))
             return version
 
-    LOGGER.warning(
-        'Host Satellite version not available: {!r}'.format(ssh_result)
-    )
+    LOGGER.warning('Host Satellite version not available: {!r}'.format(ssh_result))
     return version
 
 
@@ -67,9 +64,7 @@ def _extract_sat_version(ssh_cmd):
     ssh_result = ssh.command(ssh_cmd)
     if ssh_result.stdout:
         version_description = ssh_result.stdout[0]
-        version_re = (
-            r'[^\d]*(?P<version>\d(\.\d){1})'
-        )
+        version_re = r'[^\d]*(?P<version>\d(\.\d){1})'
         result = re.search(version_re, version_description)
         if result:
             host_sat_version = result.group('version')
@@ -92,15 +87,12 @@ def get_repo_files(repo_path, extension='rpm', hostname=None):
     if not repo_path.endswith('/'):
         repo_path += '/'
     result = ssh.command(
-        "find {} -name '*.{}' | awk -F/ '{{print $NF}}'"
-        .format(repo_path, extension),
+        "find {} -name '*.{}' | awk -F/ '{{print $NF}}'".format(repo_path, extension),
         hostname=hostname,
     )
     if result.return_code != 0:
         raise CLIReturnCodeError(
-            result.return_code,
-            result.stderr,
-            'No .{} found'.format(extension)
+            result.return_code, result.stderr, 'No .{} found'.format(extension)
         )
     # strip empty lines and sort alphabetically (as order may be wrong because
     # of different paths)
@@ -118,8 +110,7 @@ def get_repomd_revision(repo_path, hostname=None):
     """
     repomd_path = 'repodata/repomd.xml'
     result = ssh.command(
-        "grep -oP '(?<=<revision>).*?(?=</revision>)' {}/{}"
-        .format(repo_path, repomd_path),
+        "grep -oP '(?<=<revision>).*?(?=</revision>)' {}/{}".format(repo_path, repomd_path),
         hostname=hostname,
     )
     # strip empty lines
@@ -129,7 +120,7 @@ def get_repomd_revision(repo_path, hostname=None):
             result.return_code,
             result.stderr,
             'Unable to fetch revision for {}. Please double check your '
-            'hostname, path and contents of repomd.xml'.format(repo_path)
+            'hostname, path and contents of repomd.xml'.format(repo_path),
         )
     return stdout[0]
 
@@ -160,3 +151,10 @@ class SatVersionDependentValues(object):
             return self._versioned_values[sat_version][item]
         except KeyError:
             return self._common[item]
+
+
+def get_sat_version():
+    """Try to read sat_version from envvar SATELLITE_VERSION
+    if not available fallback to ssh connection to get it."""
+    sat_ver = os.environ.get('SATELLITE_VERSION') or get_host_sat_version()
+    return Version('9999' if 'nightly' in sat_ver else sat_ver)

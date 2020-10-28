@@ -22,18 +22,13 @@ from robottelo.api.utils import one_to_many_names
 from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    run_in_one_thread,
-    skip_if_bug_open,
-    skip_if_not_set,
-    tier1,
-    tier2,
-    upgrade
-)
-from robottelo.helpers import (
-    default_url_on_new_port,
-    get_available_capsule_port,
-)
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
+from robottelo.helpers import default_url_on_new_port
+from robottelo.helpers import get_available_capsule_port
 from robottelo.test import APITestCase
 
 
@@ -63,8 +58,7 @@ class CapsuleTestCase(APITestCase):
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
             entities.SmartProxy(url=gen_url(scheme='https')).create()
-        self.assertRegexpMatches(
-            context.exception.response.text, u'Unable to communicate')
+        self.assertRegexpMatches(context.exception.response.text, 'Unable to communicate')
 
     @skip_if_not_set('fake_capsules')
     @tier1
@@ -86,7 +80,6 @@ class CapsuleTestCase(APITestCase):
                     self.assertEquals(proxy.name, name)
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     @upgrade
     def test_positive_delete(self):
@@ -98,6 +91,7 @@ class CapsuleTestCase(APITestCase):
 
         :CaseLevel: Component
 
+        :BZ: 1398695
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -162,16 +156,14 @@ class CapsuleTestCase(APITestCase):
         :CaseLevel: Component
 
         """
-        organizations = [
-            entities.Organization().create() for _ in range(2)]
+        organizations = [entities.Organization().create() for _ in range(2)]
         newport = get_available_capsule_port()
         with default_url_on_new_port(9090, newport) as url:
             proxy = self._create_smart_proxy(url=url)
             proxy.organization = organizations
             proxy = proxy.update(['organization'])
             self.assertEqual(
-                {org.id for org in proxy.organization},
-                {org.id for org in organizations}
+                {org.id for org in proxy.organization}, {org.id for org in organizations}
             )
 
     @skip_if_not_set('fake_capsules')
@@ -192,10 +184,7 @@ class CapsuleTestCase(APITestCase):
             proxy = self._create_smart_proxy(url=url)
             proxy.location = locations
             proxy = proxy.update(['location'])
-            self.assertEqual(
-                {loc.id for loc in proxy.location},
-                {loc.id for loc in locations}
-            )
+            self.assertEqual({loc.id for loc in proxy.location}, {loc.id for loc in locations})
 
     @skip_if_not_set('fake_capsules')
     @tier2
@@ -221,7 +210,6 @@ class CapsuleTestCase(APITestCase):
             proxy.refresh()
 
     @skip_if_not_set('fake_capsules')
-    @skip_if_bug_open('bugzilla', 1398695)
     @tier2
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
@@ -232,6 +220,7 @@ class CapsuleTestCase(APITestCase):
 
         :CaseLevel: Integration
 
+        :BZ: 1398695
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -240,7 +229,7 @@ class CapsuleTestCase(APITestCase):
             self.assertEqual(
                 result['message'],
                 "Successfully updated environment and puppetclasses from "
-                "the on-disk puppet installation"
+                "the on-disk puppet installation",
             )
 
 
@@ -262,9 +251,9 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         existing smart proxy should always succeed.
         """
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
-        smart_proxy = entities.SmartProxy().search(query={
-            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })
+        smart_proxy = entities.SmartProxy().search(
+            query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
+        )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0, "No smart proxy is found"
         smart_proxy = smart_proxy[0]

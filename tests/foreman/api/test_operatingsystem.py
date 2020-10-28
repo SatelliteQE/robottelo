@@ -21,20 +21,20 @@ References for the relevant paths can be found on your Satellite:
 :Upstream: No
 """
 import random
+from http.client import NOT_FOUND
+
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
-from six.moves.http_client import NOT_FOUND
+from robottelo.utils.issue_handlers import is_open
 
 
 class OperatingSystemParameterTestCase(APITestCase):
@@ -53,11 +53,8 @@ class OperatingSystemParameterTestCase(APITestCase):
         """
         # Check whether OS 1 exists.
         os1 = entities.OperatingSystem(id=1).read_raw()
-        if (os1.status_code == NOT_FOUND and
-                entities.OperatingSystem().create().id != 1):
-            self.skipTest(
-                'Cannot execute test, as operating system 1 is not available.'
-            )
+        if os1.status_code == NOT_FOUND and entities.OperatingSystem().create().id != 1:
+            self.skipTest('Cannot execute test, as operating system 1 is not available.')
 
         # Create and read a parameter for operating system 1. The purpose of
         # this test is to make sure an HTTP 422 is not returned, but we're also
@@ -66,9 +63,7 @@ class OperatingSystemParameterTestCase(APITestCase):
         name = gen_string('utf8')
         value = gen_string('utf8')
         os_param = entities.OperatingSystemParameter(
-            name=name,
-            operatingsystem=1,
-            value=value,
+            name=name, operatingsystem=1, value=value
         ).create()
         self.assertEqual(os_param.name, name)
         self.assertEqual(os_param.value, value)
@@ -114,7 +109,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
-                if bz_bug_is_open(1709683):
+                if is_open('BZ:1709683'):
                     if os_family == 'Debian':
                         continue
                 os = entities.OperatingSystem(family=os_family).create()
@@ -136,8 +131,7 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(os.minor, minor_version)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1230902)
-    def test_verify_bugzilla_1230902(self):
+    def test_positive_read_minor_version_as_string(self):
         """Create an operating system with an integer minor version.
 
         :id: b45e0b94-62f7-45ff-a19e-83c7a0f51339
@@ -145,6 +139,8 @@ class OperatingSystemTestCase(APITestCase):
         :expectedresults: The minor version can be read back as a string.
 
         :CaseImportance: Critical
+
+        :BZ: 1230902
         """
         minor = int(gen_string('numeric', random.randint(1, 16)))
         operating_sys = entities.OperatingSystem(minor=minor).create()
@@ -164,8 +160,7 @@ class OperatingSystemTestCase(APITestCase):
         name = gen_string('utf8')
         for desc in valid_data_list():
             with self.subTest(desc):
-                os = entities.OperatingSystem(
-                    name=name, description=desc).create()
+                os = entities.OperatingSystem(name=name, description=desc).create()
                 self.assertEqual(os.name, name)
                 self.assertEqual(os.description, desc)
 
@@ -218,8 +213,7 @@ class OperatingSystemTestCase(APITestCase):
         operating_sys = entities.OperatingSystem(architecture=archs).create()
         self.assertEqual(len(operating_sys.architecture), len(amount))
         self.assertEqual(
-            set([arch.id for arch in operating_sys.architecture]),
-            set([arch.id for arch in archs])
+            set([arch.id for arch in operating_sys.architecture]), set([arch.id for arch in archs])
         )
 
     @tier2
@@ -256,7 +250,7 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(len(operating_sys.ptable), len(amount))
         self.assertEqual(
             set([ptable.id for ptable in operating_sys.ptable]),
-            set([ptable.id for ptable in ptables])
+            set([ptable.id for ptable in ptables]),
         )
 
     @tier2
@@ -277,20 +271,19 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_template(self):
-        """Create an operating system that points at a config template.
+        """Create an operating system that points at a provisioning template.
 
         :id: df73ecba-5a1c-4201-9c2f-b2e03e8fec25
 
         :expectedresults: The operating system is created and points at the
-            expected config template.
+            expected provisioning template.
 
         :CaseLevel: Integration
         """
-        template = entities.ConfigTemplate(organization=[self.org]).create()
-        operating_sys = entities.OperatingSystem(
-            config_template=[template]).create()
-        self.assertEqual(len(operating_sys.config_template), 1)
-        self.assertEqual(operating_sys.config_template[0].id, template.id)
+        template = entities.ProvisioningTemplate(organization=[self.org]).create()
+        operating_sys = entities.OperatingSystem(provisioning_template=[template]).create()
+        self.assertEqual(len(operating_sys.provisioning_template), 1)
+        self.assertEqual(operating_sys.provisioning_template[0].id, template.id)
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -323,7 +316,6 @@ class OperatingSystemTestCase(APITestCase):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1328935)
     def test_negative_create_with_too_long_description(self):
         """Try to create operating system entity providing too long
         description value
@@ -337,8 +329,7 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
-            entities.OperatingSystem(
-                description=gen_string('alphanumeric', 256)).create()
+            entities.OperatingSystem(description=gen_string('alphanumeric', 256)).create()
 
     @tier1
     def test_negative_create_with_invalid_major_version(self):
@@ -418,8 +409,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem().create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
-                os = entities.OperatingSystem(
-                    id=os.id, name=new_name).update(['name'])
+                os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
                 self.assertEqual(os.name, new_name)
 
     @tier1
@@ -437,8 +427,9 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(description=gen_string('utf8')).create()
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
-                os = entities.OperatingSystem(
-                    id=os.id, description=new_desc).update(['description'])
+                os = entities.OperatingSystem(id=os.id, description=new_desc).update(
+                    ['description']
+                )
                 self.assertEqual(os.description, new_desc)
 
     @tier1
@@ -455,8 +446,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         os = entities.OperatingSystem().create()
         new_major_version = gen_string('numeric', 5)
-        os = entities.OperatingSystem(
-            id=os.id, major=new_major_version).update(['major'])
+        os = entities.OperatingSystem(id=os.id, major=new_major_version).update(['major'])
         self.assertEqual(os.major, new_major_version)
 
     @tier1
@@ -473,8 +463,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         new_minor_version = gen_string('numeric')
-        os = entities.OperatingSystem(
-            id=os.id, minor=new_minor_version).update(['minor'])
+        os = entities.OperatingSystem(id=os.id, minor=new_minor_version).update(['minor'])
         self.assertEqual(os.minor, new_minor_version)
 
     @tier1
@@ -490,10 +479,8 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
-        new_os_family = OPERATING_SYSTEMS[
-            random.randint(1, len(OPERATING_SYSTEMS)-1)]
-        os = entities.OperatingSystem(
-            id=os.id, family=new_os_family).update(['family'])
+        new_os_family = OPERATING_SYSTEMS[random.randint(1, len(OPERATING_SYSTEMS) - 1)]
+        os = entities.OperatingSystem(id=os.id, family=new_os_family).update(['family'])
         self.assertEqual(os.family, new_os_family)
 
     @tier2
@@ -514,8 +501,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(architecture=[arch_1]).create()
         self.assertEqual(len(os.architecture), 1)
         self.assertEqual(os.architecture[0].id, arch_1.id)
-        os = entities.OperatingSystem(
-            id=os.id, architecture=[arch_2]).update(['architecture'])
+        os = entities.OperatingSystem(id=os.id, architecture=[arch_2]).update(['architecture'])
         self.assertEqual(len(os.architecture), 1)
         self.assertEqual(os.architecture[0].id, arch_2.id)
 
@@ -536,8 +522,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(ptable=[ptable_1]).create()
         self.assertEqual(len(os.ptable), 1)
         self.assertEqual(os.ptable[0].id, ptable_1.id)
-        os = entities.OperatingSystem(
-            id=os.id, ptable=[ptable_2]).update(['ptable'])
+        os = entities.OperatingSystem(id=os.id, ptable=[ptable_2]).update(['ptable'])
         self.assertEqual(len(os.ptable), 1)
         self.assertEqual(os.ptable[0].id, ptable_2.id)
 
@@ -558,8 +543,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(medium=[media_1]).create()
         self.assertEqual(len(os.medium), 1)
         self.assertEqual(os.medium[0].id, media_1.id)
-        os = entities.OperatingSystem(
-            id=os.id, medium=[media_2]).update(['medium'])
+        os = entities.OperatingSystem(id=os.id, medium=[media_2]).update(['medium'])
         self.assertEqual(len(os.medium), 1)
         self.assertEqual(os.medium[0].id, media_2.id)
 
@@ -582,36 +566,35 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(os.medium[0].id, initial_media.id)
         amount = range(random.randint(3, 5))
         medias = [entities.Media().create() for _ in amount]
-        os = entities.OperatingSystem(
-            id=os.id, medium=medias).update(['medium'])
+        os = entities.OperatingSystem(id=os.id, medium=medias).update(['medium'])
         self.assertEqual(len(os.medium), len(amount))
         self.assertEqual(
-            set([medium.id for medium in os.medium]),
-            set([medium.id for medium in medias])
+            set([medium.id for medium in os.medium]), set([medium.id for medium in medias])
         )
 
     @tier2
     @upgrade
     def test_positive_update_template(self):
-        """Create an operating system that points at config template and
+        """Create an operating system that points at provisioning template and
         then update it to point to another template
 
         :id: 02125a7a-905a-492a-a49b-768adf4ac00c
 
         :expectedresults: The operating system is updated and points at the
-            expected config template.
+            expected provisioning template.
 
         :CaseLevel: Integration
         """
-        template_1 = entities.ConfigTemplate(organization=[self.org]).create()
-        template_2 = entities.ConfigTemplate(organization=[self.org]).create()
-        os = entities.OperatingSystem(config_template=[template_1]).create()
-        self.assertEqual(len(os.config_template), 1)
-        self.assertEqual(os.config_template[0].id, template_1.id)
-        os = entities.OperatingSystem(
-            id=os.id, config_template=[template_2]).update(['config_template'])
-        self.assertEqual(len(os.config_template), 1)
-        self.assertEqual(os.config_template[0].id, template_2.id)
+        template_1 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        template_2 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        os = entities.OperatingSystem(provisioning_template=[template_1]).create()
+        self.assertEqual(len(os.provisioning_template), 1)
+        self.assertEqual(os.provisioning_template[0].id, template_1.id)
+        os = entities.OperatingSystem(id=os.id, provisioning_template=[template_2]).update(
+            ['provisioning_template']
+        )
+        self.assertEqual(len(os.provisioning_template), 1)
+        self.assertEqual(os.provisioning_template[0].id, template_2.id)
 
     @tier1
     def test_negative_update_name(self):
@@ -628,8 +611,7 @@ class OperatingSystemTestCase(APITestCase):
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(HTTPError):
-                    os = entities.OperatingSystem(
-                        id=os.id, name=new_name).update(['name'])
+                    os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
 
     @tier1
     def test_negative_update_major_version(self):
@@ -659,8 +641,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         with self.assertRaises(HTTPError):
-            entities.OperatingSystem(
-                id=os.id, minor='INVALID_VERSION').update(['minor'])
+            entities.OperatingSystem(id=os.id, minor='INVALID_VERSION').update(['minor'])
 
     @tier1
     def test_negative_update_os_family(self):
@@ -675,8 +656,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         with self.assertRaises(HTTPError):
-            entities.OperatingSystem(
-                id=os.id, family='NON_EXISTENT_OS').update(['family'])
+            entities.OperatingSystem(id=os.id, family='NON_EXISTENT_OS').update(['family'])
 
     @tier1
     @upgrade

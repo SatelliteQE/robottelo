@@ -17,30 +17,25 @@
 """
 import random
 
-from fauxfactory import gen_alphanumeric, gen_choice, gen_string
+from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_choice
+from fauxfactory import gen_string
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveryrule import DiscoveryRule
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_discoveryrule,
-    make_hostgroup,
-    make_location,
-    make_org,
-    make_user,
-)
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_discoveryrule
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_location
+from robottelo.cli.factory import make_org
+from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
-from robottelo.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    valid_data_list,
-)
-from robottelo.decorators import (
-    bz_bug_is_open,
-    skip_if_bug_open,
-    tier1,
-    tier2,
-    tier3
-)
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
 from robottelo.test import CLITestCase
 
 
@@ -53,10 +48,9 @@ class DiscoveryRuleTestCase(CLITestCase):
         super(DiscoveryRuleTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
-        cls.hostgroup = make_hostgroup({
-            u'organization-ids': cls.org['id'],
-            u'location-ids': cls.loc['id'],
-        })
+        cls.hostgroup = make_hostgroup(
+            {'organization-ids': cls.org['id'], 'location-ids': cls.loc['id']}
+        )
 
     def _make_discoveryrule(self, options=None):
         """Makes a new discovery rule and asserts its success"""
@@ -74,20 +68,14 @@ class DiscoveryRuleTestCase(CLITestCase):
             'facts.architecture != x86_64',
         ]
 
-        if not any(options.get(key) for key in [
-            'organizations', 'organization-ids'
-        ]):
-            if bz_bug_is_open(1523221):
-                options[u'organizations'] = self.org['name']
-            options[u'organization-ids'] = self.org['id']
+        if not any(options.get(key) for key in ['organizations', 'organization-ids']):
+            options['organization-ids'] = self.org['id']
         if not any(options.get(key) for key in ['locations', 'locations-ids']):
-            if bz_bug_is_open(1523221):
-                options[u'locations'] = self.loc['name']
-            options[u'location-ids'] = self.loc['id']
+            options['location-ids'] = self.loc['id']
         if not any(options.get(key) for key in ['hostgroup', 'hostgroup-ids']):
-            options[u'hostgroup-id'] = self.hostgroup['id']
+            options['hostgroup-id'] = self.hostgroup['id']
         if options.get('search') is None:
-            options[u'search'] = gen_choice(searches)
+            options['search'] = gen_choice(searches)
 
         return make_discoveryrule(options)
 
@@ -102,7 +90,6 @@ class DiscoveryRuleTestCase(CLITestCase):
             {'name': gen_string('latin1')},
             {'name': gen_string('numeric')},
             {'name': gen_string('utf8')},
-            {'name': gen_string('html'), 'bugzilla': 1378427},
             {'name': '$#@!*'},
             {'name': '" "'},
             {'name': '-1'},
@@ -120,7 +107,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                rule = self._make_discoveryrule({u'name': name})
+                rule = self._make_discoveryrule({'name': name})
                 self.assertEqual(rule['name'], name)
 
     @tier1
@@ -135,7 +122,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         search_query = 'cpu_count = 2'
-        rule = self._make_discoveryrule({u'search': search_query})
+        rule = self._make_discoveryrule({'search': search_query})
         self.assertEqual(rule['search'], search_query)
 
     @tier2
@@ -150,10 +137,9 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseLevel: Component
         """
         host_name = 'myhost'
-        rule = self._make_discoveryrule({u'hostname': host_name})
+        rule = self._make_discoveryrule({'hostname': host_name})
         self.assertEqual(rule['hostname-template'], host_name)
 
-    @skip_if_bug_open('bugzilla', 1523221)
     @tier1
     def test_positive_create_with_org_loc_id(self):
         """Create discovery rule by associating org and location ids
@@ -166,11 +152,13 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        rule = self._make_discoveryrule({
-            'hostgroup-id': self.hostgroup['id'],
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
-        })
+        rule = self._make_discoveryrule(
+            {
+                'hostgroup-id': self.hostgroup['id'],
+                'organization-ids': self.org['id'],
+                'location-ids': self.loc['id'],
+            }
+        )
         self.assertIn(self.org['name'], rule['organizations'])
         self.assertIn(self.loc['name'], rule['locations'])
 
@@ -184,11 +172,13 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :BZ: 1377990
         """
-        rule = self._make_discoveryrule({
-            u'hostgroup-id': self.hostgroup['id'],
-            u'organizations': self.org['name'],
-            u'locations': self.loc['name'],
-        })
+        rule = self._make_discoveryrule(
+            {
+                'hostgroup-id': self.hostgroup['id'],
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+            }
+        )
         self.assertIn(self.org['name'], rule['organizations'])
         self.assertIn(self.loc['name'], rule['locations'])
 
@@ -205,7 +195,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseLevel: Component
         """
         hosts_limit = '5'
-        rule = self._make_discoveryrule({u'hosts-limit': hosts_limit})
+        rule = self._make_discoveryrule({'hosts-limit': hosts_limit})
         self.assertEqual(rule['hosts-limit'], hosts_limit)
 
     @tier1
@@ -221,7 +211,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseLevel: Component
         """
         max_count = '10'
-        rule = self._make_discoveryrule({u'max-count': max_count})
+        rule = self._make_discoveryrule({'max-count': max_count})
         self.assertEqual(rule['hosts-limit'], max_count)
 
     @tier1
@@ -236,10 +226,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - set(
-            [r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
         rule_priority = random.sample(available, 1)
-        rule = self._make_discoveryrule({u'priority': rule_priority[0]})
+        rule = self._make_discoveryrule({'priority': rule_priority[0]})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
 
     @tier2
@@ -252,7 +241,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        rule = self._make_discoveryrule({u'enabled': 'false'})
+        rule = self._make_discoveryrule({'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
 
     @tier3
@@ -283,14 +272,13 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Medium
 
         :CaseLevel: Component
+
+        :BZ: 1378427
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
-                bug_id = name.pop('bugzilla', None)
-                if bug_id is not None and bz_bug_is_open(bug_id):
-                    self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
                 with self.assertRaises(CLIFactoryError):
-                    self._make_discoveryrule({u'hostname': name})
+                    self._make_discoveryrule({'hostname': name})
 
     @tier3
     def test_negative_create_with_too_long_limit(self):
@@ -304,7 +292,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         with self.assertRaises(CLIFactoryError):
-            self._make_discoveryrule({u'hosts-limit': '9999999999'})
+            self._make_discoveryrule({'hosts-limit': '9999999999'})
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -317,9 +305,9 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         name = gen_string('alpha')
-        self._make_discoveryrule({u'name': name})
+        self._make_discoveryrule({'name': name})
         with self.assertRaises(CLIFactoryError):
-            self._make_discoveryrule({u'name': name})
+            self._make_discoveryrule({'name': name})
 
     @tier1
     def test_positive_delete(self):
@@ -332,9 +320,9 @@ class DiscoveryRuleTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
-        DiscoveryRule.delete({u'id': rule['id']})
+        DiscoveryRule.delete({'id': rule['id']})
         with self.assertRaises(CLIReturnCodeError):
-            DiscoveryRule.info({u'id': rule['id']})
+            DiscoveryRule.info({'id': rule['id']})
 
     @tier3
     def test_positive_update_name(self):
@@ -368,17 +356,18 @@ class DiscoveryRuleTestCase(CLITestCase):
         """
         new_org = make_org()
         new_loc = make_location()
-        new_hostgroup = make_hostgroup({
-            'organization-ids': new_org['id'],
-            'location-ids': new_loc['id'],
-        })
+        new_hostgroup = make_hostgroup(
+            {'organization-ids': new_org['id'], 'location-ids': new_loc['id']}
+        )
         rule = self._make_discoveryrule()
-        DiscoveryRule.update({
-            'id': rule['id'],
-            'organization-ids': new_org['id'],
-            'location-ids': new_loc['id'],
-            'hostgroup-id': new_hostgroup['id'],
-        })
+        DiscoveryRule.update(
+            {
+                'id': rule['id'],
+                'organization-ids': new_org['id'],
+                'location-ids': new_loc['id'],
+                'hostgroup-id': new_hostgroup['id'],
+            }
+        )
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertIn(new_org['name'], rule['organizations'])
         self.assertIn(new_loc['name'], rule['locations'])
@@ -400,17 +389,18 @@ class DiscoveryRuleTestCase(CLITestCase):
         """
         new_org = make_org()
         new_loc = make_location()
-        new_hostgroup = make_hostgroup({
-            'organization-ids': new_org['id'],
-            'location-ids': new_loc['id'],
-        })
+        new_hostgroup = make_hostgroup(
+            {'organization-ids': new_org['id'], 'location-ids': new_loc['id']}
+        )
         rule = self._make_discoveryrule()
-        DiscoveryRule.update({
-            'id': rule['id'],
-            'organizations': new_org['name'],
-            'locations': new_loc['name'],
-            'hostgroup-id': new_hostgroup['id'],
-        })
+        DiscoveryRule.update(
+            {
+                'id': rule['id'],
+                'organizations': new_org['name'],
+                'locations': new_loc['name'],
+                'hostgroup-id': new_hostgroup['id'],
+            }
+        )
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertIn(new_org['name'], rule['organizations'])
         self.assertIn(new_loc['name'], rule['locations'])
@@ -441,12 +431,9 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        new_hostgroup = make_hostgroup({u'organization-ids': self.org['id']})
+        new_hostgroup = make_hostgroup({'organization-ids': self.org['id']})
         rule = self._make_discoveryrule()
-        DiscoveryRule.update({
-            'id': rule['id'],
-            'hostgroup': new_hostgroup['name']
-        })
+        DiscoveryRule.update({'id': rule['id'], 'hostgroup': new_hostgroup['name']})
         rule = DiscoveryRule.info({'id': rule['id']})
         self.assertEqual(rule['host-group'], new_hostgroup['name'])
 
@@ -476,7 +463,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseLevel: Component
         """
-        rule = self._make_discoveryrule({u'hosts-limit': '5'})
+        rule = self._make_discoveryrule({'hosts-limit': '5'})
         new_limit = '10'
         DiscoveryRule.update({'id': rule['id'], 'hosts-limit': new_limit})
         rule = DiscoveryRule.info({'id': rule['id']})
@@ -492,13 +479,11 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        available = set(range(1, 1000)) - set(
-            [r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
         rule_priority = random.sample(available, 1)
-        rule = self._make_discoveryrule({u'priority': rule_priority[0]})
+        rule = self._make_discoveryrule({'priority': rule_priority[0]})
         self.assertEqual(rule['priority'], str(rule_priority[0]))
-        available = set(range(1, 1000)) - set(
-            [r['priority'] for r in DiscoveryRule.list()])
+        available = set(range(1, 1000)) - set([r['priority'] for r in DiscoveryRule.list()])
         rule_priority = random.sample(available, 1)
         DiscoveryRule.update({'id': rule['id'], 'priority': rule_priority[0]})
         rule = DiscoveryRule.info({'id': rule['id']})
@@ -514,7 +499,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        rule = self._make_discoveryrule({u'enabled': 'false'})
+        rule = self._make_discoveryrule({'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
         DiscoveryRule.update({'id': rule['id'], 'enabled': 'true'})
         rule = DiscoveryRule.info({'id': rule['id']})
@@ -598,31 +583,28 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         super(DiscoveryRuleRoleTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.loc = make_location()
-        cls.hostgroup = make_hostgroup({
-            u'organization-ids': cls.org['id'],
-            u'location-ids': cls.loc['id'],
-        })
+        cls.hostgroup = make_hostgroup(
+            {'organization-ids': cls.org['id'], 'location-ids': cls.loc['id']}
+        )
         cls.password = gen_alphanumeric()
-        cls.user = make_user({
-            'organization-ids': cls.org['id'],
-            'location-ids': cls.loc['id'],
-            'password': cls.password,
-        })
+        cls.user = make_user(
+            {
+                'organization-ids': cls.org['id'],
+                'location-ids': cls.loc['id'],
+                'password': cls.password,
+            }
+        )
         cls.user['password'] = cls.password
-        User.add_role({
-            'login': cls.user['login'],
-            'role': 'Discovery Manager',
-        })
-        cls.user_reader = make_user({
-            'organization-ids': cls.org['id'],
-            'location-ids': cls.loc['id'],
-            'password': cls.password,
-        })
+        User.add_role({'login': cls.user['login'], 'role': 'Discovery Manager'})
+        cls.user_reader = make_user(
+            {
+                'organization-ids': cls.org['id'],
+                'location-ids': cls.loc['id'],
+                'password': cls.password,
+            }
+        )
         cls.user_reader['password'] = cls.password
-        User.add_role({
-            'login': cls.user_reader['login'],
-            'role': 'Discovery Reader',
-        })
+        User.add_role({'login': cls.user_reader['login'], 'role': 'Discovery Reader'})
 
     @tier2
     def test_positive_create_rule_with_non_admin_user(self):
@@ -635,20 +617,18 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = DiscoveryRule.with_user(
-            self.user['login'],
-            self.user['password']
-        ).create({
-            'name': rule_name,
-            'search': 'cpu_count = 5',
-            'organizations': self.org['name'],
-            'locations': self.loc['name'],
-            'hostgroup-id': self.hostgroup['id'],
-        })
-        rule = DiscoveryRule.with_user(
-            self.user['login'],
-            self.user['password']
-        ).info({u'id': rule['id']})
+        rule = DiscoveryRule.with_user(self.user['login'], self.user['password']).create(
+            {
+                'name': rule_name,
+                'search': 'cpu_count = 5',
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+                'hostgroup-id': self.hostgroup['id'],
+            }
+        )
+        rule = DiscoveryRule.with_user(self.user['login'], self.user['password']).info(
+            {'id': rule['id']}
+        )
         self.assertEqual(rule['name'], rule_name)
 
     @tier2
@@ -662,26 +642,23 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = DiscoveryRule.with_user(
-            self.user['login'],
-            self.user['password']
-        ).create({
-            'name': rule_name,
-            'search': 'cpu_count = 5',
-            'organizations': self.org['name'],
-            'locations': self.loc['name'],
-            'hostgroup-id': self.hostgroup['id'],
-        })
-        rule = DiscoveryRule.with_user(
-            self.user['login'],
-            self.user['password']
-        ).info({u'id': rule['id']})
-        DiscoveryRule.with_user(
-            self.user['login'],
-            self.user['password'],
-        ).delete({u'id': rule['id']})
+        rule = DiscoveryRule.with_user(self.user['login'], self.user['password']).create(
+            {
+                'name': rule_name,
+                'search': 'cpu_count = 5',
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+                'hostgroup-id': self.hostgroup['id'],
+            }
+        )
+        rule = DiscoveryRule.with_user(self.user['login'], self.user['password']).info(
+            {'id': rule['id']}
+        )
+        DiscoveryRule.with_user(self.user['login'], self.user['password']).delete(
+            {'id': rule['id']}
+        )
         with self.assertRaises(CLIReturnCodeError):
-            DiscoveryRule.info({u'id': rule['id']})
+            DiscoveryRule.info({'id': rule['id']})
 
     @tier2
     def test_positive_view_existing_rule_with_non_admin_user(self):
@@ -701,18 +678,19 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        rule = make_discoveryrule({
-            'name': rule_name,
-            'enabled': 'false',
-            'search': "last_report = Today",
-            'organizations': self.org['name'],
-            'locations': self.loc['name'],
-            'hostgroup-id': self.hostgroup['id'],
-        })
+        rule = make_discoveryrule(
+            {
+                'name': rule_name,
+                'enabled': 'false',
+                'search': "last_report = Today",
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+                'hostgroup-id': self.hostgroup['id'],
+            }
+        )
         rule = DiscoveryRule.with_user(
-            self.user_reader['login'],
-            self.user_reader['password']
-        ).info({u'id': rule['id']})
+            self.user_reader['login'], self.user_reader['password']
+        ).info({'id': rule['id']})
         self.assertEqual(rule['name'], rule_name)
 
     @tier2
@@ -726,19 +704,19 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        rule = make_discoveryrule({
-            'enabled': 'false',
-            'search': "last_report = Today",
-            'organizations': self.org['name'],
-            'locations': self.loc['name'],
-            'hostgroup-id': self.hostgroup['id'],
-        })
+        rule = make_discoveryrule(
+            {
+                'enabled': 'false',
+                'search': "last_report = Today",
+                'organizations': self.org['name'],
+                'locations': self.loc['name'],
+                'hostgroup-id': self.hostgroup['id'],
+            }
+        )
         rule = DiscoveryRule.with_user(
-            self.user_reader['login'],
-            self.user_reader['password']
-        ).info({u'id': rule['id']})
+            self.user_reader['login'], self.user_reader['password']
+        ).info({'id': rule['id']})
         with self.assertRaises(CLIReturnCodeError):
             DiscoveryRule.with_user(
-                self.user_reader['login'],
-                self.user_reader['password']
-            ).delete({u'id': rule['id']})
+                self.user_reader['login'], self.user_reader['password']
+            ).delete({'id': rule['id']})

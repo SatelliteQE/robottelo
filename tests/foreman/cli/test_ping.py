@@ -15,9 +15,9 @@
 :Upstream: No
 """
 from robottelo import ssh
-from robottelo.decorators import tier1, upgrade
+from robottelo.decorators import tier1
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
-from six.moves import zip
 
 
 class PingTestCase(CLITestCase):
@@ -39,14 +39,15 @@ class PingTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        result = ssh.command('hammer -u {0} -p {1} ping'.format(
-            self.foreman_user,
-            self.foreman_password
-        ))
+        result = ssh.command(
+            'hammer -u {0} -p {1} ping'.format(self.foreman_user, self.foreman_password)
+        )
         self.assertEqual(len(result.stderr), 0)
 
         status_count = 0
         ok_count = 0
+        # Exclude message from stdout for services candlepin_events and katello_events
+        result.stdout = [line for line in result.stdout if "message" not in line]
 
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
@@ -59,9 +60,9 @@ class PingTestCase(CLITestCase):
 
         if status_count == ok_count:
             self.assertEqual(
-                result.return_code, 0,
-                'Return code should be 0 if all services are ok')
+                result.return_code, 0, 'Return code should be 0 if all services are ok'
+            )
         else:
             self.assertNotEqual(
-                result.return_code, 0,
-                'Return code should not be 0 if any service is not ok')
+                result.return_code, 0, 'Return code should not be 0 if any service is not ok'
+            )

@@ -5,22 +5,20 @@ import logging
 import os
 import random
 import re
-import requests
-
 from tempfile import mkstemp
+from urllib.parse import urljoin  # noqa
+
+import requests
 from nailgun.config import ServerConfig
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import (
-    PULP_PUBLISHED_YUM_REPOS_PATH,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
-)
-from robottelo.decorators import bz_bug_is_open
-
-from urllib.parse import urljoin  # noqa
+from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.errors import GCECertNotFoundError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +33,7 @@ class HostInfoError(Exception):
 
 class ProvisioningCheckError(Exception):
     """Indicates any issue when provisioning a host."""
+
     pass
 
 
@@ -88,12 +87,13 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     with given file_name on host specified by hostname. Leave hostname as None
     to download file on the localhost.If remote directory is not specified it
     downloads file to /tmp/.
+
     :param str file_url: The complete server file path from where the
         file will be downloaded.
     :param str local_path: Name of directory where file will be saved. If not
-    provided file will be saved in /tmp/ directory.
+        provided file will be saved in /tmp/ directory.
     :param str file_name: Name of the file to be saved with. If not provided filename
-    from url will be used.
+        from url will be used.
     :param str hostname: Hostname of server where the file need to be downloaded.
     :returns: Returns list containing complete file path and name of downloaded file.
     """
@@ -113,8 +113,9 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
             raise DownloadFileError('Unable to download {}'.format(file_name))
     # download on any server.
     else:
-        result = ssh.command('wget -O {}{} {}'.format(
-            local_path, file_name, file_url), hostname=hostname)
+        result = ssh.command(
+            'wget -O {}{} {}'.format(local_path, file_name, file_url), hostname=hostname
+        )
         if result.return_code != 0:
             raise DownloadFileError('Unable to download {}'.format(file_name))
     return ['{}{}'.format(local_path, file_name), file_name]
@@ -141,10 +142,11 @@ def get_server_version():
     :return: Either a string containing the Satellite version or
         ``None`` if the version.rb file is not present.
     """
-    result = ''.join(ssh.command(
-        "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | "
-        "awk '{print $3}'"
-    ).stdout)
+    result = ''.join(
+        ssh.command(
+            "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | awk '{print $3}'"
+        ).stdout
+    )
     result = result.replace('"', '').strip()
     if len(result) == 0:
         return None
@@ -162,42 +164,36 @@ def get_host_info(hostname=None):
     """
     result = ssh.command('cat /etc/redhat-release', hostname)
     if result.return_code != 0:
-        raise HostInfoError('Not able to cat /etc/redhat-release "{0}"'.format(
-            result.stderr
-        ))
-    match = re.match(
-        r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?',
-        result.stdout[0],
-    )
+        raise HostInfoError('Not able to cat /etc/redhat-release "{0}"'.format(result.stderr))
+    match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout[0])
     if match is None:
-        raise HostInfoError(
-            u'Not able to parse release string "{0}"'.format(result.stdout[0]))
+        raise HostInfoError('Not able to parse release string "{0}"'.format(result.stdout[0]))
     groups = match.groupdict()
     return (
         groups['distro'],
         int(groups['major']),
-        groups['minor'] if groups['minor'] is None else int(groups['minor'])
+        groups['minor'] if groups['minor'] is None else int(groups['minor']),
     )
 
 
-def get_nailgun_config():
+def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 
-    :return: A ``nailgun.config.ServerConfig`` object, populated with values
-        from ``robottelo.config.settings``.
+    :param user: The ```nailgun.entities.User``` object of an user with additional passwd
+        property/attribute
+
+    :return: ``nailgun.config.ServerConfig`` object, populated from user parameter object else
+        with values from ``robottelo.config.settings``
 
     """
-    return ServerConfig(
-        settings.server.get_url(),
-        settings.server.get_credentials(),
-        verify=False,
-    )
+    creds = (user.login, user.passwd) if user else settings.server.get_credentials()
+    return ServerConfig(settings.server.get_url(), creds, verify=False)
 
 
 def escape_search(term):
     """Wraps a search term in " and escape term's " and \\ characters"""
     strip_term = term.strip()
-    return u'"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
+    return '"%s"' % strip_term.replace('\\', '\\\\').replace('"', '\\"')
 
 
 def update_dictionary(default, updates):
@@ -222,14 +218,12 @@ def update_dictionary(default, updates):
 
 def get_data_file(filename):
     """Returns correct path of file from data folder."""
-    path = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), os.pardir))
+    path = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
     data_file = os.path.join(path, "tests", "foreman", "data", filename)
     if os.path.isfile(data_file):
         return data_file
     else:
-        raise DataFileError(
-            'Could not locate the data file "{0}"'.format(data_file))
+        raise DataFileError('Could not locate the data file "{0}"'.format(data_file))
 
 
 def read_data_file(filename):
@@ -250,16 +244,11 @@ def install_katello_ca(hostname=None):
     :raises: AssertionError: If katello-ca wasn't installed.
 
     """
-    ssh.command(
-        u'rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()),
-        hostname
-    )
+    ssh.command('rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()), hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
     result = ssh.command(
-        u'rpm -q katello-ca-consumer-{0}'
-        .format(settings.server.hostname),
-        hostname
+        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
     )
     # Checking the return_code here to verify katello-ca rpm is actually
     # present in the system
@@ -278,16 +267,11 @@ def remove_katello_ca(hostname=None):
     """
     # Not checking the return_code here, as rpm can be not even installed
     # and deleting may fail
-    ssh.command(
-        'yum erase -y $(rpm -qa |grep katello-ca-consumer)',
-        hostname
-    )
+    ssh.command('yum erase -y $(rpm -qa |grep katello-ca-consumer)', hostname)
     # Checking the return_code here to verify katello-ca rpm is actually
     # not present in the system
     result = ssh.command(
-        'rpm -q katello-ca-consumer-{0}'
-        .format(settings.server.hostname),
-        hostname
+        'rpm -q katello-ca-consumer-{0}'.format(settings.server.hostname), hostname
     )
     if result.return_code == 0:
         raise AssertionError('Failed to remove the katello-ca rpm')
@@ -299,10 +283,7 @@ def remove_katello_ca(hostname=None):
         's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
     ]
     for command in rhsm_updates:
-        result = ssh.command(
-            'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command),
-            hostname
-        )
+        result = ssh.command('sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command), hostname)
         if result.return_code != 0:
             raise AssertionError('Failed to reset the rhsm.conf')
 
@@ -321,18 +302,15 @@ def md5_by_url(url, hostname=None):
     """
     filename = url.split('/')[-1]
     result = ssh.command(
-        'wget -qO - {} | tee {} | md5sum | awk \'{{print $1}}\''.format(
-            url, filename),
-        hostname=hostname
+        'wget -qO - {} | tee {} | md5sum | awk \'{{print $1}}\''.format(url, filename),
+        hostname=hostname,
     )
     if result.return_code != 0:
-        raise AssertionError(
-            'Failed to calculate md5 checksum of {}'.format(filename))
+        raise AssertionError('Failed to calculate md5 checksum of {}'.format(filename))
     return result.stdout[0]
 
 
-def add_remote_execution_ssh_key(hostname, key_path=None,
-                                 proxy_hostname=None, **kwargs):
+def add_remote_execution_ssh_key(hostname, key_path=None, proxy_hostname=None, **kwargs):
     """Add remote execution keys to the client
 
     :param str proxy_hostname: external capsule hostname
@@ -344,8 +322,9 @@ def add_remote_execution_ssh_key(hostname, key_path=None,
     # get satellite box ssh-key or defaults to foreman-proxy
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
-    server_key = ssh.command(cmd='cat %s' % key_path, output_format='plain',
-                             hostname=proxy_hostname).stdout
+    server_key = ssh.command(
+        cmd='cat %s' % key_path, output_format='base', hostname=proxy_hostname
+    ).stdout
     # Sometimes stdout contains extra empty string. Skipping it
     if isinstance(server_key, list):
         server_key = server_key[0]
@@ -375,38 +354,32 @@ def get_available_capsule_port(port_pool=None):
         else:
             raise TypeError(
                 '''Expected type of port_range is a tuple of 2 elements,
-                got {0} instead'''
-                .format(type(port_pool_range))
+                got {0} instead'''.format(
+                    type(port_pool_range)
+                )
             )
     # returns a list of strings
     fuser_cmd = ssh.command(
-        'fuser -n tcp {{{0}..{1}}} 2>&1 | awk -F/ \'{{print$1}}\''
-        .format(port_pool[0], port_pool[-1])
+        'fuser -n tcp {{{0}..{1}}} 2>&1 | awk -F/ \'{{print$1}}\''.format(
+            port_pool[0], port_pool[-1]
+        )
     )
     if fuser_cmd.stderr:
         raise CapsuleTunnelError(
-            'Failed to create ssh tunnel: Error getting port status: {0}'
-            .format(fuser_cmd.stderr)
+            'Failed to create ssh tunnel: Error getting port status: {0}'.format(fuser_cmd.stderr)
         )
     # converts a List of strings to a List of integers
     try:
         print(fuser_cmd)
-        used_ports = map(
-            int,
-            [val for val in fuser_cmd.stdout[:-1]
-                if val != 'Cannot stat file ']
-        )
+        used_ports = map(int, [val for val in fuser_cmd.stdout[:-1] if val != 'Cannot stat file '])
 
     except ValueError:
         raise CapsuleTunnelError(
-            'Failed parsing the port numbers from stdout: {0}'
-            .format(fuser_cmd.stdout[:-1])
+            'Failed parsing the port numbers from stdout: {0}'.format(fuser_cmd.stdout[:-1])
         )
     try:
         # take the list of available ports and return randomly selected one
-        return random.choice(
-            [port for port in port_pool if port not in used_ports]
-        )
+        return random.choice([port for port in port_pool if port not in used_ports])
     except IndexError:
         raise CapsuleTunnelError(
             'Failed to create ssh tunnel: No more ports available for mapping'
@@ -428,9 +401,7 @@ def default_url_on_new_port(oldport, newport):
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:
-        command = (
-            u'ncat -kl -p {0} -c "ncat {1} {2}"'
-        ).format(newport, domain, oldport)
+        command = ('ncat -kl -p {0} -c "ncat {1} {2}"').format(newport, domain, oldport)
         logger.debug('Creating tunnel: {0}'.format(command))
         transport = connection.get_transport()
         channel = transport.open_session()
@@ -439,7 +410,7 @@ def default_url_on_new_port(oldport, newport):
         # if exit_status appears until command_timeout, throw error
         if channel.exit_status_ready():
             if channel.recv_exit_status() != 0:
-                stderr = u''
+                stderr = ''
                 while channel.recv_stderr_ready():
                     stderr += channel.recv_stderr(1)
                 logger.debug('Tunnel failed: {0}'.format(stderr))
@@ -458,6 +429,7 @@ class Storage(object):
         storage = Storage(d)
         storage.foo == 'bar'
     """
+
     def __init__(self, *args, **kwargs):
         """takes a dict or attrs and sets as attrs"""
         super(Storage, self).__init__()
@@ -514,11 +486,10 @@ def get_services_status():
         if [[ $rc != 0 ]]; then service $i status; exit $rc; fi; done);'''
 
     result = ssh.command(status_format.format(' '.join(services)))
-    return[result.return_code, result.stdout]
+    return [result.return_code, result.stdout]
 
 
-def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
-                   repo=None):
+def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, capsule=False):
     """Forms unix path to the directory containing published repository in
     pulp using provided entity names. Supports both repositories in content
     view version and repositories in lifecycle environment. Note that either
@@ -530,26 +501,26 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
     :param str optional cvv: content view version, e.g. '1.0'
     :param str prod: product label
     :param str repo: repository label
+    :param bool capsule: whether the repo_path is from a capsule or not
     :return: full unix path to the specific repository
     :rtype: str
     """
     if not all([org, cv, prod, repo]):
-        raise ValueError(
-            '`org`, `cv`, `prod` and `repo` arguments are required')
+        raise ValueError('`org`, `cv`, `prod` and `repo` arguments are required')
     if not any([lce, cvv]):
         raise ValueError('Either `lce` or `cvv` is required')
 
-    if lce:
+    if lce and capsule:
+        repo_path = '{}/{}/custom/{}/{}'.format(org, lce, prod, repo)
+    elif lce:
         repo_path = '{}/{}/{}/custom/{}/{}'.format(org, lce, cv, prod, repo)
     elif cvv:
-        repo_path = '{}/content_views/{}/{}/custom/{}/{}'.format(
-            org, cv, cvv, prod, repo)
+        repo_path = '{}/content_views/{}/{}/custom/{}/{}'.format(org, cv, cvv, prod, repo)
 
     return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
 
-def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
-                hostname=None):
+def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, hostname=None):
     """Creates a repository from given packages and publishes it into pulp's
     directory for web access.
 
@@ -563,19 +534,16 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
     :rtype: str
     """
     repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
-    result = ssh.command(
-        'sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
+    result = ssh.command('sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
-        raise CLIReturnCodeError(
-            result.return_code, result.stderr, 'Unable to create repo dir')
+        raise CLIReturnCodeError(result.return_code, result.stderr, 'Unable to create repo dir')
     if repo_fetch_url:
         # Add trailing slash if it's not there already
         if not repo_fetch_url.endswith('/'):
             repo_fetch_url += '/'
         for package in packages:
             result = ssh.command(
-                'wget -P {} {}'
-                .format(repo_path, urljoin(repo_fetch_url, package)),
+                'wget -P {} {}'.format(repo_path, urljoin(repo_fetch_url, package)),
                 hostname=hostname,
             )
             if result.return_code != 0:
@@ -585,29 +553,25 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
                     'Unable to download package {}'.format(package),
                 )
     if wipe_repodata:
-        result = ssh.command(
-            'rm -rf {}/{}'.format(repo_path, 'repodata/'),
-            hostname=hostname
-        )
+        result = ssh.command('rm -rf {}/{}'.format(repo_path, 'repodata/'), hostname=hostname)
         if result.return_code != 0:
             raise CLIReturnCodeError(
-                result.return_code,
-                result.stderr,
-                'Unable to delete repodata folder',
+                result.return_code, result.stderr, 'Unable to delete repodata folder'
             )
     result = ssh.command('createrepo {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(
             result.return_code,
             result.stderr,
-            'Unable to create repository. stderr contains following info:\n{}'
-            .format(result.stderr),
+            'Unable to create repository. stderr contains following info:\n{}'.format(
+                result.stderr
+            ),
         )
 
     published_url = 'http://{}{}/pulp/repos/{}/'.format(
         settings.server.hostname,
         ':{}'.format(settings.server.port) if settings.server.port else '',
-        name
+        name,
     )
 
     return published_url
@@ -628,14 +592,10 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
     updatefile_path = '{}/{}'.format(repo_path, updatefile)
     if updateinfo_url:
-        result = ssh.command(
-            'find {}'.format(updatefile_path),
-            hostname=hostname
-        )
+        result = ssh.command('find {}'.format(updatefile_path), hostname=hostname)
         if result.return_code == 0 and updatefile in result.stdout[0]:
             result = ssh.command(
-                'mv -f {} {}.bak'.format(updatefile_path, updatefile_path),
-                hostname=hostname
+                'mv -f {} {}.bak'.format(updatefile_path, updatefile_path), hostname=hostname
             )
             if result.return_code != 0:
                 raise CLIReturnCodeError(
@@ -644,19 +604,14 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
                     'Unable to backup existing {}'.format(updatefile),
                 )
         result = ssh.command(
-            'wget -O {} {}'.format(updatefile_path, updateinfo_url),
-            hostname=hostname,
+            'wget -O {} {}'.format(updatefile_path, updateinfo_url), hostname=hostname
         )
         if result.return_code != 0:
             raise CLIReturnCodeError(
-                result.return_code,
-                result.stderr,
-                'Unable to download {}'.format(updateinfo_url),
+                result.return_code, result.stderr, 'Unable to download {}'.format(updateinfo_url)
             )
 
-    result = ssh.command(
-        'modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/')
-    )
+    result = ssh.command('modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/'))
 
     return result
 
@@ -665,10 +620,7 @@ def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
     """
-    if bz_bug_is_open(1709761):
-        cmd_start_with = 'satellite-instaler'
-    else:
-        cmd_start_with = 'satellite-installer'
+    cmd_start_with = 'satellite-installer'
     cmd_lines = []
     if text:
         if isinstance(text, (list, tuple)):
@@ -689,8 +641,6 @@ def extract_capsule_satellite_installer_command(text):
         # remove empty spaces
         while '  ' in cmd:
             cmd = cmd.replace('  ', ' ')
-        if bz_bug_is_open(1709761):
-            cmd = cmd.replace('satellite-instaler', 'satellite-installer')
         return cmd
     return None
 
@@ -698,15 +648,11 @@ def extract_capsule_satellite_installer_command(text):
 def extract_ui_token(input):
     """Extracts and returns the CSRF protection token from a given
     HTML string"""
-    token = re.search(
-        r"authenticity_token\" value=\"[^\"]+",
-        input
-    )
+    token = re.search('"token":"(.*?)"', input)
     if token is None:
-        raise IndexError("the given string does not contain any authenticity"
-                         "token references")
+        raise IndexError("the given string does not contain any authenticity token references")
     else:
-        return(token[0].split('value="')[-1])
+        return token[1]
 
 
 def get_web_session():
@@ -714,26 +660,21 @@ def get_web_session():
     sat_session = requests.Session()
     url = 'https://{0}'.format(settings.server.hostname)
 
-    init_request = sat_session.get(
-        url,
-        verify=False
-    )
+    init_request = sat_session.get(url, verify=False)
     login_request = sat_session.post(
         '{0}/users/login'.format(url),
         data={
             'authenticity_token': extract_ui_token(init_request.text),
             'login[login]': settings.server.admin_username,
             'login[password]': settings.server.admin_password,
-            'commit': 'Log In'
+            'commit': 'Log In',
         },
-        verify=False
+        verify=False,
     )
     login_request.raise_for_status()
     if 'users/login' in login_request.history[0].headers.get('Location'):
-        raise requests.HTTPError(
-            'Failed to authenticate using the given credentials'
-        )
-    return(sat_session)
+        raise requests.HTTPError('Failed to authenticate using the given credentials')
+    return sat_session
 
 
 def host_provisioning_check(ip_addr):
@@ -744,9 +685,47 @@ def host_provisioning_check(ip_addr):
     :return: ssh command return code and stdout
     """
     result = ssh.command(
-        u'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20;'
-        u' done; exit 1'.format(ip_addr))
+        'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20; done; exit 1'.format(ip_addr)
+    )
     if result.return_code != 0:
         raise ProvisioningCheckError(
-            'Failed to ping virtual machine Error:{0}'.format(
-                result.stdout))
+            'Failed to ping virtual machine Error:{0}'.format(result.stdout)
+        )
+
+
+def slugify_component(string, keep_hyphens=True):
+    """Make component name a slug
+
+    Arguments:
+        string {str} -- Component name e.g: ActivationKeys
+        keep_hyphens {bool} -- Keep hyphens or replace with underscores
+
+    Returns:
+        str -- component slug e.g: activationkeys
+    """
+    string = string.replace(" and ", "&")
+    if not keep_hyphens:
+        string = string.replace('-', '_')
+    return re.sub("[^-_a-zA-Z0-9]", "", string.lower())
+
+
+# --- Issue based Pytest markers ---
+
+
+def download_gce_cert():
+    ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
+    if ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code != 0:
+        raise GCECertNotFoundError(
+            "The GCE certificate in path {} is not found in satellite.".format(
+                settings.gce.cert_path
+            )
+        )
+    return download_server_file('json', settings.gce.cert_url)
+
+
+def idgen(val):
+    """
+    The id generator function which will return string that will append to the parameterized
+    test name
+    """
+    return '_parameter'

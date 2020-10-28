@@ -15,67 +15,57 @@
 
 :Upstream: No
 """
-import csv
 import copy
+import csv
 import os
 import random
+
 import pytest
 import yaml
-
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
+from wrapanapi import GoogleCloudSystem
 
 from robottelo import ssh
-from robottelo.api.utils import (
-    call_entity_method_with_timeout,
-    create_role_permissions,
-    promote,
-    publish_puppet_module,
-    update_provisioning_template
-)
-from robottelo.cli.factory import (
-    make_content_view,
-    make_host,
-    make_hostgroup,
-    make_lifecycle_environment,
-    make_scap_policy,
-    make_scapcontent,
-)
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.api.utils import create_role_permissions
+from robottelo.api.utils import promote
+from robottelo.api.utils import publish_puppet_module
+from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_host
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_scap_policy
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
-from robottelo.constants import (
-    ANY_CONTEXT,
-    DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
-    DEFAULT_PTABLE,
-    CUSTOM_PUPPET_REPO,
-    ENVIRONMENT,
-    FOREMAN_PROVIDERS,
-    OSCAP_PROFILE,
-    OSCAP_PERIOD,
-    OSCAP_WEEKDAY,
-    PERMISSIONS,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION
-)
+from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import OSCAP_PERIOD
+from robottelo.constants import OSCAP_WEEKDAY
+from robottelo.constants import PERMISSIONS
+from robottelo.constants import RHEL_6_MAJOR_VERSION
+from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import (
-    tier2,
-    tier3,
-    tier4,
-    skip_if,
-    skip_if_not_set,
-    upgrade,
-)
+from robottelo.decorators import skip_if
+from robottelo.decorators import skip_if_not_set
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import tier4
+from robottelo.decorators import upgrade
 from robottelo.helpers import download_server_file
 from robottelo.ui.utils import create_fake_host
-from wrapanapi import GoogleCloudSystem
 
 
 def _get_set_from_list_of_dict(value):
@@ -84,55 +74,22 @@ def _get_set_from_list_of_dict(value):
     :param list value: a list of simple dict.
     """
     return {
-        tuple(sorted(list(global_param.items()), key=lambda t: t[0]))
-        for global_param in value
+        tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value
     }
-
-
-def skip_yum_update_during_provisioning(template=None, reverse=False):
-    """Hides the yum update command with echo text
-
-    :param str template: The template name where the yum update will be hidden
-    :param bool reverse: Reverses the echo text to yum update
-    :return: Boolean True on success else exception
-    """
-    old = 'yum -t -y update'
-    new = 'echo "Yum update skipped for faster automation testing"'
-    if not reverse:
-        return update_provisioning_template(name=template, old=old, new=new)
-    else:
-        return update_provisioning_template(name=template, old=new, new=old)
-
-
-@pytest.fixture
-def scap_content():
-    title = 'rhel-content-{0}'.format(gen_string('alpha'))
-    scap_info = make_scapcontent({
-        'title': title,
-        'scap-file': '{0}'.format(settings.oscap.content_path)
-    })
-    scap_id = scap_info['id']
-    scap_info = Scapcontent.info({'id': scap_id}, output_format='json')
-
-    scap_profile_id = [
-        profile['id']
-        for profile in scap_info['scap-content-profiles']
-        if OSCAP_PROFILE['security7'] in profile['title']
-    ][0]
-    return scap_id, scap_profile_id
 
 
 @pytest.fixture
 def scap_policy(scap_content):
-    scap_id, scap_profile_id = scap_content
-    scap_policy = make_scap_policy({
-        'name': gen_string('alpha'),
-        'deploy-by': 'puppet',
-        'scap-content-id': scap_id,
-        'scap-content-profile-id': scap_profile_id,
-        'period': OSCAP_PERIOD['weekly'].lower(),
-        'weekday': OSCAP_WEEKDAY['friday'].lower()
-    })
+    scap_policy = make_scap_policy(
+        {
+            'name': gen_string('alpha'),
+            'deploy-by': 'puppet',
+            'scap-content-id': scap_content["scap_id"],
+            'scap-content-profile-id': scap_content["scap_profile_id"],
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        }
+    )
     return scap_policy
 
 
@@ -144,8 +101,11 @@ def module_org():
 @pytest.fixture(scope='module')
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
-    smart_proxy = entities.SmartProxy().search(
-        query={'search': 'name={0}'.format(settings.server.hostname)})[0].read()
+    smart_proxy = (
+        entities.SmartProxy()
+        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .read()
+    )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
     return location
@@ -157,8 +117,7 @@ def module_global_params():
     global_parameters = []
     for _ in range(3):
         global_parameter = entities.CommonParameter(
-            name=gen_string('alpha'),
-            value=gen_string('alphanumeric')
+            name=gen_string('alpha'), value=gen_string('alphanumeric')
         ).create()
         global_parameters.append(global_parameter)
     yield global_parameters
@@ -178,32 +137,31 @@ def module_host_template(module_org, module_loc):
 @pytest.fixture(scope='module')
 def default_partition_table():
     # Get the Partition table ID
-    return entities.PartitionTable().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_PTABLE)})[0]
+    return entities.PartitionTable().search(query={'search': 'name="{0}"'.format(DEFAULT_PTABLE)})[
+        0
+    ]
 
 
 @pytest.fixture(scope='module')
 def default_architecture():
     # Get the architecture ID
     return entities.Architecture().search(
-        query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)})[0]
+        query={'search': 'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
+    )[0]
 
 
 @pytest.fixture(scope='module')
 def module_environment(module_org, module_loc):
     # Create new puppet environment
-    return entities.Environment(
-        organization=[module_org], location=[module_loc]).create()
+    return entities.Environment(organization=[module_org], location=[module_loc]).create()
 
 
 @pytest.fixture(scope='module')
-def module_os(
-        default_architecture, default_partition_table, module_org, module_loc):
+def module_os(default_architecture, default_partition_table, module_org, module_loc):
     # Get the OS ID
     os = entities.OperatingSystem().search(
-        query={u'search': u'name="RedHat" AND major="7"'}
-    ) or entities.OperatingSystem().search(
-        query={u'search': u'name="RedHat" AND major="6"'})
+        query={'search': 'name="RedHat" AND major="7"'}
+    ) or entities.OperatingSystem().search(query={'search': 'name="RedHat" AND major="6"'})
     os = os[0].read()
     # Get the templates and update with OS, Org, Location
     templates = []
@@ -213,24 +171,23 @@ def module_os(
         'Kickstart default iPXE',
         'Kickstart default',
         'Kickstart default finish',
-        'Kickstart default user data'
+        'Kickstart default user data',
     ]:
-        template = entities.ConfigTemplate().search(
-            query={
-                u'search': u'name="{}"'.format(template_name)
-            }
-        )[0].read()
+        template = (
+            entities.ProvisioningTemplate()
+            .search(query={'search': 'name="{}"'.format(template_name)})[0]
+            .read()
+        )
         template.operatingsystem.append(os)
         template.organization.append(module_org)
         template.location.append(module_loc)
-        template = template.update([
-            'location', 'operatingsystem', 'organization'])
+        template = template.update(['location', 'operatingsystem', 'organization'])
         templates.append(template)
     # Update the OS to associate architecture, ptable, templates
     os.architecture = [default_architecture]
     os.ptable = [default_partition_table]
-    os.config_template = templates
-    os = os.update(['architecture', 'config_template', 'ptable'])
+    os.provisioning_template = templates
+    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     return os
 
 
@@ -249,8 +206,11 @@ def os_path(module_os):
 @pytest.fixture(scope='module')
 def module_proxy(module_org, module_loc):
     # Search for SmartProxy, and associate organization/location
-    proxy = entities.SmartProxy().search(
-        query={u'search': u'name={0}'.format(settings.server.hostname)})[0].read()
+    proxy = (
+        entities.SmartProxy()
+        .search(query={'search': 'name={0}'.format(settings.server.hostname)})[0]
+        .read()
+    )
     proxy.location.append(module_loc)
     proxy.organization.append(module_org)
     proxy = proxy.update(['location', 'organization'])
@@ -262,11 +222,10 @@ def module_libvirt_resource(module_org, module_loc):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
-    resource_url = u'qemu+ssh://root@{0}/system'.format(
-        settings.compute_resources.libvirt_hostname
-    )
+    resource_url = 'qemu+ssh://root@{0}/system'.format(settings.compute_resources.libvirt_hostname)
     comp_res = [
-        res for res in entities.LibvirtComputeResource().search()
+        res
+        for res in entities.LibvirtComputeResource().search()
         if res.provider == FOREMAN_PROVIDERS['libvirt'] and res.url == resource_url
     ]
     if len(comp_res) > 0:
@@ -280,11 +239,11 @@ def module_libvirt_resource(module_org, module_loc):
             provider=FOREMAN_PROVIDERS['libvirt'],
             url=resource_url,
             set_console_password=False,
-            display_type=u'VNC',
+            display_type='VNC',
             location=[module_loc],
             organization=[module_org],
         ).create()
-    return u'{0} (Libvirt)'.format(computeresource.name)
+    return '{0} (Libvirt)'.format(computeresource.name)
 
 
 @pytest.fixture(scope='module')
@@ -292,9 +251,7 @@ def module_libvirt_domain(module_org, module_loc, module_proxy):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = settings.server.hostname.partition('.')
-    domain = entities.Domain().search(
-        query={u'search': u'name="{0}"'.format(domain)}
-    )
+    domain = entities.Domain().search(query={'search': 'name="{0}"'.format(domain)})
     if len(domain) > 0:
         domain = domain[0].read()
         domain.location.append(module_loc)
@@ -303,23 +260,18 @@ def module_libvirt_domain(module_org, module_loc, module_proxy):
         domain = domain.update(['dns', 'location', 'organization'])
     else:
         domain = entities.Domain(
-            dns=module_proxy,
-            location=[module_loc],
-            organization=[module_org],
+            dns=module_proxy, location=[module_loc], organization=[module_org]
         ).create()
     return domain
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_subnet(
-        module_org, module_loc, module_libvirt_domain, module_proxy):
+def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_proxy):
     # Search if subnet is defined with given network.
     # If so, just update its relevant fields otherwise,
     # Create new subnet
     network = settings.vlan_networking.subnet
-    subnet = entities.Subnet().search(
-        query={u'search': u'network={0}'.format(network)}
-    )
+    subnet = entities.Subnet().search(query={'search': 'network={0}'.format(network)})
     if len(subnet) > 0:
         subnet = subnet[0].read()
         subnet.domain.append(module_libvirt_domain)
@@ -330,8 +282,9 @@ def module_libvirt_subnet(
         subnet.ipam = 'DHCP'
         subnet.tftp = module_proxy
         subnet.discovery = module_proxy
-        subnet = subnet.update([
-            'domain', 'discovery', 'dhcp', 'dns', 'ipam', 'location', 'organization', 'tftp'])
+        subnet = subnet.update(
+            ['domain', 'discovery', 'dhcp', 'dns', 'ipam', 'location', 'organization', 'tftp']
+        )
     else:
         # Create new subnet
         subnet = entities.Subnet(
@@ -361,17 +314,14 @@ def module_product(module_org):
 
 @pytest.fixture(scope='module')
 def module_repository(os_path, module_product):
-    repo = entities.Repository(
-        product=module_product, url=os_path).create()
+    repo = entities.Repository(product=module_product, url=os_path).create()
     call_entity_method_with_timeout(entities.Repository(id=repo.id).sync, timeout=3600)
     return repo
 
 
 @pytest.fixture(scope='module')
 def module_libvirt_media(module_org, module_loc, os_path, module_os):
-    media = entities.Media().search(
-        query={u'search': u'path="{0}"'.format(os_path)}
-    )
+    media = entities.Media().search(query={'search': 'path="{0}"'.format(os_path)})
     if len(media) > 0:
         # Media with this path already exist, make sure it is correct
         media = media[0].read()
@@ -406,18 +356,18 @@ def module_content_view(module_org, module_repository, module_lce):
 
 @pytest.fixture(scope='module')
 def module_libvirt_hostgroup(
-        module_org,
-        module_loc,
-        default_partition_table,
-        default_architecture,
-        module_os,
-        module_libvirt_media,
-        module_environment,
-        module_libvirt_subnet,
-        module_proxy,
-        module_libvirt_domain,
-        module_lce,
-        module_content_view,
+    module_org,
+    module_loc,
+    default_partition_table,
+    default_architecture,
+    module_os,
+    module_libvirt_media,
+    module_environment,
+    module_libvirt_subnet,
+    module_proxy,
+    module_libvirt_domain,
+    module_lce,
+    module_content_view,
 ):
     return entities.HostGroup(
         architecture=default_architecture,
@@ -452,21 +402,15 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
     :CaseLevel: System
     """
     global_params = [
-        global_param.to_json_dict(
-            lambda attr, field: attr in ['name', 'value'])
+        global_param.to_json_dict(lambda attr, field: attr in ['name', 'value'])
         for global_param in module_global_params
     ]
     host_parameters = []
     for _ in range(2):
-        host_parameters.append(
-            dict(name=gen_string('alpha'), value=gen_string('alphanumeric'))
-        )
+        host_parameters.append(dict(name=gen_string('alpha'), value=gen_string('alphanumeric')))
     expected_host_parameters = copy.deepcopy(host_parameters)
     # override the first global parameter
-    overridden_global_parameter = {
-        'name': global_params[0]['name'],
-        'value': gen_string('alpha')
-    }
+    overridden_global_parameter = {'name': global_params[0]['name'], 'value': gen_string('alpha')}
     expected_host_parameters.append(overridden_global_parameter)
     expected_global_parameters = copy.deepcopy(global_params)
     for global_param in expected_global_parameters:
@@ -485,28 +429,25 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             module_host_template,
             host_parameters=host_parameters,
             global_parameters=[overridden_global_parameter],
-            extra_values={
-                'puppet_classes.config_groups.assigned': [config_group.name]
-            }
+            extra_values={'puppet_classes.config_groups.assigned': [config_group.name]},
         )
         assert session.host.search(host_name)[0]['Name'] == host_name
-        values = session.host.read(
-            host_name,
-            widget_names=['parameters', 'puppet_classes']
-        )
-        assert (_get_set_from_list_of_dict(values['parameters']['host_params'])
-                == _get_set_from_list_of_dict(expected_host_parameters))
+        values = session.host.read(host_name, widget_names=['parameters', 'puppet_classes'])
         assert _get_set_from_list_of_dict(
-            expected_global_parameters).issubset(
-            _get_set_from_list_of_dict(values['parameters']['global_params']))
+            values['parameters']['host_params']
+        ) == _get_set_from_list_of_dict(expected_host_parameters)
+        assert _get_set_from_list_of_dict(expected_global_parameters).issubset(
+            _get_set_from_list_of_dict(values['parameters']['global_params'])
+        )
 
         assert len(values['puppet_classes']['config_groups']['assigned']) == 1
         assert values['puppet_classes']['config_groups']['assigned'][0] == config_group.name
         # check host presence on the dashboard
         dashboard_values = session.dashboard.read('NewHosts')['hosts']
         displayed_host = [row for row in dashboard_values if row['Host'] == host_name][0]
-        os_name = u'{0} {1}'.format(
-            module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
+        os_name = '{0} {1}'.format(
+            module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
+        )
         assert os_name in displayed_host['Operating System']
         assert displayed_host['Installed'] == '-'
         # update
@@ -528,33 +469,38 @@ def test_positive_read_from_details_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = u'{0} {1}'.format(
-        module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
+    os_name = '{0} {1}'.format(
+        module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
+    )
     interface_id = gen_string('alpha')
     with session:
         host_name = create_fake_host(session, module_host_template, interface_id)
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
-        assert values['properties']['properties_table'][
-            'Status'] == 'OK'
-        assert values['properties']['properties_table'][
-            'Build'] == 'Pending installation'
-        assert values['properties']['properties_table'][
-            'Domain'] == module_host_template.domain.name
-        assert values['properties']['properties_table'][
-            'MAC Address'] == module_host_template.mac
-        assert values['properties']['properties_table'][
-            'Puppet Environment'] == module_host_template.environment.name
-        assert values['properties']['properties_table'][
-            'Architecture'] == module_host_template.architecture.name
-        assert values['properties']['properties_table'][
-            'Operating System'] == os_name
-        assert values['properties']['properties_table'][
-            'Location'] == module_host_template.location.name
-        assert values['properties']['properties_table'][
-            'Organization'] == module_host_template.organization.name
-        assert values['properties']['properties_table'][
-            'Owner'] == values['current_user']
+        assert values['properties']['properties_table']['Status'] == 'OK'
+        assert 'Pending installation' in values['properties']['properties_table']['Build']
+        assert (
+            values['properties']['properties_table']['Domain'] == module_host_template.domain.name
+        )
+        assert values['properties']['properties_table']['MAC Address'] == module_host_template.mac
+        assert (
+            values['properties']['properties_table']['Puppet Environment']
+            == module_host_template.environment.name
+        )
+        assert (
+            values['properties']['properties_table']['Architecture']
+            == module_host_template.architecture.name
+        )
+        assert values['properties']['properties_table']['Operating System'] == os_name
+        assert (
+            values['properties']['properties_table']['Location']
+            == module_host_template.location.name
+        )
+        assert (
+            values['properties']['properties_table']['Organization']
+            == module_host_template.organization.name
+        )
+        assert values['properties']['properties_table']['Owner'] == values['current_user']
 
 
 @tier4
@@ -567,8 +513,9 @@ def test_positive_read_from_edit_page(session, module_host_template):
 
     :CaseLevel: System
     """
-    os_name = u'{0} {1}'.format(
-        module_host_template.operatingsystem.name, module_host_template.operatingsystem.major)
+    os_name = '{0} {1}'.format(
+        module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
+    )
     interface_id = gen_string('alpha')
     with session:
         host_name = create_fake_host(session, module_host_template, interface_id)
@@ -580,22 +527,18 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['host']['lce'] == ENVIRONMENT
         assert values['host']['content_view'] == DEFAULT_CV
         assert values['host']['puppet_environment'] == module_host_template.environment.name
-        assert values[
-            'operating_system']['architecture'] == module_host_template.architecture.name
+        assert values['operating_system']['architecture'] == module_host_template.architecture.name
         assert values['operating_system']['operating_system'] == os_name
         assert values['operating_system']['media_type'] == 'All Media'
         assert values['operating_system']['media'] == module_host_template.medium.name
         assert values['operating_system']['ptable'] == module_host_template.ptable.name
-        assert values['interfaces']['interfaces_list'][0][
-            'Identifier'] == interface_id
-        assert values['interfaces']['interfaces_list'][0][
-            'Type'] == 'Interface physical'
-        assert values['interfaces']['interfaces_list'][0][
-            'MAC Address'] == module_host_template.mac
-        assert values['interfaces']['interfaces_list'][0][
-            'FQDN'] == host_name
-        assert values['additional_information'][
-            'owned_by'] == values['current_user']
+        assert values['interfaces']['interfaces_list'][0]['Identifier'] == interface_id
+        assert values['interfaces']['interfaces_list'][0]['Type'] == 'Interface physical'
+        assert (
+            values['interfaces']['interfaces_list'][0]['MAC Address'] == module_host_template.mac
+        )
+        assert values['interfaces']['interfaces_list'][0]['FQDN'] == host_name
+        assert values['additional_information']['owned_by'] == values['current_user']
         assert values['additional_information']['enabled'] is True
 
 
@@ -617,31 +560,24 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
     org = entities.Organization().create()
     loc = entities.Location().create()
     host = entities.Host(organization=org, location=loc).create()
-    env = entities.Environment(
-        organization=[org], location=[loc]).create()
-    hostgroup = entities.HostGroup(
-        environment=env, organization=[org], location=[loc]).create()
+    env = entities.Environment(organization=[org], location=[loc]).create()
+    hostgroup = entities.HostGroup(environment=env, organization=[org], location=[loc]).create()
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         session.host.apply_action(
-            'Change Environment',
-            [host.name],
-            {'environment': '*Clear environment*'})
+            'Change Environment', [host.name], {'environment': '*Clear environment*'}
+        )
         host_values = session.host.search(host.name)
         assert host_values[0]['Host group'] == ''
         assert host_values[0]['Puppet Environment'] == ''
-        session.host.apply_action(
-            'Change Group',
-            [host.name],
-            {'host_group': hostgroup.name})
+        session.host.apply_action('Change Group', [host.name], {'host_group': hostgroup.name})
         host_values = session.host.search(host.name)
         assert host_values[0]['Host group'] == hostgroup.name
         assert host_values[0]['Puppet Environment'] == ''
         session.host.apply_action(
-            'Change Environment',
-            [host.name],
-            {'environment': '*Inherit from host group*'})
+            'Change Environment', [host.name], {'environment': '*Inherit from host group*'}
+        )
         host_values = session.host.search(host.name)
         assert host_values[0]['Puppet Environment'] == env.name
         values = session.host.read(host.name, widget_names='host')
@@ -650,8 +586,8 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 
 @tier3
-def test_positive_create_with_puppet_class(
-        session, module_host_template, module_org, module_loc):
+@skip_if(not settings.repos_hosting_url)
+def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 
     :id: d883f169-1105-435c-8422-a7160055734a
@@ -664,11 +600,19 @@ def test_positive_create_with_puppet_class(
     cv = publish_puppet_module(
         [{'author': 'robottelo', 'name': pc_name}],
         CUSTOM_PUPPET_REPO,
-        organization_id=module_org.id
+        organization_id=module_org.id,
     )
-    env = entities.Environment().search(query={
-        'search': u'content_view="{0}" and organization_id={1}'.format(
-            cv.name, module_org.id)})[0].read()
+    env = (
+        entities.Environment()
+        .search(
+            query={
+                'search': 'content_view="{0}" and organization_id={1}'.format(
+                    cv.name, module_org.id
+                )
+            }
+        )[0]
+        .read()
+    )
     env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
     with session:
         host_name = create_fake_host(
@@ -676,8 +620,8 @@ def test_positive_create_with_puppet_class(
             module_host_template,
             extra_values={
                 'host.puppet_environment': env.name,
-                'puppet_classes.classes.assigned': [pc_name]
-            }
+                'puppet_classes.classes.assigned': [pc_name],
+            },
         )
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.read(host_name, widget_names='puppet_classes')
@@ -704,10 +648,7 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
         session.host.apply_action(
             'Assign Organization',
             [host.name],
-            {
-                'organization': new_host_org.name,
-                'on_mismatch': 'Fix Organization on Mismatch'
-            }
+            {'organization': new_host_org.name, 'on_mismatch': 'Fix Organization on Mismatch'},
         )
         assert not session.host.search(host.name)
         session.organization.select(org_name=new_host_org.name)
@@ -715,19 +656,14 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
         session.host.apply_action(
             'Assign Location',
             [host.name],
-            {
-                'location': new_host_location.name,
-                'on_mismatch': 'Fix Location on Mismatch'
-            }
+            {'location': new_host_location.name, 'on_mismatch': 'Fix Location on Mismatch'},
         )
         assert not session.host.search(host.name)
         session.location.select(loc_name=new_host_location.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         values = session.host.get_details(host.name)
-        assert (values['properties']['properties_table']['Organization']
-                == new_host_org.name)
-        assert (values['properties']['properties_table']['Location']
-                == new_host_location.name)
+        assert values['properties']['properties_table']['Organization'] == new_host_org.name
+        assert values['properties']['properties_table']['Location'] == new_host_location.name
 
 
 @skip_if_not_set('oscap')
@@ -737,8 +673,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
 
     :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
 
-    :expectedresults: Host Assign Compliance Policy action is working as
+    :expectedresults: Host Assign/Unassign Compliance Policy action is working as
         expected.
+
+    :BZ: 1862135
 
     :CaseLevel: Integration
     """
@@ -746,46 +684,48 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     org = host.organization.read()
     loc = host.location.read()
     # add host organization and location to scap policy
-    scap_policy = Scappolicy.info(
-        {'id': scap_policy['id']}, output_format='json')
-    organization_ids = [
-        policy_org['id']
-        for policy_org in scap_policy.get('organizations', [])
-    ]
+    content = Scapcontent.info({'id': scap_policy['scap-content-id']}, output_format='json')
+    organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
     organization_ids.append(org.id)
-    location_ids = [
-        policy_loc['id']
-        for policy_loc in scap_policy.get('locations', [])
-    ]
-
+    location_ids = [content_loc['id'] for content_loc in content.get('locations', [])]
     location_ids.append(loc.id)
-    Scapcontent.update({
-        'id': scap_policy['scap-content-id'],
-        'organization-ids': organization_ids,
-        'location-ids': location_ids
-    })
-    Scappolicy.update({
-        'id': scap_policy['id'],
-        'organization-ids': organization_ids,
-        'location-ids': location_ids
-    })
+    Scapcontent.update(
+        {
+            'id': scap_policy['scap-content-id'],
+            'organization-ids': organization_ids,
+            'location-ids': location_ids,
+        }
+    )
+    Scappolicy.update(
+        {
+            'id': scap_policy['id'],
+            'organization-ids': organization_ids,
+            'location-ids': location_ids,
+        }
+    )
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert not session.host.search(
-            'compliance_policy = {0}'.format(scap_policy['name']))
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
-            'Assign Compliance Policy',
-            [host.name],
-            {
-                'policy': scap_policy['name'],
-            }
+            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
         )
-        assert (session.host.search(
-            'compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
-            ==
-            host.name)
+        assert (
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
+            == host.name
+        )
+        session.host.apply_action(
+            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert (
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
+            == host.name
+        )
+        session.host.apply_action(
+            'Unassign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
 @skip_if(settings.webdriver != 'chrome')
@@ -803,9 +743,7 @@ def test_positive_export(session):
     loc = entities.Location().create()
     hosts = [entities.Host(organization=org, location=loc).create() for _ in range(3)]
     expected_fields = set(
-        (host.name,
-         host.operatingsystem.read().title,
-         host.environment.read().name)
+        (host.name, host.operatingsystem.read().title, host.environment.read().name)
         for host in hosts
     )
     with session:
@@ -816,11 +754,7 @@ def test_positive_export(session):
         with open(file_path, newline='') as csvfile:
             actual_fields = []
             for row in csv.DictReader(csvfile):
-                actual_fields.append(
-                    (row['Name'],
-                     row['Operatingsystem'],
-                     row['Environment'])
-                )
+                actual_fields.append((row['Name'], row['Operatingsystem'], row['Environment']))
         assert set(actual_fields) == expected_fields
 
 
@@ -843,7 +777,7 @@ def test_positive_create_with_inherited_params(session):
     loc_param = dict(name=gen_string('alphanumeric'), value=gen_string('alphanumeric'))
     host_template = entities.Host(organization=org, location=loc)
     host_template.create_missing()
-    host_name = u'{0}.{1}'.format(host_template.name, host_template.domain.name)
+    host_name = '{0}.{1}'.format(host_template.name, host_template.domain.name)
     with session:
         session.organization.update(org.name, {'parameters.resources': org_param})
         session.location.update(loc.name, {'parameters.resources': loc_param})
@@ -851,8 +785,10 @@ def test_positive_create_with_inherited_params(session):
         session.location.select(loc_name=loc.name)
         create_fake_host(session, host_template)
         values = session.host.read(host_name, 'parameters')
-        expected_params = {(org_param['name'], org_param['value']),
-                           (loc_param['name'], loc_param['value'])}
+        expected_params = {
+            (org_param['name'], org_param['value']),
+            (loc_param['name'], loc_param['value']),
+        }
         assert expected_params.issubset(
             {(param['name'], param['value']) for param in values['parameters']['global_params']}
         )
@@ -880,6 +816,41 @@ def test_negative_delete_primary_interface(session, module_host_template):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
+@pytest.mark.skip_if_open("BZ:1801630")
+@tier2
+def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
+    """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
+    and view_organization permissions
+
+    :BZ: 1642076
+
+    :id: 19a07026-0550-11ea-bfdc-98fa9b6ecd5a
+
+    :expectedresults: user with only view_hosts, edit_hosts and view_organization permissions
+        is able to read content hosts and hosts
+
+    :CaseLevel: System
+    """
+    user_password = gen_string('alpha')
+    role = entities.Role(organization=[module_org]).create()
+    create_role_permissions(role, {'Organization': ['view_organizations'], 'Host': ['view_hosts']})
+    user = entities.User(
+        role=[role],
+        admin=False,
+        password=user_password,
+        organization=[module_org],
+        location=[module_loc],
+        default_organization=module_org,
+        default_location=module_loc,
+    ).create()
+    created_host = entities.Host(location=module_loc, organization=module_org).create()
+    with Session(test_name, user=user.login, password=user_password) as session:
+        host = session.host.get_details(created_host.name, widget_names='breadcrumb')
+        assert host['breadcrumb'] == created_host.name
+        content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
+        assert content_host['breadcrumb'] == created_host.name
+
+
 @tier3
 def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Remove a host parameter as a non-admin user with enough permissions
@@ -900,7 +871,7 @@ def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_
             'Parameter': PERMISSIONS['Parameter'],
             'Host': PERMISSIONS['Host'],
             'Operatingsystem': ['view_operatingsystems'],
-        }
+        },
     )
     user = entities.User(
         role=[role],
@@ -954,7 +925,7 @@ def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_
             'Parameter': ['view_params'],
             'Host': PERMISSIONS['Host'],
             'Operatingsystem': ['view_operatingsystems'],
-        }
+        },
     )
     user = entities.User(
         role=[role],
@@ -1023,11 +994,11 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
         {
             'Katello::KTEnvironment': [
                 'promote_or_remove_content_views_to_environments',
-                'view_lifecycle_environments'
+                'view_lifecycle_environments',
             ]
         },
         # allow access only to the mentioned here environment
-        search='name = {0}'.format(filter_lc_env.name)
+        search='name = {0}'.format(filter_lc_env.name),
     )
     # Add necessary permissions for content view as we did for lce
     create_role_permissions(
@@ -1040,29 +1011,25 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             ]
         },
         # allow access only to the mentioned here cv
-        search='name = {0}'.format(filter_cv.name)
+        search='name = {0}'.format(filter_cv.name),
     )
     # Add necessary permissions for hosts as we did for lce
     create_role_permissions(
         role,
         {'Host': ['create_hosts', 'view_hosts']},
         # allow access only to the mentioned here host group
-        search='hostgroup_fullname = {0}'.format(filter_hg.name)
+        search='hostgroup_fullname = {0}'.format(filter_hg.name),
     )
     # Add necessary permissions for host groups as we did for lce
     create_role_permissions(
         role,
         {'Hostgroup': ['view_hostgroups']},
         # allow access only to the mentioned here host group
-        search='name = {0}'.format(filter_hg.name)
+        search='name = {0}'.format(filter_hg.name),
     )
     # Add permissions for Organization and Location
     create_role_permissions(
-        role,
-        {
-            'Organization': PERMISSIONS['Organization'],
-            'Location': PERMISSIONS['Location'],
-        },
+        role, {'Organization': PERMISSIONS['Organization'], 'Location': PERMISSIONS['Location']}
     )
     # Create new user with a configured role
     user_password = gen_string('alpha')
@@ -1076,11 +1043,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
         default_location=module_loc,
     ).create()
     host_fields = [
-        {
-            'name': 'host.hostgroup',
-            'unexpected_value': hg.name,
-            'expected_value': filter_hg.name,
-        },
+        {'name': 'host.hostgroup', 'unexpected_value': hg.name, 'expected_value': filter_hg.name},
         {
             'name': 'host.lce',
             'unexpected_value': lc_env.name,
@@ -1091,7 +1054,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
             'unexpected_value': cv.name,
             'expected_value': filter_cv.name,
             # content view selection needs the right lce to be selected
-            'other_fields_values': {'host.lce': filter_lc_env.name}
+            'other_fields_values': {'host.lce': filter_lc_env.name},
         },
     ]
     with Session(test_name, user=user.login, password=user_password) as session:
@@ -1129,9 +1092,7 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
     param_value = gen_string('alpha')
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=module_org,
-        location=module_loc,
-        host_parameters_attributes=parameters,
+        organization=module_org, location=module_loc, host_parameters_attributes=parameters
     ).create()
     additional_host = entities.Host(organization=module_org, location=module_loc).create()
     with session:
@@ -1162,7 +1123,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
         entities.Host(
             organization=module_org,
             location=module_loc,
-            host_parameters_attributes=[{'name': param_name, 'value': param_value}]
+            host_parameters_attributes=[{'name': param_name, 'value': param_value}],
         ).create()
         for param_value in param_values
     ]
@@ -1196,9 +1157,7 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
     search_param_value = gen_string('alphanumeric')
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=org,
-        location=module_loc,
-        host_parameters_attributes=parameters,
+        organization=org, location=module_loc, host_parameters_attributes=parameters
     ).create()
     additional_host = entities.Host(organization=org, location=module_loc).create()
     with session:
@@ -1231,15 +1190,10 @@ def test_positive_search_by_parameter_with_operator(session, module_loc):
     param_value = gen_string('alpha')
     param_global_value = gen_string('numeric')
     search_param_value = gen_string('alphanumeric')
-    entities.CommonParameter(
-        name=param_name,
-        value=param_global_value
-    ).create()
+    entities.CommonParameter(name=param_name, value=param_global_value).create()
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=org,
-        location=module_loc,
-        host_parameters_attributes=parameters,
+        organization=org, location=module_loc, host_parameters_attributes=parameters
     ).create()
     additional_host = entities.Host(organization=org, location=module_loc).create()
     with session:
@@ -1319,29 +1273,35 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
     content_view = make_content_view({'organization-id': module_host_template.organization.id})
     ContentView.publish({'id': content_view['id']})
     version_id = ContentView.version_list({'content-view-id': content_view['id']})[0]['id']
-    ContentView.version_promote({
-        'id': version_id,
-        'to-lifecycle-environment-id': lce['id'],
-        'organization-id': module_host_template.organization.id,
-    })
-    hostgroup = make_hostgroup({
-        'content-view-id': content_view['id'],
-        'lifecycle-environment-id': lce['id'],
-        'organization-ids': module_host_template.organization.id,
-    })
+    ContentView.version_promote(
+        {
+            'id': version_id,
+            'to-lifecycle-environment-id': lce['id'],
+            'organization-id': module_host_template.organization.id,
+        }
+    )
+    hostgroup = make_hostgroup(
+        {
+            'content-view-id': content_view['id'],
+            'lifecycle-environment-id': lce['id'],
+            'organization-ids': module_host_template.organization.id,
+        }
+    )
     puppet_proxy = Proxy.list({'search': 'name = {0}'.format(settings.server.hostname)})[0]
-    host = make_host({
-        'architecture-id': module_host_template.architecture.id,
-        'domain-id': module_host_template.domain.id,
-        'environment-id': module_host_template.environment.id,
-        'hostgroup-id': hostgroup['id'],
-        'location-id': module_host_template.location.id,
-        'medium-id': module_host_template.medium.id,
-        'operatingsystem-id': module_host_template.operatingsystem.id,
-        'organization-id': module_host_template.organization.id,
-        'partition-table-id': module_host_template.ptable.id,
-        'puppet-proxy-id': puppet_proxy['id'],
-    })
+    host = make_host(
+        {
+            'architecture-id': module_host_template.architecture.id,
+            'domain-id': module_host_template.domain.id,
+            'environment-id': module_host_template.environment.id,
+            'hostgroup-id': hostgroup['id'],
+            'location-id': module_host_template.location.id,
+            'medium-id': module_host_template.medium.id,
+            'operatingsystem-id': module_host_template.operatingsystem.id,
+            'organization-id': module_host_template.organization.id,
+            'partition-table-id': module_host_template.ptable.id,
+            'puppet-proxy-id': puppet_proxy['id'],
+        }
+    )
     with session:
         values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce['name']
@@ -1367,24 +1327,24 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
     env_name = gen_string('alpha')
     entities.Environment(name=env_name, organization=[module_org], location=[module_loc]).create()
     with session:
-        session.hostgroup.create({
-            'host_group.name': hg_name,
-            'host_group.puppet_environment': env_name
-        })
+        session.hostgroup.create(
+            {'host_group.name': hg_name, 'host_group.puppet_environment': env_name}
+        )
         assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
         values = session.host.helper.read_create_view(
-            {}, ['host.puppet_environment', 'host.inherit_puppet_environment'])
+            {}, ['host.puppet_environment', 'host.inherit_puppet_environment']
+        )
         assert not values['host']['puppet_environment']
         assert values['host']['inherit_puppet_environment'] is False
         values = session.host.helper.read_create_view(
             {'host.hostgroup': hg_name},
-            ['host.puppet_environment', 'host.inherit_puppet_environment']
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
         )
         assert values['host']['puppet_environment'] == env_name
         assert values['host']['inherit_puppet_environment'] is True
         values = session.host.helper.read_create_view(
             {'host.inherit_puppet_environment': False},
-            ['host.puppet_environment', 'host.inherit_puppet_environment']
+            ['host.puppet_environment', 'host.inherit_puppet_environment'],
         )
         assert values['host']['puppet_environment'] == env_name
         assert values['host']['inherit_puppet_environment'] is False
@@ -1409,29 +1369,31 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
     puppet_env = gen_string('alpha')
     content_view = gen_string('alpha')
     entities.Environment(
-        name=puppet_env, organization=[module_org], location=[module_loc]).create()
+        name=puppet_env, organization=[module_org], location=[module_loc]
+    ).create()
     entities.ContentView(name=content_view, organization=module_org).create()
     with session:
         session.contentview.update(content_view, {'details.force_puppet': True})
         session.contentview.publish(content_view)
         published_puppet_env = [
-            env.name for env in entities.Environment().search(
+            env.name
+            for env in entities.Environment().search(
                 query=dict(search='organization_id={0}'.format(module_org.id), per_page=1000)
             )
             if content_view in env.name
         ][0]
         values = session.host.helper.read_create_view(
             {'host.lce': ENVIRONMENT, 'host.content_view': content_view},
-            ['host.puppet_environment']
+            ['host.puppet_environment'],
         )
         assert values['host']['puppet_environment'] == published_puppet_env
         values = session.host.helper.read_create_view(
-            {'host.puppet_environment': puppet_env}, ['host.puppet_environment'])
+            {'host.puppet_environment': puppet_env}, ['host.puppet_environment']
+        )
         assert values['host']['puppet_environment'] == puppet_env
         # reset_puppet_environment
         values = session.host.helper.read_create_view(
-            {'host.reset_puppet_environment': True},
-            ['host.puppet_environment']
+            {'host.reset_puppet_environment': True}, ['host.puppet_environment']
         )
         assert values['host']['puppet_environment'] == published_puppet_env
 
@@ -1475,15 +1437,20 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
         root_pass=module_host_template.root_pass,
         content_facet_attributes={
             'content_view_id': entities.ContentView(
-                organization=module_host_template.organization, name=DEFAULT_CV).search()[0].id,
+                organization=module_host_template.organization, name=DEFAULT_CV
+            )
+            .search()[0]
+            .id,
             'lifecycle_environment_id': entities.LifecycleEnvironment(
-                organization=module_host_template.organization, name=ENVIRONMENT).search()[0].id
-        }
+                organization=module_host_template.organization, name=ENVIRONMENT
+            )
+            .search()[0]
+            .id,
+        },
     ).create()
     with session:
         session.host.update(
-            host.name,
-            {'parameters.host_params': [dict(name=param_name, value=param_value)]}
+            host.name, {'parameters.host_params': [dict(name=param_name, value=param_value)]}
         )
         yaml_text = session.host.read_yaml_output(host.name)
         # ensure parameter value is represented in yaml format without
@@ -1500,7 +1467,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
 @tier4
 @upgrade
 def test_positive_bulk_delete_host(session, module_loc):
-    """Delete a multiple hosts from the list
+    """Delete multiple hosts from the list
 
     :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
 
@@ -1524,27 +1491,28 @@ def test_positive_bulk_delete_host(session, module_loc):
             medium=host_template.medium,
             operatingsystem=host_template.operatingsystem,
             ptable=host_template.ptable,
-        ).create().name
-        for _ in range(18)
+        )
+        .create()
+        .name
+        for _ in range(3)
     ]
     with session:
         session.organization.select(org_name=org.name)
         values = session.host.read_all()
-        assert {host['Name'] for host in values['table']} == set(hosts_names)
-        session.host.delete_hosts(list(hosts_names))
+        assert len(hosts_names) == len(values['table'])
+        session.host.delete_hosts('All')
         values = session.host.read_all()
         assert not values['table']
 
 
 @tier4
 def test_positive_provision_end_to_end(
-        session,
-        module_org,
-        module_loc,
-        module_libvirt_domain,
-        module_libvirt_hostgroup,
-        module_libvirt_resource,
-
+    session,
+    module_org,
+    module_loc,
+    module_libvirt_domain,
+    module_libvirt_hostgroup,
+    module_libvirt_resource,
 ):
     """Provision Host on libvirt compute resource
 
@@ -1556,29 +1524,30 @@ def test_positive_provision_end_to_end(
     """
     hostname = gen_string('alpha').lower()
     root_pwd = gen_string('alpha', 15)
-    puppet_env = entities.Environment(
-        location=[module_loc], organization=[module_org]).create()
+    puppet_env = entities.Environment(location=[module_loc], organization=[module_org]).create()
     with session:
-        session.host.create({
-            'host.name': hostname,
-            'host.organization': module_org.name,
-            'host.location': module_loc.name,
-            'host.hostgroup': module_libvirt_hostgroup.name,
-            'host.inherit_deploy_option': False,
-            'host.deploy': module_libvirt_resource,
-            'host.inherit_puppet_environment': False,
-            'host.puppet_environment': puppet_env.name,
-            'provider_content.virtual_machine.memory': '2 GB',
-            'operating_system.root_password': root_pwd,
-            'interfaces.interface.network_type': 'Physical (Bridge)',
-            'interfaces.interface.network': settings.vlan_networking.bridge,
-            'additional_information.comment': 'Libvirt provision using valid data'
-        })
-        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        session.host.create(
+            {
+                'host.name': hostname,
+                'host.organization': module_org.name,
+                'host.location': module_loc.name,
+                'host.hostgroup': module_libvirt_hostgroup.name,
+                'host.inherit_deploy_option': False,
+                'host.deploy': module_libvirt_resource,
+                'host.inherit_puppet_environment': False,
+                'host.puppet_environment': puppet_env.name,
+                'provider_content.virtual_machine.memory': '2 GB',
+                'operating_system.root_password': root_pwd,
+                'interfaces.interface.network_type': 'Physical (Bridge)',
+                'interfaces.interface.network': settings.vlan_networking.bridge,
+                'additional_information.comment': 'Libvirt provision using valid data',
+            }
+        )
+        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
         wait_for(
-            lambda: session.host.get_details(name)[
-                'properties']['properties_table']['Build'] != 'Pending installation',
+            lambda: session.host.get_details(name)['properties']['properties_table']['Build']
+            != 'Pending installation',
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
@@ -1588,19 +1557,20 @@ def test_positive_provision_end_to_end(
         entities.Host(
             id=entities.Host().search(query={'search': 'name={}'.format(name)})[0].id
         ).delete()
-        assert session.host.get_details(
-            name)['properties']['properties_table']['Build'] == 'Installed'
+        assert (
+            session.host.get_details(name)['properties']['properties_table']['Build']
+            == 'Installed'
+        )
 
 
 @tier4
 def test_positive_delete_libvirt(
-        session,
-        module_org,
-        module_loc,
-        module_libvirt_domain,
-        module_libvirt_hostgroup,
-        module_libvirt_resource,
-
+    session,
+    module_org,
+    module_loc,
+    module_libvirt_domain,
+    module_libvirt_hostgroup,
+    module_libvirt_resource,
 ):
     """Create a new Host on libvirt compute resource and delete it
     afterwards
@@ -1618,25 +1588,26 @@ def test_positive_delete_libvirt(
     """
     hostname = gen_string('alpha').lower()
     root_pwd = gen_string('alpha', 15)
-    puppet_env = entities.Environment(
-        location=[module_loc], organization=[module_org]).create()
+    puppet_env = entities.Environment(location=[module_loc], organization=[module_org]).create()
     with session:
-        session.host.create({
-            'host.name': hostname,
-            'host.organization': module_org.name,
-            'host.location': module_loc.name,
-            'host.hostgroup': module_libvirt_hostgroup.name,
-            'host.inherit_deploy_option': False,
-            'host.deploy': module_libvirt_resource,
-            'host.inherit_puppet_environment': False,
-            'host.puppet_environment': puppet_env.name,
-            'provider_content.virtual_machine.memory': '1 GB',
-            'operating_system.root_password': root_pwd,
-            'interfaces.interface.network_type': 'Physical (Bridge)',
-            'interfaces.interface.network': settings.vlan_networking.bridge,
-            'additional_information.comment': 'Delete host that provisioned on Libvirt'
-        })
-        name = u'{0}.{1}'.format(hostname, module_libvirt_domain.name)
+        session.host.create(
+            {
+                'host.name': hostname,
+                'host.organization': module_org.name,
+                'host.location': module_loc.name,
+                'host.hostgroup': module_libvirt_hostgroup.name,
+                'host.inherit_deploy_option': False,
+                'host.deploy': module_libvirt_resource,
+                'host.inherit_puppet_environment': False,
+                'host.puppet_environment': puppet_env.name,
+                'provider_content.virtual_machine.memory': '1 GB',
+                'operating_system.root_password': root_pwd,
+                'interfaces.interface.network_type': 'Physical (Bridge)',
+                'interfaces.interface.network': settings.vlan_networking.bridge,
+                'additional_information.comment': 'Delete host that provisioned on Libvirt',
+            }
+        )
+        name = '{0}.{1}'.format(hostname, module_libvirt_domain.name)
         assert session.host.search(name)[0]['Name'] == name
         message = session.host.delete(name)
         assert (
@@ -1653,14 +1624,15 @@ def gce_client(download_cert):
         project=settings.gce.project_id,
         zone=settings.gce.zone,
         file_path=download_cert,
-        file_type='json')
+        file_type='json',
+    )
 
 
 @pytest.fixture
 def gce_template(gce_client):
     max_rhel7_template = max(
-        [img.name for img in gce_client.list_templates(
-            True) if str(img.name).startswith('rhel-7')])
+        [img.name for img in gce_client.list_templates(True) if str(img.name).startswith('rhel-7')]
+    )
     return gce_client.get_template(max_rhel7_template, project='rhel-cloud').uuid
 
 
@@ -1671,8 +1643,7 @@ def gce_cloudinit_template(gce_client):
 
 @pytest.fixture
 def gce_domain(module_org, module_loc):
-    domain_name = '{}.c.{}.internal'.format(
-        settings.gce.zone, settings.gce.project_id)
+    domain_name = '{}.c.{}.internal'.format(settings.gce.zone, settings.gce.project_id)
     domain = entities.Domain().search(query={'search': 'name={}'.format(domain_name)})
     if domain:
         domain = domain[0]
@@ -1681,9 +1652,7 @@ def gce_domain(module_org, module_loc):
         domain.update(['organization', 'location'])
     if not domain:
         domain = entities.Domain(
-            name=domain_name,
-            location=[module_loc],
-            organization=[module_org],
+            name=domain_name, location=[module_loc], organization=[module_org]
         ).create()
     return domain
 
@@ -1692,64 +1661,77 @@ def gce_domain(module_org, module_loc):
 def download_cert():
     ssh.command('curl {0} -o {1}'.format(settings.gce.cert_url, settings.gce.cert_path))
     if not ssh.command('[ -f {} ]'.format(settings.gce.cert_path)).return_code == 0:
-        raise FileNotFoundError("The GCE certificate {} is not found in satellite.".format(
-            settings.gce.cert_path))
+        raise FileNotFoundError(
+            "The GCE certificate {} is not found in satellite.".format(settings.gce.cert_path)
+        )
     return download_server_file('json', settings.gce.cert_url)
 
 
 @pytest.fixture
 def gce_resource_with_image(
-        gce_template,
-        gce_cloudinit_template,
-        download_cert,
-        default_architecture,
-        module_os,
-        module_loc,
-        module_org
+    gce_template,
+    gce_cloudinit_template,
+    download_cert,
+    default_architecture,
+    module_os,
+    module_loc,
+    module_org,
 ):
     with Session('gce_tests') as session:
         # Until the CLI and API support is added for GCE,
         # creating GCE CR from UI
         cr_name = gen_string('alpha')
         vm_user = gen_string('alpha')
-        session.computeresource.create({
-            'name': cr_name,
-            'provider': FOREMAN_PROVIDERS['google'],
-            'provider_content.google_project_id': settings.gce.project_id,
-            'provider_content.client_email': settings.gce.client_email,
-            'provider_content.certificate_path': settings.gce.cert_path,
-            'provider_content.zone.value': settings.gce.zone,
-            'organizations.resources.assigned': [module_org.name],
-            'locations.resources.assigned': [module_loc.name],
-        })
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'provider': FOREMAN_PROVIDERS['google'],
+                'provider_content.google_project_id': settings.gce.project_id,
+                'provider_content.client_email': settings.gce.client_email,
+                'provider_content.certificate_path': settings.gce.cert_path,
+                'provider_content.zone.value': settings.gce.zone,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_loc.name],
+            }
+        )
     gce_cr = entities.AbstractComputeResource().search(
-        query={'search': 'name={}'.format(cr_name)})[0]
+        query={'search': 'name={}'.format(cr_name)}
+    )[0]
     # Finish Image
     entities.Image(
-        architecture=default_architecture, compute_resource=gce_cr, name='autogce_img',
-        operatingsystem=module_os, username=vm_user, uuid=gce_template
+        architecture=default_architecture,
+        compute_resource=gce_cr,
+        name='autogce_img',
+        operatingsystem=module_os,
+        username=vm_user,
+        uuid=gce_template,
     ).create()
     # Cloud-Init Image
     entities.Image(
-        architecture=default_architecture, compute_resource=gce_cr, name='autogce_img_cinit',
-        operatingsystem=module_os, username=vm_user, uuid=gce_cloudinit_template, user_data=True
+        architecture=default_architecture,
+        compute_resource=gce_cr,
+        name='autogce_img_cinit',
+        operatingsystem=module_os,
+        username=vm_user,
+        uuid=gce_cloudinit_template,
+        user_data=True,
     ).create()
     return gce_cr
 
 
 @pytest.fixture
 def gce_hostgroup(
-        module_org,
-        module_loc,
-        default_partition_table,
-        default_architecture,
-        module_os,
-        module_environment,
-        module_proxy,
-        gce_domain,
-        gce_resource_with_image,
-        module_lce,
-        module_content_view,
+    module_org,
+    module_loc,
+    default_partition_table,
+    default_architecture,
+    module_os,
+    module_environment,
+    module_proxy,
+    gce_domain,
+    gce_resource_with_image,
+    module_lce,
+    module_content_view,
 ):
     return entities.HostGroup(
         architecture=default_architecture,
@@ -1771,13 +1753,7 @@ def gce_hostgroup(
 @tier4
 @skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
-        session,
-        module_org,
-        module_loc,
-        module_os,
-        gce_domain,
-        gce_hostgroup,
-        gce_client
+    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):
     """Provision Host on GCE compute resource
 
@@ -1788,33 +1764,38 @@ def test_positive_gce_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
+    storage = [{'size': 20}]
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
         # Provision GCE Host
         try:
             skip_yum_update_during_provisioning(template='Kickstart default finish')
-            session.host.create({
-                'host.name': name,
-                'host.hostgroup': gce_hostgroup.name,
-                'provider_content.virtual_machine.machine_type': 'g1-small',
-                'provider_content.virtual_machine.external_ip': True,
-                'provider_content.virtual_machine.network': 'default',
-                'operating_system.operating_system': module_os.title,
-                'operating_system.image': 'autogce_img',
-                'operating_system.root_password': root_pwd
-            })
+            session.host.create(
+                {
+                    'host.name': name,
+                    'host.hostgroup': gce_hostgroup.name,
+                    'provider_content.virtual_machine.machine_type': 'g1-small',
+                    'provider_content.virtual_machine.external_ip': True,
+                    'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
+                    'operating_system.operating_system': module_os.title,
+                    'operating_system.image': 'autogce_img',
+                    'operating_system.root_password': root_pwd,
+                }
+            )
             wait_for(
-                lambda: entities.Host().search(
-                    query={'search': 'name={}'.format(
-                        hostname)})[0].build_status_label != 'Pending installation',
+                lambda: entities.Host()
+                .search(query={'search': 'name={}'.format(hostname)})[0]
+                .build_status_label
+                != 'Pending installation',
                 timeout=600,
                 delay=15,
                 silent_failure=True,
-                handle_exception=True
+                handle_exception=True,
             )
             # 1. Host Creation Assertions
             # 1.1 UI based Assertions
@@ -1834,11 +1815,10 @@ def test_positive_gce_provision_end_to_end(
             message = session.host.delete(hostname)
             # 2.1 UI based Assertions
             assert (
-                       'Are you sure you want to delete host {}? This will delete the VM and '
-                       'its disks, and is irreversible. This behavior can be changed via '
-                       'global setting "Destroy associated VM on host delete".'.format(
-                           hostname)
-                   ) == message
+                'Are you sure you want to delete host {}? This will delete the VM and '
+                'its disks, and is irreversible. This behavior can be changed via '
+                'global setting "Destroy associated VM on host delete".'.format(hostname)
+            ) == message
             assert not session.host.search(hostname)
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
@@ -1856,13 +1836,7 @@ def test_positive_gce_provision_end_to_end(
 @upgrade
 @skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
-        session,
-        module_org,
-        module_loc,
-        module_os,
-        gce_domain,
-        gce_hostgroup,
-        gce_client
+    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):
     """Provision Host on GCE compute resource
 
@@ -1873,8 +1847,9 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     :CaseLevel: System
     """
     name = gen_string('alpha').lower()
-    hostname = u'{0}.{1}'.format(name, gce_domain.name)
+    hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
+    storage = [{'size': 20}]
     root_pwd = gen_string('alpha', random.choice([8, 15]))
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
@@ -1882,16 +1857,19 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         # Provision GCE Host
         try:
             skip_yum_update_during_provisioning(template='Kickstart default user data')
-            session.host.create({
-                'host.name': name,
-                'host.hostgroup': gce_hostgroup.name,
-                'provider_content.virtual_machine.machine_type': 'g1-small',
-                'provider_content.virtual_machine.external_ip': True,
-                'provider_content.virtual_machine.network': 'default',
-                'operating_system.operating_system': module_os.title,
-                'operating_system.image': 'autogce_img_cinit',
-                'operating_system.root_password': root_pwd
-            })
+            session.host.create(
+                {
+                    'host.name': name,
+                    'host.hostgroup': gce_hostgroup.name,
+                    'provider_content.virtual_machine.machine_type': 'g1-small',
+                    'provider_content.virtual_machine.external_ip': True,
+                    'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
+                    'operating_system.operating_system': module_os.title,
+                    'operating_system.image': 'autogce_img_cinit',
+                    'operating_system.root_password': root_pwd,
+                }
+            )
             # 1. Host Creation Assertions
             # 1.1 UI based Assertions
             host_info = session.host.get_details(hostname)
@@ -1910,11 +1888,10 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             message = session.host.delete(hostname)
             # 2.1 UI based Assertions
             assert (
-                       'Are you sure you want to delete host {}? This will delete the VM and '
-                       'its disks, and is irreversible. This behavior can be changed via '
-                       'global setting "Destroy associated VM on host delete".'.format(
-                           hostname)
-                   ) == message
+                'Are you sure you want to delete host {}? This will delete the VM and '
+                'its disks, and is irreversible. This behavior can be changed via '
+                'global setting "Destroy associated VM on host delete".'.format(hostname)
+            ) == message
             assert not session.host.search(hostname)
             # 2.2 GCE Backend Assertions
             assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
@@ -1926,4 +1903,30 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         finally:
             gce_client.disconnect()
             skip_yum_update_during_provisioning(
-                template='Kickstart default user data', reverse=True)
+                template='Kickstart default user data', reverse=True
+            )
+
+
+@upgrade
+@tier2
+def test_positive_cockpit(session):
+    """Test whether webconsole button and cockpit integration works
+
+    :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
+
+    :expectedresults: Cockpit page is loaded and displays sat host info
+
+    :CaseLevel: System
+
+    """
+    with session:
+        session.organization.select(org_name='Default Organization')
+        session.location.select(loc_name='Any Location')
+        hostname_inside_cockpit = session.host.get_webconsole_content(
+            entity_name=settings.server.hostname
+        )
+        assert (
+            hostname_inside_cockpit == settings.server.hostname
+        ), 'cockpit page shows hostname {0} instead of {1}'.format(
+            hostname_inside_cockpit, settings.server.hostname
+        )

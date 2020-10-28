@@ -1,31 +1,26 @@
 # -*- encoding: utf-8 -*-
 """
 Usage::
-
     hammer template [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
-
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
+    SUBCOMMAND                    Subcommand
+    [ARG] ...                     Subcommand arguments
 
 Subcommands::
-
-    add_operatingsystem           Associate an operating system
-    build-pxe-default             Update the default PXE menu on all configured
-                                  TFTP servers
+    add-operatingsystem           Associate an operating system
+    build-pxe-default             Update the default PXE menu on all configured TFTP servers
     clone                         Clone a provision template
-
+    combination                   Manage template combinations
     create                        Create a provisioning template
     delete                        Delete a provisioning template
-    dump                          View config template content.
+    dump                          View provisioning template content
     info                          Show provisioning template details
-    kinds                         List available config template kinds.
+    kinds                         List available provisioning template kinds
     list                          List provisioning templates
-    remove_operatingsystem        Disassociate an operating system
+    remove-operatingsystem        Disassociate an operating system
     update                        Update a provisioning template
 """
-
 from robottelo.cli.base import Base
 
 
@@ -39,8 +34,7 @@ class Template(Base):
         """Returns list of types of templates."""
         cls.command_sub = 'kinds'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         kinds = []
         if result:
@@ -53,8 +47,7 @@ class Template(Base):
         """Adds operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'add-operatingsystem'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -63,8 +56,7 @@ class Template(Base):
         """Remove operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'remove-operatingsystem'
 
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+        result = cls.execute(cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -72,12 +64,10 @@ class Template(Base):
     def clone(cls, options=None):
         """Clone provided provisioning template"""
         cls.command_sub = 'clone'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def build_pxe_default(cls, options=None):
         """Build PXE default template"""
         cls.command_sub = 'build-pxe-default'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv')
+        return cls.execute(cls._construct_command(options), output_format='csv')

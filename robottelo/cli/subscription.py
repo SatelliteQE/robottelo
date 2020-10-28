@@ -19,9 +19,7 @@ Subcommands::
     upload                        Upload a subscription manifest
 
 """
-
 from robottelo.cli.base import Base
-from robottelo.decorators import bz_bug_is_open
 
 
 class Subscription(Base):
@@ -35,37 +33,19 @@ class Subscription(Base):
     def upload(cls, options=None, timeout=None):
         """Upload a subscription manifest."""
         cls.command_sub = 'upload'
-        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
-            timeout = 1500
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def delete_manifest(cls, options=None, timeout=None):
         """Deletes a subscription manifest."""
         cls.command_sub = 'delete-manifest'
-        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
-            timeout = 1500
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def refresh_manifest(cls, options=None, timeout=None):
         """Refreshes a subscription manifest."""
         cls.command_sub = 'refresh-manifest'
-        if bz_bug_is_open(1669186) and (timeout is None or timeout < 1500):
-            timeout = 1500
-        return cls.execute(
-            cls._construct_command(options),
-            ignore_stderr=True,
-            timeout=timeout,
-        )
+        return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
     def manifest_history(cls, options=None):

@@ -14,18 +14,23 @@
 
 :Upstream: No
 """
+import math
+
+import pytest
+from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 from pytest import raises
-from robottelo.datafactory import filtered_datapoint, gen_string
-from robottelo.decorators import (
-    fixture,
-    skip_if_bug_open,
-    stubbed,
-    tier2,
-    tier3,
-    upgrade
-)
+
+from robottelo import ssh
+from robottelo.cli.user import User
+from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import gen_string
+from robottelo.decorators import fixture
+from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import tier2
+from robottelo.decorators import tier3
+from robottelo.decorators import upgrade
 
 
 @filtered_datapoint
@@ -36,10 +41,11 @@ def invalid_settings_values():
 
 def valid_error_messages():
     """Returns the list of valid error messages"""
-    return ['Value is invalid: must be integer',
-            'Value must be greater than 0',
-            'Value URL must be valid and schema must be one of http and https'
-            ]
+    return [
+        'Value is invalid: must be integer',
+        'Value must be greater than 0',
+        'Value URL must be valid and schema must be one of http and https',
+    ]
 
 
 def is_valid_error_message(actual_error_message):
@@ -57,14 +63,24 @@ def set_original_property_value():
 
     def _set_original_property_value(property_name):
         before_test_setting_param = entities.Setting().search(
-            query={'search': 'name="{0}"'.format(property_name)})[0]
+            query={'search': 'name="{0}"'.format(property_name)}
+        )[0]
         property_list[property_name] = before_test_setting_param.value
         return before_test_setting_param.value
+
     yield _set_original_property_value
     for key, value in property_list.items():
         after_test_setting_param = entities.Setting().search(
-            query={'search': 'name="{0}"'.format(key)})[0]
+            query={'search': 'name="{0}"'.format(key)}
+        )[0]
         after_test_setting_param.value = value
+
+
+def setting_cleanup(setting_name=None, setting_value=None):
+    """Put necessary value for a specified setting"""
+    setting_entity = entities.Setting().search(query={'search': 'name={}'.format(setting_name)})[0]
+    setting_entity.value = setting_value
+    setting_entity.update({'value'})
 
 
 def add_content_views_to_composite(composite_cv, org, repo):
@@ -103,30 +119,26 @@ def test_positive_update_restrict_composite_view(session, set_original_property_
     product = entities.Product(organization=org).create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repo = entities.Repository(name=repo_name, product=product).create()
-    composite_cv = entities.ContentView(
-        composite=True,
-        organization=org,
-    ).create()
+    composite_cv = entities.ContentView(composite=True, organization=org).create()
     add_content_views_to_composite(composite_cv, org, repo)
     composite_cv.publish()
     with session:
         session.organization.select(org_name=org.name)
         for param_value in ('Yes', 'No'):
-            session.settings.update(
-                'name = {}'.format(property_name),
-                param_value
-            )
+            session.settings.update('name = {}'.format(property_name), param_value)
             if param_value == 'Yes':
                 with raises(AssertionError) as context:
                     session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
-                assert 'Administrator -> Settings -> Content page using the ' \
-                       'restrict_composite_view flag.' in str(context.value)
+                assert (
+                    'Administrator -> Settings -> Content page using the '
+                    'restrict_composite_view flag.' in str(context.value)
+                )
             else:
                 result = session.contentview.promote(composite_cv.name, 'Version 1.0', lce.name)
                 assert lce.name in result['Environments']
 
 
-@skip_if_bug_open('bugzilla', 1677282)
+@pytest.mark.skip_if_open("BZ:1677282")
 @tier2
 def test_positive_httpd_proxy_url_update(session, set_original_property_value):
     """Update the http_proxy_url should pass successfully.
@@ -143,11 +155,8 @@ def test_positive_httpd_proxy_url_update(session, set_original_property_value):
     property_name = 'http_proxy'
     with session:
         set_original_property_value(property_name)
-        param_value = gen_url()
-        session.settings.update(
-            'name = {}'.format(property_name),
-            param_value
-        )
+        param_value = gen_url(scheme='https')
+        session.settings.update('name = {}'.format(property_name), param_value)
         result = session.settings.read('name = {}'.format(property_name))
         assert result['table'][0]['Value'] == param_value
 
@@ -168,18 +177,46 @@ def test_negative_validate_error_message(session, set_original_property_value):
             set_original_property_value(property_name)
             for param_value in invalid_settings_values():
                 with raises(AssertionError) as context:
-                    session.settings.update(
-                        'name = {}'.format(property_name),
-                        param_value
-                    )
+                    session.settings.update('name = {}'.format(property_name), param_value)
                 assert is_valid_error_message(str(context.value))
 
 
-@stubbed()
+@run_in_one_thread
+@tier2
+def test_positive_selectors(session):
+    """"Testing input for selectors: dropdown, text area, input box
+
+    :id: 529ddd3a-1271-4043-9006-eac436b08b11
+
+    :expectedresults: Successfully add value to different selectors
+
+    :CaseImportance: High
+    """
+    uuid_input = "[ {} ]".format(gen_string("alpha"))
+    random_input = gen_string('alpha')
+    uuid_duplicate_prop = ('host_dmi_uuid_duplicates', uuid_input)
+    reg_host_prop = ('register_hostname_fact', random_input)
+    dep_solve_prop = ('content_view_solve_dependencies', 'Yes')
+
+    with session:
+        for setting_attr, value in [uuid_duplicate_prop, dep_solve_prop, reg_host_prop]:
+            # Stores original values for each type of selectors
+            original_val = entities.Setting().search(
+                query={'search': 'name={}'.format(setting_attr)}
+            )[0]
+            # Update to new value and resets value to back to old state
+            try:
+                session.settings.update('name = {}'.format(setting_attr), value)
+                result = session.settings.read('name = {}'.format(setting_attr))
+                assert result['table'][0]['Value'] == value
+            finally:
+                setting_cleanup(setting_attr, str(original_val.default))
+
+
 @tier3
-def test_positive_update_login_page_footer_text_with_long_string():
-    """Attempt to update parameter "Login_page_footer_text"
-        with long length string under General tab
+def test_positive_update_login_page_footer_text_with_long_string(session):
+    """Testing to update parameter "Login_page_footer_text with long length
+    string under General tab
 
     :id: b1a51594-43e6-49d8-918b-9bc306f3a1a2
 
@@ -194,13 +231,20 @@ def test_positive_update_login_page_footer_text_with_long_string():
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    property_name = 'login_text'
+    property_value = entities.Setting().search(query={'search': f'name={property_name}'})[0]
+    login_text_data = gen_string('alpha', 270)
+    with session:
+        try:
+            session.settings.update(f"name={property_name}", f"{login_text_data}")
+            result = session.login.logout()
+            assert result["login_text"] == login_text_data
+        finally:
+            setting_cleanup(setting_name=property_name, setting_value=property_value.value)
 
 
-@stubbed()
 @tier3
 def test_negative_settings_access_to_non_admin():
     """Check non admin users can't access Administer -> Settings tab
@@ -208,23 +252,29 @@ def test_negative_settings_access_to_non_admin():
     :id: 34bb9376-c5fe-431a-ac0d-ef030c0ab50e
 
     :steps:
+
         1. Login with non admin user
         2. Check "Administer" tab is not present
         3. Navigate to /settings
         4. Check message permission denied is present
 
-    :expectedresults: Administer -> Settings tab should not be available to
-        non admin users
+    :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
 
-    :CaseAutomation: notautomated
-
     :CaseLevel: Acceptance
     """
+    login = gen_string('alpha')
+    password = gen_string('alpha')
+    entities.User(admin=False, login=login, password=password).create()
+    try:
+        with Session(user=login, password=password) as session:
+            assert session.settings.browser.title == 'Permission denied'
+    finally:
+        User.delete({'login': login})
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_positive_update_email_delivery_method_smtp():
     """Updating SMTP params on Email tab
@@ -259,7 +309,7 @@ def test_positive_update_email_delivery_method_smtp():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 @upgrade
 def test_negative_update_email_delivery_method_smtp():
@@ -294,9 +344,8 @@ def test_negative_update_email_delivery_method_smtp():
     """
 
 
-@stubbed()
 @tier3
-def test_positive_update_email_delivery_method_sendmail():
+def test_positive_update_email_delivery_method_sendmail(session):
     """Updating Sendmail params on Email tab
 
     :id: c774e713-9640-402d-8987-c3509e918eb6
@@ -319,12 +368,42 @@ def test_positive_update_email_delivery_method_sendmail():
     :CaseImportance: Critical
 
     :CaseLevel: Acceptance
-
-    :CaseAutomation: notautomated
     """
+    property_name = "Email"
+    mail_config_default_param = {
+        "delivery_method": "",
+        "email_reply_address": "",
+        "email_subject_prefix": "",
+        "sendmail_arguments": "",
+        "sendmail_location": "",
+        "send_welcome_email": "",
+    }
+    mail_config_default_param = {
+        content: entities.Setting().search(query={'search': f'name={content}'})[0]
+        for content in mail_config_default_param
+    }
+    mail_config_new_params = {
+        "delivery_method": "Sendmail",
+        "email_reply_address": f"root@{ssh.settings.server.hostname}",
+        "email_subject_prefix": [gen_string('alpha')],
+        "sendmail_location": "/usr/sbin/sendmail",
+        "send_welcome_email": "Yes",
+    }
+    command = "grep " + f'{mail_config_new_params["email_subject_prefix"]}' + " /var/mail/root"
+
+    with session:
+        try:
+            for mail_content, mail_content_value in mail_config_new_params.items():
+                session.settings.update(mail_content, mail_content_value)
+            test_mail_response = session.settings.send_test_mail(property_name)[0]
+            assert test_mail_response == "Email was sent successfully"
+            assert ssh.command(command).return_code == 0
+        finally:
+            for key, value in mail_config_default_param.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_negative_update_email_delivery_method_sendmail():
     """Updating Sendmail params on Email tab fail
@@ -354,7 +433,7 @@ def test_negative_update_email_delivery_method_sendmail():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 @tier3
 def test_positive_email_yaml_config_precedence():
     """Check configuration file /etc/foreman/email.yaml takes precedence
@@ -386,9 +465,9 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
-@stubbed()
+@pytest.mark.skip_if_open("BZ:1470083")
 @tier2
-def test_negative_update_hostname_with_empty_fact():
+def test_negative_update_hostname_with_empty_fact(session):
     """Update the Hostname_facts settings without any string(empty values)
 
     :id: e0eaab69-4926-4c1e-b111-30c51ede273e
@@ -400,6 +479,56 @@ def test_negative_update_hostname_with_empty_fact():
 
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
-
-    :CaseAutomation: notautomated
     """
+    default_hostname = entities.Setting().search(query={'search': 'name=discovery_hostname'})[0]
+    default_hostname = {"discovery_hostname": default_hostname}
+    new_hostname = {"discovery_hostname": ""}
+    with session:
+        try:
+            for key, value in new_hostname.items():
+                response = session.settings.update(key, value)
+            assert response is not None, "Empty string accepted"
+        finally:
+            for key, value in default_hostname.items():
+                setting_cleanup(setting_name=key, setting_value=value.value)
+
+
+@run_in_one_thread
+@tier3
+def test_positive_entries_per_page(session):
+    """ Update the per page entry in the settings.
+
+    :id: 009026b6-7550-40aa-9f78-5eb7f7e3800f
+
+    :Steps:
+        1. Navigate to Administer > Settings > General tab
+        2. Update the entries per page value
+        3. GoTo Monitor > Tasks Table > Pagination
+        4. Check the new per page entry is updated in pagination list
+        5. Check the page count on the basis of the new updated entries per page.
+
+    :expectedresults: New set entry-per-page should be available in the pagination list and
+        page count should match according to the new setting
+
+    :BZ: 1746221
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Acceptance
+    """
+    property_name = "entries_per_page"
+    property_value = 19
+    default_property_value = entities.Setting().search(query={'search': f'name={property_name}'})[
+        0
+    ]
+    with session:
+        try:
+            session.settings.update(f"name={property_name}", property_value)
+            page_content = session.task.read_all(widget_names="Pagination")
+            assert str(property_value) in page_content["Pagination"]["per_page"]
+            total_pages = math.ceil(
+                int(page_content["Pagination"]["total_items"]) / property_value
+            )
+            assert str(total_pages) == page_content["Pagination"]["pages"]
+        finally:
+            setting_cleanup(setting_name=property_name, setting_value=default_property_value.value)

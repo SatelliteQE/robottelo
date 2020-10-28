@@ -6,9 +6,9 @@ import re
 from robottelo.test import AssertCliNotRaisesContextManager
 
 
-def assert_cli_not_raises(expected_exception, callable_obj=None,
-                          expected_value=None, value_handler=None, *args,
-                          **kwargs):
+def assert_cli_not_raises(
+    expected_exception, callable_obj=None, expected_value=None, value_handler=None, *args, **kwargs
+):
     """Fail if an exception of class expected_exception is raised by
     callableObj when invoked with specified positional and keyword
     arguments. If a different type of exception is raised, it will not be
@@ -37,9 +37,7 @@ def assert_cli_not_raises(expected_exception, callable_obj=None,
     response code will be caught.
     """
     context = AssertCliNotRaisesContextManager(
-        expected_exception,
-        expected_value=expected_value,
-        value_handler=value_handler,
+        expected_exception, expected_value=expected_value, value_handler=value_handler
     )
     if callable_obj is None:
         return context
@@ -47,9 +45,15 @@ def assert_cli_not_raises(expected_exception, callable_obj=None,
         callable_obj(*args, **kwargs)
 
 
-def assert_cli_not_raises_regex(expected_exception, expected_regex,
-                                callable_obj=None, expected_value=None,
-                                value_handler=None, *args, **kwargs):
+def assert_cli_not_raises_regex(
+    expected_exception,
+    expected_regex,
+    callable_obj=None,
+    expected_value=None,
+    value_handler=None,
+    *args,
+    **kwargs
+):
     """Fail if an exception of class expected_exception is raised and the
     message in the exception matches a regex.
     """

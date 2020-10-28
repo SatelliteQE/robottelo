@@ -14,9 +14,10 @@ But in this script we are doing programatically and interactivelly in Python
 On robottelo root dir run:
 $ python scripts/tokenize_customer_scenario.py
 """
-
 import codemod
-from codemod import Query, regex_suggestor, run_interactive
+from codemod import Query
+from codemod import regex_suggestor
+from codemod import run_interactive
 from codemod.helpers import path_filter
 
 
@@ -35,7 +36,5 @@ for uid in uids:
     match = ':id: {0}'.format(uid)
     subst = ':id: {0}\n\n        :customerscenario: true'.format(uid)
     case_i = True
-    query_options['suggestor'] = regex_suggestor(
-        match, subst, ignore_case=True
-    )
+    query_options['suggestor'] = regex_suggestor(match, subst, ignore_case=True)
     run_interactive(query=Query(**query_options))

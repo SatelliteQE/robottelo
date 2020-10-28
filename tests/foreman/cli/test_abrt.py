@@ -6,7 +6,7 @@
 
 :CaseLevel: Component
 
-:CaseComponent: Other
+:CaseComponent: Infrastructure
 
 :TestType: Functional
 
@@ -14,14 +14,18 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, upgrade, tier1, tier2
+import pytest
+
+from robottelo.decorators import tier1
+from robottelo.decorators import tier2
+from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class AbrtTestCase(CLITestCase):
     """Test class for generating abrt report in CLI."""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @upgrade
     @tier1
     def test_positive_create_report(self):
@@ -43,7 +47,7 @@ class AbrtTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_create_reports(self):
         """Counts are correct when abrt sends multiple reports
@@ -63,7 +67,7 @@ class AbrtTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_update_timer(self):
         """Edit the smart-proxy-abrt timer
@@ -80,7 +84,7 @@ class AbrtTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_identify_hostname(self):
         """Identifying the hostnames
@@ -97,7 +101,7 @@ class AbrtTestCase(CLITestCase):
 
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     def test_positive_search_report(self):
         """Able to retrieve reports in CLI
