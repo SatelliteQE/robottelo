@@ -122,6 +122,8 @@ class TestRemoteExecution:
             and task can be listed by name and ID
 
         :BZ: 1647582
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -169,6 +171,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -236,6 +240,8 @@ class TestRemoteExecution:
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
         :expectedresults: Verify the job was successfully ran against the host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -279,6 +285,8 @@ class TestRemoteExecution:
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
 
         :expectedresults: Verify the job was successfully ran against all hosts
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -335,6 +343,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the packages were successfully installed
             on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -397,6 +407,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was run not more than the specified
             number of times.
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -444,6 +456,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully ran after the
             designated time
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -555,6 +569,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -635,6 +651,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -697,6 +715,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup

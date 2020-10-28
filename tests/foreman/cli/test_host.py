@@ -42,7 +42,6 @@ from robottelo.cli.factory import make_domain
 from robottelo.cli.factory import make_environment
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
-from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_location
@@ -57,7 +56,6 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
-from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.package import Package
@@ -73,14 +71,10 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
-from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
@@ -89,7 +83,6 @@ from robottelo.constants import REPOSET
 from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
 from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
@@ -1542,295 +1535,6 @@ class HostProvisionTestCase(CLITestCase):
 
 
 @run_in_one_thread
-class KatelloAgentTestCase(CLITestCase):
-    """Host tests, which require VM with installed katello-agent."""
-
-    org = None
-    env = None
-    content_view = None
-    activation_key = None
-
-    @classmethod
-    @skip_if_not_set('clients', 'fake_manifest')
-    def setUpClass(cls):
-        """Create Org, Lifecycle Environment, Content View, Activation key
-
-        """
-        super(KatelloAgentTestCase, cls).setUpClass()
-        # Create new org, environment, CV and activation key
-        KatelloAgentTestCase.org = make_org()
-        KatelloAgentTestCase.env = make_lifecycle_environment(
-            {'organization-id': KatelloAgentTestCase.org['id']}
-        )
-        KatelloAgentTestCase.content_view = make_content_view(
-            {'organization-id': KatelloAgentTestCase.org['id']}
-        )
-        KatelloAgentTestCase.activation_key = make_activation_key(
-            {
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'organization-id': KatelloAgentTestCase.org['id'],
-            }
-        )
-        # Add subscription to Satellite Tools repo to activation key
-        setup_org_for_a_rh_repo(
-            {
-                'product': PRDS['rhel'],
-                'repository-set': REPOSET['rhst7'],
-                'repository': REPOS['rhst7']['name'],
-                'organization-id': KatelloAgentTestCase.org['id'],
-                'content-view-id': KatelloAgentTestCase.content_view['id'],
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            }
-        )
-        # Create custom repo, add subscription to activation key
-        setup_org_for_a_custom_repo(
-            {
-                'url': FAKE_1_YUM_REPO,
-                'organization-id': KatelloAgentTestCase.org['id'],
-                'content-view-id': KatelloAgentTestCase.content_view['id'],
-                'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            }
-        )
-
-    def setUp(self):
-        """Create VM, subscribe it to satellite-tools repo, install katello-ca
-        and katello-agent packages
-
-        """
-        super(KatelloAgentTestCase, self).setUp()
-        # Create VM and register content host
-        self.client = VirtualMachine(distro=DISTRO_RHEL7)
-        self.client.create()
-        self.addCleanup(vm_cleanup, self.client)
-        self.client.install_katello_ca()
-        # Register content host, install katello-agent
-        self.client.register_contenthost(
-            KatelloAgentTestCase.org['label'], KatelloAgentTestCase.activation_key['name']
-        )
-        self.assertTrue(self.client.subscribed)
-        self.host = Host.info({'name': self.client.hostname})
-        self.client.enable_repo(REPOS['rhst7']['id'])
-        self.client.install_katello_agent()
-
-    @tier3
-    def test_positive_get_errata_info(self):
-        """Get errata info
-
-        :id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
-
-        :expectedresults: Errata info was displayed
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        result = Host.errata_info({'host-id': self.host['id'], 'id': FAKE_1_ERRATA_ID})
-        self.assertEqual(result[0]['errata-id'], FAKE_1_ERRATA_ID)
-        self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
-
-    @tier3
-    @upgrade
-    def test_positive_apply_errata(self):
-        """Apply errata to a host
-
-        :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
-
-        :expectedresults: Errata is scheduled for installation
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': self.host['id']})
-
-    @pytest.mark.skip_if_open("BZ:1740790")
-    @tier3
-    def test_positive_apply_security_erratum(self):
-        """Apply security erratum to a host
-
-        :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
-
-        :expectedresults: erratum is recognized by the
-            `yum update --security` command on client
-
-        :CaseLevel: System
-
-        :BZ: 1420671, 1740790
-        """
-        self.client.download_install_rpm(FAKE_1_YUM_REPO, FAKE_2_CUSTOM_PACKAGE)
-        # Check the system is up to date
-        result = self.client.run('yum update --security | grep "No packages needed for security"')
-        self.assertEqual(result.return_code, 0)
-        before_downgrade = int(time.time())
-        # Downgrade walrus package
-        self.client.run('yum downgrade -y {0}'.format(FAKE_2_CUSTOM_PACKAGE_NAME))
-        # Wait for errata applicability cache is counted
-        wait_for_errata_applicability_task(int(self.host['id']), before_downgrade)
-        # Check that host has applicable errata
-        host_errata = Host.errata_list({'host-id': self.host['id']})
-        self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
-        self.assertEqual(host_errata[0]['installable'], 'true')
-        # Check the erratum becomes available
-        result = self.client.run(
-            'yum update --assumeno --security | grep "No packages needed for security"'
-        )
-        self.assertEqual(result.return_code, 1)
-
-    @tier3
-    @upgrade
-    def test_positive_install_package(self):
-        """Install a package to a host remotely
-
-        :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
-
-        :expectedresults: Package was successfully installed
-
-
-        :CaseLevel: System
-        """
-        Host.package_install({'host-id': self.host['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_remove_package(self):
-        """Remove a package from a host remotely
-
-        :id: 573dec11-8f14-411f-9e41-84426b0f23b5
-
-        :expectedresults: Package was successfully removed
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_remove({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME))
-        self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_upgrade_package(self):
-        """Upgrade a host package remotely
-
-        :id: ad751c63-7175-40ae-8bc4-800462cd9c29
-
-        :expectedresults: Package was successfully upgraded
-
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_upgrade({'host-id': self.host['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    def test_positive_upgrade_packages_all(self):
-        """Upgrade all the host packages remotely
-
-        :id: 003101c7-bb95-4e51-a598-57977b2858a9
-
-        :expectedresults: Packages (at least 1 with newer version available)
-            were successfully upgraded
-
-        :CaseLevel: System
-        """
-        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        Host.package_upgrade_all({'host-id': self.host['id']})
-        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
-        self.assertEqual(result.return_code, 0)
-
-    @tier3
-    @upgrade
-    def test_positive_install_and_remove_package_group(self):
-        """Install and remove a package group to a host remotely
-
-        :id: ded20a89-cfd9-48d5-8829-739b1a4d4042
-
-        :expectedresults: Package group was successfully installed
-            and removed
-
-        :CaseLevel: System
-        """
-        hammer_args = {'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME, 'host-id': self.host['id']}
-        Host.package_group_install(hammer_args)
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertEqual(result.return_code, 0)
-        Host.package_group_remove(hammer_args)
-        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-            result = self.client.run('rpm -q {0}'.format(package))
-            self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    def test_negative_unregister_and_pull_content(self):
-        """Attempt to retrieve content after host has been unregistered from
-        Satellite
-
-        :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
-
-        :expectedresults: Host can no longer retrieve content from satellite
-
-        :CaseLevel: System
-        """
-        result = self.client.run('subscription-manager unregister')
-        self.assertEqual(result.return_code, 0)
-        result = self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        self.assertNotEqual(result.return_code, 0)
-
-    @tier3
-    @upgrade
-    def test_positive_register_host_ak_with_host_collection(self):
-        """Attempt to register a host using activation key with host collection
-
-        :id: 7daf4e40-3fa6-42af-b3f7-1ca1a5c9bfeb
-
-        :BZ: 1385814
-
-        :expectedresults: Host successfully registered and listed in host
-            collection
-
-        :CaseLevel: System
-        """
-        # create a new activation key
-        activation_key = make_activation_key(
-            {
-                'lifecycle-environment-id': self.env['id'],
-                'organization-id': self.org['id'],
-                'content-view-id': self.content_view['id'],
-            }
-        )
-        hc = make_host_collection({'organization-id': self.org['id']})
-        ActivationKey.add_host_collection(
-            {
-                'id': activation_key['id'],
-                'organization-id': self.org['id'],
-                'host-collection-id': hc['id'],
-            }
-        )
-        # add the registered instance host to collection
-        HostCollection.add_host(
-            {'id': hc['id'], 'organization-id': self.org['id'], 'host-ids': self.host['id']}
-        )
-        with VirtualMachine() as client:
-            client.create()
-            client.install_katello_ca()
-            # register the client host with the current activation key
-            client.register_contenthost(self.org['name'], activation_key=activation_key['name'])
-            self.assertTrue(client.subscribed)
-            # note: when registering the host, it should be automatically added
-            # to the host collection
-            client_host = Host.info({'name': client.hostname})
-            hosts = HostCollection.hosts({'id': hc['id'], 'organization-id': self.org['id']})
-            self.assertEqual(len(hosts), 2)
-            expected_hosts_ids = {self.host['id'], client_host['id']}
-            hosts_ids = {host['id'] for host in hosts}
-            self.assertEqual(hosts_ids, expected_hosts_ids)
-
-
-@run_in_one_thread
 class KatelloHostToolsTestCase(CLITestCase):
     """Host tests, which require VM with installed katello-host-tools."""
 
@@ -2618,62 +2322,3 @@ class EncDumpTestCase(CLITestCase):
         """
         hostname = ssh.command('hostname').stdout[0]
         self.assertIsInstance(Host.enc_dump({'name': hostname}), list)
-
-
-class SLESTestCase(CLITestCase):
-    """ Tests SUSE Linux Enterprise Server Client """
-
-    @classmethod
-    def setUpClass(cls):
-        """Prepare satellite for SLES.
-        1. Upload manifest that contains the “Red Smart Management
-            for non-Red Hat Enterprise Linux Platforms
-        2. Enable and Sync Satellite Tools (for SLES)
-        3. Synchronize the Satellite Tools (for SLES) repositories
-        4. Create symlink - Make the Satellite Tools SLES repositories available via http
-        5. Download the correct version of the Satellite Tools (for SLES) product cert from the CDN
-        6. Verify access to the Satellite Tools (for SLES)
-        """
-
-    def _setup_SLES_client(self, sles_distro):
-        """
-        1. Create VM with defined sles_distro
-        2. Ensure you have the base and Updates SUSE Linux Enterprise Server repositories available
-            for your version
-        3. Manually add the custom repository on client
-        4. Install subscription-manager
-        5. Download and place the product cert
-        6. Register VM to satellite
-        7. Verify that Satellite Tools (for SLES) repos are visible to the client
-        8. Install katello-host-tools package
-        9. Remove the temporary custom repository from point 3.
-        """
-
-    @pytest.mark.stubbed
-    @tier3
-    def test_positive_report_package_installed_removed(self):
-        """Verify that SLES setup works correctly for every distribution,
-        by ensuring that installed/removed package is reported to satellite
-
-        :id: 33c4ed50-ca7c-11ea-bd85-98fa9b6ecd5a
-
-        :customerscenario: true
-
-        :steps:
-            1. register a host to activation key with content view that contain
-               packages
-            2. install a package 1 from the available packages
-            3. list the host installed packages with search for package 1 name
-            4. remove the package 1
-            5. list the host installed packages with search for package 1 name
-
-        :expectedresults:
-            1. after step3: package 1 is listed in installed packages
-            2. after step5: installed packages list is empty
-
-        :CaseLevel: System
-
-        :CaseAutomation: notautomated
-
-        :CaseImportance: High
-        """

@@ -39,6 +39,13 @@ DISTROS_MAJOR_VERSION = {
 }
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
+BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
+BROKER_PROVISIONING_PROVIDER = "RHEV"
+BROKER_RHEL77 = {
+    "workflow": BROKER_DEPLOY_WORKFLOW,
+    "rhel_version": "7.7",
+    "provider": BROKER_PROVISIONING_PROVIDER,
+}
 
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
@@ -1759,6 +1766,12 @@ RHSSO_NEW_USER = {
     "firstName": "first_name",
     "lastName": "last_name",
     "username": "random_name",
+}
+
+RHSSO_USER_UPDATE = {'realm': "realm_name", "userId": "user_id"}
+
+RHSSO_NEW_GROUP = {
+    "name": "group_name",
 }
 
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}

@@ -40,11 +40,6 @@ def pytest_report_header(config):
         if not scope:
             scope = ''
         storage = settings.shared_function.storage
-    if config.pluginmanager.hasplugin("junitxml"):
-        junit = getattr(config, "_xml", None)
-        if junit is not None:
-            now = datetime.datetime.utcnow()
-            junit.add_global_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
     messages.append(
         'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
             shared_function_enabled, scope, storage
@@ -142,6 +137,12 @@ def pytest_collection_modifyitems(session, items, config):
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
+
+
+@pytest.fixture(autouse=True, scope="session")
+def record_testsuite_timestamp_xml(record_testsuite_property):
+    now = datetime.datetime.utcnow()
+    record_testsuite_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
 @pytest.fixture(autouse=True, scope="function")

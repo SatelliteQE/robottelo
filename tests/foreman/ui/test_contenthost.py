@@ -495,7 +495,7 @@ def test_actions_katello_host_package_update_timeout(session, vm):
 
 
 @tier3
-def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
+def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
 
     :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
@@ -511,7 +511,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     """
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with Session(
-        test_name, user=module_viewer_user.login, password=module_viewer_user.password
+        test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}

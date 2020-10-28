@@ -184,3 +184,48 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
     assert slices_in_metadata == slices_in_tar
     for slice_name, hosts_count in local_file_data['metadata_counts'].items():
         assert hosts_count == local_file_data['slices_counts'][slice_name]
+
+
+@pytest.mark.stubbed
+def test_hits_synchronization():
+    """Synchronize hits data from cloud and verify it is displayed in Satellite
+
+    :id: c3d1edf5-f43a-4f85-bd80-825bde58f6b2
+
+    :Steps:
+        1. Prepare misconfigured machine and upload its data to Insights
+        2. Add Cloud API key in Satellite
+        3. In Satellite UI, Configure -> Insights -> Sync now
+        4. Go to Hosts -> All Hosts and assert there is "Insights" column with content
+        5. Open host page and assert there is new Insights recommendation tab
+
+    :expectedresults:
+        1. There's Insights column with number of recommendations and link to cloud
+        2. Recommendations are listed on single host page
+
+    :CaseAutomation: notautomated
+    """
+
+
+@pytest.mark.stubbed
+def test_hosts_synchronization():
+    """Synchronize list of available hosts from cloud and mark them in Satellite
+
+    :id: 2f1bdd42-140d-46f8-bad5-299c54620ee8
+
+    :Steps:
+
+        1. Prepare machine and upload its data to Insights
+        2. Add Cloud API key in Satellite
+        3. In Satellite UI, Configure -> Inventory upload -> Sync inventory status
+        4. Assert content of toast message once synchronization finishes
+        5. Go to Hosts -> All Hosts and assert content of status popover
+        6. Open host page and assert status on "Properties" tab
+
+    :expectedresults:
+        1. Toast message contains number of hosts synchronized and missed
+        2. Presence in cloud is displayed in popover status of host
+        3. Presence in cloud is displayed in "Properties" tab on single host page
+
+    :CaseAutomation: notautomated
+    """
