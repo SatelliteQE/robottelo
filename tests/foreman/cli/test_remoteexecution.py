@@ -22,6 +22,7 @@ from time import sleep
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
+from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.factory import make_job_invocation
@@ -35,9 +36,9 @@ from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
-from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -84,7 +85,7 @@ def fixture_vmsetup(request, fixture_org):
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_run_job_multiple_hosts_time_span(self):
         """Run job against multiple hosts with time span setting
@@ -97,7 +98,7 @@ class TestRemoteExecution:
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_multiple_hosts_concurrency(self):
@@ -121,6 +122,8 @@ class TestRemoteExecution:
             and task can be listed by name and ID
 
         :BZ: 1647582
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -168,6 +171,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -235,6 +240,8 @@ class TestRemoteExecution:
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
         :expectedresults: Verify the job was successfully ran against the host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -278,6 +285,8 @@ class TestRemoteExecution:
         :id: 694a21d3-243b-4296-8bd0-4bad9663af15
 
         :expectedresults: Verify the job was successfully ran against all hosts
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -324,6 +333,7 @@ class TestRemoteExecution:
             assert invocation_command['success'] == '2', output_msgs
 
     @tier3
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_install_multiple_packages_with_a_job_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -333,6 +343,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the packages were successfully installed
             on host
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -395,6 +407,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was run not more than the specified
             number of times.
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -442,6 +456,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully ran after the
             designated time
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -482,6 +498,51 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
+    @tier3
+    @upgrade
+    def test_positive_run_receptor_installer(self):
+        """Run Receptor installer ("Configure Cloud Connector")
+
+        :CaseComponent: RHCloud-CloudConnector
+
+        :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
+
+        :expectedresults: The job passes, installs Receptor that peers with c.r.c
+
+        :BZ: 1818076
+        """
+        template_name = 'Configure Cloud Connector'
+        invocation = make_job_invocation(
+            {
+                'async': True,
+                'job-template': template_name,
+                'inputs': 'satellite_user="{0}",satellite_password="{1}"'.format(
+                    settings.server.admin_username, settings.server.admin_password
+                ),
+                'search-query': "name ~ {0}".format(settings.server.hostname),
+            }
+        )
+        invocation_id = invocation['id']
+
+        wait_for(
+            lambda: entities.JobInvocation(id=invocation_id).read().status_label
+            in ["succeeded", "failed"],
+            timeout="1500s",
+        )
+        assert entities.JobInvocation(id=invocation_id).read().status == 0
+
+        result = ' '.join(
+            JobInvocation.get_output({'id': invocation_id, 'host': settings.server.hostname})
+        )
+        assert 'project-receptor.satellite_receptor_installer' in result
+        assert 'Exit status: 0' in result
+        # check that there is one receptor conf file and it's only readable
+        # by the receptor user and root
+        result = ssh.command('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+        assert result.stdout[0] == '400:foreman-proxy'
+        result = ssh.command('ls -l /etc/receptor/*/receptor.conf | wc -l')
+        assert result.stdout[0] == '1'
+
 
 class TestAnsibleREX:
     """Test class for remote execution via Ansible"""
@@ -508,6 +569,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -588,6 +651,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -627,6 +692,7 @@ class TestAnsibleREX:
 
     @tier3
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job can install packages and start services
 
@@ -649,6 +715,8 @@ class TestAnsibleREX:
         :CaseAutomation: automated
 
         :CaseLevel: System
+
+        :parametrized: yes
         """
         self.org = fixture_org
         self.client = fixture_vmsetup
@@ -728,7 +796,7 @@ class TestAnsibleREX:
         result = ssh.command("systemctl status {0}".format(service), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_power_job(self):
@@ -751,7 +819,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_puppet_job(self):
@@ -776,7 +844,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_roles_galaxy_install_job(self):
@@ -799,7 +867,7 @@ class TestAnsibleREX:
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_roles_git_install_job(self):
@@ -833,7 +901,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         cls.sat6_hostname = settings.server.hostname
         # provision host here and tests will share the host, step 0. in tests
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_for_provisioned_host(self):
@@ -856,7 +924,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     @upgrade
     def test_positive_run_job_for_multiple_provisioned_hosts(self):

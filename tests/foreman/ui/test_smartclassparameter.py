@@ -23,9 +23,9 @@ from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
@@ -166,9 +166,7 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
             sc_parameter_values = session.sc_parameter.read(sc_param.parameter)
             # Application is adding some data for yaml and hash types once
             # smart class parameter is updated
-            if data['sc_type'] == 'yaml':
-                data['value'] = '{}{}'.format(data['value'], '\n...\n')
-            elif data['sc_type'] == 'hash':
+            if data['sc_type'] == 'yaml' or data['sc_type'] == 'hash':
                 data['value'] = '{}{}'.format(data['value'], '\n')
             assert sc_parameter_values['parameter']['parameter_type'] == data['sc_type']
             assert sc_parameter_values['parameter']['default_value']['value'] == data['value']

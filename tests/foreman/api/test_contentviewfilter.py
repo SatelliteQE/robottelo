@@ -30,13 +30,14 @@ from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import CUSTOM_REPODATA_PATH
-from robottelo.constants import CUSTOM_SWID_TAG_REPO
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.test import APITestCase
@@ -272,6 +273,7 @@ class ContentViewFilterTestCase(APITestCase):
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_with_module_streams(self):
         """Verify Include and Exclude Filters creation for modulemd (module streams)
 
@@ -299,6 +301,7 @@ class ContentViewFilterTestCase(APITestCase):
         assert cvf.type == 'modulemd'
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
         """Verify SWID tags content file should exist in publish content view
         version location even after applying content view filters.
@@ -746,6 +749,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
     """Tests for content view filter rules."""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
         super(ContentViewFilterRuleTestCase, cls).setUpClass()
@@ -882,7 +886,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
             content_view=self.content_view, inclusion=False
         ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('duck')}
+            query={'search': 'name="{}"'.format('walrus')}
         )
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
@@ -891,7 +895,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         content_view = self.content_view.read()
         content_view_version_info = content_view.read().version[0].read()
         # verify the module_stream_count and errata_count for Include Filter
-        assert content_view_version_info.module_stream_count == 1
+        assert content_view_version_info.module_stream_count == 2
         assert content_view_version_info.errata_counts['total'] == 1
 
     @tier2

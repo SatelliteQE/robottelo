@@ -25,10 +25,8 @@ from robottelo.cli.factory import make_template
 from robottelo.cli.factory import make_user
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
-from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
@@ -248,112 +246,3 @@ class TemplateTestCase(CLITestCase):
         result = Template.clone({'id': template['id'], 'new-name': cloned_template_name})
         new_template = Template.info({'id': result[0]['id']})
         self.assertEqual(new_template['name'], cloned_template_name)
-
-    # Take Templates out of Tech Preview Feature Tests
-
-    @stubbed
-    @tier3
-    def test_positive_import_log_to_production(self):
-        """Assert template import logs are logged to production logs
-
-        :id: aeb0b80a-1eb9-4dfe-a67a-7c76ee51f61d
-
-        :Steps:
-            1. Using hammer, Import template from a source
-
-        :expectedresults:
-            1. Assert template import task and status logged to production log
-
-        :Requirement: Take Templates out of tech preview
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @stubbed
-    @tier3
-    def test_positive_export_log_to_production(self):
-        """Assert template export logs are logged to production logs
-
-        :id: 55dca9ce-18b1-4846-bae9-44a3b94a2749
-
-        :Steps:
-            1. Using hammer, Export template to destination
-
-        :expectedresults:
-            1. Assert template export task and status logged to production log
-
-        :Requirement: Take Templates out of tech preview
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @stubbed
-    @tier3
-    def test_rake_templates_import_depreciated(self):
-        """Assert running `foreman-rake templates:import` shows depreciation
-        message
-
-        :id: 75aab2b2-fcbb-436c-924d-4897d49ee0d2
-
-        :Steps:
-            1. Run `foreman-rake templates:import` task through
-            command from a directory having no templates to import
-
-        :expectedresults:
-            1. Assert task shows depreciation message of rake import is
-            depreciated
-
-        :CaseImportance: Low
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @stubbed
-    @tier3
-    def test_rake_templates_export_depreciated(self):
-        """Assert running `foreman-rake templates:export` shows depreciation
-        message
-
-        :id: b9e30f89-1cbf-47e0-ad2d-3e120ebe0643
-
-        :Steps:
-            1. Run `foreman-rake templates:export` task through
-            command to a directory to export templates
-
-        :expectedresults:
-            1. Assert task shows depreciation message of rake export is
-            depreciated
-
-        :CaseImportance: Low
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @stubbed
-    @tier3
-    def test_rake_templates_purge_depreciated(self):
-        """Assert running `foreman-rake templates:purge` shows depreciation
-        message
-
-        :id: 027391e3-d8e9-4205-add6-797488ea4b4a
-
-        :Steps:
-            1. Run `foreman-rake templates:purge` task through command
-            to purge templates
-
-        :expectedresults:
-            1. Assert task shows depreciation message of rake purge is
-            depreciated
-
-        :CaseImportance: Low
-
-        :CaseAutomation: NotAutomated
-        """

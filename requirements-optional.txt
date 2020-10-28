@@ -2,7 +2,6 @@
 codecov
 flake8
 pytest-cov
-pytest-xdist
 redis
 tox
 pre-commit
@@ -12,6 +11,7 @@ sauceclient==1.0.0
 
 # For generating documentation.
 sphinx
+sphinx-autoapi
 
 # For running UI tests within a docker browser
 docker-py

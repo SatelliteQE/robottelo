@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: InsightsInventoryPlugin
+:CaseComponent: RHCloud-Insights
 
 :TestType: Functional
 
@@ -26,7 +26,6 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.decorators import fixture
 from robottelo.decorators import parametrize
-from robottelo.decorators import stubbed
 from robottelo.vm import VirtualMachine
 
 
@@ -121,6 +120,8 @@ def test_rhai_navigation(autosession, nav_item):
 
     :id: 1f5faa05-83c2-43b3-925a-78c77d30d1ef
 
+    :parametrized: yes
+
     :expectedresults: All pages should be opened correctly without 500 error
     """
     entity_name, destination = nav_item
@@ -145,7 +146,7 @@ def test_negative_org_not_selected(autosession):
     assert "Organization Selection Required" in str(context.value)
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_rule_disable_enable():
     """Tests Insights rule can be disabled and enabled
 
@@ -169,7 +170,7 @@ def test_positive_rule_disable_enable():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_playbook_run():
     """Tests Planner playbook runs successfully
 
@@ -200,7 +201,7 @@ def test_positive_playbook_run():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_playbook_customized_run():
     """Tests Planner playbook customized run is successful
 
@@ -233,7 +234,7 @@ def test_positive_playbook_customized_run():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_playbook_download():
     """Tests Planner playbook download is successful
 
@@ -263,7 +264,7 @@ def test_positive_playbook_download():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_plan_export_csv():
     """Tests Insights plan is exported to csv successfully
 
@@ -294,7 +295,7 @@ def test_positive_plan_export_csv():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_plan_edit_remove_system():
     """Tests Insights plan can be edited by removing a system from it
 
@@ -325,7 +326,7 @@ def test_positive_plan_edit_remove_system():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_plan_edit_remove_rule():
     """Tests Insights plan can be edited by removing a rule from it
 
@@ -356,7 +357,7 @@ def test_positive_plan_edit_remove_rule():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_inventory_export_csv():
     """Tests Insights inventory can be exported to csv
 
@@ -379,7 +380,7 @@ def test_positive_inventory_export_csv():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_inventory_create_new_plan():
     """Tests Insights plan can be created using chosen inventory
 
@@ -401,7 +402,7 @@ def test_positive_inventory_create_new_plan():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_inventory_add_to_existing_plan():
     """Tests Insights inventory system can be added to the existing plan
 
@@ -428,7 +429,7 @@ def test_positive_inventory_add_to_existing_plan():
     """
 
 
-@stubbed()
+@pytest.mark.stubbed
 def test_positive_inventory_group_systems():
     """Tests Insights inventory systems can be grouped
 
@@ -460,10 +461,7 @@ def test_numeric_group(vm, autosession):
 
     :expectedresults: rule no more appears on Rules page on portal
     """
-    rule_title = (
-        'Unexpected behavior in command-line tools and 3rd party software when user or '
-        'group names are numeric'
-    )
+    rule_title = 'Unexpected behavior: Numeric user or group names'
     values = autosession.insightsinventory.read(vm.hostname, 'rules')
     # assert that the user and group numeric rule is not present
     assert not [rule for rule in values['rules'] if rule_title in rule['title']]

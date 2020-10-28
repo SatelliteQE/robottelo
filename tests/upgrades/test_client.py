@@ -38,11 +38,11 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
 
     :param str ak_name: Activation key name
     :param str client_os: rhel6/rhel7
-    :param nailgun.entity.Organization org: Organization
-    :param nailgun.entity.Environment environment: Environment
+    :param nailgun.entities.Organization org: Organization
+    :param nailgun.entities.Environment environment: Environment
     :param str sat_state: pre or post
 
-    :return nailgun.entity.ActivationKey: Activation key
+    :return nailgun.entities.ActivationKey: Activation key
     """
     client_os = client_os.upper()
     from_ver = settings.upgrade.from_version
@@ -139,7 +139,7 @@ def create_yum_test_repo(product_name, repo_url, org):
 
     :param str product_name: Product name to be created
     :param str repo_url: The repo url for repo
-    :param nailgun.entity.Organization org: Organization
+    :param nailgun.entities.Organization org: Organization
 
     :return tuple(nailgun entities): Returns product and yum_repo
     """
@@ -154,11 +154,11 @@ def create_yum_test_repo(product_name, repo_url, org):
 def update_product_subscription_in_ak(product, yum_repo, ak, org):
     """ Updates given products subscription in given AK
 
-    :param nailgun.entity.Product product: products name to calculate
+    :param nailgun.entities.Product product: products name to calculate
         subscription id
-    :param nailgun.entity.Repository yum_repo: yum repository
-    :param nailgun.entity.ActivationKey ak: Ak
-    :param nailgun.entity.Organization org: Organization
+    :param nailgun.entities.Repository yum_repo: yum repository
+    :param nailgun.entities.ActivationKey ak: Ak
+    :param nailgun.entities.Organization org: Organization
     """
     cv_from_ak = ak.content_view
     cv = cv_from_ak.read()
@@ -184,7 +184,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
     """The test class contains pre and post upgrade scenarios to test if the
     package can be installed on preupgrade client remotely
 
-    Test Steps:
+    Test Steps::
 
         1. Before Satellite upgrade, Create a content host and register it with
             satellite
@@ -305,7 +305,7 @@ class Scenario_upgrade_new_client_and_package_installation(APITestCase):
 
         1. Upgrade Satellite
         2. After Satellite upgrade, Create a content host and register it with
-        satellite
+            satellite
         3. Install package a client from satellite
         4. Check if the package is installed on the post-upgrade client
     """

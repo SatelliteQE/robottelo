@@ -22,6 +22,7 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 import http
 from random import randint
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -31,10 +32,10 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.test import APITestCase
 
 
 @filtered_datapoint
@@ -45,18 +46,18 @@ def valid_org_data_list():
     intended behavior (Also note that 255 is the standard across other
     entities.)
     """
-    return [
-        gen_string('alphanumeric', randint(1, 242)),
-        gen_string('alpha', randint(1, 242)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 242)),
-        gen_string('numeric', randint(1, 242)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    ]
+    return dict(
+        alpha=gen_string('alpha', randint(1, 242)),
+        numeric=gen_string('numeric', randint(1, 242)),
+        alphanumeric=gen_string('alphanumeric', randint(1, 242)),
+        latin1=gen_string('latin1', randint(1, 242)),
+        utf8=gen_string('utf8', randint(1, 85)),
+        cjk=gen_string('cjk', randint(1, 85)),
+        html=gen_string('html', randint(1, 85)),
+    )
 
 
-class OrganizationTestCase(APITestCase):
+class TestOrganization:
     """Tests for the ``organizations`` path."""
 
     @tier1
@@ -78,10 +79,11 @@ class OrganizationTestCase(APITestCase):
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        self.assertEqual(http.client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
+        assert http.client.UNSUPPORTED_MEDIA_TYPE == response.status_code
 
     @tier1
-    def test_positive_create_with_name_and_description(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
+    def test_positive_create_with_name_and_description(self, name):
         """Create an organization and provide a name and description.
 
         :id: afeea84b-61ca-40bf-bb16-476432919115
@@ -90,31 +92,31 @@ class OrganizationTestCase(APITestCase):
             auto-generated label.
 
         :CaseImportance: Critical
-        """
-        for name in valid_org_data_list():
-            with self.subTest(name):
-                org = entities.Organization(name=name, description=name).create()
-                self.assertEqual(org.name, name)
-                self.assertEqual(org.description, name)
 
-                # Was a label auto-generated?
-                self.assertTrue(hasattr(org, 'label'))
-                self.assertIsInstance(org.label, type(''))
-                self.assertGreater(len(org.label), 0)
+        :parametrized: yes
+        """
+        org = entities.Organization(name=name, description=name).create()
+        assert org.name == name
+        assert org.description == name
+
+        # Was a label auto-generated?
+        assert hasattr(org, 'label')
+        assert isinstance(org.label, type(''))
+        assert len(org.label) > 0
 
     @tier1
-    def test_negative_create_with_invalid_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_invalid_name(self, name):
         """Create an org with an incorrect name.
 
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
         :expectedresults: The organization cannot be created.
 
+        :parametrized: yes
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Organization(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.Organization(name=name).create()
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -127,7 +129,7 @@ class OrganizationTestCase(APITestCase):
         :CaseImportance: Critical
         """
         name = entities.Organization().create().name
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Organization(name=name).create()
 
     @tier1
@@ -142,9 +144,9 @@ class OrganizationTestCase(APITestCase):
         """
         org = entities.Organization().create()
         orgs = entities.Organization().search(query={'search': 'name="{0}"'.format(org.name)})
-        self.assertEqual(len(orgs), 1)
-        self.assertEqual(orgs[0].id, org.id)
-        self.assertEqual(orgs[0].name, org.name)
+        assert len(orgs) == 1
+        assert orgs[0].id == org.id
+        assert orgs[0].name == org.name
 
     @tier1
     def test_negative_create_with_wrong_path(self):
@@ -162,10 +164,10 @@ class OrganizationTestCase(APITestCase):
         """
         org = entities.Organization()
         org._meta['api_path'] = 'api/v2/organizations'
-        with self.assertRaises(HTTPError) as err:
+        with pytest.raises(HTTPError) as err:
             org.create()
-        self.assertEqual(err.exception.response.status_code, 404)
-        self.assertIn('Route overriden by Katello', err.exception.response.text)
+        assert err.value.response.status_code == 404
+        assert 'Route overriden by Katello' in err.value.response.text
 
     @tier2
     def test_default_org_id_check(self):
@@ -182,20 +184,20 @@ class OrganizationTestCase(APITestCase):
         default_org_id = (
             entities.Organization().search(query={'search': 'name="{}"'.format(DEFAULT_ORG)})[0].id
         )
-        self.assertEqual(default_org_id, 1)
+        assert default_org_id == 1
 
 
-class OrganizationUpdateTestCase(APITestCase):
+class TestOrganizationUpdate:
     """Tests for the ``organizations`` path."""
 
-    @classmethod
-    def setUpClass(cls):
+    @pytest.fixture
+    def module_org(self):
         """Create an organization."""
-        super(OrganizationUpdateTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
+        return entities.Organization().create()
 
     @tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
+    def test_positive_update_name(self, module_org, name):
         """Update an organization's name with valid values.
 
         :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
@@ -203,15 +205,16 @@ class OrganizationUpdateTestCase(APITestCase):
         :expectedresults: The organization's name is updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        for name in valid_org_data_list():
-            with self.subTest(name):
-                setattr(self.organization, 'name', name)
-                self.organization = self.organization.update(['name'])
-                self.assertEqual(self.organization.name, name)
+        setattr(module_org, 'name', name)
+        module_org = module_org.update(['name'])
+        assert module_org.name == name
 
     @tier1
-    def test_positive_update_description(self):
+    @pytest.mark.parametrize('desc', **parametrized(valid_org_data_list()))
+    def test_positive_update_description(self, module_org, desc):
         """Update an organization's description with valid values.
 
         :id: bd223197-1021-467e-8714-c1a767ae89af
@@ -219,15 +222,15 @@ class OrganizationUpdateTestCase(APITestCase):
         :expectedresults: The organization's description is updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        for desc in valid_org_data_list():
-            with self.subTest(desc):
-                setattr(self.organization, 'description', desc)
-                self.organization = self.organization.update(['description'])
-                self.assertEqual(self.organization.description, desc)
+        setattr(module_org, 'description', desc)
+        module_org = module_org.update(['description'])
+        assert module_org.description == desc
 
     @tier2
-    def test_positive_update_user(self):
+    def test_positive_update_user(self, module_org):
         """Update an organization, associate user with it.
 
         :id: 2c0c0061-5b4e-4007-9f54-b61d6e65ef58
@@ -237,13 +240,13 @@ class OrganizationUpdateTestCase(APITestCase):
         :CaseLevel: Integration
         """
         user = entities.User().create()
-        self.organization.user = [user]
-        self.organization = self.organization.update(['user'])
-        self.assertEqual(len(self.organization.user), 1)
-        self.assertEqual(self.organization.user[0].id, user.id)
+        module_org.user = [user]
+        module_org = module_org.update(['user'])
+        assert len(module_org.user) == 1
+        assert module_org.user[0].id == user.id
 
     @tier2
-    def test_positive_update_subnet(self):
+    def test_positive_update_subnet(self, module_org):
         """Update an organization, associate subnet with it.
 
         :id: 3aa0b9cb-37f7-4e7e-a6ec-c1b407225e54
@@ -253,10 +256,10 @@ class OrganizationUpdateTestCase(APITestCase):
         :CaseLevel: Integration
         """
         subnet = entities.Subnet().create()
-        self.organization.subnet = [subnet]
-        self.organization = self.organization.update(['subnet'])
-        self.assertEqual(len(self.organization.subnet), 1)
-        self.assertEqual(self.organization.subnet[0].id, subnet.id)
+        module_org.subnet = [subnet]
+        module_org = module_org.update(['subnet'])
+        assert len(module_org.subnet) == 1
+        assert module_org.subnet[0].id == subnet.id
 
     @tier2
     def test_positive_add_and_remove_hostgroup(self):
@@ -274,10 +277,10 @@ class OrganizationUpdateTestCase(APITestCase):
         hostgroup = entities.HostGroup().create()
         org.hostgroup = [hostgroup]
         org = org.update(['hostgroup'])
-        self.assertEqual(len(org.hostgroup), 1)
+        assert len(org.hostgroup) == 1
         org.hostgroup = []
         org = org.update(['hostgroup'])
-        self.assertEqual(len(org.hostgroup), 0)
+        assert len(org.hostgroup) == 0
 
     @upgrade
     @tier2
@@ -297,7 +300,7 @@ class OrganizationUpdateTestCase(APITestCase):
             query={'search': 'url = https://{0}:9090'.format(settings.server.hostname)}
         )
         # Check that proxy is found and unpack it from the list
-        self.assertGreater(len(smart_proxy), 0)
+        assert len(smart_proxy) > 0
         smart_proxy = smart_proxy[0]
         # By default, newly created organization uses built-in smart proxy,
         # so we need to remove it first
@@ -305,22 +308,31 @@ class OrganizationUpdateTestCase(APITestCase):
         org.smart_proxy = []
         org = org.update(['smart_proxy'])
         # Verify smart proxy was actually removed
-        self.assertEqual(len(org.smart_proxy), 0)
+        assert len(org.smart_proxy) == 0
 
         # Add smart proxy to organization
         org.smart_proxy = [smart_proxy]
         org = org.update(['smart_proxy'])
         # Verify smart proxy was actually added
-        self.assertEqual(len(org.smart_proxy), 1)
-        self.assertEqual(org.smart_proxy[0].id, smart_proxy.id)
+        assert len(org.smart_proxy) == 1
+        assert org.smart_proxy[0].id == smart_proxy.id
 
         org.smart_proxy = []
         org = org.update(['smart_proxy'])
         # Verify smart proxy was actually removed
-        self.assertEqual(len(org.smart_proxy), 0)
+        assert len(org.smart_proxy) == 0
 
     @tier1
-    def test_negative_update(self):
+    @pytest.mark.parametrize(
+        'attrs',
+        # Immutable. See BZ 1089996.
+        [
+            {'name': gen_string(str_type='utf8', length=256)},
+            {'label': gen_string(str_type='utf8')},
+        ],
+        ids=['name', 'label'],
+    )
+    def test_negative_update(self, module_org, attrs):
         """Update an organization's attributes with invalid values.
 
         :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
@@ -328,13 +340,8 @@ class OrganizationUpdateTestCase(APITestCase):
         :expectedresults: The organization's attributes are not updated.
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        dataset = (
-            {'name': gen_string(str_type='utf8', length=256)},
-            # Immutable. See BZ 1089996.
-            {'label': gen_string(str_type='utf8')},
-        )
-        for attrs in dataset:
-            with self.subTest(attrs):
-                with self.assertRaises(HTTPError):
-                    entities.Organization(id=self.organization.id, **attrs).update(attrs.keys())
+        with pytest.raises(HTTPError):
+            entities.Organization(id=module_org.id, **attrs).update(attrs.keys())

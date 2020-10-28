@@ -47,11 +47,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseImportance: High
     """
-    variable_name = gen_string('alpha')
     name = gen_string('alpha')
     hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
     puppet_class = entities.PuppetClass(name=name).create()
-    entities.SmartVariable(variable=variable_name, puppetclass=puppet_class).create()
     with session:
         # Check that created puppet class can be found in UI
         assert session.puppetclass.search(name)[0]['Class name'] == name
@@ -60,7 +58,6 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert pc_values['puppet_class']['name'] == name
         assert not pc_values['puppet_class']['puppet_environment']
         assert not pc_values['puppet_class']['host_group']['assigned']
-        assert pc_values['smart_variables']['variable']['key'] == variable_name
         # Update puppet class
         session.puppetclass.update(
             puppet_class.name, {'puppet_class.host_group.assigned': [hostgroup.name]}

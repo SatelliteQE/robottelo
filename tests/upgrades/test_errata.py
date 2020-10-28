@@ -31,9 +31,9 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
-from robottelo.constants import FAKE_9_YUM_REPO
 from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.constants import REPOS
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.upgrade_utility import host_location_update
@@ -98,7 +98,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
     """The test class contains pre and post upgrade scenarios to test if the
     errata count for satellite client/content host.
 
-    Test Steps:
+    Test Steps::
 
         1. Before Satellite upgrade, Create a content host and register it with
             satellite
@@ -135,7 +135,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
 
             1. The content host is created
             2. errata count, erratum list will be generated to satellite client/content
-            host
+                host
 
         """
         org = entities.Organization().create()
@@ -219,7 +219,7 @@ class Scenario_errata_count(APITestCase, ScenarioErrataAbstract):
             4. Verifying the errata_ids
             5. Verifying installation errata passes successfully
             6. Verifying that package installation passed successfully by remote docker
-            exec
+                exec
 
         :expectedresults:
             1. errata count, erratum list should same after satellite upgrade
@@ -429,12 +429,12 @@ class Scenario_errata_count_with_previous_version_katello_agent(
             4. Verifying the errata_ids.
             5. Verifying installation errata passes successfully.
             6. Verifying that package installation passed successfully by remote docker
-             exec.
+                exec.
 
         :expectedresults:
             1. errata count, erratum list should same after satellite upgrade.
             2. Installation of errata should be pass successfully and check errata counts
-             is 0.
+                is 0.
          """
 
         entity_data = get_entity_data(self.__class__.__name__)

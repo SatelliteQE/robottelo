@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
 from functools import wraps
@@ -7,7 +6,6 @@ import pytest
 import unittest2
 
 from robottelo.config import settings
-from robottelo.constants import NOT_IMPLEMENTED
 
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
@@ -25,13 +23,13 @@ tier4 = pytest.mark.tier4
 destructive = pytest.mark.destructive
 # Upgrade
 upgrade = pytest.mark.upgrade
-
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread
 
 # Shortcuts for pytest methods
 parametrize = pytest.mark.parametrize
 fixture = pytest.fixture
+skipif = pytest.mark.skipif
 
 
 def setting_is_set(option):
@@ -144,24 +142,6 @@ def skip_if_not_set(*options):
         return wrapper
 
     return decorator
-
-
-def stubbed(reason=None):
-    """Skips test due to non-implentation or some other reason."""
-    # Assume 'not implemented' if no reason is given
-    if reason is None:
-        reason = NOT_IMPLEMENTED
-
-    def wrapper(func):
-        # Replicate the same behavior as doing:
-        #
-        # @unittest2.skip(reason)
-        # @pytest.mark.stubbed
-        # def func(...):
-        #     ...
-        return unittest2.skip(reason)(pytest.mark.stubbed(func))
-
-    return wrapper
 
 
 def cacheable(func):

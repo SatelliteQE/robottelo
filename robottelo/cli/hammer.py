@@ -20,7 +20,7 @@ def _csv_reader(output):
     unicode.
 
     :param output: can be any object which supports the iterator protocol and
-    returns a unicode string each time its next() method is called.
+        returns a unicode string each time its next() method is called.
     :return: generator that will yield a list of unicode string values.
 
     """
@@ -41,6 +41,9 @@ def parse_json(stdout):
     """Parse JSON output from Hammer CLI and convert it to python dictionary
     while normalizing keys.
     """
+    new_object_index = stdout.find('\n}\n{')
+    if new_object_index > -1:
+        stdout = stdout[new_object_index + 3 :]  # noqa: E203
     parsed = json.loads(stdout)
     return _normalize_obj(parsed)
 
@@ -61,6 +64,13 @@ def _normalize_obj(obj):
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
+    try:
+        warning_index = output.index(
+            'Puppet and OSTree will no longer be supported in Katello 3.16'
+        )
+        output = output[warning_index + 1 :]  # noqa: E203
+    except ValueError:
+        pass
     reader = _csv_reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
@@ -80,10 +90,10 @@ def parse_help(output):
 
     contents = {'subcommands': [], 'options': []}
     option_regex = re.compile(
-        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w-]+))?'
-        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>\w+))?\s+(?P<help>.*)$'
+        r'^ (-(?P<shortname>\w), )?(--(\[.*?\])?(?P<name>[\w\[\]|-]+))?'
+        r'(, --(?P<deprecation_name>[\w-]+))?( (?P<value>[\w-]+))?\s+(?P<help>.*)$'
     )
-    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?\s+(?P<description>.*)$')
+    subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?(, [\w-]+)?\s+(?P<description>.*)$')
 
     for line in output:
         if len(line.strip()) == 0:
@@ -122,6 +132,23 @@ def parse_help(output):
                         'help': match.group('help'),
                     }
                 )
+
+    # handle multiple options disguised as one, e.g. --hostgroup[s|-ids|-titles]
+    grouped_option_regex = re.compile(r'^(?P<prefix>[\w-]+)\[(?P<postfixes>\S+)\]$')
+    new_options = []
+    for option in contents['options']:
+        match = grouped_option_regex.search(option['name'])
+        if not match:
+            new_options.append(option)
+            continue
+        prefix = match.group('prefix')
+        postfixes = match.group('postfixes').split('|')
+        if postfixes[0].startswith('-'):
+            postfixes.insert(0, '')
+        names = [f'{prefix}{postfix}' for postfix in postfixes]
+        exploded = [{**option, **{'name': name}} for name in names]
+        new_options.extend(exploded)
+    contents['options'] = new_options
 
     return contents
 

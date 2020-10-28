@@ -41,24 +41,22 @@ from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_scap_policy
-from robottelo.cli.factory import make_scapcontent
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
-from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
@@ -81,31 +79,13 @@ def _get_set_from_list_of_dict(value):
 
 
 @pytest.fixture
-def scap_content():
-    title = 'rhel-content-{0}'.format(gen_string('alpha'))
-    scap_info = make_scapcontent(
-        {'title': title, 'scap-file': '{0}'.format(settings.oscap.content_path)}
-    )
-    scap_id = scap_info['id']
-    scap_info = Scapcontent.info({'id': scap_id}, output_format='json')
-
-    scap_profile_id = [
-        profile['id']
-        for profile in scap_info['scap-content-profiles']
-        if OSCAP_PROFILE['security7'] in profile['title']
-    ][0]
-    return scap_id, scap_profile_id
-
-
-@pytest.fixture
 def scap_policy(scap_content):
-    scap_id, scap_profile_id = scap_content
     scap_policy = make_scap_policy(
         {
             'name': gen_string('alpha'),
             'deploy-by': 'puppet',
-            'scap-content-id': scap_id,
-            'scap-content-profile-id': scap_profile_id,
+            'scap-content-id': scap_content["scap_id"],
+            'scap-content-profile-id': scap_content["scap_profile_id"],
             'period': OSCAP_PERIOD['weekly'].lower(),
             'weekday': OSCAP_WEEKDAY['friday'].lower(),
         }
@@ -194,7 +174,7 @@ def module_os(default_architecture, default_partition_table, module_org, module_
         'Kickstart default user data',
     ]:
         template = (
-            entities.ConfigTemplate()
+            entities.ProvisioningTemplate()
             .search(query={'search': 'name="{}"'.format(template_name)})[0]
             .read()
         )
@@ -206,8 +186,8 @@ def module_os(default_architecture, default_partition_table, module_org, module_
     # Update the OS to associate architecture, ptable, templates
     os.architecture = [default_architecture]
     os.ptable = [default_partition_table]
-    os.config_template = templates
-    os = os.update(['architecture', 'config_template', 'ptable'])
+    os.provisioning_template = templates
+    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     return os
 
 
@@ -498,7 +478,7 @@ def test_positive_read_from_details_page(session, module_host_template):
         assert session.host.search(host_name)[0]['Name'] == host_name
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
-        assert values['properties']['properties_table']['Build'] == 'Pending installation'
+        assert 'Pending installation' in values['properties']['properties_table']['Build']
         assert (
             values['properties']['properties_table']['Domain'] == module_host_template.domain.name
         )
@@ -606,6 +586,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 
@@ -692,8 +673,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
 
     :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
 
-    :expectedresults: Host Assign Compliance Policy action is working as
+    :expectedresults: Host Assign/Unassign Compliance Policy action is working as
         expected.
+
+    :BZ: 1862135
 
     :CaseLevel: Integration
     """
@@ -701,11 +684,10 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     org = host.organization.read()
     loc = host.location.read()
     # add host organization and location to scap policy
-    scap_policy = Scappolicy.info({'id': scap_policy['id']}, output_format='json')
-    organization_ids = [policy_org['id'] for policy_org in scap_policy.get('organizations', [])]
+    content = Scapcontent.info({'id': scap_policy['scap-content-id']}, output_format='json')
+    organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]
     organization_ids.append(org.id)
-    location_ids = [policy_loc['id'] for policy_loc in scap_policy.get('locations', [])]
-
+    location_ids = [content_loc['id'] for content_loc in content.get('locations', [])]
     location_ids.append(loc.id)
     Scapcontent.update(
         {
@@ -724,15 +706,26 @@ def test_positive_assign_compliance_policy(session, scap_policy):
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        assert not session.host.search('compliance_policy = {0}'.format(scap_policy['name']))
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
             'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
         )
         assert (
-            session.host.search('compliance_policy = {0}'.format(scap_policy['name']))[0]['Name']
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
             == host.name
         )
+        session.host.apply_action(
+            'Assign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert (
+            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
+            == host.name
+        )
+        session.host.apply_action(
+            'Unassign Compliance Policy', [host.name], {'policy': scap_policy['name']}
+        )
+        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
 @skip_if(settings.webdriver != 'chrome')
@@ -1774,6 +1767,7 @@ def test_positive_gce_provision_end_to_end(
     hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
+    storage = [{'size': 20}]
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
@@ -1787,6 +1781,7 @@ def test_positive_gce_provision_end_to_end(
                     'provider_content.virtual_machine.machine_type': 'g1-small',
                     'provider_content.virtual_machine.external_ip': True,
                     'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
                     'operating_system.operating_system': module_os.title,
                     'operating_system.image': 'autogce_img',
                     'operating_system.root_password': root_pwd,
@@ -1854,6 +1849,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     name = gen_string('alpha').lower()
     hostname = '{0}.{1}'.format(name, gce_domain.name)
     gceapi_vmname = hostname.replace('.', '-')
+    storage = [{'size': 20}]
     root_pwd = gen_string('alpha', random.choice([8, 15]))
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
@@ -1868,6 +1864,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                     'provider_content.virtual_machine.machine_type': 'g1-small',
                     'provider_content.virtual_machine.external_ip': True,
                     'provider_content.virtual_machine.network': 'default',
+                    'provider_content.virtual_machine.storage': storage,
                     'operating_system.operating_system': module_os.title,
                     'operating_system.image': 'autogce_img_cinit',
                     'operating_system.root_password': root_pwd,
@@ -1908,3 +1905,28 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True
             )
+
+
+@upgrade
+@tier2
+def test_positive_cockpit(session):
+    """Test whether webconsole button and cockpit integration works
+
+    :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
+
+    :expectedresults: Cockpit page is loaded and displays sat host info
+
+    :CaseLevel: System
+
+    """
+    with session:
+        session.organization.select(org_name='Default Organization')
+        session.location.select(loc_name='Any Location')
+        hostname_inside_cockpit = session.host.get_webconsole_content(
+            entity_name=settings.server.hostname
+        )
+        assert (
+            hostname_inside_cockpit == settings.server.hostname
+        ), 'cockpit page shows hostname {0} instead of {1}'.format(
+            hostname_inside_cockpit, settings.server.hostname
+        )

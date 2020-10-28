@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cleanup import capsule_cleanup
@@ -121,7 +122,7 @@ class OrganizationTestCase(CLITestCase):
         # Create
         name = valid_org_names_list()[0]
         label = valid_labels_list()[0]
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         org = make_org({'name': name, 'label': label, 'description': desc})
         self.assertEqual(org['name'], name)
         self.assertEqual(org['label'], label)
@@ -387,12 +388,15 @@ class OrganizationTestCase(CLITestCase):
         )
 
     @tier2
+    @pytest.mark.skip_if_open("BZ:1845860")
     def test_positive_add_and_remove_templates(self):
         """Add and remove provisioning templates to organization
 
         :id: bd46a192-488f-4da0-bf47-1f370ae5f55c
 
         :expectedresults: Templates are handled as expected
+
+        :BZ: 1845860
 
         :steps:
             1. Add and remove template by id
@@ -401,19 +405,23 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         # create and remove templates by name
-        name = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
 
         template = make_template({'content': gen_string('alpha'), 'name': name})
-        # Add config-template
-        Org.add_config_template({'name': self.org['name'], 'config-template': template['name']})
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'name': self.org['name'], 'provisioning-template': template['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertIn(
             '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({'config-template': template['name'], 'name': self.org['name']})
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template': template['name'], 'name': self.org['name']}
+        )
         org_info = Org.info({'name': self.org['name']})
         self.assertNotIn(
             '{0} ({1})'.format(template['name'], template['type']),
@@ -422,16 +430,20 @@ class OrganizationTestCase(CLITestCase):
         )
 
         # add and remove templates by id
-        # Add config-template
-        Org.add_config_template({'config-template-id': template['id'], 'id': self.org['id']})
+        # Add provisioning-template
+        Org.add_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertIn(
             '{0} ({1})'.format(template['name'], template['type']),
             org_info['templates'],
             "Failed to add template by name",
         )
-        # Remove config-template
-        Org.remove_config_template({'config-template-id': template['id'], 'id': self.org['id']})
+        # Remove provisioning-template
+        Org.remove_provisioning_template(
+            {'provisioning-template-id': template['id'], 'id': self.org['id']}
+        )
         org_info = Org.info({'id': self.org['id']})
         self.assertNotIn(
             '{0} ({1})'.format(template['name'], template['type']),
@@ -630,7 +642,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = valid_org_names_list()[0]
-        desc = valid_data_list()[0]
+        desc = list(valid_data_list().values())[0]
         label = valid_labels_list()[0]
 
         Org.create({'description': desc, 'label': label, 'name': name})
@@ -648,7 +660,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_name = valid_org_names_list()[0]
-        new_desc = valid_data_list()[0]
+        new_desc = list(valid_data_list().values())[0]
         org = make_org()
 
         # upgrade name

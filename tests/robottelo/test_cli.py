@@ -1,6 +1,7 @@
 from functools import partial
 from unittest import mock
 
+import pytest
 import unittest2
 
 from robottelo.cli.base import Base
@@ -28,26 +29,26 @@ class BaseCliTestCase(unittest2.TestCase):
             {'flag-one': True, 'flag-two': False, 'argument': 'value', 'ommited-arg': None}
         ).split()
 
-        self.assertIn('basecommand', command_parts)
-        self.assertIn('subcommand', command_parts)
-        self.assertIn('--flag-one', command_parts)
-        self.assertIn('--argument="value"', command_parts)
-        self.assertNotIn('--flag-two', command_parts)
-        self.assertEqual(len(command_parts), 4)
+        assert 'basecommand' in command_parts
+        assert 'subcommand' in command_parts
+        assert '--flag-one' in command_parts
+        assert '--argument="value"' in command_parts
+        assert '--flag-two' not in command_parts
+        assert len(command_parts) == 4
 
     def test_username_password_parameters_lookup(self):
         """Username and password returned are the parameters"""
         username, password = CLIClass._get_username_password('auser', 'apass')
 
-        self.assertEqual(username, 'auser')
-        self.assertEqual(password, 'apass')
+        assert username == 'auser'
+        assert password == 'apass'
 
     def test_username_password_attributes_lookup(self):
         """Username and password returned are the class attributes"""
         username, password = CLIClass._get_username_password()
 
-        self.assertEqual(username, CLIClass.foreman_admin_username)
-        self.assertEqual(password, CLIClass.foreman_admin_password)
+        assert username == CLIClass.foreman_admin_username
+        assert password == CLIClass.foreman_admin_password
 
     @mock.patch('robottelo.cli.base.settings')
     def test_username_password_config_lookup(self, settings):
@@ -56,16 +57,16 @@ class BaseCliTestCase(unittest2.TestCase):
         settings.server.admin_password = 'hackme'
         username, password = Base._get_username_password()
 
-        self.assertEqual(username, settings.server.admin_username)
-        self.assertEqual(password, settings.server.admin_password)
+        assert username == settings.server.admin_username
+        assert password == settings.server.admin_password
 
     def test_with_user(self):
         """Check if ``with_user`` method returns a right wrapper class"""
         new_class = Base.with_user('auser', 'apass')
 
-        self.assertEqual(new_class.foreman_admin_username, 'auser')
-        self.assertEqual(new_class.foreman_admin_password, 'apass')
-        self.assertIn(Base, new_class.__bases__)
+        assert new_class.foreman_admin_username == 'auser'
+        assert new_class.foreman_admin_password == 'apass'
+        assert Base in new_class.__bases__
 
     def test_handle_response_success(self):
         """Check handle_response returns stdout when the is no problem on ssh
@@ -75,7 +76,7 @@ class BaseCliTestCase(unittest2.TestCase):
         response = mock.Mock()
         response.return_code = 0
         response.stderr = []
-        self.assertEqual(response.stdout, base._handle_response(response))
+        assert response.stdout == base._handle_response(response)
 
     @mock.patch('robottelo.cli.base.Base.logger.warning')
     def test_handle_response_logging_when_stderr_not_empty(self, warning):
@@ -84,13 +85,13 @@ class BaseCliTestCase(unittest2.TestCase):
         response = mock.Mock()
         response.return_code = 0
         response.stderr = ['not empty']
-        self.assertEqual(response.stdout, base._handle_response(response))
+        assert response.stdout == base._handle_response(response)
         warning.assert_called_once_with(
             'stderr contains following message:\n{}'.format(response.stderr)
         )
         warning.reset_mock()
-        self.assertEqual(response.stdout, base._handle_response(response, True))
-        self.assertFalse(warning.called, 'Should not be called when ignore_stderr is True')
+        assert response.stdout == base._handle_response(response, True)
+        assert not warning.called, 'Should not be called when ignore_stderr is True'
 
     def test_handle_response_error(self):
         """Check handle_response raise ``CLIReturnCodeError`` when
@@ -137,16 +138,17 @@ class BaseCliTestCase(unittest2.TestCase):
         response = mock.Mock()
         response.return_code = 1
         response.stderr = [stderr]
-        self.assertRaises(expected_error, base._handle_response, response)
+        with pytest.raises(expected_error):
+            base._handle_response(response)
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_add_operating_system(self, construct, execute):
         """Check command_sub edited when executing add_operating_system"""
         options = {'foo': 'bar'}
-        self.assertNotEqual('add-operatingsystem', Base.command_sub)
-        self.assertEqual(execute.return_value, Base.add_operating_system(options))
-        self.assertEqual('add-operatingsystem', Base.command_sub)
+        assert 'add-operatingsystem' != Base.command_sub
+        assert execute.return_value == Base.add_operating_system(options)
+        assert 'add-operatingsystem' == Base.command_sub
         construct.called_once_with(options)
         execute.called_once_with(construct.return_value)
 
@@ -155,8 +157,8 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_add_create_with_empty_result(self, construct, execute):
         """Check command create when result is empty"""
         execute.return_value = []
-        self.assertEqual(execute.return_value, Base.create())
-        self.assertEqual('create', Base.command_sub)
+        assert execute.return_value == Base.create()
+        assert 'create' == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
 
@@ -166,11 +168,11 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_add_create_with_result_dct_without_id(self, construct, execute, info):
         """Check command create when result has dct but dct hasn't id key"""
         execute.return_value = [{'not_id': 'foo'}]
-        self.assertEqual(execute.return_value, Base.create())
-        self.assertEqual('create', Base.command_sub)
+        assert execute.return_value == Base.create()
+        assert 'create' == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
-        self.assertFalse(info.called)
+        assert not info.called
 
     @mock.patch('robottelo.cli.base.Base.info')
     @mock.patch('robottelo.cli.base.Base.execute')
@@ -181,8 +183,8 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = False
-        self.assertEqual(execute.return_value, Base.create())
-        self.assertEqual('create', Base.command_sub)
+        assert execute.return_value == Base.create()
+        assert 'create' == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
         info.called_once_with({'id': 'foo'})
@@ -196,8 +198,8 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = True
-        self.assertEqual(execute.return_value, Base.create({'organization-id': 'org-id'}))
-        self.assertEqual('create', Base.command_sub)
+        assert execute.return_value == Base.create({'organization-id': 'org-id'})
+        assert 'create' == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
         info.called_once_with({'id': 'foo', 'organization-id': 'org-id'})
@@ -210,8 +212,9 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         execute.return_value = [{'id': 'foo', 'bar': 'bas'}]
         Base.command_requires_org = True
-        self.assertRaises(CLIError, Base.create)
-        self.assertEqual('create', Base.command_sub)
+        with pytest.raises(CLIError):
+            Base.create()
+        assert 'create' == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, output_format='csv')
 
@@ -219,8 +222,8 @@ class BaseCliTestCase(unittest2.TestCase):
         self, construct, execute, base_method, cmd_sub, ignore_stderr=False, **base_method_kwargs
     ):
         """Asssert Base class method successfully executed """
-        self.assertEqual(execute.return_value, base_method(**base_method_kwargs))
-        self.assertEqual(cmd_sub, Base.command_sub)
+        assert execute.return_value == base_method(**base_method_kwargs)
+        assert cmd_sub == Base.command_sub
         construct.called_once_with({})
         execute.called_once_with(construct.return_value, ignore_stderr=ignore_stderr)
 
@@ -255,7 +258,7 @@ class BaseCliTestCase(unittest2.TestCase):
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'), output_format=None, timeout=None, connection_timeout=None
         )
-        self.assertIs(response, command.return_value)
+        assert response is command.return_value
 
     @mock.patch('robottelo.cli.base.Base._handle_response')
     @mock.patch('robottelo.cli.base.ssh.command')
@@ -272,7 +275,7 @@ class BaseCliTestCase(unittest2.TestCase):
             ssh_cmd.encode('utf-8'), output_format='json', timeout=None, connection_timeout=None
         )
         handle_resp.assert_called_once_with(command.return_value, ignore_stderr=None)
-        self.assertIs(response, handle_resp.return_value)
+        assert response is handle_resp.return_value
 
     @mock.patch('robottelo.cli.base.Base.list')
     def test_exists_without_option_and_empty_return(self, lst_method):
@@ -280,7 +283,7 @@ class BaseCliTestCase(unittest2.TestCase):
         lst_method.return_value = []
         response = Base.exists(search=['id', 1])
         lst_method.assert_called_once_with({'search': 'id=\\"1\\"'})
-        self.assertEqual([], response)
+        assert [] == response
 
     @mock.patch('robottelo.cli.base.Base.list')
     def test_exists_with_option_and_no_empty_return(self, lst_method):
@@ -289,14 +292,15 @@ class BaseCliTestCase(unittest2.TestCase):
         my_options = {'search': 'foo=bar'}
         response = Base.exists(my_options, search=['id', 1])
         lst_method.assert_called_once_with(my_options)
-        self.assertEqual(1, response)
+        assert 1 == response
 
     @mock.patch('robottelo.cli.base.Base.command_requires_org')
     def test_info_requires_organization_id(self, _):
         """Check info raises CLIError with organization-id is not present in
         options
         """
-        self.assertRaises(CLIError, Base.info)
+        with pytest.raises(CLIError):
+            Base.info()
 
     @mock.patch('robottelo.cli.base.hammer.parse_info')
     @mock.patch('robottelo.cli.base.Base.execute')
@@ -329,14 +333,15 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check list raises CLIError with organization-id is not present in
         options
         """
-        self.assertRaises(CLIError, Base.list)
+        with pytest.raises(CLIError):
+            Base.list()
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_list_with_default_per_page(self, construct, execute):
         """Check list method set per_page as 1000 by default"""
-        self.assertEqual(execute.return_value, Base.list(options={'organization-id': 1}))
-        self.assertEqual('list', Base.command_sub)
+        assert execute.return_value == Base.list(options={'organization-id': 1})
+        assert 'list' == Base.command_sub
         construct.called_once_with({'per-page': 1000})
         execute.called_once_with(construct.return_value, output_format='csv')
 
@@ -388,7 +393,7 @@ class CLIErrorTests(unittest2.TestCase):
     def test_error_msg_is_exposed(self):
         """Check if message error is exposed to assertRaisesRegex"""
         msg = 'organization-id option is required for Foo.create'
-        with self.assertRaisesRegex(CLIError, msg):
+        with pytest.raises(CLIError, match=msg):
             raise CLIError(msg)
 
 
@@ -398,22 +403,22 @@ class CLIBaseErrorTestCase(unittest2.TestCase):
     def test_init(self):
         """Check properties initialization"""
         error = CLIBaseError(1, 'stderr', 'msg')
-        self.assertEqual(error.return_code, 1)
-        self.assertEqual(error.stderr, 'stderr')
-        self.assertEqual(error.msg, 'msg')
-        self.assertEqual(error.message, error.msg)
+        assert error.return_code == 1
+        assert error.stderr == 'stderr'
+        assert error.msg == 'msg'
+        assert error.message == error.msg
 
     def test_return_code_is_exposed(self):
         """Check if return_code is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, '1'):
+        with pytest.raises(CLIBaseError, match='1'):
             raise CLIBaseError(1, 'stderr', 'msg')
 
     def test_stderr_is_exposed(self):
         """Check if stderr is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, 'stderr'):
+        with pytest.raises(CLIBaseError, match='stderr'):
             raise CLIBaseError(1, 'stderr', 'msg')
 
     def test_message_is_exposed(self):
         """Check if message is exposed to assertRaisesRegex"""
-        with self.assertRaisesRegex(CLIBaseError, 'msg'):
+        with pytest.raises(CLIBaseError, match='msg'):
             raise CLIBaseError(1, 'stderr', 'msg')

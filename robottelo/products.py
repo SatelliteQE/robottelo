@@ -15,7 +15,7 @@ Working with generic repos.
 
 Generic repos has no way to guess the custom repo url in case of
 settings.cdn = false , that why the GenericRHRepo without custom url always
-return cdn repo data:
+return cdn repo data::
 
     sat_repo = GenericRHRepository(key=PRODUCT_KEY_SAT_TOOLS)
     print(sat_repo.cdn) >> True
@@ -763,7 +763,13 @@ class RepositoryCollection(object):
     def organization(self):
         return self._org
 
-    def add_item(self, item):  # type: (BaseRepository) -> None
+    def add_item(self, item) -> None:
+        """
+        Add repository to collection
+
+        :param BaseRepository item: Item to add
+        :returns: None
+        """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not add more')
         if not isinstance(item, BaseRepository):
@@ -774,7 +780,13 @@ class RepositoryCollection(object):
         if isinstance(item, RHELRepository):
             self.os_repo = item
 
-    def add_items(self, items):  # type: (List[BaseRepository]) -> None
+    def add_items(self, items):
+        """
+        Add multiple repositories to collection
+
+        :param List[BaseRepository] items: Items to add
+        :returns: None
+        """
         for item in items:
             self.add_item(item)
 
@@ -836,7 +848,7 @@ class RepositoryCollection(object):
 
     @staticmethod
     def setup_activation_key(org_id, content_view_id, lce_id, subscription_names=None):
-        # type: (int, int, int, Optional[List[str]], Optional[str]) -> Dict
+        # type: (int, int, int, Optional[List[str]]) -> Dict
         """Create activation and associate content-view, lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []
@@ -941,18 +953,17 @@ class RepositoryCollection(object):
         enable_custom_repos=False,
         configure_rhel_repo=False,
     ):
-        # type: (VirtualMachine, bool, bool, bool, bool, bool) -> None
         """
         Setup The virtual machine basic task, eg: install katello ca,
         register vm host, enable rh repos and install katello-agent
 
-        :param vm: The Virtual machine to setup.
-        :param patch_os_release: whether to patch the VM with os version.
-        :param install_katello_agent: whether to install katello-agent
-        :param enable_rh_repos: whether to enable RH repositories
-        :param enable_custom_repos: whether to enable custom repositories
-        :param configure_rhel_repo: Whether to configure the distro Red Hat repository, this is
-            needed to configure manually RHEL custom repo url as sync time is very big
+        :param VirtualMachine vm: The Virtual machine to setup.
+        :param bool patch_os_release: whether to patch the VM with os version.
+        :param bool install_katello_agent: whether to install katello-agent
+        :param bool enable_rh_repos: whether to enable RH repositories
+        :param bool enable_custom_repos: whether to enable custom repositories
+        :param bool configure_rhel_repo: Whether to configure the distro Red Hat repository,
+            this is needed to configure manually RHEL custom repo url as sync time is very big
             (more than 2 hours for RHEL 7Server) and not critical for some contexts.
         """
         if not self._setup_content_data:

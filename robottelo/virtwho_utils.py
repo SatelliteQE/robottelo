@@ -3,14 +3,19 @@ import json
 import re
 import uuid
 
+import requests
+
 from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
+from robottelo.config.virtwho import VirtwhoSettings
 from robottelo.constants import DEFAULT_ORG
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
+virtwho = VirtwhoSettings()
+virtwho.configure()
 
 
 class VirtWhoError(Exception):
@@ -27,16 +32,17 @@ def _parse_entry(entry):
 
 def get_system(system_type):
     """Return a dict account for ssh connect.
+
     :param str system_type: The type of the system, should be one of
-        ('satellite', 'guest').
+        ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt').
     :raises: VirtWhoError: If wrong ``system_type`` specified.
     """
-    if system_type == 'guest':
+    if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
         return {
-            'hostname': settings.virtwho.guest,
-            'username': settings.virtwho.guest_username,
-            'password': settings.virtwho.guest_password,
-            'port': settings.virtwho.guest_port,
+            'hostname': getattr(virtwho, system_type).guest,
+            'username': getattr(virtwho, system_type).guest_username,
+            'password': getattr(virtwho, system_type).guest_password,
+            'port': getattr(virtwho, system_type).guest_port,
         }
     elif system_type == 'satellite':
         return {
@@ -47,16 +53,15 @@ def get_system(system_type):
     else:
         raise VirtWhoError(
             '"{}" system type is not supported. Please use one of {}'.format(
-                system_type, ('satellite', 'guest')
+                system_type, ('satellite', 'esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt')
             )
         )
 
 
-def get_guest_info():
+def get_guest_info(hypervisor_type):
     """Return the guest_name, guest_uuid"""
-    hypervisor_type = settings.virtwho.hypervisor_type
-    _, guest_name = runcmd('hostname', system=get_system('guest'))
-    _, guest_uuid = runcmd('dmidecode -s system-uuid', system=get_system('guest'))
+    _, guest_name = runcmd('hostname', system=get_system(hypervisor_type))
+    _, guest_uuid = runcmd('dmidecode -s system-uuid', system=get_system(hypervisor_type))
     if not guest_uuid or not guest_name:
         raise VirtWhoError('Failed to get the guest info for {}'.format(hypervisor_type))
     # Different UUID for vcenter by dmidecode and vcenter MOB
@@ -69,6 +74,7 @@ def get_guest_info():
 
 def runcmd(cmd, system=None, timeout=600, output_format='base'):
     """Return the retcode and stdout.
+
     :param str cmd: The command line will be executed in the target system.
     :param dict system: the system account which ssh will connect to,
         it will connect to the satellite host if the system is None.
@@ -84,6 +90,7 @@ def runcmd(cmd, system=None, timeout=600, output_format='base'):
 
 def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
     """Return True if the system is registered to satellite successfully.
+
     :param dict system: system account used by ssh to connect and register.
     :param str activation_key: the activation key will be used to register.
     :param str org: Which organization will be used to register.
@@ -181,6 +188,7 @@ def get_configure_file(config_id):
 
 def get_configure_option(option, filename):
     """Return the option's value for the specific file.
+
     :param str option: the option name in the configuration file
     :param str filename: the configuration file, it could be:
         /etc/sysconfig/virt-who
@@ -198,16 +206,17 @@ def get_configure_option(option, filename):
         )
 
 
-def _get_hypervisor_mapping(logs):
+def _get_hypervisor_mapping(logs, hypervisor_type):
     """Analysing rhsm.log and get to know: what is the hypervisor_name
     for the specific guest.
     :param str logs: the output of rhsm.log.
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
     mapping = list()
     entry = None
-    guest_name, guest_uuid = get_guest_info()
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
     for line in logs.split('\n'):
         if not line:
             continue
@@ -233,8 +242,9 @@ def _get_hypervisor_mapping(logs):
         raise VirtWhoError("Failed to get the hypervisor_name for guest {}".format(guest_name))
 
 
-def deploy_validation():
+def deploy_validation(hypervisor_type):
     """Checkout the deploy result
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
     :raises: VirtWhoError: If failed to start virt-who servcie.
     :ruturn: hypervisor_name and guest_name
     """
@@ -242,37 +252,41 @@ def deploy_validation():
     if status != 'running':
         raise VirtWhoError("Failed to start virt-who service")
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
     for host in Host.list({'search': hypervisor_name}):
         Host.delete({'id': host['id']})
     restart_virtwho_service()
     return hypervisor_name, guest_name
 
 
-def deploy_configure_by_command(command, debug=False, org='Default_Organization'):
+def deploy_configure_by_command(command, hypervisor_type, debug=False, org='Default_Organization'):
     """Deploy and run virt-who servcie by the hammer command.
+
     :param str command: get the command by UI/CLI/API, it should be like:
         `hammer virt-who-config deploy --id 1 --organization-id 1`
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
+    :param str org: Organization Label
     """
     virtwho_cleanup()
-    register_system(get_system('guest'), org=org)
+    register_system(get_system(hypervisor_type), org=org)
     ret, stdout = runcmd(command)
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError("Failed to deploy configure by {}".format(command))
     if debug:
-        return deploy_validation()
+        return deploy_validation(hypervisor_type)
 
 
-def deploy_configure_by_script(script_content, debug=False):
+def deploy_configure_by_script(script_content, hypervisor_type, debug=False):
     """Deploy and run virt-who service by the shell script.
     :param str script_content: get the script by UI or API.
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     """
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
-    register_system(get_system('guest'))
+    register_system(get_system(hypervisor_type))
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.upload_file(script_filename, script_filename)
@@ -280,7 +294,7 @@ def deploy_configure_by_script(script_content, debug=False):
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError("Failed to deploy configure by {}".format(script_filename))
     if debug:
-        return deploy_validation()
+        return deploy_validation(hypervisor_type)
 
 
 def restart_virtwho_service():
@@ -338,11 +352,14 @@ def add_configure_option(option, value, config_file):
 
 def hypervisor_json_create(hypervisors, guests):
     """
-    Create a hypervisor guest json data
+    Create a hypervisor guest json data. For example:
+    {'hypervisors': [{'hypervisorId': '820b5143-3885-4dba-9358-4ce8c30d934e',
+    'guests': [{'guestId': 'afb91b1f-8438-46f5-bc67-d7ab328ef782', 'state': 1,
+    'attributes': {'active': 1, 'virtWhoType': 'esx'}}]}]}
     :param hypervisors: how many hypervisors will be created
     :param guests: how many guests will be created
     """
-    mapping = {}
+    hypervisors_list = []
     for i in range(hypervisors):
         guest_list = []
         for c in range(guests):
@@ -353,14 +370,41 @@ def hypervisor_json_create(hypervisors, guests):
                     "attributes": {"active": 1, "virtWhoType": "esx"},
                 }
             )
-        mapping[str(uuid.uuid4()).replace("-", ".")] = guest_list
+        hypervisor = {"hypervisorId": str(uuid.uuid4()), "guests": guest_list}
+        hypervisors_list.append(hypervisor)
+    mapping = {"hypervisors": hypervisors_list}
     return mapping
 
 
-def get_hypervisor_info():
+def create_fake_hypervisor_content(org_label, hypervisors, guests):
+    """
+    Post the fake hypervisor content to satellite server
+    :param hypervisors: how many hypervisors will be created
+    :param guests: how many guests will be created
+    :param org_label: the label of the Organization
+    :return data: the hypervisor content
+    """
+    data = hypervisor_json_create(hypervisors, guests)
+    url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org_label}"
+    auth = (settings.server.admin_username, settings.server.admin_password)
+    result = requests.post(url, auth=auth, verify=False, json=data)
+    assert result.status_code == 200
+    return data
+
+
+def get_hypervisor_info(hypervisor_type):
     """
     Get the hypervisor_name and guest_name from rhsm.log.
     """
     _, logs = runcmd('cat /var/log/rhsm/rhsm.log')
-    hypervisor_name, guest_name = _get_hypervisor_mapping(logs)
+    hypervisor_name, guest_name = _get_hypervisor_mapping(logs, hypervisor_type)
     return hypervisor_name, guest_name
+
+
+def virtwho_package_locked():
+    """
+    Uninstall virt-who package and lock the foreman-maintain packages.
+    """
+    runcmd('rpm -e virt-who; foreman-maintain packages lock')
+    result = runcmd('foreman-maintain packages is-locked')
+    assert "Packages are locked" in result[1]

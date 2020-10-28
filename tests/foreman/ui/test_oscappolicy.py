@@ -14,13 +14,9 @@
 
 :Upstream: No
 """
-import os
-
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import promote
-from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.datafactory import gen_string
@@ -28,7 +24,6 @@ from robottelo.decorators import fixture
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
-from robottelo.helpers import file_downloader
 
 
 @fixture(scope='module')
@@ -44,20 +39,6 @@ def module_loc(module_org):
 @fixture(scope='module')
 def module_host_group(module_loc, module_org):
     return entities.HostGroup(location=[module_loc], organization=[module_org]).create()
-
-
-@fixture(scope='module')
-def oscap_content_path():
-    # download scap content from satellite
-    _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = "/tmp/{}".format(file_name)
-    ssh.download_file(settings.oscap.content_path, local_file)
-    return local_file
-
-
-@fixture(scope='module')
-def oscap_tailoring_path():
-    return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier2
@@ -112,7 +93,8 @@ def test_positive_check_dashboard(
         )
         session.oscappolicy.create(
             {
-                'create_policy.name': name,
+                'deployment_options.deploy_by': 'ansible',
+                'policy_attributes.name': name,
                 'scap_content.scap_content_resource': oscap_content_title,
                 'scap_content.xccdf_profile': OSCAP_PROFILE['security7'],
                 'schedule.period': 'Weekly',
@@ -124,17 +106,13 @@ def test_positive_check_dashboard(
         )
         policy_details = session.oscappolicy.details(name)
         assert policy_details['HostsBreakdownStatus']['total_count'] == 1
-        host_breakdown_chart = policy_details['HostBreakdownChart']['hosts_breakdown'].split(
-            " ", 1
-        )
-        assert host_breakdown_chart[0] == '100%'
-        assert host_breakdown_chart[1] == 'Not audited'
+        assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%Not audited'
 
 
 @tier1
 @upgrade
 def test_positive_end_to_end(
-    session, module_host_group, module_loc, module_org, oscap_content_path, oscap_tailoring_path
+    session, module_host_group, module_loc, module_org, oscap_content_path, tailoring_file_path
 ):
     """Perform end to end testing for oscap policy component
 
@@ -162,13 +140,17 @@ def test_positive_end_to_end(
         )
         # Upload tailoring file to the application
         session.oscaptailoringfile.create(
-            {'file_upload.name': tailoring_name, 'file_upload.scap_file': oscap_tailoring_path}
+            {
+                'file_upload.name': tailoring_name,
+                'file_upload.scap_file': tailoring_file_path['local'],
+            }
         )
         # Create new oscap policy with assigned content and tailoring file
         session.oscappolicy.create(
             {
-                'create_policy.name': name,
-                'create_policy.description': description,
+                'deployment_options.deploy_by': 'ansible',
+                'policy_attributes.name': name,
+                'policy_attributes.description': description,
                 'scap_content.scap_content_resource': oscap_content_title,
                 'scap_content.xccdf_profile': profile_type,
                 'scap_content.tailoring_file': tailoring_name,
@@ -183,6 +165,7 @@ def test_positive_end_to_end(
         assert session.oscappolicy.search(name)[0]['Name'] == name
         # Check that created entity has expected values
         oscappolicy_values = session.oscappolicy.read(name)
+        assert oscappolicy_values['deployment_options']['deploy_by'] == 'ansible'
         assert oscappolicy_values['general']['name'] == name
         assert oscappolicy_values['general']['description'] == description
         assert oscappolicy_values['scap_content']['scap_content'] == oscap_content_title
@@ -198,7 +181,8 @@ def test_positive_end_to_end(
         ]
         # Update oscap policy with new name
         session.oscappolicy.update(name, {'general.name': new_name})
-        assert session.oscappolicy.search(new_name)[0]['Name'] == new_name
+        oscappolicy_values = session.oscappolicy.read(new_name)
+        assert oscappolicy_values['general']['name'] == new_name
         assert not session.oscappolicy.search(name)
         # Delete oscap policy entity
         session.oscappolicy.delete(new_name)

@@ -60,7 +60,7 @@ def module_loc(module_org):
 @fixture(scope='module')
 def provisioning_env(module_org, module_loc):
     # Build PXE default template to get default PXE file
-    entities.ConfigTemplate().build_pxe_default()
+    entities.ProvisioningTemplate().build_pxe_default()
     return configure_provisioning(
         org=module_org,
         loc=module_loc,
@@ -97,7 +97,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
     :param int retries: The polling retries.
     :param int iteration_sleep: time to wait after each retry iteration.
     :param bool expect_reachable: Whether we expect the host to be reachable.
-    :return bool
+    :return: bool
     """
     operator = '&&'
     if not expect_reachable:

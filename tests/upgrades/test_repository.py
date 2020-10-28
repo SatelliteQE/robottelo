@@ -110,21 +110,21 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
 
 
 class Scenario_custom_repo_check(APITestCase):
-    """" Scenario test to verify if we can create a custom repository and consume it
+    """Scenario test to verify if we can create a custom repository and consume it
     via client then we alter the created custom repository and satellite will be able
     to sync back the repo.
 
     Test Steps:
 
-            1. Before Satellite upgrade.
-            2. Create new Organization and Location.
-            3. Create Product, custom repo, cv.
-            4. Create activation key and add subscription in it.
-            5. Create a content host, register and install package on it.
-            6. Upgrade Satellite.
-            7. Remove Old package and add new package into custom repo.
-            8. Sync repo, publish new version of cv.
-            9  Try to install new package on client.
+        1. Before Satellite upgrade.
+        2. Create new Organization and Location.
+        3. Create Product, custom repo, cv.
+        4. Create activation key and add subscription in it.
+        5. Create a content host, register and install package on it.
+        6. Upgrade Satellite.
+        7. Remove Old package and add new package into custom repo.
+        8. Sync repo, publish new version of cv.
+        9. Try to install new package on client.
 
     BZ: 1429201,1698549
     """

@@ -18,6 +18,7 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIReturnCodeError
@@ -39,7 +40,9 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_template_input
 from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.filter import Filter
+from robottelo.cli.host import Host
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.report_template import ReportTemplate
@@ -50,8 +53,14 @@ from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import PRDS
 from robottelo.constants import REPORT_TEMPLATE_FILE
-from robottelo.decorators import stubbed
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
@@ -91,6 +100,8 @@ def setup_content(request):
     request.cls.setup_org = org
     request.cls.setup_new_ak = new_ak
     request.cls.setup_subs_id = subs_id
+    request.cls.setup_env = env
+    request.cls.setup_content_view = content_view
 
 
 @pytest.mark.usefixtures("setup_content")
@@ -195,7 +206,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :steps:
 
-            0. use default report template called Host statuses
+            0. use default report template called Host - Statuses
             1. hammer report-template generate --id ... # do not specify any filter
             2. hammer report-template generate --id ... # specify filter
 
@@ -211,9 +222,9 @@ class ReportTemplateTestCase(CLITestCase):
         host2 = make_fake_host({'name': host_name_2})
 
         result_list = ReportTemplate.list()
-        self.assertIn('Host statuses', [rt['name'] for rt in result_list])
+        self.assertIn('Host - Statuses', [rt['name'] for rt in result_list])
 
-        rt_host_statuses = ReportTemplate.info({'name': 'Host statuses'})
+        rt_host_statuses = ReportTemplate.info({'name': 'Host - Statuses'})
         result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
         self.assertIn(host1['name'], [item.split(',')[0] for item in result_no_filter])
@@ -386,7 +397,7 @@ class ReportTemplateTestCase(CLITestCase):
         )
 
     @tier3
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report, then generate it by using schedule --wait and then
         use schedule and report-data to download generated Applied Errata report,
@@ -413,7 +424,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
 
@@ -432,7 +443,7 @@ class ReportTemplateTestCase(CLITestCase):
         """
 
     @tier2
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
 
@@ -565,25 +576,29 @@ class ReportTemplateTestCase(CLITestCase):
         # Pick permissions by its resource type
         permissions_org = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Organization'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=Organization"}
+            )
         ]
         permissions_loc = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'Location'})
+            for permission in Filter.available_permissions({"search": "resource_type=Location"})
         ]
         permissions_rt = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'ReportTemplate'})
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=ReportTemplate"}
+            )
         ]
         permissions_pt = [
             permission['name']
             for permission in Filter.available_permissions(
-                {'resource-type': 'ProvisioningTemplate'}
+                {"search": "resource_type=ProvisioningTemplate"}
             )
         ]
         permissions_jt = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'JobTemplate'})
+            for permission in Filter.available_permissions({"search": "resource_type=JobTemplate"})
         ]
         # Assign filters to created role
         make_filter({'role-id': role['id'], 'permissions': permissions_org})
@@ -630,7 +645,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :steps:
 
-            0. use default report template called Host statuses
+            0. use default report template called Host - Statuses
             1. hammer report-template generate --name ... --organization ...
 
         :expectedresults: Report successfully generated (in BZ, it results in
@@ -644,7 +659,7 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
-        result = ReportTemplate.generate({'name': 'Host statuses', 'organization': DEFAULT_ORG})
+        result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
         self.assertIn(host['name'], [item.split(',')[0] for item in result])
 
@@ -709,7 +724,8 @@ class ReportTemplateTestCase(CLITestCase):
 
     @tier3
     def test_positive_generate_entitlements_report_multiple_formats(self):
-        """Generate an report using the Entitlements template in html, yaml, and csv format.
+        """Generate an report using the Subscription - Entitlement Report template
+        in html, yaml, and csv format.
 
         :id: f2b74916-1298-4d20-9c24-a2c2b3a3e9a9
 
@@ -720,21 +736,33 @@ class ReportTemplateTestCase(CLITestCase):
             1. hammer report-template generate --organization '' --id '' --report-format ''
 
         :expectedresults: report is generated containing all the expected information
-                          regarding Entitlements.
+                          regarding entitlements.
 
         :CaseImportance: High
+
+        :BZ: 1830289
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
             result_html = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'html'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Subscription - Entitlement Report',
+                    'report-format': 'html',
+                    'inputs': 'Days from Now=no limit',
+                }
             )
             assert vm.hostname in result_html[2]
             assert self.setup_subs_id[0]['name'] in result_html[2]
             result_yaml = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'yaml'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Subscription - Entitlement Report',
+                    'report-format': 'yaml',
+                    'inputs': 'Days from Now=no limit',
+                }
             )
             for entry in result_yaml:
                 if '-Name:' in entry:
@@ -742,14 +770,21 @@ class ReportTemplateTestCase(CLITestCase):
                 elif 'Subscription Name:' in entry:
                     assert self.setup_subs_id[0]['name'] in entry
             result_csv = ReportTemplate.generate(
-                {'organization': self.setup_org['name'], 'id': 115, 'report-format': 'csv'}
+                {
+                    'organization': self.setup_org['name'],
+                    'name': 'Subscription - Entitlement Report',
+                    'report-format': 'csv',
+                    'inputs': 'Days from Now=no limit',
+                }
             )
             assert vm.hostname in result_csv[1]
             assert self.setup_subs_id[0]['name'] in result_csv[1]
+            # BZ 1830289
+            assert 'Subscription Quantity' in result_csv[0]
 
     @tier3
     def test_positive_schedule_Entitlements_report(self):
-        """Schedule an report using the Entitlements template in csv format.
+        """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
         :id: 572fb387-86e0-40e2-b2df-e8ec26433610
 
@@ -761,7 +796,7 @@ class ReportTemplateTestCase(CLITestCase):
             1. hammer report-template schedule --organization '' --id '' --report-format ''
 
         :expectedresults: report is scheduled and generated containing all the expected information
-                          regarding Entitlements.
+                          regarding entitlements.
 
         :CaseImportance: High
         """
@@ -770,10 +805,138 @@ class ReportTemplateTestCase(CLITestCase):
             vm.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
             assert vm.subscribed
             scheduled_csv = ReportTemplate.schedule(
-                {'id': 115, 'organization': self.setup_org['name'], 'report-format': 'csv'}
+                {
+                    'name': 'Subscription - Entitlement Report',
+                    'organization': self.setup_org['name'],
+                    'report-format': 'csv',
+                    'inputs': 'Days from Now=no limit',
+                }
             )
             data_csv = ReportTemplate.report_data(
-                {'id': 115, 'job-id': scheduled_csv[0].split("Job ID: ", 1)[1]}
+                {
+                    'name': 'Subscription - Entitlement Report',
+                    'job-id': scheduled_csv[0].split("Job ID: ", 1)[1],
+                }
             )
             assert any(vm.hostname in line for line in data_csv)
             assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
+
+    @tier3
+    def test_positive_generate_hostpkgcompare(self):
+        """Generate 'Host - compare content hosts packages' report
+
+        :id: 572fb387-86f2-40e2-b2df-e8ec26433610
+
+
+        :setup: Installed Satellite with Organization, Activation key,
+                Content View, Content Host, Subscriptions, and synced fake repo.
+
+        :steps:
+            1. hammer report-template generate --name 'Host - compare content hosts package' ...
+
+        :expectedresults: report is scheduled and generated containing all the expected information
+                          regarding host packages
+
+        :CaseImportance: Medium
+
+        :BZ: 1860430
+        """
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'organization-id': self.setup_org['id'],
+                'content-view-id': self.setup_content_view['id'],
+                'lifecycle-environment-id': self.setup_env['id'],
+                'activationkey-id': self.setup_new_ak['id'],
+            }
+        )
+
+        hosts = []
+        for i in [0, 1]:
+            # Create VM and register content host
+            client = VirtualMachine(distro=DISTRO_RHEL7)
+            client.create()
+            self.addCleanup(vm_cleanup, client)
+            client.install_katello_ca()
+            # Register content host, install katello-agent
+            client.register_contenthost(self.setup_org['label'], self.setup_new_ak['name'])
+            self.assertTrue(client.subscribed)
+            hosts.append(Host.info({'name': client.hostname}))
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+        hosts.sort(key=lambda host: host['name'])
+
+        host1, host2 = hosts
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
+        Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
+
+        result = ReportTemplate.generate(
+            {
+                'name': 'Host - compare content hosts packages',
+                'inputs': f"Host 1 = {host1['name']}, " f"Host 2 = {host2['name']}",
+            }
+        )
+        result.remove('')
+
+        self.assertGreater(len(result), 1)
+        headers = f'Package,{host1["name"]},{host2["name"]},Architecture,Status'
+        self.assertEqual(headers, result[0])
+        items = [item.split(',') for item in result[1:]]
+        self.assertGreater(len(items), 0)
+        for item in items:
+            self.assertEqual(len(item), 5)
+            name, host1version, host2version, arch, status = item
+            self.assertGreater(len(name), 0)
+            assert (
+                (host1version == '-' and name in host2version)
+                or (name in host1version and host2version == '-')
+                or (name in host1version and name in host2version)
+            )
+            self.assertIn(arch, ['x86_64', 'i686', 's390x', 'ppc64', 'ppc64le', 'noarch'])
+            assert status in (
+                'same version',
+                f'{host1["name"]} only',
+                f'{host2["name"]} only',
+                f'lower in {host1["name"]}',
+                f'greater in {host1["name"]}',
+            )
+            # test for specific installed packages
+            if name == FAKE_0_CUSTOM_PACKAGE_NAME:
+                assert status == f'{host1["name"]} only'
+            if name == FAKE_1_CUSTOM_PACKAGE_NAME:
+                assert (
+                    status == f'lower in {host1["name"]}'
+                    or status == f'greater in {host2["name"]}'
+                )
+
+    @tier3
+    def test_negative_generate_hostpkgcompare_nonexistent_host(self):
+        """Try to generate 'Host - compare content hosts packages' report
+        with nonexistent hosts inputs
+
+        :id: 572fb387-86e0-40e2-b2df-ef5c26433610
+
+        :setup: Installed Satellite
+
+        :steps:
+            1. hammer report-template generate --name 'Host - compare content hosts packages'
+               --inputs 'Host 1 = nonexistent1, Host 2 = nonexistent2'
+
+        :expectedresults: report is not generated, sane error shown
+
+        :CaseImportance: Medium
+
+        :BZ: 1860351
+        """
+        with self.assertRaises(CLIReturnCodeError) as cm:
+            ReportTemplate.generate(
+                {
+                    'name': 'Host - compare content hosts packages',
+                    'inputs': 'Host 1 = nonexistent1, ' 'Host 2 = nonexistent2',
+                }
+            )
+            self.assertIn("At least one of the hosts couldn't be found", cm.exception.stderr)

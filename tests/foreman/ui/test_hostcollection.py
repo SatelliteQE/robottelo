@@ -22,7 +22,6 @@ from pytest import raises
 from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
@@ -32,14 +31,15 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2
@@ -575,7 +575,7 @@ def test_positive_change_assigned_content(
     new_content_view.publish()
     new_content_view = new_content_view.read()
     new_content_view_version = new_content_view.version[0]
-    new_content_view_version.promote(data={'environment_id': new_lce.id})
+    new_content_view_version.promote(data={'environment_ids': new_lce.id})
     # repository urls listed by command "subscription-manager repos" looks
     # like:
     # Repo URL  : https://{host}/pulp/repos/{org}/{lce}/{cv}/custom
@@ -742,4 +742,4 @@ def test_positive_install_modular_errata(
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'
         assert int(result['total_hosts']) == 2
-        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_4_CUSTOM_PACKAGE)
+        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_5_CUSTOM_PACKAGE)

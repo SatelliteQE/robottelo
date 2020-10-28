@@ -19,8 +19,10 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 :Upstream: No
 """
 import json
+import re
 
 import paramiko
+import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
@@ -33,6 +35,7 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_emails_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import invalid_usernames_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
@@ -43,296 +46,384 @@ from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
-from robottelo.test import APITestCase
 
 
-class UserTestCase(APITestCase):
+class TestUser:
     """Tests for the ``users`` path."""
 
+    @pytest.fixture(scope='module')
+    def create_user(self):
+        """Create an user"""
+        return entities.User().create()
+
     @tier1
-    def test_positive_create_with_username(self):
+    @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
+    def test_positive_create_with_username(self, username):
         """Create User for all variations of Username
 
         :id: a9827cda-7f6d-4785-86ff-3b6969c9c00a
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for username in valid_usernames_list():
-            with self.subTest(username):
-                user = entities.User(login=username).create()
-                self.assertEqual(user.login, username)
+        user = entities.User(login=username).create()
+        assert user.login == username
 
     @tier1
-    def test_positive_create_with_firstname(self):
+    @pytest.mark.parametrize(
+        'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
+    )
+    def test_positive_create_with_firstname(self, firstname):
         """Create User for all variations of First Name
 
         :id: 036bb958-227c-420c-8f2b-c607136f12e0
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for firstname in generate_strings_list(exclude_types=['html'], max_length=50):
-            with self.subTest(firstname):
-                user = entities.User(firstname=firstname).create()
-                self.assertEqual(user.firstname, firstname)
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
+        user = entities.User(firstname=firstname).create()
+        assert user.firstname == firstname
 
     @tier1
-    def test_positive_create_with_lastname(self):
+    @pytest.mark.parametrize(
+        'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
+    )
+    def test_positive_create_with_lastname(self, lastname):
         """Create User for all variations of Last Name
 
         :id: 95d3b571-77e7-42a1-9c48-21f242e8cdc2
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for lastname in generate_strings_list(exclude_types=['html'], max_length=50):
-            with self.subTest(lastname):
-                user = entities.User(lastname=lastname).create()
-                self.assertEqual(user.lastname, lastname)
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
+        user = entities.User(lastname=lastname).create()
+        assert user.lastname == lastname
 
     @tier1
-    def test_positive_create_with_email(self):
+    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
+    def test_positive_create_with_email(self, mail):
         """Create User for all variations of Email
 
         :id: e68caf51-44ba-4d32-b79b-9ab9b67b9590
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for mail in valid_emails_list():
-            with self.subTest(mail):
-                user = entities.User(mail=mail).create()
-                self.assertEqual(user.mail, mail)
+        user = entities.User(mail=mail).create()
+        assert user.mail == mail
 
     @tier1
-    def test_positive_create_with_description(self):
+    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
+    def test_positive_create_with_description(self, description):
         """Create User for all variations of Description
 
         :id: 1463d71c-b77d-4223-84fa-8370f77b3edf
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for description in valid_data_list():
-            with self.subTest(description):
-                user = entities.User(description=description).create()
-                self.assertEqual(user.description, description)
+        user = entities.User(description=description).create()
+        assert user.description == description
 
     @tier1
-    def test_positive_create_with_password(self):
+    @pytest.mark.parametrize(
+        'password', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
+    )
+    def test_positive_create_with_password(self, password):
         """Create User for all variations of Password
 
         :id: 53d0a419-0730-4f7d-9170-d855adfc5070
 
+        :parametrized: yes
+
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        for password in generate_strings_list(exclude_types=['html'], max_length=50):
-            with self.subTest(password):
-                user = entities.User(password=password).create()
-                self.assertIsNotNone(user)
+        user = entities.User(password=password).create()
+        assert user is not None
 
     @tier1
     @upgrade
-    def test_positive_delete(self):
+    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
+    def test_positive_delete(self, mail):
         """Create random users and then delete it.
 
         :id: df6059e7-85c5-42fa-99b5-b7f1ef809f52
+
+        :parametrized: yes
 
         :expectedresults: The user cannot be fetched after deletion.
 
         :CaseImportance: Critical
         """
-        for mail in valid_emails_list():
-            with self.subTest(mail):
-                user = entities.User(mail=mail).create()
-                user.delete()
-                with self.assertRaises(HTTPError):
-                    user.read()
+        user = entities.User(mail=mail).create()
+        user.delete()
+        with pytest.raises(HTTPError):
+            user.read()
 
     @tier1
-    def test_positive_update_username(self):
+    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
+    def test_positive_update_username(self, create_user, login):
         """Update a user and provide new username.
 
         :id: a8e218b1-7256-4f20-91f3-3958d58ea5a8
+
+        :parametrized: yes
 
         :expectedresults: The user's ``Username`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        for login in valid_usernames_list():
-            with self.subTest(login):
-                user.login = login
-                user = user.update(['login'])
-                self.assertEqual(user.login, login)
+        create_user.login = login
+        user = create_user.update(['login'])
+        assert user.login == login
 
     @tier1
-    def test_positive_update_firstname(self):
+    @pytest.mark.parametrize('login', **parametrized(invalid_usernames_list()))
+    def test_negative_update_username(self, create_user, login):
+        """Update a user and provide new login.
+
+        :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+
+        :parametrized: yes
+
+        :expectedresults: The user's ``login`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        with pytest.raises(HTTPError):
+            create_user.login = login
+            create_user.update(['login'])
+
+    @tier1
+    @pytest.mark.parametrize(
+        'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
+    )
+    def test_positive_update_firstname(self, create_user, firstname):
         """Update a user and provide new firstname.
 
         :id: a1287d47-e7d8-4475-abe8-256e6f2034fc
+
+        :parametrized: yes
 
         :expectedresults: The user's ``firstname`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        for firstname in generate_strings_list(exclude_types=['html'], max_length=50):
-            with self.subTest(firstname):
-                user.firstname = firstname
-                user = user.update(['firstname'])
-                self.assertEqual(user.firstname, firstname)
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
+        create_user.firstname = firstname
+        user = create_user.update(['firstname'])
+        assert user.firstname == firstname
 
     @tier1
-    def test_positive_update_lastname(self):
+    @pytest.mark.parametrize(
+        'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
+    )
+    def test_positive_update_lastname(self, create_user, lastname):
         """Update a user and provide new lastname.
 
         :id: 25c6c9df-5db2-4827-89bb-b8fd0658a9b9
+
+        :parametrized: yes
 
         :expectedresults: The user's ``lastname`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        for lastname in generate_strings_list(exclude_types=['html'], max_length=50):
-            with self.subTest(lastname):
-                user.lastname = lastname
-                user = user.update(['lastname'])
-                self.assertEqual(user.lastname, lastname)
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
+        create_user.lastname = lastname
+        user = create_user.update(['lastname'])
+        assert user.lastname == lastname
 
     @tier1
-    def test_positive_update_email(self):
+    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
+    def test_positive_update_email(self, create_user, mail):
         """Update a user and provide new email.
 
-        :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+        :id: 3ae70631-7cee-4a4a-9c2f-b428273f1311
 
-        :expectedresults: The user's ``email`` attribute is updated.
+        :parametrized: yes
+
+        :expectedresults: The user's ``mail`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        for mail in valid_emails_list():
-            with self.subTest(mail):
-                user.mail = mail
-                user = user.update(['mail'])
-                self.assertEqual(user.mail, mail)
+        create_user.mail = mail
+        user = create_user.update(['mail'])
+        assert user.mail == mail
 
     @tier1
-    def test_positive_update_description(self):
+    @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
+    def test_negative_update_email(self, create_user, mail):
+        """Update a user and provide new email.
+
+        :id: 0631dce1-694c-4815-971d-26ff1934da98
+
+        :parametrized: yes
+
+        :expectedresults: The user's ``mail`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        with pytest.raises(HTTPError):
+            create_user.mail = mail
+            create_user.update(['mail'])
+
+    @tier1
+    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
+    def test_positive_update_description(self, create_user, description):
         """Update a user and provide new email.
 
         :id: a1d764ad-e9bb-4e5e-b8cd-3c52e1f128f6
+
+        :parametrized: yes
 
         :expectedresults: The user's ``Description`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        for description in valid_data_list():
-            with self.subTest(description):
-                user.description = description
-                user = user.update(['description'])
-                self.assertEqual(user.description, description)
+        create_user.description = description
+        user = create_user.update(['description'])
+        assert user.description == description
 
     @tier1
-    def test_positive_update_admin(self):
+    @pytest.mark.parametrize('admin_enable', [True, False])
+    def test_positive_update_admin(self, admin_enable):
         """Update a user and provide the ``admin`` attribute.
 
         :id: b5fedf65-37f5-43ca-806a-ac9a7979b19d
+
+        :parametrized: yes
 
         :expectedresults: The user's ``admin`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        for admin_enable in (True, False):
-            with self.subTest(admin_enable):
-                user = entities.User(admin=admin_enable).create()
-                user.admin = not admin_enable
-                self.assertEqual(user.update().admin, not admin_enable)
+        user = entities.User(admin=admin_enable).create()
+        user.admin = not admin_enable
+        assert user.update().admin == (not admin_enable)
 
     @tier1
-    def test_negative_create_with_invalid_email(self):
+    @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
+    def test_negative_create_with_invalid_email(self, mail):
         """Create User with invalid Email Address
 
         :id: ebbd1f5f-e71f-41f4-a956-ce0071b0a21c
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
-        for mail in invalid_emails_list():
-            with self.subTest(mail):
-                with self.assertRaises(HTTPError):
-                    entities.User(mail=mail).create()
+        with pytest.raises(HTTPError):
+            entities.User(mail=mail).create()
 
     @tier1
-    def test_negative_create_with_invalid_username(self):
+    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_usernames_list()))
+    def test_negative_create_with_invalid_username(self, invalid_name):
         """Create User with invalid Username
 
         :id: aaf157a9-0375-4405-ad87-b13970e0609b
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
-        for invalid_name in invalid_usernames_list():
-            with self.subTest(invalid_name):
-                with self.assertRaises(HTTPError):
-                    entities.User(login=invalid_name).create()
+        with pytest.raises(HTTPError):
+            entities.User(login=invalid_name).create()
 
     @tier1
-    def test_negative_create_with_invalid_firstname(self):
+    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
+    def test_negative_create_with_invalid_firstname(self, invalid_name):
         """Create User with invalid Firstname
 
         :id: cb1ca8a9-38b1-4d58-ae32-915b47b91657
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
-        for invalid_name in invalid_names_list():
-            with self.subTest(invalid_name):
-                with self.assertRaises(HTTPError):
-                    entities.User(firstname=invalid_name).create()
+        with pytest.raises(HTTPError):
+            entities.User(firstname=invalid_name).create()
 
     @tier1
-    def test_negative_create_with_invalid_lastname(self):
+    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
+    def test_negative_create_with_invalid_lastname(self, invalid_name):
         """Create User with invalid Lastname
 
         :id: 59546d26-2b6b-400b-990f-0b5d1c35004e
 
+        :parametrized: yes
+
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
-        for invalid_name in invalid_names_list():
-            with self.subTest(invalid_name):
-                with self.assertRaises(HTTPError):
-                    entities.User(lastname=invalid_name).create()
-
-
-class UserRoleTestCase(APITestCase):
-    """Test associations between users and roles."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Create two roles."""
-        super(UserRoleTestCase, cls).setUpClass()
-        cls.roles = [entities.Role().create() for _ in range(2)]
+        with pytest.raises(HTTPError):
+            entities.User(lastname=invalid_name).create()
 
     @tier1
-    def test_positive_create_with_role(self):
+    def test_negative_create_with_blank_authorized_by(self):
+        """Create User with blank authorized by
+
+        :id: 1fe2d1e3-728c-4d89-97ae-3890e904f413
+
+        :expectedresults: User is not created. Appropriate error shown.
+
+        :CaseImportance: Critical
+        """
+        with pytest.raises(HTTPError):
+            entities.User(auth_source='').create()
+
+
+class TestUserRole:
+    """Test associations between users and roles."""
+
+    @pytest.fixture(scope='class')
+    def make_roles(self):
+        """Create two roles."""
+        return [entities.Role().create() for _ in range(2)]
+
+    @pytest.fixture(scope='module')
+    def create_user(self):
+        """Create an user"""
+        return entities.User().create()
+
+    @tier1
+    @pytest.mark.parametrize('number_of_roles', range(1, 3))
+    def test_positive_create_with_role(self, make_roles, number_of_roles):
         """Create a user with the ``role`` attribute.
 
         :id: 32daacf1-eed4-49b1-81e1-ab0a5b0113f2
+
+        :parametrized: yes
 
         :expectedresults: A user is created with the given role(s).
 
@@ -340,21 +431,20 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for i in range(1, len(self.roles) + 1):
-            with self.subTest(str(i)):
-                chosen_roles = self.roles[:i]
-                user = entities.User(role=chosen_roles).create()
-                self.assertEqual(len(user.role), i)
-                self.assertEqual(
-                    set([role.id for role in user.role]), set([role.id for role in chosen_roles])
-                )
+        chosen_roles = make_roles[:number_of_roles]
+        user = entities.User(role=chosen_roles).create()
+        assert len(user.role) == number_of_roles
+        assert set([role.id for role in user.role]) == set([role.id for role in chosen_roles])
 
     @tier1
     @upgrade
-    def test_positive_update(self):
+    @pytest.mark.parametrize('number_of_roles', range(1, 3))
+    def test_positive_update(self, create_user, make_roles, number_of_roles):
         """Update an existing user and give it roles.
 
         :id: 7fdca879-d65f-44fa-b9f2-b6bb5df30c2d
+
+        :parametrized: yes
 
         :expectedresults: The user has whatever roles are given.
 
@@ -362,19 +452,13 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        user = entities.User().create()
-        self.assertEqual(len(user.role), 0)  # No roles assigned
-        for i in range(1, len(self.roles) + 1):
-            with self.subTest(str(i)):
-                chosen_roles = self.roles[:i]
-                user.role = chosen_roles
-                user = user.update(['role'])
-                self.assertEqual(
-                    set([role.id for role in user.role]), set([role.id for role in chosen_roles])
-                )
+        chosen_roles = make_roles[:number_of_roles]
+        create_user.role = chosen_roles
+        user = create_user.update(['role'])
+        assert set([role.id for role in user.role]) == set([role.id for role in chosen_roles])
 
 
-class SshKeyInUserTestCase(APITestCase):
+class TestSshKeyInUser:
     """Implements the SSH Key in User Tests"""
 
     def gen_ssh_rsakey(self):
@@ -384,15 +468,15 @@ class SshKeyInUserTestCase(APITestCase):
         """
         return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
 
-    @classmethod
-    def setUpClass(cls):
+    @pytest.fixture(scope='class')
+    def create_user(self):
         """Create an user and import different keys from data json file"""
-        super(SshKeyInUserTestCase, cls).setUpClass()
-        cls.user = entities.User().create()
-        cls.data_keys = json.loads(read_data_file('sshkeys.json'))
+        user = entities.User().create()
+        data_keys = json.loads(read_data_file('sshkeys.json'))
+        return dict(user=user, data_keys=data_keys)
 
     @tier1
-    def test_positive_create_ssh_key(self):
+    def test_positive_CRD_ssh_key(self):
         """SSH Key can be added to User
 
         :id: d00905f6-3a70-4e2f-a5ae-fcac18274bb7
@@ -401,36 +485,25 @@ class SshKeyInUserTestCase(APITestCase):
 
             1. Create new user with all the details
             2. Add SSH key to the above user
+            3. Info the above ssh key in user
+            4. Delete ssh key in user
 
         :expectedresults: SSH key should be added to user
 
         :CaseImportance: Critical
         """
-        ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
-
-    @tier1
-    def test_positive_create_ssh_key_super_admin(self):
-        """SSH Key can be added to Super Admin user
-
-        :id: 397eea22-759c-4cd4-bda1-0e7835566c72
-
-        :expectedresults: SSH Key should be added to Super Admin user
-
-        :CaseImportance: Critical
-        """
-        user = entities.User().search(query={'search': 'login="admin"'})[0]
+        user = entities.User().create()
         ssh_name = gen_string('alpha')
         ssh_key = self.gen_ssh_rsakey()
         user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
+        assert ssh_name == user_sshkey.name
+        assert ssh_key == user_sshkey.key
+        user_sshkey.delete()
+        result = entities.SSHKey(user=user).search()
+        assert len(result) == 0
 
     @tier1
-    def test_negative_create_ssh_key(self):
+    def test_negative_create_ssh_key(self, create_user):
         """Invalid ssh key can not be added in User Template
 
         :id: e924ff03-8b2c-4ab9-a054-ea491413e143
@@ -449,21 +522,17 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
         invalid_sshkey = gen_string('alpha', length=256)
-        with self.assertRaises(HTTPError) as context:
-            entities.SSHKey(user=self.user, name=gen_string('alpha'), key=invalid_sshkey).create()
-        self.assertRegexpMatches(
-            context.exception.response.text, 'Key is not a valid public ssh key'
-        )
-        self.assertRegexpMatches(
-            context.exception.response.text, 'Key must be in OpenSSH public key format'
-        )
-        self.assertRegexpMatches(
-            context.exception.response.text, 'Fingerprint could not be generated'
-        )
-        self.assertRegexpMatches(context.exception.response.text, 'Length could not be calculated')
+        with pytest.raises(HTTPError) as context:
+            entities.SSHKey(
+                user=create_user['user'], name=gen_string('alpha'), key=invalid_sshkey
+            ).create()
+        assert re.search('Key is not a valid public ssh key', context.value.response.text)
+        assert re.search('Key must be in OpenSSH public key format', context.value.response.text)
+        assert re.search('Fingerprint could not be generated', context.value.response.text)
+        assert re.search('Length could not be calculated', context.value.response.text)
 
     @tier1
-    def test_negative_create_invalid_length_ssh_key(self):
+    def test_negative_create_invalid_length_ssh_key(self, create_user):
         """Attempt to add SSH key that has invalid length
 
         :id: 899f0c46-c7fe-4610-80f1-1add4a9cbc26
@@ -478,18 +547,16 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        invalid_length_key = self.data_keys['ssh_keys']['invalid_ssh_key']
-        with self.assertRaises(HTTPError) as context:
+        invalid_length_key = create_user['data_keys']['ssh_keys']['invalid_ssh_key']
+        with pytest.raises(HTTPError) as context:
             entities.SSHKey(
-                user=self.user, name=gen_string('alpha'), key=invalid_length_key
+                user=create_user['user'], name=gen_string('alpha'), key=invalid_length_key
             ).create()
-        self.assertRegexpMatches(context.exception.response.text, 'Length could not be calculated')
-        self.assertNotRegexpMatches(
-            context.exception.response.text, 'Fingerprint could not be generated'
-        )
+        assert re.search('Length could not be calculated', context.value.response.text)
+        assert not re.search('Fingerprint could not be generated', context.value.response.text)
 
     @tier1
-    def test_negative_create_ssh_key_with_invalid_name(self):
+    def test_negative_create_ssh_key_with_invalid_name(self, create_user):
         """Attempt to add SSH key that has invalid name length
 
         :id: e1e17839-a392-45bb-bb1e-28d3cd9dba1c
@@ -504,15 +571,15 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
         invalid_ssh_key_name = gen_string('alpha', length=300)
-        with self.assertRaises(HTTPError) as context:
+        with pytest.raises(HTTPError) as context:
             entities.SSHKey(
-                user=self.user, name=invalid_ssh_key_name, key=self.gen_ssh_rsakey()
+                user=create_user['user'], name=invalid_ssh_key_name, key=self.gen_ssh_rsakey()
             ).create()
-        self.assertRegexpMatches(context.exception.response.text, "Name is too long")
+        assert re.search("Name is too long", context.value.response.text)
 
     @tier1
     @upgrade
-    def test_positive_create_multiple_ssh_key_types(self):
+    def test_positive_create_multiple_ssh_key_types(self, create_user):
         """Multiple types of ssh keys can be added to user
 
         :id: d1ffa908-dc86-40c8-b6f0-20650cc67046
@@ -526,38 +593,14 @@ class SshKeyInUserTestCase(APITestCase):
             user
         """
         rsa = self.gen_ssh_rsakey()
-        dsa = self.data_keys['ssh_keys']['dsa']
-        ecdsa = self.data_keys['ssh_keys']['ecdsa']
-        ed = self.data_keys['ssh_keys']['ed']
+        dsa = create_user['data_keys']['ssh_keys']['dsa']
+        ecdsa = create_user['data_keys']['ssh_keys']['ecdsa']
+        ed = create_user['data_keys']['ssh_keys']['ed']
         user = entities.User().create()
         for key in [rsa, dsa, ecdsa, ed]:
             entities.SSHKey(user=user, name=gen_string('alpha'), key=key).create()
         user_sshkeys = entities.SSHKey(user=user).search()
-        self.assertEqual(len(user_sshkeys), 4)
-
-    @tier1
-    @upgrade
-    def test_positive_delete_ssh_key(self):
-        """Satellite Admin can delete ssh key from user
-
-        :id: 37da9052-83a7-440d-b24c-9d4458f011e3
-
-        :steps:
-
-            1. Create new user with all the details
-            2. Add SSH Key to above user
-            3. Delete the ssh-key from user
-
-        :expectedresults: SSH key should be deleted from user
-
-        :CaseImportance: Critical
-        """
-        user = entities.User().create()
-        sshkey_name = gen_string('alpha')
-        sshkey = entities.SSHKey(user=user, name=sshkey_name, key=self.gen_ssh_rsakey()).create()
-        sshkey.delete()
-        result = entities.SSHKey(user=user).search()
-        self.assertEqual(len(result), 0)
+        assert len(user_sshkeys) == 4
 
     @tier2
     @upgrade
@@ -589,117 +632,73 @@ class SshKeyInUserTestCase(APITestCase):
             ssh_key, user.login, settings.server.hostname
         )
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
-        self.assertEqual(sshkey_updated_for_host, host_enc_key[0])
-
-    @tier2
-    def test_positive_list_users_ssh_key(self):
-        """Satellite lists users ssh keys
-
-        :id: 8098e74a-d81e-4410-b744-435901bd70c0
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. List all the ssh keys of above user
-
-        :expectedresults: Satellite should list all the SSH keys of user
-
-        :CaseLevel: Integration
-        """
-        user = entities.User().create()
-        for i in range(2):
-            entities.SSHKey(
-                user=user, name=gen_string('alpha'), key=self.gen_ssh_rsakey()
-            ).create()
-        result = entities.SSHKey(user=user).search()
-        self.assertEqual(len(result), 2)
-
-    @tier1
-    def test_positive_info_users_ssh_key(self):
-        """Satellite returns info of user ssh key
-
-        :id: 27c526b6-1008-47f8-98ac-4b2eb9b3d65e
-
-        :steps:
-
-            1. Create user with all the details
-            2. Add SSH key in above user
-            3. Info the above ssh key in user
-
-        :expectedresults: Satellite should return information of SSH keys of
-            user
-
-        :CaseImportance: Critical
-        """
-        ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
-        user_sshkey = entities.SSHKey(user=self.user, name=ssh_name, key=ssh_key).create()
-        self.assertEqual(ssh_name, user_sshkey.name)
-        self.assertEqual(ssh_key, user_sshkey.key)
+        assert sshkey_updated_for_host == host_enc_key[0]
 
 
 @run_in_one_thread
-class ActiveDirectoryUserTestCase(APITestCase):
+class TestActiveDirectoryUser:
     """Implements the LDAP auth User Tests with Active Directory"""
 
-    @classmethod
     @skip_if_not_set('ldap')
-    def setUpClass(cls):
+    @pytest.fixture(scope='module')
+    def create_ldap(self):
         """Fetch necessary properties from settings and Create ldap auth source"""
-        super(ActiveDirectoryUserTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location(organization=[cls.org]).create()
-        cls.sat_url = 'https://{}'.format(settings.server.hostname)
-        cls.ldap_user_name = settings.ldap.username
-        cls.ldap_user_passwd = settings.ldap.password
-        cls.authsource = entities.AuthSourceLDAP(
-            onthefly_register=True,
-            account=cls.ldap_user_name,
-            account_password=cls.ldap_user_passwd,
-            base_dn=settings.ldap.basedn,
-            groups_base=settings.ldap.grpbasedn,
-            attr_firstname=LDAP_ATTR['firstname'],
-            attr_lastname=LDAP_ATTR['surname'],
-            attr_login=LDAP_ATTR['login_ad'],
-            server_type=LDAP_SERVER_TYPE['API']['ad'],
-            attr_mail=LDAP_ATTR['mail'],
-            name=gen_string('alpha'),
-            host=settings.ldap.hostname,
-            tls=False,
-            port='389',
-            location=[cls.loc],
-            organization=[cls.org],
-        ).create()
-
-    def tearDown(self):
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        yield dict(
+            org=org,
+            loc=loc,
+            sat_url='https://{}'.format(settings.server.hostname),
+            ldap_user_name=settings.ldap.username,
+            ldap_user_passwd=settings.ldap.password,
+            authsource=entities.AuthSourceLDAP(
+                onthefly_register=True,
+                account=settings.ldap.username,
+                account_password=settings.ldap.password,
+                base_dn=settings.ldap.basedn,
+                groups_base=settings.ldap.grpbasedn,
+                attr_firstname=LDAP_ATTR['firstname'],
+                attr_lastname=LDAP_ATTR['surname'],
+                attr_login=LDAP_ATTR['login_ad'],
+                server_type=LDAP_SERVER_TYPE['API']['ad'],
+                attr_mail=LDAP_ATTR['mail'],
+                name=gen_string('alpha'),
+                host=settings.ldap.hostname,
+                tls=False,
+                port='389',
+                location=[loc],
+                organization=[org],
+            ).create(),
+        )
         for user in entities.User().search(
-            query={'search': 'login={}'.format(self.ldap_user_name)}
+            query={'search': 'login={}'.format(settings.ldap.username)}
         ):
             user.delete()
-        super(ActiveDirectoryUserTestCase, self).tearDown()
+        org.delete()
+        loc.delete()
 
     @tier2
     @upgrade
-    def test_positive_create_in_ldap_mode(self):
+    @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
+    def test_positive_create_in_ldap_mode(self, username, create_ldap):
         """Create User in ldap mode
 
         :id: 6f8616b1-5380-40d2-8678-7c4434050cfb
+
+        :parametrized: yes
 
         :expectedresults: User is created without specifying the password
 
         :CaseLevel: Integration
         """
-        for username in valid_usernames_list():
-            with self.subTest(username):
-                user = entities.User(
-                    login=username, auth_source=self.authsource, password=''
-                ).create()
-                self.assertEqual(user.login, username)
+        user = entities.User(
+            login=username, auth_source=create_ldap['authsource'], password=''
+        ).create()
+        assert user.login == username
 
     @tier3
     @skip_if_not_set('ldap')
-    def test_positive_ad_basic_no_roles(self):
+    def test_positive_ad_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- AD for user with no roles/rights
 
         :id: 3910c6eb-6eff-4ab7-a50d-ba40f5c24c08
@@ -713,15 +712,17 @@ class ActiveDirectoryUserTestCase(APITestCase):
         :CaseLevel: System
         """
         sc = ServerConfig(
-            auth=(self.ldap_user_name, self.ldap_user_passwd), url=self.sat_url, verify=False
+            auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
         )
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
 
     @tier3
     @upgrade
     @skip_if_not_set('ldap')
-    def test_positive_access_entities_from_ldap_org_admin(self):
+    def test_positive_access_entities_from_ldap_org_admin(self, create_ldap):
         """LDAP User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
 
@@ -745,77 +746,83 @@ class ActiveDirectoryUserTestCase(APITestCase):
             data={
                 'role': {
                     'name': role_name,
-                    'organization': self.org.name,
-                    'location': self.loc.name,
+                    'organization': create_ldap['org'].name,
+                    'location': create_ldap['loc'].name,
                 }
             }
         )
         sc = ServerConfig(
-            auth=(self.ldap_user_name, self.ldap_user_passwd), url=self.sat_url, verify=False
+            auth=(create_ldap['ldap_user_name'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
         )
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': 'login={}'.format(self.ldap_user_name)})[0]
+        user = entities.User().search(
+            query={'search': 'login={}'.format(create_ldap['ldap_user_name'])}
+        )[0]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
-        with self.assertNotRaises(HTTPError):
-            for entity in [
-                entities.Architecture,
-                entities.Audit,
-                entities.Bookmark,
-                entities.CommonParameter,
-                entities.LibvirtComputeResource,
-                entities.OVirtComputeResource,
-                entities.VMWareComputeResource,
-                entities.ConfigGroup,
-                entities.Errata,
-                entities.OperatingSystem,
-            ]:
-                entity(sc).search()
+        for entity in [
+            entities.Architecture,
+            entities.Audit,
+            entities.Bookmark,
+            entities.CommonParameter,
+            entities.LibvirtComputeResource,
+            entities.OVirtComputeResource,
+            entities.VMWareComputeResource,
+            entities.ConfigGroup,
+            entities.Errata,
+            entities.OperatingSystem,
+        ]:
+            entity(sc).search()
 
 
 @run_in_one_thread
-class FreeIPAUserTestCase(APITestCase):
+class TestFreeIPAUser:
     """Implements the LDAP auth User Tests with FreeIPA"""
 
-    @classmethod
     @skip_if_not_set('ipa')
-    def setUpClass(cls):
+    @pytest.fixture(scope='class')
+    def create_ldap(self):
         """Fetch necessary properties from settings and Create ldap auth source"""
-        super(FreeIPAUserTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location(organization=[cls.org]).create()
-        cls.sat_url = 'https://{}'.format(settings.server.hostname)
-        cls.username = settings.ipa.user_ipa
-        cls.ldap_user_name = settings.ipa.username_ipa
-        cls.ldap_user_passwd = settings.ipa.password_ipa
-        cls.authsource = entities.AuthSourceLDAP(
-            onthefly_register=True,
-            account=cls.ldap_user_name,
-            account_password=cls.ldap_user_passwd,
-            base_dn=settings.ipa.basedn_ipa,
-            groups_base=settings.ipa.grpbasedn_ipa,
-            attr_firstname=LDAP_ATTR['firstname'],
-            attr_lastname=LDAP_ATTR['surname'],
-            attr_login=LDAP_ATTR['login'],
-            server_type=LDAP_SERVER_TYPE['API']['ipa'],
-            attr_mail=LDAP_ATTR['mail'],
-            name=gen_string('alpha'),
-            host=settings.ipa.hostname_ipa,
-            tls=False,
-            port='389',
-            location=[cls.loc],
-            organization=[cls.org],
-        ).create()
-
-    def tearDown(self):
-        for user in entities.User().search(query={'search': 'login={}'.format(self.username)}):
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        ldap_user_name = settings.ipa.username_ipa
+        ldap_user_passwd = settings.ipa.password_ipa
+        username = settings.ipa.user_ipa
+        yield dict(
+            org=org,
+            loc=loc,
+            ldap_user_name=ldap_user_name,
+            ldap_user_passwd=ldap_user_passwd,
+            sat_url='https://{}'.format(settings.server.hostname),
+            username=username,
+            authsource=entities.AuthSourceLDAP(
+                onthefly_register=True,
+                account=ldap_user_name,
+                account_password=ldap_user_passwd,
+                base_dn=settings.ipa.basedn_ipa,
+                groups_base=settings.ipa.grpbasedn_ipa,
+                attr_firstname=LDAP_ATTR['firstname'],
+                attr_lastname=LDAP_ATTR['surname'],
+                attr_login=LDAP_ATTR['login'],
+                server_type=LDAP_SERVER_TYPE['API']['ipa'],
+                attr_mail=LDAP_ATTR['mail'],
+                name=gen_string('alpha'),
+                host=settings.ipa.hostname_ipa,
+                tls=False,
+                port='389',
+                location=[loc],
+                organization=[org],
+            ).create(),
+        )
+        for user in entities.User().search(query={'search': 'login={}'.format(username)}):
             user.delete()
-        super(FreeIPAUserTestCase, self).tearDown()
 
     @tier3
     @skip_if_not_set('ipa')
-    def test_positive_ipa_basic_no_roles(self):
+    def test_positive_ipa_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- FreeIPA for user with no roles/rights
 
         :id: 901a241d-aa76-4562-ab1a-a752e6fb7ed5
@@ -829,15 +836,17 @@ class FreeIPAUserTestCase(APITestCase):
         :CaseLevel: System
         """
         sc = ServerConfig(
-            auth=(self.username, self.ldap_user_passwd), url=self.sat_url, verify=False
+            auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
         )
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
 
     @tier3
     @upgrade
     @skip_if_not_set('ipa')
-    def test_positive_access_entities_from_ipa_org_admin(self):
+    def test_positive_access_entities_from_ipa_org_admin(self, create_ldap):
         """LDAP FreeIPA User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
 
@@ -861,30 +870,33 @@ class FreeIPAUserTestCase(APITestCase):
             data={
                 'role': {
                     'name': role_name,
-                    'organization': self.org.name,
-                    'location': self.loc.name,
+                    'organization': create_ldap['org'].name,
+                    'location': create_ldap['loc'].name,
                 }
             }
         )
         sc = ServerConfig(
-            auth=(self.username, self.ldap_user_passwd), url=self.sat_url, verify=False
+            auth=(create_ldap['username'], create_ldap['ldap_user_passwd']),
+            url=create_ldap['sat_url'],
+            verify=False,
         )
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(query={'search': 'login={}'.format(self.username)})[0]
+        user = entities.User().search(
+            query={'search': 'login={}'.format(create_ldap['username'])}
+        )[0]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
-        with self.assertNotRaises(HTTPError):
-            for entity in [
-                entities.Architecture,
-                entities.Audit,
-                entities.Bookmark,
-                entities.CommonParameter,
-                entities.LibvirtComputeResource,
-                entities.OVirtComputeResource,
-                entities.VMWareComputeResource,
-                entities.ConfigGroup,
-                entities.Errata,
-                entities.OperatingSystem,
-            ]:
-                entity(sc).search()
+        for entity in [
+            entities.Architecture,
+            entities.Audit,
+            entities.Bookmark,
+            entities.CommonParameter,
+            entities.LibvirtComputeResource,
+            entities.OVirtComputeResource,
+            entities.VMWareComputeResource,
+            entities.ConfigGroup,
+            entities.Errata,
+            entities.OperatingSystem,
+        ]:
+            entity(sc).search()

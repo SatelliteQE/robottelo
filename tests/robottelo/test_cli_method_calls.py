@@ -11,8 +11,6 @@ from robottelo.cli.subscription import Subscription
     [
         'add-compute-resource',
         'remove-compute-resource',
-        'add-config-template',
-        'remove-config-template',
         'add-domain',
         'remove-domain',
         'add-environment',
@@ -23,6 +21,8 @@ from robottelo.cli.subscription import Subscription
         'remove-location',
         'add-medium',
         'remove-medium',
+        'add-provisioning-template',
+        'remove-provisioning-template',
         'add-smart-proxy',
         'remove-smart-proxy',
         'add-subnet',

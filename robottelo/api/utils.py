@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Module containing convenience functions for working with the API."""
 import time
 
@@ -17,10 +16,10 @@ from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -80,7 +79,7 @@ def promote(content_view_version, environment_id, force=False):
     :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
 
     """
-    data = {'environment_id': environment_id, 'force': True if force else False}
+    data = {'environment_ids': [environment_id], 'force': True if force else False}
     return content_view_version.promote(data=data)
 
 
@@ -451,7 +450,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         )
 
     # Get the Provisioning template_ID and update with OS, Org, Location
-    provisioning_template = entities.ConfigTemplate().search(
+    provisioning_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_TEMPLATE)}
     )
     provisioning_template = provisioning_template[0].read()
@@ -463,7 +462,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     )
 
     # Get the PXE template ID and update with OS, Org, location
-    pxe_template = entities.ConfigTemplate().search(
+    pxe_template = entities.ProvisioningTemplate().search(
         query={'search': 'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)}
     )
     pxe_template = pxe_template[0].read()
@@ -482,9 +481,9 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
-    os.config_template.append(provisioning_template)
-    os.config_template.append(pxe_template)
-    os = os.update(['architecture', 'config_template', 'ptable'])
+    os.provisioning_template.append(provisioning_template)
+    os.provisioning_template.append(pxe_template)
+    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     # kickstart_repository is the content view and lce bind repo
     kickstart_repository = entities.Repository().search(
         query=dict(content_view_id=content_view.id, environment_id=lc_env.id, name=repo.name)
@@ -550,7 +549,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
         if resource_type is None:
             permissions_entities = []
             for name in permissions_name:
-                result = entities.Permission(name=name).search()
+                result = entities.Permission().search(query={'search': f'name="{name}"'})
                 if not result:
                     raise entities.APIResponseError('permission "{}" not found'.format(name))
                 if len(result) > 1:
@@ -571,9 +570,9 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
                     ' least one permission'.format(resource_type)
                 )
 
-            resource_type_permissions_entities = entities.Permission(
-                resource_type=resource_type
-            ).search()
+            resource_type_permissions_entities = entities.Permission().search(
+                query={'per_page': 350, 'search': f'resource_type="{resource_type}"'}
+            )
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(
                     'resource type "{}" permissions not found'.format(resource_type)
@@ -745,7 +744,7 @@ def create_discovered_host(name=None, ip_address=None, mac_address=None, options
     :param str ip_address: A valid ip address.
     :param str mac_address: A valid mac address.
     :param dict options: additional facts to add to discovered host
-    :returns: dict of ``entities.DiscoveredHost`` facts.
+    :return: dict of ``entities.DiscoveredHost`` facts.
     """
     if name is None:
         name = gen_string('alpha')
@@ -946,3 +945,51 @@ def skip_yum_update_during_provisioning(template=None, reverse=False):
         return update_provisioning_template(name=template, old=old, new=new)
     else:
         return update_provisioning_template(name=template, old=new, new=old)
+
+
+def set_hammer_api_timeout(timeout=-1, reverse=False):
+    """Set hammer API request timeout on Satellite
+
+    :param int timeout: request timeout in seconds
+    :param bool reverse: Reverses the request timeout
+    :return: ssh.command
+    """
+    default_timeout = ':request_timeout: {}'.format(120)
+    new_timeout = ':request_timeout: {}'.format(timeout)
+    if not reverse:
+        return ssh.command(
+            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
+                default_timeout, new_timeout
+            )
+        )
+    else:
+        return ssh.command(
+            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
+                new_timeout, default_timeout
+            )
+        )
+
+
+def update_rhsso_settings_in_satellite(revert=False):
+    """Update or Revert the RH-SSO settings in satellite"""
+    rhhso_settings = {
+        'authorize_login_delegation': True,
+        'authorize_login_delegation_auth_source_user_autocreate': 'External',
+        'login_delegation_logout_url': f'https://{settings.server.hostname}/users/extlogout',
+        'oidc_algorithm': 'RS256',
+        'oidc_audience': [f'{settings.server.hostname}-foreman-openidc'],
+        'oidc_issuer': f'{settings.rhsso.host_url}/auth/realms/{settings.rhsso.realm}',
+        'oidc_jwks_url': f'{settings.rhsso.host_url}/auth/realms'
+        f'/{settings.rhsso.realm}/protocol/openid-connect/certs',
+    }
+    if revert:
+        setting_entity = entities.Setting().search(
+            query={'search': 'name=authorize_login_delegation'}
+        )[0]
+        setting_entity.value = False
+        setting_entity.update({'value'})
+    else:
+        for setting_name, setting_value in rhhso_settings.items():
+            setting_entity = entities.Setting().search(query={'search': f'name={setting_name}'})[0]
+            setting_entity.value = setting_value
+            setting_entity.update({'value'})

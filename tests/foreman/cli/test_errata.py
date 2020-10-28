@@ -23,9 +23,13 @@ from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.contentview import ContentViewFilter
 from robottelo.cli.erratum import Erratum
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_content_view
+from robottelo.cli.factory import make_content_view_filter
+from robottelo.cli.factory import make_content_view_filter_rule
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_host_collection
 from robottelo.cli.factory import make_lifecycle_environment
@@ -45,29 +49,37 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
 from robottelo.constants import FAKE_0_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_2_YUM_REPO
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
-from robottelo.constants import FAKE_3_YUM_REPO
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
-from robottelo.constants import FAKE_6_YUM_REPO
+from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -80,7 +92,7 @@ ERRATUM_MAX_IDS_INFO = 10
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
 
-    CUSTOM_REPO_URL = FAKE_6_YUM_REPO
+    CUSTOM_REPO_URL = FAKE_9_YUM_REPO
     CUSTOM_PACKAGE = FAKE_1_CUSTOM_PACKAGE
     CUSTOM_ERRATA_ID = FAKE_2_ERRATA_ID
     CUSTOM_PACKAGE_ERRATA_APPLIED = FAKE_2_CUSTOM_PACKAGE
@@ -88,6 +100,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
@@ -161,8 +174,8 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         )
         # install the custom package for each host
         for virtual_machine in self.virtual_machines:
-            virtual_machine.run('yum install -y {0}'.format(self.CUSTOM_PACKAGE))
-            result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE))
+            virtual_machine.run(f'yum install -y {self.CUSTOM_PACKAGE}')
+            result = virtual_machine.run(f'rpm -q {self.CUSTOM_PACKAGE}')
             self.assertEqual(result.return_code, 0)
 
     def _is_errata_package_installed(self, virtual_machine):
@@ -171,7 +184,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :type virtual_machine: robottelo.vm.VirtualMachine
         :rtype: bool
         """
-        result = virtual_machine.run('rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+        result = virtual_machine.run(f'rpm -q {self.CUSTOM_PACKAGE_ERRATA_APPLIED}')
         return True if result.return_code == 0 else False
 
     @tier3
@@ -459,11 +472,389 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             )
         self.assertIn('Error: Could not find organization', context.exception.stderr)
 
+    @tier3
+    @upgrade
+    def test_positive_list_affected_chosts(self):
+        """View a list of affected content hosts for an erratum
+
+        :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps: host list --search "applicable_errata = <erratum_id>"
+            --organization-id=<org_id>
+
+        :expectedresults: List of affected content hosts for an erratum is
+            displayed.
+
+        :CaseAutomation: automated
+        """
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'fields': 'Name',
+            }
+        )
+        result = [item['name'] for item in result]
+        for virtual_machine in self.virtual_machines:
+            assert (
+                virtual_machine.hostname in result
+            ), "VM host name not found in list of applicable hosts"
+
+    @tier3
+    def test_install_errata_to_one_host(self):
+        """Install an erratum to one of the hosts in a host collection.
+
+        :id: bfcee2de-3448-497e-a696-fcd30cea9d33
+
+        :expectedresults: Errata was successfully installed in only one of the hosts in
+         the host collection
+
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+           1. Remove FAKE_2_CUSTOM_PACKAGE_NAME packages from one host
+           2. host-collection erratum install --errata <errata> --id <id>
+              --organization <org name>
+           3. Assert first host does not have any FAKE_2_CUSTOM_PACKAGE_NAME packages.
+           4. Assert second host does have FAKE_2_CUSTOM_PACKAGE
+
+        :expectedresults: Erratum is only installed on one host.
+
+        :BZ: 1810774
+        """
+        # Remove package on first VM to remove need for CUSTOM_ERRATA_ID
+        result = self.virtual_machines[0].run(f'yum erase -y {self.CUSTOM_PACKAGE}')
+        assert result.return_code == 0, "Failed to erase the RPM"
+        # Install CUSTOM_ERRATA_ID to the host collection
+        install_task = HostCollection.erratum_install(
+            {
+                'id': self.host_collection['id'],
+                'organization': self.org['name'],
+                'errata': [self.CUSTOM_ERRATA_ID],
+            }
+        )
+        Task.progress({'id': install_task[0]['id']})
+        # Assert first host does not have any FAKE_1_CUSTOM_PACKAGE_NAME packages
+        result = self.virtual_machines[0].run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
+        assert result.return_code == 1, "Unwanted custom package found."
+        # Assert second host does have FAKE_2_CUSTOM_PACKAGE
+        result = self.virtual_machines[1].run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+        assert result.return_code == 0, "Expected custom package not found."
+
+    @tier3
+    def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
+        """View a list of affected content hosts for an erratum filtered
+        with restrict flags. Applicability is calculated using the Library,
+        so that search must not limit to CV or LCE. Installability
+        is calculated using the attached CV, subject to the CV's own filtering,
+        so that search must limit to CV and LCE.
+
+        :id: 594acd48-892c-499e-b0cb-6506cea7cd64
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+
+            1. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-installable=1
+
+            2. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-installable=0
+
+            3. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-applicable=1
+
+            4. erratum list --erratum-id=<erratum_id>
+               --organization-id=<org_id> --errata-restrict-applicable=0
+
+
+        :expectedresults: List of affected content hosts for an erratum is
+            displayed filtered with corresponding restrict flags.
+
+        :CaseAutomation: automated
+        """
+        # Create list of uninstallable errata by removing FAKE_2_ERRATA_ID
+        UNINSTALLABLE = [erratum for erratum in FAKE_9_YUM_ERRATUM if erratum != FAKE_2_ERRATA_ID]
+        # Check that only installable errata are present in the list
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 1,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        # Assert the expected errata is in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of installable errata"
+        # Assert the uninstallable errata are not in the list
+        for erratum in UNINSTALLABLE:
+            assert erratum not in erratum_id_list, "Unexpected errata found"
+        # Check list of errata is not affected by installable=0 restrict flag
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 0,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        for erratum in FAKE_9_YUM_ERRATUM:
+            assert erratum in erratum_id_list, "Errata not found in list of installable errata"
+        # Check list of applicable errata
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 1, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of applicable errata"
+        # Check list of errata is not affected by applicable=0 restrict flag
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 0, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        for erratum in FAKE_9_YUM_ERRATUM:
+            assert erratum in erratum_id_list, "Errata not found in list of applicable errata"
+        # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
+        # Make RPM exclude filter
+        make_content_view_filter(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_restrict_test',
+                'description': 'Hide the installable errata',
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+                'inclusion': 'false',
+            }
+        )
+        # Make rule to hide the RPM that creates the need for the installable erratum
+        make_content_view_filter_rule(
+            {
+                'content-view-id': self.content_view['id'],
+                'content-view-filter': 'erratum_restrict_test',
+                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            }
+        )
+        # Publish the version with the filter
+        ContentView.publish({'id': self.content_view['id']})
+        # Need to promote the last version published
+        content_view_version = ContentView.info({'id': self.content_view['id']})['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': self.org['id'],
+                'to-lifecycle-environment-id': self.env['id'],
+            }
+        )
+        # Check that the installable erratum is no longer present in the list
+        erratum_list = Erratum.list(
+            {
+                'errata-restrict-installable': 1,
+                'content-view-id': self.content_view['id'],
+                'lifecycle-environment-id': self.env['id'],
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        # Assert the expected erratum is no longer in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID not in erratum_id_list
+        ), "Errata not found in list of installable errata"
+        # Check CUSTOM_ERRATA_ID still applicable
+        erratum_list = Erratum.list(
+            {'errata-restrict-applicable': 1, 'organization-id': self.org['id'], 'per-page': 1000}
+        )
+        # Assert the expected erratum is in the list
+        erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
+        assert (
+            self.CUSTOM_ERRATA_ID in erratum_id_list
+        ), "Errata not found in list of applicable errata"
+        # Clean up by removing the CV filter
+        ContentViewFilter.delete(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_restrict_test',
+                'organization-id': self.org['id'],
+            }
+        )
+
+    @tier3
+    def test_host_errata_search_commands(self):
+        """View a list of affected hosts for security (RHSA) and bugfix (RHBA) errata,
+        filtered with errata status and applicable flags. Applicability is calculated using the
+        Library, but Installability is calculated using the attached CV, and is subject to the
+        CV's own filtering.
+
+        :id: 07757a77-7ab4-4020-99af-2beceb023266
+
+        :Setup: Errata synced on satellite server.
+
+        :Steps:
+            1.  host list --search "errata_status = errata_needed"
+            2.  host list --search "errata_status = security_needed"
+            3.  host list --search "applicable_errata = RHBA-2012:1030"
+            4.  host list --search "applicable_errata = RHSA-2012:0055"
+            5.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
+            6.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
+            7.  Create filter & rule to hide RPM (applicable vs. installable test)
+            8.  Repeat steps 3 and 5, but 5 expects host name not found.
+
+        :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
+
+        """
+        # Install kangaroo-0.2 on first VM to create a need for RHBA-2012:1030
+        # Update walrus on first VM to remove its need for RHSA-2012:0055
+        result = ssh.command(
+            f'yum install -y {FAKE_4_CUSTOM_PACKAGE} {FAKE_2_CUSTOM_PACKAGE}',
+            self.virtual_machines[0].ip_addr,
+        )
+        assert result.return_code == 0, "Failed to install RPM"
+        # Step 1: Search for hosts that require RHBA errata
+        result = Host.list(
+            {
+                'search': f'errata_status = errata_needed',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname in result
+        assert self.virtual_machines[1].hostname not in result
+        # Step 2: Search for hosts that require RHSA errata
+        result = Host.list(
+            {
+                'search': f'errata_status = security_needed',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname not in result
+        assert self.virtual_machines[1].hostname in result
+        # Step 3: Search for hosts that have RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_5_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname in result
+        assert self.virtual_machines[1].hostname not in result
+        # Step 4: Search for hosts that have RHSA-2012:0055 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname not in result
+        assert self.virtual_machines[1].hostname in result
+        # Step 5: Search for hosts that have RPM for RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname in result
+        assert self.virtual_machines[1].hostname not in result
+        # Step 6: Search for hosts that have RPM for RHSA-2012:0055 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname not in result
+        assert self.virtual_machines[1].hostname in result
+        # Step 7: Apply filter and rule to CV to hide RPM, thus making erratum not installable
+        # Make RPM exclude filter
+        make_content_view_filter(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_search_test',
+                'description': 'Hide the installable errata',
+                'organization-id': self.org['id'],
+                'type': 'rpm',
+                'inclusion': 'false',
+            }
+        )
+        # Make rule to hide the RPM that indicates the erratum is installable
+        make_content_view_filter_rule(
+            {
+                'content-view-id': self.content_view['id'],
+                'content-view-filter': 'erratum_search_test',
+                'name': f'{FAKE_4_CUSTOM_PACKAGE_NAME}',
+            }
+        )
+        # Publish the version with the filter
+        ContentView.publish({'id': self.content_view['id']})
+        # Need to promote the last version published
+        content_view_version = ContentView.info({'id': self.content_view['id']})['versions'][-1]
+        ContentView.version_promote(
+            {
+                'id': content_view_version['id'],
+                'organization-id': self.org['id'],
+                'to-lifecycle-environment-id': self.env['id'],
+            }
+        )
+        # Step 8: Run tests again. Applicable should still be true, installable should now be false
+        # Search for hosts that have RPM for RHBA-2012:1030 applicable
+        result = Host.list(
+            {
+                'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname in result
+        assert self.virtual_machines[1].hostname not in result
+        # There is no installable_rpms flag, so its just the one test.
+        # Search for hosts that show RHBA-2012:1030 installable
+        result = Host.list(
+            {
+                'search': f'installable_errata = {FAKE_5_ERRATA_ID}',
+                'organization-id': self.org['id'],
+                'per-page': 1000,
+            }
+        )
+        result = [item['name'] for item in result]
+        assert self.virtual_machines[0].hostname not in result
+        assert self.virtual_machines[1].hostname not in result
+        # Clean up by removing the CV filter
+        ContentViewFilter.delete(
+            {
+                'content-view-id': self.content_view['id'],
+                'name': 'erratum_search_test',
+                'organization-id': self.org['id'],
+            }
+        )
+
 
 class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create 3 organizations
 
@@ -573,7 +964,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list({'order': sort_text, 'per-page': ERRATUM_MAX_IDS_INFO})
@@ -624,7 +1015,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -681,7 +1072,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -740,7 +1131,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -797,7 +1188,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -854,7 +1245,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -913,7 +1304,7 @@ class ErrataTestCase(CLITestCase):
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
-            sort_text = '{0} {1}'.format(sort_field, sort_order)
+            sort_text = f'{sort_field} {sort_order}'
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
                 erratum_list = Erratum.list(
@@ -1447,7 +1838,7 @@ class ErrataTestCase(CLITestCase):
             {
                 'permission-ids': user_required_permissions_ids,
                 'role-id': role['id'],
-                'search': 'name = {0}'.format(product['name']),
+                'search': f"name = {product['name']}",
             }
         )
         # create a new user and assign him the created role permissions
@@ -1495,69 +1886,3 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
-
-    @stubbed()
-    @upgrade
-    def test_positive_list_affected_chosts(self):
-        """View a list of affected content hosts for an erratum
-
-        :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: content-host list --erratum-id=<erratum_id>
-            --organization-id=<org_id>
-
-        :expectedresults: List of affected content hosts for an erratum is
-            displayed.
-
-        :CaseAutomation: notautomated
-
-        """
-
-    @stubbed()
-    def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
-        """View a list of affected content hosts for an erratum filtered
-        with restrict flags
-
-        :id: 594acd48-892c-499e-b0cb-6506cea7cd64
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps:
-
-            1. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-available=1
-            2. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-unavailable=1
-            3. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-available=0
-            4. content-host list --erratum-id=<erratum_id>
-               --organization-id=<org_id> --erratum-restrict-unavailable=0
-
-        :expectedresults: List of affected content hosts for an erratum is
-            displayed filtered with corresponding restrict flags.
-
-        :CaseAutomation: notautomated
-
-        """
-
-    @stubbed()
-    def test_positive_view_available_count_in_affected_chosts(self):
-        """Available errata count displayed while viewing a list of
-        Content hosts
-
-        :id: 1d174432-bb51-4192-990d-3c62087b96df
-
-        :Setup:
-
-            1. Errata synced on satellite server.
-            2. Some content hosts present.
-
-        :Steps: hammer content-host list --organization-id=<orgid>
-
-        :expectedresults: The available errata count is retrieved.
-
-        :CaseAutomation: notautomated
-
-        """

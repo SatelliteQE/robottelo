@@ -14,14 +14,11 @@
 
 :Upstream: No
 """
-import re
 import tempfile
 from urllib.parse import urljoin
 
 import pytest
-from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from fauxfactory import gen_url
 from nailgun import client
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
@@ -36,22 +33,9 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOWNLOAD_POLICIES
-from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
 from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS
-from robottelo.constants import FAKE_1_PUPPET_REPO
-from robottelo.constants import FAKE_2_YUM_REPO
-from robottelo.constants import FAKE_5_YUM_REPO
-from robottelo.constants import FAKE_7_PUPPET_REPO
-from robottelo.constants import FAKE_YUM_DRPM_REPO
-from robottelo.constants import FAKE_YUM_SRPM_DUPLICATE_REPO
-from robottelo.constants import FAKE_YUM_SRPM_REPO
-from robottelo.constants import FEDORA26_OSTREE_REPO
-from robottelo.constants import FEDORA27_OSTREE_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
@@ -60,6 +44,19 @@ from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+from robottelo.constants.repos import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_2_YUM_REPO
+from robottelo.constants.repos import FAKE_5_YUM_REPO
+from robottelo.constants.repos import FAKE_7_PUPPET_REPO
+from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
+from robottelo.constants.repos import FAKE_YUM_SRPM_DUPLICATE_REPO
+from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
+from robottelo.constants.repos import FEDORA26_OSTREE_REPO
+from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_http_credentials
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import invalid_values_list
@@ -68,8 +65,8 @@ from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -86,13 +83,14 @@ class RepositoryTestCase(APITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(RepositoryTestCase, cls).setUpClass()
-        http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15), url=http_proxy_url, organization=[cls.org.id]
+            name=gen_string('alpha', 15),
+            url=settings.http_proxy.auth_proxy_url,
+            username=settings.http_proxy.username,
+            password=settings.http_proxy.password,
+            organization=[cls.org.id],
         ).create()
 
     @tier1
@@ -105,36 +103,32 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 self.assertEqual(name, repo.name)
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_assign_http_proxy_to_repository(self):
-        """Assign http_proxy to Repositories and check whether http-proxy is
-         used during sync.
+        """Assign http_proxy to Repositories and perform repository sync.
 
         :id: 5b3b992e-02d3-4b16-95ed-21f1588c7741
 
-        :expectedresults: HTTP Proxy can be assigned to repository and sync operation
-         uses assigned http-proxy.
+        :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
+            successfully.
 
         :CaseImportance: Critical
         """
-        http_proxy_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
-        http_proxy = entities.HTTPProxy(
-            name=gen_string('alpha', 15), url=http_proxy_url, organization=[self.org.id]
-        ).create()
-        proxy_fqdn = re.split(r'[:]', http_proxy.url)[1].strip("//")
-        # no http_proxy
         repo_a = entities.Repository(
-            url=FAKE_2_YUM_REPO, product=self.product, http_proxy_policy='none'
+            url=FAKE_2_YUM_REPO,
+            product=self.product,
+            http_proxy_policy='use_selected_http_proxy',
+            http_proxy_id=self.http_proxy.id,
         ).create()
-        assert repo_a.http_proxy_policy == 'none'
+        assert repo_a.http_proxy_policy == 'use_selected_http_proxy'
+        assert repo_a.http_proxy_id == self.http_proxy.id
         repo_a.sync()
         assert repo_a.read().content_counts['rpm'] >= 1
         # Use global_default_http_proxy
@@ -145,14 +139,8 @@ class RepositoryTestCase(APITestCase):
         ).create()
         assert repo_b.http_proxy_policy == 'global_default_http_proxy'
         # Update to selected_http_proxy
-        repo_b = entities.Repository(
-            id=repo_b.id, http_proxy_policy='use_selected_http_proxy', http_proxy_id=http_proxy.id
-        ).update()
-        assert repo_b.http_proxy_policy == 'use_selected_http_proxy'
-        assert repo_b.http_proxy_id == http_proxy.id
-        repo_b.sync({'async': True})
-        result = ssh.command('grep -F {} /var/log/messages'.format(proxy_fqdn))
-        assert result.return_code == 0
+        repo_b = entities.Repository(id=repo_b.id, http_proxy_policy='none').update()
+        assert repo_b.http_proxy_policy == 'none'
 
     @tier1
     def test_positive_create_with_label(self):
@@ -171,6 +159,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertNotEqual(repo.name, label)
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_yum(self):
         """Create yum repository.
 
@@ -187,6 +176,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
@@ -202,6 +192,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'puppet')
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
@@ -368,6 +359,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.download_policy, 'on_demand')
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
@@ -551,6 +543,7 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
@@ -568,6 +561,7 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
@@ -700,7 +694,7 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         repo = entities.Repository(product=self.product).create()
-        for new_name in valid_data_list():
+        for new_name in valid_data_list().values():
             with self.subTest(new_name):
                 repo.name = new_name
                 repo = repo.update(['name'])
@@ -726,6 +720,7 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(repo.checksum_type, updated_checksum)
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
@@ -825,6 +820,8 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @upgrade
+    @pytest.mark.skip("Uses deprecated SRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_delete_srpm_repo(self):
         """Create a repository, sync SRPM contents and remove repo
 
@@ -843,6 +840,7 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
 
@@ -902,6 +900,7 @@ class RepositoryTestCase(APITestCase):
             repo.update(['label'])
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_update_auth_url_with_special_characters(self):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
@@ -928,6 +927,7 @@ class RepositoryTestCase(APITestCase):
                     new_repo.update(['url'])
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
@@ -966,6 +966,7 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
@@ -992,6 +993,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
@@ -1016,6 +1018,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -1042,6 +1045,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.read().content_counts['puppet_module'], 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
         removed from repository
@@ -1069,6 +1073,7 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
         were removed from repository
@@ -1105,7 +1110,7 @@ class RepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_data_list().values():
             with self.subTest(name):
                 repo = entities.Repository(product=self.product, name=name).create()
                 repo.delete()
@@ -1114,6 +1119,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -1135,6 +1141,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -1157,6 +1164,7 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_list_puppet_modules_with_multiple_repos(self):
         """Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
@@ -1187,6 +1195,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_access_protected_repository(self):
         """Access protected/https repository data file URL using organization
         debug certificate
@@ -1231,6 +1240,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_module_stream_repository_crud_operations(self):
         """Verify that module stream api calls works with product having other type
         repositories.
@@ -1295,6 +1305,7 @@ class RepositorySyncTestCase(APITestCase):
         entities.Repository(id=repo_id).sync()
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_yum_with_string_based_version(self):
         """Sync Yum Repo with string based versions on update-info.
 
@@ -1319,7 +1330,7 @@ class RepositorySyncTestCase(APITestCase):
         for key, count in FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS.items():
             assert repository.content_counts[key] == count
 
-    @stubbed
+    @pytest.mark.stubbed
     @tier2
     @skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
@@ -1657,6 +1668,7 @@ class OstreeRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_create_ostree(self):
         """Create ostree repository.
 
@@ -1675,6 +1687,7 @@ class OstreeRepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'ostree')
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_update_name(self):
         """Update ostree repository name.
 
@@ -1696,6 +1709,7 @@ class OstreeRepositoryTestCase(APITestCase):
         self.assertEqual(new_name, repo.name)
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_update_url(self):
         """Update ostree repository url.
 
@@ -1718,6 +1732,7 @@ class OstreeRepositoryTestCase(APITestCase):
 
     @tier1
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_delete_ostree(self):
         """Delete an ostree repository.
 
@@ -1813,6 +1828,8 @@ class SRPMRepositoryTestCase(APITestCase):
 
     @upgrade
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
@@ -1853,6 +1870,8 @@ class DRPMRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -1872,6 +1891,8 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated DRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -1897,6 +1918,8 @@ class DRPMRepositoryTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @pytest.mark.skip("Uses deprecated DRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1945,6 +1968,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         cls.product = entities.Product().create()
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_ignore_sprm_duplicate(self):
         """Test whether SRPM duplicated content can be ignored.
 
@@ -1960,6 +1984,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         self.assertEqual(repo.content_counts['srpm'], 0)
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_srpm_duplicate(self):
         """Test sync of SRPM duplicated repository.
 
@@ -1974,6 +1999,8 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         self.assertEqual(repo.content_counts['srpm'], 2)
 
     @tier2
+    @pytest.mark.skip("Uses deprecated SRPM repository")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_ignore_srpm_sync(self):
         """Test whether SRPM content can be ignored during sync.
 
@@ -1993,7 +2020,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
 class FileRepositoryTestCase(APITestCase):
     """Specific tests for File Repositories"""
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -2011,7 +2038,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository
@@ -2031,7 +2058,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     @upgrade
     def test_positive_remove_file(self):
@@ -2053,7 +2080,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier2
     @upgrade
     def test_positive_remote_directory_sync(self):
@@ -2077,7 +2104,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
@@ -2101,7 +2128,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier1
     def test_positive_symlinks_sync(self):
         """Check synlinks can be synced to File Repository

@@ -57,7 +57,7 @@ class LocationTestCase(CLITestCase):
         cls.host_group2 = entities.HostGroup().create()
         cls.host_group3 = entities.HostGroup().create()
         cls.comp_resource = entities.LibvirtComputeResource().create()
-        cls.template = entities.ConfigTemplate().create()
+        cls.template = entities.ProvisioningTemplate().create()
         cls.user = entities.User().create()
 
     @tier2
@@ -86,7 +86,7 @@ class LocationTestCase(CLITestCase):
                 'hostgroup-ids': [self.host_group.id, self.host_group2.id],
                 'medium-ids': self.medium["id"],
                 'compute-resource-ids': self.comp_resource.id,
-                'config-templates': self.template.name,
+                'provisioning-templates': self.template.name,
                 'user-ids': self.user.id,
             }
         )

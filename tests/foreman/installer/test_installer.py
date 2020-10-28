@@ -16,6 +16,8 @@
 """
 import re
 
+import pytest
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION
@@ -45,8 +47,10 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--[no-]enable-foreman-plugin-discovery',
         '--[no-]enable-foreman-plugin-hooks',
         '--[no-]enable-foreman-plugin-kubevirt',
+        '--[no-]enable-foreman-plugin-leapp',
         '--[no-]enable-foreman-plugin-openscap',
         '--[no-]enable-foreman-plugin-remote-execution',
+        '--[no-]enable-foreman-plugin-rh-cloud',
         '--[no-]enable-foreman-plugin-tasks',
         '--[no-]enable-foreman-plugin-templates',
         '--[no-]enable-foreman-proxy',
@@ -79,7 +83,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--certs-org-unit',
         '--certs-pki-dir',
         '--certs-regenerate',
-        '--certs-regenerate-ca',
         '--certs-reset',
         '--certs-server-ca-cert',
         '--certs-server-ca-name',
@@ -98,13 +101,12 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--clear-puppet-environments',
         '--color-of-background',
         '--compare-scenarios',
-        '--disable-resolve-mismatches',
+        '--detailed-exitcodes',
         '--disable-scenario',
         '--disable-system-checks',
         '--dont-save-answers',
         '--enable-scenario',
         '--force',
-        '--force-upgrade-steps',
         '--foreman-app-root',
         '--foreman-apache',
         '--foreman-cli-foreman-url',
@@ -126,10 +128,7 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-compute-ovirt-version',
         '--foreman-compute-rackspace-version',
         '--foreman-compute-vmware-version',
-        '--foreman-configure-epel-repo',
-        '--foreman-configure-scl-repo',
         '--foreman-cors-domains',
-        '--foreman-db-adapter',
         '--foreman-db-database',
         '--foreman-db-host',
         '--foreman-db-manage',
@@ -139,7 +138,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-db-port',
         '--foreman-db-root-cert',
         '--foreman-db-sslmode',
-        '--foreman-db-type',
         '--foreman-db-username',
         '--foreman-dynflow-pool-size',
         '--foreman-email-delivery-method',
@@ -149,38 +147,42 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-email-smtp-password',
         '--foreman-email-smtp-port',
         '--foreman-email-smtp-user-name',
+        '--foreman-foreman-service-puma-threads-max',
+        '--foreman-foreman-service-puma-threads-min',
+        '--foreman-foreman-service-puma-workers',
         '--foreman-foreman-url',
-        '--foreman-gpgcheck',
         '--foreman-group',
         '--foreman-hsts-enabled',
         '--foreman-http-keytab',
         '--foreman-initial-admin-email',
         '--foreman-initial-admin-first-name',
         '--foreman-initial-admin-last-name',
+        '--foreman-initial-admin-locale',
         '--foreman-initial-admin-password',
         '--foreman-initial-admin-username',
+        '--foreman-initial-admin-timezone',
         '--foreman-initial-location',
         '--foreman-initial-organization',
         '--foreman-ipa-authentication',
         '--foreman-ipa-manage-sssd',
-        '--foreman-jobs-service',
+        '--foreman-jobs-manage-service',
         '--foreman-jobs-service-enable',
         '--foreman-jobs-service-ensure',
-        '--foreman-keepalive',
-        '--foreman-keepalive-timeout',
+        '--foreman-jobs-sidekiq-redis-url',
+        '--foreman-keycloak-realm',
+        '--foreman-keycloak',
+        '--foreman-keycloak-app-name',
         '--foreman-loggers',
         '--foreman-logging-layout',
         '--foreman-logging-level',
         '--foreman-logging-type',
         '--foreman-manage-user',
-        '--foreman-max-keepalive-requests',
         '--foreman-oauth-active',
         '--foreman-oauth-consumer-key',
         '--foreman-oauth-consumer-secret',
         '--foreman-oauth-map-users',
         '--foreman-pam-service',
         '--foreman-passenger',
-        '--foreman-passenger-interface',
         '--foreman-passenger-min-instances',
         '--foreman-passenger-prestart',
         '--foreman-passenger-ruby',
@@ -189,7 +191,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-plugin-prefix',
         '--foreman-plugin-tasks-automatic-cleanup',
         '--foreman-plugin-tasks-cron-line',
-        '--foreman-plugin-tasks-package',
         '--foreman-plugin-version',
         '--foreman-proxy-autosignfile',
         '--foreman-proxy-bind-host',
@@ -210,9 +211,32 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-proxy-content-enable-yum',
         '--foreman-proxy-content-manage-broker',
         '--foreman-proxy-content-parent-fqdn',
+        '--foreman-proxy-content-proxy-pulp-isos-to-pulpcore',
+        '--foreman-proxy-content-proxy-pulp-yum-to-pulpcore',
+        '--foreman-proxy-content-pulpcore-postgresql-db-name',
         '--foreman-proxy-content-pulp-admin-password',
         '--foreman-proxy-content-pulp-ca-cert',
-        '--foreman-proxy-content-pulp-master',
+        '--foreman-proxy-content-pulpcore-manage-postgresql',
+        '--foreman-proxy-content-pulpcore-postgresql-host',
+        '--foreman-proxy-content-pulpcore-postgresql-password',
+        '--foreman-proxy-content-pulpcore-postgresql-port',
+        '--foreman-proxy-content-pulpcore-postgresql-ssl',
+        '--foreman-proxy-content-pulpcore-postgresql-ssl-cert',
+        '--foreman-proxy-content-pulpcore-postgresql-ssl-key',
+        '--foreman-proxy-content-pulpcore-postgresql-ssl-require',
+        '--foreman-proxy-content-pulpcore-postgresql-ssl-root-ca',
+        '--foreman-proxy-content-pulpcore-postgresql-user',
+        '--foreman-rails-cache-store',
+        '--foreman-server-ssl-verify-client',
+        '--katello-use-pulp-2-for-docker',
+        '--katello-use-pulp-2-for-file',
+        '--katello-use-pulp-2-for-yum',
+        '--puppet-server-ca-client-self-delete',
+        '--puppet-server-multithreaded',
+        '--puppet-server-storeconfigs',
+        '--puppet-server-trusted-external-command',
+        '--puppet-server-versioned-code-content',
+        '--puppet-server-versioned-code-id',
         '--foreman-proxy-content-pulp-max-speed',
         '--foreman-proxy-content-pulp-num-workers',
         '--foreman-proxy-content-pulp-proxy-password',
@@ -276,7 +300,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-proxy-dhcp-search-domains',
         '--foreman-proxy-dhcp-server',
         '--foreman-proxy-dhcp-subnets',
-        '--foreman-proxy-dir',
         '--foreman-proxy-dns',
         '--foreman-proxy-dns-forwarders',
         '--foreman-proxy-dns-interface',
@@ -355,17 +378,19 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-proxy-plugin-openscap-spooldir',
         '--foreman-proxy-plugin-openscap-timeout',
         '--foreman-proxy-plugin-openscap-version',
+        '--foreman-proxy-plugin-openscap-corrupted-dir',
         '--foreman-proxy-plugin-pulp-enabled',
-        '--foreman-proxy-plugin-pulp-group',
         '--foreman-proxy-plugin-pulp-listen-on',
         '--foreman-proxy-plugin-pulp-mongodb-dir',
         '--foreman-proxy-plugin-pulp-pulp-content-dir',
         '--foreman-proxy-plugin-pulp-pulp-dir',
         '--foreman-proxy-plugin-pulp-pulp-url',
-        '--foreman-proxy-plugin-pulp-pulp3-enabled',
-        '--foreman-proxy-plugin-pulp-pulp3-mirror',
+        '--foreman-proxy-plugin-pulp-pulpcore-api-url',
         '--foreman-proxy-plugin-pulp-pulpnode-enabled',
         '--foreman-proxy-plugin-pulp-puppet-content-dir',
+        '--foreman-proxy-plugin-pulp-pulpcore-content-url',
+        '--foreman-proxy-plugin-pulp-pulpcore-enabled',
+        '--foreman-proxy-plugin-pulp-pulpcore-mirror',
         '--foreman-proxy-plugin-pulp-version',
         '--foreman-proxy-plugin-remote-execution-ssh-async-ssh',
         '--foreman-proxy-plugin-remote-execution-ssh-enabled',
@@ -378,7 +403,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-proxy-plugin-remote-execution-ssh-ssh-identity-file',
         '--foreman-proxy-plugin-remote-execution-ssh-ssh-kerberos-auth',
         '--foreman-proxy-plugin-remote-execution-ssh-ssh-keygen',
-        '--foreman-proxy-plugin-version',
         '--foreman-proxy-puppet',
         '--foreman-proxy-puppet-api-timeout',
         '--foreman-proxy-puppet-group',
@@ -437,11 +461,8 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--foreman-proxy-trusted-hosts',
         '--foreman-proxy-use-sudoers',
         '--foreman-proxy-use-sudoersd',
-        '--foreman-proxy-user',
         '--foreman-proxy-version',
         '--foreman-rails-env',
-        '--foreman-repo',
-        '--foreman-selinux',
         '--foreman-server-port',
         '--foreman-server-ssl-ca',
         '--foreman-server-ssl-cert',
@@ -484,21 +505,13 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--katello-candlepin-manage-db',
         '--katello-candlepin-oauth-key',
         '--katello-candlepin-oauth-secret',
-        '--katello-cdn-ssl-version',
         '--katello-enable-deb',
         '--katello-enable-docker',
         '--katello-enable-file',
         '--katello-enable-ostree',
         '--katello-enable-puppet',
         '--katello-enable-yum',
-        '--katello-group',
-        '--katello-manage-repo',
         '--katello-num-pulp-workers',
-        '--katello-package-names',
-        '--katello-proxy-password',
-        '--katello-proxy-port',
-        '--katello-proxy-url',
-        '--katello-proxy-username',
         '--katello-pulp-db-ca-path',
         '--katello-pulp-db-name',
         '--katello-pulp-db-password',
@@ -518,12 +531,7 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--katello-qpid-interface',
         '--katello-qpid-wcache-page-size',
         '--katello-repo-export-dir',
-        '--katello-repo-gpgcheck',
-        '--katello-repo-gpgkey',
-        '--katello-repo-version',
         '--katello-rest-client-timeout',
-        '--katello-user',
-        '--katello-user-groups',
         '--list-scenarios',
         '--log-level',
         '--migrations-only',
@@ -532,7 +540,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--[no-]enable-foreman-cli-azure',
         '--[no-]enable-foreman-cli-virt-who-configure',
         '--[no-]enable-foreman-plugin-azure',
-        '--[no-]enable-foreman-plugin-inventory-upload',
         '--[no-]enable-foreman-plugin-remote-execution-cockpit',
         '--[no-]enable-foreman-plugin-virt-who-configure',
         '--profile',
@@ -566,8 +573,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--puppet-hiera-config',
         '--puppet-http-connect-timeout',
         '--puppet-http-read-timeout',
-        '--puppet-listen',
-        '--puppet-listen-to',
         '--puppet-logdir',
         '--puppet-manage-packages',
         '--puppet-module-repository',
@@ -612,7 +617,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--puppet-server-default-manifest-content',
         '--puppet-server-default-manifest-path',
         '--puppet-server-dir',
-        '--puppet-server-enc-api',
         '--puppet-server-environment-class-cache-enabled',
         '--puppet-server-environment-timeout',
         '--puppet-server-environments-group',
@@ -665,9 +669,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--puppet-server-post-hook-content',
         '--puppet-server-post-hook-name',
         '--puppet-server-puppet-basedir',
-        '--puppet-server-puppetdb-host',
-        '--puppet-server-puppetdb-port',
-        '--puppet-server-puppetdb-swf',
         '--puppet-server-puppetserver-dir',
         '--puppet-server-puppetserver-experimental',
         '--puppet-server-puppetserver-jruby9k',
@@ -677,7 +678,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--puppet-server-puppetserver-trusted-agents',
         '--puppet-server-puppetserver-vardir',
         '--puppet-server-puppetserver-version',
-        '--puppet-server-report-api',
         '--puppet-server-reports',
         '--puppet-server-request-timeout',
         '--puppet-server-ruby-load-paths',
@@ -689,7 +689,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--puppet-server-ssl-key-manage',
         '--puppet-server-ssl-protocols',
         '--puppet-server-ssl-selector-threads',
-        '--puppet-server-storeconfigs-backend',
         '--puppet-server-strict-variables',
         '--puppet-server-use-legacy-auth-conf',
         '--puppet-server-user',
@@ -729,7 +728,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-certs-org-unit',
         '--reset-certs-pki-dir',
         '--reset-certs-regenerate',
-        '--reset-certs-regenerate-ca',
         '--reset-certs-server-ca-cert',
         '--reset-certs-server-ca-name',
         '--reset-certs-server-cert',
@@ -760,10 +758,8 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-compute-ovirt-version',
         '--reset-foreman-compute-rackspace-version',
         '--reset-foreman-compute-vmware-version',
-        '--reset-foreman-configure-epel-repo',
-        '--reset-foreman-configure-scl-repo',
         '--reset-foreman-cors-domains',
-        '--reset-foreman-db-adapter',
+        '--reset-foreman-db',
         '--reset-foreman-db-database',
         '--reset-foreman-db-host',
         '--reset-foreman-db-manage',
@@ -773,7 +769,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-db-port',
         '--reset-foreman-db-root-cert',
         '--reset-foreman-db-sslmode',
-        '--reset-foreman-db-type',
         '--reset-foreman-db-username',
         '--reset-foreman-dynflow-pool-size',
         '--reset-foreman-email-delivery-method',
@@ -784,37 +779,41 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-email-smtp-port',
         '--reset-foreman-email-smtp-user-name',
         '--reset-foreman-foreman-url',
-        '--reset-foreman-gpgcheck',
+        '--reset-foreman-foreman-service-puma-threads-max',
+        '--reset-foreman-foreman-service-puma-threads-min',
+        '--reset-foreman-foreman-service-puma-workers',
         '--reset-foreman-group',
         '--reset-foreman-hsts-enabled',
         '--reset-foreman-http-keytab',
         '--reset-foreman-initial-admin-email',
         '--reset-foreman-initial-admin-first-name',
         '--reset-foreman-initial-admin-last-name',
+        '--reset-foreman-initial-admin-locale',
         '--reset-foreman-initial-admin-password',
+        '--reset-foreman-initial-admin-timezone',
         '--reset-foreman-initial-admin-username',
         '--reset-foreman-initial-location',
         '--reset-foreman-initial-organization',
         '--reset-foreman-ipa-authentication',
         '--reset-foreman-ipa-manage-sssd',
-        '--reset-foreman-jobs-service',
+        '--reset-foreman-jobs-manage-service',
+        '--reset-foreman-jobs-sidekiq-redis-url',
         '--reset-foreman-jobs-service-enable',
         '--reset-foreman-jobs-service-ensure',
-        '--reset-foreman-keepalive',
-        '--reset-foreman-keepalive-timeout',
+        '--reset-foreman-keycloak',
+        '--reset-foreman-keycloak-realm',
+        '--reset-foreman-keycloak-app-name',
         '--reset-foreman-loggers',
         '--reset-foreman-logging-layout',
         '--reset-foreman-logging-level',
         '--reset-foreman-logging-type',
         '--reset-foreman-manage-user',
-        '--reset-foreman-max-keepalive-requests',
         '--reset-foreman-oauth-active',
         '--reset-foreman-oauth-consumer-key',
         '--reset-foreman-oauth-consumer-secret',
         '--reset-foreman-oauth-map-users',
         '--reset-foreman-pam-service',
         '--reset-foreman-passenger',
-        '--reset-foreman-passenger-interface',
         '--reset-foreman-passenger-min-instances',
         '--reset-foreman-passenger-prestart',
         '--reset-foreman-passenger-ruby',
@@ -823,7 +822,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-plugin-prefix',
         '--reset-foreman-plugin-tasks-automatic-cleanup',
         '--reset-foreman-plugin-tasks-cron-line',
-        '--reset-foreman-plugin-tasks-package',
         '--reset-foreman-plugin-version',
         '--reset-foreman-proxy-autosignfile',
         '--reset-foreman-proxy-bind-host',
@@ -846,15 +844,27 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-content-parent-fqdn',
         '--reset-foreman-proxy-content-pulp-admin-password',
         '--reset-foreman-proxy-content-pulp-ca-cert',
-        '--reset-foreman-proxy-content-pulp-master',
         '--reset-foreman-proxy-content-pulp-max-speed',
         '--reset-foreman-proxy-content-pulp-num-workers',
         '--reset-foreman-proxy-content-pulp-proxy-password',
         '--reset-foreman-proxy-content-pulp-proxy-port',
         '--reset-foreman-proxy-content-pulp-proxy-url',
         '--reset-foreman-proxy-content-pulp-proxy-username',
+        '--reset-foreman-proxy-content-proxy-pulp-isos-to-pulpcore',
+        '--reset-foreman-proxy-content-proxy-pulp-yum-to-pulpcore',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-db-name',
         '--reset-foreman-proxy-content-pulp-puppet-wsgi-processes',
         '--reset-foreman-proxy-content-pulp-worker-timeout',
+        '--reset-foreman-proxy-content-pulpcore-manage-postgresql',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-host',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-password',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-port',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-ssl',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-ssl-cert',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-ssl-key',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-ssl-require',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-ssl-root-ca',
+        '--reset-foreman-proxy-content-pulpcore-postgresql-user',
         '--reset-foreman-proxy-content-puppet',
         '--reset-foreman-proxy-content-qpid-router',
         '--reset-foreman-proxy-content-qpid-router-agent-addr',
@@ -910,7 +920,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-dhcp-search-domains',
         '--reset-foreman-proxy-dhcp-server',
         '--reset-foreman-proxy-dhcp-subnets',
-        '--reset-foreman-proxy-dir',
         '--reset-foreman-proxy-dns',
         '--reset-foreman-proxy-dns-forwarders',
         '--reset-foreman-proxy-dns-interface',
@@ -980,6 +989,7 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-plugin-dns-infoblox-username',
         '--reset-foreman-proxy-plugin-dns-infoblox-dns-view',
         '--reset-foreman-proxy-plugin-openscap-contentdir',
+        '--reset-foreman-proxy-plugin-openscap-corrupted-dir',
         '--reset-foreman-proxy-plugin-openscap-enabled',
         '--reset-foreman-proxy-plugin-openscap-failed-dir',
         '--reset-foreman-proxy-plugin-openscap-listen-on',
@@ -990,16 +1000,17 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-plugin-openscap-timeout',
         '--reset-foreman-proxy-plugin-openscap-version',
         '--reset-foreman-proxy-plugin-pulp-enabled',
-        '--reset-foreman-proxy-plugin-pulp-group',
         '--reset-foreman-proxy-plugin-pulp-listen-on',
         '--reset-foreman-proxy-plugin-pulp-mongodb-dir',
         '--reset-foreman-proxy-plugin-pulp-pulp-content-dir',
         '--reset-foreman-proxy-plugin-pulp-pulp-dir',
         '--reset-foreman-proxy-plugin-pulp-pulp-url',
-        '--reset-foreman-proxy-plugin-pulp-pulp3-enabled',
-        '--reset-foreman-proxy-plugin-pulp-pulp3-mirror',
         '--reset-foreman-proxy-plugin-pulp-pulpnode-enabled',
         '--reset-foreman-proxy-plugin-pulp-puppet-content-dir',
+        '--reset-foreman-proxy-plugin-pulp-pulpcore-api-url',
+        '--reset-foreman-proxy-plugin-pulp-pulpcore-content-url',
+        '--reset-foreman-proxy-plugin-pulp-pulpcore-enabled',
+        '--reset-foreman-proxy-plugin-pulp-pulpcore-mirror',
         '--reset-foreman-proxy-plugin-pulp-version',
         '--reset-foreman-proxy-plugin-remote-execution-ssh-async-ssh',
         '--reset-foreman-proxy-plugin-remote-execution-ssh-enabled',
@@ -1012,7 +1023,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-identity-file',
         '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-kerberos-auth',
         '--reset-foreman-proxy-plugin-remote-execution-ssh-ssh-keygen',
-        '--reset-foreman-proxy-plugin-version',
         '--reset-foreman-proxy-puppet',
         '--reset-foreman-proxy-puppet-api-timeout',
         '--reset-foreman-proxy-puppet-group',
@@ -1071,11 +1081,10 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-proxy-trusted-hosts',
         '--reset-foreman-proxy-use-sudoers',
         '--reset-foreman-proxy-use-sudoersd',
-        '--reset-foreman-proxy-user',
         '--reset-foreman-proxy-version',
+        '--reset-foreman-rails-cache-store',
         '--reset-foreman-rails-env',
-        '--reset-foreman-repo',
-        '--reset-foreman-selinux',
+        '--reset-puppet-server-ca-client-self-delete',
         '--reset-foreman-server-port',
         '--reset-foreman-server-ssl-ca',
         '--reset-foreman-server-ssl-cert',
@@ -1085,6 +1094,7 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-foreman-server-ssl-key',
         '--reset-foreman-server-ssl-port',
         '--reset-foreman-server-ssl-protocol',
+        '--reset-foreman-server-ssl-verify-client',
         '--reset-foreman-serveraliases',
         '--reset-foreman-servername',
         '--reset-foreman-ssl',
@@ -1114,21 +1124,13 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-katello-candlepin-manage-db',
         '--reset-katello-candlepin-oauth-key',
         '--reset-katello-candlepin-oauth-secret',
-        '--reset-katello-cdn-ssl-version',
         '--reset-katello-enable-deb',
         '--reset-katello-enable-docker',
         '--reset-katello-enable-file',
         '--reset-katello-enable-ostree',
         '--reset-katello-enable-puppet',
         '--reset-katello-enable-yum',
-        '--reset-katello-group',
-        '--reset-katello-manage-repo',
         '--reset-katello-num-pulp-workers',
-        '--reset-katello-package-names',
-        '--reset-katello-proxy-password',
-        '--reset-katello-proxy-port',
-        '--reset-katello-proxy-url',
-        '--reset-katello-proxy-username',
         '--reset-katello-pulp-db-ca-path',
         '--reset-katello-pulp-db-name',
         '--reset-katello-pulp-db-password',
@@ -1148,12 +1150,10 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-katello-qpid-interface',
         '--reset-katello-qpid-wcache-page-size',
         '--reset-katello-repo-export-dir',
-        '--reset-katello-repo-gpgcheck',
-        '--reset-katello-repo-gpgkey',
-        '--reset-katello-repo-version',
         '--reset-katello-rest-client-timeout',
-        '--reset-katello-user',
-        '--reset-katello-user-groups',
+        '--reset-katello-use-pulp-2-for-docker',
+        '--reset-katello-use-pulp-2-for-file',
+        '--reset-katello-use-pulp-2-for-yum',
         '--reset-puppet-additional-settings',
         '--reset-puppet-agent',
         '--reset-puppet-agent-additional-settings',
@@ -1184,8 +1184,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-puppet-hiera-config',
         '--reset-puppet-http-connect-timeout',
         '--reset-puppet-http-read-timeout',
-        '--reset-puppet-listen',
-        '--reset-puppet-listen-to',
         '--reset-puppet-logdir',
         '--reset-puppet-manage-packages',
         '--reset-puppet-module-repository',
@@ -1230,7 +1228,6 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-puppet-server-default-manifest-content',
         '--reset-puppet-server-default-manifest-path',
         '--reset-puppet-server-dir',
-        '--reset-puppet-server-enc-api',
         '--reset-puppet-server-environment-class-cache-enabled',
         '--reset-puppet-server-environment-timeout',
         '--reset-puppet-server-environments-group',
@@ -1277,15 +1274,13 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-puppet-server-metrics-graphite-port',
         '--reset-puppet-server-metrics-jmx-enable',
         '--reset-puppet-server-metrics-server-id',
+        '--reset-puppet-server-multithreaded',
         '--reset-puppet-server-package',
         '--reset-puppet-server-parser',
         '--reset-puppet-server-port',
         '--reset-puppet-server-post-hook-content',
         '--reset-puppet-server-post-hook-name',
         '--reset-puppet-server-puppet-basedir',
-        '--reset-puppet-server-puppetdb-host',
-        '--reset-puppet-server-puppetdb-port',
-        '--reset-puppet-server-puppetdb-swf',
         '--reset-puppet-server-puppetserver-dir',
         '--reset-puppet-server-puppetserver-experimental',
         '--reset-puppet-server-puppetserver-jruby9k',
@@ -1295,10 +1290,10 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-puppet-server-puppetserver-trusted-agents',
         '--reset-puppet-server-puppetserver-vardir',
         '--reset-puppet-server-puppetserver-version',
-        '--reset-puppet-server-report-api',
         '--reset-puppet-server-reports',
         '--reset-puppet-server-request-timeout',
         '--reset-puppet-server-ruby-load-paths',
+        '--reset-puppet-server-storeconfigs',
         '--reset-puppet-server-selector-threads',
         '--reset-puppet-server-ssl-acceptor-threads',
         '--reset-puppet-server-ssl-chain-filepath',
@@ -1307,10 +1302,12 @@ PREVIOUS_INSTALLER_OPTIONS = set(
         '--reset-puppet-server-ssl-key-manage',
         '--reset-puppet-server-ssl-protocols',
         '--reset-puppet-server-ssl-selector-threads',
-        '--reset-puppet-server-storeconfigs-backend',
         '--reset-puppet-server-strict-variables',
+        '--reset-puppet-server-trusted-external-command',
         '--reset-puppet-server-use-legacy-auth-conf',
         '--reset-puppet-server-user',
+        '--reset-puppet-server-versioned-code-content',
+        '--reset-puppet-server-versioned-code-id',
         '--reset-puppet-server-version',
         '--reset-puppet-server-web-idle-timeout',
         '--reset-puppet-service-name',
@@ -1384,15 +1381,18 @@ class SELinuxTestCase(TestCase):
 
         :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
-        :expectedresults: All services {'elasticsearch', 'foreman-proxy',
-            'foreman-tasks', 'httpd', 'rh-mongodb34-mongod', 'postgresql',
-            'pulp_celerybeat', 'pulp_resource_manager', 'pulp_workers',
-            'qdrouterd', 'qpidd', 'tomcat'} are started
+        :expectedresults: All services {'elasticsearch', 'foreman-proxy', 'httpd',
+
+        'rh-mongodb34-mongod', 'postgresql', 'pulp_celerybeat', 'pulp_resource_manager',
+
+        'pulp_workers', 'qdrouterd', 'qpidd', 'tomcat'} are started
         """
         major_version = get_host_info()[1]
         services = (
+            'dynflow-sidekiq@orchestrator',
+            'dynflow-sidekiq@worker',
+            'dynflow-sidekiq@worker-hosts-queue',
             'foreman-proxy',
-            'foreman-tasks',
             'httpd',
             'rh-mongodb34-mongod',
             'postgresql',
@@ -1400,8 +1400,10 @@ class SELinuxTestCase(TestCase):
             'pulp_resource_manager',
             'pulp_streamer',
             'pulp_workers',
+            'puppetserver',
             'qdrouterd',
             'qpidd',
+            'rh-redis5-redis',
             'smart_proxy_dynflow_core',
             'squid',
             'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
@@ -1424,9 +1426,13 @@ class SELinuxTestCase(TestCase):
             'hammer -u {0[0]} -p {0[1]} ping'.format(settings.server.get_credentials())
         )
 
+        result_output = [
+            service.strip() for service in result.stdout if not re.search(r'message:', service)
+        ]
+
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-        for service, status, response in zip(*[iter(result.stdout)] * 3):
+        for service, status, response in zip(*[iter(result_output)] * 3):
             service = service.replace(':', '').strip()
             status = status.split(':')[1].strip().lower()
             response = response.split(':', 1)[1].strip()
@@ -1476,3 +1482,80 @@ def test_installer_options_and_flags():
     added_options.sort()
     msg = "###Removed options:\n{}\n###Added options:\n{}".format(removed_options, added_options)
     assert PREVIOUS_INSTALLER_OPTIONS == current_installer_options, msg
+
+
+@pytest.mark.stubbed
+@tier3
+def test_satellite_installation_on_ipv6():
+    """
+    Check the satellite installation on ipv6 machine.
+
+    :id: 24fa5ef0-1673-427c-82ab-740758683cff
+
+    steps:
+        1. Install satellite on ipv6 machine.
+
+    :expectedresults:
+        1: Installation should be successful.
+        2: After installation, All the services should be up and running.
+        3. Status of hammer ping should be ok.
+        4: Satellite service restart should work.
+        5: After system reboot all the services comes to up state.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """
+
+
+@pytest.mark.stubbed
+@tier3
+def test_capsule_installation_on_ipv6():
+    """
+    Check the capsule installation over ipv6 machine
+
+    :id: 75341e29-342f-41fc-aaa8-cda013b7dfa1
+
+    :steps:
+        1. Install capsule on ipv6 machine.
+
+    :expectedresults:
+        1. Capsule installation should be successful.
+        2. After installation, All the Services should be up and running.
+        3. Satellite service restart should work.
+        4. After system reboot all the services come to up state.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """
+
+
+@pytest.mark.stubbed
+@tier3
+def test_installer_check_on_ipv6():
+    """
+    Check the satellite-installer command execution with tuning options and updated config file.
+
+    :id: 411bbffb-027f-4df0-8566-1719d1d0651a
+
+    steps:
+        1. Install satellite on ipv6 machine
+        2. Trigger the satellite-installer command with "--tuning medium" flag.
+        3. Update the custom-hira.yaml file(add any supportable config parameter).
+        4. Trigger the satellite-installer command with no option.
+
+    :expectedresults:
+        1. Tuning parameter set successfully for medium size.
+        2. custom-hiera.yaml related changes should be successfully applied.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: notautomated
+    """

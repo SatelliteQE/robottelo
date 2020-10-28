@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import re
 from datetime import datetime
 from datetime import timedelta
 
@@ -23,11 +24,12 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
@@ -38,16 +40,18 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_REPO
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
+from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
@@ -56,6 +60,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
 
@@ -96,7 +101,13 @@ def repos_collection_for_module_streams(module_org):
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL8, repositories=[YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2)]
+        distro=DISTRO_RHEL8,
+        repositories=[
+            YumRepository(url=settings.rhel8_os['baseos']),
+            YumRepository(url=settings.rhel8_os['appstream']),
+            YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
+        ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
     return repos_collection
@@ -115,7 +126,7 @@ def vm_module_streams(repos_collection_for_module_streams):
     """Virtual machine registered in satellite without katello-agent installed"""
     with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
         repos_collection_for_module_streams.setup_virtual_machine(
-            vm_module_streams, install_katello_agent=False
+            vm_module_streams, install_katello_agent=True
         )
         add_remote_execution_ssh_key(vm_module_streams.ip_addr)
         yield vm_module_streams
@@ -133,6 +144,32 @@ def set_ignore_facts_for_os(value=False):
 def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.return_code == 0
+
+
+def line_count(file, connection=None):
+    """Get number of lines in a file."""
+    connection = connection or ssh.get_connection()
+    result = connection.run('wc -l < {0}'.format(file), output_format='plain')
+    count = result.stdout.strip('\n')
+    return count
+
+
+def cut_lines(start_line, end_line, source_file, out_file, connection=None):
+    """Given start and end line numbers, cut lines from source file
+    and put them in out file."""
+    connection = connection or ssh.get_connection()
+    result = connection.run(
+        'sed -n "{0},{1} p" {2} < {2} > {3}'.format(start_line, end_line, source_file, out_file)
+    )
+    return result
+
+
+@pytest.fixture(scope='module')
+def module_host_template(module_org, module_loc):
+    host_template = entities.Host(organization=module_org, location=module_loc)
+    host_template.create_missing()
+    host_template.name = None
+    return host_template
 
 
 @tier3
@@ -319,6 +356,7 @@ def test_negative_install_package(session, vm):
 
 
 @tier3
+@skip_if(not settings.repos_hosting_url)
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 
@@ -400,7 +438,64 @@ def test_positive_remove_package_group(session, vm):
 
 
 @tier3
-def test_positive_search_errata_non_admin(session, vm, module_org, test_name, module_viewer_user):
+def test_actions_katello_host_package_update_timeout(session, vm):
+    """Check that Actions::Katello::Host::Package::Update task will time
+    out if goferd does not respond while attempting to update a package.
+
+    :id: 26f3ea2a-509a-4f3f-b5d7-d34b29ceb2cc
+
+    :BZ: 1651852
+
+    :expectedresults: Update task times out and error message is displayed.
+
+    :CaseLevel: System
+    """
+    error_line_found = False
+    source_log = '/var/log/foreman/production.log'
+    test_logfile = '/var/tmp/logfile_package_update_timeout'
+    # Install fake package with older version
+    vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+    # Remove gofer to break communications on package status
+    vm.run('rpm -e --nodeps gofer')
+    with ssh.get_connection() as connection:
+        # get the number of lines in the source log before the test
+        line_count_start = line_count(source_log, connection)
+    # Attempt to update fake package, check for warning
+    with session:
+        result = session.contenthost.execute_package_action(
+            vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME,
+        )
+        assert result['result'] == 'warning'
+        # Install gofer using CLI
+        vm.run('yum install gofer -y && systemctl restart goferd')
+        # Try again to update fake package, check for success
+        result = session.contenthost.execute_package_action(
+            vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME,
+        )
+        assert result['result'] == 'success'
+        packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
+        assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+    # Get the log extract to check for the expected error message
+    with ssh.get_connection() as connection:
+        # get the number of lines in the source log after the test
+        line_count_end = line_count(source_log, connection)
+        # get the log lines of interest, put them in test_logfile
+        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
+    # Use same location on remote and local for log file extract
+    ssh.download_file(test_logfile)
+    # Search the log file extract for the line with error message
+    with open(test_logfile, "r") as logfile:
+        for line in logfile:
+            if re.search(
+                r'Host did not respond within 20 seconds. The task has been cancelled.', line
+            ):
+                error_line_found = True
+                break
+    assert error_line_found, "The expected time out error was not found in logs."
+
+
+@tier3
+def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
 
     :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
@@ -416,7 +511,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, mo
     """
     vm.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
     with Session(
-        test_name, user=module_viewer_user.login, password=module_viewer_user.password
+        test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
@@ -858,6 +953,19 @@ def test_install_modular_errata(session, vm_module_streams):
             stream_version=stream_version,
         )
 
+        run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
+        # Install errata using Katello Agent
+        result = session.contenthost.install_errata(
+            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='katello'
+        )
+        module_stream = session.contenthost.search_module_stream(
+            vm_module_streams.hostname,
+            module_name,
+            status='Installed',
+            stream_version=stream_version,
+        )
+        assert module_stream[0]['Name'] == module_name
+
 
 @tier3
 def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
@@ -1173,3 +1281,89 @@ def test_syspurpose_mismatched(session, vm_module_streams):
             'details'
         ]
         assert details['system_purpose_status'] == "Mismatched"
+
+
+@tier3
+def test_pagination_multiple_hosts_multiple_pages(session, module_host_template):
+    """Create hosts to fill more than one page, sort on OS, check pagination.
+
+    Search for hosts based on operating system and assert that more than one page
+    is reported to exist and that more than one page can be accessed. Make some
+    additonal aserts to ensure the pagination widget is working as expected.
+
+    To avoid requiring more than 20 fakes hosts to overcome default page setting of 20,
+    this test will set a new per_page default (see new_per_page_setting).
+    This test is using URL method rather than the "entries_per_page" setting to avoid
+    impacting other tests that might be running.
+
+    :id: e63e4872-5fcf-4468-ab66-63ac4f4f5dac
+
+    :BZ: 1642549
+    """
+    new_per_page_setting = 2
+    host_num = new_per_page_setting + 1
+    host_name = None
+    start_url = f'/content_hosts?page=1&per_page={new_per_page_setting}'
+    # Create more than one page of fake hosts. Need two digits in name to ensure sort order.
+    for count in range(host_num):
+        host_name = f'test-{count + 1:0>2}'
+        make_fake_host(
+            {
+                'name': host_name,
+                'organization-id': module_host_template.organization.id,
+                'architecture-id': module_host_template.architecture.id,
+                'domain-id': module_host_template.domain.id,
+                'location-id': module_host_template.location.id,
+                'medium-id': module_host_template.medium.id,
+                'operatingsystem-id': module_host_template.operatingsystem.id,
+                'partition-table-id': module_host_template.ptable.id,
+            }
+        )
+    with session(url=start_url):
+        # Search for all the hosts by os. This uses pagination to get more than one page.
+        all_fake_hosts_found = session.contenthost.search(
+            f"os = {module_host_template.operatingsystem.name}"
+        )
+        # Assert dump of fake hosts found includes the higest numbered host created for this test
+        match = re.search(r'test-{:0>2}'.format(host_num), str(all_fake_hosts_found))
+        assert match, "Highest numbered host not found."
+        # Get all the pagination values
+        pagination_values = session.contenthost.read_all('Pagination')['Pagination']
+        # Assert total pages reported is greater than one page of hosts
+        total_pages = pagination_values['pages']
+        assert int(total_pages) > int(host_num) / int(new_per_page_setting)
+        # Assert that total items reported is the number of hosts created for this test
+        total_items_found = pagination_values['total_items']
+        assert int(total_items_found) >= host_num
+
+
+@tier3
+def test_search_for_virt_who_hypervisors(session):
+    """
+    Search the virt_who hypervisors with hypervisor=True or hypervisor=False.
+
+    :id: 3c759e13-d5ef-4273-8e64-2cc8ed9099af
+
+    :expectedresults: Search with hypervisor=True and hypervisor=False gives the correct result.
+
+    :BZ: 1653386
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    org = entities.Organization().create()
+    with session:
+        session.organization.select(org.name)
+        assert not session.contenthost.search("hypervisor = true")
+        # create virt-who hypervisor through the fake json conf
+        data = create_fake_hypervisor_content(org.label, hypervisors=1, guests=1)
+        hypervisor_name = data['hypervisors'][0]['hypervisorId']
+        hypervisor_display_name = f"virt-who-{hypervisor_name}-{org.id}"
+        # Search with hypervisor=True gives the correct result.
+        assert (
+            session.contenthost.search("hypervisor = true")[0]['Name']
+        ) == hypervisor_display_name
+        # Search with hypervisor=false gives the correct result.
+        content_hosts = [host['Name'] for host in session.contenthost.search("hypervisor = false")]
+        assert hypervisor_display_name not in content_hosts

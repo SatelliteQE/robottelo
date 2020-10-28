@@ -24,9 +24,11 @@ from requests import HTTPError
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -75,6 +77,7 @@ class SmartClassParametersTestCase(APITestCase):
     """Implements Smart Class Parameter tests in API"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -465,13 +468,10 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.override = True
         sc_param.default_value = gen_string('alpha')
         override = entities.OverrideValue(
-            smart_class_parameter=sc_param,
-            match='domain=example.com',
-            value=value,
-            use_puppet_default=True,
+            smart_class_parameter=sc_param, match='domain=example.com', value=value, omit=True
         ).create()
         sc_param = sc_param.read()
-        self.assertEqual(sc_param.override_values[0]['use_puppet_default'], True)
+        self.assertEqual(sc_param.override_values[0]['omit'], True)
         self.assertEqual(sc_param.override_values[0]['match'], 'domain=example.com')
         self.assertEqual(sc_param.override_values[0]['value'], value)
         override.delete()
