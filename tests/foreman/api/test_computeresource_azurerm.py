@@ -24,6 +24,8 @@ from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
 from robottelo.constants import AZURERM_PREMIUM_OS_Disk
 from robottelo.constants import AZURERM_RG_DEFAULT
+from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
+from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
@@ -88,7 +90,7 @@ class TestAzureRMComputeResourceTestCase:
     @upgrade
     @tier2
     def test_positive_create_finish_template_image(
-        self, module_architecture, module_azurerm_cr, module_azurerm_finishimg
+        self, default_architecture, module_azurerm_cr, module_azurerm_finishimg
     ):
         """ Finish template image along with username is being added in AzureRM CR
 
@@ -105,7 +107,7 @@ class TestAzureRMComputeResourceTestCase:
         :CaseLevel: Integration
         """
 
-        assert module_azurerm_finishimg.architecture.id == module_architecture.id
+        assert module_azurerm_finishimg.architecture.id == default_architecture.id
         assert module_azurerm_finishimg.compute_resource == module_azurerm_cr
         assert module_azurerm_finishimg.username == settings.azurerm.username
         assert module_azurerm_finishimg.uuid == AZURERM_RHEL7_FT_IMG_URN
@@ -113,7 +115,7 @@ class TestAzureRMComputeResourceTestCase:
     @upgrade
     @tier2
     def test_positive_create_cloud_init_image(
-        self, module_azurerm_cloudimg, module_azurerm_cr, module_architecture
+        self, module_azurerm_cloudimg, module_azurerm_cr, default_architecture
     ):
         """Cloud Init template image along with username is being added in AzureRM CR
 
@@ -128,7 +130,7 @@ class TestAzureRMComputeResourceTestCase:
         :CaseLevel: Integration
         """
 
-        assert module_azurerm_cloudimg.architecture.id == module_architecture.id
+        assert module_azurerm_cloudimg.architecture.id == default_architecture.id
         assert module_azurerm_cloudimg.compute_resource.id == module_azurerm_cr.id
         assert module_azurerm_cloudimg.username == settings.azurerm.username
         assert module_azurerm_cloudimg.uuid == AZURERM_RHEL7_UD_IMG_URN
@@ -168,7 +170,7 @@ class TestAzureRMHostProvisioningTestCase:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -198,12 +200,12 @@ class TestAzureRMHostProvisioningTestCase:
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
-        module_architecture,
+        default_architecture,
         module_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
     ):
         """
@@ -213,22 +215,22 @@ class TestAzureRMHostProvisioningTestCase:
 
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = entities.Host(
-            architecture=module_architecture,
+            architecture=default_architecture,
             build=True,
             compute_resource=module_azurerm_cr,
             compute_attributes=self.compute_attrs,
             interfaces_attributes=self.interfaces_attributes,
             domain=module_domain,
             organization=module_org,
-            operatingsystem=module_os,
+            operatingsystem=default_os,
             location=module_location,
             name=self.hostname,
             provision_method='image',
             image=module_azurerm_finishimg,
             root_pass=gen_string('alphanumeric'),
             environment=module_puppet_environment,
-            puppet_proxy=module_smart_proxy,
-            puppet_ca_proxy=module_smart_proxy,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
@@ -240,6 +242,7 @@ class TestAzureRMHostProvisioningTestCase:
 
         return azurermclient.get_vm(name=class_host_ft.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
@@ -261,6 +264,8 @@ class TestAzureRMHostProvisioningTestCase:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned
+
+        :BZ: 1850934
         """
 
         assert class_host_ft.name == self.fullhostname
@@ -271,6 +276,7 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @tier3
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
@@ -288,6 +294,8 @@ class TestAzureRMHostProvisioningTestCase:
         :expectedresults:
             1. The provisioned host should be powered off.
             2. The provisioned host should be powered on.
+
+        :BZ: 1850934
         """
         class_host_ft.power(data={'power_action': 'stop'})
         assert azureclient_host.is_stopped
@@ -314,7 +322,7 @@ class TestAzureRM_UserData_Provisioning:
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = gen_string('alpha')
-        request.cls.fullhostname = '{}.{}'.format(self.hostname, module_domain.name).lower()
+        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = {
             "resource_group": self.rg_default,
@@ -344,12 +352,12 @@ class TestAzureRM_UserData_Provisioning:
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
-        module_architecture,
+        default_architecture,
         module_domain,
         module_location,
         module_org,
-        module_os,
-        module_smart_proxy,
+        default_os,
+        default_smart_proxy,
         module_puppet_environment,
     ):
         """
@@ -359,22 +367,22 @@ class TestAzureRM_UserData_Provisioning:
 
         skip_yum_update_during_provisioning(template='Kickstart default finish')
         host = entities.Host(
-            architecture=module_architecture,
+            architecture=default_architecture,
             build=True,
             compute_resource=module_azurerm_cr,
             compute_attributes=self.compute_attrs,
             interfaces_attributes=self.interfaces_attributes,
             domain=module_domain,
             organization=module_org,
-            operatingsystem=module_os,
+            operatingsystem=default_os,
             location=module_location,
             name=self.hostname,
             provision_method='image',
             image=module_azurerm_cloudimg,
             root_pass=gen_string('alphanumeric'),
             environment=module_puppet_environment,
-            puppet_proxy=module_smart_proxy,
-            puppet_ca_proxy=module_smart_proxy,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
@@ -386,6 +394,7 @@ class TestAzureRM_UserData_Provisioning:
 
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
@@ -409,6 +418,8 @@ class TestAzureRM_UserData_Provisioning:
             4. The provisioned host should be assigned with external IP
             5. The host Name and Platform should be same on Azure Cloud as provided during
                provisioned.
+
+        :BZ: 1850934
         """
 
         assert class_host_ud.name == self.fullhostname
@@ -419,6 +430,7 @@ class TestAzureRM_UserData_Provisioning:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
+    @pytest.mark.skip_if_open("BZ:1850934")
     @upgrade
     @tier3
     def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
@@ -433,6 +445,7 @@ class TestAzureRM_UserData_Provisioning:
             1. The host should be Disassociate
             2. The host should be Associate
 
+        :BZ: 1850934
         """
 
         # Disassociate
@@ -444,3 +457,251 @@ class TestAzureRM_UserData_Provisioning:
         assert len(asso['results']) > 0
         host = class_host_ud.read()
         assert host.compute_resource.id == module_azurerm_cr.id
+
+
+@run_in_one_thread
+class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
+    """AzureRM Host Provisioning Tests with Shared Image Gallery
+
+    """
+
+    @pytest.fixture(scope='class', autouse=True)
+    def class_setup(
+        self, request, module_domain, module_azurerm_cr, module_azurerm_gallery_finishimg,
+    ):
+        """
+        Sets Constants for all the Tests, fixtures which will be later used for assertions
+        """
+        request.cls.region = settings.azurerm.azure_region
+        request.cls.hostname = gen_string('alpha')
+        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+
+        request.cls.compute_attrs = {
+            "resource_group": AZURERM_RG_DEFAULT,
+            "vm_size": AZURERM_VM_SIZE_DEFAULT,
+            "username": module_azurerm_gallery_finishimg.username,
+            "password": settings.azurerm.password,
+            "platform": AZURERM_PLATFORM_DEFAULT,
+            "script_command": 'touch /var/tmp/text.txt',
+            "script_uris": AZURERM_FILE_URI,
+            "image_id": AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+        }
+
+        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        request.cls.interfaces_attributes = {
+            "0": {
+                "compute_attributes": {
+                    "public_ip": "Dynamic",
+                    "private_ip": "false",
+                    "network": nw_id,
+                }
+            }
+        }
+
+    @pytest.fixture(scope='class')
+    def class_host_gallery_ft(
+        self,
+        azurermclient,
+        module_azurerm_gallery_finishimg,
+        module_azurerm_cr,
+        default_architecture,
+        module_domain,
+        module_location,
+        module_org,
+        default_os,
+        default_smart_proxy,
+        module_puppet_environment,
+    ):
+        """
+        Provisions the host on AzureRM using Finish template
+        Later in tests this host will be used to perform assertions
+        """
+
+        skip_yum_update_during_provisioning(template='Kickstart default finish')
+        host = entities.Host(
+            architecture=default_architecture,
+            build=True,
+            compute_resource=module_azurerm_cr,
+            compute_attributes=self.compute_attrs,
+            interfaces_attributes=self.interfaces_attributes,
+            domain=module_domain,
+            organization=module_org,
+            operatingsystem=default_os,
+            location=module_location,
+            name=self.hostname,
+            provision_method='image',
+            image=module_azurerm_gallery_finishimg,
+            root_pass=gen_string('alphanumeric'),
+            environment=module_puppet_environment,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
+        ).create()
+        yield host
+        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
+        host.delete()
+
+    @pytest.fixture(scope='class')
+    def azureclient_host(self, azurermclient, class_host_gallery_ft):
+        """Returns the AzureRM Client Host object to perform the assertions"""
+
+        return azurermclient.get_vm(name=class_host_gallery_ft.name.split('.')[0])
+
+    @pytest.mark.skip_if_open("BZ:1850934")
+    @upgrade
+    @tier3
+    def test_positive_azurerm_shared_gallery_host_provisioned(
+        self, class_host_gallery_ft, azureclient_host
+    ):
+        """Host can be provisioned on AzureRM using Shared Gallery Image
+
+        :id: 60fce78f-57fd-48e6-9dd0-23a7cc7e4c1c
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+
+        :steps:
+            1. Create a AzureRM Compute Resource with Shared Gallery Image and provision host.
+
+        :expectedresults:
+            1. The host should be provisioned on AzureRM using Shared Gallery Image
+            2. The host name should be the same as given in data to provision the host
+            3. The host should show Installed status for provisioned host
+            4. The provisioned host should be assigned with external IP
+            5. The host Name and Platform should be same on Azure Cloud as provided during
+               provisioned
+
+        :BZ: 1850934
+        """
+
+        assert class_host_gallery_ft.name == self.fullhostname
+        assert class_host_gallery_ft.build_status_label == "Installed"
+        assert class_host_gallery_ft.ip == azureclient_host.ip
+
+        # Azure cloud
+        assert self.hostname.lower() == azureclient_host.name
+        assert AZURERM_VM_SIZE_DEFAULT == azureclient_host.type
+
+
+@run_in_one_thread
+class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
+    """ AzureRM Host Provisioning Tests with Custom Image
+
+    """
+
+    @pytest.fixture(scope='class', autouse=True)
+    def class_setup(
+        self, request, module_domain, module_azurerm_cr, module_azurerm_custom_finishimg,
+    ):
+        """
+        Sets Constants for all the Tests, fixtures which will be later used for assertions
+        """
+        request.cls.region = settings.azurerm.azure_region
+        request.cls.hostname = gen_string('alpha')
+        request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+
+        request.cls.compute_attrs = {
+            "resource_group": AZURERM_RG_DEFAULT,
+            "vm_size": AZURERM_VM_SIZE_DEFAULT,
+            "username": module_azurerm_custom_finishimg.username,
+            "password": settings.azurerm.password,
+            "platform": AZURERM_PLATFORM_DEFAULT,
+            "script_command": 'touch /var/tmp/text.txt',
+            "script_uris": AZURERM_FILE_URI,
+            "image_id": AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+        }
+
+        nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+        request.cls.interfaces_attributes = {
+            "0": {
+                "compute_attributes": {
+                    "public_ip": "Dynamic",
+                    "private_ip": "false",
+                    "network": nw_id,
+                }
+            }
+        }
+
+    @pytest.fixture(scope='class')
+    def class_host_custom_ft(
+        self,
+        azurermclient,
+        module_azurerm_custom_finishimg,
+        module_azurerm_cr,
+        default_architecture,
+        module_domain,
+        module_location,
+        module_org,
+        default_os,
+        default_smart_proxy,
+        module_puppet_environment,
+    ):
+        """
+        Provisions the host on AzureRM using Finish template
+        Later in tests this host will be used to perform assertions
+        """
+
+        skip_yum_update_during_provisioning(template='Kickstart default finish')
+        host = entities.Host(
+            architecture=default_architecture,
+            build=True,
+            compute_resource=module_azurerm_cr,
+            compute_attributes=self.compute_attrs,
+            interfaces_attributes=self.interfaces_attributes,
+            domain=module_domain,
+            organization=module_org,
+            operatingsystem=default_os,
+            location=module_location,
+            name=self.hostname,
+            provision_method='image',
+            image=module_azurerm_custom_finishimg,
+            root_pass=gen_string('alphanumeric'),
+            environment=module_puppet_environment,
+            puppet_proxy=default_smart_proxy,
+            puppet_ca_proxy=default_smart_proxy,
+        ).create()
+        yield host
+        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
+        host.delete()
+
+    @pytest.fixture(scope='class')
+    def azureclient_host(self, azurermclient, class_host_custom_ft):
+        """Returns the AzureRM Client Host object to perform the assertions"""
+
+        return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
+
+    @pytest.mark.skip_if_open("BZ:1850934")
+    @upgrade
+    @tier3
+    def test_positive_azurerm_custom_image_host_provisioned(
+        self, class_host_custom_ft, azureclient_host
+    ):
+        """Host can be provisioned on AzureRM using Custom Image
+
+        :id: b5be5128-ad49-4dbd-a660-3e38ce012327
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+
+        :steps:
+            1. Create a AzureRM Compute Resource with Custom Image and provision host.
+
+        :expectedresults:
+            1. The host should be provisioned on AzureRM using Custom Image
+            2. The host name should be the same as given in data to provision the host
+            3. The host should show Installed status for provisioned host
+            4. The provisioned host should be assigned with external IP
+            5. The host Name and Platform should be same on Azure Cloud as provided during
+               provisioned
+
+        :BZ: 1850934
+        """
+
+        assert class_host_custom_ft.name == self.fullhostname
+        assert class_host_custom_ft.build_status_label == "Installed"
+        assert class_host_custom_ft.ip == azureclient_host.ip
+
+        # Azure cloud
+        assert self.hostname.lower() == azureclient_host.name
+        assert AZURERM_VM_SIZE_DEFAULT == azureclient_host.type

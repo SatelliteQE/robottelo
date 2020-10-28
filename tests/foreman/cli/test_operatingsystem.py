@@ -303,7 +303,9 @@ class OperatingSystemTestCase(CLITestCase):
         """
         template = make_template()
         os = make_os()
-        OperatingSys.add_config_template({'config-template': template['name'], 'id': os['id']})
+        OperatingSys.add_provisioning_template(
+            {'provisioning-template': template['name'], 'id': os['id']}
+        )
         os = OperatingSys.info({'id': os['id']})
         self.assertEqual(len(os['templates']), 1)
         template_name = os['templates'][0]

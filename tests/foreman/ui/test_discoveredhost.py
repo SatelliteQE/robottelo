@@ -60,7 +60,7 @@ def module_loc(module_org):
 @fixture(scope='module')
 def provisioning_env(module_org, module_loc):
     # Build PXE default template to get default PXE file
-    entities.ConfigTemplate().build_pxe_default()
+    entities.ProvisioningTemplate().build_pxe_default()
     return configure_provisioning(
         org=module_org,
         loc=module_loc,

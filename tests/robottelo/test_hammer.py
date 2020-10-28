@@ -130,6 +130,7 @@ class TestParseHelp:
             '                               server',
             ' gpg                           Manipulate GPG Key actions on the',
             '                               server',
+            ' list, index                   List all architectures',
             'Options:',
             ' --autocomplete LINE           Get list of possible endings',
             ' --name, --deprecation-name    An option with a deprecation name',
@@ -141,6 +142,17 @@ class TestParseHelp:
             ' -p, --password PASSWORD       password to access the remote',
             '                               system',
             ' -r, --reload-cache            force reload of Apipie cache',
+            ' -v, --[no-]verbose            Be verbose (or not). True by default',
+            (
+                ' --location[-id|-title]        Set the current location context for'
+                ' the request. Name/Title/Id can be used'
+            ),
+            ' --location[s|-ids|-titles]    REPLACE locations with given Names/Titles/Ids',
+            '                               Comma separated list of values.',
+            (
+                ' --lifecycle-environment[-id]  Set the current environment context'
+                ' for the request. Name/Id can be used'
+            ),
         ]
         assert hammer.parse_help(output) == {
             'subcommands': [
@@ -152,6 +164,7 @@ class TestParseHelp:
                     'description': ('Manipulate content hosts on the server'),
                 },
                 {'name': 'gpg', 'description': ('Manipulate GPG Key actions on the server')},
+                {'name': 'list', 'description': ('List all architectures')},
             ],
             'options': [
                 {
@@ -195,6 +208,84 @@ class TestParseHelp:
                     'shortname': 'r',
                     'value': None,
                     'help': 'force reload of Apipie cache',
+                },
+                {
+                    'name': 'verbose',
+                    'shortname': 'v',
+                    'value': None,
+                    'help': 'Be verbose (or not). True by default',
+                },
+                {
+                    'name': 'location',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'Set the current location context for the request.'
+                        ' Name/Title/Id can be used'
+                    ),
+                },
+                {
+                    'name': 'location-id',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'Set the current location context for the request.'
+                        ' Name/Title/Id can be used'
+                    ),
+                },
+                {
+                    'name': 'location-title',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'Set the current location context for the request.'
+                        ' Name/Title/Id can be used'
+                    ),
+                },
+                {
+                    'name': 'locations',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'REPLACE locations with given Names/Titles/Ids'
+                        ' Comma separated list of values.'
+                    ),
+                },
+                {
+                    'name': 'location-ids',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'REPLACE locations with given Names/Titles/Ids'
+                        ' Comma separated list of values.'
+                    ),
+                },
+                {
+                    'name': 'location-titles',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'REPLACE locations with given Names/Titles/Ids'
+                        ' Comma separated list of values.'
+                    ),
+                },
+                {
+                    'name': 'lifecycle-environment',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'Set the current environment context for the request.'
+                        ' Name/Id can be used'
+                    ),
+                },
+                {
+                    'name': 'lifecycle-environment-id',
+                    'shortname': None,
+                    'value': None,
+                    'help': (
+                        'Set the current environment context for the request.'
+                        ' Name/Id can be used'
+                    ),
                 },
             ],
         }

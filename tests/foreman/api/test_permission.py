@@ -85,7 +85,7 @@ class PermissionTestCase(APITestCase):
         """
         failures = {}
         for permission_name in self.permission_names:
-            results = entities.Permission(name=permission_name).search()
+            results = entities.Permission().search(query={'search': f'name="{permission_name}"'})
             if len(results) != 1 or len(results) == 1 and results[0].name != permission_name:
                 failures[permission_name] = {
                     'length': len(results),
@@ -110,7 +110,9 @@ class PermissionTestCase(APITestCase):
         for resource_type in self.permission_resource_types:
             if resource_type is None:
                 continue
-            perm_group = entities.Permission(resource_type=resource_type).search()
+            perm_group = entities.Permission().search(
+                query={'search': f'resource_type="{resource_type}"'}
+            )
             permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
             added = tuple(permissions - expected_permissions)
@@ -232,7 +234,7 @@ class UserRoleTestCase(APITestCase):
         :returns: Nothing.
         """
         role = entities.Role().create()
-        permissions = entities.Permission(name=perm_name).search()
+        permissions = entities.Permission().search(query={'search': f'name="{perm_name}"'})
         self.assertEqual(len(permissions), 1)
         entities.Filter(permission=permissions, role=role).create()
         self.user.role += [role]

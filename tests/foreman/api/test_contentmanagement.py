@@ -17,6 +17,7 @@
 import os
 from time import sleep
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -29,17 +30,11 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_KICKSTART_REPO
-from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.constants import FAKE_1_YUM_REPO_RPMS
 from robottelo.constants import FAKE_1_YUM_REPOS_COUNT
-from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import FAKE_3_YUM_REPOS_COUNT
-from robottelo.constants import FAKE_7_YUM_REPO
-from robottelo.constants import FAKE_8_YUM_REPO
 from robottelo.constants import PRDS
 from robottelo.constants import PULP_PUBLISHED_ISO_REPOS_PATH
 from robottelo.constants import PULP_PUBLISHED_PUPPET_REPOS_PATH
@@ -48,20 +43,26 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants.repos import CUSTOM_KICKSTART_REPO
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
+from robottelo.constants.repos import FAKE_7_YUM_REPO
+from robottelo.constants.repos import FAKE_8_YUM_REPO
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.decorators import tier4
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
 from robottelo.helpers import get_data_file
-from robottelo.helpers import is_open
 from robottelo.helpers import md5_by_url
 from robottelo.host_info import get_repo_files
 from robottelo.host_info import get_repomd_revision
 from robottelo.test import APITestCase
+from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
@@ -72,6 +73,8 @@ class ContentManagementTestCase(APITestCase):
     """
 
     @tier2
+    @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
@@ -94,6 +97,7 @@ class ContentManagementTestCase(APITestCase):
                 repo.sync()
 
     @tier2
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_repos_with_lots_files(self):
         """Attempt to synchronize repository containing a lot of files inside
         rpms.
@@ -115,6 +119,7 @@ class ContentManagementTestCase(APITestCase):
             repo.sync()
 
     @tier4
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_kickstart_repo(self):
         """No encoding gzip errors on kickstart repositories
         sync.
@@ -400,6 +405,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertGreater(len(result.stdout), 0)
 
     @tier4
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -570,7 +576,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(lce_repo_path, hostname=self.capsule_ip), get_repo_files(cvv_repo_path)
         )
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
@@ -635,6 +641,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(set(sat_isos), set(capsule_isos))
 
     @tier4
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_on_demand_sync(self):
         """Create a repository with 'on_demand' sync, add it to lifecycle
         environment with a capsule, sync repository, examine existing packages
@@ -991,6 +998,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(broken_links), 0)
 
     @tier4
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
         module to the capsule

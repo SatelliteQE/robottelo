@@ -28,9 +28,11 @@ from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
+from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import run_in_one_thread
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
@@ -41,6 +43,7 @@ class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
 
     @classmethod
+    @skip_if(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -177,6 +180,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_import_twice_list_by_puppetclass_id(self):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
@@ -217,18 +221,20 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Parameter Value overridden with new value.
 
+        :BZ: 1830834
+
         :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
         SmartClassParameter.update(
-            {'default-value': value, 'use-puppet-default': 1, 'id': sc_param_id, 'override': 1}
+            {'default-value': value, 'omit': 1, 'id': sc_param_id, 'override': 1}
         )
         sc_param = SmartClassParameter.info(
             {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
         )
         self.assertEqual(sc_param['default-value'], value)
-        self.assertEqual(sc_param['use-puppet-default'], True)
+        self.assertEqual(sc_param['omit'], True)
 
     @tier1
     def test_negative_override(self):
@@ -243,6 +249,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Attempt to submit the changes.
 
         :expectedresults: Not overridden parameter value cannot be updated.
+
+        :BZ: 1830834
 
         :CaseImportance: Medium
         """
@@ -299,6 +307,8 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :expectedresults: Error not raised for default value in list.
 
+        :BZ: 1830834
+
         :CaseImportance: Medium
         """
         sc_param_id = self.sc_params_ids_list.pop()
@@ -337,7 +347,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
-            SmartClassParameter.add_override_value(
+            SmartClassParameter.add_matcher(
                 {
                     'smart-class-parameter-id': sc_param_id,
                     'match': 'hostgroup=nonexistingHG',
@@ -371,7 +381,7 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'override-value-order': 'is_virtual'}
         )
-        SmartClassParameter.add_override_value(
+        SmartClassParameter.add_matcher(
             {'smart-class-parameter-id': sc_param_id, 'match': 'is_virtual=true', 'value': value}
         )
         sc_param = SmartClassParameter.info(
@@ -380,7 +390,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(sc_param['override-values']['values']['1']['match'], 'is_virtual=true')
         self.assertEqual(sc_param['override-values']['values']['1']['value'], value)
 
-        SmartClassParameter.remove_override_value(
+        SmartClassParameter.remove_matcher(
             {
                 'smart-class-parameter-id': sc_param_id,
                 'id': sc_param['override-values']['values']['1']['id'],
@@ -414,12 +424,8 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'default-value': gen_string('alpha')}
         )
-        SmartClassParameter.add_override_value(
-            {
-                'smart-class-parameter-id': sc_param_id,
-                'match': 'domain=test.com',
-                'use-puppet-default': 1,
-            }
+        SmartClassParameter.add_matcher(
+            {'smart-class-parameter-id': sc_param_id, 'match': 'domain=test.com', 'omit': 1}
         )
         sc_param = SmartClassParameter.info(
             {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}

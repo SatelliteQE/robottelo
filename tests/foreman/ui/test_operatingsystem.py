@@ -158,3 +158,26 @@ def test_positive_update_template(session, module_org):
         )
         values = session.operatingsystem.read(os_full_name)
         assert values['templates']['resources']['Provisioning template'] == template.name
+
+
+@tier2
+def test_positive_verify_os_name(session):
+    """Check that the Operating System name is displayed correctly
+
+    :id: 2cb9cdcf-1723-4317-ab0a-971e7b2dd161
+
+    :expectedresults: The full operating system name is displayed in the title column.
+
+    :BZ: 1778503
+
+    :CaseLevel: Component
+
+    :CaseImportance: Low
+    """
+    name = gen_string('alpha')
+    major_version = gen_string('numeric', 2)
+    os_full_name = f"{name} {major_version}"
+    entities.OperatingSystem(name=name, major=major_version).create()
+    with session:
+        values = session.operatingsystem.search(os_full_name)
+        assert values[0]['Title'] == os_full_name

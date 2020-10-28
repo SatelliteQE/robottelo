@@ -20,9 +20,9 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.constants import FAKE_0_YUM_REPO
-from robottelo.constants import FAKE_3_YUM_REPO
 from robottelo.constants import RPM_TO_UPLOAD
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.decorators import fixture
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -156,7 +156,7 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
             'checksum_type': 'sha256',
             'source_rpm': 'gorilla-0.62-1.src.rpm',
             'build_host': 'smqe-ws15',
-            'build_time': '1331831364',
+            'build_time': 'March 15, 2012, 05:09 PM',
         }
         all_package_details = session.package.read('gorilla', repository=module_yum_repo.name)[
             'details'

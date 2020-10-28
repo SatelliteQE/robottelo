@@ -34,7 +34,7 @@ class FilterTestCase(CLITestCase):
         super(FilterTestCase, cls).setUpClass()
         cls.perms = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'User'})
+            for permission in Filter.available_permissions({"search": "resource_type=User"})
         ]
 
     def setUp(self):
@@ -155,7 +155,7 @@ class FilterTestCase(CLITestCase):
         filter_ = make_filter({'role-id': self.role['id'], 'permissions': self.perms})
         new_perms = [
             permission['name']
-            for permission in Filter.available_permissions({'resource-type': 'User'})
+            for permission in Filter.available_permissions({"search": "resource_type=User"})
         ]
         Filter.update({'id': filter_['id'], 'permissions': new_perms})
         filter_ = Filter.info({'id': filter_['id']})

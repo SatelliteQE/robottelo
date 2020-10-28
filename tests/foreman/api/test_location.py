@@ -19,21 +19,21 @@ http://theforeman.org/api/apidoc/v2/locations.html
 """
 from random import randint
 
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.cleanup import capsule_cleanup
-from robottelo.cleanup import location_cleanup
 from robottelo.cli.factory import make_proxy
 from robottelo.constants import DEFAULT_LOC
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
-from robottelo.test import APITestCase
 
 
 @filtered_datapoint
@@ -45,45 +45,52 @@ def valid_loc_data_list():
     entities.)
 
     """
-    return [
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    ]
+    return dict(
+        alpha=gen_string('alpha', randint(1, 246)),
+        numeric=gen_string('numeric', randint(1, 246)),
+        alphanumeric=gen_string('alphanumeric', randint(1, 246)),
+        latin1=gen_string('latin1', randint(1, 246)),
+        utf8=gen_string('utf8', randint(1, 85)),
+        cjk=gen_string('cjk', randint(1, 85)),
+        html=gen_string('html', randint(1, 85)),
+    )
 
 
-class LocationTestCase(APITestCase):
+class TestLocation:
     """Tests for the ``locations`` path."""
 
     # TODO Add coverage for media, realms as soon as they're implemented
 
-    def _make_proxy(self, options=None):
-        """Create a Proxy and register the cleanup function"""
-        proxy = make_proxy(options=options)
-        # Add capsule to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
-        return proxy
+    @pytest.fixture
+    def make_proxies(self, options=None):
+        """Create a Proxy"""
+        proxy1 = make_proxy(options=options)
+        proxy2 = make_proxy(options=options)
+        yield dict(proxy1=proxy1, proxy2=proxy2)
+        capsule_cleanup(proxy1['id'])
+        capsule_cleanup(proxy2['id'])
 
-    @classmethod
-    def setUpClass(cls):
+    @pytest.fixture
+    def make_orgs(self):
+        """Create two organizations"""
+        return dict(org=entities.Organization().create(), org2=entities.Organization().create())
+
+    @pytest.fixture
+    def make_entities(self):
         """Set up reusable entities for tests."""
-        super(LocationTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-        cls.org2 = entities.Organization().create()
-        cls.domain = entities.Domain().create()
-        cls.subnet = entities.Subnet().create()
-        cls.env = entities.Environment().create()
-        cls.host_group = entities.HostGroup().create()
-        cls.template = entities.ConfigTemplate().create()
-        cls.test_cr = entities.LibvirtComputeResource().create()
-        cls.new_user = entities.User().create()
+        return dict(
+            domain=entities.Domain().create(),
+            subnet=entities.Subnet().create(),
+            env=entities.Environment().create(),
+            host_group=entities.HostGroup().create(),
+            template=entities.ProvisioningTemplate().create(),
+            test_cr=entities.LibvirtComputeResource().create(),
+            new_user=entities.User().create(),
+        )
 
     @tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_loc_data_list()))
+    def test_positive_create_with_name(self, name):
         """Create new locations using different inputs as a name
 
         :id: 90bb90a3-120f-4ea6-89a9-62757be42486
@@ -92,11 +99,11 @@ class LocationTestCase(APITestCase):
             correct name
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        for name in valid_loc_data_list():
-            with self.subTest(name):
-                location = entities.Location(name=name).create()
-                self.assertEqual(location.name, name)
+        location = entities.Location(name=name).create()
+        assert location.name == name
 
     @tier1
     def test_positive_create_and_delete_with_comma_separated_name(self):
@@ -108,13 +115,13 @@ class LocationTestCase(APITestCase):
         """
         name = '{0}, {1}'.format(gen_string('alpha'), gen_string('alpha'))
         location = entities.Location(name=name).create()
-        self.assertEqual(location.name, name)
+        assert location.name == name
         location.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             location.read()
 
     @tier2
-    def test_positive_create_and_update_with_org(self):
+    def test_positive_create_and_update_with_org(self, make_orgs):
         """Create new location with assigned organization to it
 
         :id: 5032a93f-4b37-4c19-b6d3-26e3a868d0f1
@@ -124,19 +131,18 @@ class LocationTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        location = entities.Location(organization=[self.org]).create()
-        self.assertEqual(location.organization[0].id, self.org.id)
-        self.assertEqual(location.organization[0].read().title, self.org.title)
+        location = entities.Location(organization=[make_orgs['org']]).create()
+        assert location.organization[0].id == make_orgs['org'].id
+        assert location.organization[0].read().title == make_orgs['org'].title
 
-        orgs = [self.org, self.org2]
+        orgs = [make_orgs['org'], make_orgs['org2']]
         location.organization = orgs
         location = location.update(['organization'])
-        self.assertEqual(
-            set([org.id for org in orgs]), set([org.id for org in location.organization])
-        )
+        assert set([org.id for org in orgs]) == set([org.id for org in location.organization])
 
     @tier1
-    def test_negative_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_name(self, name):
         """Attempt to create new location using invalid names only
 
         :id: 320e6bca-5645-423b-b86a-2b6f35c8dae3
@@ -144,11 +150,11 @@ class LocationTestCase(APITestCase):
         :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Location(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.Location(name=name).create()
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -162,8 +168,8 @@ class LocationTestCase(APITestCase):
         """
         name = gen_string('alphanumeric')
         location = entities.Location(name=name).create()
-        self.assertEqual(location.name, name)
-        with self.assertRaises(HTTPError):
+        assert location.name == name
+        with pytest.raises(HTTPError):
             entities.Location(name=name).create()
 
     @tier1
@@ -175,11 +181,12 @@ class LocationTestCase(APITestCase):
         :expectedresults: Location is not created and expected error is raised
 
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.Location(domain=[gen_integer(10000, 99999)]).create()
 
     @tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(valid_loc_data_list()))
+    def test_positive_update_name(self, new_name):
         """Update location with new name
 
         :id: 73ff6dab-e12a-4f7d-9c1f-6984fc076329
@@ -187,15 +194,15 @@ class LocationTestCase(APITestCase):
         :expectedresults: Location updated successfully and name was changed
 
         :CaseImportance: Critical
+
+        :parametrized: yes
         """
-        for new_name in valid_loc_data_list():
-            with self.subTest(new_name):
-                location = entities.Location().create()
-                location.name = new_name
-                self.assertEqual(location.update(['name']).name, new_name)
+        location = entities.Location().create()
+        location.name = new_name
+        assert location.update(['name']).name == new_name
 
     @tier2
-    def test_positive_update_entities(self):
+    def test_positive_update_entities(self, make_entities):
         """Update location with new domain
 
         :id: 1016dfb9-8103-45f1-8738-0579fa9754c1
@@ -207,33 +214,34 @@ class LocationTestCase(APITestCase):
         """
         location = entities.Location().create()
 
-        location.domain = [self.domain]
-        location.subnet = [self.subnet]
-        location.environment = [self.env]
-        location.hostgroup = [self.host_group]
-        location.config_template = [self.template]
-        location.compute_resource = [self.test_cr]
-        location.user = [self.new_user]
+        location.domain = [make_entities["domain"]]
+        location.subnet = [make_entities["subnet"]]
+        location.environment = [make_entities["env"]]
+        location.hostgroup = [make_entities["host_group"]]
+        location.provisioning_template = [make_entities["template"]]
+        location.compute_resource = [make_entities["test_cr"]]
+        location.user = [make_entities["new_user"]]
 
-        self.assertEqual(location.update(['domain']).domain[0].id, self.domain.id)
-        self.assertEqual(location.update(['subnet']).subnet[0].id, self.subnet.id)
-        self.assertEqual(location.update(['environment']).environment[0].id, self.env.id)
-        self.assertEqual(location.update(['hostgroup']).hostgroup[0].id, self.host_group.id)
+        assert location.update(['domain']).domain[0].id == make_entities["domain"].id
+        assert location.update(['subnet']).subnet[0].id == make_entities["subnet"].id
+        assert location.update(['environment']).environment[0].id == make_entities["env"].id
+        assert location.update(['hostgroup']).hostgroup[0].id == make_entities["host_group"].id
         ct_list = [
             ct
-            for ct in location.update(['config_template']).config_template
-            if ct.id == self.template.id
+            for ct in location.update(['provisioning_template']).provisioning_template
+            if ct.id == make_entities["template"].id
         ]
-        self.assertEqual(len(ct_list), 1)
-        self.assertEqual(
-            location.update(['compute_resource']).compute_resource[0].id, self.test_cr.id
+        assert len(ct_list) == 1
+        assert (
+            location.update(['compute_resource']).compute_resource[0].id
+            == make_entities["test_cr"].id
         )
-        self.assertEqual(location.compute_resource[0].read().provider, 'Libvirt')
-        self.assertEqual(location.update(['user']).user[0].id, self.new_user.id)
+        assert location.compute_resource[0].read().provider == 'Libvirt'
+        assert location.update(['user']).user[0].id == make_entities["new_user"].id
 
     @run_in_one_thread
     @tier2
-    def test_positive_create_update_and_remove_capsule(self):
+    def test_positive_create_update_and_remove_capsule(self, make_proxies):
         """Update location with new capsule
 
         :id: 2786146f-f466-4ed8-918a-5f46806558e2
@@ -247,23 +255,21 @@ class LocationTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        proxy_id_1 = self._make_proxy()['id']
-        proxy_id_2 = self._make_proxy()['id']
+        proxy_id_1 = make_proxies['proxy1']['id']
+        proxy_id_2 = make_proxies['proxy2']['id']
 
         proxy = entities.SmartProxy(id=proxy_id_1).read()
         location = entities.Location(smart_proxy=[proxy]).create()
-        # Add location to cleanup list
-        self.addCleanup(location_cleanup, location.id)
 
         new_proxy = entities.SmartProxy(id=proxy_id_2).read()
         location.smart_proxy = [new_proxy]
         location = location.update(['smart_proxy'])
-        self.assertEqual(location.smart_proxy[0].id, new_proxy.id)
-        self.assertEqual(location.smart_proxy[0].read().name, new_proxy.name)
+        assert location.smart_proxy[0].id == new_proxy.id
+        assert location.smart_proxy[0].read().name == new_proxy.name
 
         location.smart_proxy = []
         location = location.update(['smart_proxy'])
-        self.assertEqual(len(location.smart_proxy), 0)
+        assert len(location.smart_proxy) == 0
 
     @tier2
     def test_negative_update_domain(self):
@@ -279,8 +285,8 @@ class LocationTestCase(APITestCase):
         location = entities.Location(domain=[entities.Domain().create()]).create()
         domain = entities.Domain().create()
         location.domain[0].id = gen_integer(10000, 99999)
-        with self.assertRaises(HTTPError):
-            self.assertNotEqual(location.update(['domain']).domain[0].id, domain.id)
+        with pytest.raises(HTTPError):
+            assert location.update(['domain']).domain[0].id != domain.id
 
     @tier1
     def test_default_loc_id_check(self):
@@ -296,4 +302,4 @@ class LocationTestCase(APITestCase):
         default_loc_id = (
             entities.Location().search(query={'search': 'name="{}"'.format(DEFAULT_LOC)})[0].id
         )
-        self.assertEqual(default_loc_id, 2)
+        assert default_loc_id == 2

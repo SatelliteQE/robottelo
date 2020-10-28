@@ -84,17 +84,28 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :CaseImportance: High
     """
+    if not setting_is_set('http_proxy'):
+        skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
+    http_proxy = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.auth_proxy_url,
+        username=settings.http_proxy.username,
+        password=settings.http_proxy.password,
+        organization=[module_org.id],
+        location=[module_loc.id],
+    ).create()
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['ec2'],
+                'provider_content.http_proxy.value': http_proxy.name,
                 'provider_content.access_key': module_ec2_settings['access_key'],
                 'provider_content.secret_key': module_ec2_settings['secret_key'],
                 'provider_content.region.value': module_ec2_settings['region'],
@@ -105,6 +116,7 @@ def test_positive_default_end_to_end_with_custom_profile(
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
+        assert cr_values['provider_content']['http_proxy']['value'] == http_proxy.name
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
         assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
         session.computeresource.edit(

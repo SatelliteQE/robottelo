@@ -16,6 +16,7 @@
 import time
 from copy import copy
 
+import pytest
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
 from fauxfactory import gen_string
@@ -27,7 +28,6 @@ from robottelo.api.utils import create_org_admin_user
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier2
 from robottelo.decorators import tier3
 from robottelo.helpers import get_nailgun_config
@@ -111,7 +111,7 @@ class DiscoveryTestCase(APITestCase):
         super(DiscoveryTestCase, cls).setUpClass()
 
         # Build PXE default template to get default PXE file
-        entities.ConfigTemplate().build_pxe_default()
+        entities.ProvisioningTemplate().build_pxe_default()
         # let's just modify the timeouts to speed things up
         ssh.command(
             "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' "
@@ -154,7 +154,7 @@ class DiscoveryTestCase(APITestCase):
         cls.default_disco_settings['discovery_auto'].update(['value'])
         super(DiscoveryTestCase, cls).tearDownClass()
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_show(self):
         """Show a specific discovered hosts
@@ -173,7 +173,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_create(self):
         """Create a discovered hosts
@@ -220,7 +220,7 @@ class DiscoveryTestCase(APITestCase):
                 host_name = 'mac{0}'.format(discovered_host['mac'].replace(':', ''))
                 self.assertEqual(discovered_host['name'], host_name)
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_pxe_less_host(self):
         """Provision a pxe-less discovered hosts
@@ -341,7 +341,7 @@ class DiscoveryTestCase(APITestCase):
                 query={'search': 'name={}'.format(discovered_host.name)}
             )
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_pxe_less_host(self):
         """Delete a pxe-less discovered hosts
@@ -360,7 +360,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_delete_pxe_host(self):
         """Delete a pxe-based discovered hosts
@@ -379,7 +379,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_less_host(self):
         """Auto provision a pxe-less host by executing discovery rules
@@ -398,7 +398,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_pxe_host(self):
         """Auto provision a pxe-based host by executing discovery rules
@@ -417,7 +417,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_auto_provision_all(self):
         """Auto provision all host by executing discovery rules
@@ -437,7 +437,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_less_host(self):
         """Refreshing the facts of pxe-less discovered host by adding a new NIC.
@@ -460,7 +460,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_refresh_facts_pxe_host(self):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
@@ -482,7 +482,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_host(self):
         """Rebooting a pxe based discovered host
@@ -501,7 +501,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: Medium
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_reboot_pxe_less_host(self):
         """Rebooting a pxe-less discovered host
@@ -520,7 +520,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_host_with_rule(self):
         """Create a new discovery rule that applies on host to provision
@@ -538,7 +538,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_multihost_with_rule(self):
         """Create a new discovery rule with (host_limit = 0)
@@ -556,7 +556,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_rule_priority(self):
         """Create multiple discovery rules with different priority and check
@@ -574,7 +574,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_multi_provision_with_rule_limit(self):
         """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
@@ -592,7 +592,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_updated_discovery_rule(self):
         """Update an existing rule and provision a host with it.
@@ -609,7 +609,7 @@ class DiscoveryTestCase(APITestCase):
         :CaseImportance: High
         """
 
-    @stubbed()
+    @pytest.mark.stubbed
     @tier3
     def test_positive_provision_with_updated_hostname_in_rule(self):
         """Update the discovered hostname in existing rule and provision a host

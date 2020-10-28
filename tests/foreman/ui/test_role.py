@@ -500,36 +500,6 @@ def test_positive_create_with_sc_parameter_permission(session):
 
 
 @tier2
-def test_positive_create_with_smart_variable_permission(session):
-    """Create role filter with few permissions for smart variables.
-
-    :id: 9e5775f3-5f79-4212-bcb4-29d91032df4e
-
-    :customerscenario: true
-
-    :expectedresults: Corresponding role filter has necessary permissions
-
-    :BZ: 1360191
-
-    :CaseImportance: High
-    """
-    role_name = gen_string('alpha')
-    resource_type = 'Smart variable'
-    permissions = ['view_external_variables', 'edit_external_variables']
-    with session:
-        session.role.create({'name': role_name})
-        assert session.role.search(role_name)[0]['Name'] == role_name
-        session.filter.create(
-            role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
-        )
-        values = session.filter.search(role_name, 'VariableLookupKey')
-        assert values
-        assert values[0]['Resource'] == resource_type
-        assigned_permissions = values[0]['Permissions'].split(', ')
-        assert set(assigned_permissions) == set(permissions)
-
-
-@tier2
 def test_positive_create_filter_admin_user_with_locs(test_name):
     """Attempt to create a role filter by admin user, who has 6+ locations assigned.
 

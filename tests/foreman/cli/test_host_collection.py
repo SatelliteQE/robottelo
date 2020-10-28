@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -29,7 +30,6 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import stubbed
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -78,8 +78,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = valid_data_list()[0]
-        desc = valid_data_list()[0]
+        name = list(valid_data_list().values())[0]
+        desc = list(valid_data_list().values())[0]
         new_host_col = make_host_collection(
             {'description': desc, 'name': name, 'organization-id': self.organization['id']}
         )
@@ -117,8 +117,8 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
         # update
-        new_name = valid_data_list()[0]
-        new_desc = valid_data_list()[0]
+        new_name = list(valid_data_list().values())[0]
+        new_desc = list(valid_data_list().values())[0]
         HostCollection.update(
             {'description': new_desc, 'id': new_host_col['id'], 'new-name': new_name}
         )
@@ -289,7 +289,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertEqual(result['name'], new_name)
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
 
@@ -306,7 +306,7 @@ class HostCollectionTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed()
+    @pytest.mark.stubbed
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
 

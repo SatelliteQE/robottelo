@@ -30,12 +30,14 @@ from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import FAKE_1_PUPPET_REPO
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.config import settings
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import FAKE_1_PUPPET_REPO
+from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
+from robottelo.decorators import skip_if
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
@@ -308,6 +310,7 @@ class ProductTestCase(APITestCase):
                     entities.Product(id=product.id).read()
 
     @tier1
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync(self):
         """Sync product (repository within a product)
 
@@ -327,6 +330,7 @@ class ProductTestCase(APITestCase):
 
     @tier2
     @upgrade
+    @skip_if(not settings.repos_hosting_url)
     def test_positive_sync_several_repos(self):
         """Sync product (all repositories within a product)
 
@@ -371,15 +375,15 @@ class ProductTestCase(APITestCase):
 
         custom_products = entities.Product(organization=self.org.id).search(query={'custom': True})
         rh_products = entities.Product(organization=self.org.id).search(
-            query={'redhat_only': True}
+            query={'redhat_only': True, 'per_page': 1000}
         )
 
-        self.assertEqual(len(custom_products), 1)
-        self.assertEqual(product.name, custom_products[0].name)
-        self.assertNotIn('Red Hat Beta', [prod.name for prod in custom_products])
-        self.assertGreater(len(rh_products), 1)
-        self.assertNotIn(product.name, [prod.name for prod in rh_products])
-        self.assertIn('Red Hat Beta', [prod.name for prod in rh_products])
+        assert len(custom_products) == 1
+        assert product.name == custom_products[0].name
+        assert 'Red Hat Beta' not in (prod.name for prod in custom_products)
+        assert len(rh_products) > 1
+        assert 'Red Hat Beta' in (prod.name for prod in rh_products)
+        assert product.name not in (prod.name for prod in rh_products)
 
     @tier2
     def test_positive_assign_http_proxy_to_products(self):
