@@ -661,11 +661,11 @@ class ReportTemplateTestCase(CLITestCase):
 
         # make sure the template is in the default org
         org_names = ReportTemplate.info({'name': 'Host - Statuses'})['organizations']
-        orgs = [Org.info({'name': org_name})['id'] for org_name in org_names]
-        default_org_id = Org.info({'name': DEFAULT_ORG})['id']
-        if default_org_id not in orgs:
-            orgs.append(default_org_id)
-        ReportTemplate.update({'name': 'Host - Statuses', 'organization-ids': orgs})
+        default_org = Org.info({'name': DEFAULT_ORG})
+        if default_org['name'] not in org_names:
+            org_ids = [Org.info({'name': org_name})['id'] for org_name in org_names]
+            org_ids.append(default_org['id'])
+            ReportTemplate.update({'name': 'Host - Statuses', 'organization-ids': org_ids})
 
         result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
