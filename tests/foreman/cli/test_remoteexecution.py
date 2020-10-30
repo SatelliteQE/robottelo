@@ -511,6 +511,14 @@ class TestRemoteExecution:
 
         :BZ: 1818076
         """
+        # Set Host parameter source_display_name to something random.
+        # To avoid 'name has already been taken' error when run multiple times
+        # on a machine with the same hostname.
+        host_id = Host.info({'name': settings.server.hostname})['id']
+        Host.set_parameter(
+            {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
+        )
+
         template_name = 'Configure Cloud Connector'
         invocation = make_job_invocation(
             {
