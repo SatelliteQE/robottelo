@@ -1,24 +1,33 @@
 = Pytest Plugin - _Rerun Failures based On Report Portal_
 
-The `pytest_plugins/rerun_rp/reren_rp.py` module is designed as a plugin to the pytest in robottelo test framework. This plugin will run first before the BZ skipping plugin.
+The `pytest_plugins/rerun_rp/reren_rp.py` module is designed as a plugin to the pytest in robottelo test framework.
 
-This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun _passed, failed or skipped_ tests in latest finished ReportPortal launch.
+This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun `failed or skipped` and `user specific` tests from latest finished ReportPortal launch.
 
 *Checks, those will skip the rerun:*
 
 ** Skip rerun execution if the options are wrong to `--only-failed`
 ** Skip rerun execution if the latest launch for the report portal is still processing.
-** Skip rerun execution if the pass percentage of the latest complete launch is less than 80%. `pass percent = 100*(passed/executed)`
+** Skip rerun execution if the fail percentage of the latest complete launch is more than `fail_threshold` set in robottelo properties. If its not set there the fail_threshold is 20% by default.
+   The `pass percent` is calculated as `100*(passed/executed)`.
 
 
 == Usage:
 
-* To re-run all failed tests
+* To re-run all failed or skipped tests
 
 [source,bash]
 ----
 py.test --only-failed
 ----
+
+- OR -
+
+[source,bash]
+----
+py.test --only-skipped
+----
+
 
 * To re-run all failed tests with defect status `e.g to_investigate`
 
@@ -27,49 +36,49 @@ py.test --only-failed
 py.test --only-failed to_investigate
 ----
 
-* To re-run all failed tests with mutiple defect statuses `e.g to_investigate, automation_bug etc`
+* To re-run all failed tests with multiple defect statuses `e.g to_investigate, automation_bug etc`
 
 [source,bash]
 ----
 py.test --only-failed to_investigate,automation_bug
 ----
 
+* To re-run user specific tests
+
+[source,bash]
+----
+py.test --user jyejare
+----
+
+* One can also re-run user specific failed / skipped tests
+e.g:
+
+[source,bash]
+----
+py.test --user jyejare --only-skipped
+----
 
 ==== Re-run Example:
 
-* To Re-run only failed tests of `tests/foreman/ui/test_ldap_authentication.py`.
+* To Re-run `yet to investigate` failed tests of user jyejare from `tests/foreman/ui/test_ldap_authentication.py`
 ____
- Observe only 4 tests are selected
+ Observe only 2 tests are selected
 ____
 
 [source,shell]
 ----
-$ py.test tests/foreman/ui/test_ldap_authentication.py --only-failed --collect-only
+$ py.test --collect-only tests/foreman/ui/test_ldap_authentication.py --only-failed to_investigate --user jyejare
 ======= test session starts ========
-platform linux -- Python 3.7.6, pytest-4.6.3, py-1.8.0, pluggy-0.12.0
-shared_function enabled - OFF - scope:  - storage: file
-rootdir: /home/jitendrayejare/Desktop/RedHat/RoboTelloNew/robottelo
-plugins: forked-1.0.2, xdist-1.31.0, services-1.3.1, cov-2.8.1, mock-1.10.4
-collecting ... 2020-05-11 16:57:52 - robottelo.ssh - DEBUG - Instantiated Paramiko client 0x7f849eef6310
-2020-05-11 16:57:52 - robottelo.ssh - INFO - Connected to [qeblade36.rhq.lab.eng.bos.redhat.com]
-2020-05-11 16:57:52 - robottelo.ssh - INFO - >>> rpm -q satellite
-2020-05-11 16:57:53 - robottelo.ssh - INFO - <<< stdout
-satellite-6.7.0-7.el7sat.noarch
 
-2020-05-11 16:57:53 - robottelo.ssh - DEBUG - Destroyed Paramiko client 0x7f849eef6310
-2020-05-11 16:57:53 - robottelo.host_info - DEBUG - Host Satellite version: 6.7
-2020-05-11 16:57:55 - robottelo.report_portal.portal - DEBUG - Invalid launch with no build name is detected. The launch has tags ['rhel7', '6.7']
-2020-05-11 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selecting/Deselecting tests based on latest launch test results..
-2020-05-11 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selected 4 failed and deselected 17 passed tests based on latest launch test results.
-2020-05-11 11:28:01 - conftest - DEBUG - Collected 4 test cases
-2020-05-11 16:58:01 - robottelo.helpers - DEBUG - Generated file bz_cache.json with BZ collect data
-collected 21 items / 17 deselected / 4 Selected
+2020-10-30 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selecting/Deselecting tests based on latest launch test results..
+2020-10-30 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selected 2 and deselected 17 tests based on latest launch test results.
+2020-10-30 11:28:01 - conftest - DEBUG - Collected 2 test cases
+2020-10-30 16:58:01 - robottelo.helpers - DEBUG - Generated file bz_cache.json with BZ collect data
+collected 21 items / 19 deselected / 2 Selected
 <Package /home/jitendrayejare/Desktop/RedHat/RoboTelloNew/robottelo/tests/foreman/ui>
   <Module test_ldap_authentication.py>
     <Function test_single_sign_on_ldap_ipa_server>
     <Function test_single_sign_on_using_rhsso>
-    <Function test_external_logout_rhsso>
-    <Function test_external_new_user_login>
 
-======== 17 deselected in 11.59 seconds ========
+======== 19 deselected in 11.59 seconds ========
 ----
