@@ -126,7 +126,7 @@ def pytest_collection_modifyitems(items, config):
     test_args = {}
     if fail_args:
         test_args['status'] = 'failed'
-        if not fail_args == ['all']:
+        if fail_args != 'all':
             defect_types = fail_args.split(',') if ',' in fail_args else [fail_args]
             allowed_args = [*rp.defect_types.keys()]
             if not set(defect_types).issubset(set(allowed_args)):
