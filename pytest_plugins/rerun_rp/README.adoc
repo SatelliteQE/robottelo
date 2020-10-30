@@ -1,73 +1,47 @@
 = Pytest Plugin - _Rerun Failures based On Report Portal_
 
-The `pytest_plugins/rerun_rp/reren_rp.py` module is designed as a plugin to the pytest in robottelo test framework.
+The `pytest_plugins/rerun_rp/reren_rp.py` module is designed as a plugin to pytest in the robottelo test framework.
 
-This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun `failed or skipped` and `user specific` tests from latest finished ReportPortal launch.
+This plugin helps https://github.com/SatelliteQE[SatelliteQE] to rerun `failed or skipped` and specific `user` tests from the latest finished ReportPortal launch.
 
-*Checks, those will skip the rerun:*
+== Goal:
 
-** Skip rerun execution if the options are wrong to `--only-failed`
-** Skip rerun execution if the latest launch for the report portal is still processing.
-** Skip rerun execution if the fail percentage of the latest complete launch is more than `fail_threshold` set in robottelo properties. If its not set there the fail_threshold is 20% by default.
-   The `pass percent` is calculated as `100*(passed/executed)`.
+This plugin is to rerun failed or skipped tests to retest flaky and fixed tests everyday on CI. QEs can also use this plugin for `test failure analysis` by locally rerunning their failed or skipped tests.
+
+== Checks:
+
+Checks that will skip the rerun:
+
+** Skip rerun execution for wrong arguments to `--only-failed` option.
+** Skip rerun execution if the latest launch for the Report Portal is still processing.
+** Skip rerun execution if the failed tests percentage in the latest finished launch is more than the `fail_threshold` percent set in robottelo properties. If it is not set, the fail_threshold is 20% by default.
 
 
 == Usage:
 
-* To re-run all failed or skipped tests
+* To rerun all failed or skipped tests
 
 [source,bash]
 ----
-py.test --only-failed
+$ py.test --only-failed    ## To rerun all skipped tests
+$ py.test --only-skipped   ## To rerun all skipped tests
+$ py.test --only-failed to_investigate      ## To rerun all failed tests with defect status
+$ py.test --only-failed to_investigate,automation_bug       ## To rerun all failed tests with multiple defect status
+$ py.test --user jyejare   ## To rerun user specific tests
+$ py.test --user jyejare --only-skipped     ## To rerun user specific failed or skipped tests
 ----
 
-- OR -
 
-[source,bash]
-----
-py.test --only-skipped
-----
+== Example:
 
-
-* To re-run all failed tests with defect status `e.g to_investigate`
-
-[source,bash]
-----
-py.test --only-failed to_investigate
-----
-
-* To re-run all failed tests with multiple defect statuses `e.g to_investigate, automation_bug etc`
-
-[source,bash]
-----
-py.test --only-failed to_investigate,automation_bug
-----
-
-* To re-run user specific tests
-
-[source,bash]
-----
-py.test --user jyejare
-----
-
-* One can also re-run user specific failed / skipped tests
-e.g:
-
-[source,bash]
-----
-py.test --user jyejare --only-skipped
-----
-
-==== Re-run Example:
-
-* To Re-run `yet to investigate` failed tests of user jyejare from `tests/foreman/ui/test_ldap_authentication.py`
+* To rerun `failed` tests with `defect_type` _automation_bug_ of `user` _jyejare_ from `tests/foreman/ui/test_ldap_authentication.py`
 ____
  Observe only 2 tests are selected
 ____
 
 [source,shell]
 ----
-$ py.test --collect-only tests/foreman/ui/test_ldap_authentication.py --only-failed to_investigate --user jyejare
+$ py.test --collect-only tests/foreman/ui/test_ldap_authentication.py --only-failed automation_bug --user jyejare
 ======= test session starts ========
 
 2020-10-30 16:58:01 - robottelo.rerun_failures.uncollector - DEBUG - Selecting/Deselecting tests based on latest launch test results..
