@@ -744,71 +744,79 @@ class ErrataTestCase(APITestCase):
         )
         self.assertEqual(set(cvv.id for cvv in cvvs), set(both_cvvs_errata['comparison']))
 
-    @pytest.mark.stubbed
     @tier3
-    def test_positive_incremental_update_apply_to_envs_cvs(self):
-        """Select multiple errata and apply them to multiple content
-        views in multiple environments
+    def test_positive_incremental_update_required(self):
+        """Given a set of hosts and errata, check for content view version
+        and environments that need updating."
 
-        :id: 5d8f6aee-baac-4217-ba34-13adccdf1ca8
+        :id: 6dede920-ba6b-4c51-b782-c6db6ea3ee4f
 
         :Setup:
-            1. Errata synced on satellite server.
-            2. Multiple environments/content views present.
+            1. Errata synced on satellite server
 
-        :Steps: POST /katello/api/hosts/bulk/available_incremental_updates
+        :Steps:
+            1. Create VM as Content Host, registering to CV with custom errata
+            2. Install package in VM so it needs one erratum
+            3. Check if incremental_updates required:
+                POST /api/hosts/bulk/available_incremental_updates
+            4. Assert empty [] result (no incremental update required)
+            5. Apply a filter to the CV so errata will be applicable but not installable
+            6. Publish the new version
+            7. Promote the new version into the same LCE
+            8. Check if incremental_updates required:
+                POST /api/hosts/bulk/available_incremental_updates
+            9. Assert incremental update is suggested
 
-        :expectedresults: Selected errata are applied to multiple content views
-            in multiple environments.
 
-        :CaseAutomation: notautomated
+        :expectedresults: Incremental update requirement is detected.
 
         :CaseLevel: System
         """
-
-    @pytest.mark.stubbed
-    @tier3
-    def test_positive_incremental_update_query_envs_cvs(self):
-        """Query a subset of environments or content views to push new
-        errata
-
-        :id: f6ec8066-36cc-42a8-9a1a-156721e733c3
-
-        :Setup:
-            1. Errata synced on satellite server.
-            2. Multiple environments/content views present.
-
-        :Steps: POST /katello/api/content_view_versions/incremental_update
-
-        :expectedresults: Subset of environments/content views retrieved.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @upgrade
-    @pytest.mark.stubbed
-    @tier3
-    def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
-        """Select multiple packages and apply them to multiple content
-        views in multiple environments
-
-        :id: 61549360-ce99-42a3-8d6b-2cd713f8b556
-
-        :Setup:
-            1. Errata synced on satellite server.
-            2. Multiple environments/content views present.
-
-        :Steps: POST /katello/api/content_view_versions/incremental_update
-
-        :expectedresults: Packages are applied to multiple environments/content
-            views.
-
-        :CaseAutomation: notautomated
-
-        :CaseLevel: System
-        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client_vm:
+            client_vm.install_katello_ca()
+            client_vm.register_contenthost(self.org.label, self.activation_key.name)
+            self.assertTrue(client_vm.subscribed)
+            client_vm.enable_repo(REPOS['rhst7']['id'])
+            client_vm.install_katello_agent()
+            host = entities.Host().search(query={'search': f'name={client_vm.hostname}'})[0]
+            # install package to create demand for an Erratum
+            self._install_package(
+                [client_vm],
+                [host.id],
+                FAKE_1_CUSTOM_PACKAGE,
+                via_ssh=True,
+                rpm_package_name=FAKE_1_CUSTOM_PACKAGE,
+            )
+            # Call nailgun to make the API POST to see if any incremental updates are required
+            response = entities.Host().bulk_available_incremental_updates(
+                data={
+                    'organization_id': self.org.id,
+                    'included': {'ids': [host.id]},
+                    'errata_ids': [FAKE_2_ERRATA_ID],
+                },
+            )
+            assert not response, 'Incremental update should not be required at this point'
+            # Add filter of type include but do not include anything
+            # this will hide all RPMs from selected erratum before publishing
+            entities.RPMContentViewFilter(
+                content_view=self.content_view, inclusion=True, name="Include Nothing"
+            ).create()
+            self.content_view.publish()
+            self.content_view = self.content_view.read()
+            CV1V = self.content_view.version[-1].read()
+            # Must promote a CV version into a new Environment before we can add errata
+            promote(CV1V, self.env.id)
+            self.content_view = self.content_view.read()
+            # Call nailgun to make the API POST to ensure an incremental update is required
+            response = entities.Host().bulk_available_incremental_updates(
+                data={
+                    'organization_id': self.org.id,
+                    'included': {'ids': [host.id]},
+                    'errata_ids': [FAKE_2_ERRATA_ID],
+                },
+            )
+            assert 'next_version' in response[0], 'Incremental update should be suggested'
+            'at this point'
 
 
 @run_in_one_thread
