@@ -24,30 +24,31 @@ from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-from robottelo.test import CLITestCase
+from robottelo.decorators import skip_if
+from robottelo.decorators import upgrade
 
 
-class PuppetModuleTestCase(CLITestCase):
+class TestPuppetModule:
     """Tests for PuppetModule via Hammer CLI"""
 
-    @classmethod
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.org = make_org()
-        cls.product = make_product({'organization-id': cls.org['id']})
-        cls.repo = make_repository(
+    @pytest.fixture(scope='module')
+    def make_setup(self):
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        repo = make_repository(
             {
-                'organization-id': cls.org['id'],
-                'product-id': cls.product['id'],
+                'organization-id': org['id'],
+                'product-id': product['id'],
                 'content-type': 'puppet',
                 'url': FAKE_0_PUPPET_REPO,
             }
         )
-        Repository.synchronize({'id': cls.repo['id']})
+        Repository.synchronize({'id': repo['id']})
+        return {'org': org, 'product': product, 'repo': repo}
 
     @pytest.mark.tier1
-    def test_positive_list(self):
+    @skip_if(not settings.repos_hosting_url)
+    def test_positive_list(self, make_setup):
         """Check if puppet-module list retrieves puppet-modules of
         the given org
 
@@ -59,12 +60,13 @@ class PuppetModuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        result = PuppetModule.list({'organization-id': self.org['id']})
+        result = PuppetModule.list({'organization-id': make_setup['org']['id']})
         # There are 4 puppet modules in the test puppet-module url
-        self.assertEqual(len(result), 4)
+        assert len(result) == 4
 
     @pytest.mark.tier1
-    def test_positive_info(self):
+    @skip_if(not settings.repos_hosting_url)
+    def test_positive_info(self, make_setup):
         """Check if puppet-module info retrieves info for the given
         puppet-module id
 
@@ -74,39 +76,39 @@ class PuppetModuleTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        return_value = PuppetModule.list({'organization-id': self.org['id']})
+        return_value = PuppetModule.list({'organization-id': make_setup['org']['id']})
         for i in range(len(return_value)):
             result = PuppetModule.info({'id': return_value[i]['id']}, output_format='json')
-            self.assertEqual(result['id'], return_value[i]['id'])
+            assert result['id'] == return_value[i]['id']
 
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_list_multiple_repos(self):
+    @pytest.mark.tier1
+    @upgrade
+    @skip_if(not settings.repos_hosting_url)
+    def test_positive_list_multiple_repos(self, make_setup):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.
 
         :id: f36d25b3-2495-4e89-a1cf-e39d52762d95
 
-        :expectedresults: Number of modules has no changed after a second repo
+        :expectedresults: Number of modules has not changed after a second repo
             was synced.
 
         :CaseImportance: Critical
         """
         # Verify that number of synced modules is correct
-        repo1 = Repository.info({'id': self.repo['id']})
+        repo1 = Repository.info({'id': make_setup['repo']['id']})
         repo_content_count = repo1['content-counts']['puppet-modules']
         modules_num = len(PuppetModule.list({'repository-id': repo1['id']}))
-        self.assertEqual(repo_content_count, str(modules_num))
+        assert repo_content_count == str(modules_num)
         # Create and sync second repo
         repo2 = make_repository(
             {
-                'organization-id': self.org['id'],
-                'product-id': self.product['id'],
+                'organization-id': make_setup['org']['id'],
+                'product-id': make_setup['product']['id'],
                 'content-type': 'puppet',
                 'url': FAKE_1_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': repo2['id']})
         # Verify that number of modules from the first repo has not changed
-        self.assertEqual(modules_num, len(PuppetModule.list({'repository-id': repo1['id']})))
+        assert modules_num == len(PuppetModule.list({'repository-id': repo1['id']}))
