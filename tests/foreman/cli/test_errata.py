@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import datetime
 from operator import itemgetter
 
 from fauxfactory import gen_string
@@ -1884,3 +1885,34 @@ class ErrataTestCase(CLITestCase):
         self.assertEqual(len(user_org_errata_ids), self.org_multi_product_small_erratum_count)
         self.assertIn(self.org_multi_product_small_errata_id, user_org_errata_ids)
         self.assertNotIn(self.org_multi_product_big_errata_id, user_org_errata_ids)
+
+    @tier3
+    def test_positive_check_errata_dates(self):
+        """Check for errata dates in `hammer erratum list`
+
+        :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
+
+        :expectedresults: Display errata date when using hammer erratum list
+
+        :CaseImportance: High
+
+        :BZ: 1695163
+        """
+        custom_org_id = make_org()['id']
+        custom_product = make_product({'organization-id': custom_org_id})
+        custom_repo = make_repository(
+            {'content-type': 'yum', 'product-id': custom_product['id'], 'url': FAKE_1_YUM_REPO}
+        )
+        # Synchronize custom repository
+        Repository.synchronize({'id': custom_repo['id']})
+        result = Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
+        assert 'issued' in result[0]
+        # Verify any errata ISSUED date from stdout
+        validate_issued_date = datetime.datetime.strptime(result[0]['issued'], '%Y-%m-%d').date()
+        assert isinstance(validate_issued_date, datetime.date)
+
+        result = Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
+        assert 'updated' in result[0]
+        # Verify any errata UPDATED date from stdout
+        validate_updated_date = datetime.datetime.strptime(result[0]['updated'], '%Y-%m-%d').date()
+        assert isinstance(validate_updated_date, datetime.date)
