@@ -26,7 +26,6 @@ from robottelo.decorators import tier1
 from robottelo.decorators import tier3
 from robottelo.decorators import upgrade
 from robottelo.helpers import get_host_info
-from robottelo.test import TestCase
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]colors',
@@ -1345,96 +1344,25 @@ PREVIOUS_INSTALLER_OPTIONS = {
 }
 
 
-class SELinuxTestCase(TestCase):
-    """Checks SELinux installation status"""
-
-    version_regex = re.compile(r'((\d\.?)+[-.]\d)')
-
-    @upgrade
-    @tier1
-    def test_positive_foreman_module(self):
-        """Check if SELinux foreman module has the right version
-
-        :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
-
-        :expectedresults: Foreman RPM and SELinux module versions match
-        """
-        rpm_result = ssh.command('rpm -q foreman-selinux')
-        self.assertEqual(rpm_result.return_code, 0)
-        semodule_result = ssh.command('semodule -l | grep foreman')
-        self.assertEqual(semodule_result.return_code, 0)
-
-        # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
-        rpm_version = self.version_regex.search(''.join(rpm_result.stdout)).group(1)
-        # Sample semodule output: foreman        1.7.2.8
-        semodule_version = self.version_regex.search(''.join(semodule_result.stdout)).group(1)
-
-        rpm_version = rpm_version[:-2]
-        self.assertEqual(rpm_version.replace('-', '.'), semodule_version)
-
-    @upgrade
-    @tier1
-    def test_positive_check_installer_services(self):
-        """Check if services start correctly
-
-        :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
-
-        :expectedresults: All services {'elasticsearch', 'foreman-proxy', 'httpd',
-
-        'rh-mongodb34-mongod', 'postgresql', 'pulp_celerybeat', 'pulp_resource_manager',
-
-        'pulp_workers', 'qdrouterd', 'qpidd', 'tomcat'} are started
-        """
-        major_version = get_host_info()[1]
-        services = (
-            'dynflow-sidekiq@orchestrator',
-            'dynflow-sidekiq@worker',
-            'dynflow-sidekiq@worker-hosts-queue',
-            'foreman-proxy',
-            'httpd',
-            'rh-mongodb34-mongod',
-            'postgresql',
-            'pulp_celerybeat',
-            'pulp_resource_manager',
-            'pulp_streamer',
-            'pulp_workers',
-            'puppetserver',
-            'qdrouterd',
-            'qpidd',
-            'rh-redis5-redis',
-            'smart_proxy_dynflow_core',
-            'squid',
-            'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
-        )
-
-        # check `services` status using service command
-        if major_version >= RHEL_7_MAJOR_VERSION:
-            status_format = 'systemctl status {0}'
-        else:
-            status_format = 'service {0} status'
-
-        for service in services:
-            with self.subTest(service):
-                result = ssh.command(status_format.format(service))
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-
-        # check status reported by hammer ping command
-        result = ssh.command(
-            'hammer -u {0[0]} -p {0[1]} ping'.format(settings.server.get_credentials())
-        )
-
-        result_output = [
-            service.strip() for service in result.stdout if not re.search(r'message:', service)
-        ]
-
-        # iterate over the lines grouping every 3 lines
-        # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-        for service, status, response in zip(*[iter(result_output)] * 3):
-            service = service.replace(':', '').strip()
-            status = status.split(':')[1].strip().lower()
-            response = response.split(':', 1)[1].strip()
-            self.assertEqual(status, 'ok', f'{service} responded with {response}')
+SATELLITE_SERVICES = {
+    'dynflow-sidekiq@orchestrator',
+    'dynflow-sidekiq@worker',
+    'dynflow-sidekiq@worker-hosts-queue',
+    'foreman-proxy',
+    'httpd',
+    'rh-mongodb34-mongod',
+    'postgresql',
+    'pulp_celerybeat',
+    'pulp_resource_manager',
+    'pulp_streamer',
+    'pulp_workers',
+    'puppetserver',
+    'qdrouterd',
+    'qpidd',
+    'rh-redis5-redis',
+    'smart_proxy_dynflow_core',
+    'squid',
+}
 
 
 def extract_params(lst):
@@ -1451,6 +1379,70 @@ def extract_params(lst):
         for token in first_2_tokens:
             if token[0] == '-':
                 yield token.replace(',', '')
+
+
+@upgrade
+@tier1
+def test_positive_foreman_module():
+    """Check if SELinux foreman module has the right version
+
+    :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
+
+    :expectedresults: Foreman RPM and SELinux module versions match
+    """
+    rpm_result = ssh.command('rpm -q foreman-selinux')
+    assert rpm_result.return_code == 0
+
+    semodule_result = ssh.command('semodule -l | grep foreman')
+    assert semodule_result.return_code == 0
+
+    # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
+    version_regex = re.compile(r'((\d\.?)+[-.]\d)')
+    rpm_version = version_regex.search(''.join(rpm_result.stdout)).group(1)
+    # Sample semodule output: foreman        1.7.2.8
+    semodule_version = version_regex.search(''.join(semodule_result.stdout)).group(1)
+    rpm_version = rpm_version[:-2]
+    assert rpm_version.replace('-', '.') == semodule_version
+
+
+@upgrade
+@tier1
+def test_positive_check_installer_services():
+    """Check if services start correctly
+
+    :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
+
+    :expectedresults: All services are started
+    """
+    major_version = get_host_info()[1]
+    service_name = 'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat'
+    SATELLITE_SERVICES.add(service_name)
+    if major_version >= RHEL_7_MAJOR_VERSION:
+        status_format = "systemctl status {0}"
+    else:
+        status_format = "service {0} status"
+
+    for service in SATELLITE_SERVICES:
+        result = ssh.command(status_format.format(service))
+        assert result.return_code == 0
+        assert len(result.stderr) == 0
+
+    # check status reported by hammer ping command
+    username = settings.server.admin_username
+    password = settings.server.admin_password
+    result = ssh.command(f'hammer -u {username} -p {password} ping')
+
+    result_output = [
+        service.strip() for service in result.stdout if not re.search(r'message:', service)
+    ]
+
+    # iterate over the lines grouping every 3 lines
+    # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
+    for service, status, response in zip(*[iter(result_output)] * 3):
+        service = service.replace(':', '').strip()
+        status = status.split(':')[1].strip().lower()
+        response = response.split(':', 1)[1].strip()
+        assert status == 'ok', f'{service} responded with {response}'
 
 
 @upgrade
