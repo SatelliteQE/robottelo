@@ -173,7 +173,7 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
     indirect=True,
 )
 def test_positive_host_dmi_uuid_duplicates(session, setting_update):
-    """"check the setting host_dmi_uuid_duplicates, register_hostname_fact &
+    """ "check the setting host_dmi_uuid_duplicates, register_hostname_fact &
     content_view_solve_dependencies  value update.
 
     :id: 529ddd3a-1271-4043-9006-eac436b08b11
@@ -481,7 +481,7 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
 @tier3
 @pytest.mark.parametrize('setting_update', ['entries_per_page'], indirect=True)
 def test_positive_entries_per_page(session, setting_update):
-    """ Update the per page entry in the settings.
+    """Update the per page entry in the settings.
 
     :id: 009026b6-7550-40aa-9f78-5eb7f7e3800f
 
