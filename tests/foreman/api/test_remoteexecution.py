@@ -68,9 +68,7 @@ def test_positive_run_capsule_upgrade_playbook():
             id=entities.SmartProxy(name=capsule_vm.hostname).search()[0].id
         ).refresh()
         feature_list = [feat['name'] for feat in result['features']]
-        assert set(['SSH', 'TFTP', 'HTTPBoot', 'Dynflow', 'Pulp Node', 'Logs']).issubset(
-            feature_list
-        )
+        assert {'SSH', 'TFTP', 'HTTPBoot', 'Dynflow', 'Pulp Node', 'Logs'}.issubset(feature_list)
 
 
 @destructive
