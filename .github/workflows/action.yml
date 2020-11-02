@@ -1,0 +1,61 @@
+name: Robottelo - CI
+
+on:
+  push:
+  pull_request:
+    types: ["opened", "synchronize", "reopened"]
+
+env:
+    PYCURL_SSL_LIBRARY: gnutls
+
+jobs:
+  codechecks:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
+    steps:
+      - name: Checkout Robottelo
+        uses: actions/checkout@v2
+
+      - name: Set Up Python-${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y libgnutls28-dev libcurl4-openssl-dev libssl-dev
+          wget https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example
+          pip install -U --no-binary=pycurl -r requirements.txt -r requirements-optional.txt
+          cp robottelo.properties.sample robottelo.properties
+          cp broker_settings.yaml.example broker_settings.yaml
+          cp virtwho.properties.sample virtwho.properties
+
+      - name: Pre Commit Checks
+        uses: pre-commit/action@v2.0.0
+
+      - name: Collect Tests
+        run: |
+          pytest -n 8 --setup-plan --disable-pytest-warnings tests/foreman/ tests/robottelo/
+          pytest -n 8 --setup-plan --disable-pytest-warnings -m pre_upgrade tests/upgrades/
+          pytest -n 8 --setup-plan --disable-pytest-warnings -m post_upgrade tests/upgrades/
+
+      - name: Test Robottelo Coverage
+        run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
+
+      - name: Make Docs
+        run: |
+          make test-docstrings
+          make docs
+
+      - name: Analysis (git diff)
+        if: failure()
+        run: git diff
+
+      - name: Upload Codecov Coverage
+        uses: codecov/codecov-action@v1.0.13
+        with:
+          file: coverage.xml
+          name: ${{ github.run_id }}-py-${{ matrix.python-version }}
