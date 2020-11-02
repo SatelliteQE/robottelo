@@ -140,6 +140,21 @@ def rhsso_groups_teardown():
         delete_rhsso_group(group_name)
 
 
+@fixture()
+def multigroup_setting_cleanup():
+    "Adding and removing the user to/from ipa group"
+    sat_users = settings.ipa.groups
+    idm_users = settings.ipa.group_users
+    ssh.command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    cmd = f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}'
+    ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
+    yield
+    cmd = f'ipa group-remove-member {sat_users[0]} --users={idm_users[1]}'
+    ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
+
+
 def generate_otp(secret):
     """Return the time_based_otp """
     time_otp = pyotp.TOTP(secret)
@@ -1741,3 +1756,48 @@ def test_positive_group_sync_open_ldap_authsource(
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
         assert user_name.capitalize() in current_user
+
+
+@tier2
+def test_verify_group_permissions(
+    session, auth_source_ipa, multigroup_setting_cleanup, groups_teardown, ldap_tear_down
+):
+    """Verify group permission for external linked group
+
+    :id: 7e2ef59c-0c68-11eb-b6f3-0c7a158cbff4
+
+    :Steps:
+        1. Create two usergroups and link it with external group having a
+        user in common
+        2. Give those usergroup different permissions
+        3. Try login with the user common in both external group
+
+    :expectedresults: Group with higher permission is applied on the user
+    """
+    sat_users = settings.ipa.groups
+    idm_users = settings.ipa.group_users
+    auth_source_name = f'LDAP-{auth_source_ipa.name}'
+    user_permissions = {None: ['access_dashboard']}
+    katello_role = entities.Role().create()
+    create_role_permissions(katello_role, user_permissions)
+    with session:
+        session.usergroup.create(
+            {
+                'usergroup.name': 'sat_users',
+                'roles.resources.assigned': [katello_role.name],
+                'external_groups.name': sat_users[0],
+                'external_groups.auth_source': auth_source_name,
+            }
+        )
+        session.usergroup.create(
+            {
+                'usergroup.name': 'sat_admins',
+                'roles.admin': True,
+                'external_groups.name': sat_users[1],
+                'external_groups.auth_source': auth_source_name,
+            }
+        )
+    location_name = gen_string('alpha')
+    with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
+        ldapsession.location.create({'name': location_name})
+        assert ldapsession.location.search(location_name)[0]['Name'] == location_name
