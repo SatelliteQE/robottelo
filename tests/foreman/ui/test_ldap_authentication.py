@@ -444,7 +444,7 @@ def test_positive_add_katello_role(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ad_data['ldap_user_name']
+        assert ad_data['ldap_user_name'] in current_user
 
 
 @upgrade
@@ -666,7 +666,7 @@ def test_positive_add_admin_role_with_org_loc(
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
-        assert location['current_user'] == ad_data['ldap_user_name']
+        assert ad_data['ldap_user_name'] in location['current_user']
         assert location['primary']['name'] == location_name
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
@@ -830,7 +830,7 @@ def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down,
     with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
         with raises(NavigationTriesExceeded):
             ldapsession.user.search('')
-        assert ldapsession.task.read_all()['current_user'] == ad_data['ldap_user_name']
+        assert ad_data['ldap_user_name'] in ldapsession.task.read_all()['current_user']
 
 
 @tier2
