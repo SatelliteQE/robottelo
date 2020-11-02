@@ -30,17 +30,18 @@ from requests.exceptions import HTTPError
 
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
+from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
 from robottelo.helpers import get_server_software
-from robottelo.test import APITestCase
 
 
-class PermissionTestCase(APITestCase):
+class TestPermission:
     """Tests for the ``permissions`` path."""
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    @pytest.fixture(scope='class', autouse=True)
+    def create_permissions(self):
+        # workaround for setting class variables
+        cls = type(self)
         cls.permissions = PERMISSIONS.copy()
         if get_server_software() == 'upstream':
             cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
@@ -91,7 +92,7 @@ class PermissionTestCase(APITestCase):
                 }
 
         if failures:
-            self.fail(json.dumps(failures, indent=True, sort_keys=True))
+            pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @pytest.mark.tier1
     def test_positive_search_by_resource_type(self):
@@ -124,7 +125,7 @@ class PermissionTestCase(APITestCase):
                 failures[resource_type]['removed'] = removed
 
         if failures:
-            self.fail(json.dumps(failures, indent=True, sort_keys=True))
+            pytest.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @pytest.mark.tier1
     def test_positive_search(self):
@@ -158,7 +159,7 @@ class PermissionTestCase(APITestCase):
             diff['removed_names'] = removed_names
 
         if diff:
-            self.fail(json.dumps(diff, indent=True, sort_keys=True))
+            pytest.fail(json.dumps(diff, indent=True, sort_keys=True))
 
 
 # FIXME: This method is a hack. This information should somehow be tied
@@ -193,19 +194,19 @@ def _permission_name(entity, which_perm):
 
 
 # This class might better belong in module test_multiple_paths.
-class UserRoleTestCase(APITestCase):
+class TestUserRole:
     """Give a user various permissions and see if they are enforced."""
 
-    @classmethod
-    def setUpClass(cls):
-        """Create common entities"""
-        super().setUpClass()
+    @pytest.fixture(scope='class', autouse=True)
+    def create_org_loc(self):
+        # workaround for setting class variables
+        cls = type(self)
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
 
-    def setUp(self):  # noqa
+    @pytest.fixture(autouse=True)
+    def create_user(self, create_org_loc):
         """Create a set of credentials and a user."""
-        super().setUp()
         self.cfg = get_nailgun_config()
         self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
         self.user = entities.User(
@@ -233,7 +234,7 @@ class UserRoleTestCase(APITestCase):
         """
         role = entities.Role().create()
         permissions = entities.Permission().search(query={'search': f'name="{perm_name}"'})
-        self.assertEqual(len(permissions), 1)
+        assert len(permissions) == 1
         entities.Filter(permission=permissions, role=role).create()
         self.user.role += [role]
         self.user = self.user.update(['role'])
@@ -264,10 +265,16 @@ class UserRoleTestCase(APITestCase):
         return entity
 
     @pytest.mark.tier1
-    def test_positive_check_create(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+    )
+    def test_positive_check_create(self, entity_cls):
         """Check whether the "create_*" role has an effect.
 
         :id: e4c92365-58b7-4538-9d1b-93f3cf51fbef
+
+        :parametrized: yes
 
         :expectedresults: A user cannot create an entity when missing the
             "create_*" role, and they can create an entity when given the
@@ -277,26 +284,30 @@ class UserRoleTestCase(APITestCase):
 
         :BZ: 1464137
         """
-        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
-            with self.subTest(entity_cls):
-                with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg).create()
-                self.give_user_permission(_permission_name(entity_cls, 'create'))
-                entity = self.set_taxonomies(entity_cls(self.cfg), self.org, self.loc)
-                # Entities with both org and loc require
-                # additional permissions to set them.
-                fields = {'organization', 'location'}
-                if fields.issubset(set(entity.get_fields())):
-                    self.give_user_permission('assign_organizations')
-                    self.give_user_permission('assign_locations')
-                entity = entity.create_json()
-                entity_cls(id=entity['id']).read()  # As admin user.
+        with pytest.raises(HTTPError):
+            entity_cls(self.cfg).create()
+        self.give_user_permission(_permission_name(entity_cls, 'create'))
+        new_entity = self.set_taxonomies(entity_cls(self.cfg), self.org, self.loc)
+        # Entities with both org and loc require
+        # additional permissions to set them.
+        fields = {'organization', 'location'}
+        if fields.issubset(set(new_entity.get_fields())):
+            self.give_user_permission('assign_organizations')
+            self.give_user_permission('assign_locations')
+        new_entity = new_entity.create_json()
+        entity_cls(id=new_entity['id']).read()  # As admin user.
 
     @pytest.mark.tier1
-    def test_positive_check_read(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+    )
+    def test_positive_check_read(self, entity_cls):
         """Check whether the "view_*" role has an effect.
 
         :id: 55689121-2646-414f-beb1-dbba5973c523
+
+        :parametrized: yes
 
         :expectedresults: A user cannot read an entity when missing the
             "view_*" role, and they can read an entity when given the "view_*"
@@ -305,21 +316,25 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
-            with self.subTest(entity_cls):
-                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
-                entity = entity.create()
-                with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg, id=entity.id).read()
-                self.give_user_permission(_permission_name(entity_cls, 'read'))
-                entity_cls(self.cfg, id=entity.id).read()
+        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = new_entity.create()
+        with pytest.raises(HTTPError):
+            entity_cls(self.cfg, id=new_entity.id).read()
+        self.give_user_permission(_permission_name(entity_cls, 'read'))
+        entity_cls(self.cfg, id=new_entity.id).read()
 
     @pytest.mark.upgrade
     @pytest.mark.tier1
-    def test_positive_check_delete(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+    )
+    def test_positive_check_delete(self, entity_cls):
         """Check whether the "destroy_*" role has an effect.
 
         :id: 71365147-51ef-4602-948f-78a5e78e32b4
+
+        :parametrized: yes
 
         :expectedresults: A user cannot read an entity with missing the
             "destroy_*" role, and they can read an entity when given the
@@ -328,22 +343,26 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
-            with self.subTest(entity_cls):
-                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
-                entity = entity.create()
-                with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg, id=entity.id).delete()
-                self.give_user_permission(_permission_name(entity_cls, 'delete'))
-                entity_cls(self.cfg, id=entity.id).delete()
-                with self.assertRaises(HTTPError):
-                    entity.read()  # As admin user
+        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = new_entity.create()
+        with pytest.raises(HTTPError):
+            entity_cls(self.cfg, id=new_entity.id).delete()
+        self.give_user_permission(_permission_name(entity_cls, 'delete'))
+        entity_cls(self.cfg, id=new_entity.id).delete()
+        with pytest.raises(HTTPError):
+            new_entity.read()  # As admin user
 
     @pytest.mark.tier1
-    def test_positive_check_update(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+    )
+    def test_positive_check_update(self, entity_cls):
         """Check whether the "edit_*" role has an effect.
 
         :id: b5de2115-b031-413e-8e5b-eac8cb714174
+
+        :parametrized: yes
 
         :expectedresults: A user cannot update an entity when missing the
             "edit_*" role, and they can update an entity when given the
@@ -354,14 +373,12 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain, entities.ActivationKey):
-            with self.subTest(entity_cls):
-                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
-                entity = entity.create()
-                name = entity.get_fields()['name'].gen_value()
-                with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg, id=entity.id, name=name).update(['name'])
-                self.give_user_permission(_permission_name(entity_cls, 'update'))
-                # update() calls read() under the hood, which triggers
-                # permission error
-                entity_cls(self.cfg, id=entity.id, name=name).update_json(['name'])
+        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = new_entity.create()
+        name = new_entity.get_fields()['name'].gen_value()
+        with pytest.raises(HTTPError):
+            entity_cls(self.cfg, id=new_entity.id, name=name).update(['name'])
+        self.give_user_permission(_permission_name(entity_cls, 'update'))
+        # update() calls read() under the hood, which triggers
+        # permission error
+        entity_cls(self.cfg, id=new_entity.id, name=name).update_json(['name'])
