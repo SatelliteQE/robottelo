@@ -28,23 +28,24 @@ from robottelo.decorators import skip_if
 from robottelo.decorators import upgrade
 
 
+@pytest.fixture(scope='module')
+def make_setup():
+    org = make_org()
+    product = make_product({'organization-id': org['id']})
+    repo = make_repository(
+        {
+            'organization-id': org['id'],
+            'product-id': product['id'],
+            'content-type': 'puppet',
+            'url': FAKE_0_PUPPET_REPO,
+        }
+    )
+    Repository.synchronize({'id': repo['id']})
+    return {'org': org, 'product': product, 'repo': repo}
+
+
 class TestPuppetModule:
     """Tests for PuppetModule via Hammer CLI"""
-
-    @pytest.fixture(scope='module')
-    def make_setup(self):
-        org = make_org()
-        product = make_product({'organization-id': org['id']})
-        repo = make_repository(
-            {
-                'organization-id': org['id'],
-                'product-id': product['id'],
-                'content-type': 'puppet',
-                'url': FAKE_0_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': repo['id']})
-        return {'org': org, 'product': product, 'repo': repo}
 
     @pytest.mark.tier1
     @skip_if(not settings.repos_hosting_url)

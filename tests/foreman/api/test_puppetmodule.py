@@ -21,17 +21,28 @@ from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.helpers import get_data_file
 
 
+@pytest.fixture(scope='module')
+def make_product_repo():
+    product = entities.Product().create()
+    repo = entities.Repository(content_type='puppet', product=product).create()
+    return {'product': product, 'repo': repo}
+
+
+@pytest.fixture(scope='function')
+def make_cv(make_product_repo):
+    with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
+        make_product_repo['repo'].upload_content(files={'content': handle})
+    content_view = entities.ContentView(
+        organization=make_product_repo['product'].organization
+    ).create()
+    return content_view
+
+
 class TestRepositorySearch:
     """Tests that search for puppet modules and filter by repository."""
 
-    @pytest.fixture(scope='class')
-    def make_repo(self):
-        product = entities.Product().create()
-        repo = entities.Repository(content_type='puppet', product=product).create()
-        return repo
-
     @pytest.mark.tier1
-    def test_positive_search_no_results(self, make_repo):
+    def test_positive_search_no_results(self, make_product_repo):
         """Search for puppet modules in an empty repository.
 
         :id: eafc7a71-d550-4983-9941-b87aa57b83e9
@@ -40,11 +51,11 @@ class TestRepositorySearch:
 
         :CaseImportance: Critical
         """
-        query = {'repository_id': make_repo.id}
+        query = {'repository_id': make_product_repo['repo'].id}
         assert len(entities.PuppetModule().search(query=query)) == 0
 
     @pytest.mark.tier1
-    def test_positive_search_single_result(self, make_repo):
+    def test_positive_search_single_result(self, make_product_repo):
         """Search for puppet modules in a non-empty repository.
 
         :id: 5337b2be-e207-4580-8407-19b88cb40403
@@ -56,22 +67,13 @@ class TestRepositorySearch:
         :CaseImportance: Critical
         """
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            make_repo.upload_content(files={'content': handle})
-        query = {'repository_id': make_repo.id}
+            make_product_repo['repo'].upload_content(files={'content': handle})
+        query = {'repository_id': make_product_repo['repo'].id}
         assert len(entities.PuppetModule().search(query=query)) == 1
 
 
 class TestContentViewVersionSearch:
     """Tests that search for puppet modules and filter by content view ver."""
-
-    @pytest.fixture(scope='class')
-    def make_cv(self):
-        product = entities.Product().create()
-        repo = entities.Repository(content_type='puppet', product=product).create()
-        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            repo.upload_content(files={'content': handle})
-        content_view = entities.ContentView(organization=product.organization).create()
-        return content_view
 
     @pytest.mark.tier1
     def test_positive_search_no_results(self, make_cv):
@@ -85,7 +87,7 @@ class TestContentViewVersionSearch:
         """
         make_cv.publish()
         make_cv = make_cv.read()
-        query = {'content_view_version_id': make_cv.version[-1].id}
+        query = {'content_view_version_id': make_cv.version[0].id}
         assert len(entities.PuppetModule().search(query=query)) == 0
 
     @pytest.mark.tier1
@@ -109,5 +111,5 @@ class TestContentViewVersionSearch:
 
         # Search for all puppet modules in the new content view version.
         make_cv = make_cv.read()
-        query = {'content_view_version_id': make_cv.version[-1].id}
+        query = {'content_view_version_id': make_cv.version[0].id}
         assert len(entities.PuppetModule().search(query=query)) == 1
