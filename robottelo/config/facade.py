@@ -52,11 +52,19 @@ WRAPPER_EXCEPTIONS = (
     'ipa.password_ipa',
     'ipa.user_ipa',
     'ipa.username_ipa',
+    'ipa.group_users',
+    'ipa.groups',
     'ldap.basedn',
     'ldap.grpbasedn',
     'ldap.hostname',
     'ldap.password',
     'ldap.username',
+    'open_ldap.username',
+    'open_ldap.password',
+    'open_ldap.base_dn',
+    'open_ldap.hostname',
+    'open_ldap.group_base_dn',
+    'open_ldap.open_ldap_user',
     'rhel8_os',
     'rhsso.rhsso_user',
     'rhsso.password',
@@ -69,7 +77,7 @@ WRAPPER_EXCEPTIONS = (
 
 class SettingsNodeWrapper(CallableObjectProxy):
     def __init__(self, wrapped, config_provider=None, full_path=None):
-        super(SettingsNodeWrapper, self).__init__(wrapped)
+        super().__init__(wrapped)
         if config_provider is None:
             config_provider = wrapped
         self._self_config_provider = config_provider
