@@ -2,9 +2,9 @@
 Factory object creation for all CLI methods
 """
 import datetime
-import json
 import logging
 import os
+import pprint
 import random
 import time
 from os import chmod
@@ -135,7 +135,7 @@ def create_object(cli_object, options, values):
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
             'Failed to create {} with data:\n{}\n{}'.format(
-                cli_object.__name__, json.dumps(options, indent=2, sort_keys=True), err.msg
+                cli_object.__name__, pprint.pformat(options, indent=2), err.msg
             )
         )
 

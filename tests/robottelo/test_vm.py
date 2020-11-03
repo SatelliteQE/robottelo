@@ -70,7 +70,7 @@ class TestVirtualMachine:
         with pytest.raises(VirtualMachineError, match=f'using host OS version: {non_default}'):
             VirtualMachine()
 
-    def test_provisioning_server_not_configured(self, host_os_version_patch):
+    def test_provisioning_server_not_configured(self, vm_settings_patch, host_os_version_patch):
         """Check if an exception is raised if missing provisioning_server
         Mocking allowed_distros because config is empty on travis when running unit tests
         This means we can't hit the provisioning server line, because distro_mapping has Nones

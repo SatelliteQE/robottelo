@@ -1,0 +1,16 @@
+# copy this file as `settings.local.yaml` and override any config provided under `conf/*.yaml`
+# or preferably use environment variables instead of this file
+# example:
+# `export SATQE_SERVER__HOSTNAME=myserver.redhat.com`
+---
+server:
+  admin_password: "<str>"
+  admin_username: "<str>"
+  hostname: "<str>"
+  port: null
+  scheme: https
+  ssh_key: "<str>"
+  ssh_password: null
+  ssh_username: "<str>"
+
+ssh_client: {}
