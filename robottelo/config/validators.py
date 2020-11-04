@@ -9,6 +9,10 @@ validators = dict(
         Validator("server.hostname", must_exist=True),
         Validator("server.ssh_key", must_exist=True)
         | Validator("server.ssh_password", must_exist=True),
+        Validator("server.admin_password", default="changeme"),
+        Validator("server.admin_username", default="admin"),
+        Validator("server.scheme", default="https"),
+        Validator("server.ssh_username", default="root"),
     ],
     azurerm=[
         Validator(
@@ -25,6 +29,8 @@ validators = dict(
         ),
         Validator("azurerm.azure_region", is_in=AZURERM_VALID_REGIONS),
     ],
+    broker=[Validator('broker.broker_directory', default='.')],
+    bugzilla=[Validator("bugzilla.url", default='https://bugzilla.redhat.com')],
     capsule=[Validator("capsule.instance_name", must_exist=True)],
     certs=[
         Validator(
@@ -36,7 +42,10 @@ validators = dict(
         )
     ],
     clients=[Validator("clients.provisioning_server")],
-    compute_resources=[Validator("compute_resources.libvirt_image_dir", must_exist=True)],
+    compute_resources=[
+        Validator("compute_resources.libvirt_hostname", must_exist=True),
+        Validator("compute_resources.libvirt_image_dir", default='/var/lib/libvirt/images'),
+    ],
     # FIXME: container_repo is stored in robottelo.yaml, which should be
     # properly integrated with dynaconf
     container_repo=[
@@ -68,7 +77,9 @@ validators = dict(
             'ec2.region',
             must_exist=True,
         ),
-        Validator('ec2.manage_ip', is_in=('Private', 'Public')),
+        Validator('ec2.managed_ip', is_in=('Private', 'Public'), default='Private'),
+        Validator('ec2.region', default='us-west-2'),
+        Validator('ec2.security_group', default=['default']),
     ],
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
     # FIXME: we don't check if "default" is defined
@@ -90,6 +101,15 @@ validators = dict(
         Validator("gce.cert_path", startswith='/usr/share/foreman/'),
         Validator("gce.zone", is_in=VALID_GCE_ZONES),
     ],
+    http_proxy=[
+        Validator(
+            "http_proxy.un_auth_proxy_url",
+            "http_proxy.auth_proxy_url",
+            "http_proxy.username",
+            "http_proxy.password",
+            must_exist=True,
+        )
+    ],
     ipa=[
         Validator(
             "ipa.basedn_ipa",
@@ -101,6 +121,8 @@ validators = dict(
             "ipa.otp_user",
             "ipa.time_based_secret",
             "ipa.disabled_user_ipa",
+            "ipa.group_users",
+            "ipa.groups",
             must_exist=True,
         )
     ],
@@ -109,8 +131,21 @@ validators = dict(
             "ldap.basedn",
             "ldap.grpbasedn",
             "ldap.hostname",
+            "ldap.nameserver",
             "ldap.password",
+            "ldap.realm",
             "ldap.username",
+            must_exist=True,
+        )
+    ],
+    open_ldap=[
+        Validator(
+            "open_ldap.base_dn",
+            "open_ldap.group_base_dn",
+            "open_ldap.hostname",
+            "open_ldap.password",
+            "open_ldap.username",
+            "open_ldap.open_ldap_user",
             must_exist=True,
         )
     ],
@@ -145,7 +180,11 @@ validators = dict(
             "performance.fresh_install_savepoint",
             "performance.enabled_repos_savepoint",
             must_exist=True,
-        )
+        ),
+        Validator("performance.time_hammer", default=False),
+        Validator("performance.csv_buckets_count", default=10),
+        Validator("performance.sync_count", default=3),
+        Validator("performance.sync_type", default='sync'),
     ],
     report_portal=[
         Validator(
@@ -153,7 +192,8 @@ validators = dict(
             "report_portal.project",
             "report_portal.api_key",
             must_exist=True,
-        )
+        ),
+        Validator("report_portal.fail_threshold", default=20),
     ],
     rhev=[
         Validator(
@@ -182,8 +222,15 @@ validators = dict(
         )
     ],
     shared_function=[
-        Validator("shared_function.storage", is_in=("file", "redis")),
-        Validator("shared_function.share_timeout", lt=86400, default=86400),
+        Validator("shared_function.storage", is_in=("file", "redis"), default='file'),
+        Validator("shared_function.share_timeout", lte=86400, default=86400),
+        Validator("shared_function.scope", default=None),
+        Validator("shared_function.enabled", default=False),
+        Validator("shared_function.lock_timeout", default=7200),
+        Validator("shared_function.redis_host", default='localhost'),
+        Validator("shared_function.redis_port", default=6379),
+        Validator("shared_function.redis_db", default=0),
+        Validator("shared_function.call_retries", default=2),
     ],
     upgrade=[
         Validator("upgrade.rhev_cap_host", must_exist=False)
