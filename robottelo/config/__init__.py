@@ -27,7 +27,7 @@ dynaconf_settings.validators.register(**validators)
 try:
     legacy_settings.configure()
 except ImproperlyConfigured:
-    logger.error(
+    logger.warning(
         (
             "Legacy Robottelo settings configure() failed, most likely required "
             "configuration option is not provided. Continuing for the sake of unit tests"
@@ -38,7 +38,7 @@ except ImproperlyConfigured:
 try:
     dynaconf_settings.validators.validate()
 except ValidationError:
-    logger.error(
+    logger.warning(
         "Dynaconf validation failed, continuing for the sake of unit tests", exc_info=True
     )
 
