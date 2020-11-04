@@ -9,9 +9,11 @@ try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
+from _pytest.junitxml import xml_key
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
 
+FMT_XUNIT_TIME = "%Y-%m-%dT%H:%M:%S"
 
 def log(message, level="DEBUG"):
     """Pytest has a limitation to use logging.logger from conftest.py
@@ -45,7 +47,13 @@ def pytest_report_header(config):
             shared_function_enabled, scope, storage
         )
     )
-
+    # workaround for https://github.com/pytest-dev/pytest/issues/7767
+    # remove if resolved and set autouse=True for record_testsuite_timestamp_xml fixture
+    if config.pluginmanager.hasplugin("junitxml"):
+        now = datetime.datetime.utcnow()
+        xml = config._store.get(xml_key, None)
+        if xml:
+            xml.add_global_property('start_time', now.strftime(FMT_XUNIT_TIME))
     return messages
 
 
@@ -139,13 +147,13 @@ def pytest_collection_modifyitems(session, items, config):
     items[:] = [item for item in items if item not in deselected_items]
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=False, scope="session")
 def record_testsuite_timestamp_xml(record_testsuite_property):
     now = datetime.datetime.utcnow()
-    record_testsuite_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
+    record_testsuite_property("start_time", now.strftime(FMT_XUNIT_TIME))
 
 
 @pytest.fixture(autouse=True, scope="function")
 def record_test_timestamp_xml(record_property):
     now = datetime.datetime.utcnow()
-    record_property("start_time", now.strftime("%Y-%m-%dT%H:%M:%S"))
+    record_property("start_time", now.strftime(FMT_XUNIT_TIME))
