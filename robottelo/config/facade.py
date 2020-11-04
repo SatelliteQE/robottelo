@@ -10,7 +10,7 @@ from robottelo.config.base import get_project_root
 from robottelo.config.base import INIReader
 from robottelo.config.base import SETTINGS_FILE_NAME
 
-logger = logging.getLogger('robottelo.settings.proxy')
+logger = logging.getLogger('robottelo.config.facade')
 
 WRAPPER_EXCEPTIONS = (
     'server.hostname',
