@@ -62,7 +62,12 @@ validators = dict(
     ],
     docker=[Validator('docker.docker_image', 'docker.external_registry_1', must_exist=True)],
     ec2=[
-        Validator('ec2.access_key', 'ec2.secret_key', 'ec2.region', must_exist=True,),
+        Validator(
+            'ec2.access_key',
+            'ec2.secret_key',
+            'ec2.region',
+            must_exist=True,
+        ),
         Validator('ec2.manage_ip', is_in=('Private', 'Public')),
     ],
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
@@ -109,7 +114,13 @@ validators = dict(
             must_exist=True,
         )
     ],
-    oscap=[Validator("oscap.content_path", "oscap.tailoring_path", must_exist=True,)],
+    oscap=[
+        Validator(
+            "oscap.content_path",
+            "oscap.tailoring_path",
+            must_exist=True,
+        )
+    ],
     osp=[
         Validator(
             "osp.hostname",
@@ -198,8 +209,16 @@ validators = dict(
             & Validator("vlan_networking.network", must_exist=True)
         ),
         # both dhcp_from and dhcp_to are defined, or neither is
-        Validator("vlan_networking.dhcp_from", "vlan_networking.dhcp_to", must_exist=True,)
-        | Validator("vlan_networking.dhcp_from", "vlan_networking.dhcp_to", must_exist=False,),
+        Validator(
+            "vlan_networking.dhcp_from",
+            "vlan_networking.dhcp_to",
+            must_exist=True,
+        )
+        | Validator(
+            "vlan_networking.dhcp_from",
+            "vlan_networking.dhcp_to",
+            must_exist=False,
+        ),
     ],
     vmware=[
         Validator(
