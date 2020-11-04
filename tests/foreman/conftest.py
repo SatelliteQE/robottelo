@@ -15,6 +15,7 @@ from robottelo.decorators import setting_is_set
 
 FMT_XUNIT_TIME = "%Y-%m-%dT%H:%M:%S"
 
+
 def log(message, level="DEBUG"):
     """Pytest has a limitation to use logging.logger from conftest.py
     so we need to emulate the logger by stdouting the output
