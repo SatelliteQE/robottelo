@@ -24,8 +24,6 @@ from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-from robottelo.decorators import skip_if
-from robottelo.decorators import upgrade
 
 
 @pytest.fixture(scope='module')
@@ -48,7 +46,10 @@ class TestPuppetModule:
     """Tests for PuppetModule via Hammer CLI"""
 
     @pytest.mark.tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(
+        not settings.repos_hosting_url,
+        reason="repos_hosting_url is not defined in robottelo.properties",
+    )
     def test_positive_list(self, make_setup):
         """Check if puppet-module list retrieves puppet-modules of
         the given org
@@ -66,7 +67,10 @@ class TestPuppetModule:
         assert len(result) == 4
 
     @pytest.mark.tier1
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(
+        not settings.repos_hosting_url,
+        reason="repos_hosting_url is not defined in robottelo.properties",
+    )
     def test_positive_info(self, make_setup):
         """Check if puppet-module info retrieves info for the given
         puppet-module id
@@ -83,8 +87,11 @@ class TestPuppetModule:
             assert result['id'] == return_value[i]['id']
 
     @pytest.mark.tier1
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(
+        not settings.repos_hosting_url,
+        reason="repos_hosting_url is not defined in robottelo.properties",
+    )
     def test_positive_list_multiple_repos(self, make_setup):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.
