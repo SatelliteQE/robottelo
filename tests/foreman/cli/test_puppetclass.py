@@ -30,14 +30,17 @@ def make_puppet():
     puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
     org = make_org()
     cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, org['id'])
-    env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
+    env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
     puppet = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
     return puppet
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif(
+    not settings.repos_hosting_url,
+    reason="repos_hosting_url is not defined in robottelo.properties",
+)
 def test_positive_list_smart_class_parameters(make_puppet):
     """List smart class parameters associated with the puppet class.
 
