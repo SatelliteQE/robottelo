@@ -25,7 +25,6 @@ from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
 from productmd.common import parse_nvra
-from pytest import raises
 from selenium.common.exceptions import InvalidElementStateException
 from widgetastic.exceptions import NoSuchElementException
 
@@ -78,13 +77,7 @@ from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
@@ -100,17 +93,17 @@ from robottelo.vm import VirtualMachine
 VERSION = 'Version 1.0'
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_prod(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_custom_content(session):
     """Associate custom content in a view
 
@@ -138,8 +131,8 @@ def test_positive_add_custom_content(session):
         assert cv['repositories']['resources']['assigned'][0]['Name'] == repo_name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org):
     """Create content view with yum repo, publish it and promote it to Library
         +1 env
@@ -179,7 +172,7 @@ def test_positive_end_to_end(session, module_org):
         assert f'Promoted to {env_name}' in result['Status']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_version_changes_in_source_env(session, module_org):
     """When publishing new version to environment, version gets updated
 
@@ -232,7 +225,7 @@ def test_positive_publish_version_changes_in_source_env(session, module_org):
         ]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_repo_count_for_composite_cv(session, module_org):
     """Create some content views with synchronized repositories and
     promoted to one lce. Add them to composite content view and check repo
@@ -279,8 +272,8 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
         assert session.contentview.search(ccv_name)[0]['Repositories'] == '3'
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_puppet_module(session, module_org):
     """create content view with puppet repository
 
@@ -310,10 +303,10 @@ def test_positive_add_puppet_module(session, module_org):
         assert cv['puppet_modules']['table'][0]['Name'] == puppet_module
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_create_composite(session):
     # Note: puppet repos cannot/should not be used in this test
     # It shouldn't work - and that is tested in a different case.
@@ -369,9 +362,9 @@ def test_positive_create_composite(session):
         }
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_add_rh_content(session):
     """Add Red Hat content to a content view
 
@@ -408,7 +401,7 @@ def test_positive_add_rh_content(session):
         assert cv['repositories']['resources']['assigned'][0]['Name'] == rh_repo['name']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repo(session, module_org, module_prod):
     """Add one Docker-type repository to a non-composite content view
 
@@ -430,7 +423,7 @@ def test_positive_add_docker_repo(session, module_org, module_prod):
         assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repos(session, module_org, module_prod):
     """Add multiple Docker-type repositories to a non-composite
     content view.
@@ -460,7 +453,7 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
         }
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_synced_docker_repo(session, module_org, module_prod):
     """Create and sync a docker repository, then add it to content view
 
@@ -486,7 +479,7 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
         assert cv['docker_repositories']['resources']['assigned'][0]['Sync State'] == 'Success'
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
     """Add one docker repository to a composite content view
 
@@ -514,7 +507,7 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
         assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
     """Add multiple docker repositories to a composite content view.
 
@@ -549,7 +542,7 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
         )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_with_docker_repo(session, module_org, module_prod):
     """Add docker repository to content view and publish it once.
 
@@ -574,7 +567,7 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
         assert cv['versions']['table'][0]['Version'] == VERSION
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_with_docker_repo_composite(session, module_org, module_prod):
     """Add docker repository to composite content view and publish it once.
 
@@ -604,7 +597,7 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
         assert '1 Repositories' in ccv['content_views']['resources']['assigned'][0]['Content']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_multiple_with_docker_repo(session, module_org, module_prod):
     """Add docker repository to content view and publish it multiple times.
 
@@ -629,7 +622,7 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
             assert result['Version'] == 'Version {}.0'.format(version + 1)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_multiple_with_docker_repo_composite(session, module_org, module_prod):
     """Add docker repository to composite content view and publish it multiple times.
 
@@ -657,7 +650,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
             assert result['Version'] == 'Version {}.0'.format(version + 1)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_promote_with_docker_repo(session, module_org, module_prod):
     """Add docker repository to content view and publish it.
     Then promote it to the next available lifecycle environment.
@@ -685,7 +678,7 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
         assert lce.name in result['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_promote_multiple_with_docker_repo(session, module_org, module_prod):
     """Add docker repository to content view and publish it.
     Then promote it to multiple available lifecycle-environments.
@@ -714,7 +707,7 @@ def test_positive_promote_multiple_with_docker_repo(session, module_org, module_
             assert lce.name in result['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_promote_with_docker_repo_composite(session, module_org, module_prod):
     """Add docker repository to composite content view and publish it.
     Then promote it to the next available lifecycle-environment.
@@ -747,8 +740,8 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
         assert lce.name in result['Environments']
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_promote_multiple_with_docker_repo_composite(session, module_org, module_prod):
     """Add docker repository to composite content view and publish it
     Then promote it to the multiple available lifecycle environments.
@@ -782,7 +775,7 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
             assert lce.name in result['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_add_puppet_repo_to_composite(session):
     """Attempt to associate puppet repos within a composite content view
 
@@ -799,12 +792,12 @@ def test_negative_add_puppet_repo_to_composite(session):
     with session:
         session.contentview.create({'name': composite_name, 'composite_view': True})
         assert session.contentview.search(composite_name)[0]['Name'] == composite_name
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.add_puppet_module(composite_name, 'httpd')
         assert 'failed to reach [AddPuppetModule]' in str(context.value)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_add_components_to_non_composite(session):
     """Attempt to associate components to a non-composite content view
 
@@ -823,12 +816,12 @@ def test_negative_add_components_to_non_composite(session):
         for cv_name in (cv1_name, cv2_name):
             session.contentview.create({'name': cv_name})
             assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.contentview.add_cv(cv1_name, cv2_name)
         assert 'Could not find "Content Views" tab' in str(context.value)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_unpublished_cv_to_composite(session):
     """Attempt to associate unpublished non-composite content view with
     composite content view.
@@ -861,7 +854,7 @@ def test_positive_add_unpublished_cv_to_composite(session):
         session.contentview.add_cv(composite_cv_name, unpublished_cv_name)
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_add_non_composite_cv_to_composite(session):
     """Attempt to associate both published and unpublished non-composite
     content views with composite content view.
@@ -922,7 +915,7 @@ def test_positive_add_non_composite_cv_to_composite(session):
         assert result['Version'] == VERSION
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_check_composite_cv_addition_list_versions(session):
     """Create new content view and publish two times. After that remove
     first content view version from the list and try to add that view to
@@ -963,7 +956,7 @@ def test_positive_check_composite_cv_addition_list_versions(session):
         assert cv_values[0]['Version'] == 'Always Use Latest (Currently 2.0) 2.0'
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_add_dupe_repos(session, module_org):
     """attempt to associate the same repo multiple times within a
     content view
@@ -983,14 +976,14 @@ def test_negative_add_dupe_repos(session, module_org):
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         session.contentview.add_yum_repo(cv_name, repo_name)
-        with raises(NoSuchElementException) as context:
+        with pytest.raises(NoSuchElementException) as context:
             session.contentview.add_yum_repo(cv_name, repo_name)
         error_message = str(context.value)
         assert 'Could not find an element' in error_message
         assert 'checkbox' in error_message
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_add_dupe_modules(session, module_org):
     """Attempt to associate duplicate puppet module(s) within a content view
 
@@ -1018,12 +1011,12 @@ def test_negative_add_dupe_modules(session, module_org):
         cv = session.contentview.read(cv_name)
         assert cv['puppet_modules']['table'][0]['Name'] == module_name
         # ensure that cannot add the same module a second time.
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.add_puppet_module(cv_name, module_name)
         assert 'Navigation failed to reach [SelectPuppetModuleVersion]' in str(context.value)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_with_custom_content(session, module_org):
     """Attempt to publish a content view containing custom content
 
@@ -1050,9 +1043,9 @@ def test_positive_publish_with_custom_content(session, module_org):
         assert cv['versions']['table'][0]['Version'] == VERSION
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_with_rh_content(session):
     """Attempt to publish a content view containing RH content
 
@@ -1089,10 +1082,10 @@ def test_positive_publish_with_rh_content(session):
         assert cv['versions']['table'][0]['Version'] == VERSION
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_publish_composite_with_custom_content(session):
     """Attempt to publish composite content view containing custom content
 
@@ -1174,7 +1167,7 @@ def test_positive_publish_composite_with_custom_content(session):
         assert ccv['versions']['table'][0]['Version'] == VERSION
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_publish_version_changes_in_target_env(session, module_org):
     # Dev notes:
     # If Dev has version x, then when I promote version y into
@@ -1234,7 +1227,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
             assert lce.name in result['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_promote_with_custom_content(session, module_org):
     """Attempt to promote a content view containing custom content,
         check dashboard
@@ -1278,9 +1271,9 @@ def test_positive_promote_with_custom_content(session, module_org):
         assert cv_name in values['ContentViews']['content_views'][0]['Content View']
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_promote_with_rh_content(session):
     """Attempt to promote a content view containing RH content
 
@@ -1318,10 +1311,10 @@ def test_positive_promote_with_rh_content(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_promote_composite_with_custom_content(session):
     """Attempt to promote composite content view containing custom content
 
@@ -1408,8 +1401,8 @@ def test_positive_promote_composite_with_custom_content(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
-@run_in_one_thread
-@tier2
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
 def test_positive_publish_rh_content_with_errata_by_date_filter(session):
     """Publish a CV, containing only RH repo, having errata excluding by
     date filter
@@ -1452,7 +1445,7 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
         assert not version.get('errata') or not len(version['errata']['table'])
 
 
-@tier3
+@pytest.mark.tier3
 def test_negative_add_same_package_filter_twice(session, module_org):
     """Update version of package inside exclusive cv package filter
 
@@ -1484,14 +1477,14 @@ def test_negative_add_same_package_filter_twice(session, module_org):
             session.contentviewfilter.add_package_rule(
                 cv_name, filter_name, package_name, None, ('Equal To', '0.71-1')
             )
-            with raises(AssertionError) as context:
+            with pytest.raises(AssertionError) as context:
                 session.contentviewfilter.add_package_rule(
                     cv_name, filter_name, package_name, None, ('Equal To', '0.71-1')
                 )
             assert 'This package filter rule already exists.' in str(context.value)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_remove_cv_version_from_default_env(session, module_org):
     """Remove content view version from Library environment
 
@@ -1529,8 +1522,8 @@ def test_positive_remove_cv_version_from_default_env(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_remove_promoted_cv_version_from_default_env(session, module_org):
     """Remove promoted content view version from Library environment
 
@@ -1583,7 +1576,7 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
         assert cvv['puppet_modules']['table'][0]['Author'] == author
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module_org):
     """Remove QE promoted content view version from Library environment
 
@@ -1635,8 +1628,8 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
         assert all(item in cvv_table[0]['Environments'] for item in [dev_lce.name, qe_lce.name])
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_remove_cv_version_from_env(session, module_org):
     """Remove promoted content view version from environment
 
@@ -1697,9 +1690,9 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
 
 
-@upgrade
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.upgrade
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
     """Delete published content view with version promoted to multiple
      environments
@@ -1741,8 +1734,8 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
         assert cv not in lce_values['content_views']['resources']
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_delete_composite_version(session, module_org):
     """Delete a composite content-view version associated to 'Library'
 
@@ -1779,7 +1772,7 @@ def test_positive_delete_composite_version(session, module_org):
         assert ENVIRONMENT not in cvv['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_non_default_version(session):
     """Delete a content-view version associated to non-default
     environment
@@ -1813,8 +1806,8 @@ def test_positive_delete_non_default_version(session):
         assert lce.name not in cvv['Environments']
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_delete_version_with_ak(session):
     """Delete a content-view version that had associated activation key to it
 
@@ -1840,7 +1833,7 @@ def test_positive_delete_version_with_ak(session):
         assert session.contentview.search_version(cv.name, VERSION)
         # It is impossible to remove content view version from content view that
         # has activation key assigned
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.contentview.remove_version(cv.name, VERSION)
         assert 'Activation Key is assigned to content view version' in str(context.value)
         # Update activation key with new name
@@ -1852,7 +1845,7 @@ def test_positive_delete_version_with_ak(session):
         assert session.contentview.search_version(cv.name, VERSION)[0]['Version'] != VERSION
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_clone_within_same_env(session, module_org):
     """attempt to create new content view based on existing
     view within environment
@@ -1884,7 +1877,7 @@ def test_positive_clone_within_same_env(session, module_org):
         assert copy_cv['repositories']['resources']['assigned'][0]['Name'] == repo_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_clone_within_diff_env(session, module_org):
     """attempt to create new content view based on existing
     view, inside a different environment
@@ -1928,7 +1921,7 @@ def test_positive_clone_within_diff_env(session, module_org):
         assert lce.name not in result['Environments']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_remove_filter(session, module_org):
     """Create empty content views filter and remove it
 
@@ -1956,7 +1949,7 @@ def test_positive_remove_filter(session, module_org):
         assert not session.contentviewfilter.search(cv.name, filter_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_package_filter(session, module_org):
     """Add package to content views filter
 
@@ -1999,7 +1992,7 @@ def test_positive_add_package_filter(session, module_org):
         assert expected_packages == actual_packages
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
     """Add package to inclusion content views filter, publish CV and verify
     package was actually filtered
@@ -2044,7 +2037,7 @@ def test_positive_add_package_inclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
     """Add package to exclusion content views filter, publish CV and verify
     package was actually filtered
@@ -2089,8 +2082,8 @@ def test_positive_add_package_exclusion_filter_and_publish(session, module_org):
         assert not packages[0]['Name']
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_remove_package_from_exclusion_filter(session, module_org):
     """Remove package from content view exclusion filter
 
@@ -2136,7 +2129,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
         assert packages[0]['Name'] == package_name
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_update_inclusive_filter_package_version(session, module_org):
     """Update version of package inside inclusive cv package filter
 
@@ -2197,7 +2190,7 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_update_exclusive_filter_package_version(session, module_org):
     """Update version of package inside exclusive cv package filter
 
@@ -2258,8 +2251,8 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_all_security_errata_by_date_range_filter(session, module_org):
     """Create erratum date range filter to include only security errata and
     publish new content view version
@@ -2306,9 +2299,9 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
         )
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier3
+@pytest.mark.tier3
 def test_positive_edit_rh_custom_spin(session):
     """Edit content views for a custom rh spin.  For example, modify a filter
 
@@ -2366,10 +2359,10 @@ def test_positive_edit_rh_custom_spin(session):
         )
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_promote_with_rh_custom_spin(session):
     """attempt to promote a content view containing a custom RH
     spin - i.e., contains filters.
@@ -2414,8 +2407,8 @@ def test_positive_promote_with_rh_custom_spin(session):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_all_security_errata_by_id_filter(session, module_org):
     """Create erratum filter to include only security errata and publish new
     content view version
@@ -2459,7 +2452,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
         )
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_add_errata_filter(session, module_org):
     """add errata to content views filter
 
@@ -2496,8 +2489,8 @@ def test_positive_add_errata_filter(session, module_org):
         }
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_module_stream_filter(session, module_org):
     """add module stream filter in a content view
 
@@ -2538,7 +2531,7 @@ def test_positive_add_module_stream_filter(session, module_org):
         }
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_add_package_group_filter(session, module_org):
     """add package group to content views filter
 
@@ -2571,8 +2564,8 @@ def test_positive_add_package_group_filter(session, module_org):
         assert cvf['content_tabs']['assigned'][0]['Name'] == package_group
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_filter_affected_repos(session, module_org):
     """Update content view package filter affected repos
 
@@ -2633,7 +2626,7 @@ def test_positive_update_filter_affected_repos(session, module_org):
         assert packages[0]['Name'] == repo2_package_name and packages[0]['Version'] == '5.6.6'
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_search_composite(session):
     """Search for content view by its composite property criteria
 
@@ -2657,8 +2650,8 @@ def test_positive_search_composite(session):
         }
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_publish_with_force_puppet_env(session, module_org):
     """Check that puppet environment will be created automatically once
     content view that contains puppet module is published, no matter
@@ -2708,7 +2701,7 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
                     assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     """Attempt to publish content view with repository that set
     'publish via http' to False
@@ -2755,8 +2748,8 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
         assert result['Version'] == VERSION
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_publish_promote_with_custom_puppet_module(session, module_org):
     """Ensure that a custom puppet module file can be added to an existent
      puppet repo and it's module added to content view
@@ -2812,8 +2805,8 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
         assert f'Promoted to {env.name}' in result['Status']
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_subscribe_system_with_custom_content(session):
     """Attempt to subscribe a host to content view with custom repository
 
@@ -2843,9 +2836,9 @@ def test_positive_subscribe_system_with_custom_content(session):
             assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
 
 
-@upgrade
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.upgrade
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_subscribe_system_with_puppet_modules(session):
     """Attempt to subscribe a host to content view with puppet modules
 
@@ -2882,7 +2875,7 @@ def test_positive_subscribe_system_with_puppet_modules(session):
             assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_delete_with_kickstart_repo_and_host_group(session):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
@@ -2958,7 +2951,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
         )
         assert session.hostgroup.search(hg_name)[0]['Name'] == hg_name
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.contentview.delete(cv_name)
         assert 'Unable to delete content view' in str(context.value)
         # remove the content view version
@@ -2970,8 +2963,8 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
 
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_custom_ostree_end_to_end(session, module_org):
     """Create content view with custom ostree contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
@@ -3026,7 +3019,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
 
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
-@tier3
+@pytest.mark.tier3
 def test_positive_rh_ostree_end_to_end(session):
     """Create content view with RH ostree contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
@@ -3084,9 +3077,9 @@ def test_positive_rh_ostree_end_to_end(session):
 
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
-@upgrade
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.upgrade
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_mixed_content_end_to_end(session, module_org):
     """Create a CV with ostree as well as yum and puppet type contents and
     publish and promote them to next environment. Remove promoted version afterwards
@@ -3146,8 +3139,8 @@ def test_positive_mixed_content_end_to_end(session, module_org):
 
 
 @skip_if_os('RHEL6')
-@upgrade
-@tier3
+@pytest.mark.upgrade
+@pytest.mark.tier3
 def test_positive_rh_mixed_content_end_to_end(session):
     """Create a CV with RH ostree as well as RH yum contents and publish and promote
     them to next environment. Remove promoted version afterwards
@@ -3200,8 +3193,8 @@ def test_positive_rh_mixed_content_end_to_end(session):
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_errata_inc_update_list_package(session):
     """Publish incremental update with a new errata for a custom repo
 
@@ -3264,8 +3257,8 @@ def test_positive_errata_inc_update_list_package(session):
         assert packages == {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_composite_child_inc_update(session):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
@@ -3359,8 +3352,8 @@ def test_positive_composite_child_inc_update(session):
             assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_module_stream_end_to_end(session, module_org):
     """Create content view with custom module_stream contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
@@ -3408,8 +3401,8 @@ def test_positive_module_stream_end_to_end(session, module_org):
         assert session.contentview.search(cv_name)[0]['Name'] != cv_name
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_search_module_streams_in_content_view(session, module_org):
     """Search module streams in content view version
 
@@ -3445,7 +3438,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
             )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_non_admin_user_actions(session, module_org, test_name):
     """Attempt to manage content views
 
@@ -3510,7 +3503,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         assert session.contentview.search(cv_copy_name)[0]['Name'] == cv_copy_name
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as session:
-        with raises(NavigationTriesExceeded):
+        with pytest.raises(NavigationTriesExceeded):
             session.organization.create(
                 {'name': gen_string('alpha'), 'label': gen_string('alpha')}
             )
@@ -3542,7 +3535,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         assert f'Promoted to {lce.name}' in result['Status']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_readonly_user_actions(module_org, test_name):
     """Attempt to view content views
 
@@ -3581,7 +3574,7 @@ def test_positive_readonly_user_actions(module_org, test_name):
     cv.publish()
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as session:
-        with raises(NavigationTriesExceeded):
+        with pytest.raises(NavigationTriesExceeded):
             session.location.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
         assert session.contentview.search(cv.name)[0]['Name'] == cv.name
         cv_values = session.contentview.read(cv.name)
@@ -3590,7 +3583,7 @@ def test_positive_readonly_user_actions(module_org, test_name):
         assert cv_values['repositories']['resources']['assigned'][0]['Name'] == yum_repo.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_read_only_user_actions(session, module_org, test_name):
     """Attempt to manage content views
 
@@ -3641,29 +3634,29 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
     cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as custom_session:
-        with raises(NavigationTriesExceeded):
+        with pytest.raises(NavigationTriesExceeded):
             custom_session.location.create(
                 {'name': gen_string('alpha'), 'label': gen_string('alpha')}
             )
         assert custom_session.contentview.search(cv.name)[0]['Name'] == cv.name
-        with raises(InvalidElementStateException):
+        with pytest.raises(InvalidElementStateException):
             custom_session.contentview.update(cv.name, {'details.name': gen_string('alpha')})
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             custom_session.contentview.publish(cv.name)
         assert 'failed to reach [Publish]' in str(context.value)
     with session:
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
     with Session(test_name, user=user_login, password=user_password) as session:
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.promote(cv.name, VERSION, lce.name)
         assert 'failed to reach [Promote]' in str(context.value)
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.delete(cv.name)
         assert 'failed to reach [Delete]' in str(context.value)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_non_readonly_user_actions(module_org, test_name):
     """Attempt to view content views
 
@@ -3718,7 +3711,7 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
     ).create()
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as session:
-        with raises(NavigationTriesExceeded):
+        with pytest.raises(NavigationTriesExceeded):
             session.user.create(
                 {
                     'user.login': gen_string('alpha'),
@@ -3727,13 +3720,13 @@ def test_negative_non_readonly_user_actions(module_org, test_name):
                     'user.confirm': gen_string('alpha'),
                 }
             )
-        with raises(NavigationTriesExceeded) as context:
+        with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.search(cv.name)
         assert 'Navigation failed to reach [All]' in str(context.value)
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_conservative_solve_dependencies(session, module_org):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
@@ -3807,7 +3800,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
             assert not package[0]['Name']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_conservative_dep_solving_with_multiversion_packages(session, module_org):
     """Performing solve dependencies on a package with multiple versions that is required
     by another package.
@@ -3873,8 +3866,8 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
         assert package[0]['Version'] == '0.71'
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_greedy_solve_dependencies(session, module_org):
     """Performing solve dependencies on a package that is required by another
     package.  Then performing solve dependencies on a root package with
@@ -3951,8 +3944,8 @@ def test_positive_greedy_solve_dependencies(session, module_org):
         session.settings.update(f'name = {property_name}', conserve_param_value)
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_org):
     """Performing solve dependencies on a package with multiple versions that is required
     by another package.
@@ -4019,8 +4012,8 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
         session.settings.update(f'name = {property_name}', conserve_param_value)
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_depsolve_with_module_errata(session, module_org):
     """Allowing users to filter module streams in content views.  This test case does not test
     against RHEL8 repos because it is known that RHEL8 filtering with depsolving creates

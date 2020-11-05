@@ -30,10 +30,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 
 
@@ -153,8 +149,8 @@ class TestProvisioningTemplate:
     :CaseLevel: Acceptance
     """
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_end_to_end_crud(self, module_org, module_location, module_user):
         """Create a new provisioning template with several attributes, update them,
         clone the provisioning template and then delete it
@@ -230,9 +226,9 @@ class TestProvisioningTemplate:
             updated.read()
         assert e3.value.response.status_code == 404
 
-    @tier2
-    @upgrade
-    @run_in_one_thread
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.run_in_one_thread
     def test_positive_build_pxe_default(self, tftpboot):
         """Call the "build_pxe_default" path.
 

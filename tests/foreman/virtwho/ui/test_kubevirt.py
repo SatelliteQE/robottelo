@@ -14,10 +14,9 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -27,7 +26,7 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-@fixture()
+@pytest.fixture()
 def form_data():
     form = {
         'debug': True,
@@ -40,7 +39,7 @@ def form_data():
 
 
 class TestVirtwhoConfigforKubevirt:
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
         """Verify configure created and deployed with id.
 
@@ -77,7 +76,7 @@ class TestVirtwhoConfigforKubevirt:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(self, session, form_data):
         """Verify configure created and deployed with script.
 
@@ -114,7 +113,7 @@ class TestVirtwhoConfigforKubevirt:
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(self, session, form_data):
         """Verify Hypervisor ID dropdown options.
 

@@ -16,11 +16,11 @@
 """
 import random
 
+import pytest
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.report import Report
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -38,7 +38,7 @@ class ReportTestCase(CLITestCase):
         """
         ssh.command('puppet agent -t')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Test list for Puppet report
 
@@ -50,7 +50,7 @@ class ReportTestCase(CLITestCase):
         """
         Report.list()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_info(self):
         """Test Info for Puppet report
 
@@ -67,8 +67,8 @@ class ReportTestCase(CLITestCase):
         result = Report.info({'id': report['id']})
         self.assertEqual(report['id'], result['id'])
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_id(self):
         """Check if Puppet Report can be deleted by its ID
 

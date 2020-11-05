@@ -25,9 +25,6 @@ from robottelo.cli.factory import make_os
 from robottelo.cli.medium import Medium
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
@@ -36,7 +33,7 @@ OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
 class TestMedium:
     """Test class for Medium CLI"""
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list().values()))
     def test_positive_crud_with_name(self, name):
         """Check if Medium can be created, updated, deleted
@@ -60,7 +57,7 @@ class TestMedium:
         with pytest.raises(CLIReturnCodeError):
             Medium.info({'id': medium['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_location(self):
         """Check if medium with location can be created
 
@@ -75,7 +72,7 @@ class TestMedium:
         medium = make_medium({'location-ids': location['id']})
         assert location['name'] in medium['locations']
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_organization_by_id(self):
         """Check if medium with organization can be created
 
@@ -90,8 +87,8 @@ class TestMedium:
         medium = make_medium({'organization-ids': org['id']})
         assert org['name'] in medium['organizations']
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remove_os(self):
         """Check if Medium can be associated with operating system and then removed from media
 

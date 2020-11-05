@@ -18,14 +18,10 @@ import pytest
 from nailgun import entities
 
 from robottelo.datafactory import gen_string
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 
 
-@tier1
-@upgrade
+@pytest.mark.tier1
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, tailoring_file_path):
     """Perform end to end testing for tailoring file component
 
@@ -67,7 +63,7 @@ def test_positive_end_to_end(session, tailoring_file_path):
         # assert not session.oscaptailoringfile.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_download_tailoring_file():
     """Download the tailoring file from satellite
@@ -88,7 +84,7 @@ def test_positive_download_tailoring_file():
 
 
 @pytest.mark.stubbed
-@tier4
+@pytest.mark.tier4
 def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
     """End-to-End Oscap run with tailoring files and external capsule
 
@@ -116,7 +112,7 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
 
 
 @pytest.mark.stubbed
-@tier4
+@pytest.mark.tier4
 def test_positive_fetch_tailoring_file_information_from_arfreports():
     """Fetch Tailoring file Information from Arf-reports
 

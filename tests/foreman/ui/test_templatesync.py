@@ -18,8 +18,6 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
 @pytest.fixture(scope='module')
@@ -32,8 +30,8 @@ def templates_loc(templates_org):
     return entities.Location(organization=[templates_org]).create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_import_templates(session, templates_org, templates_loc):
     """Import template(s) from external source to satellite
 
@@ -87,8 +85,8 @@ def test_positive_import_templates(session, templates_org, templates_loc):
         assert f'name: {import_template}' in pt['template']['template_editor']['editor']
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_export_templates(session):
     """Export the satellite templates to local directory
 

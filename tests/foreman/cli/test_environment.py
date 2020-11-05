@@ -16,6 +16,7 @@
 """
 from random import choice
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -29,10 +30,6 @@ from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -40,7 +37,7 @@ class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         super().setUpClass()
         cls.org = entities.Organization().create()
@@ -55,7 +52,7 @@ class EnvironmentTestCase(CLITestCase):
             {'name': puppet_modules[0]['name'], 'environment': cls.env['name']}
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_list_with_parameters(self):
         """Test Environment List filtering parameters validation.
 
@@ -83,7 +80,7 @@ class EnvironmentTestCase(CLITestCase):
         results = Environment.list({'organization': self.org.name, 'location': self.loc2.name})
         self.assertEqual(len(results), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Don't create an Environment with invalid data.
 
@@ -98,8 +95,8 @@ class EnvironmentTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.create({'name': name})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_CRUD_with_attributes(self):
         """Check if Environment with attributes can be created, updated and removed
 
@@ -160,7 +157,7 @@ class EnvironmentTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Environment.info({'id': environment['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_delete_by_id(self):
         """Create Environment then delete it by wrong ID
 
@@ -175,7 +172,7 @@ class EnvironmentTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.delete({'id': entity_id})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Update the Environment with invalid values
 
@@ -192,7 +189,7 @@ class EnvironmentTestCase(CLITestCase):
                 result = Environment.info({'id': environment['id']})
                 self.assertEqual(environment['name'], result['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_sc_params(self):
         """Check if environment sc-param subcommand works passing
         an environment id

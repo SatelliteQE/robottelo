@@ -17,21 +17,18 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session):
     """Perform end to end testing for organization component
 
@@ -97,7 +94,7 @@ def test_positive_end_to_end(session):
         )
 
         org_values = session.organization.read(new_name, widget_names=widget_list)
-        with raises(AssertionError):
+        with pytest.raises(AssertionError):
             session.organization.delete(new_name)
         assert user.login in org_values['users']['resources']['assigned']
         assert media.name in org_values['media']['resources']['assigned']
@@ -153,7 +150,7 @@ def test_positive_end_to_end(session):
         assert not session.organization.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_scoped(session):
     """Test scoped search functionality for organization by label
 
@@ -179,7 +176,7 @@ def test_positive_search_scoped(session):
 
 
 @pytest.mark.skip_if_open("BZ:1321543")
-@tier2
+@pytest.mark.tier2
 def test_positive_create_with_all_users(session):
     """Create organization and new user. Check 'all users' setting for
     organization. Verify that user is assigned to organization and
@@ -208,7 +205,7 @@ def test_positive_create_with_all_users(session):
 
 
 @skip_if_not_set('compute_resources')
-@tier2
+@pytest.mark.tier2
 def test_positive_update_compresource(session):
     """Add/Remove compute resource from/to organization.
 
@@ -237,8 +234,8 @@ def test_positive_update_compresource(session):
 
 
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_delete_with_manifest_lces(session):
     """Create Organization with valid values and upload manifest.
     Then try to delete that organization.
@@ -265,8 +262,8 @@ def test_positive_delete_with_manifest_lces(session):
 
 
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_download_debug_cert_after_refresh(session):
     """Create organization with valid manifest. Download debug
     certificate for that organization and refresh added manifest for few

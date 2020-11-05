@@ -25,20 +25,17 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import parametrize
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
 
 
+# TODO mark this on the module with a lambda for skip condition
+# so that this is executed during the session at run loop, instead of at module import
 if not setting_is_set('rhev'):
     pytest.skip('skipping tests due to missing rhev settings', allow_module_level=True)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_ca_cert():
     return (
         None
@@ -47,7 +44,7 @@ def module_ca_cert():
     )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def rhev_data():
     return {
         'rhev_url': settings.rhev.hostname,
@@ -64,18 +61,18 @@ def rhev_data():
     }
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@tier2
-@parametrize('version', [True, False])
+@pytest.mark.tier2
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_ca_cert, version):
     """Perform end to end testing for compute resource RHEV.
 
@@ -122,8 +119,8 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
         assert not session.computeresource.search(new_name)
 
 
-@tier2
-@parametrize('version', [True, False])
+@pytest.mark.tier2
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
     """Create new RHEV Compute Resource using APIv3/APIv4 and autoloaded cert
 
@@ -160,8 +157,8 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
         assert resource_values['provider_content']['api4'] == version
 
 
-@tier2
-@parametrize('version', [True, False])
+@pytest.mark.tier2
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, version):
     """Edit RHEV Compute Resource with another description
 
@@ -197,8 +194,8 @@ def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, 
         assert resource_values['description'] == new_description
 
 
-@tier2
-@parametrize('version', [True, False])
+@pytest.mark.tier2
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version):
     """List VMs for RHEV Compute Resource
 
@@ -228,7 +225,7 @@ def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version)
         assert vm['Name'].read() == rhev_data['vm_name']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
     """Edit RHEV Compute Resource with another protocol version
 
@@ -260,9 +257,9 @@ def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
         assert resource_values['provider_content']['api4']
 
 
-@tier2
-@parametrize('version', [True, False])
-@run_in_one_thread
+@pytest.mark.tier2
+@pytest.mark.parametrize('version', [True, False])
+@pytest.mark.run_in_one_thread
 def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_data, version):
     """Read current RHEV Compute Resource virtual machine power status and
     change it to opposite one
@@ -308,8 +305,8 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
         assert session.computeresource.vm_status(name, rhev_data['vm_name']) is not status
 
 
-@tier3
-@parametrize('version', [True, False])
+@pytest.mark.tier3
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhev_data, version):
     """Import an existing VM as a Host
 
@@ -394,8 +391,8 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
-@tier3
-@parametrize('version', [True, False])
+@pytest.mark.tier3
+@pytest.mark.parametrize('version', [True, False])
 def test_positive_update_organization(session, rhev_data, module_loc, module_ca_cert, version):
     """Update a rhev Compute Resource organization
 
@@ -444,7 +441,7 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
         assert new_organization.name in resource_values['organizations']['resources']['assigned']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cert):
     """Perform end to end testing for compute resource RHV component image.
 
@@ -506,7 +503,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
 
 
 @skip_if_not_set('vlan_networking')
-@tier2
+@pytest.mark.tier2
 def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_cert):
     """ "Associate custom default (3-Large) compute profile to RHV compute resource.
 
@@ -591,7 +588,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
                 assert provided_value == expected_value
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_associate_with_custom_profile_with_template(session, rhev_data, module_ca_cert):
     """Associate custom default (3-Large) compute profile to rhev compute
      resource, with template

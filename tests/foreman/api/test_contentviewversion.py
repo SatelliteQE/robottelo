@@ -31,10 +31,6 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
@@ -54,7 +50,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
         super().setUp()
         self.content_view = entities.ContentView(organization=self.org).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create(self):
         """Create a content view version.
 
@@ -77,7 +73,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
         cv = cv.read()
         self.assertGreater(len(cv.version), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create(self):
         """Create content view version using the 'Default Content View'.
 
@@ -114,7 +110,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         assert len(default_cv[0].version) == 1
         cls.default_cv = default_cv[0].version[0].read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_valid_environment(self):
         """Promote a content view version to 'next in sequence'
         lifecycle environment.
@@ -146,7 +142,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         version = version.read()
         self.assertEqual(len(version.environment), 2)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_out_of_sequence_environment(self):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
@@ -173,7 +169,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         version = version.read()
         self.assertEqual(len(version.environment), 2)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_promote_valid_environment(self):
         """Promote the default content view version.
 
@@ -188,7 +184,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             promote(self.default_cv, self.lce1.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_promote_out_of_sequence_environment(self):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
@@ -216,8 +212,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 class ContentViewVersionDeleteTestCase(APITestCase):
     """Tests for content view version promotion."""
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -261,8 +257,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_delete_non_default(self):
         """Create content view and publish and promote it to new
         environment. After that try to disassociate content view from 'Library'
@@ -295,9 +291,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
-    @upgrade
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_composite_version(self):
         """Create composite content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -338,9 +334,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(composite_cv.read().version), 0)
 
-    @upgrade
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_with_puppet_content(self):
         """Delete content view version with puppet module content
 
@@ -402,7 +398,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         content_view_version.delete()
         self.assertEqual(len(content_view.read().version), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_delete(self):
         """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
@@ -427,8 +423,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is still present
         self.assertEqual(len(content_view.read().version), 1)
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -479,7 +475,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # environment
         self.assertEqual(len(content_view_version.read().environment), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
         """Remove QE promoted content view version from Library environment
 
@@ -539,8 +535,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             {lce_dev.id, lce_qe.id}, {lce.id for lce in content_view_version.read().environment}
         )
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -613,8 +609,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             {lce.id for lce in content_view_version.read().environment},
         )
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -691,8 +687,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             {lce.id for lce in content_view_version.read().environment},
         )
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -762,9 +758,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             {lce.id for lce in content_view_version.read().environment},
         )
 
-    @upgrade
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments
@@ -836,7 +832,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             content_view.read()
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
         in association of an Activation key and content-host registration.
@@ -872,9 +868,9 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @upgrade
+    @pytest.mark.upgrade
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
          environments, with one of the environments used in association of an
@@ -914,7 +910,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
@@ -955,8 +951,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 class ContentViewVersionIncrementalTestCase(APITestCase):
     """Tests for content view version promotion."""
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.
 
@@ -1017,7 +1013,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         self.assertEqual(len(content_view.version[1].puppet_module), 1)
         self.assertEqual(content_view.version[1].puppet_module[0].id, puppet_module.id)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_incremental_update_propagate_composite(self):
         """Incrementally update a CVV in composite CV with
         `propagate_all_composites` flag set

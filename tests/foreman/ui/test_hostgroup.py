@@ -12,31 +12,28 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 
 from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for host group component
 
@@ -83,7 +80,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert not session.hostgroup.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
     """Attempt to delete hostgroup which has dependent discovery rule
 
@@ -107,13 +104,13 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
     with session:
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
         # Make an attempt to delete host group that associated with discovery rule
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.hostgroup.delete(hostgroup.name)
         assert "Cannot delete record because dependent discovery rules exist" in str(context.value)
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_create_with_config_group(session, module_org, module_loc):
     """Create new host group with assigned config group to it
 
@@ -142,8 +139,8 @@ def test_create_with_config_group(session, module_org, module_loc):
         )
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_create_with_puppet_class(session, module_org, module_loc):
     """Create new host group with assigned puppet class to it
 

@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -25,10 +26,6 @@ from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.cli.job_template import JobTemplate
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 TEMPLATE_FILE = 'template_file.txt'
@@ -46,7 +43,7 @@ class JobTemplateTestCase(CLITestCase):
         ssh.command(f'''echo '<%= input("command") %>' > {TEMPLATE_FILE}''')
         ssh.command(f'touch {TEMPLATE_FILE_EMPTY}')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_job_template(self):
         """Create a simple Job Template
 
@@ -66,7 +63,7 @@ class JobTemplateTestCase(CLITestCase):
         )
         self.assertIsNotNone(JobTemplate.info({'name': template_name}))
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_job_template_with_invalid_name(self):
         """Create Job Template with invalid name
 
@@ -88,7 +85,7 @@ class JobTemplateTestCase(CLITestCase):
                         }
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_job_template_with_same_name(self):
         """Create Job Template with duplicate name
 
@@ -115,7 +112,7 @@ class JobTemplateTestCase(CLITestCase):
                 }
             )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_empty_job_template(self):
         """Create Job Template with empty template file
 
@@ -135,8 +132,8 @@ class JobTemplateTestCase(CLITestCase):
                 }
             )
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_job_template(self):
         """Delete a job template
 
@@ -158,8 +155,8 @@ class JobTemplateTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             JobTemplate.info({'name': template_name})
 
-    @run_in_one_thread
-    @tier2
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
     def test_positive_list_job_template_with_saved_org_and_loc(self):
         """List available job templates with saved default organization and
         location in config
@@ -190,7 +187,7 @@ class JobTemplateTestCase(CLITestCase):
             Defaults.delete({'param-name': 'organization_id'})
             Defaults.delete({'param-name': 'location_id'})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_view_dump(self):
         """Export contents of a job template
 

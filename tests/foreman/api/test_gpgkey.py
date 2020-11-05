@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
@@ -22,7 +23,6 @@ from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -37,7 +37,7 @@ class GPGKeyTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.key_content = read_data_file(VALID_GPG_KEY_FILE)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_in_org(self):
         """Search for a GPG key and specify just ``organization_id``.
 
@@ -60,7 +60,7 @@ class GPGKeyTestCase(APITestCase):
         self.assertEqual(len(gpg_keys), 1)
         self.assertEqual(gpg_key.id, gpg_keys[0].id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a GPG key with valid name.
 
@@ -75,7 +75,7 @@ class GPGKeyTestCase(APITestCase):
                 gpg_key = entities.GPGKey(organization=self.org, name=name).create()
                 self.assertEqual(name, gpg_key.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_content(self):
         """Create a GPG key with valid name and valid gpg key text.
 
@@ -88,7 +88,7 @@ class GPGKeyTestCase(APITestCase):
         gpg_key = entities.GPGKey(organization=self.org, content=self.key_content).create()
         self.assertEqual(self.key_content, gpg_key.content)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_name(self):
         """Attempt to create GPG key with invalid names only.
 
@@ -103,7 +103,7 @@ class GPGKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.GPGKey(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Attempt to create a GPG key providing a name of already existent
         entity
@@ -119,7 +119,7 @@ class GPGKeyTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.GPGKey(organization=self.org, name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_content(self):
         """Attempt to create GPG key with empty content.
 
@@ -132,7 +132,7 @@ class GPGKeyTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.GPGKey(content='').create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update GPG key name to another valid name.
 
@@ -149,7 +149,7 @@ class GPGKeyTestCase(APITestCase):
                 gpg_key = gpg_key.update(['name'])
                 self.assertEqual(new_name, gpg_key.name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_content(self):
         """Update GPG key content text to another valid one.
 
@@ -166,7 +166,7 @@ class GPGKeyTestCase(APITestCase):
         gpg_key = gpg_key.update(['content'])
         self.assertEqual(self.key_content, gpg_key.content)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Attempt to update GPG key name to invalid one
 
@@ -183,7 +183,7 @@ class GPGKeyTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     gpg_key.update(['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_same_name(self):
         """Attempt to update GPG key name to the name of existing GPG key
         entity
@@ -201,7 +201,7 @@ class GPGKeyTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             new_gpg_key.update(['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_content(self):
         """Attempt to update GPG key content to invalid one
 
@@ -217,7 +217,7 @@ class GPGKeyTestCase(APITestCase):
             gpg_key.update(['content'])
         self.assertEqual(self.key_content, gpg_key.read().content)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Create a GPG key with different names and then delete it.
 

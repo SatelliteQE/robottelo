@@ -14,27 +14,24 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
 
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import GCE_EXTERNAL_IP_DEFAULT
 from robottelo.constants import GCE_MACHINE_TYPE_DEFAULT
 from robottelo.constants import GCE_NETWORK_DEFAULT
-from robottelo.decorators import fixture
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import download_gce_cert
 from robottelo.test import settings
 
 if not setting_is_set('gce'):
-    skip('skipping tests due to missing gce settings', allow_module_level=True)
+    pytest.skip('skipping tests due to missing gce settings', allow_module_level=True)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_gce_settings():
     return dict(
         project_id=settings.gce.project_id,
@@ -45,18 +42,18 @@ def module_gce_settings():
     )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_loc, module_gce_settings
 ):
@@ -79,7 +76,7 @@ def test_positive_default_end_to_end_with_custom_profile(
     :CaseImportance: Critical
     """
     if not setting_is_set('http_proxy'):
-        skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
+        pytest.skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')

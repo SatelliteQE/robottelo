@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
@@ -23,24 +24,20 @@ from robottelo.config import settings
 from robottelo.constants import REPO_TYPE
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_create_update_delete(session, module_org, module_loc):
     """Create new http-proxy with attributes, update and delete it.
 
@@ -86,8 +83,8 @@ def test_positive_create_update_delete(session, module_org, module_loc):
         assert not session.http_proxy.search(updated_proxy_name)
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_loc):
     """Assign HTTP Proxy to Products and Repositories.
 

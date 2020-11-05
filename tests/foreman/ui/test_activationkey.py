@@ -16,6 +16,7 @@
 """
 import random
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
@@ -48,26 +49,19 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import fixture
-from robottelo.decorators import parametrize
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.vm import VirtualMachine
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end_crud(session, module_org):
     """Perform end to end testing for activation key component
 
@@ -103,8 +97,8 @@ def test_positive_end_to_end_crud(session, module_org):
         assert session.activationkey.search(new_name)[0]['Name'] != new_name
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_end_to_end_register(session):
     """Create activation key and use it during content host registering
 
@@ -135,9 +129,9 @@ def test_positive_end_to_end_register(session):
             assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
-@tier2
-@upgrade
-@parametrize('cv_name', **parametrized(valid_data_list('ui')))
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.parametrize('cv_name', **parametrized(valid_data_list('ui')))
 def test_positive_create_with_cv(session, module_org, cv_name):
     """Create Activation key for all variations of Content Views
 
@@ -162,8 +156,8 @@ def test_positive_create_with_cv(session, module_org, cv_name):
         assert ak['details']['content_view'] == cv_name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_search_scoped(session, module_org):
     """Test scoped search for different activation key parameters
 
@@ -202,8 +196,8 @@ def test_positive_search_scoped(session, module_org):
             assert session.activationkey.search(f'{query_type} = {query_value}')[0]['Name'] == name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_create_with_host_collection(session, module_org):
     """Create Activation key with Host Collection
 
@@ -223,8 +217,8 @@ def test_positive_create_with_host_collection(session, module_org):
         assert ak['host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_create_with_envs(session, module_org):
     """Create Activation key with lifecycle environment
 
@@ -250,7 +244,7 @@ def test_positive_create_with_envs(session, module_org):
         assert ak['details']['lce'][env_name][env_name]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_host_collection_non_admin(module_org, test_name):
     """Test that host collection can be associated to Activation Keys by
     non-admin user.
@@ -287,8 +281,8 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
         assert ak['host_collections']['resources']['assigned'][0]['Name'] == hc.name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_remove_host_collection_non_admin(module_org, test_name):
     """Test that host collection can be removed from Activation Keys by
     non-admin user.
@@ -327,7 +321,7 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
         assert not ak['host_collections']['resources']['assigned']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_with_env(session, module_org):
     """Create Activation key with environment and delete it
 
@@ -350,8 +344,8 @@ def test_positive_delete_with_env(session, module_org):
         assert session.activationkey.search(name)[0]['Name'] != name
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_delete_with_cv(session, module_org):
     """Create Activation key with content view and delete it
 
@@ -376,8 +370,8 @@ def test_positive_delete_with_cv(session, module_org):
         assert session.activationkey.search(name)[0]['Name'] != name
 
 
-@run_in_one_thread
-@tier2
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
 def test_positive_update_env(session, module_org):
     """Update Environment in an Activation key
 
@@ -405,9 +399,9 @@ def test_positive_update_env(session, module_org):
         assert ak['details']['lce'][env_name][env_name]
 
 
-@run_in_one_thread
-@tier2
-@parametrize('cv2_name', **parametrized(valid_data_list('ui')))
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
+@pytest.mark.parametrize('cv2_name', **parametrized(valid_data_list('ui')))
 def test_positive_update_cv(session, module_org, cv2_name):
     """Update Content View in an Activation key
 
@@ -447,9 +441,9 @@ def test_positive_update_cv(session, module_org, cv2_name):
         assert ak['details']['content_view'] == cv2_name
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_update_rh_product(session):
     """Update Content View in an Activation key
 
@@ -506,9 +500,9 @@ def test_positive_update_rh_product(session):
         assert ak['details']['content_view'] == cv2_name
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_add_rh_product(session):
     """Test that RH product can be associated to Activation Keys
 
@@ -548,7 +542,7 @@ def test_positive_add_rh_product(session):
         assert subs_name == DEFAULT_SUBSCRIPTION_NAME
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_custom_product(session, module_org):
     """Test that custom product can be associated to Activation Keys
 
@@ -577,10 +571,10 @@ def test_positive_add_custom_product(session, module_org):
         assert assigned_prod == product_name
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_add_rh_and_custom_products(session):
     """Test that RH/Custom product can be associated to Activation keys
 
@@ -637,10 +631,10 @@ def test_positive_add_rh_and_custom_products(session):
         assert {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(subscriptions)
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_fetch_product_content(session):
     """Associate RH & custom product with AK and fetch AK's product content
 
@@ -686,8 +680,8 @@ def test_positive_fetch_product_content(session):
         assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_access_non_admin_user(session, test_name):
     """Access activation key that has specific name and assigned environment by
     user that has filter configured for that specific activation key
@@ -769,7 +763,7 @@ def test_positive_access_non_admin_user(session, test_name):
         )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_remove_user(session, module_org, test_name):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
@@ -794,7 +788,7 @@ def test_positive_remove_user(session, module_org, test_name):
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repo_cv(session, module_org):
     """Add docker repository to a non-composite content view and
     publish it. Then create an activation key and associate it with the
@@ -829,7 +823,7 @@ def test_positive_add_docker_repo_cv(session, module_org):
         assert ak['details']['lce'][lce.name][lce.name]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_docker_repo_ccv(session, module_org):
     """Add docker repository to a non-composite content view and publish it.
     Then add this content view to a composite content view and publish it.
@@ -872,7 +866,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
 
 
 @skip_if_not_set('clients')
-@tier3
+@pytest.mark.tier3
 def test_positive_add_host(session, module_org):
     """Test that hosts can be associated to Activation Keys
 
@@ -905,7 +899,7 @@ def test_positive_add_host(session, module_org):
 
 
 @skip_if_not_set('clients')
-@tier3
+@pytest.mark.tier3
 def test_positive_delete_with_system(session):
     """Delete an Activation key which has registered systems
 
@@ -944,7 +938,7 @@ def test_positive_delete_with_system(session):
 
 
 @skip_if_not_set('clients')
-@tier3
+@pytest.mark.tier3
 def test_negative_usage_limit(session, module_org):
     """Test that Usage limit actually limits usage
 
@@ -982,9 +976,9 @@ def test_negative_usage_limit(session, module_org):
 
 
 @skip_if_not_set('clients')
-@tier3
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_multiple_aks_to_system(session, module_org):
     """Check if multiple Activation keys can be attached to a system
 
@@ -1038,9 +1032,9 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
 
 
 @skip_if_not_set('clients')
-@tier3
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_host_associations(session):
     """Register few hosts with different activation keys and ensure proper
     data is reflected under Associations > Content Hosts tab
@@ -1080,8 +1074,8 @@ def test_positive_host_associations(session):
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_service_level_subscription_with_custom_product(session):
     """Subscribe a host to activation key with Premium service level and with
     custom product
@@ -1144,9 +1138,9 @@ def test_positive_service_level_subscription_with_custom_product(session):
             assert product.name in subscriptions
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_manifest(session):
     """Check if deleting a manifest removes it from Activation key
 

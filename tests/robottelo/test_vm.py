@@ -16,7 +16,6 @@ from robottelo.constants import SM_OVERALL_STATUS
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
 
-
 PROV_SERVER_DEFAULT = 'provisioning.example.com'
 
 

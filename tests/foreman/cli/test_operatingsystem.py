@@ -32,10 +32,6 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import destructive
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -48,7 +44,7 @@ def negative_delete_data():
 class OperatingSystemTestCase(CLITestCase):
     """Test class for Operating System CLI."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_by_name(self):
         """Search for newly created OS by name
 
@@ -66,7 +62,7 @@ class OperatingSystemTestCase(CLITestCase):
         os_list_after = OperatingSys.list()
         self.assertGreater(len(os_list_after), len(os_list_before))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_by_title(self):
         """Search for newly created OS by title
 
@@ -84,7 +80,7 @@ class OperatingSystemTestCase(CLITestCase):
         os_list_after = OperatingSys.list()
         self.assertGreater(len(os_list_after), len(os_list_before))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Displays list for operating system
 
@@ -103,7 +99,7 @@ class OperatingSystemTestCase(CLITestCase):
         os_list_after = OperatingSys.list()
         self.assertGreater(len(os_list_after), len(os_list_before))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_info_by_id(self):
         """Displays info for operating system by its ID
 
@@ -123,7 +119,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(str(os['major-version']), os_info['major-version'])
         self.assertEqual(str(os['minor-version']), os_info['minor-version'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create Operating System for all variations of name
 
@@ -138,7 +134,7 @@ class OperatingSystemTestCase(CLITestCase):
                 os = make_os({'name': name})
                 self.assertEqual(os['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_arch_medium_ptable(self):
         """Create an OS pointing to an arch, medium and partition table.
 
@@ -165,7 +161,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(operating_system['installation-media'][0], medium['name'])
         self.assertEqual(operating_system['partition-tables'][0], ptable['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Create Operating System using invalid names
 
@@ -180,7 +176,7 @@ class OperatingSystemTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_os({'name': name})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Positive update of operating system name
 
@@ -198,7 +194,7 @@ class OperatingSystemTestCase(CLITestCase):
                 self.assertEqual(result['id'], os['id'])
                 self.assertNotEqual(result['name'], os['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_major_version(self):
         """Update an Operating System's major version.
 
@@ -215,7 +211,7 @@ class OperatingSystemTestCase(CLITestCase):
         os = OperatingSys.info({'id': os['id']})
         self.assertEqual(int(os['major-version']), major)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Negative update of system name
 
@@ -233,8 +229,8 @@ class OperatingSystemTestCase(CLITestCase):
                 result = OperatingSys.info({'id': os['id']})
                 self.assertEqual(result['name'], os['name'])
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_id(self):
         """Successfully deletes Operating System by its ID
 
@@ -251,7 +247,7 @@ class OperatingSystemTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     OperatingSys.info({'id': os['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_delete_by_id(self):
         """Delete Operating System using invalid data
 
@@ -272,7 +268,7 @@ class OperatingSystemTestCase(CLITestCase):
                 self.assertEqual(os['id'], result['id'])
                 self.assertEqual(os['name'], result['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_arch(self):
         """Add Architecture to operating system
 
@@ -289,8 +285,8 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(len(os['architectures']), 1)
         self.assertEqual(architecture['name'], os['architectures'][0])
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_template(self):
         """Add provisioning template to operating system
 
@@ -310,7 +306,7 @@ class OperatingSystemTestCase(CLITestCase):
         template_name = os['templates'][0]
         self.assertTrue(template_name.startswith(template['name']))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_ptable(self):
         """Add partition table to operating system
 
@@ -331,7 +327,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(len(os['partition-tables']), 1)
         self.assertEqual(os['partition-tables'][0], ptable_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_parameters_attributes(self):
         """Update os-parameters-attributes to operating system
 
@@ -356,7 +352,7 @@ class OperatingSystemTestCase(CLITestCase):
         self.assertEqual(param_name, os['parameters'][0]['name'])
         self.assertEqual(param_value, os['parameters'][0]['value'])
 
-    @destructive
+    @pytest.mark.destructive
     @pytest.mark.skip_if_open("BZ:1649011")
     def test_positive_os_list_with_default_organization_set(self):
         """list operating systems when the default organization is set

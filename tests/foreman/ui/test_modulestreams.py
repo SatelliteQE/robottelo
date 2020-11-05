@@ -14,25 +14,24 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_yum_repo(module_product):
     yum_repo = entities.Repository(
         name=gen_string('alpha'),
@@ -44,7 +43,7 @@ def module_yum_repo(module_product):
     return yum_repo
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_module_stream_details_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
     module_streams inside of it

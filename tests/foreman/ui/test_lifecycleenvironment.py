@@ -14,10 +14,10 @@
 
 :Upstream: No
 """
+import pytest
 from airgun.session import Session
 from nailgun import entities
 from navmazing import NavigationTriesExceeded
-from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
@@ -33,20 +33,15 @@ from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_end_to_end(session):
     """Perform end to end testing for lifecycle environment component
 
@@ -83,8 +78,8 @@ def test_positive_end_to_end(session):
         assert new_lce_name not in lce_values['lce']
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_create_chain(session):
     """Create Content Environment in a chain
 
@@ -106,9 +101,9 @@ def test_positive_create_chain(session):
         assert lce_path_name in lce_values['lce'][lce_name]
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_puppet_module(session, module_org):
     """Promote content view with puppet module to a new environment
 
@@ -145,8 +140,8 @@ def test_positive_add_puppet_module(session, module_org):
         assert lce[0]['Name'] == puppet_module
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_packages_by_full_name(session, module_org):
     """Search Lifecycle Environment content view packages by full name
 
@@ -196,8 +191,8 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
                 assert result[0]['Name'] == package['name']
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_packages_by_name(session, module_org):
     """Search Lifecycle Environment content view packages by name
 
@@ -244,8 +239,8 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org):
                 assert entry['Name'].startswith(package['name'])
 
 
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_search_lce_content_view_module_streams_by_name(session, module_org):
     """Search Lifecycle Environment content view module streams by name
 
@@ -287,8 +282,8 @@ def test_positive_search_lce_content_view_module_streams_by_name(session, module
                 assert entry['Name'].startswith(module['name'])
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_custom_user_view_lce(session, test_name):
     """As a custom user attempt to view a lifecycle environment created
     by admin user
@@ -361,7 +356,7 @@ def test_positive_custom_user_view_lce(session, test_name):
     with Session(test_name, user_login, user_password) as non_admin_session:
         # to ensure that the created user has only the assigned
         # permissions, check that hosts menu tab does not exist
-        with raises(NavigationTriesExceeded):
+        with pytest.raises(NavigationTriesExceeded):
             assert not non_admin_session.host.read_all()
         # assert that the user can view the lvce created by admin user
         lce_values = non_admin_session.lifecycleenvironment.read_all()

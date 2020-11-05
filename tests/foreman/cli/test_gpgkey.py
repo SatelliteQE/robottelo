@@ -16,6 +16,7 @@
 """
 from tempfile import mkstemp
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_choice
 from fauxfactory import gen_integer
@@ -36,9 +37,6 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
@@ -75,7 +73,7 @@ class TestGPGKey(CLITestCase):
 
     # Bug verification
 
-    @tier1
+    @pytest.mark.tier1
     def test_verify_redmine_4272(self):
         """gpg info should display key content
 
@@ -94,7 +92,7 @@ class TestGPGKey(CLITestCase):
         )
         self.assertEqual(gpg_key['content'], content)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_get_info_by_name(self):
         """Create single gpg key and get its info by name
 
@@ -114,7 +112,7 @@ class TestGPGKey(CLITestCase):
 
     # Positive Create
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_org(self):
         """Create gpg key with valid name and valid gpg key via file
         import using the default created organization
@@ -137,7 +135,7 @@ class TestGPGKey(CLITestCase):
                 )
                 self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_custom_org(self):
         """Create gpg key with valid name and valid gpg key via file
         import using a new organization
@@ -166,7 +164,7 @@ class TestGPGKey(CLITestCase):
 
     # Negative Create
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
@@ -188,7 +186,7 @@ class TestGPGKey(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_gpg_key({'name': name, 'organization-id': self.org['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_no_gpg_key(self):
         """Create gpg key with valid name and no gpg key
 
@@ -203,7 +201,7 @@ class TestGPGKey(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     GPGKey.create({'name': name, 'organization-id': self.org['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self):
         """Create gpg key with invalid name and valid gpg key via
         file import
@@ -221,8 +219,8 @@ class TestGPGKey(CLITestCase):
                     make_gpg_key({'name': name, 'organization-id': self.org['id']})
 
     # Positive Delete
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete(self):
         """Create gpg key with valid name and valid gpg key via file
         import then delete it
@@ -250,7 +248,7 @@ class TestGPGKey(CLITestCase):
 
     # Positive Update
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then update its name
@@ -273,7 +271,7 @@ class TestGPGKey(CLITestCase):
                 )
                 gpg_key = GPGKey.info({'name': new_name, 'organization-id': self.org['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_key(self):
         """Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
@@ -296,7 +294,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(gpg_key['content'], content)
 
     # Negative Update
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
@@ -320,7 +318,7 @@ class TestGPGKey(CLITestCase):
                     )
 
     # Product association
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
@@ -335,7 +333,7 @@ class TestGPGKey(CLITestCase):
         product = make_product({'gpg-key-id': gpg_key['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -358,7 +356,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -383,7 +381,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -407,7 +405,7 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(repo['gpg-key']['id'], gpg_key['id'])
         self.assertNotEqual(product['gpg'].get('gpg-key-id'), gpg_key['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_repo_from_product_with_repos(self):
         """Create gpg key via file import and associate with custom repo
 
@@ -437,7 +435,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('id'), gpg_key['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_key_for_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product then
@@ -472,7 +470,7 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertEqual(product['gpg']['gpg-key'], new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_key_for_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -514,7 +512,7 @@ class TestGPGKey(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['gpg-key'].get('id'), gpg_key['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -558,7 +556,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertEqual(repo['gpg-key'].get('name'), new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -593,7 +591,7 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -638,7 +636,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_key_for_empty_product(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
@@ -665,8 +663,8 @@ class TestGPGKey(CLITestCase):
         product = Product.info({'id': product['id'], 'organization-id': self.org['id']})
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_delete_key_for_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -704,7 +702,7 @@ class TestGPGKey(CLITestCase):
         self.assertNotEqual(product['gpg']['gpg-key'], gpg_key['name'])
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
@@ -745,7 +743,7 @@ class TestGPGKey(CLITestCase):
             repo = Repository.info({'id': repo['id']})
             self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_key_for_repo_from_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -782,7 +780,7 @@ class TestGPGKey(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertNotEqual(repo['gpg-key'].get('name'), gpg_key['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
@@ -824,7 +822,7 @@ class TestGPGKey(CLITestCase):
 
     # Miscelaneous
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Create gpg key and list it
 
@@ -838,7 +836,7 @@ class TestGPGKey(CLITestCase):
         gpg_keys_list = GPGKey.list({'organization-id': self.org['id']})
         self.assertIn(gpg_key['id'], [gpg['id'] for gpg in gpg_keys_list])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search(self):
         """Create gpg key and search/find it
 

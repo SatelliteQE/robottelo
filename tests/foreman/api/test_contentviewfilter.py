@@ -21,6 +21,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 import http
 from random import randint
 
+import pytest
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import client
@@ -37,9 +38,6 @@ from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 
@@ -62,7 +60,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_get_with_no_args(self):
         """Issue an HTTP GET to the base content view filters path.
 
@@ -82,7 +80,7 @@ class ContentViewFilterTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, http.client.OK)
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_get_with_bad_args(self):
         """Issue an HTTP GET to the base content view filters path.
 
@@ -103,7 +101,7 @@ class ContentViewFilterTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, http.client.OK)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_erratum_with_name(self):
         """Create new erratum content filter using different inputs as a name
 
@@ -122,7 +120,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'erratum')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_pkg_group_with_name(self):
         """Create new package group content filter using different inputs as a name
 
@@ -143,7 +141,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'package_group')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_rpm_with_name(self):
         """Create new RPM content filter using different inputs as a name
 
@@ -164,7 +162,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'rpm')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_inclusion(self):
         """Create new content view filter with different inclusion values
 
@@ -182,7 +180,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.inclusion, inclusion)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_description(self):
         """Create new content filter using different inputs as a description
 
@@ -202,7 +200,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.description, description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_repo(self):
         """Create new content filter with repository assigned
 
@@ -218,7 +216,7 @@ class ContentViewFilterTestCase(APITestCase):
         ).create()
         self.assertEqual(cvf.repository[0].id, self.repo.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_original_packages(self):
         """Create new content view filter with different 'original packages'
         option values
@@ -242,7 +240,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.original_packages, original_packages)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_docker_repos(self):
         """Create new docker repository and add to content view that has yum
         repo already assigned to it. Create new content view filter and assign
@@ -272,8 +270,8 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_with_module_streams(self):
         """Verify Include and Exclude Filters creation for modulemd (module streams)
 
@@ -300,8 +298,8 @@ class ContentViewFilterTestCase(APITestCase):
         assert self.content_view.id == cvf.content_view.id
         assert cvf.type == 'modulemd'
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
         """Verify SWID tags content file should exist in publish content view
         version location even after applying content view filters.
@@ -359,7 +357,7 @@ class ContentViewFilterTestCase(APITestCase):
         result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
         assert result.return_code == 0
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_invalid_name(self):
         """Try to create content view filter using invalid names only
 
@@ -378,7 +376,7 @@ class ContentViewFilterTestCase(APITestCase):
                         content_view=self.content_view, name=name
                     ).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_same_name(self):
         """Try to create content view filter using same name twice
 
@@ -395,7 +393,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(**kwargs).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_without_cv(self):
         """Try to create content view filter without providing content
         view
@@ -411,7 +409,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(content_view=None).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_invalid_repo_id(self):
         """Try to create content view filter using incorrect repository
         id
@@ -429,7 +427,7 @@ class ContentViewFilterTestCase(APITestCase):
                 content_view=self.content_view, repository=[gen_integer(10000, 99999)]
             ).create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_by_id(self):
         """Delete content view filter
 
@@ -446,7 +444,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_name(self):
         """Update content view filter with new name
 
@@ -463,7 +461,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.name = name
                 self.assertEqual(cvf.update(['name']).name, name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_description(self):
         """Update content view filter with new description
 
@@ -482,7 +480,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.description = desc
                 self.assertEqual(cvf.update(['description']).description, desc)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_inclusion(self):
         """Update content view filter with new inclusion value
 
@@ -500,7 +498,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['inclusion'])
                 self.assertEqual(cvf.inclusion, inclusion)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_repo(self):
         """Update content view filter with new repository
 
@@ -523,7 +521,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.assertEqual(len(cvf.repository), 1)
         self.assertEqual(cvf.repository[0].id, new_repo.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_repos(self):
         """Update content view filter with multiple repositories
 
@@ -548,7 +546,7 @@ class ContentViewFilterTestCase(APITestCase):
         cvf = cvf.update(['repository'])
         self.assertEqual({repo.id for repo in cvf.repository}, {repo.id for repo in repos})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_original_packages(self):
         """Update content view filter with new 'original packages' option value
 
@@ -568,7 +566,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['original_packages'])
                 self.assertEqual(cvf.original_packages, original_packages)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_repo_with_docker(self):
         """Update existing content view filter which has yum repository
         assigned with new docker repository
@@ -597,7 +595,7 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_name(self):
         """Try to update content view filter using invalid names only
 
@@ -616,7 +614,7 @@ class ContentViewFilterTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     cvf.update(['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_same_name(self):
         """Try to update content view filter's name to already used one
 
@@ -635,7 +633,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_cv_by_id(self):
         """Try to update content view filter using incorrect content
         view ID
@@ -651,7 +649,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['content_view'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_repo_by_id(self):
         """Try to update content view filter using incorrect repository
         ID
@@ -669,7 +667,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['repository'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_repo(self):
         """Try to update content view filter with new repository which doesn't
         belong to filter's content view
@@ -701,7 +699,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
         super().setUpClass()
         cls.content_view = entities.ContentView().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_erratum(self):
         """Search for an erratum content view filter's rules.
 
@@ -716,7 +714,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
         cv_filter = entities.ErratumContentViewFilter(content_view=self.content_view).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_package_group(self):
         """Search for an package group content view filter's rules.
 
@@ -729,7 +727,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
         cv_filter = entities.PackageGroupContentViewFilter(content_view=self.content_view).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_rpm(self):
         """Search for an rpm content view filter's rules.
 
@@ -747,7 +745,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
     """Tests for content view filter rules."""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
         super().setUpClass()
@@ -765,7 +763,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_promote_module_stream_filter(self):
         """Verify Module Stream, Errata Count after Promote, Publish for Content View
         with Module Stream Exclude Filter
@@ -807,7 +805,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         assert content_view_version_info.module_stream_count == 4
         assert content_view_version_info.errata_counts['total'] == 3
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_include_exclude_module_stream_filter(self):
         """Verify Include and Exclude Errata filter(modular errata) automatically force the copy
            of the module streams associated to it.
@@ -859,7 +857,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         assert content_view_version_info.module_stream_count == 5
         assert content_view_version_info.errata_counts['total'] == 5
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_multi_level_filters(self):
         """Verify promotion of Content View and Verify count after applying
         multi_filters (errata and module stream)
@@ -896,7 +894,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
         assert content_view_version_info.module_stream_count == 2
         assert content_view_version_info.errata_counts['total'] == 1
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_dependency_solving_module_stream_filter(self):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.
         If dependency solving enabled then dependent module streams will be fetched

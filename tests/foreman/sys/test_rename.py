@@ -20,8 +20,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.config import settings
-from robottelo.decorators import destructive
-from robottelo.decorators import run_in_one_thread
 from robottelo.ssh import get_connection
 
 BCK_MSG = "**** Hostname change complete! ****"
@@ -32,8 +30,8 @@ NO_CREDS_MSG = "Username and/or Password options are missing!"
 BAD_CREDS_MSG = "Unable to authenticate user admin"
 
 
-@run_in_one_thread
-@destructive
+@pytest.mark.run_in_one_thread
+@pytest.mark.destructive
 class TestRenameHost:
     """Implements ``katello-change-hostname`` tests"""
 

@@ -24,12 +24,10 @@ from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session):
     """Perform end to end testing for location component
 
@@ -120,7 +118,7 @@ def test_positive_end_to_end(session):
 
 
 @pytest.mark.skip_if_open("BZ:1321543")
-@tier2
+@pytest.mark.tier2
 def test_positive_update_with_all_users(session):
     """Create location and do not add user to it. Check and uncheck
     'all users' setting. Verify that for both operation expected location
@@ -159,7 +157,7 @@ def test_positive_update_with_all_users(session):
         assert loc.name in user_values['locations']['resources']['unassigned']
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_org_hostgroup_template(session):
     """Add a organization, hostgroup, provisioning template by using
        the location name
@@ -203,7 +201,7 @@ def test_positive_add_org_hostgroup_template(session):
 
 
 @skip_if_not_set('compute_resources')
-@tier2
+@pytest.mark.tier2
 def test_positive_update_compresource(session):
     """Add/Remove compute resource from/to location
 

@@ -26,15 +26,12 @@ from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import CLITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class DiscoveredTestCase(CLITestCase):
     """Implements Foreman discovery CLI tests."""
 
@@ -111,7 +108,7 @@ class DiscoveredTestCase(CLITestCase):
         Settings.set({'name': 'discovery_auto', 'value': cls.default_discovery_auto['value']})
         super().tearDownClass()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
         PXE default
@@ -133,7 +130,7 @@ class DiscoveredTestCase(CLITestCase):
             host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(host)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_pxe_less_with_dhcp_unattended(self):
         """Discover a host with dhcp via bootable discovery ISO by setting
         "proxy.type=proxy" in PXE default in unattended mode.
@@ -154,7 +151,7 @@ class DiscoveredTestCase(CLITestCase):
             self.assertIsNotNone(host)
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_custom_facts_pxeless_discovery(self):
         """Check if defined custom facts of pxeless host are correctly
         displayed under host's facts
@@ -177,7 +174,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_custom_facts_pxe_discovery(self):
         """Check if defined custom facts of pxe-based discovered host are
         correctly displayed under host's facts
@@ -199,8 +196,8 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
         """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
         loader
@@ -275,7 +272,7 @@ class DiscoveredTestCase(CLITestCase):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxeless_uefi_grub(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB
         loader
@@ -313,7 +310,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxeless_uefi_grub2(self):
         """Provision and discover the pxe-less UEFI host from cli using GRUB2
         loader
@@ -351,7 +348,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
         """Provision and discover the pxe-less UEFI SB host from cli using GRUB2
         loader
@@ -388,8 +385,8 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
         """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
         loader
@@ -479,7 +476,7 @@ class DiscoveredTestCase(CLITestCase):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxe_host_with_uefi_grub(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB
         loader
@@ -528,7 +525,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxe_host_with_uefi_grub2(self):
         """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
         loader
@@ -578,7 +575,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):
         """Provision the pxe-based UEFI Secureboot discovered host from cli
         using PXEGRUB2 loader
@@ -627,7 +624,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_delete_pxeless_host(self):
         """Delete the selected pxe-less discovered host
 
@@ -647,7 +644,7 @@ class DiscoveredTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             DiscoveredHost.info({'id': host['id']})
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_delete_pxe_host(self):
         """Delete the selected pxe-based discovered host
 
@@ -668,7 +665,7 @@ class DiscoveredTestCase(CLITestCase):
             DiscoveredHost.info({'id': host['id']})
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_refresh_facts_pxe_host(self):
         """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
@@ -684,7 +681,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_refresh_facts_of_pxeless_host(self):
         """Refresh the facts of pxeless discovered hosts by adding a new NIC
 
@@ -700,7 +697,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_reboot_pxe_host(self):
         """Reboot pxe based discovered hosts
 
@@ -716,7 +713,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_reboot_pxeless_host(self):
         """Reboot pxe-less discovered hosts
 
@@ -732,7 +729,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_auto_provision_pxe_host(self):
         """Discover a pxe based host and auto-provision it with
         discovery rule and by enabling auto-provision flag
@@ -747,7 +744,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_auto_provision_pxeless_host(self):
         """Discover a pxe-less host and auto-provision it with
         discovery rule and by enabling auto-provision flag
@@ -762,7 +759,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_discovered_host(self):
         """List pxe-based and pxe-less discovered hosts
 
@@ -776,7 +773,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_assign_discovery_manager_role(self):
         """Assign 'Discovery_Manager' role to a normal user
 
@@ -792,7 +789,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_assign_discovery_role(self):
         """Assign 'Discovery" role to a normal user
 
@@ -807,7 +804,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_update_discover_hostname_settings(self):
         """Update the hostname_prefix and Hostname_facts settings and
         discover a host.
@@ -822,8 +819,8 @@ class DiscoveredTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_pxe_host_with_parameters(self):
         """Provision the pxe-based BIOS discovered host with host parameters from cli using
         SYSLINUX loader

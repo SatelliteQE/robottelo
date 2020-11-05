@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -21,8 +22,6 @@ from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
 from robottelo.constants import LOCALES
 from robottelo.datafactory import invalid_emails_list
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -93,7 +92,7 @@ class MyAccountTestCase(CLITestCase):
         """Returns test user info"""
         return _test_user_info(cls)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_first_name(self):
         """Update Firstname in My Account
 
@@ -109,7 +108,7 @@ class MyAccountTestCase(CLITestCase):
         updated_first_name = result['name'].split(' ')
         self.assertEqual(updated_first_name[0], new_firstname)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_surname(self):
         """Update Surname in My Account
 
@@ -125,7 +124,7 @@ class MyAccountTestCase(CLITestCase):
         updated_last_name = result['name'].split(' ')
         self.assertEqual(updated_last_name[1], new_lastname)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_email(self):
         """Update Email Address in My Account
 
@@ -140,7 +139,7 @@ class MyAccountTestCase(CLITestCase):
         result = self.user_info()
         self.assertEqual(result['email'], email)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_all_locales(self):
         """Update Language in My Account
 
@@ -161,7 +160,7 @@ class MyAccountTestCase(CLITestCase):
                 user = self.user_info()
                 self.assertEqual(locale, user['locale'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_first_name(self):
         """Update My Account with invalid FirstName
 
@@ -174,7 +173,7 @@ class MyAccountTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'firstname': gen_string('alphanumeric', 300)})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_surname(self):
         """Update My Account with invalid Surname
 
@@ -187,7 +186,7 @@ class MyAccountTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'lastname': gen_string('alphanumeric', 300)})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_email(self):
         """Update My Account with invalid Email Address
 
@@ -202,7 +201,7 @@ class MyAccountTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     self.update_user({'login': self.user['login'], 'mail': email})
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_locale(self):
         """Update My Account with invalid Locale
 
@@ -245,8 +244,8 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
         """Returns test user info"""
         return _test_user_info(self)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_update_password(self):
         """Update Password in My Account
 

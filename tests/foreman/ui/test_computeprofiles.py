@@ -14,15 +14,13 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
-
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_loc, module_org):
     """Perform end to end testing for compute profile component
 

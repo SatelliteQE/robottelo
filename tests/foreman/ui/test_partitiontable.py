@@ -14,33 +14,30 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def template_data():
     return read_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_default_for_organization(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created organization has that partition table assigned to it
@@ -69,7 +66,7 @@ def test_positive_create_default_for_organization(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_custom_organization(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created organization does not contain that partition table.
@@ -98,7 +95,7 @@ def test_positive_create_custom_organization(session):
         assert not session.partitiontable.search(name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_default_for_location(session):
     """Create new partition table with enabled 'default' option. Check
     that newly created location has that partition table assigned to it
@@ -127,7 +124,7 @@ def test_positive_create_default_for_location(session):
         assert session.partitiontable.search(name)[0]['Name'] == name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_custom_location(session):
     """Create new partition table with disabled 'default' option. Check
     that newly created location does not contain that partition table.
@@ -156,7 +153,7 @@ def test_positive_create_custom_location(session):
         assert not session.partitiontable.search(name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_with_lock_and_unlock(session):
     """Create new partition table and lock it, try delete unlock and retry
 
@@ -180,14 +177,14 @@ def test_positive_delete_with_lock_and_unlock(session):
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
         session.partitiontable.lock(name)
-        with raises(ValueError):
+        with pytest.raises(ValueError):
             session.partitiontable.delete(name)
         session.partitiontable.unlock(name)
         session.partitiontable.delete(name)
         assert not session.partitiontable.search(name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_clone(session):
     """Create new partition table and clone it
 
@@ -222,8 +219,8 @@ def test_positive_clone(session):
         assert pt['template']['os_family_selection']['os_family'] == os_family
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc, template_data):
     """Perform end to end testing for partition table component
 

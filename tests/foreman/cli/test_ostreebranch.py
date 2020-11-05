@@ -28,9 +28,6 @@ from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
@@ -41,7 +38,7 @@ class OstreeBranchTestCase(CLITestCase):
     """Test class for Ostree Branch CLI. """
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Create an organization, product and ostree repo."""
         super().setUpClass()
@@ -75,7 +72,7 @@ class OstreeBranchTestCase(CLITestCase):
     def get_user_credentials(cls):
         return cls.user['login'], cls.user['password']
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list(self):
         """List Ostree Branches
 
@@ -86,8 +83,8 @@ class OstreeBranchTestCase(CLITestCase):
         result = OstreeBranch.with_user(*self.get_user_credentials()).list()
         self.assertGreater(len(result), 0)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_list_by_repo_id(self):
         """List Ostree branches by repo id
 
@@ -101,7 +98,7 @@ class OstreeBranchTestCase(CLITestCase):
         result = branch.list({'repository-id': self.ostree_repo['id']})
         self.assertGreater(len(result), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_by_product_id(self):
         """List Ostree branches by product id
 
@@ -114,7 +111,7 @@ class OstreeBranchTestCase(CLITestCase):
         )
         self.assertGreater(len(result), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_by_org_id(self):
         """List Ostree branches by org id
 
@@ -127,7 +124,7 @@ class OstreeBranchTestCase(CLITestCase):
         )
         self.assertGreater(len(result), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_list_by_cv_id(self):
         """List Ostree branches by cv id
 
@@ -141,7 +138,7 @@ class OstreeBranchTestCase(CLITestCase):
         )
         self.assertGreater(len(result), 0)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_info_by_id(self):
         """Get info for Ostree branch by id
 

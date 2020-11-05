@@ -27,11 +27,7 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 
 if not setting_is_set('vmware'):
     pytest.skip('skipping tests due to missing vmware settings', allow_module_level=True)
@@ -85,12 +81,12 @@ def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datas
     return f'{data_store_name} (free: {free_space}, prov: {prov}, total: {capacity})'
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_vmware_settings():
     return dict(
         vcenter=settings.vmware.vcenter,
@@ -107,7 +103,7 @@ def module_vmware_settings():
     )
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_end_to_end(session, module_org, module_loc, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component.
 
@@ -183,7 +179,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
         assert not session.computeresource.search(new_cr_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings):
     """List the virtual machine list from vmware compute resource
 
@@ -219,7 +215,7 @@ def test_positive_retrieve_virtual_machine_list(session, module_vmware_settings)
         )
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_image_end_to_end(session, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component image.
 
@@ -278,8 +274,8 @@ def test_positive_image_end_to_end(session, module_vmware_settings):
         )
 
 
-@tier2
-@run_in_one_thread
+@pytest.mark.tier2
+@pytest.mark.run_in_one_thread
 def test_positive_resource_vm_power_management(session, module_vmware_settings):
     """Read current VMware Compute Resource virtual machine power status and
     change it to opposite one
@@ -313,7 +309,7 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
             assert session.computeresource.vm_status(cr_name, vm_name) is power_status
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vmware_settings):
     """Select custom default (3-Large) compute profile guest OS RHEL7.
 
@@ -359,7 +355,7 @@ def test_positive_select_vmware_custom_profile_guest_os_rhel7(session, module_vm
         assert values['provider_content']['guest_os'] == guest_os_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_access_vmware_with_custom_profile(session, module_vmware_settings):
     """Associate custom default (3-Large) compute profile
 

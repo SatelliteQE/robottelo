@@ -44,14 +44,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -59,7 +52,7 @@ class ExportDirectoryNotSet(Exception):
     """Raise when export Directory is not set or found"""
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class RepositoryExportTestCase(CLITestCase):
     """Tests for exporting a repository via CLI"""
 
@@ -116,7 +109,7 @@ class RepositoryExportTestCase(CLITestCase):
         ssh.command(f'rm -rf /mnt/{RepositoryExportTestCase.export_dir}')
         super().tearDownClass()
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_custom_product(self):
         """Export a repository from the custom product
 
@@ -165,8 +158,8 @@ class RepositoryExportTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @skip_if_not_set('fake_manifest')
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_rh_product(self):
         """Export a repository from the Red Hat product
 
@@ -399,8 +392,8 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(result.return_code, 0)
         return exported_tar
 
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_export_import_default_org_view(self):
         """Export Default Organization View version contents in directory and Import them.
 
@@ -466,7 +459,7 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_import_filtered_cvv(self):
         """CV Version with filtered contents only can be exported and imported.
 
@@ -538,7 +531,7 @@ class ContentViewSync(CLITestCase):
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertTrue(len(imported_packages) == 1)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_import_cv(self):
         """Export CV version contents in directory and Import them.
 
@@ -588,8 +581,8 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_cv(self):
         """Export CV version redhat contents in directory and Import them
 
@@ -653,7 +646,7 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_export_import_redhat_cv_with_huge_contents(self):
         """Export CV version redhat contents in directory and Import them
 
@@ -719,7 +712,7 @@ class ContentViewSync(CLITestCase):
         self.assertTrue(len(imported_packages) > 0)
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_exported_cv_tar_contents(self):
         """Exported CV version contents in export directory are same as CVv contents
 
@@ -761,8 +754,8 @@ class ContentViewSync(CLITestCase):
         )
         self.assertEqual(len(cvv_packages), int(exported_packages.stdout[0]))
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_export_import_promoted_cv(self):
         """Export promoted CV version contents in directory and Import them.
 
@@ -809,7 +802,7 @@ class ContentViewSync(CLITestCase):
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0]['id']})
         self.assertEqual(len(exported_packages), len(imported_packages))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_repo_contents_of_imported_cv(self):
         """Repo contents of imported CV are same as repo contents of exported CV
 
@@ -852,7 +845,7 @@ class ContentViewSync(CLITestCase):
             exported_repo['content-counts']['errata'], imported_repo['content-counts']['errata']
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_reimport_cv_with_same_major_minor(self):
         """Reimport CV version with same major and minor fails
 
@@ -898,7 +891,7 @@ class ContentViewSync(CLITestCase):
             "are trying to import".format(self.exporting_cv_name),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_import_cv_without_replicating_import_part(self):
         """Import CV version without creating same CV and repo at importing side
 
@@ -938,7 +931,7 @@ class ContentViewSync(CLITestCase):
             ),
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_import_without_associating_repo_to_cv(self):
         """Importing CV version without associating repo to CV at importing side throws error
 
@@ -973,7 +966,7 @@ class ContentViewSync(CLITestCase):
             )
         self.assert_error_msg(error, 'Unable to sync repositories, no library repository found')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_export_cv_with_on_demand_repo(self):
         """Exporting CV version having on_demand repo throws error
 
@@ -1014,7 +1007,7 @@ class ContentViewSync(CLITestCase):
             " '{} {}' has at least one repository.\n".format(cv_name, cv_version),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_export_cv_with_background_policy_repo(self):
         """Exporting CV version having background policy repo throws error
 
@@ -1059,7 +1052,7 @@ class ContentViewSync(CLITestCase):
             " '{} {}' has at least one repository.\n".format(cv_name, cv_version),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_import_cv_with_mirroronsync_repo(self):
         """Importing CV version having mirror-on-sync repo throws error
 
@@ -1117,7 +1110,7 @@ class ContentViewSync(CLITestCase):
             ),
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_custom_major_minor_cv_version(self):
         """CV can published with custom major and minor versions
 
@@ -1148,8 +1141,8 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(cvv.split('.')[0], str(major))
         self.assertEqual(cvv.split('.')[1], str(minor))
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_negative_export_cv_with_puppet_repo(self):
         """Exporting CV version having non yum(puppet) repo throws error
 
@@ -1205,7 +1198,7 @@ class ContentViewSync(CLITestCase):
             "'{} {}' has at least one repository.\n".format(content_view['name'], cv_version),
         )
 
-    @tier3
+    @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(self):
         """Exporting CV version having yum and non-yum(puppet) is successful
 
@@ -1268,7 +1261,7 @@ class ContentViewSync(CLITestCase):
         )
         self.assert_exported_cvv_exists(content_view['name'], export_cvv_info['version'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_cv_with_customized_major_minor(self):
         """Import the CV version with customized major and minor
 
@@ -1319,7 +1312,7 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(str(new_major), imported_cvv[0]['version'].split('.')[0])
         self.assertEqual(str(new_minor), imported_cvv[0]['version'].split('.')[1])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_exported_cvv_json_contents(self):
         """Export the CV version and verify export metadata json fields
 
@@ -1400,7 +1393,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     """Implements InterSatellite Sync tests in CLI"""
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_import_cv(self):
         """Export whole CV version contents in directory and Import nothing.
 
@@ -1428,7 +1421,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_cv(self):
         """Export whole CV version contents is aborted due to insufficient
         memory.
@@ -1447,8 +1440,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_cv_iso(self):
         """Export CV version contents in directory as iso and Import it.
 
@@ -1473,7 +1466,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_import_cv_iso(self):
         """Export whole CV version as ISO in directory and Import nothing.
 
@@ -1499,7 +1492,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_cv_iso(self):
         """Export whole CV version to iso is aborted due to insufficient
         memory.
@@ -1518,7 +1511,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_cv_iso_max_size(self):
         """Export whole CV version to iso is aborted due to inadequate maximum
         iso size.
@@ -1537,7 +1530,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_cv_iso_max_size(self):
         """CV version exported to iso in maximum iso size.
 
@@ -1554,8 +1547,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_cv_incremental(self):
         """Export and Import CV version contents incrementally.
 
@@ -1584,7 +1577,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_import_cv_incremental(self):
         """No new incremental packages exported or imported.
 
@@ -1611,7 +1604,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_exported_cv_iso_dir_structure(self):
         """Exported CV in iso format respects cdn directory structure.
 
@@ -1632,8 +1625,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_repo(self):
         """Export repo in directory and Import them.
 
@@ -1657,7 +1650,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_import_repo(self):
         """Export repo contents in directory and Import nothing.
 
@@ -1682,7 +1675,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_repo(self):
         """Export repo is aborted due ti insufficient memory.
 
@@ -1700,7 +1693,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_lazy_sync_repo(self):
         """Error is raised for lazy sync repo.
 
@@ -1717,8 +1710,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
 
@@ -1740,8 +1733,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_repo_iso(self):
         """Export repo in directory as iso and Import it.
 
@@ -1765,7 +1758,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_import_repo_iso(self):
         """Export repo as ISO in directory and Import nothing.
 
@@ -1789,7 +1782,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_repo_iso(self):
         """Export repo to iso is aborted due to insufficient memory.
 
@@ -1807,7 +1800,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_repo_iso_max_size(self):
         """Export repo to iso is aborted due to inadequate maximum iso size.
 
@@ -1824,7 +1817,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_repo_iso_max_size(self):
         """Repo exported to iso with maximum iso size.
 
@@ -1840,7 +1833,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_repo_from_future_datetime(self):
         """Incremental export fails with future datetime.
 
@@ -1857,8 +1850,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_repo_incremental(self):
         """Export and Import repo incrementally.
 
@@ -1885,7 +1878,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_import_repo_incremental(self):
         """No new incremental packages exported or imported.
 
@@ -1910,7 +1903,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_exported_repo_iso_dir_structure(self):
         """Exported repo in iso format respects cdn directory structure.
 
@@ -1931,8 +1924,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_kickstart_tree(self):
         """kickstart tree is exported to specified location.
 
@@ -1957,7 +1950,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_import_kickstart_tree(self):
         """Export whole kickstart tree in directory and Import nothing.
 
@@ -1986,7 +1979,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_export_kickstart_tree(self):
         """Export whole kickstart tree contents is aborted due to insufficient
         memory.
@@ -2007,7 +2000,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     # Red Hat Repositories Export and Import
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_redhat_yum_repo(self):
         """Export Red Hat YUM repo in directory.
 
@@ -2024,8 +2017,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_yum_repo(self):
         """Import the exported YUM repo contents.
 
@@ -2047,7 +2040,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_redhat_incremental_yum_repo(self):
         """Export Red Hat YUM repo in directory incrementally.
 
@@ -2068,8 +2061,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_incremental_yum_repo(self):
         """Import the exported YUM repo contents incrementally.
 
@@ -2091,7 +2084,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory.
 
@@ -2108,8 +2101,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and Import.
 
@@ -2131,7 +2124,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
 
@@ -2153,8 +2146,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
 
@@ -2178,7 +2171,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_export_redhat_cv(self):
         """Export CV version having Red Hat contents in directory.
 
@@ -2196,8 +2189,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_cv(self):
         """Export CV version having Red Hat contents in directory and Import
         them.
@@ -2220,8 +2213,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_mix_cv(self):
         """Export CV version having Red Hat and custom repo in directory
         and Import them.
@@ -2246,8 +2239,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO.
 
@@ -2263,8 +2256,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_export_import_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO and Import them.
 
@@ -2287,8 +2280,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_install_package_from_imported_repos(self):
         """Install packages in client from imported repo of Downstream satellite.
 

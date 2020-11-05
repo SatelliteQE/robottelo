@@ -33,10 +33,7 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.vm import VirtualMachine
@@ -76,12 +73,12 @@ def golden_ticket_host_setup(request):
     request.cls.ak_setup = ak
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
 
     @skip_if_not_set('fake_manifest')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create(self):
         """Upload a manifest.
 
@@ -96,7 +93,7 @@ class SubscriptionsTestCase(APITestCase):
             upload_manifest(org.id, manifest.content)
 
     @skip_if_not_set('fake_manifest')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_refresh(self):
         """Upload a manifest and refresh it afterwards.
 
@@ -117,7 +114,7 @@ class SubscriptionsTestCase(APITestCase):
             sub.delete_manifest(data={'organization_id': org.id})
 
     @skip_if_not_set('fake_manifest')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_after_refresh(self):
         """Upload a manifest,refresh it and upload a new manifest to an other
          organization.
@@ -146,7 +143,7 @@ class SubscriptionsTestCase(APITestCase):
             org_sub.delete_manifest(data={'organization_id': org.id})
 
     @skip_if_not_set('fake_manifest')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
 
@@ -165,7 +162,7 @@ class SubscriptionsTestCase(APITestCase):
         assert len(sub.search()) == 0
 
     @skip_if_not_set('fake_manifest')
-    @tier2
+    @pytest.mark.tier2
     def test_negative_upload(self):
         """Upload the same manifest to two organizations.
 
@@ -181,7 +178,7 @@ class SubscriptionsTestCase(APITestCase):
                 upload_manifest(orgs[1].id, manifest.content)
         assert len(entities.Subscription(organization=orgs[1]).search()) == 0
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_manifest_as_another_user(self):
         """Verify that uploaded manifest if visible and deletable
             by a different user than the one who uploaded it
@@ -224,7 +221,7 @@ class SubscriptionsTestCase(APITestCase):
         )
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_subscription_status_disabled(self):
         """Verify that Content host Subscription status is set to 'Disabled'
@@ -248,7 +245,7 @@ class SubscriptionsTestCase(APITestCase):
             assert "Disabled" in str(host_content)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_candlepin_events_processed_by_STOMP(rhel7_contenthost):
     """Verify that Candlepin events are being read and processed by
         attaching subscriptions, validating host subscriptions status,

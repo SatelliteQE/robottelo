@@ -14,18 +14,17 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class GlobalParameterTestCase(CLITestCase):
     """GlobalParameter related CLI tests."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_set(self):
         """Check if Global Param can be set
 
@@ -40,7 +39,7 @@ class GlobalParameterTestCase(CLITestCase):
         value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
         GlobalParameter().set({'name': name, 'value': value})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_by_name(self):
         """Test Global Param List
 
@@ -58,8 +57,8 @@ class GlobalParameterTestCase(CLITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['value'], value)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_name(self):
         """Check if Global Param can be deleted
 

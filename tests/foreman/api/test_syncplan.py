@@ -22,6 +22,7 @@ from datetime import datetime
 from datetime import timedelta
 from time import sleep
 
+import pytest
 from fauxfactory import gen_choice
 from fauxfactory import gen_string
 from nailgun import client
@@ -41,12 +42,6 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
 
@@ -77,7 +72,7 @@ def valid_sync_interval():
 class SyncPlanTestCase(APITestCase):
     """Miscellaneous tests for sync plans."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_get_routes(self):
         """Issue an HTTP GET response to both available routes.
 
@@ -118,7 +113,7 @@ class SyncPlanCreateTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_enabled_disabled(self):
         """Create sync plan with different 'enabled' field values.
 
@@ -134,7 +129,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 sync_plan = entities.SyncPlan(enabled=enabled, organization=self.org).create()
                 self.assertEqual(sync_plan.enabled, enabled)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a sync plan with a random name.
 
@@ -149,7 +144,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 syncplan = entities.SyncPlan(name=name, organization=self.org).create()
                 self.assertEqual(syncplan.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_description(self):
         """Create a sync plan with a random description.
 
@@ -167,7 +162,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.description, description)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_interval(self):
         """Create a sync plan with a random interval.
 
@@ -186,7 +181,7 @@ class SyncPlanCreateTestCase(APITestCase):
             sync_plan = sync_plan.create()
             self.assertEqual(sync_plan.interval, interval)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_sync_date(self):
         """Create a sync plan and update its sync date.
 
@@ -201,7 +196,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 sync_plan = entities.SyncPlan(organization=self.org, sync_date=syncdate).create()
                 self.assertEqual(syncdate.strftime('%Y-%m-%d %H:%M:%S UTC'), sync_plan.sync_date)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self):
         """Create a sync plan with an invalid name.
 
@@ -217,7 +212,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.SyncPlan(name=name, organization=self.org).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_interval(self):
         """Create a sync plan with invalid interval specified.
 
@@ -233,7 +228,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.SyncPlan(interval=interval, organization=self.org).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_empty_interval(self):
         """Create a sync plan with no interval specified.
 
@@ -260,7 +255,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_enabled(self):
         """Create sync plan and update it with opposite 'enabled' value.
 
@@ -276,7 +271,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.enabled = enabled
                 self.assertEqual(sync_plan.update(['enabled']).enabled, enabled)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Create a sync plan and update its name.
 
@@ -293,7 +288,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.name = name
                 self.assertEqual(sync_plan.update(['name']).name, name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_description(self):
         """Create a sync plan and update its description.
 
@@ -310,7 +305,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.description = description
                 self.assertEqual(sync_plan.update(['description']).description, description)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_interval(self):
         """Create a sync plan and update its interval.
 
@@ -340,7 +335,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan = sync_plan.update(['interval'])
             self.assertEqual(sync_plan.interval, new_interval)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_interval_custom_cron(self):
         """Create a sync plan and update its interval to custom cron.
 
@@ -364,7 +359,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     SYNC_INTERVAL['custom'],
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_sync_date(self):
         """Updated sync plan's sync date.
 
@@ -385,7 +380,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     sync_plan.update(['sync_date']).sync_date,
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Try to update a sync plan with an invalid name.
 
@@ -403,7 +398,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     sync_plan.update(['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_interval(self):
         """Try to update a sync plan with invalid interval.
 
@@ -433,7 +428,7 @@ class SyncPlanProductTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_product(self):
         """Create a sync plan and add one product to it.
 
@@ -453,7 +448,7 @@ class SyncPlanProductTestCase(APITestCase):
         self.assertEqual(len(syncplan.product), 1)
         self.assertEqual(syncplan.product[0].id, product.id)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_products(self):
         """Create a sync plan and add two products to it.
 
@@ -474,7 +469,7 @@ class SyncPlanProductTestCase(APITestCase):
             {product.id for product in syncplan.product},
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_product(self):
         """Create a sync plan with two products and then remove one
         product from it.
@@ -497,8 +492,8 @@ class SyncPlanProductTestCase(APITestCase):
         self.assertEqual(len(syncplan.product), 1)
         self.assertEqual(syncplan.product[0].id, products[1].id)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_remove_products(self):
         """Create a sync plan with two products and then remove both
         products from it.
@@ -517,7 +512,7 @@ class SyncPlanProductTestCase(APITestCase):
         syncplan.remove_products(data={'product_ids': [product.id for product in products]})
         self.assertEqual(len(syncplan.read().product), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_repeatedly_add_remove(self):
         """Repeatedly add and remove a product from a sync plan.
 
@@ -538,7 +533,7 @@ class SyncPlanProductTestCase(APITestCase):
             syncplan.remove_products(data={'product_ids': [product.id]})
             self.assertEqual(len(syncplan.read().product), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_remove_products_custom_cron(self):
         """Create a sync plan with two products having custom cron interval
         and then remove both products from it.
@@ -615,7 +610,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                     'Repository contains invalid number of content entities.',
                 )
 
-    @tier4
+    @pytest.mark.tier4
     def test_negative_synchronize_custom_product_past_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
@@ -644,7 +639,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_synchronize_custom_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
@@ -690,7 +685,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -740,8 +735,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @tier4
-    @upgrade
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -788,8 +783,8 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
             self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @run_in_one_thread
-    @tier4
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier4
     def test_positive_synchronize_rh_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
@@ -848,9 +843,9 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @run_in_one_thread
-    @tier4
-    @upgrade
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -911,7 +906,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_synchronize_custom_product_daily_recurrence(self):
         """Create a daily sync plan with current datetime as a sync date,
         add a custom product and verify the product gets synchronized on
@@ -954,7 +949,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
         self.validate_repo_content(repo, ['erratum', 'package', 'package_group'])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a weekly sync plan with a past datetime as a sync date,
         add a custom product and verify the product gets synchronized on
@@ -1009,7 +1004,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         super().setUpClass()
         cls.org = entities.Organization().create()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_one_product(self):
         """Create a sync plan with one product and delete it.
 
@@ -1027,7 +1022,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_products(self):
         """Create a sync plan with two products and delete them.
 
@@ -1045,8 +1040,8 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_delete_synced_product(self):
         """Create a sync plan with one synced product and delete it.
 
@@ -1066,8 +1061,8 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_delete_synced_product_custom_cron(self):
         """Create a sync plan with custom cron with one synced
         product and delete it.

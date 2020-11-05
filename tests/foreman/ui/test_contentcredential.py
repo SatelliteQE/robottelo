@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.config import settings
@@ -23,33 +24,29 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 
 empty_message = "You currently don't have any Products associated with this Content Credential."
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def gpg_content():
     return read_data_file(VALID_GPG_KEY_FILE)
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def gpg_path():
     return get_data_file(VALID_GPG_KEY_FILE)
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, gpg_content):
     """Perform end to end testing for gpg key component
 
@@ -96,7 +93,7 @@ def test_positive_end_to_end(session, module_org, gpg_content):
         assert session.contentcredential.search(new_name)[0]['Name'] != new_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_scoped(session, gpg_content):
     """Search for gpgkey by organization id parameter
 
@@ -122,7 +119,7 @@ def test_positive_search_scoped(session, gpg_content):
         assert session.contentcredential.search(f'organization_id = {org.id}')[0]['Name'] == name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_empty_product(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate
     it with empty (no repos) custom product
@@ -143,8 +140,8 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
         assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository
@@ -177,8 +174,8 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
         assert values['repositories']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository
@@ -205,7 +202,7 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
         }
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository
@@ -235,8 +232,8 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
         assert values['repositories']['table'][0]['Product'] == product.name
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -263,9 +260,9 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product using Repo discovery method
@@ -308,8 +305,8 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
         assert values['repositories']['table'][0]['Name'].split(' ')[-1] == repo_name
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_add_product_and_search(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product that has one repository
@@ -344,9 +341,9 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
         assert product_values['details']['repos_count'] == '1'
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
     using Repo discovery method then update the key
@@ -400,9 +397,9 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         assert product_values['details']['gpg_key'] == new_name
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg then associate
     it with custom product using Repo discovery method then delete it
@@ -446,7 +443,7 @@ def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path)
         assert product_values['details']['gpg_key'] == ''
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_key_for_empty_product(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with empty (no repos) custom product then update the key
@@ -475,8 +472,8 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
         assert values['products']['table'][0]['Name'] == product.name
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository then update the key
@@ -505,9 +502,9 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
         assert values['repositories']['table'][0]['Name'] == repo.name
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository then update the
@@ -538,8 +535,8 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
         }
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository then update
@@ -570,9 +567,9 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
         assert values['repositories']['table'][0]['Name'] == repo.name
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_update_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -602,7 +599,7 @@ def test_positive_update_key_for_repo_from_product_with_repos(session, module_or
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_key_for_empty_product(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with empty (no repos) custom product then delete it
@@ -632,8 +629,8 @@ def test_positive_delete_key_for_empty_product(session, module_org, gpg_content)
         assert not product_values['details']['gpg_key']
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has one repository then delete it
@@ -672,9 +669,9 @@ def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_cont
         assert not repo_values['repo_content']['gpg_key']
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has more than one repository then
@@ -719,8 +716,8 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
             assert not repo_values['repo_content']['gpg_key']
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has one repository
@@ -754,9 +751,9 @@ def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org
         assert not repo_values['repo_content']['gpg_key']
 
 
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_delete_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has more than

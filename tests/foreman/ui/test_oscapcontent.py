@@ -23,12 +23,9 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def oscap_content_path():
     _, file_name = os.path.split(settings.oscap.content_path)
     local_file = f"/tmp/{file_name}"
@@ -36,8 +33,8 @@ def oscap_content_path():
     return local_file
 
 
-@tier1
-@upgrade
+@pytest.mark.tier1
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, oscap_content_path):
     """Perform end to end testing for openscap content component
 
@@ -86,7 +83,7 @@ def test_positive_end_to_end(session, oscap_content_path):
         assert not session.oscapcontent.search(new_title)
 
 
-@tier1
+@pytest.mark.tier1
 def test_negative_create_with_same_name(session, oscap_content_path):
     """Create OpenScap content with same name
 

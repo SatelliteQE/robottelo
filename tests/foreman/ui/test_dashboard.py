@@ -14,10 +14,10 @@
 
 :Upstream: No
 """
+import pytest
 from airgun.session import Session
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
-from pytest import raises
 
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
@@ -26,12 +26,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
@@ -39,7 +34,7 @@ from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_host_configuration_status(session):
     """Check if the Host Configuration Status Widget links are working
 
@@ -110,7 +105,7 @@ def test_positive_host_configuration_status(session):
                 assert len(values['table']) == 0
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_host_configuration_chart(session):
     """Check if the Host Configuration Chart is working in the Dashboard UI
 
@@ -136,9 +131,9 @@ def test_positive_host_configuration_chart(session):
         assert dashboard_values['chart'][''] == '100%'
 
 
-@upgrade
-@run_in_one_thread
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier2
 def test_positive_task_status(session):
     """Check if the Task Status is working in the Dashboard UI and
         filter from Tasks index page is working correctly
@@ -165,7 +160,7 @@ def test_positive_task_status(session):
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
     repo = entities.Repository(url=url, product=product, content_type='puppet').create()
-    with raises(TaskFailedError):
+    with pytest.raises(TaskFailedError):
         repo.sync()
     with session:
         session.organization.select(org_name=org.name)
@@ -190,11 +185,11 @@ def test_positive_task_status(session):
         assert values['task']['errors'] == 'PLP0000: Importer indicated a failed response'
 
 
-@upgrade
-@run_in_one_thread
+@pytest.mark.upgrade
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('clients')
-@tier3
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier3
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_user_access_with_host_filter(test_name, module_loc):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values

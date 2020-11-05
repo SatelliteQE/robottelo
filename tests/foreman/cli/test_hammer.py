@@ -18,6 +18,7 @@ import io
 import json
 import re
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import ssh
@@ -26,9 +27,6 @@ from robottelo.cli.admin import Admin
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from robottelo.utils.issue_handlers import is_open
@@ -139,8 +137,8 @@ class HammerCommandsTestCase(CLITestCase):
                     diff['removed_subcommands'] = removed_subcommands
                 self.differences[command] = diff
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_all_options(self):
         """check all provided options for every hammer command
 
@@ -159,9 +157,9 @@ class HammerCommandsTestCase(CLITestCase):
 class HammerTestCase(CLITestCase):
     """Tests related to hammer sub options. """
 
-    @tier1
-    @upgrade
-    @run_in_one_thread
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
+    @pytest.mark.run_in_one_thread
     def test_positive_disable_hammer_defaults(self):
         """Verify hammer disable defaults command.
 
@@ -199,7 +197,7 @@ class HammerTestCase(CLITestCase):
             result = ssh.command('hammer defaults list')
             assert default_org['id'] not in "".join(result.stdout)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_check_debug_log_levels(self):
         """Enabling debug log level in candlepin via hammer logging
 

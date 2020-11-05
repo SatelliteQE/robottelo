@@ -14,15 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.constants import TREND_TYPES
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session):
     """Perform end to end testing for trend component
 

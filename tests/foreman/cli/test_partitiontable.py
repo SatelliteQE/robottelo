@@ -25,15 +25,12 @@ from robottelo.cli.factory import make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import parametrized
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
 class TestPartitionTable:
     """Partition Table CLI tests."""
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(generate_strings_list(length=1)))
     def test_positive_create_with_one_character_name(self, name):
         """Create Partition table with 1 character in name
@@ -51,8 +48,8 @@ class TestPartitionTable:
         ptable = make_partition_table({'name': name})
         assert ptable['name'] == name
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'name, new_name',
         **parametrized(
@@ -84,7 +81,7 @@ class TestPartitionTable:
         with pytest.raises(CLIReturnCodeError):
             PartitionTable.info({'name': ptable['name']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_content(self):
         """Create a Partition Table with content
 
@@ -99,8 +96,8 @@ class TestPartitionTable:
         ptable_content = PartitionTable().dump({'id': ptable['id']})
         assert content in ptable_content[0]
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_content_length(self):
         """Create a Partition Table with content length more than 4096 chars
 
@@ -115,7 +112,7 @@ class TestPartitionTable:
         ptable_content = PartitionTable().dump({'id': ptable['id']})
         assert content in ptable_content[0]
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_id(self):
         """Create a Partition Table then delete it by its ID
 
@@ -130,7 +127,7 @@ class TestPartitionTable:
         with pytest.raises(CLIReturnCodeError):
             PartitionTable.info({'id': ptable['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_remove_os_by_id(self):
         """Create a partition table then add and remove an operating system to it using
         IDs for association
@@ -152,8 +149,8 @@ class TestPartitionTable:
         ptable = PartitionTable.info({'id': ptable['id']})
         assert os['title'] not in ptable['operating-systems']
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_remove_os_by_name(self):
         """Create a partition table then add and remove an operating system to it using
         names for association

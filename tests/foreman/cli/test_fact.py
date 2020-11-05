@@ -14,19 +14,18 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.fact import Fact
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class FactTestCase(CLITestCase):
     """Fact related tests."""
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_list_by_name(self):
         """Test Fact List
 
@@ -43,7 +42,7 @@ class FactTestCase(CLITestCase):
                 facts = Fact().list(args)
                 self.assertEqual(facts[0]['fact'], fact)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_list_by_name(self):
         """Test Fact List failure
 

@@ -16,6 +16,7 @@
 """
 from random import choice
 
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
@@ -23,9 +24,6 @@ from robottelo.api.utils import promote
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
 
@@ -48,7 +46,7 @@ class HostCollectionTestCase(APITestCase):
             content_view=cls.content_view, environment=cls.lce, organization=cls.org
         ).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create host collections with different names.
 
@@ -66,7 +64,7 @@ class HostCollectionTestCase(APITestCase):
                 ).create()
                 self.assertEqual(host_collection.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list(self):
         """Create new host collection and then retrieve list of all existing
         host collections
@@ -84,7 +82,7 @@ class HostCollectionTestCase(APITestCase):
         hc_list = entities.HostCollection().search()
         self.assertGreaterEqual(len(hc_list), 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_for_organization(self):
         """Create host collection for specific organization. Retrieve list of
         host collections for that organization
@@ -102,7 +100,7 @@ class HostCollectionTestCase(APITestCase):
         self.assertEqual(len(hc_list), 1)
         self.assertEqual(hc_list[0].id, hc.id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_description(self):
         """Create host collections with different descriptions.
 
@@ -120,7 +118,7 @@ class HostCollectionTestCase(APITestCase):
                 ).create()
                 self.assertEqual(host_collection.description, desc)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_limit(self):
         """Create host collections with different limits.
 
@@ -138,7 +136,7 @@ class HostCollectionTestCase(APITestCase):
                 ).create()
                 self.assertEqual(host_collection.max_hosts, limit)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_unlimited_hosts(self):
         """Create host collection with different values of 'unlimited hosts'
         parameter.
@@ -159,7 +157,7 @@ class HostCollectionTestCase(APITestCase):
                 ).create()
                 self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_host(self):
         """Create a host collection that contains a host.
 
@@ -177,7 +175,7 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.host), 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_hosts(self):
         """Create a host collection that contains hosts.
 
@@ -193,7 +191,7 @@ class HostCollectionTestCase(APITestCase):
         host_collection = entities.HostCollection(host=self.hosts, organization=self.org).create()
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_host(self):
         """Add a host to host collection.
 
@@ -210,8 +208,8 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), 1)
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_add_hosts(self):
         """Add hosts to host collection.
 
@@ -228,7 +226,7 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_read_host_ids(self):
         """Read a host collection and look at the ``host_ids`` field.
 
@@ -247,7 +245,7 @@ class HostCollectionTestCase(APITestCase):
             frozenset(host.id for host in self.hosts),
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
@@ -263,7 +261,7 @@ class HostCollectionTestCase(APITestCase):
                 host_collection.name = new_name
                 self.assertEqual(host_collection.update().name, new_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
@@ -279,7 +277,7 @@ class HostCollectionTestCase(APITestCase):
                 host_collection.description = new_desc
                 self.assertEqual(host_collection.update().description, new_desc)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_limit(self):
         """Check if host collection limit can be updated
 
@@ -297,7 +295,7 @@ class HostCollectionTestCase(APITestCase):
                 host_collection.max_hosts = limit
                 self.assertEqual(host_collection.update().max_hosts, limit)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_unlimited_hosts(self):
         """Check if host collection 'unlimited hosts' parameter can be updated
 
@@ -321,7 +319,7 @@ class HostCollectionTestCase(APITestCase):
                 host_collection = host_collection.update(['max_hosts', 'unlimited_hosts'])
                 self.assertEqual(host_collection.unlimited_hosts, unlimited)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_host(self):
         """Update host collection's host.
 
@@ -338,8 +336,8 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(host_collection.host[0].id, self.hosts[1].id)
 
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_update_hosts(self):
         """Update host collection's hosts.
 
@@ -357,8 +355,8 @@ class HostCollectionTestCase(APITestCase):
             {host.id for host in host_collection.host}, {host.id for host in new_hosts}
         )
 
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_delete(self):
         """Check if host collection can be deleted
 
@@ -373,7 +371,7 @@ class HostCollectionTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             host_collection.read()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create host collections with different invalid names
 
@@ -388,7 +386,7 @@ class HostCollectionTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.HostCollection(name=name, organization=self.org).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_add_remove_subscription(self):
         """Try to bulk add and remove a subscription to members of a host collection.
 

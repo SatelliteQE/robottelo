@@ -18,23 +18,21 @@ http://www.katello.org/docs/api/apidoc/repository_sets.html
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class RepositorySetTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_reposet_enable(self):
         """Enable repo from reposet
 
@@ -63,8 +61,8 @@ class RepositorySetTestCase(APITestCase):
             ][0]
         )
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_reposet_disable(self):
         """Disable repo from reposet
 

@@ -18,8 +18,6 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.decorators import tier1
-
 
 @pytest.fixture(scope="module")
 def module_location(module_location):
@@ -36,7 +34,7 @@ def module_org(module_org):
 class TestOscapPolicy:
     """Implements Oscap Policy tests in API."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_crud_scap_policy(
         self, module_org, module_location, scap_content, tailoring_file
     ):

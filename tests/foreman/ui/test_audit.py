@@ -19,27 +19,23 @@ from nailgun import entities
 from robottelo.api.utils import create_role_permissions
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     return entities.Location(organization=[module_org]).create()
 
 
-pytestmark = [run_in_one_thread]
+pytestmark = ['run_in_one_thread']
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_create_event(session, module_org, module_loc):
     """When new host is created, corresponding audit entry appear in the application
 
@@ -86,7 +82,7 @@ def test_positive_create_event(session, module_org, module_loc):
         assert summary.get('Location') == module_loc.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_audit_comment(session, module_org):
     """When new partition table with audit comment is created, that message can be seen in
     corresponding audit entry
@@ -121,7 +117,7 @@ def test_positive_audit_comment(session, module_org):
         assert values['comment'] == audit_comment
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_event(session, module_org):
     """When existing content view is updated, corresponding audit entry appear
     in the application
@@ -153,7 +149,7 @@ def test_positive_update_event(session, module_org):
         assert values['action_summary'][0]['column2'] == new_name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_delete_event(session, module_org):
     """When existing architecture is deleted, corresponding audit entry appear
     in the application
@@ -180,7 +176,7 @@ def test_positive_delete_event(session, module_org):
         assert values['action_summary'][0]['column1'] == architecture.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_add_event(session, module_org):
     """When content view is published and proper lifecycle environment added to it,
     corresponding audit entry appear in the application
@@ -212,7 +208,7 @@ def test_positive_add_event(session, module_org):
 
 @pytest.mark.skip_if_open("BZ:1701118")
 @pytest.mark.skip_if_open("BZ:1701132")
-@tier2
+@pytest.mark.tier2
 def test_positive_create_role_filter(session, module_org):
     """Update a role with new filter and check that corresponding event
     appeared in the audit log

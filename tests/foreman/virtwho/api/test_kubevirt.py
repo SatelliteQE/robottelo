@@ -14,14 +14,12 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.decorators import fixture
-from robottelo.decorators import skipif
-from robottelo.decorators import tier2
 from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
@@ -31,12 +29,12 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-@fixture(scope='class')
+@pytest.fixture(scope='class')
 def default_org():
     return entities.Organization().search(query={'search': 'name="Default Organization"'})[0]
 
 
-@fixture()
+@pytest.fixture()
 def form_data(default_org):
     form = {
         'name': gen_string('alpha'),
@@ -52,12 +50,12 @@ def form_data(default_org):
     return form
 
 
-@fixture()
+@pytest.fixture()
 def virtwho_config(form_data):
     return entities.VirtWhoConfig(**form_data).create()
 
 
-@skipif(
+@pytest.mark.skipif(
     condition=(is_open('BZ:1735540')),
     reason='We have not supported kubevirt hypervisor yet',
 )
@@ -79,7 +77,7 @@ class TestVirtWhoConfigforKubevirt:
         )
         return vdc_id
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -133,7 +131,7 @@ class TestVirtWhoConfigforKubevirt:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
         """Verify "GET /foreman_virt_who_configure/api/
 
@@ -189,7 +187,7 @@ class TestVirtWhoConfigforKubevirt:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
         """Verify hypervisor_id option by "PUT
 

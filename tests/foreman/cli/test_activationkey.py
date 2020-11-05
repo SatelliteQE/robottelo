@@ -50,13 +50,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.utils.issue_handlers import is_open
@@ -103,7 +97,7 @@ class ActivationKeyTestCase(CLITestCase):
         # Create activation key
         return make_activation_key(options)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create Activation key for all variations of Activation key
         name
@@ -119,7 +113,7 @@ class ActivationKeyTestCase(CLITestCase):
                 new_ak = self._make_activation_key({'name': name})
                 self.assertEqual(new_ak['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_description(self):
         """Create Activation key for all variations of Description
 
@@ -134,7 +128,7 @@ class ActivationKeyTestCase(CLITestCase):
                 new_ak = self._make_activation_key({'description': desc})
                 self.assertEqual(new_ak['description'], desc)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_lce_by_id(self):
         """Create Activation key with associated default environment
 
@@ -148,7 +142,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak_env = self._make_activation_key({'lifecycle-environment-id': lce['id']})
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_non_default_lce(self):
         """Create Activation key with associated custom environment
 
@@ -163,7 +157,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak_env = self._make_activation_key({'lifecycle-environment-id': env['id']})
         self.assertEqual(new_ak_env['lifecycle-environment'], env['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_lce_by_name(self):
         """Create Activation key with associated environment by name
 
@@ -177,7 +171,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak_env = self._make_activation_key({'lifecycle-environment': lce['name']})
         self.assertEqual(new_ak_env['lifecycle-environment'], lce['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_cv(self):
         """Create Activation key for all variations of Content Views
 
@@ -200,7 +194,7 @@ class ActivationKeyTestCase(CLITestCase):
                 )
                 self.assertEqual(new_ak_cv['content-view'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_usage_limit_default(self):
         """Create Activation key with default Usage limit (Unlimited)
 
@@ -213,7 +207,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], 'Unlimited')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_usage_limit_finite(self):
         """Create Activation key with finite Usage limit
 
@@ -226,8 +220,8 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key({'max-hosts': '10'})
         self.assertEqual(new_ak['host-limit'], '10')
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_create_content_and_check_enabled(self):
         """Create activation key and add content to it. Check enabled state.
 
@@ -260,7 +254,7 @@ class ActivationKeyTestCase(CLITestCase):
                 raise_ctx, 'Failed to create ActivationKey with data:', *in_error_msg
             )
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
 
@@ -279,7 +273,7 @@ class ActivationKeyTestCase(CLITestCase):
             if len(name) > 255:
                 self.assert_error_msg(raise_ctx, 'Name is too long (maximum is 255 characters)')
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_usage_limit_with_not_integers(self):
         """Create Activation key with non integers Usage Limit
 
@@ -302,7 +296,7 @@ class ActivationKeyTestCase(CLITestCase):
             if type(limit) is str:
                 self.assert_error_msg(raise_ctx, 'Numeric value is required.')
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_usage_limit_with_invalid_integers(self):
         """Create Activation key with invalid integers Usage Limit
 
@@ -317,7 +311,7 @@ class ActivationKeyTestCase(CLITestCase):
             ('-1', '-500', 0), 'Validation failed: Max hosts cannot be less than one'
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_name(self):
         """Create Activation key and delete it for all variations of
         Activation key name
@@ -337,7 +331,7 @@ class ActivationKeyTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     ActivationKey.info({'id': new_ak['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_org_name(self):
         """Create Activation key and delete it using organization name
         for which that key was created
@@ -353,7 +347,7 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_by_org_label(self):
         """Create Activation key and delete it using organization label
         for which that key was created
@@ -369,8 +363,8 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_delete_with_cv(self):
         """Create activation key with content view assigned to it and
         delete it using activation key id
@@ -387,7 +381,7 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_with_lce(self):
         """Create activation key with lifecycle environment assigned to
         it and delete it using activation key id
@@ -405,7 +399,7 @@ class ActivationKeyTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': new_ak['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name_by_id(self):
         """Update Activation Key Name in Activation key searching by ID
 
@@ -428,7 +422,7 @@ class ActivationKeyTestCase(CLITestCase):
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name_by_name(self):
         """Update Activation Key Name in an Activation key searching by
         name
@@ -451,7 +445,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(updated_ak['name'], new_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_description(self):
         """Update Description in an Activation key
 
@@ -474,7 +468,7 @@ class ActivationKeyTestCase(CLITestCase):
                 updated_ak = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(updated_ak['description'], description)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_lce(self):
         """Update Environment in an Activation key
 
@@ -503,7 +497,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': ak_env['id']})
         self.assertEqual(updated_ak['lifecycle-environment'], env['name'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_cv(self):
         """Update Content View in an Activation key
 
@@ -526,7 +520,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': ak_cv['id']})
         self.assertEqual(updated_ak['content-view'], new_cv['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_usage_limit_to_finite_number(self):
         """Update Usage limit from Unlimited to a finite number
 
@@ -544,7 +538,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': new_ak['id']})
         self.assertEqual(updated_ak['host-limit'], '2147483647')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_usage_limit_to_unlimited(self):
         """Update Usage limit from definite number to Unlimited
 
@@ -562,7 +556,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': new_ak['id']})
         self.assertEqual(updated_ak['host-limit'], 'Unlimited')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_name(self):
         """Try to update Activation Key using invalid value for its name
 
@@ -581,7 +575,7 @@ class ActivationKeyTestCase(CLITestCase):
                 )
             self.assert_error_msg(raise_ctx, 'Could not update the activation key:')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_usage_limit(self):
         """Try to update Activation Key using invalid value for its
         usage limit attribute
@@ -607,8 +601,8 @@ class ActivationKeyTestCase(CLITestCase):
         )
 
     @skip_if_not_set('clients')
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_usage_limit(self):
         """Test that Usage limit actually limits usage
 
@@ -653,7 +647,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertEqual(result.return_code, 70)
                 self.assertGreater(len(result.stderr), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_host_collection(self):
         """Test that host collections can be associated to Activation
         Keys
@@ -685,8 +679,8 @@ class ActivationKeyTestCase(CLITestCase):
                 activation_key = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(activation_key['host-collections'][0]['name'], host_col_name)
 
-    @run_in_one_thread
-    @tier2
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
     def test_positive_update_host_collection_with_default_org(self):
         """Test that host collection can be associated to Activation
         Keys with specified default organization setting in config
@@ -710,9 +704,9 @@ class ActivationKeyTestCase(CLITestCase):
         finally:
             Defaults.delete({'param-name': 'organization_id'})
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier3
+    @pytest.mark.tier3
     def test_positive_add_redhat_product(self):
         """Test that RH product can be associated to Activation Keys
 
@@ -740,8 +734,8 @@ class ActivationKeyTestCase(CLITestCase):
         )
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
@@ -763,11 +757,11 @@ class ActivationKeyTestCase(CLITestCase):
         )
         self.assertEqual(content[0]['name'], repo['name'])
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier3
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
@@ -833,9 +827,9 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_subscription(self):
         """Check if deleting a subscription removes it from Activation key
 
@@ -870,8 +864,8 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(len(ak_subs_info), 4)
 
     @skip_if_not_set('clients')
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_update_aks_to_chost(self):
         """Check if multiple Activation keys can be attached to a
         Content host
@@ -906,7 +900,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_update_aks_to_chost_in_one_command(self):
         """Check if multiple Activation keys can be attached to a
         Content host in one command. Here is a command details
@@ -931,7 +925,7 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_by_name(self):
         """List Activation key for all variations of Activation key name
 
@@ -948,7 +942,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_list_by_cv_id(self):
         """List Activation key for provided Content View ID
 
@@ -966,7 +960,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['content-view'], cv['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_using_old_name(self):
         """Create activation key, rename it and create another with the
         initial name
@@ -990,7 +984,7 @@ class ActivationKeyTestCase(CLITestCase):
         )
         self.assertEqual(new_activation_key['name'], name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_host_collection_by_id(self):
         """Test that hosts associated to Activation Keys can be removed
         using id of that host collection
@@ -1037,7 +1031,7 @@ class ActivationKeyTestCase(CLITestCase):
         activation_key = ActivationKey.info({'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_host_collection_by_name(self):
         """Test that hosts associated to Activation Keys can be removed
         using name of that host collection
@@ -1087,7 +1081,7 @@ class ActivationKeyTestCase(CLITestCase):
                 activation_key = ActivationKey.info({'id': activation_key['id']})
                 self.assertEqual(len(activation_key['host-collections']), 0)
 
-    @tier2
+    @pytest.mark.tier2
     def test_create_ak_with_syspurpose_set(self):
         """Test that an activation key can be created with system purpose values set.
 
@@ -1135,7 +1129,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(updated_ak['system-purpose']['purpose-usage'], '')
         self.assertEqual(updated_ak['system-purpose']['service-level'], '')
 
-    @tier2
+    @pytest.mark.tier2
     def test_update_ak_with_syspurpose_values(self):
         """Test that system purpose values can be added to an existing activation key
         and can then be changed.
@@ -1200,9 +1194,9 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(updated_ak['system-purpose']['purpose-usage'], "test-usage2")
         self.assertEqual(updated_ak['system-purpose']['service-level'], "Premium")
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_subscription_by_id(self):
         """Test that subscription can be added to activation key
 
@@ -1233,7 +1227,7 @@ class ActivationKeyTestCase(CLITestCase):
         )
         self.assertIn('Subscription added to activation key.', result)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_copy_by_parent_id(self):
         """Copy Activation key for all valid Activation Key name
         variations
@@ -1256,7 +1250,7 @@ class ActivationKeyTestCase(CLITestCase):
                 )
                 self.assertEqual(result[0], 'Activation key copied.')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_copy_by_parent_name(self):
         """Copy Activation key by passing name of parent
 
@@ -1276,7 +1270,7 @@ class ActivationKeyTestCase(CLITestCase):
         )
         self.assertEqual(result[0], 'Activation key copied.')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_copy_with_same_name(self):
         """Copy activation key with duplicate name
 
@@ -1297,10 +1291,10 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(raise_ctx.exception.return_code, 65)
         self.assert_error_msg(raise_ctx, 'Validation failed: Name has already been taken')
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     @skip_if_not_set('fake_manifest')
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_copy_subscription(self):
         """Copy Activation key and verify contents
 
@@ -1336,7 +1330,7 @@ class ActivationKeyTestCase(CLITestCase):
             subscription_result[0]['name'], result[3]  # subscription name  # subscription list
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_autoattach_toggle(self):
         """Update Activation key with inverse auto-attach value
 
@@ -1362,7 +1356,7 @@ class ActivationKeyTestCase(CLITestCase):
         updated_ak = ActivationKey.info({'id': new_ak['id']})
         self.assertEqual(updated_ak['auto-attach'], new_value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_autoattach(self):
         """Update Activation key with valid auto-attach values
 
@@ -1384,7 +1378,7 @@ class ActivationKeyTestCase(CLITestCase):
                 )
                 self.assertEqual('Activation key updated.', result[0]['message'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_autoattach(self):
         """Attempt to update Activation key with bad auto-attach value
 
@@ -1411,8 +1405,8 @@ class ActivationKeyTestCase(CLITestCase):
             )
         self.assertIn("'--auto-attach': value must be one of", exe.exception.stderr.lower())
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_content_override(self):
         """Positive content override
 
@@ -1451,7 +1445,7 @@ class ActivationKeyTestCase(CLITestCase):
                 )
                 self.assertEqual(content[0]['override'], 'enabled:{}'.format(int(override_value)))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_user(self):
         """Delete any user who has previously created an activation key
         and check that activation key still exists
@@ -1473,8 +1467,8 @@ class ActivationKeyTestCase(CLITestCase):
         except CLIReturnCodeError:
             self.fail("Activation Key can't be read")
 
-    @run_in_one_thread
-    @tier3
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier3
     def test_positive_view_subscriptions_by_non_admin_user(self):
         """Attempt to read activation key subscriptions by non admin user
 
@@ -1575,8 +1569,8 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(subscriptions[0]['id'], subscription_id)
 
     @skip_if_not_set('clients')
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_subscription_quantity_attached(self):
         """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 

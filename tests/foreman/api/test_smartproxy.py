@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_url
 from nailgun import entities
 from requests import HTTPError
@@ -22,17 +23,13 @@ from robottelo.api.utils import one_to_many_names
 from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.test import APITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class CapsuleTestCase(APITestCase):
     """Tests for Smart Proxy (Capsule) entity."""
 
@@ -44,7 +41,7 @@ class CapsuleTestCase(APITestCase):
         return proxy
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
@@ -61,7 +58,7 @@ class CapsuleTestCase(APITestCase):
         self.assertRegexpMatches(context.exception.response.text, 'Unable to communicate')
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Proxy creation with valid name
 
@@ -80,8 +77,8 @@ class CapsuleTestCase(APITestCase):
                     self.assertEquals(proxy.name, name)
 
     @skip_if_not_set('fake_capsules')
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete(self):
         """Proxy deletion
 
@@ -101,7 +98,7 @@ class CapsuleTestCase(APITestCase):
             proxy.read()
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Proxy name update
 
@@ -122,7 +119,7 @@ class CapsuleTestCase(APITestCase):
                     self.assertEqual(proxy.name, new_name)
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_url(self):
         """Proxy url update
 
@@ -145,7 +142,7 @@ class CapsuleTestCase(APITestCase):
             self.assertEqual(proxy.url, url)
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_organization(self):
         """Proxy name update with the home proxy
 
@@ -167,7 +164,7 @@ class CapsuleTestCase(APITestCase):
             )
 
     @skip_if_not_set('fake_capsules')
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_location(self):
         """Proxy name update with the home proxy
 
@@ -187,8 +184,8 @@ class CapsuleTestCase(APITestCase):
             self.assertEqual({loc.id for loc in proxy.location}, {loc.id for loc in locations})
 
     @skip_if_not_set('fake_capsules')
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_refresh_features(self):
         """Refresh smart proxy features, search for proxy by id
 
@@ -210,7 +207,7 @@ class CapsuleTestCase(APITestCase):
             proxy.refresh()
 
     @skip_if_not_set('fake_capsules')
-    @tier2
+    @pytest.mark.tier2
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
 
@@ -233,7 +230,7 @@ class CapsuleTestCase(APITestCase):
             )
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class SmartProxyMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
@@ -259,7 +256,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         smart_proxy = smart_proxy[0]
         cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_loc(self):
         """Update a smart proxy. Inspect the server's response.
 
@@ -282,7 +279,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
             f'None of {names} are in {self.smart_proxy_attrs}',
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_org(self):
         """Update a smart proxy. Inspect the server's response.
 

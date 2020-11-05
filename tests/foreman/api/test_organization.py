@@ -33,9 +33,6 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
 @filtered_datapoint
@@ -60,7 +57,7 @@ def valid_org_data_list():
 class TestOrganization:
     """Tests for the ``organizations`` path."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create(self):
         """Create an organization using a 'text/plain' content-type.
 
@@ -81,7 +78,7 @@ class TestOrganization:
         )
         assert http.client.UNSUPPORTED_MEDIA_TYPE == response.status_code
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
     def test_positive_create_with_name_and_description(self, name):
         """Create an organization and provide a name and description.
@@ -104,7 +101,7 @@ class TestOrganization:
         assert isinstance(org.label, type(''))
         assert len(org.label) > 0
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_invalid_name(self, name):
         """Create an org with an incorrect name.
@@ -118,7 +115,7 @@ class TestOrganization:
         with pytest.raises(HTTPError):
             entities.Organization(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Create two organizations with identical names.
 
@@ -132,7 +129,7 @@ class TestOrganization:
         with pytest.raises(HTTPError):
             entities.Organization(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search(self):
         """Create an organization, then search for it by name.
 
@@ -148,7 +145,7 @@ class TestOrganization:
         assert orgs[0].id == org.id
         assert orgs[0].name == org.name
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_wrong_path(self):
         """Attempt to create an organization using foreman API path
         (``api/v2/organizations``)
@@ -169,7 +166,7 @@ class TestOrganization:
         assert err.value.response.status_code == 404
         assert 'Route overriden by Katello' in err.value.response.text
 
-    @tier2
+    @pytest.mark.tier2
     def test_default_org_id_check(self):
         """test to check the default_organization id
 
@@ -195,7 +192,7 @@ class TestOrganizationUpdate:
         """Create an organization."""
         return entities.Organization().create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
     def test_positive_update_name(self, module_org, name):
         """Update an organization's name with valid values.
@@ -212,7 +209,7 @@ class TestOrganizationUpdate:
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('desc', **parametrized(valid_org_data_list()))
     def test_positive_update_description(self, module_org, desc):
         """Update an organization's description with valid values.
@@ -229,7 +226,7 @@ class TestOrganizationUpdate:
         module_org = module_org.update(['description'])
         assert module_org.description == desc
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_user(self, module_org):
         """Update an organization, associate user with it.
 
@@ -245,7 +242,7 @@ class TestOrganizationUpdate:
         assert len(module_org.user) == 1
         assert module_org.user[0].id == user.id
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_subnet(self, module_org):
         """Update an organization, associate subnet with it.
 
@@ -261,7 +258,7 @@ class TestOrganizationUpdate:
         assert len(module_org.subnet) == 1
         assert module_org.subnet[0].id == subnet.id
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_add_and_remove_hostgroup(self):
         """Add a hostgroup to an organization and then remove it
 
@@ -282,8 +279,8 @@ class TestOrganizationUpdate:
         org = org.update(['hostgroup'])
         assert len(org.hostgroup) == 0
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_add_and_remove_smart_proxy(self):
         """Add a smart proxy to an organization
 
@@ -322,7 +319,7 @@ class TestOrganizationUpdate:
         # Verify smart proxy was actually removed
         assert len(org.smart_proxy) == 0
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'attrs',
         # Immutable. See BZ 1089996.

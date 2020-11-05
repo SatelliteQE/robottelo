@@ -31,37 +31,32 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELCloudFormsTools
 from robottelo.products import SatelliteCapsuleRepository
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_custom_product(module_org):
     return entities.Product(organization=module_org).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org_with_manifest():
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     return org
 
 
-@tier2
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_sync_custom_repo(session, module_custom_product):
     """Create Content Custom Sync with minimal input parameters
 
@@ -78,10 +73,10 @@ def test_positive_sync_custom_repo(session, module_custom_product):
         assert results[0] == 'Syncing Complete.'
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, module_org_with_manifest):
     """Create Content RedHat Sync with two repos.
 
@@ -117,9 +112,9 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
-@tier2
-@upgrade
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.tier2
+@pytest.mark.upgrade
+@pytest.mark.skipif(not settings.repos_hosting_url)
 def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """Create custom ostree repository and sync it.
 
@@ -143,12 +138,12 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
         assert results[0] == 'Syncing Complete.'
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
 @skip_if_not_set('fake_manifest')
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     """Sync CDN based ostree repository.
 
@@ -179,8 +174,8 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
         assert results[0] == 'Syncing Complete.'
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_sync_docker_via_sync_status(session, module_org):
     """Create custom docker repo and sync it via the sync status page.
 

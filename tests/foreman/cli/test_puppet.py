@@ -17,14 +17,11 @@
 import pytest
 
 from robottelo.config import settings
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class PuppetTestCase(CLITestCase):
     """Implements Puppet test scenario"""
 
@@ -35,8 +32,8 @@ class PuppetTestCase(CLITestCase):
         cls.sat6_hostname = settings.server.hostname
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_puppet_scenario(self):
         """Tests extensive all-in-one puppet scenario
 
@@ -71,7 +68,7 @@ class PuppetTestCase(CLITestCase):
         """
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class PuppetCapsuleTestCase(CLITestCase):
     """Implements Puppet test scenario with standalone capsule"""
 
@@ -82,8 +79,8 @@ class PuppetCapsuleTestCase(CLITestCase):
         cls.sat6_hostname = settings.server.hostname
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_puppet_capsule_scenario(self):
         """Tests extensive all-in-one puppet scenario via Capsule
 

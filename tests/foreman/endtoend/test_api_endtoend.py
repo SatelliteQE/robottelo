@@ -38,11 +38,7 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier4
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
 from robottelo.utils.issue_handlers import is_open
@@ -901,8 +897,8 @@ class AvailableURLsTestCase(TestCase):
         """Define commonly-used variables."""
         self.path = f'{settings.server.get_url()}/api/v2'
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_get_status_code(self):
         """GET ``api/v2`` and examine the response.
 
@@ -916,8 +912,8 @@ class AvailableURLsTestCase(TestCase):
         self.assertEqual(response.status_code, http.client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_get_links(self):
         """GET ``api/v2`` and check the links returned.
 
@@ -965,8 +961,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         super().setUpClass()
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -979,8 +975,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_ORG)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -993,8 +989,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -1007,8 +1003,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].login, 'admin')
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_ping(self):
         """Check if all services are running
 
@@ -1035,9 +1031,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         )
 
     @skip_if_not_set('compute_resources')
-    @tier4
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 

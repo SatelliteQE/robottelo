@@ -14,13 +14,12 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -30,12 +29,12 @@ from robottelo.virtwho_utils import virtwho
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
-@fixture(scope='class')
+@pytest.fixture(scope='class')
 def default_org():
     return entities.Organization().search(query={'search': 'name="Default Organization"'})[0]
 
 
-@fixture()
+@pytest.fixture()
 def form_data(default_org):
     form = {
         'name': gen_string('alpha'),
@@ -53,7 +52,7 @@ def form_data(default_org):
     return form
 
 
-@fixture()
+@pytest.fixture()
 def virtwho_config(form_data):
     return entities.VirtWhoConfig(**form_data).create()
 
@@ -76,7 +75,7 @@ class TestVirtWhoConfigforEsx:
         )
         return vdc_id
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
@@ -130,7 +129,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_deploy_configure_by_script(self, form_data, virtwho_config):
         """Verify "GET /foreman_virt_who_configure/api/
 
@@ -186,7 +185,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_debug_option(self, form_data, virtwho_config):
         """Verify debug option by "PUT
 
@@ -210,7 +209,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_interval_option(self, form_data, virtwho_config):
         """Verify interval option by "PUT
 
@@ -243,7 +242,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_hypervisor_id_option(self, form_data, virtwho_config):
         """Verify hypervisor_id option by "PUT
 
@@ -269,7 +268,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_filter_option(self, form_data, virtwho_config):
         """Verify filter option by "PUT
 
@@ -317,7 +316,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_proxy_option(self, form_data, virtwho_config):
         """Verify http_proxy option by "PUT
 
@@ -346,7 +345,7 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_configure_organization_list(self, form_data, virtwho_config):
         """Verify "GET /foreman_virt_who_configure/
 

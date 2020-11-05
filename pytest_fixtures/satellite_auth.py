@@ -1,7 +1,7 @@
 import copy
 
+import pytest
 from nailgun import entities
-from pytest import fixture
 
 from robottelo.api.utils import update_rhsso_settings_in_satellite
 from robottelo.config import settings
@@ -16,7 +16,7 @@ from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import set_the_redirect_uri
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def ad_data():
     return {
         'ldap_user_name': settings.ldap.username,
@@ -27,7 +27,7 @@ def ad_data():
     }
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def ipa_data():
     return {
         'ldap_user_name': settings.ipa.user_ipa,
@@ -42,12 +42,12 @@ def ipa_data():
     }
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def open_ldap_data():
     return settings.open_ldap
 
 
-@fixture(scope='function')
+@pytest.fixture(scope='function')
 def auth_source(module_org, module_loc, ad_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -69,7 +69,7 @@ def auth_source(module_org, module_loc, ad_data):
     ).create()
 
 
-@fixture(scope='function')
+@pytest.fixture(scope='function')
 def auth_source_ipa(module_org, module_loc, ipa_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -91,7 +91,7 @@ def auth_source_ipa(module_org, module_loc, ipa_data):
     ).create()
 
 
-@fixture
+@pytest.fixture
 def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
     if request.param.lower() == 'ad':
         # entity create with AD settings
@@ -141,7 +141,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
     yield ldap_data
 
 
-@fixture(scope='function')
+@pytest.fixture(scope='function')
 def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -162,7 +162,7 @@ def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
     ).create()
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def enroll_configure_rhsso_external_auth():
     """Enroll the Satellite6 Server to an RHSSO Server."""
     run_command(
@@ -186,7 +186,7 @@ def enroll_configure_rhsso_external_auth():
     run_command(cmd="systemctl restart httpd")
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
     """register the satellite with RH-SSO Server for single sign-on"""
     client_id = get_rhsso_client_id()
@@ -199,7 +199,7 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
     set_the_redirect_uri()
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def enroll_idm_and_configure_external_auth():
     """Enroll the Satellite6 Server to an IDM Server."""
     run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
@@ -230,7 +230,7 @@ def enroll_idm_and_configure_external_auth():
     )
 
 
-@fixture()
+@pytest.fixture()
 def rhsso_setting_setup(request):
     """Update the RHSSO setting and revert it in cleanup"""
     update_rhsso_settings_in_satellite()
@@ -238,7 +238,7 @@ def rhsso_setting_setup(request):
     update_rhsso_settings_in_satellite(revert=True)
 
 
-@fixture()
+@pytest.fixture()
 def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
     setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
@@ -249,7 +249,7 @@ def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
     setting_entity.update({'value'})
 
 
-@fixture(scope='session')
+@pytest.fixture(scope='session')
 def enroll_ad_and_configure_external_auth():
     """Enroll Satellite Server to an AD Server."""
     packages = (

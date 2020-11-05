@@ -14,6 +14,8 @@
 """
 import time
 
+import pytest
+
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
@@ -32,15 +34,12 @@ from robottelo.constants import REAL_RHEL7_0_1_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_ERRATA_ID
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class ContentAccessTestCase(CLITestCase):
     """Content Access CLI tests."""
 
@@ -131,7 +130,7 @@ class ContentAccessTestCase(CLITestCase):
             install_katello_agent=True,
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_list_installable_updates(self):
         """Ensure packages applicability is functioning properly.
 
@@ -178,8 +177,8 @@ class ContentAccessTestCase(CLITestCase):
                 [package['filename'] for package in applicable_packages],
             )
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_erratum_installable(self):
         """Ensure erratum applicability is showing properly, without attaching
         any subscription.
@@ -218,7 +217,7 @@ class ContentAccessTestCase(CLITestCase):
             self.assertEqual(len(erratum), 1)
             self.assertEqual(erratum[0]['installable'], 'true')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_rct_not_shows_golden_ticket_enabled(self):
         """Assert restricted manifest has no Golden Ticket enabled .
 
@@ -243,8 +242,8 @@ class ContentAccessTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertNotIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_rct_shows_golden_ticket_enabled(self):
         """Assert unrestricted manifest has Golden Ticket enabled .
 

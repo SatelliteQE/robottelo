@@ -14,17 +14,17 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo import ssh
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_ping(self):
         """hammer ping return code
 

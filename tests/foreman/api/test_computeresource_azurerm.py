@@ -29,18 +29,13 @@ from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
 class TestAzureRMComputeResourceTestCase:
     """Tests for ``api/v2/compute_resources``"""
 
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_crud_azurerm_cr(self, module_org, module_location, azurerm_settings):
         """Create, Read, Update and Delete AzureRM compute resources
 
@@ -87,8 +82,8 @@ class TestAzureRMComputeResourceTestCase:
             query={'search': f'name={new_cr_name}'}
         )
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_create_finish_template_image(
         self, default_architecture, module_azurerm_cr, module_azurerm_finishimg
     ):
@@ -112,8 +107,8 @@ class TestAzureRMComputeResourceTestCase:
         assert module_azurerm_finishimg.username == settings.azurerm.username
         assert module_azurerm_finishimg.uuid == AZURERM_RHEL7_FT_IMG_URN
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_create_cloud_init_image(
         self, module_azurerm_cloudimg, module_azurerm_cr, default_architecture
     ):
@@ -135,8 +130,8 @@ class TestAzureRMComputeResourceTestCase:
         assert module_azurerm_cloudimg.username == settings.azurerm.username
         assert module_azurerm_cloudimg.uuid == AZURERM_RHEL7_UD_IMG_URN
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_check_available_networks(self, azurermclient, module_azurerm_cr):
         """Check networks from AzureRM CR are available to select during host provision.
 
@@ -152,7 +147,7 @@ class TestAzureRMComputeResourceTestCase:
         assert len(portal_nws) == len(cr_nws['results'])
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestAzureRMHostProvisioningTestCase:
     """AzureRM Host Provisioning Tests"""
 
@@ -241,8 +236,8 @@ class TestAzureRMHostProvisioningTestCase:
         return azurermclient.get_vm(name=class_host_ft.name.split('.')[0])
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
         """Host can be provisioned on AzureRM
 
@@ -275,7 +270,7 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.vm_size == azureclient_host.type
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @tier3
+    @pytest.mark.tier3
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
 
@@ -301,7 +296,7 @@ class TestAzureRMHostProvisioningTestCase:
         assert azureclient_host.is_started
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestAzureRM_UserData_Provisioning:
     """AzureRM UserData Host Provisioning Tests"""
 
@@ -391,8 +386,8 @@ class TestAzureRM_UserData_Provisioning:
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
         """Host can be provisioned on AzureRm with userdata image/template
 
@@ -427,8 +422,8 @@ class TestAzureRM_UserData_Provisioning:
         assert self.vm_size == azureclient_host.type
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
         """Host can be Disassociate and Associate
 
@@ -455,7 +450,7 @@ class TestAzureRM_UserData_Provisioning:
         assert host.compute_resource.id == module_azurerm_cr.id
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
     """AzureRM Host Provisioning Tests with Shared Image Gallery"""
 
@@ -545,8 +540,8 @@ class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
         return azurermclient.get_vm(name=class_host_gallery_ft.name.split('.')[0])
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_azurerm_shared_gallery_host_provisioned(
         self, class_host_gallery_ft, azureclient_host
     ):
@@ -581,7 +576,7 @@ class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
         assert AZURERM_VM_SIZE_DEFAULT == azureclient_host.type
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
     """AzureRM Host Provisioning Tests with Custom Image"""
 
@@ -671,8 +666,8 @@ class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
         return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
 
     @pytest.mark.skip_if_open("BZ:1850934")
-    @upgrade
-    @tier3
+    @pytest.mark.upgrade
+    @pytest.mark.tier3
     def test_positive_azurerm_custom_image_host_provisioned(
         self, class_host_custom_ft, azureclient_host
     ):

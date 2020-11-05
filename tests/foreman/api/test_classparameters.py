@@ -15,6 +15,7 @@
 import json
 from random import choice
 
+import pytest
 from fauxfactory import gen_boolean
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
@@ -26,11 +27,6 @@ from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
@@ -71,12 +67,12 @@ def invalid_sc_parameters_data():
     ]
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class SmartClassParametersTestCase(APITestCase):
     """Implements Smart Class Parameter tests in API"""
 
     @classmethod
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -115,8 +111,8 @@ class SmartClassParametersTestCase(APITestCase):
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please update puppet module.")
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
 
@@ -158,7 +154,7 @@ class SmartClassParametersTestCase(APITestCase):
                 else:
                     self.assertEqual(sc_param.default_value, data['value'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_parameter_type(self):
         """Negative Parameter Update for parameter types - Invalid Value.
 
@@ -192,7 +188,7 @@ class SmartClassParametersTestCase(APITestCase):
                     context.exception.response.text, "Validation failed: Default value is invalid"
                 )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_default_value_required_check(self):
         """No error raised for non-empty default Value - Required check.
 
@@ -227,7 +223,7 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.required, True)
         self.assertEqual(sc_param.override_values[0]['value'], False)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_matcher_value_required_check(self):
         """Error is raised for blank matcher Value - Required check.
 
@@ -255,7 +251,7 @@ class SmartClassParametersTestCase(APITestCase):
             context.exception.response.text, "Validation failed: Value can't be blank"
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_default_value_with_regex(self):
         """Error is raised for default value not matching with regex.
 
@@ -285,7 +281,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertNotEqual(sc_param.read().default_value, value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_default_value_with_regex(self):
         """Error is not raised for default value matching with regex.
 
@@ -324,7 +320,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertEqual(sc_param.read().default_value, value)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Error is raised for matcher value not in list.
 
@@ -355,7 +351,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertNotEqual(sc_param.read().default_value, 50)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Error is not raised for matcher value in list.
 
@@ -382,7 +378,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
         self.assertEqual(sc_param.read().default_value, 'example')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
@@ -410,7 +406,7 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.override_values[0]['value'], False)
         self.assertEqual(sc_param.override_values[0]['match'], 'domain=example.com')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value is raised both at a time.
 
@@ -441,7 +437,7 @@ class SmartClassParametersTestCase(APITestCase):
             "Validation failed: Default value is invalid, Lookup values is invalid",
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_and_remove_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter where
         value is puppet default value.
@@ -474,7 +470,7 @@ class SmartClassParametersTestCase(APITestCase):
         override.delete()
         self.assertEqual(len(sc_param.read().override_values), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
@@ -500,7 +496,7 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.merge_overrides, True)
         self.assertEqual(sc_param.merge_default, True)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
@@ -535,7 +531,7 @@ class SmartClassParametersTestCase(APITestCase):
         self.assertEqual(sc_param.merge_overrides, False)
         self.assertEqual(sc_param.merge_default, False)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_enable_avoid_duplicates_checkbox(self):
         """Enable Avoid duplicates checkbox for supported type- array.
 
@@ -561,7 +557,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertEqual(sc_param.read().avoid_duplicates, True)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_enable_avoid_duplicates_checkbox(self):
         """Disable Avoid duplicates checkbox for non supported types.
 
@@ -592,7 +588,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
         self.assertEqual(sc_param.read().avoid_duplicates, False)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 

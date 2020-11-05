@@ -27,10 +27,6 @@ from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -77,8 +73,8 @@ class SubnetTestCase(CLITestCase):
     :CaseImportance: High
     """
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_CRUD(self):
         """Create, update and delete subnet
 
@@ -157,7 +153,7 @@ class SubnetTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Subnet.info({'id': subnet['id']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_with_attributes(self):
         """Create subnet with invalid or missing required attributes
 
@@ -172,8 +168,8 @@ class SubnetTestCase(CLITestCase):
                 with self.assertRaisesRegex(CLIFactoryError, 'Could not create the subnet:'):
                     make_subnet(options)
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_negative_create_with_address_pool(self):
         """Create subnet with invalid address pool range
 
@@ -195,7 +191,7 @@ class SubnetTestCase(CLITestCase):
                     make_subnet(opts)
                 self.assert_error_msg(raise_ctx, 'Could not create the subnet:')
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_attributes(self):
         """Update subnet with invalid or missing required attributes
 
@@ -216,7 +212,7 @@ class SubnetTestCase(CLITestCase):
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_address_pool(self):
         """Update subnet with invalid address pool
 
@@ -248,7 +244,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_set_parameter_option_presence(self):
         """Presence of set parameter option in command
 
@@ -266,7 +262,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parameter(self):
         """Subnet with parameters can be created
 
@@ -283,7 +279,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parameter_and_multiple_values(self):
         """Subnet parameters can be created with multiple values
 
@@ -302,7 +298,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_parameter_and_multiple_names(self):
         """Subnet parameters can be created with multiple names with valid
         separators
@@ -322,7 +318,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
         """Subnet parameters can not be created with multiple names with
         invalid separators
@@ -342,8 +338,8 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_multiple_parameters(self):
         """Subnet with more than one parameters
 
@@ -361,7 +357,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_duplicated_parameters(self):
         """Subnet with more than one parameters with duplicate names
 
@@ -380,8 +376,8 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_inherit_subnet_parmeters_in_host(self):
         """Host inherits parameters from subnet
 
@@ -401,7 +397,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_negative_inherit_subnet_parmeters_in_host(self):
         """Host does not inherits parameters from subnet for non primary
         interface
@@ -422,7 +418,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overridden from host
 
@@ -447,8 +443,8 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
 
@@ -469,7 +465,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_parameter(self):
         """Subnet parameter can be updated
 
@@ -487,7 +483,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_parameter(self):
         """Subnet parameter can not be updated with invalid names
 
@@ -505,7 +501,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_subnet_parameter_host_impact(self):
         """Update in parameter name and value from subnet component updates
             the parameter in host inheriting that subnet
@@ -525,7 +521,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
 
@@ -542,8 +538,8 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_multiple_parameters(self):
         """Multiple subnet parameters can be deleted at once
 
@@ -560,7 +556,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
         """Deleting parameter from subnet component deletes the parameter in
             host inheriting that subnet
@@ -580,7 +576,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_delete_subnet_parameter_overrided_host_impact(self):
         """Deleting parameter from subnet component doesnt deletes its
             overridden parameter in host inheriting that subnet

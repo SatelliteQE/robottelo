@@ -46,63 +46,6 @@ class TestCacheable:
         assert id(cache_obj) == id(obj)
 
 
-class TestSkipIfSet:
-    """Tests for :func:`robottelo.decorators.skip_if`."""
-
-    def test_raise_skip_test(self):
-        """Skip a test method on True condition"""
-
-        @decorators.skip_if(True)
-        def dummy():
-            pass
-
-        with pytest.raises(SkipTest):
-            dummy()
-
-    def test_execute_test_with_false(self):
-        """Execute a test method on False condition"""
-
-        @decorators.skip_if(False)
-        def dummy():
-            pass
-
-        dummy()
-
-    def test_raise_type_error(self):
-        """Type error is raised with no condition (None) provided"""
-        with pytest.raises(TypeError):
-
-            @decorators.skip_if()
-            def dummy():
-                pass
-
-            dummy()
-
-    def test_raise_default_message(self):
-        """Test is skipped with a default message"""
-
-        @decorators.skip_if(True)
-        def dummy():
-            pass
-
-        try:
-            dummy()
-        except SkipTest as err:
-            assert 'Skipping due expected condition is true' in err.args
-
-    def test_raise_custom_message(self):
-        """Test is skipped with a custom message"""
-
-        @decorators.skip_if(True, 'foo')
-        def dummy():
-            pass
-
-        try:
-            dummy()
-        except SkipTest as err:
-            assert 'foo' in err.args
-
-
 class TestSkipIfNotSet:
     """Tests for :func:`robottelo.decorators.skip_if_not_set`."""
 

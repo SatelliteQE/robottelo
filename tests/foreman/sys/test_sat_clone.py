@@ -29,15 +29,11 @@
 """
 import pytest
 
-from robottelo.decorators import destructive
-from robottelo.test import TestCase
 
-
-@destructive
-class SatCloneTestCase(TestCase):
+@pytest.mark.destructive
+class TestSatClone:
     """Implements ``Satellite Clone`` tests"""
 
-    @destructive
     @pytest.mark.stubbed
     def test_clone_without_rename(self):
         """Clone the satellite to other box
@@ -67,7 +63,6 @@ class SatCloneTestCase(TestCase):
 
         """
 
-    @destructive
     @pytest.mark.stubbed
     def test_clone_with_rename(self):
         """Clone the satellite to other box
@@ -97,7 +92,6 @@ class SatCloneTestCase(TestCase):
 
         """
 
-    @destructive
     @pytest.mark.stubbed
     def test_migrate_with_rename(self):
         """Migrate the satellite from RHEL6 box to a RHEL7 one

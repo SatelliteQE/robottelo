@@ -14,21 +14,20 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import HASH_TYPE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_with_params(session):
     """Set Operating System parameter
 
@@ -57,7 +56,7 @@ def test_positive_update_with_params(session):
         assert values['parameters']['os_params'][0]['value'] == param_value
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session):
     """Create all possible entities that required for operating system and then
     test all scenarios like create/read/update/delete for it
@@ -130,7 +129,7 @@ def test_positive_end_to_end(session):
         assert not session.operatingsystem.search(new_description)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_template(session, module_org):
     """Update operating system with new provisioning template value
 
@@ -160,7 +159,7 @@ def test_positive_update_template(session, module_org):
         assert values['templates']['resources']['Provisioning template'] == template.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_verify_os_name(session):
     """Check that the Operating System name is displayed correctly
 

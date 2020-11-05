@@ -16,8 +16,6 @@
 """
 import pytest
 
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -29,7 +27,7 @@ class BootstrapScriptTestCase(CLITestCase):
         """create VM for testing """
         super().setUpClass()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.stubbed
     def test_positive_register(self):
         """System is registered
@@ -48,9 +46,9 @@ class BootstrapScriptTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.stubbed
-    @upgrade
+    @pytest.mark.upgrade
     def test_positive_reregister(self):
         """Registered system is re-registered
 

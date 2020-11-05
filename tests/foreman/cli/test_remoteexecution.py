@@ -36,10 +36,7 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_SLES11
 from robottelo.constants import DISTRO_SLES12
 from robottelo.constants.repos import FAKE_0_YUM_REPO
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -85,7 +82,7 @@ class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
     @pytest.mark.stubbed
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_job_multiple_hosts_time_span(self):
         """Run job against multiple hosts with time span setting
 
@@ -98,8 +95,8 @@ class TestRemoteExecution:
         # a task other than via UI
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_job_multiple_hosts_concurrency(self):
         """Run job against multiple hosts with concurrency-level
 
@@ -111,7 +108,7 @@ class TestRemoteExecution:
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Run default template on host connected by ip and list task
 
@@ -160,7 +157,7 @@ class TestRemoteExecution:
         assert search[0]["action"] == task["action"]
 
     @pytest.mark.skip_if_open('BZ:1804685')
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, fixture_org):
         """Run default job template as effective user on a host by ip
 
@@ -232,7 +229,7 @@ class TestRemoteExecution:
         # assert the file is owned by the effective user
         assert username == result.stdout[0]
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Run custom template on host connected by ip
 
@@ -271,8 +268,8 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -328,8 +325,8 @@ class TestRemoteExecution:
                 )
             assert invocation_command['success'] == '2', output_msgs
 
-    @tier3
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_install_multiple_packages_with_a_job_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -393,7 +390,7 @@ class TestRemoteExecution:
         result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_recurring_job_with_max_iterations_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -444,7 +441,7 @@ class TestRemoteExecution:
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Schedule a job to be ran against a host
 
@@ -494,8 +491,8 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_receptor_installer(self):
         """Run Receptor installer ("Configure Cloud Connector")
 
@@ -543,8 +540,8 @@ class TestRemoteExecution:
 class TestAnsibleREX:
     """Test class for remote execution via Ansible"""
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_effective_user_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job having effective user runs successfully
 
@@ -627,8 +624,8 @@ class TestAnsibleREX:
         # assert the file is owned by the effective user
         assert username == result.stdout[0], "file ownership mismatch"
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_reccuring_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
@@ -686,9 +683,9 @@ class TestAnsibleREX:
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
-    @tier3
-    @upgrade
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job can install packages and start services
 
@@ -793,8 +790,8 @@ class TestAnsibleREX:
         assert result.return_code == 0
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_power_job(self):
         """Tests Ansible REX job can switch host power state successfully
 
@@ -816,8 +813,8 @@ class TestAnsibleREX:
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_puppet_job(self):
         """Tests Ansible REX job can trigger puppet run successfully
 
@@ -841,8 +838,8 @@ class TestAnsibleREX:
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_roles_galaxy_install_job(self):
         """Tests Ansible REX job installs roles from Galaxy successfully
 
@@ -864,8 +861,8 @@ class TestAnsibleREX:
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_roles_git_install_job(self):
         """Tests Ansible REX job installs roles from git successfully
 
@@ -898,8 +895,8 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         # provision host here and tests will share the host, step 0. in tests
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_job_for_provisioned_host(self):
         """Tests Ansible REX job runs successfully for a provisioned host
 
@@ -921,8 +918,8 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_run_job_for_multiple_provisioned_hosts(self):
         """Tests Ansible REX job runs successfully for multiple provisioned hosts
 

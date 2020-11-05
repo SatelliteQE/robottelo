@@ -16,31 +16,28 @@
 """
 import random
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.decorators import fixture
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc():
     return entities.Location().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def ui_entities(module_org, module_loc):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
@@ -78,14 +75,14 @@ def ui_entities(module_org, module_loc):
     return ui_entities
 
 
-@fixture()
+@pytest.fixture()
 def random_entity(ui_entities):
     """Returns one random entity from list of available UI entities"""
     return ui_entities[random.randint(0, len(ui_entities) - 1)]
 
 
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, random_entity):
     """Perform end to end testing for bookmark component
 
@@ -118,7 +115,7 @@ def test_positive_end_to_end(session, random_entity):
         assert not session.bookmark.search(new_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_bookmark_public(session, random_entity, default_viewer_role, test_name):
     """Create and check visibility of the (non)public bookmarks
 
@@ -158,7 +155,7 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
         assert not session.bookmark.search(nonpublic_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_update_bookmark_public(
     session, random_entity, default_viewer_role, module_user, test_name
 ):
@@ -223,7 +220,7 @@ def test_positive_update_bookmark_public(
         assert not non_admin_session.bookmark.search(public_name)
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name):
     """Simple removal of a bookmark query without permissions
 
@@ -250,6 +247,6 @@ def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name)
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
-        with raises(NoSuchElementException):
+        with pytest.raises(NoSuchElementException):
             non_admin_session.bookmark.delete(bookmark.name)
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name

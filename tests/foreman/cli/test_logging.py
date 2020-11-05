@@ -16,6 +16,7 @@
 """
 import re
 
+import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
@@ -24,7 +25,6 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product_wait
 from robottelo.cli.factory import make_repository
 from robottelo.cli.subscription import Subscription
-from robottelo.decorators import tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -73,7 +73,7 @@ class SimpleLoggingTestCase(CLITestCase):
 
         return make_repository(options)
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_logging_from_foreman_core(self):
         """Check that GET command to Hosts API is logged and has request ID.
 
@@ -112,7 +112,7 @@ class SimpleLoggingTestCase(CLITestCase):
                     break
         assert GET_line_found, "The GET command to list hosts was not found in logs."
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_logging_from_foreman_proxy(self):
         """Check PUT to Smart Proxy API to refresh the features is logged and has request ID.
 
@@ -175,7 +175,7 @@ class SimpleLoggingTestCase(CLITestCase):
                 self.logger.info("Request ID also found in proxy.log")
                 break
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_logging_from_candlepin(self):
         """Check logging after manifest upload.
 
@@ -219,7 +219,7 @@ class SimpleLoggingTestCase(CLITestCase):
                     break
         assert POST_line_found, "The POST command to candlepin was not found in logs."
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_logging_from_dynflow(self):
         """Check POST to repositories API is logged while enabling a repo \
             and it has the request ID.

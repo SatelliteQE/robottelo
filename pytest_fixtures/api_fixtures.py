@@ -22,7 +22,6 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.decorators import skip_if
 from robottelo.helpers import download_gce_cert
 from robottelo.test import settings
 
@@ -430,7 +429,7 @@ def default_contentview(module_org):
     )
 
 
-@skip_if(not settings.repos_hosting_url)
+@pytest.mark.skipif(not settings.repos_hosting_url)
 @pytest.fixture(scope='module')
 def module_cv_with_puppet_module(module_org):
     """Returns content view entity created by publish_puppet_module with chosen

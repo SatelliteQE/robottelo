@@ -17,13 +17,11 @@
 import filecmp
 import os
 
-from unittest2.case import TestCase
+import pytest
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 from robottelo import ssh
-from robottelo.decorators import destructive
-
 
 DEFAULT_CUSTOM_HIERA_DATA = [
     "---",
@@ -143,8 +141,8 @@ TUNE_DATA_COLLECTION_REGEX = {
 }
 
 
-@destructive
-class ScenarioPerformanceTuning(TestCase):
+@pytest.mark.destructive
+class TestScenarioPerformanceTuning:
     """The test class contains pre-upgrade and post-upgrade scenarios to test
     Performance Tuning utility
 

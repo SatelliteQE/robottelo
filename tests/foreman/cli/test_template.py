@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -24,16 +25,13 @@ from robottelo.cli.factory import make_template
 from robottelo.cli.factory import make_user
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
 class TemplateTestCase(CLITestCase):
     """Test class for Config Template CLI."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Check if Template can be created
 
@@ -47,7 +45,7 @@ class TemplateTestCase(CLITestCase):
         template = make_template({'name': name})
         self.assertEqual(template['name'], name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Check if Template can be updated
 
@@ -63,7 +61,7 @@ class TemplateTestCase(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_with_manager_role(self):
         """Create template providing the initial name, then update its name
         with manager user role.
@@ -101,7 +99,7 @@ class TemplateTestCase(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertEqual(new_name, template['name'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_loc(self):
         """Check if Template with Location can be created
 
@@ -116,7 +114,7 @@ class TemplateTestCase(CLITestCase):
         new_template = make_template({'location-ids': new_loc['id']})
         self.assertIn(new_loc['name'], new_template['locations'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_locked(self):
         """Check that locked Template can be created
 
@@ -130,7 +128,7 @@ class TemplateTestCase(CLITestCase):
         new_template = make_template({'locked': 'true', 'name': gen_string('alpha')})
         self.assertEqual(new_template['locked'], 'yes')
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_org(self):
         """Check if Template with Organization can be created
 
@@ -147,8 +145,8 @@ class TemplateTestCase(CLITestCase):
         )
         self.assertIn(new_org['name'], new_template['organizations'])
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_os_by_id(self):
         """Check if operating system can be added to a template
 
@@ -169,7 +167,7 @@ class TemplateTestCase(CLITestCase):
         )
         self.assertIn(os_string, new_template['operating-systems'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_remove_os_by_id(self):
         """Check if operating system can be removed from a template
 
@@ -195,8 +193,8 @@ class TemplateTestCase(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertNotIn(os_string, template['operating-systems'])
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_with_content(self):
         """Check if Template can be created with specific content
 
@@ -213,8 +211,8 @@ class TemplateTestCase(CLITestCase):
         template_content = Template.dump({'id': template['id']})
         self.assertIn(content, template_content[0])
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_delete_by_id(self):
         """Check if Template can be deleted
 
@@ -229,8 +227,8 @@ class TemplateTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Template.info({'id': template['id']})
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_clone(self):
         """Assure ability to clone a provisioning template
 

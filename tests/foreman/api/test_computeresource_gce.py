@@ -25,9 +25,6 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
-from robottelo.decorators import tier1
-from robottelo.decorators import tier3
-
 
 GCE_SETTINGS = dict(
     project_id=settings.gce.project_id,
@@ -121,7 +118,7 @@ def gce_hostgroup(
 class TestGCEComputeResourceTestCases:
     """Tests for ``api/v2/compute_resources``."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_crud_gce_cr(self, module_org, module_location):
         """Create, Read, Update and Delete GCE compute resources
 
@@ -164,7 +161,7 @@ class TestGCEComputeResourceTestCases:
         assert not entities.GCEComputeResource().search(query={'search': f'name={new_name}'})
 
     @pytest.mark.skip_if_open("BZ:1794744")
-    @tier3
+    @pytest.mark.tier3
     def test_positive_check_available_images(self, module_gce_compute, googleclient):
         """Verify all the images from GCE are available to select from
 
@@ -178,7 +175,7 @@ class TestGCEComputeResourceTestCases:
         gcloudclinet_images = googleclient.list_templates(True)
         assert len(satgce_images) == len(gcloudclinet_images)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_check_available_networks(self, module_gce_compute, googleclient):
         """Verify all the networks from GCE are available to select
 
@@ -194,7 +191,7 @@ class TestGCEComputeResourceTestCases:
         assert sorted(satgce_networks) == sorted(gcloudclient_networks)
 
     @pytest.mark.skip_if_open("BZ:1794744")
-    @tier3
+    @pytest.mark.tier3
     def test_positive_check_available_flavors(self, module_gce_compute):
         """Verify flavors from GCE are available to select
 
@@ -209,7 +206,7 @@ class TestGCEComputeResourceTestCases:
         satgce_flavors = int(module_gce_compute.available_flavors()['total'])
         assert satgce_flavors > 1
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_create_finish_template_image(
         self, module_gce_finishimg, module_gce_compute, gce_latest_rhel_uuid
     ):
@@ -231,7 +228,7 @@ class TestGCEComputeResourceTestCases:
         assert module_gce_finishimg.uuid == gce_latest_rhel_uuid
         assert module_gce_finishimg.username == finishuser
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_create_cloud_init_image(
         self, module_gce_cloudimg, module_gce_compute, gce_custom_cloudinit_uuid
     ):
@@ -316,7 +313,7 @@ class TestGCEHostProvisioningTestCase:
         """Returns the Google Client Host object to perform the assertions"""
         return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_gce_host_provisioned(self, class_host):
         """Host can be provisioned on Google Cloud
 
@@ -340,7 +337,7 @@ class TestGCEHostProvisioningTestCase:
         assert class_host.name == self.fullhostname
         assert class_host.build_status_label == "Installed"
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_gce_host_ip(self, class_host, google_host):
         """Host has assigned with external IP
 
@@ -361,7 +358,7 @@ class TestGCEHostProvisioningTestCase:
         """
         assert class_host.ip == google_host.ip
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_gce_host_power_on_off(self, class_host, google_host):
         """Host can be powered on and off
 

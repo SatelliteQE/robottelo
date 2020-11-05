@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 
@@ -22,8 +23,6 @@ from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import APITestCase
 
 
@@ -45,8 +44,8 @@ class LDAPAuthSourceTestCase(APITestCase):
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_endtoend_withad(self):
         """Create/update/delete LDAP authentication with AD using names of different types
 
@@ -105,8 +104,8 @@ class IPAAuthSourceTestCase(APITestCase):
         cls.ipa_group_base_dn = settings.ipa.grpbasedn_ipa
         cls.ldap_ipa_hostname = settings.ipa.hostname_ipa
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_endtoend_withipa(self):
         """Create/update/delete LDAP authentication with FreeIPA using names of different types
 

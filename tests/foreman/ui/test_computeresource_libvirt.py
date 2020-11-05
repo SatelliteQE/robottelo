@@ -16,29 +16,28 @@
 """
 from random import choice
 
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import skip
 
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.decorators import fixture
 from robottelo.decorators import setting_is_set
-from robottelo.decorators import tier2
-
 
 if not setting_is_set('compute_resources'):
-    skip('skipping tests due to missing compute_resources settings', allow_module_level=True)
+    pytest.skip(
+        'skipping tests due to missing compute_resources settings', allow_module_level=True
+    )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url):
     """Perform end to end testing for compute resource Libvirt component.
 

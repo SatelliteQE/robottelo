@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import pytest
+
 from robottelo import manifests
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
@@ -21,19 +23,16 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class RepositorySetTestCase(CLITestCase):
     """Repository Set CLI tests."""
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_list_available_repositories(self):
         """List available repositories for repository-set
 
@@ -131,7 +130,7 @@ class RepositorySetTestCase(CLITestCase):
         )
         self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_enable_by_name(self):
         """Enable repo from reposet by names of reposet, org and product
 
@@ -164,7 +163,7 @@ class RepositorySetTestCase(CLITestCase):
         ][0]
         self.assertEqual(enabled, 'true')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_enable_by_label(self):
         """Enable repo from reposet by org label, reposet and product
         names
@@ -202,7 +201,7 @@ class RepositorySetTestCase(CLITestCase):
         ][0]
         self.assertEqual(enabled, 'true')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_enable_by_id(self):
         """Enable repo from reposet by IDs of reposet, org and product
 
@@ -239,7 +238,7 @@ class RepositorySetTestCase(CLITestCase):
         ][0]
         self.assertEqual(enabled, 'true')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_disable_by_name(self):
         """Disable repo from reposet by names of reposet, org and
         product
@@ -282,7 +281,7 @@ class RepositorySetTestCase(CLITestCase):
         ][0]
         self.assertEqual(enabled, 'false')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_disable_by_label(self):
         """Disable repo from reposet by org label, reposet and product
         names
@@ -329,7 +328,7 @@ class RepositorySetTestCase(CLITestCase):
         ][0]
         self.assertEqual(enabled, 'false')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_disable_by_id(self):
         """Disable repo from reposet by IDs of reposet, org and product
 

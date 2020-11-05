@@ -12,6 +12,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_string
 from nailgun import entities
@@ -19,18 +20,14 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import configure_provisioning
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import fixture
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
 
-pytestmark = [run_in_one_thread]
+pytestmark = ['run_in_one_thread']
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     org = entities.Organization().create()
     # Update default discovered host organization
@@ -43,7 +40,7 @@ def module_org():
     discovery_org.update(['value'])
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     loc = entities.Location(name=gen_string('alpha'), organization=[module_org]).create()
     # Update default discovered host location
@@ -56,7 +53,7 @@ def module_loc(module_org):
     discovery_loc.update(['value'])
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def provisioning_env(module_org, module_loc):
     # Build PXE default template to get default PXE file
     entities.ProvisioningTemplate().build_pxe_default()
@@ -67,12 +64,12 @@ def provisioning_env(module_org, module_loc):
     )
 
 
-@fixture
+@pytest.fixture
 def discovered_host():
     return create_discovered_host()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_host_group(module_org, module_loc):
     host = entities.Host(organization=module_org, location=module_loc)
     host.create_missing()
@@ -112,8 +109,8 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
 
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_pxe_based_discovery(session, provisioning_env):
     """Discover a host via PXE boot by setting "proxy.type=proxy" in
     PXE default
@@ -138,8 +135,8 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
 
 
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
     """Discover a host with dhcp via bootable discovery ISO by setting
     "proxy.type=proxy" in PXE default in unattended mode.
@@ -163,8 +160,8 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_provision_using_quick_host_button(
     session, module_org, module_loc, discovered_host, module_host_group
 ):
@@ -197,7 +194,7 @@ def test_positive_provision_using_quick_host_button(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_update_name(session, module_org, module_loc, module_host_group, discovered_host):
     """Update the discovered host name and provision it
 
@@ -233,8 +230,8 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@tier3
-@upgrade
+@pytest.mark.tier3
+@pytest.mark.upgrade
 def test_positive_auto_provision_host_with_rule(
     session, module_org, module_loc, module_host_group
 ):
@@ -277,7 +274,7 @@ def test_positive_auto_provision_host_with_rule(
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_delete(session, discovered_host):
     """Delete the selected discovered host
 
@@ -297,7 +294,7 @@ def test_positive_delete(session, discovered_host):
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """Change the default organization and location of more than one
     discovered hosts from 'Select Action' drop down
@@ -340,7 +337,7 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
 
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
-@tier3
+@pytest.mark.tier3
 def test_positive_reboot(session, provisioning_env):
     """Reboot a discovered host.
 

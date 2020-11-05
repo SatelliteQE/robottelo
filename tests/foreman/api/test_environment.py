@@ -18,6 +18,7 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -25,8 +26,6 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_names_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 from robottelo.test import APITestCase
 
 
@@ -45,7 +44,7 @@ class EnvironmentTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create an environment and provide a valid name.
 
@@ -61,7 +60,7 @@ class EnvironmentTestCase(APITestCase):
                 env = entities.Environment(name=name).create()
                 self.assertEqual(env.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_org_and_loc(self):
         """Create an environment and assign it to new organization.
 
@@ -80,7 +79,7 @@ class EnvironmentTestCase(APITestCase):
         self.assertEqual(len(env.location), 1)
         self.assertEqual(env.location[0].id, self.loc.id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_too_long_name(self):
         """Create an environment and provide an invalid name.
 
@@ -94,7 +93,7 @@ class EnvironmentTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_characters(self):
         """Create an environment and provide an illegal name.
 
@@ -109,7 +108,7 @@ class EnvironmentTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Create environment entity providing the initial name, then
         update its name to another valid name.
@@ -125,7 +124,7 @@ class EnvironmentTestCase(APITestCase):
                 env = entities.Environment(id=env.id, name=new_name).update(['name'])
                 self.assertEqual(env.name, new_name)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_and_remove(self):
         """Update environment and assign it to a new organization
         and location. Delete environment afterwards.
@@ -154,7 +153,7 @@ class EnvironmentTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             env.read()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_name(self):
         """Create environment entity providing the initial name, then
         try to update its name to invalid one.
@@ -188,7 +187,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         env = entities.Environment().create()
         cls.env_attrs = set(env.update_json([]).keys())
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_loc(self):
         """Update an environment. Inspect the server's response.
 
@@ -206,7 +205,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
             len(names & self.env_attrs), 1, f'None of {names} are in {self.env_attrs}'
         )
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_org(self):
         """Update an environment. Inspect the server's response.
 

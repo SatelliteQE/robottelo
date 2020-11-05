@@ -22,9 +22,6 @@ from robottelo.cli.factory import CLIReturnCodeError
 from robottelo.cli.factory import make_compute_resource
 from robottelo.config import settings
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -41,7 +38,7 @@ class OSPComputeResourceTestCase(CLITestCase):
         cls.tenant = settings.osp.tenant
         cls.domain_id = settings.osp.project_domain_id
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_osp_with_valid_name(self):
         """Create Compute Resource of type Openstack with valid name
 
@@ -68,7 +65,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             )
             self.assertEqual(compute_resource['name'], name)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_osp_info(self):
         """List the info of Openstack compute resource
 
@@ -96,7 +93,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             self.assertEqual(compute_resource['name'], name)
             self.assertIsNotNone(compute_resource['id'])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_delete_by_name(self):
         """Delete the Openstack compute resource by name
 
@@ -124,8 +121,8 @@ class OSPComputeResourceTestCase(CLITestCase):
             result = ComputeResource.exists(search=('name', comp_res['name']))
             self.assertFalse(result)
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_delete_by_id(self):
         """Delete the Openstack compute resource by id
 
@@ -153,7 +150,7 @@ class OSPComputeResourceTestCase(CLITestCase):
             result = ComputeResource.exists(search=('name', comp_res['name']))
             self.assertFalse(result)
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_osp_with_url(self):
         """Attempt to create Openstack compute resource with invalid URL
 
@@ -179,7 +176,7 @@ class OSPComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_create_with_same_name(self):
         """Attempt to create Openstack compute resource with the same name as
         an existing one
@@ -223,7 +220,7 @@ class OSPComputeResourceTestCase(CLITestCase):
                 }
             )
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_update_name(self):
         """Update Openstack compute resource name
 
@@ -255,7 +252,7 @@ class OSPComputeResourceTestCase(CLITestCase):
         ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
         self.assertEqual(new_name, ComputeResource.info({'id': comp_res['id']})['name'])
 
-    @tier3
+    @pytest.mark.tier3
     @pytest.mark.stubbed
     def test_positive_provision_osp_with_host_group(self):
         """Provision a host on Openstack compute resource with
@@ -279,8 +276,8 @@ class OSPComputeResourceTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     def test_positive_provision_osp_without_host_group(self):
         """Provision a host on Openstack compute resource without
         the help of hostgroup.

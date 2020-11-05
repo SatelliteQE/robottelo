@@ -24,7 +24,6 @@ from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 
 
 class TestArchitecture:
@@ -35,7 +34,7 @@ class TestArchitecture:
         """Shared architecture for tests"""
         return make_architecture()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRUD(self):
         """Create a new Architecture, update the name and delete the Architecture itself.
 
@@ -58,7 +57,7 @@ class TestArchitecture:
         with pytest.raises(CLIReturnCodeError):
             Architecture.info({'id': architecture['id']})
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name):
         """Don't create an Architecture with invalid data.
@@ -77,7 +76,7 @@ class TestArchitecture:
 
         assert 'Could not create the architecture:' in error.value.message
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
     def test_negative_update_name(self, class_architecture, new_name):
         """Create Architecture then fail to update its name
@@ -99,7 +98,7 @@ class TestArchitecture:
         result = Architecture.info({'id': class_architecture['id']})
         assert class_architecture['name'] == result['name']
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
     def test_negative_delete_by_id(self, entity_id):
         """Delete architecture by invalid ID

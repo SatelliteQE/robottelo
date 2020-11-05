@@ -16,11 +16,9 @@
 """
 import pytest
 
-from robottelo.decorators import tier3
-
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_rhel_pxe_provisioning_on_libvirt():
     """Provision RHEL system via PXE on libvirt and make sure it behaves
 

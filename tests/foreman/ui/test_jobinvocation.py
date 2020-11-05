@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from inflection import camelize
 from nailgun import entities
 
@@ -22,8 +23,6 @@ from robottelo.cli.host import Host
 from robottelo.config import settings
 from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier4
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm import VirtualMachine
 
@@ -49,12 +48,12 @@ def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
         )
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
@@ -67,7 +66,7 @@ def module_loc(module_org):
     return location
 
 
-@fixture
+@pytest.fixture
 def module_vm_client_by_ip(module_org, module_loc):
     """Setup a VM client to be used in remote execution by ip"""
     with VirtualMachine(distro=DISTRO_DEFAULT) as vm_client:
@@ -76,7 +75,7 @@ def module_vm_client_by_ip(module_org, module_loc):
         yield vm_client
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_client_by_ip):
     """Run a job template on a host connected by ip
 
@@ -112,7 +111,7 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@tier4
+@pytest.mark.tier4
 def test_positive_run_custom_job_template_by_ip(session, module_org, module_vm_client_by_ip):
     """Run a job template on a host connected by ip
 

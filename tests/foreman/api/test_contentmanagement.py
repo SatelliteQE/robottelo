@@ -49,12 +49,7 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_7_YUM_REPO
 from robottelo.constants.repos import FAKE_8_YUM_REPO
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import skip_if
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import tier4
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
 from robottelo.helpers import get_data_file
@@ -72,9 +67,9 @@ class ContentManagementTestCase(APITestCase):
     interactions.
     """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
@@ -96,8 +91,8 @@ class ContentManagementTestCase(APITestCase):
             with self.assertNotRaises(TaskFailedError):
                 repo.sync()
 
-    @tier2
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier2
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_repos_with_lots_files(self):
         """Attempt to synchronize repository containing a lot of files inside
         rpms.
@@ -118,8 +113,8 @@ class ContentManagementTestCase(APITestCase):
         with self.assertNotRaises(TaskFailedError):
             repo.sync()
 
-    @tier4
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_kickstart_repo(self):
         """No encoding gzip errors on kickstart repositories
         sync.
@@ -162,7 +157,7 @@ class ContentManagementTestCase(APITestCase):
         self.assertGreater(repo.content_counts['rpm'], 0)
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class CapsuleContentManagementTestCase(APITestCase):
     """Content Management related tests, which exercise katello with pulp
     interactions and use capsule.
@@ -197,7 +192,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_insights_puppet_package_availability(self):
         """Check `redhat-access-insights-puppet` package availability for
         capsule
@@ -224,7 +219,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             )
         self.assertEqual(result.return_code, 0)
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_uploaded_content_library_sync(self):
         """Ensure custom repo with no upstream url and manually uploaded
         content after publishing to Library is synchronized to capsule
@@ -297,7 +292,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_checksum_sync(self):
         """Synchronize repository to capsule, update repository's checksum
         type, trigger capsule sync and make sure checksum type was updated on
@@ -402,8 +397,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreater(len(result.stdout), 0)
 
-    @tier4
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -575,7 +570,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         )
 
     @pytest.mark.stubbed
-    @tier4
+    @pytest.mark.tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -638,8 +633,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertGreater(len(result), 0)
         self.assertEqual(set(sat_isos), set(capsule_isos))
 
-    @tier4
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_on_demand_sync(self):
         """Create a repository with 'on_demand' sync, add it to lifecycle
         environment with a capsule, sync repository, examine existing packages
@@ -745,7 +740,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert checksums are matching
         self.assertEqual(package_md5, published_package_md5)
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_mirror_on_sync(self):
         """Create 2 repositories with 'on_demand' download policy and mirror on
         sync option, associate them with capsule, sync first repo, move package
@@ -867,7 +862,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(package_name, result.stdout[0])
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_update_with_immediate_sync(self):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
@@ -991,8 +986,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         broken_links = {link for link in result.stdout if link}
         self.assertEqual(len(broken_links), 0)
 
-    @tier4
-    @skip_if(not settings.repos_hosting_url)
+    @pytest.mark.tier4
+    @pytest.mark.skipif(not settings.repos_hosting_url)
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
         module to the capsule
@@ -1098,7 +1093,7 @@ class CapsuleContentManagementTestCase(APITestCase):
                 if '{}-{}'.format(module_name, module_versions[1]) in filename
             )
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_capsule_pub_url_accessible(self):
         """Ensure capsule pub url is accessible
 

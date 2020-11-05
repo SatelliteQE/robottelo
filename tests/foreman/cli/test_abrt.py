@@ -16,9 +16,6 @@
 """
 import pytest
 
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -26,8 +23,8 @@ class AbrtTestCase(CLITestCase):
     """Test class for generating abrt report in CLI."""
 
     @pytest.mark.stubbed
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_create_report(self):
         """a crashed program and abrt reports are send
 
@@ -48,7 +45,7 @@ class AbrtTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_reports(self):
         """Counts are correct when abrt sends multiple reports
 
@@ -68,7 +65,7 @@ class AbrtTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_timer(self):
         """Edit the smart-proxy-abrt timer
 
@@ -85,7 +82,7 @@ class AbrtTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_identify_hostname(self):
         """Identifying the hostnames
 
@@ -102,7 +99,7 @@ class AbrtTestCase(CLITestCase):
         """
 
     @pytest.mark.stubbed
-    @tier2
+    @pytest.mark.tier2
     def test_positive_search_report(self):
         """Able to retrieve reports in CLI
 

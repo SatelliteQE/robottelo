@@ -17,14 +17,13 @@
 import http
 import logging
 
+import pytest
 from nailgun import client
 from nailgun import entities
 from nailgun import entity_fields
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.decorators import tier1
-from robottelo.decorators import tier3
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
@@ -142,7 +141,7 @@ class EntityTestCase(APITestCase):
             test_entities = test_entities[:max_entities]
         return test_entities
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_get_status_code(self):
         """GET an entity-dependent path.
 
@@ -172,7 +171,7 @@ class EntityTestCase(APITestCase):
                 self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_get_unauthorized(self):
         """GET an entity-dependent path without credentials.
 
@@ -190,7 +189,7 @@ class EntityTestCase(APITestCase):
                 response = client.get(entity_cls().path(), auth=(), verify=False)
                 self.assertEqual(http.client.UNAUTHORIZED, response.status_code)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_post_status_code(self):
         """Issue a POST request and check the returned status code.
 
@@ -223,7 +222,7 @@ class EntityTestCase(APITestCase):
                 self.assertEqual(http.client.CREATED, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_post_unauthorized(self):
         """POST to an entity-dependent path without credentials.
 
@@ -248,7 +247,7 @@ class EntityTestCase(APITestCase):
 class EntityIdTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_get_status_code(self):
         """Create an entity and GET it.
 
@@ -271,7 +270,7 @@ class EntityIdTestCase(APITestCase):
                 self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_put_status_code(self):
         """Issue a PUT request and check the returned status code.
 
@@ -304,7 +303,7 @@ class EntityIdTestCase(APITestCase):
                 self.assertEqual(http.client.OK, response.status_code)
                 self.assertIn('application/json', response.headers['content-type'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_status_code(self):
         """Issue an HTTP DELETE request and check the returned status
         code.
@@ -347,7 +346,7 @@ class DoubleCheckTestCase(APITestCase):
 
     longMessage = True
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_put_and_get_requests(self):
         """Update an entity, then read it back.
 
@@ -387,7 +386,7 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertIn(key, entity_attrs.keys())
                     self.assertEqual(value, entity_attrs[key], key)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_post_and_get_requests(self):
         """Create an entity, then read it back.
 
@@ -413,7 +412,7 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertIn(key, entity_attrs.keys())
                     self.assertEqual(value, entity_attrs[key], key)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_delete_and_get_requests(self):
         """Issue an HTTP DELETE request and GET the deleted entity.
 
@@ -443,7 +442,7 @@ class EntityReadTestCase(APITestCase):
     ``nailgun.entity_mixins.EntityReadMixin`` are working properly.
     """
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_entity_read(self):
         """Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -466,7 +465,7 @@ class EntityReadTestCase(APITestCase):
                 entity_id = entity_cls().create_json()['id']
                 self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_architecture_read(self):
         """Create an arch that points to an OS, and read the arch.
 
@@ -483,7 +482,7 @@ class EntityReadTestCase(APITestCase):
         self.assertEqual(len(architecture.operatingsystem), 1)
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_syncplan_read(self):
         """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -501,7 +500,7 @@ class EntityReadTestCase(APITestCase):
             entities.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_osparameter_read(self):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -520,7 +519,7 @@ class EntityReadTestCase(APITestCase):
             entities.OperatingSystemParameter,
         )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_permission_read(self):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -536,7 +535,7 @@ class EntityReadTestCase(APITestCase):
         self.assertGreater(len(perm.name), 0)
         self.assertGreater(len(perm.resource_type), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_media_read(self):
         """Create a media pointing at an OS and read the media.
 

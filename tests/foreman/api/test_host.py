@@ -38,13 +38,9 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.datafactory import valid_interfaces_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_get_search():
     """GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
@@ -65,7 +61,7 @@ def test_positive_get_search():
     assert response.json()['search'] == query
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_get_per_page():
     """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
@@ -87,7 +83,7 @@ def test_positive_get_per_page():
     assert response.json()['per_page'] == per_page
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_search_by_org_id():
     """Search for host by specifying host's organization id
 
@@ -111,7 +107,7 @@ def test_positive_search_by_org_id():
     assert results[0].id == host.id
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
 def test_negative_create_with_owner_type(owner_type):
     """Create a host and specify only ``owner_type``.
@@ -129,7 +125,7 @@ def test_negative_create_with_owner_type(owner_type):
     assert str(422) in str(error)
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
 def test_positive_update_owner_type(owner_type, module_org, module_location, module_user):
     """Update a host's ``owner_type``.
@@ -157,7 +153,7 @@ def test_positive_update_owner_type(owner_type, module_org, module_location, mod
     assert host.owner.read() == owners[owner_type]
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_and_update_with_name():
     """Create and update a host with different names and minimal input parameters
 
@@ -176,7 +172,7 @@ def test_positive_create_and_update_with_name():
     assert host.name == f'{new_name}.{host.domain.read().name}'
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_and_update_with_ip():
     """Create and update host with IP address specified
 
@@ -195,7 +191,7 @@ def test_positive_create_and_update_with_ip():
     assert host.ip == new_ip_addr
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_and_update_mac():
     """Create host with MAC address and update it
 
@@ -215,7 +211,7 @@ def test_positive_create_and_update_mac():
     assert host.mac == new_mac
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_hostgroup(
     module_org, module_location, module_lce, module_published_cv
 ):
@@ -251,7 +247,7 @@ def test_positive_create_and_update_with_hostgroup(
     assert host.hostgroup.read().name == new_hostgroup.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_inherit_lce_cv(
     module_cv_with_puppet_module, module_lce_search, module_org
 ):
@@ -280,7 +276,7 @@ def test_positive_create_inherit_lce_cv(
     assert host.content_facet_attributes['content_view_id'] == hostgroup.content_view.id
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_with_inherited_params(module_org, module_location):
     """Create a new Host in organization and location with parameters
 
@@ -314,7 +310,7 @@ def test_positive_create_with_inherited_params(module_org, module_location):
     assert expected_params == {(param['name'], param['value']) for param in host.all_parameters}
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_and_update_with_puppet_proxy():
     """Create a host with puppet proxy specified and then create new host without specified
     puppet proxy and update the new host with the same puppet proxy
@@ -336,7 +332,7 @@ def test_positive_create_and_update_with_puppet_proxy():
     assert new_host.puppet_proxy.read().name == proxy.name
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_with_puppet_ca_proxy():
     """Create a host with puppet CA proxy specified and then create new host without specified
      puppet CA proxy and update the new host with the same puppet CA proxy
@@ -358,7 +354,7 @@ def test_positive_create_with_puppet_ca_proxy():
     assert new_host.puppet_ca_proxy.read().name == proxy.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end_with_puppet_class(
     module_org, module_location, module_env_search, module_puppet_classes
 ):
@@ -390,7 +386,7 @@ def test_positive_end_to_end_with_puppet_class(
     }
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_subnet(
     module_location, module_org, module_default_subnet
 ):
@@ -412,7 +408,7 @@ def test_positive_create_and_update_with_subnet(
     assert host.subnet.read().name == new_subnet.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_compresource(
     module_org, module_location, module_cr_libvirt
 ):
@@ -437,7 +433,7 @@ def test_positive_create_and_update_with_compresource(
     assert host.compute_resource.read().name == new_compresource.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_model(module_model):
     """Create and update a host with model specified
 
@@ -455,7 +451,7 @@ def test_positive_create_and_update_with_model(module_model):
     assert host.model.read().name == new_model.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_user(module_org, module_location, module_user):
     """Create and update host with user specified
 
@@ -475,7 +471,7 @@ def test_positive_create_and_update_with_user(module_org, module_location, modul
     assert host.owner.read() == new_user
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_usergroup(module_org, module_location, function_role):
     """Create and update host with user group specified
 
@@ -502,7 +498,7 @@ def test_positive_create_and_update_with_usergroup(module_org, module_location, 
     assert host.owner.read().name == new_usergroup.name
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('build', **parametrized([True, False]))
 def test_positive_create_and_update_with_build_parameter(build):
     """Create and update a host with 'build' parameter specified.
@@ -524,7 +520,7 @@ def test_positive_create_and_update_with_build_parameter(build):
     assert host.build == (not build)
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('enabled', **parametrized([True, False]))
 def test_positive_create_and_update_with_enabled_parameter(enabled):
     """Create and update a host with 'enabled' parameter specified.
@@ -547,7 +543,7 @@ def test_positive_create_and_update_with_enabled_parameter(enabled):
     assert host.enabled == (not enabled)
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('managed', **parametrized([True, False]))
 def test_positive_create_and_update_with_managed_parameter(managed):
     """Create and update a host with managed parameter specified.
@@ -570,7 +566,7 @@ def test_positive_create_and_update_with_managed_parameter(managed):
     assert host.managed == (not managed)
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_create_and_update_with_comment():
     """Create and update a host with a comment
 
@@ -589,7 +585,7 @@ def test_positive_create_and_update_with_comment():
     assert host.comment == new_comment
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_compute_profile(module_compute_profile):
     """Create and update a host with a compute profile specified
 
@@ -608,7 +604,7 @@ def test_positive_create_and_update_with_compute_profile(module_compute_profile)
     assert host.compute_profile.read().name == new_cprofile.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_with_content_view(
     module_org, module_location, module_cv_with_puppet_module, module_lce_search
 ):
@@ -640,7 +636,7 @@ def test_positive_create_and_update_with_content_view(
     assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_search.id
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_end_to_end_with_host_parameters(module_org, module_location):
     """Create a host with a host parameters specified
     then remove and update with the newly specified parameters
@@ -675,7 +671,7 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location):
     assert 'id' in host.host_parameters_attributes[0]
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_end_to_end_with_image(
     module_org, module_location, module_cr_libvirt, module_libvirt_image
 ):
@@ -706,7 +702,7 @@ def test_positive_end_to_end_with_image(
     assert host.image.id == module_libvirt_image.id
 
 
-@tier1
+@pytest.mark.tier1
 @pytest.mark.parametrize('method', **parametrized(['build', 'image']))
 def test_positive_create_with_provision_method(
     method, module_org, module_location, module_cr_libvirt
@@ -731,7 +727,7 @@ def test_positive_create_with_provision_method(
     assert host.provision_method == method
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_delete():
     """Delete a host
 
@@ -747,7 +743,7 @@ def test_positive_delete():
         host.read()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_domain(module_org, module_location, module_domain):
     """Create and update a host with a domain
 
@@ -768,7 +764,7 @@ def test_positive_create_and_update_domain(module_org, module_location, module_d
     assert host.domain.read().name == new_domain.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_env(module_org, module_location, module_puppet_environment):
     """Create and update a host with an environment
 
@@ -793,7 +789,7 @@ def test_positive_create_and_update_env(module_org, module_location, module_pupp
     assert host.environment.read().name == new_env.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_arch(module_architecture):
     """Create and update a host with an architecture
 
@@ -812,7 +808,7 @@ def test_positive_create_and_update_arch(module_architecture):
     assert host.architecture.read().name == new_arch.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_os(module_os):
     """Create and update a host with an operating system
 
@@ -836,7 +832,7 @@ def test_positive_create_and_update_os(module_os):
     assert host.operatingsystem.read().name == new_os.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_create_and_update_medium(module_org, module_location):
     """Create and update a host with a medium
 
@@ -862,7 +858,7 @@ def test_positive_create_and_update_medium(module_org, module_location):
     assert host.medium.read().name == new_medium.name
 
 
-@tier1
+@pytest.mark.tier1
 def test_negative_update_name(module_host):
     """Attempt to update a host with invalid or empty name
 
@@ -880,7 +876,7 @@ def test_negative_update_name(module_host):
     assert host.read().name != f'{new_name}.{host.domain.read().name}'.lower()
 
 
-@tier1
+@pytest.mark.tier1
 def test_negative_update_mac(module_host):
     """Attempt to update a host with invalid or empty MAC address
 
@@ -898,7 +894,7 @@ def test_negative_update_mac(module_host):
     assert host.read().mac != new_mac
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_update_arch(module_architecture):
     """Attempt to update a host with an architecture, which does not belong
     to host's operating system
@@ -916,7 +912,7 @@ def test_negative_update_arch(module_architecture):
     assert host.read().architecture.read().name != module_architecture.name
 
 
-@tier2
+@pytest.mark.tier2
 def test_negative_update_os():
     """Attempt to update a host with an operating system, which is not
     associated with host's medium
@@ -937,7 +933,7 @@ def test_negative_update_os():
     assert host.read().operatingsystem.read().name != new_os.name
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_read_content_source_id(
     module_org, module_location, module_lce, module_published_cv
 ):
@@ -977,7 +973,7 @@ def test_positive_read_content_source_id(
     assert content_source_id == proxy.id
 
 
-@tier3
+@pytest.mark.tier3
 def test_positive_update_content_source_id(
     module_org, module_location, module_lce, module_published_cv
 ):
@@ -1019,8 +1015,8 @@ def test_positive_update_content_source_id(
     assert content_source_id == proxy.id
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 def test_positive_read_enc_information(
     module_org,
     module_location,
@@ -1074,7 +1070,7 @@ def test_positive_read_enc_information(
         assert host_enc_parameters[param['name']] == param['value']
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_add_future_subscription():
     """Attempt to add a future-dated subscription to a content host.
@@ -1092,8 +1088,8 @@ def test_positive_add_future_subscription():
     """
 
 
-@upgrade
-@tier2
+@pytest.mark.upgrade
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_add_future_subscription_with_ak():
     """Register a content host with an activation key that has a
@@ -1113,7 +1109,7 @@ def test_positive_add_future_subscription_with_ak():
     """
 
 
-@tier2
+@pytest.mark.tier2
 @pytest.mark.stubbed
 def test_negative_auto_attach_future_subscription():
     """Run auto-attach on a content host, with a current and future-dated
@@ -1134,7 +1130,7 @@ def test_negative_auto_attach_future_subscription():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_create_baremetal_with_bios():
     """Create a new Host from provided MAC address
 
@@ -1155,7 +1151,7 @@ def test_positive_create_baremetal_with_bios():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_create_baremetal_with_uefi():
     """Create a new Host from provided MAC address
 
@@ -1176,7 +1172,7 @@ def test_positive_create_baremetal_with_uefi():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_verify_files_with_pxegrub_uefi():
     """Provision a new Host and verify the tftp and dhcpd file
     structure is correct
@@ -1208,7 +1204,7 @@ def test_positive_verify_files_with_pxegrub_uefi():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_verify_files_with_pxegrub_uefi_secureboot():
     """Provision a new Host and verify the tftp and dhcpd file structure is
     correct
@@ -1242,7 +1238,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_verify_files_with_pxegrub2_uefi():
     """Provision a new UEFI Host and verify the tftp and dhcpd file
     structure is correct
@@ -1276,7 +1272,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
 
 @pytest.mark.stubbed
-@tier3
+@pytest.mark.tier3
 def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
     """Provision a new UEFI Host and verify the tftp and dhcpd file
     structure is correct
@@ -1309,7 +1305,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
     """
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_read_puppet_proxy_name():
     """Read a hostgroup created with puppet proxy and inspect server's
     response
@@ -1330,7 +1326,7 @@ def test_positive_read_puppet_proxy_name():
     assert proxy.name == host['puppet_proxy_name']
 
 
-@tier1
+@pytest.mark.tier1
 def test_positive_read_puppet_ca_proxy_name():
     """Read a hostgroup created with puppet ca proxy and inspect server's
     response
@@ -1354,7 +1350,7 @@ def test_positive_read_puppet_ca_proxy_name():
 class TestHostInterface:
     """Tests for Host Interfaces"""
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_end_to_end(self, module_host):
         """Create update and delete an interface with different names and minimal input
         parameters
@@ -1376,7 +1372,7 @@ class TestHostInterface:
         with pytest.raises(HTTPError):
             interface.read()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_end_to_end(self, module_host):
         """Attempt to create and update an interface with different invalid entries as names
         (>255 chars, unsupported string types), at the end attempt to remove primary interface
@@ -1409,8 +1405,8 @@ class TestHostInterface:
         except HTTPError:
             pytest.fail("HTTPError 404 raised unexpectedly!")
 
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_delete_and_check_host(self):
         """Delete host's interface (not primary) and make sure the host was not
         accidentally removed altogether with the interface

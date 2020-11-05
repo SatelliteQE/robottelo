@@ -31,9 +31,6 @@ from robottelo.constants import DEFAULT_LOC
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
-from robottelo.decorators import run_in_one_thread
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
 
 
 @filtered_datapoint
@@ -88,7 +85,7 @@ class TestLocation:
             new_user=entities.User().create(),
         )
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_loc_data_list()))
     def test_positive_create_with_name(self, name):
         """Create new locations using different inputs as a name
@@ -105,7 +102,7 @@ class TestLocation:
         location = entities.Location(name=name).create()
         assert location.name == name
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_and_delete_with_comma_separated_name(self):
         """Create new location using name that has comma inside, delete location
 
@@ -120,7 +117,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             location.read()
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_and_update_with_org(self, make_orgs):
         """Create new location with assigned organization to it
 
@@ -140,7 +137,7 @@ class TestLocation:
         location = location.update(['organization'])
         assert {org.id for org in orgs} == {org.id for org in location.organization}
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
     def test_negative_create_with_name(self, name):
         """Attempt to create new location using invalid names only
@@ -156,7 +153,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             entities.Location(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_same_name(self):
         """Attempt to create new location using name of existing entity
 
@@ -172,7 +169,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             entities.Location(name=name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_domain(self):
         """Attempt to create new location using non-existent domain identifier
 
@@ -184,7 +181,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             entities.Location(domain=[gen_integer(10000, 99999)]).create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('new_name', **parametrized(valid_loc_data_list()))
     def test_positive_update_name(self, new_name):
         """Update location with new name
@@ -201,7 +198,7 @@ class TestLocation:
         location.name = new_name
         assert location.update(['name']).name == new_name
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_update_entities(self, make_entities):
         """Update location with new domain
 
@@ -239,8 +236,8 @@ class TestLocation:
         assert location.compute_resource[0].read().provider == 'Libvirt'
         assert location.update(['user']).user[0].id == make_entities["new_user"].id
 
-    @run_in_one_thread
-    @tier2
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier2
     def test_positive_create_update_and_remove_capsule(self, make_proxies):
         """Update location with new capsule
 
@@ -271,7 +268,7 @@ class TestLocation:
         location = location.update(['smart_proxy'])
         assert len(location.smart_proxy) == 0
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_update_domain(self):
         """Try to update existing location with incorrect domain. Use
         domain id
@@ -288,7 +285,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             assert location.update(['domain']).domain[0].id != domain.id
 
-    @tier1
+    @pytest.mark.tier1
     def test_default_loc_id_check(self):
         """test to check the default_location id
 

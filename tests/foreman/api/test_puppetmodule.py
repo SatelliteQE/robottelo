@@ -14,11 +14,10 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -40,7 +39,7 @@ class RepositorySearchTestCase(APITestCase):
         super().setUp()
         self.repository = entities.Repository(content_type='puppet', product=self.product).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_no_results(self):
         """Search for puppet modules in an empty repository.
 
@@ -53,7 +52,7 @@ class RepositorySearchTestCase(APITestCase):
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_single_result(self):
         """Search for puppet modules in a non-empty repository.
 
@@ -91,7 +90,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
         super().setUp()
         self.content_view = entities.ContentView(organization=self.product.organization).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_no_results(self):
         """Search for puppet modules in an emtpy content view version.
 
@@ -106,8 +105,8 @@ class ContentViewVersionSearchTestCase(APITestCase):
         query = {'content_view_version_id': self.content_view.version[0].id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_search_single_result(self):
         """Search for puppet modules in a CVV with one puppet module.
 

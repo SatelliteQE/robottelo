@@ -39,12 +39,7 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import run_in_one_thread
 from robottelo.decorators import skip_if_not_set
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
-from robottelo.decorators import upgrade
 from robottelo.helpers import read_data_file
 
 
@@ -56,7 +51,7 @@ class TestUser:
         """Create an user"""
         return entities.User().create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
     def test_positive_create_with_username(self, username):
         """Create User for all variations of Username
@@ -72,7 +67,7 @@ class TestUser:
         user = entities.User(login=username).create()
         assert user.login == username
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -92,7 +87,7 @@ class TestUser:
         user = entities.User(firstname=firstname).create()
         assert user.firstname == firstname
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -112,7 +107,7 @@ class TestUser:
         user = entities.User(lastname=lastname).create()
         assert user.lastname == lastname
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_create_with_email(self, mail):
         """Create User for all variations of Email
@@ -128,7 +123,7 @@ class TestUser:
         user = entities.User(mail=mail).create()
         assert user.mail == mail
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_create_with_description(self, description):
         """Create User for all variations of Description
@@ -144,7 +139,7 @@ class TestUser:
         user = entities.User(description=description).create()
         assert user.description == description
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'password', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -162,8 +157,8 @@ class TestUser:
         user = entities.User(password=password).create()
         assert user is not None
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_delete(self, mail):
         """Create random users and then delete it.
@@ -181,7 +176,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             user.read()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
     def test_positive_update_username(self, create_user, login):
         """Update a user and provide new username.
@@ -198,7 +193,7 @@ class TestUser:
         user = create_user.update(['login'])
         assert user.login == login
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('login', **parametrized(invalid_usernames_list()))
     def test_negative_update_username(self, create_user, login):
         """Update a user and provide new login.
@@ -215,7 +210,7 @@ class TestUser:
             create_user.login = login
             create_user.update(['login'])
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -236,7 +231,7 @@ class TestUser:
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
     )
@@ -257,7 +252,7 @@ class TestUser:
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
     def test_positive_update_email(self, create_user, mail):
         """Update a user and provide new email.
@@ -274,7 +269,7 @@ class TestUser:
         user = create_user.update(['mail'])
         assert user.mail == mail
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
     def test_negative_update_email(self, create_user, mail):
         """Update a user and provide new email.
@@ -291,7 +286,7 @@ class TestUser:
             create_user.mail = mail
             create_user.update(['mail'])
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
     def test_positive_update_description(self, create_user, description):
         """Update a user and provide new email.
@@ -308,7 +303,7 @@ class TestUser:
         user = create_user.update(['description'])
         assert user.description == description
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('admin_enable', [True, False])
     def test_positive_update_admin(self, admin_enable):
         """Update a user and provide the ``admin`` attribute.
@@ -325,7 +320,7 @@ class TestUser:
         user.admin = not admin_enable
         assert user.update().admin == (not admin_enable)
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
     def test_negative_create_with_invalid_email(self, mail):
         """Create User with invalid Email Address
@@ -341,7 +336,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             entities.User(mail=mail).create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_usernames_list()))
     def test_negative_create_with_invalid_username(self, invalid_name):
         """Create User with invalid Username
@@ -357,7 +352,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             entities.User(login=invalid_name).create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
     def test_negative_create_with_invalid_firstname(self, invalid_name):
         """Create User with invalid Firstname
@@ -373,7 +368,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             entities.User(firstname=invalid_name).create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
     def test_negative_create_with_invalid_lastname(self, invalid_name):
         """Create User with invalid Lastname
@@ -389,7 +384,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             entities.User(lastname=invalid_name).create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_blank_authorized_by(self):
         """Create User with blank authorized by
 
@@ -416,7 +411,7 @@ class TestUserRole:
         """Create an user"""
         return entities.User().create()
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.parametrize('number_of_roles', range(1, 3))
     def test_positive_create_with_role(self, make_roles, number_of_roles):
         """Create a user with the ``role`` attribute.
@@ -436,8 +431,8 @@ class TestUserRole:
         assert len(user.role) == number_of_roles
         assert {role.id for role in user.role} == {role.id for role in chosen_roles}
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('number_of_roles', range(1, 3))
     def test_positive_update(self, create_user, make_roles, number_of_roles):
         """Update an existing user and give it roles.
@@ -475,7 +470,7 @@ class TestSshKeyInUser:
         data_keys = json.loads(read_data_file('sshkeys.json'))
         return dict(user=user, data_keys=data_keys)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRD_ssh_key(self):
         """SSH Key can be added to User
 
@@ -502,7 +497,7 @@ class TestSshKeyInUser:
         result = entities.SSHKey(user=user).search()
         assert len(result) == 0
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_ssh_key(self, create_user):
         """Invalid ssh key can not be added in User Template
 
@@ -531,7 +526,7 @@ class TestSshKeyInUser:
         assert re.search('Fingerprint could not be generated', context.value.response.text)
         assert re.search('Length could not be calculated', context.value.response.text)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_invalid_length_ssh_key(self, create_user):
         """Attempt to add SSH key that has invalid length
 
@@ -555,7 +550,7 @@ class TestSshKeyInUser:
         assert re.search('Length could not be calculated', context.value.response.text)
         assert not re.search('Fingerprint could not be generated', context.value.response.text)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_ssh_key_with_invalid_name(self, create_user):
         """Attempt to add SSH key that has invalid name length
 
@@ -577,8 +572,8 @@ class TestSshKeyInUser:
             ).create()
         assert re.search("Name is too long", context.value.response.text)
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_create_multiple_ssh_key_types(self, create_user):
         """Multiple types of ssh keys can be added to user
 
@@ -602,8 +597,8 @@ class TestSshKeyInUser:
         user_sshkeys = entities.SSHKey(user=user).search()
         assert len(user_sshkeys) == 4
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_ssh_key_in_host_enc(self):
         """SSH key appears in host ENC output
 
@@ -633,7 +628,7 @@ class TestSshKeyInUser:
         assert sshkey_updated_for_host == host_enc_key[0]
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestActiveDirectoryUser:
     """Implements the LDAP auth User Tests with Active Directory"""
 
@@ -673,8 +668,8 @@ class TestActiveDirectoryUser:
         org.delete()
         loc.delete()
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
     def test_positive_create_in_ldap_mode(self, username, create_ldap):
         """Create User in ldap mode
@@ -692,7 +687,7 @@ class TestActiveDirectoryUser:
         ).create()
         assert user.login == username
 
-    @tier3
+    @pytest.mark.tier3
     @skip_if_not_set('ldap')
     def test_positive_ad_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- AD for user with no roles/rights
@@ -715,8 +710,8 @@ class TestActiveDirectoryUser:
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     @skip_if_not_set('ldap')
     def test_positive_access_entities_from_ldap_org_admin(self, create_ldap):
         """LDAP User can access resources within its taxonomies if assigned
@@ -774,7 +769,7 @@ class TestActiveDirectoryUser:
             entity(sc).search()
 
 
-@run_in_one_thread
+@pytest.mark.run_in_one_thread
 class TestFreeIPAUser:
     """Implements the LDAP auth User Tests with FreeIPA"""
 
@@ -816,7 +811,7 @@ class TestFreeIPAUser:
         for user in entities.User().search(query={'search': f'login={username}'}):
             user.delete()
 
-    @tier3
+    @pytest.mark.tier3
     @skip_if_not_set('ipa')
     def test_positive_ipa_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- FreeIPA for user with no roles/rights
@@ -839,8 +834,8 @@ class TestFreeIPAUser:
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
 
-    @tier3
-    @upgrade
+    @pytest.mark.tier3
+    @pytest.mark.upgrade
     @skip_if_not_set('ipa')
     def test_positive_access_entities_from_ipa_org_admin(self, create_ldap):
         """LDAP FreeIPA User can access resources within its taxonomies if assigned

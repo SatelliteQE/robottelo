@@ -40,9 +40,6 @@ from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.ssh import get_connection
 from robottelo.test import CLITestCase
 
@@ -78,7 +75,7 @@ class UserTestCase(CLITestCase):
         for role_id in cls.stubbed_roles:
             Role.delete({'id': role_id})
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_CRUD(self):
         """Create User with various parameters, updating and deleting
 
@@ -147,8 +144,8 @@ class UserTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             User.info({'login': user['login']})
 
-    @tier1
-    @upgrade
+    @pytest.mark.tier1
+    @pytest.mark.upgrade
     def test_positive_CRUD_admin(self):
         """Create an Admin user
 
@@ -173,7 +170,7 @@ class UserTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             User.info({'id': user['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_default_loc(self):
         """Check if user with default location can be created
 
@@ -188,7 +185,7 @@ class UserTestCase(CLITestCase):
         self.assertIn(location['name'], user['locations'])
         self.assertEqual(location['name'], user['default-location'])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_defaut_org(self):
         """Check if user with default organization can be created
 
@@ -204,7 +201,7 @@ class UserTestCase(CLITestCase):
         self.assertIn(org['name'], user['organizations'])
         self.assertEqual(org['name'], user['default-organization'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_create_with_orgs_and_update(self):
         """Create User associated to multiple Organizations, update them
 
@@ -226,8 +223,8 @@ class UserTestCase(CLITestCase):
         self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
 
     @pytest.mark.stubbed
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_create_in_ldap_modes(self):
         """Create User in supported ldap modes
 
@@ -243,7 +240,7 @@ class UserTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_delete_internal_admin(self):
         """Attempt to delete internal admin user
 
@@ -257,7 +254,7 @@ class UserTestCase(CLITestCase):
             User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_last_login_for_new_user(self):
         """Create new user with admin role and check last login updated for that user
 
@@ -292,8 +289,8 @@ class UserTestCase(CLITestCase):
         )
         assert after_login_time > before_login_time
 
-    @tier2
-    @upgrade
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
     def test_positive_add_and_delete_roles(self):
         """Add multiple roles to User, then delete them
 
@@ -346,7 +343,7 @@ class SshKeyInUserTestCase(CLITestCase):
         super().setUpClass()
         cls.user = entities.User().create()
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_CRD_ssh_key(self):
         """SSH Key can be added to a User, listed and deletd
 
@@ -368,7 +365,7 @@ class SshKeyInUserTestCase(CLITestCase):
         result = User.ssh_keys_list({'user-id': self.user.id})
         self.assertNotIn(ssh_name, [i['name'] for i in result])
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_ssh_key_super_admin_from_file(self):
         """SSH Key can be added to Super Admin user from file
 

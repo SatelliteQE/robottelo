@@ -8,7 +8,6 @@ import glob
 import os
 import re
 
-
 ROOT_PATH = os.path.realpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir)
 )

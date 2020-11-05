@@ -14,34 +14,31 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 
 from robottelo.api.utils import promote
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_loc(module_org):
     return entities.Location(organization=[module_org]).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope='module')
 def module_host_group(module_loc, module_org):
     return entities.HostGroup(location=[module_loc], organization=[module_org]).create()
 
 
-@tier2
+@pytest.mark.tier2
 def test_positive_check_dashboard(
     session, module_host_group, module_loc, module_org, oscap_content_path
 ):
@@ -109,8 +106,8 @@ def test_positive_check_dashboard(
         assert policy_details['HostBreakdownChart']['hosts_breakdown'] == '100%Not audited'
 
 
-@tier1
-@upgrade
+@pytest.mark.tier1
+@pytest.mark.upgrade
 def test_positive_end_to_end(
     session, module_host_group, module_loc, module_org, oscap_content_path, tailoring_file_path
 ):

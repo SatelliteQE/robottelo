@@ -22,6 +22,7 @@ import json
 import re
 from itertools import chain
 
+import pytest
 from fauxfactory import gen_alphanumeric
 from nailgun import entities
 from nailgun.entity_fields import OneToManyField
@@ -29,8 +30,6 @@ from requests.exceptions import HTTPError
 
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import tier1
-from robottelo.decorators import upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.helpers import get_server_software
 from robottelo.test import APITestCase
@@ -71,7 +70,7 @@ class PermissionTestCase(APITestCase):
         #: e.g. ['view_architectures', 'create_architectures', …]
         cls.permission_names = list(chain.from_iterable(cls.permissions.values()))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_by_name(self):
         """Search for a permission by name.
 
@@ -94,7 +93,7 @@ class PermissionTestCase(APITestCase):
         if failures:
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search_by_resource_type(self):
         """Search for permissions by resource type.
 
@@ -127,7 +126,7 @@ class PermissionTestCase(APITestCase):
         if failures:
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_search(self):
         """search with no parameters return all permissions
 
@@ -264,7 +263,7 @@ class UserRoleTestCase(APITestCase):
                 entity.location = location
         return entity
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_check_create(self):
         """Check whether the "create_*" role has an effect.
 
@@ -293,7 +292,7 @@ class UserRoleTestCase(APITestCase):
                 entity = entity.create_json()
                 entity_cls(id=entity['id']).read()  # As admin user.
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_check_read(self):
         """Check whether the "view_*" role has an effect.
 
@@ -315,8 +314,8 @@ class UserRoleTestCase(APITestCase):
                 self.give_user_permission(_permission_name(entity_cls, 'read'))
                 entity_cls(self.cfg, id=entity.id).read()
 
-    @upgrade
-    @tier1
+    @pytest.mark.upgrade
+    @pytest.mark.tier1
     def test_positive_check_delete(self):
         """Check whether the "destroy_*" role has an effect.
 
@@ -340,7 +339,7 @@ class UserRoleTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entity.read()  # As admin user
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_check_update(self):
         """Check whether the "edit_*" role has an effect.
 

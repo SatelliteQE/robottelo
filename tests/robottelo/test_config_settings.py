@@ -7,7 +7,6 @@ from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import INIReader
 from robottelo.config.base import Settings
 
-
 builtin_open = 'builtins.open'
 
 

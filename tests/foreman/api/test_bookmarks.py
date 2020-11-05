@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -21,8 +22,8 @@ from requests.exceptions import HTTPError
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
 from robottelo.test import APITestCase
+
 
 # Create a new list reference to prevent constant modification
 BOOKMARK_ENTITIES = list(BOOKMARK_ENTITIES)
@@ -37,7 +38,7 @@ class BookmarkTestCase(APITestCase):
         super().setUpClass()
 
     # CREATE TESTS
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_name(self):
         """Create a bookmark
 
@@ -64,7 +65,7 @@ class BookmarkTestCase(APITestCase):
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_query(self):
         """Create a bookmark
 
@@ -91,7 +92,7 @@ class BookmarkTestCase(APITestCase):
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.query, query)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_public(self):
         """Create a public bookmark
 
@@ -117,7 +118,7 @@ class BookmarkTestCase(APITestCase):
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.public, public)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_invalid_name(self):
         """Create a bookmark with invalid name
 
@@ -143,7 +144,7 @@ class BookmarkTestCase(APITestCase):
                         result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                         self.assertEqual(len(result), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_empty_query(self):
         """Create a bookmark with empty query
 
@@ -169,7 +170,7 @@ class BookmarkTestCase(APITestCase):
                 result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                 self.assertEqual(len(result), 0)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_same_name(self):
         """Create bookmarks with the same names
 
@@ -199,7 +200,7 @@ class BookmarkTestCase(APITestCase):
                 result = entities.Bookmark().search(query={'search': f'name="{name}"'})
                 self.assertEqual(len(result), 1)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_null_public(self):
         """Create a bookmark omitting the public parameter
 
@@ -229,7 +230,7 @@ class BookmarkTestCase(APITestCase):
                 self.assertEqual(len(result), 0)
 
     # UPDATE TESTS
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_name(self):
         """Update a bookmark
 
@@ -252,7 +253,7 @@ class BookmarkTestCase(APITestCase):
                         bm = bm.update(['name'])
                         self.assertEqual(bm.name, new_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_same_name(self):
         """Update a bookmark with name already taken
 
@@ -279,7 +280,7 @@ class BookmarkTestCase(APITestCase):
                 bm = bm.read()
                 self.assertNotEqual(bm.name, name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_invalid_name(self):
         """Update a bookmark with an invalid name
 
@@ -305,7 +306,7 @@ class BookmarkTestCase(APITestCase):
                         bm = bm.read()
                         self.assertNotEqual(bm.name, new_name)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_query(self):
         """Update a bookmark query
 
@@ -328,7 +329,7 @@ class BookmarkTestCase(APITestCase):
                         bm = bm.update(['query'])
                         self.assertEqual(bm.query, new_query)
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_update_empty_query(self):
         """Update a bookmark with an empty query
 
@@ -353,7 +354,7 @@ class BookmarkTestCase(APITestCase):
                 bm = bm.read()
                 self.assertNotEqual(bm.query, '')
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_public(self):
         """Update a bookmark public state to private and vice versa
 

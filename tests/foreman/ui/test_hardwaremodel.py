@@ -15,16 +15,13 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from pytest import raises
 
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.ui.utils import create_fake_host
 
 
 @pytest.mark.skip_if_open("BZ:1758260")
-@tier2
-@upgrade
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_loc):
     """Perform end to end testing for hardware model component
 
@@ -68,7 +65,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         host_values = session.host.read(host_name, 'additional_information')
         assert host_values['additional_information']['hardware_model'] == new_name
         # Make an attempt to delete hardware model that associated with host
-        with raises(AssertionError) as context:
+        with pytest.raises(AssertionError) as context:
             session.hardwaremodel.delete(new_name)
         assert f"error: '{new_name} is used by {host_name}'" in str(context.value)
         session.host.update(host_name, {'additional_information.hardware_model': ''})

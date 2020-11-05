@@ -29,9 +29,6 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import upgrade
 from robottelo.test import CLITestCase
 
 
@@ -62,8 +59,8 @@ class HostCollectionTestCase(CLITestCase):
             }
         )
 
-    @upgrade
-    @tier2
+    @pytest.mark.upgrade
+    @pytest.mark.tier2
     def test_positive_end_to_end(self):
         """Check if host collection can be created with name and description,
         content host can be added and removed, host collection can be listed,
@@ -130,7 +127,7 @@ class HostCollectionTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             HostCollection.info({'id': new_host_col['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_limit(self):
         """Check if host collection can be created with correct limits
 
@@ -147,7 +144,7 @@ class HostCollectionTestCase(CLITestCase):
                 )
                 self.assertEqual(new_host_col['limit'], limit)
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_unlimited_hosts(self):
         """Create Host Collection with different values of unlimited-hosts
         parameter
@@ -176,7 +173,7 @@ class HostCollectionTestCase(CLITestCase):
                 else:
                     self.assertEqual(result['limit'], '1')
 
-    @tier1
+    @pytest.mark.tier1
     def test_negative_create_with_name(self):
         """Attempt to create host collection with invalid name of different
         types
@@ -194,7 +191,7 @@ class HostCollectionTestCase(CLITestCase):
                         {'name': name, 'organization-id': self.organization['id']}
                     )
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_update_limit(self):
         """Check if host collection limits can be updated
 
@@ -215,7 +212,7 @@ class HostCollectionTestCase(CLITestCase):
                 result = HostCollection.info({'id': new_host_col['id']})
                 self.assertEqual(result['limit'], limit)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_list_by_org_id(self):
         """Check if host collection list can be filtered by organization id
 
@@ -235,7 +232,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['id'], host_col['id'])
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_host_collection_host_pagination(self):
         """Check if pagination configured on per-page param defined in hammer
         host-collection hosts command overrides global configuration defined
@@ -263,7 +260,7 @@ class HostCollectionTestCase(CLITestCase):
             )
             self.assertEqual(len(listed_hosts), number)
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_copy_by_id(self):
         """Check if host collection can be cloned by id
 
@@ -287,7 +284,7 @@ class HostCollectionTestCase(CLITestCase):
         result = HostCollection.info({'id': new_host_collection[0]['id']})
         self.assertEqual(result['name'], new_name)
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.stubbed
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
@@ -304,7 +301,7 @@ class HostCollectionTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
-    @tier1
+    @pytest.mark.tier1
     @pytest.mark.stubbed
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
