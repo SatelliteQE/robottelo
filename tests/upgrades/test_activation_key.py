@@ -14,111 +14,116 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
-from robottelo.test import APITestCase
+
+@pytest.fixture(scope='function')
+def activation_key_setup(request):
+    """
+    The purpose of this fixture is to setup the activation key based on the provided organization,
+    content_view and activation key name.
+    """
+    org = entities.Organization(name=request.param + "_org").create()
+    custom_repo = entities.Repository(product=entities.Product(organization=org).create()).create()
+    custom_repo.sync()
+    cv = entities.ContentView(
+        organization=org, repository=[custom_repo.id], name=request.param + "_cv"
+    ).create()
+    cv.publish()
+    ak = entities.ActivationKey(
+        content_view=cv, organization=org, name=request.param + "_ak"
+    ).create()
+    ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
+    yield ak_details
 
 
-class scenario_positive_activation_key(APITestCase):
-    """Activation key is intact post upgrade and verify activation key update/delete
+@pre_upgrade
+@pytest.mark.parametrize('activation_key_setup', ['test_pre_create_activation_key'], indirect=True)
+def test_pre_create_activation_key(activation_key_setup):
+    """Before Upgrade, Creates the activation key with different entities and update their
+    contents.
+
+    :id: preupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
 
     :steps:
+        1. Create the activation key with different entities
+        2. Add subscription in the activation key
+        3: Check the subscription id of the activation key and compare it with custom_repos
+        product id.
+        4. Update the host collection in the activation key
 
-        1. In Preupgrade Satellite, create activation key with different entities
-        2. Upgrade the satellite to next/latest version
-        3. Update existing activation key with different entities
-        4. Postupgrade, Verify the activation key is intact, update and delete
+    :parametrized: yes
 
-    :expectedresults: Activation key should create, update and delete successfully.
+    :expectedresults: Activation key should be created successfully and their subscription id
+    should be same with custom repos product id.
     """
+    ak = activation_key_setup['ak']
+    org_subscriptions = entities.Subscription(organization=activation_key_setup['org']).search()
+    for subscription in org_subscriptions:
+        ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    ak_subscriptions = ak.product_content()['results']
+    subscr_id = {subscr['product']['id'] for subscr in ak_subscriptions}
+    assert subscr_id == {activation_key_setup['custom_repo'].product.id}
+    ak.host_collection.append(entities.HostCollection().create())
+    ak.update(['host_collection'])
+    assert len(ak.host_collection) == 1
 
-    @classmethod
-    def setUpClass(cls):
-        cls.ak_name = 'preupgrade_activation_key'
-        cls.org_name = 'preupgrade_ak_org_name'
-        cls.cv_name = 'preupgrade_ak_cv'
 
-    @pre_upgrade
-    def test_pre_create_activation_key(self):
-        """Activation key with different entities are created
+@post_upgrade(depend_on=test_pre_create_activation_key)
+def test_post_crud_activation_key(request):
+    """After Upgrade, Activation keys entities remain the same and all their functionality works.
 
-        :id: preupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
+    :id: postupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
 
-        :steps: In Preupgrade Satellite, Create activation key with different entities.
+    :steps:
+        1. Postupgrade, Verify activation key has same entities associated.
+        2. Update existing activation key with new entities
+        3. Delete activation key.
 
-        :expectedresults: Activation key should create successfully.
-        """
-        org = entities.Organization(name=self.org_name).create()
-        custom_repo = entities.Repository(
-            product=entities.Product(organization=org).create()
-        ).create()
-        custom_repo.sync()
-        cv = entities.ContentView(
-            organization=org, repository=[custom_repo.id], name=self.cv_name
-        ).create()
-        cv.publish()
-        ak = entities.ActivationKey(content_view=cv, organization=org, name=self.ak_name).create()
-        org_subscriptions = entities.Subscription(organization=org).search()
-        for subscription in org_subscriptions:
-            ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-        ak_subscriptions = ak.product_content()['results']
-        self.assertEqual(
-            {custom_repo.product.id}, {subscr['product']['id'] for subscr in ak_subscriptions}
-        )
-        ak.host_collection.append(entities.HostCollection().create())
-        ak.update(['host_collection'])
-        self.assertEqual(len(ak.host_collection), 1)
+    :expectedresults: Activation key's entities should be same after upgrade and activation
+    key update and delete should work
+    """
+    pre_test_name = [
+        mark.kwargs['depend_on'].__name__
+        for mark in request.node.own_markers
+        if 'depend_on' in mark.kwargs
+    ][0]
 
-    @post_upgrade(depend_on=test_pre_create_activation_key)
-    def test_post_crud_activation_key(self):
-        """Activation key is intact post upgrade and update/delete activation key works
-
-        :id: postupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
-
-        :steps:
-
-            1. Postupgrade, Verify activation key has same entities associated.
-            2. Update existing activation key with new entities
-            3. Delete activation key.
-
-        :expectedresults: Activation key should update and delete successfully.
-        """
-        org = entities.Organization().search(query={'search': f'name={self.org_name}'})
-        ak = entities.ActivationKey(organization=org[0]).search(
-            query={'search': f'name={self.ak_name}'}
-        )
-        cv = entities.ContentView(organization=org[0]).search(
-            query={'search': f'name={self.cv_name}'}
-        )
-
-        # verify activation key is intact after upgrade
-        self.assertEqual(self.ak_name, ak[0].name)
-        self.assertEqual(self.cv_name, cv[0].name)
-
-        # update activation key after upgrade
-        ak[0].host_collection.append(entities.HostCollection().create())
-        ak[0].update(['host_collection'])
-        self.assertEqual(len(ak[0].host_collection), 2)
-        custom_repo2 = entities.Repository(
-            product=entities.Product(organization=org[0]).create()
-        ).create()
-        custom_repo2.sync()
-        cv2 = entities.ContentView(organization=org[0], repository=[custom_repo2.id]).create()
-        cv2.publish()
-        org_subscriptions = entities.Subscription(organization=org[0]).search()
-        for subscription in org_subscriptions:
-            provided_products_ids = [prod.id for prod in subscription.read().provided_product]
-            if custom_repo2.product.id in provided_products_ids:
-                ak[0].add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
-        ak_subscriptions = ak[0].product_content()['results']
-        self.assertIn(
-            custom_repo2.product.id, {subscr['product']['id'] for subscr in ak_subscriptions}
-        )
-
-        # Delete activation key
-        ak[0].delete()
-        with self.assertRaises(HTTPError):
-            entities.ActivationKey(id=ak[0].id).read()
+    org = entities.Organization().search(query={'search': f'name={pre_test_name}_org'})
+    ak = entities.ActivationKey(organization=org[0]).search(
+        query={'search': f'name={pre_test_name}_ak'}
+    )
+    cv = entities.ContentView(organization=org[0]).search(
+        query={'search': f'name={pre_test_name}_cv'}
+    )
+    assert pre_test_name + '_ak' == ak[0].name
+    assert pre_test_name + '_cv' == cv[0].name
+    ak[0].host_collection.append(entities.HostCollection().create())
+    ak[0].update(['host_collection'])
+    assert len(ak[0].host_collection) == 2
+    custom_repo2 = entities.Repository(
+        product=entities.Product(organization=org[0]).create()
+    ).create()
+    custom_repo2.sync()
+    cv2 = entities.ContentView(organization=org[0], repository=[custom_repo2.id]).create()
+    cv2.publish()
+    org_subscriptions = entities.Subscription(organization=org[0]).search()
+    for subscription in org_subscriptions:
+        provided_products_ids = [prod.id for prod in subscription.read().provided_product]
+        if custom_repo2.product.id in provided_products_ids:
+            ak[0].add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
+    ak_subscriptions = ak[0].product_content()['results']
+    assert custom_repo2.product.id in {subscr['product']['id'] for subscr in ak_subscriptions}
+    ak[0].delete()
+    with pytest.raises(HTTPError):
+        entities.ActivationKey(id=ak[0].id).read()
+    for cv_object in [cv2, cv[0]]:
+        cv_contents = cv_object.read_json()
+        cv_object.delete_from_environment(cv_contents['environments'][0]['id'])
+        cv_object.delete(cv_object.organization.id)
+    custom_repo2.delete()
+    org[0].delete()
