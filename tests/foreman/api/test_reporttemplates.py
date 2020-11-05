@@ -256,7 +256,7 @@ class ReportTemplateTestCase(APITestCase):
                 != 0
             )
         # 5. Try to edit template
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.ReportTemplate(id=rt.id, template=template2).update(["template"])
         rt = rt.read()
         assert template1 == rt.template
