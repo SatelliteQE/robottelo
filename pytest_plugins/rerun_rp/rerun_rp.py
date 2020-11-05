@@ -5,7 +5,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.report_portal.portal import ReportPortal
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 class LaunchError(Exception):

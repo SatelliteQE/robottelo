@@ -6,7 +6,7 @@ from nailgun import entities
 from robottelo.cli.proxy import Proxy
 from robottelo.vm import VirtualMachine
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 def capsule_cleanup(proxy_id=None):

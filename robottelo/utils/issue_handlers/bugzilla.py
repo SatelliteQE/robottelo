@@ -14,7 +14,7 @@ from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
 from robottelo.constants import WONTFIX_RESOLUTIONS
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 # match any version as in `sat-6.2.x` or `sat-6.2.0` or `6.2.9`
 # The .version group being a `d.d` string that can be casted to Version()

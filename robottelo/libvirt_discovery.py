@@ -16,7 +16,7 @@ from fauxfactory import gen_mac
 from robottelo import ssh
 from robottelo.config import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 
 def _gen_mac_for_libvirt():

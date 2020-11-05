@@ -19,7 +19,7 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.errors import GCECertNotFoundError
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 class DataFileError(Exception):

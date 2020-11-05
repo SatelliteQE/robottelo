@@ -11,7 +11,7 @@ TEMP_ROOT_DIR = 'robottelo'
 TEMP_FUNC_SHARED_DIR = 'shared_functions'
 SHARED_DIR = None
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 LOCK_TIMEOUT = 7200
 

@@ -4,7 +4,7 @@ import pytest
 
 from robottelo.constants import NOT_IMPLEMENTED
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 def pytest_configure(config):

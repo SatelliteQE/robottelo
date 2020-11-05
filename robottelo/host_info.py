@@ -9,7 +9,7 @@ from packaging.version import Version
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 @functools.lru_cache(maxsize=1)

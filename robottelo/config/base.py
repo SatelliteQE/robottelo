@@ -18,7 +18,7 @@ from robottelo.config import casts
 from robottelo.constants import AZURERM_VALID_REGIONS
 from robottelo.constants import VALID_GCE_ZONES
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 SETTINGS_FILE_NAME = 'robottelo.properties'
 
 

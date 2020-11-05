@@ -14,7 +14,7 @@ from robottelo.config import settings
 from robottelo.constants import INTERFACE_API
 from robottelo.constants import INTERFACE_CLI
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 class NotRaisesValueHandler:

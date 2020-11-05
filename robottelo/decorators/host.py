@@ -7,7 +7,7 @@ import unittest2
 from robottelo.config import settings
 from robottelo.host_info import get_host_os_version
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 
 
 def skip_if_os(*versions):

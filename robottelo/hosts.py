@@ -11,7 +11,7 @@ from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 
 class ContentHostError(Exception):
