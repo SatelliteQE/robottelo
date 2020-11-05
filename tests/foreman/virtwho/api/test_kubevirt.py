@@ -20,7 +20,6 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -55,10 +54,7 @@ def virtwho_config(form_data):
     return entities.VirtWhoConfig(**form_data).create()
 
 
-@pytest.mark.skipif(
-    condition=(is_open('BZ:1735540')),
-    reason='We have not supported kubevirt hypervisor yet',
-)
+@pytest.mark.skip_if_open('BZ:1735540')
 class TestVirtWhoConfigforKubevirt:
     def _try_to_get_guest_bonus(self, hypervisor_name, sku):
         subscriptions = entities.Subscription().search(query={'search': sku})
