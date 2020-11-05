@@ -50,7 +50,7 @@ from pytest_services.locks import file_lock
 
 from robottelo.config import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 TEMP_ROOT_DIR = 'robottelo'
 TEMP_FUNC_LOCK_DIR = 'lock_functions'

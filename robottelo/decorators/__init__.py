@@ -6,7 +6,7 @@ import unittest2
 
 from robottelo.config import settings
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 OBJECT_CACHE = {}
 
 

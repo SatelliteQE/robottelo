@@ -12,7 +12,7 @@ import paramiko
 from robottelo.cli import hammer
 from robottelo.config import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 
 class SSHCommandTimeoutError(Exception):

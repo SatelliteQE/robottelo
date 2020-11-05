@@ -28,7 +28,7 @@ from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey,

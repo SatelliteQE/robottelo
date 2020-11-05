@@ -96,7 +96,7 @@ from robottelo.helpers import update_dictionary
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']

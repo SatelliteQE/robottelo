@@ -33,7 +33,7 @@ from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 from robottelo.host_info import get_host_os_version
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 
 class VirtualMachineError(Exception):

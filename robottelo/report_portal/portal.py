@@ -8,7 +8,7 @@ from tenacity import wait_fixed
 
 from robottelo.config import settings
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger('robottelo')
 launch_types = ['satellite6', 'upgrades']
 
 

@@ -19,7 +19,7 @@ from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('robottelo')
 
 
 class CapsuleVirtualMachineError(Exception):
