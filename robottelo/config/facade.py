@@ -18,6 +18,8 @@ WRAPPER_EXCEPTIONS = (
     'server.ssh_password',
     'server.port',
     'server.scheme',
+    'server.admin_username',
+    'server.admin_password',
     'azurerm.azure_region',
     'azurerm.client_id',
     'azurerm.client_secret',
@@ -26,6 +28,7 @@ WRAPPER_EXCEPTIONS = (
     'azurerm.subscription_id',
     'azurerm.tenant_id',
     'azurerm.username',
+    'clients.provisioning_server',
     'compute_resources.libvirt_hostname',
     'container_repo.long_pass_registry',
     'container_repo.multi_registry_test_configs',
@@ -72,6 +75,7 @@ WRAPPER_EXCEPTIONS = (
     'swid_tools_repo',
     'vlan_networking.netmask',
     'vlan_networking.subnet',
+    'vmware.vcenter',
 )
 
 
