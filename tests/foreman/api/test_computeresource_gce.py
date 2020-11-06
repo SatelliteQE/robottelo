@@ -95,7 +95,7 @@ def gce_hostgroup(
     default_smart_proxy,
     default_os,
     module_org,
-    default_partiontable,
+    default_partitiontable,
     googleclient,
 ):
     """Sets Hostgroup for GCE Host Provisioning"""
@@ -110,7 +110,7 @@ def gce_hostgroup(
         root_pass=gen_string('alphanumeric'),
         operatingsystem=default_os,
         organization=[module_org],
-        ptable=default_partiontable,
+        ptable=default_partitiontable,
     ).create()
     return hgroup
 
