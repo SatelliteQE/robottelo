@@ -31,7 +31,7 @@ def module_loc(module_org):
     return entities.Location(organization=[module_org]).create()
 
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.mark.tier2

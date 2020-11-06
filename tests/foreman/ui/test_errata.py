@@ -60,7 +60,7 @@ RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
 RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 def _generate_errata_applicability(host_name):

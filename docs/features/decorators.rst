@@ -69,33 +69,33 @@ This set of decorators defines test levels:
 
 * ``tier1`` marks component level functional tests (that verify defined functional requirements using a range of normal and erroneous input data). Example::
 
-    from robottelo.decorators import tier1
+    import pytest
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_create_with_username(self):
         """Create User for all variations of Username"""
 
 * ``tier2`` marks integration level functional tests and may include basic non-functional tests (security, performance regression, installation, compose validation). Example::
 
-    from robottelo.decorators import tier2
+    import pytest
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_view_cve(self):
         """View CVE number(s) in Errata Details page"""
 
 * ``tier3`` marks system level tests::
 
-    from robottelo.decorators import tier3
+    import pytest
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_sync_with_enabled_notification(self):
         """Receive email after every sync operation"""
 
 * ``tier4`` marks complex and long running tests. Example::
 
-    from robottelo.decorators import tier4
+    import pytest
 
-    @tier4
+    @pytest.mark.tier4
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports"""
 
@@ -126,8 +126,8 @@ run_in_one_thread
 
 ``run_in_one_thread`` defines test that cannot be run in parallel with other tests. This is useful for preventing conflicts between tests that interact with the same component. Example::
 
-    from robottelo.decorators import run_in_one_thread
+    import pytest
 
-    @run_in_one_thread
+    @pytest.mark.run_in_one_thread
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key"""
