@@ -31,7 +31,7 @@ from robottelo.datafactory import gen_string
 PM_NAME = 'ui_test_classparameters'
 PUPPET_MODULES = [{'author': 'robottelo', 'name': PM_NAME}]
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')

@@ -46,7 +46,7 @@ from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_rhsso_user
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
 

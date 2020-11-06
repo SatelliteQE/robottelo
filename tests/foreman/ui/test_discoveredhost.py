@@ -24,7 +24,7 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')

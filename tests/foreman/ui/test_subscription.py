@@ -43,7 +43,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
 
-pytestmark = ['run_in_one_thread']
+pytestmark = [pytest.mark.run_in_one_thread]
 
 if not setting_is_set('fake_manifest'):
     pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
