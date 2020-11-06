@@ -305,7 +305,7 @@ class ProductTestCase(APITestCase):
                     entities.Product(id=product.id).read()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync(self):
         """Sync product (repository within a product)
 
@@ -325,7 +325,7 @@ class ProductTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_several_repos(self):
         """Sync product (all repositories within a product)
 

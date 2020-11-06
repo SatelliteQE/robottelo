@@ -56,7 +56,7 @@ class ProductTestCase(CLITestCase):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_CRUD(self):
         """Check if product can be created, updated, synchronized and deleted
 
@@ -176,7 +176,7 @@ class ProductTestCase(CLITestCase):
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_product_list_with_default_settings(self):
         """Listing product of an organization apart from default organization using hammer
          does not return output if a defaults settings are applied on org.
@@ -223,7 +223,7 @@ class ProductTestCase(CLITestCase):
             self.assertTrue(default_org['id'] not in "".join(result.stdout))
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_assign_http_proxy_to_products(self):
         """Assign http_proxy to Products and perform product sync.
 

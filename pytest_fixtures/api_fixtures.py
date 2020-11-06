@@ -429,7 +429,7 @@ def default_contentview(module_org):
     )
 
 
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
 def module_cv_with_puppet_module(module_org):
     """Returns content view entity created by publish_puppet_module with chosen

@@ -69,7 +69,7 @@ class ContentManagementTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.skip("Uses old large_errata repo from repos.fedorapeople")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
@@ -92,7 +92,7 @@ class ContentManagementTestCase(APITestCase):
                 repo.sync()
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_repos_with_lots_files(self):
         """Attempt to synchronize repository containing a lot of files inside
         rpms.
@@ -114,7 +114,7 @@ class ContentManagementTestCase(APITestCase):
             repo.sync()
 
     @pytest.mark.tier4
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_kickstart_repo(self):
         """No encoding gzip errors on kickstart repositories
         sync.
@@ -398,7 +398,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertGreater(len(result.stdout), 0)
 
     @pytest.mark.tier4
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -634,7 +634,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(set(sat_isos), set(capsule_isos))
 
     @pytest.mark.tier4
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_on_demand_sync(self):
         """Create a repository with 'on_demand' sync, add it to lifecycle
         environment with a capsule, sync repository, examine existing packages
@@ -987,7 +987,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(broken_links), 0)
 
     @pytest.mark.tier4
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_puppet_module_with_versions(self):
         """Ensure it's possible to sync multiple versions of the same puppet
         module to the capsule

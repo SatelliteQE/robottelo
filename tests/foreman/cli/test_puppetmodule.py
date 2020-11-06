@@ -31,7 +31,7 @@ class PuppetModuleTestCase(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         super().setUpClass()
         cls.org = make_org()
@@ -81,7 +81,7 @@ class PuppetModuleTestCase(CLITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.

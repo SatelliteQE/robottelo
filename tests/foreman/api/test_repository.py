@@ -105,7 +105,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_assign_http_proxy_to_repository(self):
         """Assign http_proxy to Repositories and perform repository sync.
 
@@ -154,7 +154,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertNotEqual(repo.name, label)
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_yum(self):
         """Create yum repository.
 
@@ -171,7 +171,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, FAKE_2_YUM_REPO)
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
@@ -187,7 +187,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'puppet')
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
@@ -354,7 +354,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.download_policy, 'on_demand')
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
@@ -538,7 +538,7 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
@@ -556,7 +556,7 @@ class RepositoryTestCase(APITestCase):
                     entities.Repository(url=url).create()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
@@ -715,7 +715,7 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(repo.checksum_type, updated_checksum)
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
@@ -816,7 +816,7 @@ class RepositoryTestCase(APITestCase):
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_delete_srpm_repo(self):
         """Create a repository, sync SRPM contents and remove repo
 
@@ -835,7 +835,7 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
 
@@ -895,7 +895,7 @@ class RepositoryTestCase(APITestCase):
             repo.update(['label'])
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_update_auth_url_with_special_characters(self):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
@@ -922,7 +922,7 @@ class RepositoryTestCase(APITestCase):
                     new_repo.update(['url'])
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
@@ -961,7 +961,7 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
@@ -988,7 +988,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
@@ -1013,7 +1013,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -1040,7 +1040,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.read().content_counts['puppet_module'], 1)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
         removed from repository
@@ -1068,7 +1068,7 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
         were removed from repository
@@ -1114,7 +1114,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -1136,7 +1136,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -1159,7 +1159,7 @@ class RepositoryTestCase(APITestCase):
             repo.read()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_list_puppet_modules_with_multiple_repos(self):
         """Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
@@ -1190,7 +1190,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_access_protected_repository(self):
         """Access protected/https repository data file URL using organization
         debug certificate
@@ -1233,7 +1233,7 @@ class RepositoryTestCase(APITestCase):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_module_stream_repository_crud_operations(self):
         """Verify that module stream api calls works with product having other type
         repositories.
@@ -1298,7 +1298,7 @@ class RepositorySyncTestCase(APITestCase):
         entities.Repository(id=repo_id).sync()
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_yum_with_string_based_version(self):
         """Sync Yum Repo with string based versions on update-info.
 
@@ -1661,7 +1661,7 @@ class OstreeRepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_ostree(self):
         """Create ostree repository.
 
@@ -1680,7 +1680,7 @@ class OstreeRepositoryTestCase(APITestCase):
         self.assertEqual(repo.content_type, 'ostree')
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_update_name(self):
         """Update ostree repository name.
 
@@ -1702,7 +1702,7 @@ class OstreeRepositoryTestCase(APITestCase):
         self.assertEqual(new_name, repo.name)
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_update_url(self):
         """Update ostree repository url.
 
@@ -1725,7 +1725,7 @@ class OstreeRepositoryTestCase(APITestCase):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_ostree(self):
         """Delete an ostree repository.
 
@@ -1822,7 +1822,7 @@ class SRPMRepositoryTestCase(APITestCase):
     @pytest.mark.upgrade
     @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_repo_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
         and publish, promote content view
@@ -1864,7 +1864,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
@@ -1885,7 +1885,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
@@ -1912,7 +1912,7 @@ class DRPMRepositoryTestCase(APITestCase):
     @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skip("Uses deprecated DRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1961,7 +1961,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         cls.product = entities.Product().create()
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_ignore_sprm_duplicate(self):
         """Test whether SRPM duplicated content can be ignored.
 
@@ -1977,7 +1977,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
         self.assertEqual(repo.content_counts['srpm'], 0)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sync_srpm_duplicate(self):
         """Test sync of SRPM duplicated repository.
 
@@ -1993,7 +1993,7 @@ class SRPMRepositoryIgnoreContentTestCase(APITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_ignore_srpm_sync(self):
         """Test whether SRPM content can be ignored during sync.
 

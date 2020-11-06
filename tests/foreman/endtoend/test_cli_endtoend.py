@@ -103,7 +103,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     @skip_if_not_set('compute_resources')
     @pytest.mark.tier4
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 

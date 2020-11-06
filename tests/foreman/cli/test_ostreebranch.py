@@ -38,7 +38,7 @@ class OstreeBranchTestCase(CLITestCase):
     """Test class for Ostree Branch CLI. """
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create an organization, product and ostree repo."""
         super().setUpClass()

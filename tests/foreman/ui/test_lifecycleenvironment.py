@@ -103,7 +103,7 @@ def test_positive_create_chain(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_add_puppet_module(session, module_org):
     """Promote content view with puppet module to a new environment
 
@@ -141,7 +141,7 @@ def test_positive_add_puppet_module(session, module_org):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_packages_by_full_name(session, module_org):
     """Search Lifecycle Environment content view packages by full name
 
@@ -192,7 +192,7 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_packages_by_name(session, module_org):
     """Search Lifecycle Environment content view packages by name
 
@@ -240,7 +240,7 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_search_lce_content_view_module_streams_by_name(session, module_org):
     """Search Lifecycle Environment content view module streams by name
 

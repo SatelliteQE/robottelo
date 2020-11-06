@@ -221,7 +221,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(new_ak['host-limit'], '10')
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_content_and_check_enabled(self):
         """Create activation key and add content to it. Check enabled state.
 
@@ -735,7 +735,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
@@ -761,7 +761,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
@@ -1406,7 +1406,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn("'--auto-attach': value must be one of", exe.exception.stderr.lower())
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_content_override(self):
         """Positive content override
 
@@ -1570,7 +1570,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_subscription_quantity_attached(self):
         """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 
