@@ -98,7 +98,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
@@ -852,7 +852,7 @@ class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create 3 organizations
 

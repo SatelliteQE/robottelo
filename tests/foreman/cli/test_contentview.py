@@ -1162,7 +1162,7 @@ class ContentViewTestCase(CLITestCase):
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_add_module_stream_filter_rule(self):
         """Associate module stream content to a content view and create filter rule
 
@@ -1276,7 +1276,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_add_puppet_module(self):
         """Add puppet module to Content View by name
 
@@ -1319,7 +1319,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn('Latest', cv_module[0]['version'])
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_add_puppet_module_older_version(self):
         """Add older version of puppet module to Content View by id/uuid
 
@@ -1369,7 +1369,7 @@ class ContentViewTestCase(CLITestCase):
                 self.assertEqual(cv_module[0]['version'], module['version'])
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_puppet_module_by_name(self):
         """Remove puppet module from Content View by name
 
@@ -1414,7 +1414,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_puppet_module_by_id(self):
         """Remove puppet module from Content View by id
 
@@ -1453,7 +1453,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_puppet_module_by_uuid(self):
         """Remove puppet module from Content View by uuid
 
@@ -1490,7 +1490,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_add_puppet_repo(self):
         # Again, individual modules should be ok.
         """attempt to associate puppet repos within a custom content
@@ -1583,7 +1583,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_add_same_puppet_repo_twice(self):
         """attempt to associate duplicate puppet module(s) within a
         content view
@@ -2040,7 +2040,7 @@ class ContentViewTestCase(CLITestCase):
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_publish_custom_content_module_stream(self):
         """attempt to publish a content view containing custom content
         module streams
@@ -2730,7 +2730,7 @@ class ContentViewTestCase(CLITestCase):
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
         """Attempt to subscribe content host to content view that has
         puppet module assigned to it
@@ -2785,7 +2785,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -3236,7 +3236,7 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -3309,7 +3309,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_promoted_cv_version_from_default_env(self):
         """Remove promoted content view version from Library environment
 
@@ -3484,7 +3484,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -3594,7 +3594,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -3708,7 +3708,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -3994,7 +3994,7 @@ class ContentViewTestCase(CLITestCase):
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
@@ -4337,7 +4337,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(self.environment['id'], [env['id'] for env in cv['lifecycle-environments']])
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_inc_update_no_lce(self):
         """Publish incremental update without providing lifecycle environment
         for a content view version not promoted to any lifecycle environment
@@ -4389,7 +4389,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn('1.1', [cvv_['version'] for cvv_ in content_view['versions']])
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_incremental_update_propagate_composite(self):
         """Incrementally update a CVV in composite CV with
         `propagate_all_composites` flag set
@@ -4483,7 +4483,7 @@ class OstreeContentViewTestCase(CLITestCase):
 
     @classmethod
     @skip_if_os('RHEL6')
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create an organization, product, and repo with all content-types."""
         super().setUpClass()

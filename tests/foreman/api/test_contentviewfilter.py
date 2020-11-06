@@ -271,7 +271,7 @@ class ContentViewFilterTestCase(APITestCase):
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_create_with_module_streams(self):
         """Verify Include and Exclude Filters creation for modulemd (module streams)
 
@@ -299,7 +299,7 @@ class ContentViewFilterTestCase(APITestCase):
         assert cvf.type == 'modulemd'
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_publish_with_content_view_filter_and_swid_tags(self):
         """Verify SWID tags content file should exist in publish content view
         version location even after applying content view filters.
@@ -745,7 +745,7 @@ class ContentViewFilterRuleTestCase(APITestCase):
     """Tests for content view filter rules."""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Init single organization, product and repository for all tests"""
         super().setUpClass()

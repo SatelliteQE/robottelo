@@ -55,7 +55,7 @@ def module_lce(module_org):
 
 @pytest.mark.tier4
 @pytest.mark.parametrize('value', **xdist_adapter(_distro_cdn_variants()))
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_vm_install_package(value, module_org, module_lce):
     """Install a package with all supported distros and cdn not cdn variants
 

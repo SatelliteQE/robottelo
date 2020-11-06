@@ -72,7 +72,7 @@ class SmartClassParametersTestCase(APITestCase):
     """Implements Smart Class Parameter tests in API"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.

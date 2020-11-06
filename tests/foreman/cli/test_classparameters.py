@@ -39,7 +39,7 @@ class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
@@ -176,7 +176,7 @@ class SmartClassParametersTestCase(CLITestCase):
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_import_twice_list_by_puppetclass_id(self):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.

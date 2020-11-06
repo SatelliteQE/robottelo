@@ -38,7 +38,7 @@ def module_org():
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_end_to_end(session, module_org):
     """Perform end to end testing for product component
 

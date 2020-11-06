@@ -326,7 +326,7 @@ class TestRemoteExecution:
             assert invocation_command['success'] == '2', output_msgs
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_install_multiple_packages_with_a_job_by_ip(
         self, fixture_vmsetup, fixture_org
     ):
@@ -685,7 +685,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, fixture_org):
         """Tests Ansible REX job can install packages and start services
 

@@ -84,7 +84,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_loc):
     """Assign HTTP Proxy to Products and Repositories.
 

@@ -51,7 +51,7 @@ class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         super().setUpClass()
         cls.org = make_org()

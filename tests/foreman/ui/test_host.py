@@ -576,7 +576,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 
@@ -714,7 +714,7 @@ def test_positive_assign_compliance_policy(session, scap_policy):
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
-@pytest.mark.skipif(settings.webdriver != 'chrome')
+@pytest.mark.skipif((settings.webdriver != 'chrome'), reason='Only tested on Chrome')
 @pytest.mark.tier3
 def test_positive_export(session):
     """Create few hosts and export them via UI

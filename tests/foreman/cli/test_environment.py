@@ -37,7 +37,7 @@ class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
 
     @classmethod
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         super().setUpClass()
         cls.org = entities.Organization().create()

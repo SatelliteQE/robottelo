@@ -1142,7 +1142,7 @@ class ContentViewSync(CLITestCase):
         self.assertEqual(cvv.split('.')[1], str(minor))
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_negative_export_cv_with_puppet_repo(self):
         """Exporting CV version having non yum(puppet) repo throws error
 

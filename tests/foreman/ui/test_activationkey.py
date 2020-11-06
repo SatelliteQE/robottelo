@@ -978,7 +978,7 @@ def test_negative_usage_limit(session, module_org):
 @skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_add_multiple_aks_to_system(session, module_org):
     """Check if multiple Activation keys can be attached to a system
 
@@ -1034,7 +1034,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
 @skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_host_associations(session):
     """Register few hosts with different activation keys and ensure proper
     data is reflected under Associations > Content Hosts tab
@@ -1075,7 +1075,7 @@ def test_positive_host_associations(session):
 
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(session):
     """Subscribe a host to activation key with Premium service level and with
     custom product

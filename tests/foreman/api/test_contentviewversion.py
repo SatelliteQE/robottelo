@@ -213,7 +213,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -293,7 +293,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_composite_version(self):
         """Create composite content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -336,7 +336,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_with_puppet_content(self):
         """Delete content view version with puppet module content
 
@@ -424,7 +424,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 1)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -536,7 +536,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
@@ -610,7 +610,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
@@ -688,7 +688,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         )
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
@@ -760,7 +760,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments

@@ -350,7 +350,7 @@ def test_negative_install_package(session, vm):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif(not settings.repos_hosting_url)
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 

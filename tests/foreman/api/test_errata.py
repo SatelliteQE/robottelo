@@ -66,7 +66,7 @@ class ErrataTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super().setUpClass()
@@ -311,7 +311,7 @@ class ErrataTestCase(APITestCase):
                 )
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_list(self):
         """View all errata specific to repository
 
@@ -458,7 +458,7 @@ class ErrataTestCase(APITestCase):
 
     @pytest.mark.tier3
     @pytest.mark.skip_if_open("BZ:1682940")
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_filter_by_envs(self):
         """Filter applicable errata for a content host by current and
         Library environments
@@ -510,7 +510,7 @@ class ErrataTestCase(APITestCase):
         self.assertGreater(len(errata_library), len(errata_env))
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_get_count_for_host(self):
         """Available errata count when retrieving Host
 
@@ -587,7 +587,7 @@ class ErrataTestCase(APITestCase):
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
 
@@ -669,7 +669,7 @@ class ErrataTestCase(APITestCase):
             )
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_get_diff_for_cv_envs(self):
         """Generate a difference in errata between a set of environments
         for a content view
@@ -809,7 +809,7 @@ class ErrataSwidTagsTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    @pytest.mark.skipif(not settings.repos_hosting_url)
+    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super().setUpClass()
