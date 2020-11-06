@@ -146,6 +146,26 @@ def multigroup_setting_cleanup():
     ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
 
 
+@pytest.fixture()
+def ipa_add_user():
+    """Create an IPA user and delete it """
+    result = ssh.command(
+        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+    )
+    assert result.return_code == 0
+    test_user = gen_string('alpha')
+    add_user_cmd = (
+        f"echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first"
+        f"={test_user} --last={test_user} --password"
+    )
+    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+    yield test_user
+
+    result = ssh.command(cmd=f"ipa user-del {test_user}", hostname=settings.ipa.hostname_ipa)
+    assert result.return_code == 0
+
+
 def generate_otp(secret):
     """Return the time_based_otp """
     time_otp = pyotp.TOTP(secret)
@@ -1795,3 +1815,35 @@ def test_verify_group_permissions(
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
         assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+
+
+def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_data, ldap_tear_down):
+    """Verifying ldap filters in authsource to restrict access
+
+    :id: 0052b272-08b1-11eb-80c6-0c7a158cbff4
+
+    :Steps:
+        1. Create authsource with onthefly enabled and ldap filter
+        2. Verify login from users according to the filter
+
+    :expectedresults: Login fails for restricted user
+
+    """
+
+    # 'test_user' able to login before the filter is applied.
+    test_user = ipa_add_user
+    with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
+        with pytest.raises(NavigationTriesExceeded):
+            ldapsession.user.search('')
+        assert test_user in ldapsession.task.read_all()['current_user']
+
+    # updating the authsource with filter
+    group_name = ipa_data['groups'][0]
+    ldap_data = f"(memberOf=cn={group_name},{ipa_data['group_base_dn']})"
+    session.ldapauthentication.update(auth_source_ipa.name, {'account.ldap_filter': ldap_data})
+
+    # 'test_user' not able login as it gets filtered out
+    with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
+        with pytest.raises(NavigationTriesExceeded) as error:
+            ldapsession.user.search('')
+        assert error.typename == "NavigationTriesExceeded"
