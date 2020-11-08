@@ -84,6 +84,7 @@ CaseComponent:
     - RemoteExecution
     - Reporting
     - Repositories
+    - RHCloud-Inventory
     - rubygem-foreman-redhat_access
     - satellite-change-hostname
     - SatelliteClone
