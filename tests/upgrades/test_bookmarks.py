@@ -19,168 +19,138 @@ from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.test import APITestCase
 
 
-class ScenarioPositivePublicDisableBookmark(APITestCase):
-    """
-    Created Public disable Bookmarks in pre upgrade should be unchanged after post upgrade
+@pre_upgrade
+def test_pre_create_public_disable_bookmark(request):
+    """Create public disable bookmarks for system entities using available bookmark
+    data.
 
-    Test Steps:
+    :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
 
-        1. Before Satellite upgrade:
-        2. Creating public disable bookmarks for system entities using available bookmark data.
-        3. Check the bookmark attribute status(controller, name, query public) for
-        all the system entities after bookmark creation
-        7. Upgrade the satellite.
-        8. Check the bookmark attribute status(controller, name, query public) for all the
-        system entities after upgrade.
-        9. Delete all the bookmark that we created in step2.
+    :Steps:
 
-    :BZ: 1833264, 1826734
+        1. Create public disable bookmarks before the upgrade for all system entities
+        using available bookmark data.
+        2. Check the bookmark attribute status(controller, name, query public)
+        for all the system entities.
 
-    """
+    :expectedresults: Public disabled bookmark should be created successfully
 
-    @classmethod
-    def setUpClass(cls):
-        cls.bookmark_postfix = "_pre_upgrade_public_disable_bookmark"
+    :BZ: 1833264, 1826734, 1862119
 
-    @pre_upgrade
-    def test_pre_create_public_disable_bookmark(self):
-        """Create public disable bookmarks for system entities using available bookmark
-        data.
-
-        :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
-
-        :Steps:
-
-            1. Create public disable bookmarks before the upgrade for all system entities
-            using available bookmark data.
-            2. Check the bookmark attribute status(controller, name, query public)
-            for all the system entities.
-
-        :expectedresults: Public disabled bookmark should be created successfully
-
-        :CaseImportance: Critical
-        """
-
-        for entity in BOOKMARK_ENTITIES:
-            book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark(
-                controller=entity['controller'],
-                name=book_mark_name,
-                public=False,
-                query=f"name={book_mark_name}",
-            ).create()
-            assert bm.controller == entity['controller']
-            assert bm.name == book_mark_name
-            assert bm.query == f"name={book_mark_name}"
-            assert not bm.public
-
-    @post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
-    def test_post_create_public_disable_bookmark(self):
-        """Check the status of public disable bookmark for all the
-        system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade
-
-        :id: 3b3abb85-cad2-4cbb-ad21-2780523351fd
-
-        :Steps:
-
-            1. Check the bookmark status after post-upgrade
-            2. Remove the bookmark
-
-        :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
-            assert bm.controller == entity['controller']
-            assert bm.name == book_mark_name
-            assert bm.query == f"name={book_mark_name}"
-            assert not bm.public
-            bm.delete()
-
-
-class ScenarioPositivePublicEnableBookmark(APITestCase):
-    """
-    Created Public enabled Bookmarks in pre upgrade should be unchanged after post upgrade
-
-    Test Steps:
-
-        1. Before Satellite upgrade:
-        2. Creating public enable bookmarks for system entities using available bookmark data.
-        3. Check the bookmarks attribute(controller, name, query public) status for
-        all the system entities after bookmark creation
-        7. Upgrade the satellite.
-        8. Check the bookmark attribute(controller, name, query public) status for all the
-        system entities after upgrade.
-        9. Delete all the bookmark that we created in step2.
-
-    :BZ: 1833264, 1826734
-
+    :CaseImportance: Critical
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.bookmark_postfix = "_pre_upgrade_public_enable_bookmark"
+    for entity in BOOKMARK_ENTITIES:
+        book_mark_name = entity["name"] + request.node.name
+        bm = entities.Bookmark(
+            controller=entity['controller'],
+            name=book_mark_name,
+            public=False,
+            query=f"name={book_mark_name}",
+        ).create()
 
-    @pre_upgrade
-    def test_pre_create_public_enable_bookmark(self):
-        """Create public enable bookmark for system entities using available bookmark
-        data.
+        assert bm.controller == entity['controller']
+        assert bm.name == book_mark_name
+        assert bm.query == f"name={book_mark_name}"
+        assert not bm.public
 
-        :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
 
-        :Steps:
+@post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
+def test_post_create_public_disable_bookmark(request):
+    """Check the status of public disable bookmark for all the
+    system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade
 
-            1. Create public enable bookmarks before the upgrade for all system entities
-            using available bookmark data.
-            2. Check the bookmark attribute(controller, name, query public) status
-            for all the system entities.
+    :id: 3b3abb85-cad2-4cbb-ad21-2780523351fd
 
-        :expectedresults: Public enabled bookmark should be created successfully
+    :Steps:
 
-        :CaseImportance: Critical
-        """
+        1. Check the bookmark status after post-upgrade
+        2. Remove the bookmark
 
-        for entity in BOOKMARK_ENTITIES:
-            book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark(
-                controller=entity['controller'],
-                name=book_mark_name,
-                public=True,
-                query=f"name={book_mark_name}",
-            ).create()
-            assert bm.controller == entity['controller']
-            assert bm.name == book_mark_name
-            assert bm.query == f"name={book_mark_name}"
-            assert bm.public
+    :expectedresults: Public disabled bookmarks details for all the system entities
+    should be unchanged after upgrade
 
-    @post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
-    def test_post_create_public_enable_bookmark(self):
-        """Check the status of public enabled bookmark for all the
-        system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade
+    :CaseImportance: Critical
+    """
+    pre_test_name = [
+        mark.kwargs['depend_on'].__name__
+        for mark in request.node.own_markers
+        if 'depend_on' in mark.kwargs
+    ][0]
+    for entity in BOOKMARK_ENTITIES:
+        book_mark_name = entity["name"] + pre_test_name
+        bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
+        assert bm.controller == entity['controller']
+        assert bm.name == book_mark_name
+        assert bm.query == f"name={book_mark_name}"
+        assert not bm.public
+        bm.delete()
 
-        :id: 3b3abb85-cad2-4cbb-ad21-2780523351fd
 
-        :Steps:
+@pre_upgrade
+def test_pre_create_public_enable_bookmark(request):
+    """Create public enable bookmark for system entities using available bookmark
+    data.
 
-            1. Check the bookmark status after post-upgrade
-            2. Remove the bookmark
+    :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
 
-        :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade
+    :Steps:
 
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            book_mark_name = entity["name"] + self.bookmark_postfix
-            bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
-            assert bm.controller == entity['controller']
-            assert bm.name == book_mark_name
-            assert bm.query == f"name={book_mark_name}"
-            assert bm.public
-            bm.delete()
+        1. Create public enable bookmarks before the upgrade for all system entities
+        using available bookmark data.
+        2. Check the bookmark attribute(controller, name, query public) status
+        for all the system entities.
+
+    :expectedresults: Public enabled bookmark should be created successfully
+
+    :BZ: 1833264, 1826734, 1862119
+
+    :CaseImportance: Critical
+    """
+
+    for entity in BOOKMARK_ENTITIES:
+        book_mark_name = entity["name"] + request.node.name
+        bm = entities.Bookmark(
+            controller=entity['controller'],
+            name=book_mark_name,
+            public=True,
+            query=f"name={book_mark_name}",
+        ).create()
+        assert bm.controller == entity['controller']
+        assert bm.name == book_mark_name
+        assert bm.query == f"name={book_mark_name}"
+        assert bm.public
+
+
+@post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
+def test_post_create_public_enable_bookmark(request):
+    """Check the status of public enabled bookmark for all the
+    system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade
+
+    :id: 3b3abb85-cad2-4cbb-ad21-2780523351fd
+
+    :Steps:
+
+        1. Check the bookmark status after post-upgrade
+        2. Remove the bookmark
+
+    :expectedresults: Public disabled bookmarks details for all the system entities
+    should be unchanged after upgrade
+
+    :CaseImportance: Critical
+    """
+    pre_test_name = [
+        mark.kwargs['depend_on'].__name__
+        for mark in request.node.own_markers
+        if 'depend_on' in mark.kwargs
+    ][0]
+    for entity in BOOKMARK_ENTITIES:
+        book_mark_name = entity["name"] + pre_test_name
+        bm = entities.Bookmark().search(query={'search': f'name="{book_mark_name}"'})[0]
+        assert bm.controller == entity['controller']
+        assert bm.name == book_mark_name
+        assert bm.query == f"name={book_mark_name}"
+        assert bm.public
+        bm.delete()
