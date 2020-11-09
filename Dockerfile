@@ -1,14 +1,14 @@
 FROM fedora
 MAINTAINER https://github.com/SatelliteQE
 
-RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN dnf install -y gcc git libffi-devel openssl-devel python3-devel \
-    redhat-rpm-config which libcurl-devel libxml2-devel make
+RUN dnf install -y gcc git make cmake libffi-devel openssl-devel python3-devel \
+    python3-pip redhat-rpm-config which libcurl-devel libxml2-devel
 
 COPY / /robottelo/
 WORKDIR /robottelo
+RUN curl https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example -o broker_settings.yaml
 
 ENV PYCURL_SSL_LIBRARY=openssl
-RUN pip3 install -r requirements.txt
+RUN pip install -r requirements.txt
 
 CMD make test-robottelo
