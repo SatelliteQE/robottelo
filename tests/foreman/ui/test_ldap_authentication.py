@@ -268,7 +268,7 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_tear_down, ipa_data)
                 'ldap_server.name': ldap_auth_name,
                 'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.account_name': ipa_data['ldap_user_cn'],
                 'account.password': ipa_data['ldap_user_passwd'],
                 'account.base_dn': ipa_data['base_dn'],
                 'account.groups_base_dn': ipa_data['group_base_dn'],
@@ -288,7 +288,7 @@ def test_positive_create_with_idm_org_and_loc(session, ldap_tear_down, ipa_data)
         assert ldap_source['ldap_server']['host'] == ipa_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
         assert ldap_source['ldap_server']['server_type'] == LDAP_SERVER_TYPE['UI']['ipa']
-        assert ldap_source['account']['account_name'] == ipa_data['ldap_ipa_cn']
+        assert ldap_source['account']['account_name'] == ipa_data['ldap_user_cn']
         assert ldap_source['account']['base_dn'] == ipa_data['base_dn']
         assert ldap_source['account']['groups_base_dn'] == ipa_data['group_base_dn']
         assert not ldap_source['account']['onthefly_register']
@@ -328,7 +328,7 @@ def test_positive_create_with_idm_https(session, test_name, ldap_tear_down, ipa_
                 'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.account_name': ipa_data['ldap_user_cn'],
                 'account.password': ipa_data['ldap_user_passwd'],
                 'account.base_dn': ipa_data['base_dn'],
                 'account.groups_base_dn': ipa_data['group_base_dn'],
@@ -1444,7 +1444,7 @@ def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
                 'ldap_server.name': ldap_auth_name,
                 'ldap_server.host': ipa_data['ldap_hostname'],
                 'ldap_server.server_type': LDAP_SERVER_TYPE['UI']['ipa'],
-                'account.account_name': ipa_data['ldap_ipa_cn'],
+                'account.account_name': ipa_data['ldap_user_cn'],
                 'account.password': ipa_data['ldap_user_passwd'],
                 'account.base_dn': ipa_data['base_dn'],
                 'account.groups_base_dn': ipa_data['group_base_dn'],
