@@ -316,6 +316,17 @@ def valid_environments_list():
 
 
 @filtered_datapoint
+def invalid_environments_list():
+    """Returns a list of invalid environment names"""
+    return [
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('cjk'),
+        gen_string('html'),
+    ]
+
+
+@filtered_datapoint
 def valid_hosts_list(domain_length=10):
     """Generates a list of valid host names.
 

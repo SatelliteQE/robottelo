@@ -24,44 +24,54 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import one_to_many_names
-from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import invalid_environments_list
 from robottelo.datafactory import invalid_names_list
-from robottelo.test import APITestCase
+from robottelo.datafactory import parametrized
+from robottelo.datafactory import valid_environments_list
 
 
-@filtered_datapoint
-def valid_data_list():
-    """Return a list of various kinds of valid strings for Environment entity"""
-    return [gen_string('alpha'), gen_string('numeric'), gen_string('alphanumeric')]
+@pytest.fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
 
 
-class EnvironmentTestCase(APITestCase):
+@pytest.fixture(scope='module')
+def module_loc():
+    return entities.Location().create()
+
+
+@pytest.fixture(scope='module')
+def module_env():
+    return entities.Environment().create()
+
+
+@pytest.fixture(scope='module')
+def module_env_attrs(module_env):
+    return set(module_env.update_json([]).keys())
+
+
+class TestEnvironment:
     """Tests for environments."""
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location().create()
-
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_environments_list()))
+    def test_positive_create_with_name(self, name):
         """Create an environment and provide a valid name.
 
         :id: 8869ccf8-a511-4fa7-ac36-11494e85f532
+
+        :parametrized: yes
 
         :expectedresults: The environment created successfully and has expected
             name.
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                env = entities.Environment(name=name).create()
-                self.assertEqual(env.name, name)
+        env = entities.Environment(name=name).create()
+        assert env.name == name
 
     @pytest.mark.tier1
-    def test_positive_create_with_org_and_loc(self):
+    def test_positive_create_with_org_and_loc(self, module_org, module_loc):
         """Create an environment and assign it to new organization.
 
         :id: de7e4132-5ca7-4b41-9af3-df075d31f8f4
@@ -72,60 +82,61 @@ class EnvironmentTestCase(APITestCase):
         :CaseImportance: Critical
         """
         env = entities.Environment(
-            name=gen_string('alphanumeric'), organization=[self.org], location=[self.loc]
+            name=gen_string('alphanumeric'), organization=[module_org], location=[module_loc]
         ).create()
-        self.assertEqual(len(env.organization), 1)
-        self.assertEqual(env.organization[0].id, self.org.id)
-        self.assertEqual(len(env.location), 1)
-        self.assertEqual(env.location[0].id, self.loc.id)
+        assert len(env.organization) == 1
+        assert env.organization[0].id == module_org.id
+        assert len(env.location) == 1
+        assert env.location[0].id == module_loc.id
 
     @pytest.mark.tier1
-    def test_negative_create_with_too_long_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
+    def test_negative_create_with_too_long_name(self, name):
         """Create an environment and provide an invalid name.
 
         :id: e2654954-b3a1-4594-a487-bcd0cc8195ad
 
+        :parametrized: yes
+
         :expectedresults: The server returns an error.
 
         """
-        for name in invalid_names_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Environment(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.Environment(name=name).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_characters(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_environments_list()))
+    def test_negative_create_with_invalid_characters(self, name):
         """Create an environment and provide an illegal name.
 
         :id: 8ec57d04-4ce6-48b4-b7f9-79025019ad0f
 
+        :parametrized: yes
+
         :expectedresults: The server returns an error.
 
         """
-        str_types = ('cjk', 'latin1', 'utf8')
-        for name in (gen_string(str_type) for str_type in str_types):
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Environment(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.Environment(name=name).create()
 
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(valid_environments_list()))
+    def test_positive_update_name(self, module_env, new_name):
         """Create environment entity providing the initial name, then
         update its name to another valid name.
 
         :id: ef48e79a-6b6a-4811-b49b-09f2effdd18f
 
+        :parametrized: yes
+
         :expectedresults: Environment entity is created and updated properly
 
         """
-        env = entities.Environment().create()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                env = entities.Environment(id=env.id, name=new_name).update(['name'])
-                self.assertEqual(env.name, new_name)
+        env = entities.Environment(id=module_env.id, name=new_name).update(['name'])
+        assert env.name == new_name
 
     @pytest.mark.tier2
-    def test_positive_update_and_remove(self):
+    def test_positive_update_and_remove(self, module_org, module_loc):
         """Update environment and assign it to a new organization
         and location. Delete environment afterwards.
 
@@ -139,38 +150,38 @@ class EnvironmentTestCase(APITestCase):
         :CaseLevel: Integration
         """
         env = entities.Environment().create()
-        self.assertEqual(len(env.organization), 0)
-        self.assertEqual(len(env.location), 0)
-        env = entities.Environment(id=env.id, organization=[self.org]).update(['organization'])
-        self.assertEqual(len(env.organization), 1)
-        self.assertEqual(env.organization[0].id, self.org.id)
+        assert len(env.organization) == 0
+        assert len(env.location) == 0
+        env = entities.Environment(id=env.id, organization=[module_org]).update(['organization'])
+        assert len(env.organization) == 1
+        assert env.organization[0].id, module_org.id
 
-        env = entities.Environment(id=env.id, location=[self.loc]).update(['location'])
-        self.assertEqual(len(env.location), 1)
-        self.assertEqual(env.location[0].id, self.loc.id)
+        env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
+        assert len(env.location) == 1
+        assert env.location[0].id == module_loc.id
 
         env.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             env.read()
 
     @pytest.mark.tier1
-    def test_negative_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
+    def test_negative_update_name(self, module_env, new_name):
         """Create environment entity providing the initial name, then
         try to update its name to invalid one.
 
         :id: 9cd024ab-db3d-4b15-b6da-dd2089321df3
 
+        :parametrized: yes
+
         :expectedresults: Environment entity is not updated
 
         """
-        env = entities.Environment().create()
-        for new_name in invalid_names_list():
-            with self.subTest(new_name):
-                with self.assertRaises(HTTPError):
-                    entities.Environment(id=env.id, name=new_name).update(['name'])
+        with pytest.raises(HTTPError):
+            entities.Environment(id=module_env.id, name=new_name).update(['name'])
 
 
-class MissingAttrEnvironmentTestCase(APITestCase):
+class TestMissingAttrEnvironment:
     """Tests to see if the server returns the attributes it should.
 
     Satellite should return a full description of an entity each time an entity
@@ -180,15 +191,8 @@ class MissingAttrEnvironmentTestCase(APITestCase):
 
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an ``Environment``."""
-        super().setUpClass()
-        env = entities.Environment().create()
-        cls.env_attrs = set(env.update_json([]).keys())
-
     @pytest.mark.tier2
-    def test_positive_update_loc(self):
+    def test_positive_update_loc(self, module_env_attrs):
         """Update an environment. Inspect the server's response.
 
         :id: a4c1bc22-d586-4150-92fc-7797f0f5bfb0
@@ -201,12 +205,10 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         :CaseLevel: Integration
         """
         names = one_to_many_names('location')
-        self.assertGreaterEqual(
-            len(names & self.env_attrs), 1, f'None of {names} are in {self.env_attrs}'
-        )
+        assert len(names & module_env_attrs) >= 1, f'None of {names} are in {module_env_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_update_org(self):
+    def test_positive_update_org(self, module_env_attrs):
         """Update an environment. Inspect the server's response.
 
         :id: ac46bcac-5db0-4899-b2fc-d48d2116287e
@@ -219,6 +221,4 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         :CaseLevel: Integration
         """
         names = one_to_many_names('organization')
-        self.assertGreaterEqual(
-            len(names & self.env_attrs), 1, f'None of {names} are in {self.env_attrs}'
-        )
+        assert len(names & module_env_attrs) >= 1, f'None of {names} are in {module_env_attrs}'
