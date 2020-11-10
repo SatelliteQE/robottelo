@@ -9,7 +9,7 @@ fauxfactory==3.1.0
 Inflector==3.0.1
 navmazing==1.1.6
 paramiko==2.7.2
-productmd==1.28
+productmd==1.29
 pytest==5.4.3
 pytest-services==2.2.1
 pytest-mock==3.3.1
