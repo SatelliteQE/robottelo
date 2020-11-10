@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 :Requirement: Report templates
 
@@ -61,9 +60,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import tier1
-from robottelo.decorators import tier2
-from robottelo.decorators import tier3
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -108,9 +104,9 @@ def setup_content(request):
 class ReportTemplateTestCase(CLITestCase):
     """Report Templates CLI tests."""
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_report_help(self):
-        """ hammer level of help included in test:
+        """hammer level of help included in test:
          Base level hammer help includes report-templates,
          Command level hammer help contains usage details,
          Subcommand level hammer help contains usage details
@@ -142,7 +138,7 @@ class ReportTemplateTestCase(CLITestCase):
         assert len([i for i in base if '--audit-comment' in i]) > 0
         assert len([i for i in base if '--interactive' in i]) > 0
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_end_to_end_crud_and_list(self):
         """CRUD test + list test for report templates
 
@@ -196,7 +192,7 @@ class ReportTemplateTestCase(CLITestCase):
         with pytest.raises(CLIReturnCodeError):
             ReportTemplate.info({'id': tmp_report_template['id']})
 
-    @tier1
+    @pytest.mark.tier1
     def test_positive_generate_report_nofilter_and_with_filter(self):
         """Generate Host Status report without filter and with filter
 
@@ -236,14 +232,14 @@ class ReportTemplateTestCase(CLITestCase):
                 'inputs': (
                     rt_host_statuses['template-inputs'][0]['name']
                     + "="
-                    + 'name={0}'.format(host1['name'])
+                    + 'name={}'.format(host1['name'])
                 ),
             }
         )
         assert host1['name'] in [item.split(',')[0] for item in result]
         assert host2['name'] not in [item.split(',')[0] for item in result]
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_lock_and_unlock_report(self):
         """Lock and unlock report template
 
@@ -271,7 +267,7 @@ class ReportTemplateTestCase(CLITestCase):
         result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
         assert result[0]['name'] == new_name
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_report_add_userinput(self):
         """Add user input to template
 
@@ -296,7 +292,7 @@ class ReportTemplateTestCase(CLITestCase):
         result = ReportTemplate.info({'name': report_template['name']})
         assert result['template-inputs'][0]['name'] == template_input['name']
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_dump_report(self):
         """Export report template
 
@@ -318,7 +314,7 @@ class ReportTemplateTestCase(CLITestCase):
         result = ReportTemplate.dump({'id': report_template['id']})
         assert content in result
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_clone_locked_report(self):
         """Clone locked report template
 
@@ -346,7 +342,7 @@ class ReportTemplateTestCase(CLITestCase):
         assert result_info['locked'] == 'yes'
         assert result_info['default'] == 'yes'
 
-    @tier2
+    @pytest.mark.tier2
     def test_positive_generate_report_sanitized(self):
         """Generate report template where there are values in comma outputted
         which might brake CSV format
@@ -393,11 +389,10 @@ class ReportTemplateTestCase(CLITestCase):
         result = ReportTemplate.generate({'name': report_template['name']})
         assert 'Name,Operating System' in result  # verify header of custom template
         assert (
-            '{0},"{1}"'.format(host['name'], host['operating-system']['operating-system'])
-            in result
+            '{},"{}"'.format(host['name'], host['operating-system']['operating-system']) in result
         )
 
-    @tier3
+    @pytest.mark.tier3
     @pytest.mark.stubbed
     def test_positive_applied_errata(self):
         """Generate an Applied Errata report, then generate it by using schedule --wait and then
@@ -424,7 +419,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_compressed(self):
         """Generate an Applied Errata report, get it by e-mail, compressed
@@ -443,7 +438,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.stubbed
     def test_positive_generate_email_uncompressed(self):
         """Generate an Applied Errata report, get it by e-mail, uncompressed
@@ -463,7 +458,7 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: Medium
         """
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_create_report_without_name(self):
         """Try to create a report template with empty name
 
@@ -482,7 +477,7 @@ class ReportTemplateTestCase(CLITestCase):
         with pytest.raises(CLIFactoryError):
             make_report_template({'name': ''})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_delete_locked_report(self):
         """Try to delete a locked report template
 
@@ -506,9 +501,9 @@ class ReportTemplateTestCase(CLITestCase):
         with pytest.raises(CLIReturnCodeError):
             ReportTemplate.delete({'name': report_template['name']})
 
-    @tier2
+    @pytest.mark.tier2
     def test_negative_bad_email(self):
-        """ Report can't be generated when incorrectly formed mail specified
+        """Report can't be generated when incorrectly formed mail specified
 
         :id: a4ba77db-144e-4871-a42e-e93887464986
 
@@ -530,7 +525,7 @@ class ReportTemplateTestCase(CLITestCase):
                 {'name': report_template['name'], 'mail-to': gen_string('alpha')}
             )
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_nonauthor_of_report_cant_download_it(self):
         """The resulting report should only be downloadable by
            the user that generated it or admin. Check.
@@ -635,7 +630,7 @@ class ReportTemplateTestCase(CLITestCase):
                 {'id': report_template['name'], 'job-id': schedule[0].split("Job ID: ", 1)[1]}
             )
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip_if_open('BZ:1750924')
     def test_positive_generate_with_name_and_org(self):
         """Generate Host Status report, specifying template name and organization
@@ -664,10 +659,10 @@ class ReportTemplateTestCase(CLITestCase):
 
         assert host['name'], [item.split(',')[0] for item in result]
 
-    @tier2
+    @pytest.mark.tier2
     @pytest.mark.skip_if_open('BZ:1782807')
     def test_positive_generate_ansible_template(self):
-        """ Report template named 'Ansible Inventory' (default name is specified in settings)
+        """Report template named 'Ansible Inventory' (default name is specified in settings)
         must be present in Satellite 6.7 and later in order to provide enhanced functionality
         for Ansible Tower inventory synchronization with Satellite.
 
@@ -723,7 +718,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_generate_entitlements_report_multiple_formats(self):
         """Generate an report using the Subscription - Entitlement Report template
         in html, yaml, and csv format.
@@ -783,7 +778,7 @@ class ReportTemplateTestCase(CLITestCase):
             # BZ 1830289
             assert 'Subscription Quantity' in result_csv[0]
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_schedule_Entitlements_report(self):
         """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
@@ -822,7 +817,7 @@ class ReportTemplateTestCase(CLITestCase):
             assert any(vm.hostname in line for line in data_csv)
             assert any(self.setup_subs_id[0]['name'] in line for line in data_csv)
 
-    @tier3
+    @pytest.mark.tier3
     def test_positive_generate_hostpkgcompare(self):
         """Generate 'Host - compare content hosts packages' report
 
@@ -914,7 +909,7 @@ class ReportTemplateTestCase(CLITestCase):
                     or status == f'greater in {host2["name"]}'
                 )
 
-    @tier3
+    @pytest.mark.tier3
     def test_negative_generate_hostpkgcompare_nonexistent_host(self):
         """Try to generate 'Host - compare content hosts packages' report
         with nonexistent hosts inputs
