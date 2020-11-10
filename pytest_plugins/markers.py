@@ -13,6 +13,7 @@ def pytest_configure(config):
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
         "run_in_one_thread: Sequential tests",
+        "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
