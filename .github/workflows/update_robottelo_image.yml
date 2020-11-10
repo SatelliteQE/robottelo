@@ -1,11 +1,6 @@
-name: Check Code Quality and Update Robottelo container image on Docker Hub.
+name: update_robottelo_image
 
-on:
-  push:
-    branches: master
-
-env:
-    PYCURL_SSL_LIBRARY: gnutls
+on: [push]
 
 jobs:
   codechecks:
@@ -14,6 +9,9 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.9]
+    env:
+      PYCURL_SSL_LIBRARY: gnutls
+      SATELLITE_VERSION: 6.9
     steps:
       - name: Checkout Robottelo
         uses: actions/checkout@v2
@@ -31,39 +29,43 @@ jobs:
           cp robottelo.properties.sample robottelo.properties
           cp broker_settings.yaml.example broker_settings.yaml
           cp virtwho.properties.sample virtwho.properties
+
       - name: Pre Commit Checks
         uses: pre-commit/action@v2.0.0
 
       - name: Collect Tests
         run: |
-          pytest --collect-only tests/robottelo tests/foreman
-          pytest --collect-only tests/upgrades -m pre_upgrade
-          pytest --collect-only tests/upgrades -m post_upgrade
-      - name: Test Robottelo Coverage
-        run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
+          pytest -n 8 --setup-plan --disable-pytest-warnings tests/foreman/ tests/robottelo/
+          pytest -n 8 --setup-plan --disable-pytest-warnings -m pre_upgrade tests/upgrades/
+          pytest -n 8 --setup-plan --disable-pytest-warnings -m post_upgrade tests/upgrades/
 
       - name: Make Docs
         run: |
           make test-docstrings
           make docs
+
       - name: Analysis (git diff)
         if: failure()
         run: git diff
 
-      - name: Upload Codecov Coverage
-        uses: codecov/codecov-action@v1.0.13
-        with:
-          file: coverage.xml
-          name: ${{ github.run_id }}-py-${{ matrix.python-version }}
-
   robottelo_container:
     needs: codechecks
-    name: Update Robottelo container image on Docker Hub.
+    name: Update Robottelo container image on Quay.
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Get image tag
+        id: image_tag
+        run: |
+          echo -n ::set-output name=IMAGE_TAG::
+          TAG="${GITHUB_REF##*/}"
+          if [ "${TAG}" == "master" ]; then
+              TAG="latest"
+          fi
+          echo "${TAG}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -71,16 +73,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to DockerHub
+      - name: Login to Quay Container Registry
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ secrets.QUAY_SERVER }}
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
 
-      - name: Build and push
+      - name: Build and push image to Quay
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: satelliteqe/robottelo:latest
+          tags: ${{ secrets.QUAY_SERVER }}/${{ secrets.QUAY_NAMESPACE }}/robottelo:${{ steps.image_tag.outputs.IMAGE_TAG }}

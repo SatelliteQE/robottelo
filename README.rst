@@ -16,6 +16,10 @@ Robottelo
 .. image:: https://readthedocs.org/projects/robottelo/badge/?version=latest
   :target: https://robottelo.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://github.com/SatelliteQE/robottelo/workflows/update_robottelo_image/badge.svg
+   :alt: update_robottelo_image build status on GitHub Actions
+   :target: https://github.com/SatelliteQE/robottelo/actions
+
 `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
