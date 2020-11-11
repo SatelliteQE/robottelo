@@ -232,7 +232,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_content_and_check_enabled(self):
         """Create activation key and add content to it. Check enabled state.
 
-        :id: abfc6c6e-acd1-4761-b309-7e68e1d17172
+        :id: 00aeabde-c175-4d0c-a7c7-e7a1d542b3a0
 
         :expectedresults: Enabled state is shown for product content
             successfully

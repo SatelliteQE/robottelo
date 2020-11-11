@@ -10,6 +10,7 @@ CaseAutomation:
 CaseComponent:
     casesensitive: false
     choices:
+    # No spaces allowed
     - ActivationKeys
     - Ansible
     - API
