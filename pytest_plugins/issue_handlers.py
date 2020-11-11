@@ -62,8 +62,8 @@ def pytest_collection_modifyitems(session, items, config):
     This collection includes pre-processed `is_open` status for each issue
 
     """
-    # generate_issue_collection will save a file, set by --bz-cache value
 
+    # generate_issue_collection will save a file, set by --bz-cache value
     pytest.issue_data = generate_issue_collection(items, config)
 
     # Add skipif markers, and modify collection based on --bz option
@@ -197,28 +197,29 @@ def generate_issue_collection(items, config):  # pragma: no cover
 
     # --- Build the issue marked usage collection ---
     for item in items:
-        component = None
-        bz_marks_to_add = []
-        importance = None
+        if item.nodeid.startswith('tests/robottelo/'):
+            # Unit test, no bz processing
+            # TODO: We very likely don't need to include component and importance in collected_data
+            # Removing these would unravel issue_handlers dependence on testimony
+            # Allowing for issue_handler use in unit tests
+            continue
 
+        bz_marks_to_add = []
         # register test module as processed
         test_modules.add(item.module)
-
         # Find matches from docstrings top-down from: module, class, function.
         mod_cls_fun = (item.module, getattr(item, 'cls', None), item.function)
         for docstring in [d for d in map(inspect.getdoc, mod_cls_fun) if d is not None]:
-            component_matches = COMPONENT.findall(docstring)
-            if component_matches:
-                component = component_matches[-1]
             bz_matches = BZ.findall(docstring)
             if bz_matches:
                 bz_marks_to_add.extend(b.strip() for b in bz_matches[-1].split(','))
-            importance_matches = IMPORTANCE.findall(docstring)
-            if importance_matches:
-                importance = importance_matches[-1]
 
         filepath, lineno, testcase = item.location
-        component_mark = slugify_component(component, False) if component is not None else None
+        # Component and importance marks are determined by testimony tokens
+        # Testimony.yaml as of writing has both as required, so any
+        component_mark = item.get_closest_marker('component').args[0]
+        component_slug = slugify_component(component_mark, False)
+        importance_mark = item.get_closest_marker('importance').args[0]
         for marker in item.iter_markers():
             if marker.name in valid_markers:
                 issue = marker.kwargs.get('reason') or marker.args[0]
@@ -228,9 +229,9 @@ def generate_issue_collection(items, config):  # pragma: no cover
                         'filepath': filepath,
                         'lineno': lineno,
                         'testcase': testcase,
-                        'component': component,
-                        'importance': importance,
-                        'component_mark': component_mark,
+                        'component': component_mark,
+                        'importance': importance_mark,
+                        'component_mark': component_slug,
                         'usage': marker.name,
                     }
                 )
@@ -247,24 +248,16 @@ def generate_issue_collection(items, config):  # pragma: no cover
                 'filepath': filepath,
                 'lineno': lineno,
                 'testcase': testcase,
-                'component': component,
-                'importance': importance,
-                'component_mark': component_mark,
+                'component': component_mark,
+                'importance': importance_mark,
+                'component_mark': component_slug,
             }
             add_workaround(collected_data, IS_OPEN.findall(source), 'is_open', **kwargs)
             add_workaround(collected_data, NOT_IS_OPEN.findall(source), 'not is_open', **kwargs)
 
-        # Add component as a marker to anable filtering e.g: "-m contentviews"
-        if component_mark is not None:
-            item.add_marker(getattr(pytest.mark, component_mark))
-
         # Add BZs from tokens as a marker to enable filter e.g: "--BZ 123456"
         if bz_marks_to_add:
             item.add_marker(pytest.mark.BZ(*bz_marks_to_add))
-
-        # Add importance as a token
-        if importance:
-            item.add_marker(getattr(pytest.mark, importance.lower().strip()))
 
     # Take uses of `is_open` from outside of test cases e.g: SetUp methods
     for test_module in test_modules:

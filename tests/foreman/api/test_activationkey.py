@@ -107,8 +107,6 @@ class ActivationKeyTestCase(APITestCase):
         :id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
 
         :expectedresults: Created entity contains the provided description.
-
-        :CaseImportance: High
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -165,8 +163,6 @@ class ActivationKeyTestCase(APITestCase):
         :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
 
         :expectedresults: Activation key is created, updated to limited host
-
-        :CaseImportance: High
         """
         # unlimited_hosts defaults to True.
         act_key = entities.ActivationKey().create()
@@ -188,8 +184,6 @@ class ActivationKeyTestCase(APITestCase):
 
         :expectedresults: Activation key is created, and its name can be
             updated.
-
-        :CaseImportance: High
         """
         act_key = entities.ActivationKey().create()
         for new_name in valid_data_list():
