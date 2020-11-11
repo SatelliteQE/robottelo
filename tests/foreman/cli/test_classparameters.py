@@ -31,68 +31,54 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.test import CLITestCase
+
+
+@pytest.fixture(scope='module')
+def module_org():
+    return make_org()
+
+
+@pytest.fixture(scope='module')
+def module_loc():
+    return make_location()
+
+
+@pytest.fixture(scope='module')
+def module_puppet(module_org, module_loc):
+    puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
+    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, module_org['id'])
+    env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
+    Environment.update(
+        {
+            'name': env['name'],
+            'organization-ids': module_org['id'],
+            'location-ids': module_loc['id'],
+        }
+    )
+    puppet_class = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
+    yield {'modules': puppet_modules, 'env': env, 'class': puppet_class}
+    delete_puppet_class(puppet_class['name'])
+
+
+@pytest.fixture(scope='module')
+def module_sc_params(module_puppet):
+    sc_params_list = SmartClassParameter.list(
+        {
+            'environment': module_puppet['env']['name'],
+            'search': f'puppetclass="{module_puppet["class"]["name"]}"',
+        }
+    )
+    sc_params_ids_list = [sc_param['id'] for sc_param in sc_params_list]
+    return {'list': sc_params_list, 'ids': sc_params_ids_list}
 
 
 @pytest.mark.run_in_one_thread
-class SmartClassParametersTestCase(CLITestCase):
+@pytest.mark.skipif(not settings.repos_hosting_url, reason="repos_hosting_url is not defined")
+class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in CLI"""
 
-    @classmethod
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def setUpClass(cls):
-        """Import some parametrized puppet classes. This is required to make
-        sure that we have smart class variable available.
-        Read all available smart class parameters for imported puppet class to
-        be able to work with unique entity for each specific test.
-        """
-        super().setUpClass()
-        cls.puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
-        cls.org = make_org()
-        cls.loc = make_location()
-        cv = publish_puppet_module(cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
-        cls.env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
-        Environment.update(
-            {
-                'name': cls.env['name'],
-                'organization-ids': cls.org['id'],
-                'location-ids': cls.loc['id'],
-            }
-        )
-        cls.puppet_class = Puppet.info(
-            {'name': cls.puppet_modules[0]['name'], 'environment': cls.env['name']}
-        )
-        cls.sc_params_list = SmartClassParameter.list(
-            {
-                'environment': cls.env['name'],
-                'search': 'puppetclass="{}"'.format(cls.puppet_class['name']),
-            }
-        )
-        cls.sc_params_ids_list = [sc_param['id'] for sc_param in cls.sc_params_list]
-        cls.host = entities.Host(
-            organization=cls.org['id'], location=cls.loc['id'], environment=cls.env['name']
-        ).create()
-        cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class['id']})
-        cls.hostgroup = make_hostgroup(
-            {'environment-id': cls.env['id'], 'puppet-class-ids': cls.puppet_class['id']}
-        )
-
-    @classmethod
-    def tearDownClass(cls):
-        """Removes puppet class."""
-        super().tearDownClass()
-        delete_puppet_class(cls.puppet_class['name'])
-
-    def setUp(self):
-        """Checks that there is at least one not overridden
-        smart class parameter before executing test.
-        """
-        super().setUp()
-        if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please update puppet module.")
-
     @pytest.mark.tier1
-    def test_positive_list(self):
+    def test_positive_list(self, module_org, module_loc, module_puppet, module_sc_params):
         """List all the parameters included in specific elements.
 
         :id: 9fcfbe32-d388-435d-a629-6969a50a4243
@@ -103,44 +89,49 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
+        host = entities.Host(
+            organization=module_org['id'],
+            location=module_loc['id'],
+            environment=module_puppet['env']['name'],
+        ).create()
+        host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
+        hostgroup = make_hostgroup(
+            {
+                'environment-id': module_puppet['env']['id'],
+                'puppet-class-ids': module_puppet['class']['id'],
+            }
+        )
 
         list_queries = [
-            {'environment': self.env['name']},
-            {'environment-id': self.env['id']},
-            {'host': self.host.name},
-            {'host-id': self.host.id},
-            {'hostgroup': self.hostgroup["name"]},
-            {'hostgroup-id': self.hostgroup["id"]},
-            {'puppet-class': self.puppet_class['name']},
+            {'environment': module_puppet['env']['name']},
+            {'environment-id': module_puppet['env']['id']},
+            {'host': host.name},
+            {'host-id': host.id},
+            {'hostgroup': hostgroup["name"]},
+            {'hostgroup-id': hostgroup["id"]},
+            {'puppet-class': module_puppet['class']['name']},
         ]
 
         # override an example parameter
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         SmartClassParameter.update({'id': sc_param_id, 'override': 1})
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['override'], True)
+        assert sc_param['override'] is True
 
         # check listing parameters for selected queries
         for query in list_queries:
-            with self.subTest(query):
-                sc_params = SmartClassParameter.list(query)
-                self.assertGreater(
-                    len(sc_params), 0, f"Failed to list parameters for query: {query}"
-                )
-
-                self.assertIn(sc_param_id, [scp['id'] for scp in sc_params])
-
-                # Check that only unique results are returned
-                self.assertEqual(
-                    len(sc_params),
-                    len({scp['id'] for scp in sc_params}),
-                    f"Not only unique resutls returned for query: {query}",
-                )
+            sc_params = SmartClassParameter.list(query)
+            assert len(sc_params) > 0, f"Failed to list parameters for query: {query}"
+            assert sc_param_id in [scp['id'] for scp in sc_params]
+            # Check that only unique results are returned
+            assert len(sc_params) == len(
+                {scp['id'] for scp in sc_params}
+            ), f"Not only unique resutls returned for query: {query}"
 
     @pytest.mark.tier1
-    def test_positive_list_with_non_admin_user(self):
+    def test_positive_list_with_non_admin_user(self, module_puppet):
         """List all the parameters for specific puppet class by id.
 
         :id: 00fbf150-34fb-45d0-80e9-d5798d24a24f
@@ -169,15 +160,14 @@ class SmartClassParametersTestCase(CLITestCase):
         # Add the created and initiated role with permissions to user
         User.add_role({'id': user['id'], 'role-id': role['id']})
         sc_params = SmartClassParameter.with_user(user['login'], password).list(
-            {'puppet-class-id': self.puppet_class['id']}
+            {'puppet-class-id': module_puppet['class']['id']}
         )
-        self.assertGreater(len(sc_params), 0)
+        assert len(sc_params) > 0
         # Check that only unique results are returned
-        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
+        assert len(sc_params) == len({scp['id'] for scp in sc_params})
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_import_twice_list_by_puppetclass_id(self):
+    def test_positive_import_twice_list_by_puppetclass_id(self, module_org, module_puppet):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
 
@@ -189,21 +179,21 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Low
         """
-        cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
-        env = Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
+        cv = publish_puppet_module(module_puppet['modules'], CUSTOM_PUPPET_REPO, module_org['id'])
+        env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
         puppet_class = Puppet.info(
-            {'name': self.puppet_modules[0]['name'], 'environment': env['name']}
+            {'name': module_puppet['modules'][0]['name'], 'environment': env['name']}
         )
         sc_params = SmartClassParameter.list(
             {'environment': env['name'], 'puppet-class-id': puppet_class['id'], 'per-page': 1000}
         )
-        self.assertGreater(len(sc_params), 0)
+        assert len(sc_params) > 0
         # Check that only unique results are returned
-        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
+        assert len(sc_params) == len({scp['id'] for scp in sc_params})
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_override(self):
+    def test_positive_override(self, module_puppet, module_sc_params):
         """Override the Default Parameter value.
 
         :id: 25e34bac-084c-4b68-a082-822633e19f7e
@@ -221,19 +211,19 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
         SmartClassParameter.update(
             {'default-value': value, 'omit': 1, 'id': sc_param_id, 'override': 1}
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['default-value'], value)
-        self.assertEqual(sc_param['omit'], True)
+        assert sc_param['default-value'] == value
+        assert sc_param['omit'] is True
 
     @pytest.mark.tier1
-    def test_negative_override(self):
+    def test_negative_override(self, module_sc_params):
         """Override the Default Parameter value - override Unchecked.
 
         :id: eb24c44d-0e34-40a3-aa3e-05a3cd4ed1ea
@@ -250,12 +240,12 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
-        with self.assertRaises(CLIReturnCodeError):
+        sc_param_id = module_sc_params['ids'].pop()
+        with pytest.raises(CLIReturnCodeError):
             SmartClassParameter.update({'default-value': gen_string('alpha'), 'id': sc_param_id})
 
     @pytest.mark.tier1
-    def test_negative_validate_default_value_with_list(self):
+    def test_negative_validate_default_value_with_list(self, module_puppet, module_sc_params):
         """Error raised for default value not in list.
 
         :id: cdcafbea-612e-4b60-90de-fa0c76442bbe
@@ -272,8 +262,8 @@ class SmartClassParametersTestCase(CLITestCase):
         :CaseImportance: Medium
         """
         value = gen_string('alphanumeric')
-        sc_param_id = self.sc_params_ids_list.pop()
-        with self.assertRaises(CLIReturnCodeError):
+        sc_param_id = module_sc_params['ids'].pop()
+        with pytest.raises(CLIReturnCodeError):
             SmartClassParameter.update(
                 {
                     'id': sc_param_id,
@@ -284,12 +274,12 @@ class SmartClassParametersTestCase(CLITestCase):
                 }
             )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertNotEqual(sc_param['default-value'], value)
+        assert sc_param['default-value'] != value
 
     @pytest.mark.tier1
-    def test_positive_validate_default_value_with_list(self):
+    def test_positive_validate_default_value_with_list(self, module_puppet, module_sc_params):
         """Error not raised for default value in list and required
 
         :id: b03708e8-e597-40fb-bb24-a1ac87475846
@@ -307,7 +297,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         SmartClassParameter.update(
             {
                 'id': sc_param_id,
@@ -319,14 +309,14 @@ class SmartClassParametersTestCase(CLITestCase):
             }
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['default-value'], 'test')
-        self.assertEqual(sc_param['validator']['type'], 'list')
-        self.assertEqual(sc_param['validator']['rule'], '5, test')
+        assert sc_param['default-value'] == 'test'
+        assert sc_param['validator']['type'] == 'list'
+        assert sc_param['validator']['rule'] == '5, test'
 
     @pytest.mark.tier1
-    def test_negative_validate_matcher_non_existing_attribute(self):
+    def test_negative_validate_matcher_non_existing_attribute(self, module_sc_params):
         """Error while creating matcher for Non Existing Attribute.
 
         :id: 5223e582-81b4-442d-b4ba-b16ede460ef6
@@ -341,8 +331,8 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
-        with self.assertRaises(CLIReturnCodeError):
+        sc_param_id = module_sc_params['ids'].pop()
+        with pytest.raises(CLIReturnCodeError):
             SmartClassParameter.add_matcher(
                 {
                     'smart-class-parameter-id': sc_param_id,
@@ -353,7 +343,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_create_and_remove_matcher(self):
+    def test_positive_create_and_remove_matcher(self, module_puppet, module_sc_params):
         """Create and remove matcher for attribute in parameter.
 
         :id: 37fe299b-1e81-4faf-b1c3-2edfc3d53dc1
@@ -372,7 +362,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         value = gen_string('alpha')
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'override-value-order': 'is_virtual'}
@@ -381,10 +371,10 @@ class SmartClassParametersTestCase(CLITestCase):
             {'smart-class-parameter-id': sc_param_id, 'match': 'is_virtual=true', 'value': value}
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['override-values']['values']['1']['match'], 'is_virtual=true')
-        self.assertEqual(sc_param['override-values']['values']['1']['value'], value)
+        assert sc_param['override-values']['values']['1']['match'] == 'is_virtual=true'
+        assert sc_param['override-values']['values']['1']['value'] == value
 
         SmartClassParameter.remove_matcher(
             {
@@ -393,12 +383,12 @@ class SmartClassParametersTestCase(CLITestCase):
             }
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(len(sc_param['override-values']['values']), 0)
+        assert len(sc_param['override-values']['values']) == 0
 
     @pytest.mark.tier1
-    def test_positive_create_matcher_puppet_default_value(self):
+    def test_positive_create_matcher_puppet_default_value(self, module_puppet, module_sc_params):
         """Create matcher for attribute in parameter,
         Where Value is puppet default value.
 
@@ -416,7 +406,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'default-value': gen_string('alpha')}
         )
@@ -424,13 +414,13 @@ class SmartClassParametersTestCase(CLITestCase):
             {'smart-class-parameter-id': sc_param_id, 'match': 'domain=test.com', 'omit': 1}
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['override-values']['values']['1']['match'], 'domain=test.com')
+        assert sc_param['override-values']['values']['1']['match'] == 'domain=test.com'
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_test_hidden_parameter_value(self):
+    def test_positive_test_hidden_parameter_value(self, module_puppet, module_sc_params):
         """Unhide the default value of parameter.
 
         :id: 3daf662f-a0dd-469c-8088-262bfaa5246a
@@ -453,7 +443,7 @@ class SmartClassParametersTestCase(CLITestCase):
         :CaseImportance: Low
         """
         # Create with hidden value
-        sc_param_id = self.sc_params_ids_list.pop()
+        sc_param_id = module_sc_params['ids'].pop()
         SmartClassParameter.update(
             {
                 'id': sc_param_id,
@@ -463,24 +453,24 @@ class SmartClassParametersTestCase(CLITestCase):
             }
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertEqual(sc_param['hidden-value?'], True)
+        assert sc_param['hidden-value?'] is True
 
         # Update to empty value
         SmartClassParameter.update(
             {'id': sc_param_id, 'override': 1, 'hidden-value': 1, 'default-value': ''}
         )
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id, 'show-hidden': 1}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id, 'show-hidden': 1}
         )
-        self.assertFalse(sc_param['default-value'])
-        self.assertEqual(sc_param['hidden-value?'], True)
+        assert sc_param['default-value'] == ''
+        assert sc_param['hidden-value?'] is True
 
         # Unhide
         SmartClassParameter.update({'id': sc_param_id, 'hidden-value': 0})
         sc_param = SmartClassParameter.info(
-            {'puppet-class': self.puppet_class['name'], 'id': sc_param_id}
+            {'puppet-class': module_puppet['class']['name'], 'id': sc_param_id}
         )
-        self.assertFalse(sc_param['default-value'])
-        self.assertEqual(sc_param['hidden-value?'], False)
+        assert sc_param['default-value'] == ''
+        assert sc_param['hidden-value?'] is False
