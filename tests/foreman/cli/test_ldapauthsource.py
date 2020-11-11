@@ -388,7 +388,7 @@ class TestRHSSOAuthSource:
 
         request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
-    @pytest.mark.tier3
+    @pytest.mark.destructive
     def test_rhsso_login_using_hammer(
         self, enable_external_auth_rhsso, rhsso_setting_setup, rh_sso_hammer_auth_setup
     ):
@@ -426,7 +426,7 @@ class TestRHSSOAuthSource:
             ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
-    @pytest.mark.tier3
+    @pytest.mark.destructive
     def test_rhsso_timeout_using_hammer(
         self,
         enable_external_auth_rhsso,
@@ -457,7 +457,7 @@ class TestRHSSOAuthSource:
             ).list()
         assert 'Unable to authenticate user sat_admin' in error.value.message
 
-    @pytest.mark.tier3
+    @pytest.mark.destructive
     def test_rhsso_two_factor_login_using_hammer(
         self, rhsso_setting_setup, rh_sso_hammer_auth_setup
     ):
