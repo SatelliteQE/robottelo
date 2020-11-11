@@ -1365,16 +1365,19 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
         cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
     )
     result = run_command(
-        cmd=f"ipa user-find --login {ipa_data['user_ipa']}", hostname=settings.ipa.hostname_ipa
+        cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
+        hostname=settings.ipa.hostname_ipa,
     )
     for line in result:
         if 'Email' in line:
             _, result = line.split(': ', 2)
             break
-    with Session(user=ipa_data['user_ipa'], password=ipa_data['ldap_user_passwd']) as ldapsession:
+    with Session(
+        user=ipa_data['ldap_user_name'], password=ipa_data['ldap_user_passwd']
+    ) as ldapsession:
         ldapsession.task.read_all()
     with session:
-        user_value = session.user.read(ipa_data['user_ipa'])
+        user_value = session.user.read(ipa_data['ldap_user_name'])
         assert user_value['user']['mail'] == result
 
 
@@ -1455,7 +1458,9 @@ def test_onthefly_functionality(session, ipa_data, ldap_tear_down):
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
             }
         )
-    with Session(user=ipa_data['user_ipa'], password=settings.ipa.password_ipa) as ldapsession:
+    with Session(
+        user=ipa_data['ldap_user_name'], password=settings.ipa.password_ipa
+    ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == "NavigationTriesExceeded"
