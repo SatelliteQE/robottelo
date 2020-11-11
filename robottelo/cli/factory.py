@@ -165,7 +165,7 @@ def _entity_with_credentials(credentials, cli_entity_cls):
 @cacheable
 def make_activation_key(options=None):
     """
-    Usage::
+    Usage:
 
         hammer activation-key create [OPTIONS]
 
@@ -219,7 +219,7 @@ def make_activation_key(options=None):
 @cacheable
 def make_architecture(options=None):
     """
-    Usage::
+    Usage:
 
         hammer architecture create [OPTIONS]
 
@@ -237,7 +237,7 @@ def make_architecture(options=None):
 @cacheable
 def make_content_view(options=None):
     """
-    Usage::
+    Usage:
 
         hammer content-view create [OPTIONS]
 
@@ -277,7 +277,7 @@ def make_content_view(options=None):
 
 def make_content_view_with_credentials(options=None, credentials=None):
     """
-    Usage::
+    Usage:
 
         hammer content-view create [OPTIONS]
 
@@ -330,7 +330,7 @@ def make_content_view_with_credentials(options=None, credentials=None):
 @cacheable
 def make_content_view_filter(options=None):
     """
-    Usage::
+    Usage:
 
         content-view filter create [OPTIONS]
 
@@ -381,7 +381,7 @@ def make_content_view_filter(options=None):
 @cacheable
 def make_content_view_filter_rule(options=None):
     """
-    Usage::
+    Usage:
 
         content-view filter rule create [OPTIONS]
 
@@ -439,7 +439,7 @@ def make_content_view_filter_rule(options=None):
 @cacheable
 def make_discoveryrule(options=None):
     """
-    Usage::
+    Usage:
 
         hammer discovery_rule create [OPTIONS]
 
@@ -513,7 +513,7 @@ def make_discoveryrule(options=None):
 @cacheable
 def make_gpg_key(options=None):
     """
-    Usage::
+    Usage:
 
         hammer gpg create [OPTIONS]
 
@@ -559,7 +559,7 @@ def make_gpg_key(options=None):
 def make_location(options=None):
     """Location CLI factory
 
-    Usage::
+    Usage:
 
         hammer location create [OPTIONS]
 
@@ -663,7 +663,7 @@ def make_location(options=None):
 @cacheable
 def make_model(options=None):
     """
-    Usage::
+    Usage:
 
         hammer model create [OPTIONS]
 
@@ -687,7 +687,7 @@ def make_model(options=None):
 @cacheable
 def make_partition_table(options=None):
     """
-    Usage::
+    Usage:
 
         hammer partition-table create [OPTIONS]
 
@@ -742,7 +742,7 @@ def make_product(options=None):
 
 def make_product_with_credentials(options=None, credentials=None):
     """
-    Usage::
+    Usage:
 
         hammer product create [OPTIONS]
 
@@ -816,7 +816,7 @@ def make_product_wait(options=None, wait_for=5):
 @cacheable
 def make_proxy(options=None):
     """
-    Usage::
+    Usage:
 
         hammer proxy create [OPTIONS]
 
@@ -852,7 +852,7 @@ def make_repository(options=None):
 
 def make_repository_with_credentials(options=None, credentials=None):
     """
-    Usage::
+    Usage:
 
         hammer repository create [OPTIONS]
 
@@ -943,7 +943,8 @@ def make_repository_with_credentials(options=None, credentials=None):
 
 @cacheable
 def make_role(options=None):
-    """Usage::
+    """
+    Usage:
 
         hammer role create [OPTIONS]
 
@@ -960,7 +961,7 @@ def make_role(options=None):
 @cacheable
 def make_filter(options=None):
     """
-    Usage::
+    Usage:
 
         hammer filter create [OPTIONS]
 
@@ -1009,7 +1010,7 @@ def make_filter(options=None):
 @cacheable
 def make_scap_policy(options=None):
     """
-    Usage::
+    Usage:
 
         policy create [OPTIONS]
 
@@ -1134,7 +1135,7 @@ def make_scap_policy(options=None):
 @cacheable
 def make_subnet(options=None):
     """
-    Usage::
+    Usage:
 
         hammer subnet create [OPTIONS]
 
@@ -1197,7 +1198,7 @@ def make_subnet(options=None):
 @cacheable
 def make_sync_plan(options=None):
     """
-    Usage::
+    Usage:
 
         hammer sync-plan create [OPTIONS]
 
@@ -1251,7 +1252,7 @@ def make_sync_plan(options=None):
 @cacheable
 def make_host(options=None):
     """
-    Usage::
+    Usage:
 
         hammer host create [OPTIONS]
 
@@ -1570,7 +1571,7 @@ def make_fake_host(options=None):
 @cacheable
 def make_host_collection(options=None):
     """
-    Usage::
+    Usage:
 
          host-collection create [OPTIONS]
 
@@ -1617,7 +1618,7 @@ def make_host_collection(options=None):
 @cacheable
 def make_job_invocation(options=None):
     """
-    Usage::
+    Usage:
 
         hammer job-invocation create
 
@@ -1689,7 +1690,7 @@ def make_job_invocation(options=None):
 @cacheable
 def make_job_template(options=None):
     """
-    Usage::
+    Usage:
 
         hammer job-template create
 
@@ -1744,7 +1745,7 @@ def make_job_template(options=None):
 @cacheable
 def make_user(options=None):
     """
-    Usage::
+    Usage:
 
         hammer user create [OPTIONS]
 
@@ -1797,7 +1798,7 @@ def make_user(options=None):
 @cacheable
 def make_usergroup(options=None):
     """
-    Usage::
+    Usage:
 
         hammer user-group create [OPTIONS]
 
@@ -1829,7 +1830,7 @@ def make_usergroup(options=None):
 @cacheable
 def make_usergroup_external(options=None):
     """
-    Usage::
+    Usage:
 
         hammer user-group external create [OPTIONS]
 
@@ -1858,7 +1859,7 @@ def make_usergroup_external(options=None):
 @cacheable
 def make_ldap_auth_source(options=None):
     """
-    Usage::
+    Usage:
 
         hammer auth-source ldap create [OPTIONS]
 
@@ -1943,7 +1944,7 @@ def make_ldap_auth_source(options=None):
 @cacheable
 def make_compute_resource(options=None):
     """
-    Usage::
+    Usage:
 
         hammer compute-resource create [OPTIONS]
 
@@ -2075,7 +2076,7 @@ def make_org(options=None):
 
 def make_org_with_credentials(options=None, credentials=None):
     """
-    Usage::
+    Usage:
 
         hammer organization create [OPTIONS]
 
@@ -2176,7 +2177,7 @@ def make_org_with_credentials(options=None, credentials=None):
 @cacheable
 def make_realm(options=None):
     """
-    Usage::
+    Usage:
 
         hammer realm create [OPTIONS]
 
@@ -2223,7 +2224,7 @@ def make_realm(options=None):
 @cacheable
 def make_report_template(options=None):
     """
-    Usage::
+    Usage:
 
         hammer report-template create [OPTIONS]
 
@@ -2318,7 +2319,7 @@ def make_report_template(options=None):
 @cacheable
 def make_os(options=None):
     """
-    Usage::
+    Usage:
 
         hammer os create [OPTIONS]
 
@@ -2381,7 +2382,7 @@ def make_os(options=None):
 @cacheable
 def make_scapcontent(options=None):
     """
-    Usage::
+    Usage:
 
          scap-content create [OPTIONS]
 
@@ -2425,7 +2426,7 @@ def make_scapcontent(options=None):
 @cacheable
 def make_domain(options=None):
     """
-    Usage::
+    Usage:
 
         hammer domain create [OPTIONS]
 
@@ -2461,7 +2462,7 @@ def make_domain(options=None):
 @cacheable
 def make_hostgroup(options=None):
     """
-    Usage::
+    Usage:
 
         hammer hostgroup create [OPTIONS]
 
@@ -2587,7 +2588,7 @@ def make_hostgroup(options=None):
 @cacheable
 def make_medium(options=None):
     """
-    Usage::
+    Usage:
 
         hammer medium create [OPTIONS]
 
@@ -2647,7 +2648,7 @@ def make_medium(options=None):
 @cacheable
 def make_environment(options=None):
     """
-    Usage::
+    Usage:
 
         hammer environment create [OPTIONS]
 
@@ -2678,7 +2679,7 @@ def make_environment(options=None):
 @cacheable
 def make_lifecycle_environment(options=None):
     """
-    Usage::
+    Usage:
 
         hammer lifecycle-environment create [OPTIONS]
 
@@ -2732,7 +2733,7 @@ def make_lifecycle_environment(options=None):
 @cacheable
 def make_tailoringfile(options=None):
     """
-   Usage::
+   Usage:
 
         tailoring-file create [OPTIONS]
 
@@ -2776,7 +2777,7 @@ def make_tailoringfile(options=None):
 @cacheable
 def make_template(options=None):
     """
-    Usage::
+    Usage:
 
         hammer template create [OPTIONS]
 
@@ -2833,7 +2834,7 @@ def make_template(options=None):
 @cacheable
 def make_template_input(options=None):
     """
-    Usage::
+    Usage:
 
         hammer template-input create [OPTIONS]
 
@@ -2944,7 +2945,7 @@ def make_template_input(options=None):
 @cacheable
 def make_smart_variable(options=None):
     """
-    Usage::
+    Usage:
 
         hammer smart-variable create [OPTIONS]
 
@@ -3014,7 +3015,7 @@ def make_smart_variable(options=None):
 @cacheable
 def make_virt_who_config(options=None):
     """
-    Usage::
+    Usage:
 
         hammer virt-who-config create [OPTIONS]
 
@@ -4270,7 +4271,7 @@ def virt_who_hypervisor_config(
 @cacheable
 def make_http_proxy(options=None):
     """
-    Usage::
+    Usage:
 
         http-proxy create [OPTIONS]
 
