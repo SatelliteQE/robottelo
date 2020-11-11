@@ -833,7 +833,7 @@ def update_provisioning_template(name=None, old=None, new=None):
     """
     temp = (
         entities.ProvisioningTemplate()
-        .search(query={'per_page': 1000, 'search': f'name="{name}"'})[0]
+        .search(query={'per_page': '1000', 'search': f'name="{name}"'})[0]
         .read()
     )
     if old in temp.template:
