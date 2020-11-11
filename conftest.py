@@ -5,6 +5,7 @@ pytest_plugins = [
     "pytest_plugins.rerun_rp.rerun_rp",
     "pytest_plugins.markers",
     "pytest_plugins.issue_handlers",
+    "pytest_plugins.testimony_markers",
     "pytest_plugins.manual_skipped",
     # Fixtures
     "pytest_fixtures.api_fixtures",

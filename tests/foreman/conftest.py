@@ -126,7 +126,7 @@ def pytest_collection_modifyitems(session, items, config):
     the items in-place.
     """
 
-    log("Collected %s test cases" % len(items))
+    log(f"Collected {len(items)} test cases")
 
     # Modify items based on collected issue_data
     deselected_items = []
