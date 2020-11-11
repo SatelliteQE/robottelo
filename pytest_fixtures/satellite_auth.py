@@ -94,7 +94,7 @@ def auth_source_ipa(module_org, module_loc, ipa_data):
 
 
 @pytest.fixture
-def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
+def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data):
     if request.param.lower() == 'ad':
         # entity create with AD settings
         entities.AuthSourceLDAP(
@@ -113,7 +113,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
         ).create()
         ldap_data = ad_data
     elif request.param.lower() == 'ipa':
@@ -134,7 +134,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data):
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
         ).create()
         ldap_data = ipa_data
     else:
