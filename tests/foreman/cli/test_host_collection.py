@@ -283,38 +283,3 @@ class HostCollectionTestCase(CLITestCase):
         )
         result = HostCollection.info({'id': new_host_collection[0]['id']})
         self.assertEqual(result['name'], new_name)
-
-    @pytest.mark.tier1
-    @pytest.mark.stubbed
-    def test_positive_add_subscription(self):
-        """Try to add a subscription to a host collection
-
-        :id: 74839338-7b3f-4aa9-a821-ff77ec5cc906
-
-        :steps:
-
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the host collection
-
-        :expectedresults: The subscription was added to the host collection
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.tier1
-    @pytest.mark.stubbed
-    def test_positive_remove_subscription(self):
-        """Try to remove a subscription from a host collection
-
-        :id: 8a7b1f08-20b5-4b96-a5d4-c1bcb3f27be6
-
-        :steps:
-
-            1. Create a new or use an existing subscription
-            2. Add the subscription to the host collection
-            3. Remove the subscription from the host collection
-
-        :expectedresults: The subscription was added to the host collection
-
-        :CaseImportance: Critical
-        """
