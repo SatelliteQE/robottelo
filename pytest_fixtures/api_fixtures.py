@@ -13,6 +13,7 @@ from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_PTABLE
@@ -416,10 +417,10 @@ def module_published_cv(module_org):
     return content_view.read()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def default_contentview(module_org):
     return entities.ContentView().search(
-        query={'search': 'label=Default_Organization_View', 'organization_id': f'{module_org.id}'}
+        query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
     )
 
 
@@ -465,7 +466,7 @@ def module_env_search(module_org, module_location, module_cv_with_puppet_module)
 
 
 @pytest.fixture(scope='module')
-def module_lce_search(module_org):
+def module_lce_library(module_org):
     """ Returns the Library lifecycle environment from chosen organization """
     return (
         entities.LifecycleEnvironment()
