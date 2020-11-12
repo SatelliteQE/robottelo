@@ -53,11 +53,7 @@ def content_view(module_org):
 @pytest.fixture(scope='module')
 def puppet_env(content_view, module_org):
     return entities.Environment().search(
-        query={
-            'search': 'content_view="{}" and organization_id={}'.format(
-                content_view.name, module_org.id
-            )
-        }
+        query={'search': f'content_view="{content_view.name}" and organization_id={module_org.id}'}
     )[0]
 
 
@@ -65,9 +61,7 @@ def puppet_env(content_view, module_org):
 def puppet_class(puppet_env):
     puppet_class_entity = entities.PuppetClass().search(
         query={
-            'search': 'name = "{}" and environment = "{}"'.format(
-                PUPPET_MODULES[0]['name'], puppet_env.name
-            )
+            'search': f'name = "{PUPPET_MODULES[0]["name"]}" and environment = "{puppet_env.name}"'
         }
     )[0]
     yield puppet_class_entity
@@ -129,19 +123,19 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
         {'sc_type': 'real', 'value': str(uniform(-1000, 1000))},
         {
             'sc_type': 'array',
-            'value': '["{}","{}","{}"]'.format(
-                gen_string('alpha'), gen_string('numeric').lstrip('0'), gen_string('html')
+            'value': (
+                f'["{gen_string("alpha")}",'
+                f'"{gen_string("numeric").lstrip("0")}",'
+                f'"{gen_string("html")}"]'
             ),
         },
-        {'sc_type': 'hash', 'value': '{}: {}'.format(gen_string('alpha'), gen_string('alpha'))},
-        {'sc_type': 'yaml', 'value': '{}: {}'.format(gen_string('alpha'), gen_string('alpha'))},
+        {'sc_type': 'hash', 'value': f'{gen_string("alpha")}: {gen_string("alpha")}'},
+        {'sc_type': 'yaml', 'value': f'{gen_string("alpha")}: {gen_string("alpha")}'},
         {
             'sc_type': 'json',
-            'value': '{{"{0}":"{1}","{2}":"{3}"}}'.format(
-                gen_string('alpha'),
-                gen_string('numeric').lstrip('0'),
-                gen_string('alpha'),
-                gen_string('alphanumeric'),
+            'value': (
+                f'{{"{gen_string("alpha")}":"{gen_string("numeric").lstrip("0")}",'
+                f'"{gen_string("alpha")}":"{gen_string("alphanumeric")}"}}'
             ),
         },
     ]
@@ -162,7 +156,7 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
             # Application is adding some data for yaml and hash types once
             # smart class parameter is updated
             if data['sc_type'] == 'yaml' or data['sc_type'] == 'hash':
-                data['value'] = '{}{}'.format(data['value'], '\n')
+                data['value'] = f'{data["value"]}\n'
             assert sc_parameter_values['parameter']['parameter_type'] == data['sc_type']
             assert sc_parameter_values['parameter']['default_value']['value'] == data['value']
         session.sc_parameter.update(
