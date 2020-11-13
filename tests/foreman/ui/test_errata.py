@@ -32,6 +32,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_ERRATA_ID
+from robottelo.constants import FAKE_3_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_ERRATA_ID
@@ -45,6 +46,7 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.manifests import upload_manifest_locked
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
@@ -52,6 +54,7 @@ from robottelo.products import SatelliteToolsRepository
 from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
 from robottelo.vm import VirtualMachine
+
 
 CUSTOM_REPO_URL = FAKE_6_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
@@ -96,6 +99,10 @@ def _set_setting_value(setting_entity, value):
 @pytest.fixture(scope='module')
 def module_org():
     org = entities.Organization().create()
+    # adding remote_execution_connect_by_ip=Yes at org level
+    entities.Parameter(
+        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+    ).create()
     upload_manifest_locked(org.id)
     return org
 
@@ -245,6 +252,90 @@ def test_end_to_end(session, module_repos_col, vm):
         )
         result = session.errata.install(CUSTOM_REPO_ERRATA_ID, vm.hostname)
         assert result['result'] == 'success'
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+def test_content_host_errata_page_pagination(session, module_org, module_lce):
+    """
+    # Test per-page pagination for BZ#1662254
+    # Test apply by REX using Select All for BZ#1846670
+
+    :id: 6363eda7-a162-4a4a-b70f-75decbd8202e
+
+    :Steps:
+        1. Install more than 20 packages that need errata
+        2. View Content Host's Errata page
+        3. Assert total_pages > 1
+        4. Change per-page setting to 100
+        5. Assert table has more than 20 errata
+        6. Use the selection box on the left to select all on the page.
+            The following is displayed at the top of the table:
+            All 20 items on this page are selected. Select all YYY.
+
+        7. Click the "Select all" text and assert more than 20 results are selected.
+        8. Click the drop down arrow to the right of "Apply Selected", and select
+            "via remote execution"
+        9. Click Submit
+        10. Assert Errata are applied as expected.
+
+    :expectedresults: More than page of errata can be selected and applied using REX while
+        changing per-page settings.
+
+
+    :BZ: 1662254, 1846670
+
+    :CaseLevel: System
+    """
+    org = module_org
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    pkgs = " ".join(FAKE_3_YUM_OUTDATED_PACKAGES)
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            YumRepository(url=FAKE_3_YUM_REPO),
+        ],
+    )
+    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    with VirtualMachine(distro=repos_collection.distro) as client:
+        # add_remote_execution_ssh_key for REX
+        add_remote_execution_ssh_key(client.ip_addr)
+        # Add repo and install packages that need errata
+        repos_collection.setup_virtual_machine(client)
+        assert _install_client_package(client, pkgs)
+        with session:
+            # Go to CHost's Errata page and read the page's pagination widgets
+            page_values = session.contenthost.read(
+                client.hostname, widget_names=['errata.pagination']
+            )
+            assert int(page_values['errata']['pagination']['per_page']) == 20
+            # assert total_pages > 1 with default page settings
+            assert int(page_values['errata']['pagination']['pages']) > 1
+            # assert per-page setting is 20
+            ch = session.contenthost
+            view = ch.navigate_to(ch, 'Edit', entity_name=client.hostname)
+            per_page_value = view.errata.pagination.per_page
+            assert int(per_page_value.read()) == 20
+            # Change per-page setting to 100 and assert there is now only one page
+            assert per_page_value.fill('100')
+            page_values = session.contenthost.read(
+                client.hostname, widget_names=['errata.pagination']
+            )
+            assert int(page_values['errata']['pagination']['per_page']) == 100
+            assert int(page_values['errata']['pagination']['pages']) == 1
+            # assert at least the 28 errata from fake repo are present
+            assert int(page_values['errata']['pagination']['total_items']) >= 28
+            # install all errata using REX
+            status = session.contenthost.install_errata(client.hostname, 'All', install_via='rex')
+            # Assert errata are listed on job invocation page
+            assert status['overview']['job_status'] == 'Success'
+            assert status['overview']['job_status_progress'] == '100%'
+            # check that there are no applicable errata left on the CHost's errata page
+            page_values = session.contenthost.read(
+                client.hostname, widget_names=['errata.pagination']
+            )
+            assert int(page_values['errata']['pagination']['total_items']) == 0
 
 
 @pytest.mark.tier2
