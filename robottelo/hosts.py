@@ -1,4 +1,6 @@
 import logging
+from functools import cached_property
+from pathlib import Path
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -12,6 +14,32 @@ from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 
 logger = logging.getLogger('robottelo')
+
+
+def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
+    """Given satellite and capsule instances, run the commands needed to set up the capsule
+
+    Note: This does not perform content setup actions on the Satellite
+
+    :param satellite: An instance of this module's Satellite class
+    :param capsule: An instance of this module's Capsule class
+    :param registration_args: A dictionary mapping argument: value pairs for registration
+    :param installation_args: A dictionary mapping argument: value pairs for installation
+    :return: An ssh2-python result object for the installation command.
+
+    """
+    if not registration_args:
+        registration_args = {}
+    file, cmd_args = satellite.capsule_certs_generate(capsule)
+    if installation_args:
+        cmd_args.update(installation_args)
+    satellite.execute(
+        f'sshpass -p "{capsule.password}" scp -o "StrictHostKeyChecking no" '
+        f'{file} root@{capsule.hostname}:{file}'
+    )
+    capsule.install_katello_ca(sat_hostname=satellite.hostname)
+    capsule.register_contenthost(**registration_args)
+    return capsule.install(**cmd_args)
 
 
 class ContentHostError(Exception):
@@ -101,19 +129,19 @@ class ContentHost(Host):
         if not result.status:
             raise ContentHostError('Failed to install katello-host-tools')
 
-    def install_katello_ca(self):
+    def install_katello_ca(self, sat_hostname=None):
         """Downloads and installs katello-ca rpm on the broker virtual machine.
 
         Uses common helper `install_katello_ca(hostname=None)`, but passes
         `self.hostname` instead of the hostname as we are using fake hostnames
-        forbroker virtual machines.
+        for broker virtual machines.
 
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
         try:
-            install_katello_ca(hostname=self.hostname)
+            install_katello_ca(hostname=self.hostname, sat_hostname=sat_hostname)
         except AssertionError:
             raise ContentHostError('Failed to download and install the katello-ca rpm')
 
@@ -359,3 +387,133 @@ class ContentHost(Host):
         else:
             raise ContentHostError('No distro package available to retrieve release version')
         return self.execute(f"echo '{rh_product_os_releasever}' > /etc/yum/vars/releasever")
+
+
+class Capsule(ContentHost):
+    def restart_services(self):
+        """Restart services, returning True if passed and stdout if not"""
+        result = self.execute('foreman-maintain service restart').status
+        return True if result.status == 0 else result.stdout
+
+    def check_services(self):
+        error_msg = 'Some services are not running'
+        result = self.execute('foreman-maintain service status')
+        if result.status == 0:
+            return True
+        for line in result.stdout.splitlines():
+            if error_msg in line:
+                return line.replace(error_msg, '').strip()
+
+    def install(self, **cmd_kwargs):
+        """General purpose installer"""
+        command_args = {"scenario": self.__class__.__name__.lower()}
+        command_args.update(cmd_kwargs)
+        command_args = ' '.join(
+            [f'--{key.replace("_", "-")} {value}' for key, value in command_args.items()]
+        )
+        self.execute(f'echo "satellite-installer {command_args}" > /root/install.txt')
+        return self.execute(f'satellite-installer {command_args}')
+
+
+class Satellite(Capsule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._init_nailgun()
+        self._init_cli()
+        self._init_airgun()
+
+    def _init_nailgun(self):
+        """Import all nailgun entities and wrap them under self.api"""
+        from nailgun.config import ServerConfig
+        from nailgun.entity_mixins import Entity
+        from nailgun import entities
+
+        def inject_config(cls, server_config):
+            """inject a nailgun server config into the init of nailgun entity classes"""
+            import functools
+
+            class DecClass(cls):
+                __init__ = functools.partialmethod(cls.__init__, server_config=server_config)
+
+            return DecClass
+
+        # set the server configuration to point to this satellite
+        self.nailgun_cfg = ServerConfig(
+            auth=(settings.server.admin_username, settings.server.admin_password),
+            url=f'https://{self.hostname}',
+            verify=False,
+        )
+        # add each nailgun entity to self.api, injecting our server config
+        self.api = lambda: None
+        for name, obj in entities.__dict__.items():
+            try:
+                if Entity in obj.mro():
+                    setattr(self.api, name, inject_config(obj, self.nailgun_cfg))
+            except AttributeError:
+                # not everything has an mro method, we don't care about them
+                pass
+
+    def _init_cli(self):
+        """Import all robottelo cli entities and wrap them under self.cli"""
+        import importlib
+        from robottelo.cli.base import Base
+
+        self.cli = lambda: None
+        for file in Path('robottelo/cli/').iterdir():
+            if file.suffix == '.py' and not file.name.startswith('_'):
+                cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
+                for name, obj in cli_module.__dict__.items():
+                    try:
+                        if Base in obj.mro():
+                            # set our hostname as a class attribute
+                            obj.hostname = self.hostname
+                            setattr(self.cli, name, obj)
+                    except AttributeError:
+                        # not everything has an mro method, we don't care about them
+                        pass
+
+    def _init_airgun(self):
+        """Initialize an airgun Session object and store it as self.ui_session"""
+        from airgun.session import Session
+
+        def get_caller():
+            import inspect
+
+            for frame in inspect.stack():
+                if frame.function.startswith('test_'):
+                    return frame.function
+
+        self.ui_session = Session(
+            session_name=get_caller(),
+            user=settings.server.admin_username,
+            password=settings.server.admin_password,
+            hostname=self.hostname,
+        )
+
+    @cached_property
+    def version(self):
+        return self.execute('rpm -q satellite').stdout.split('-')[1]
+
+    def capsule_certs_generate(self, capsule, **extra_kwargs):
+        """Generate capsule certs, returning the cert path and the installer command args"""
+        command = (
+            f'capsule-certs-generate --foreman-proxy-fqdn {capsule.hostname} '
+            f'--certs-tar /root/{capsule.hostname}-certs.tar'
+        )
+        extras = ' '.join(
+            [f'--{key.replace("_", "-")} {value}' for key, value in extra_kwargs.items()]
+        )
+        result = self.execute(f'{command} {extras}')
+        installer_command, listening = '', False
+        for line in result.stdout.splitlines():
+            if line.strip().startswith('satellite-installer'):
+                listening = True
+            if listening:
+                installer_command += ' ' + ' '.join(line.replace('\\', '').split())
+        installer_command = installer_command.replace("satellite-installer", "").strip()
+        cmd_args = {
+            k: v for k, v in [s.strip().split() for s in installer_command.split("--") if s]
+        }
+        # capsule-certs-generate color codes this field which causes path recognition issues
+        cmd_args['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
+        return f'/root/{capsule.hostname}-certs.tar', cmd_args

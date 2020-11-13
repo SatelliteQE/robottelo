@@ -232,7 +232,7 @@ def read_data_file(filename):
         return file_contents.read()
 
 
-def install_katello_ca(hostname=None):
+def install_katello_ca(hostname=None, sat_hostname=None):
     """Downloads and installs katello-ca rpm
 
     :param str hostname: Hostname or IP address of the remote host. If
@@ -241,10 +241,15 @@ def install_katello_ca(hostname=None):
     :raises: AssertionError: If katello-ca wasn't installed.
 
     """
-    ssh.command(f'rpm -Uvh {settings.server.get_cert_rpm_url()}', hostname)
+    if sat_hostname:
+        cert_rpm_url = f'http://{sat_hostname}/pub/katello-ca-consumer-latest.noarch.rpm'
+    else:
+        sat_hostname = settings.server.hostname
+        cert_rpm_url = settings.server.get_cert_rpm_url()
+    ssh.command(f'rpm -Uvh {cert_rpm_url}', hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
-    result = ssh.command(f'rpm -q katello-ca-consumer-{settings.server.hostname}', hostname)
+    result = ssh.command(f'rpm -q katello-ca-consumer-{sat_hostname}', hostname)
     # Checking the return_code here to verify katello-ca rpm is actually
     # present in the system
     if result.return_code != 0:

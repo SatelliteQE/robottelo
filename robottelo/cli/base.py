@@ -67,6 +67,7 @@ class Base:
     command_base = None  # each inherited instance should define this
     command_sub = None  # specific to instance, like: create, update, etc.
     command_requires_org = False  # True when command requires organization-id
+    hostname = None  # Now used for Satellite class hammer execution
 
     logger = logging.getLogger('robottelo')
     _db_error_regex = re.compile(r'.*INSERT INTO|.*SELECT .*FROM|.*violates foreign key')
@@ -215,6 +216,7 @@ class Base:
     def execute(
         cls,
         command,
+        hostname=None,
         user=None,
         password=None,
         output_format=None,
@@ -240,6 +242,7 @@ class Base:
         )
         response = ssh.command(
             cmd.encode('utf-8'),
+            hostname=hostname or cls.hostname,
             output_format=output_format,
             timeout=timeout,
             connection_timeout=connection_timeout,

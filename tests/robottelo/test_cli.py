@@ -254,7 +254,11 @@ class BaseCliTestCase(unittest2.TestCase):
         response = Base.execute('some_cmd', return_raw_response=True)
         ssh_cmd = 'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'), output_format=None, timeout=None, connection_timeout=None
+            ssh_cmd.encode('utf-8'),
+            hostname=None,
+            output_format=None,
+            timeout=None,
+            connection_timeout=None,
         )
         assert response is command.return_value
 
@@ -270,7 +274,11 @@ class BaseCliTestCase(unittest2.TestCase):
         response = Base.execute('some_cmd', output_format='json')
         ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
-            ssh_cmd.encode('utf-8'), output_format='json', timeout=None, connection_timeout=None
+            ssh_cmd.encode('utf-8'),
+            hostname=None,
+            output_format='json',
+            timeout=None,
+            connection_timeout=None,
         )
         handle_resp.assert_called_once_with(command.return_value, ignore_stderr=None)
         assert response is handle_resp.return_value
