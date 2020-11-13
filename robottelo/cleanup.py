@@ -29,6 +29,11 @@ def org_cleanup(org_id=None):
     entities.Organization(id=org_id).delete()
 
 
+def environment_cleanup(env_id=None):
+    """Deletes the Environment with the given id"""
+    entities.Environment(id=env_id).delete()
+
+
 def host_cleanup(host_id=None):
     """Deletes the Host with the given id"""
     entities.Host(id=host_id).delete()
