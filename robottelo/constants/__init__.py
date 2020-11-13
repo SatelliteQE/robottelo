@@ -709,6 +709,30 @@ REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
 REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
 REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
+FAKE_3_YUM_OUTDATED_PACKAGES = [
+    'acme-package-1.0.1-1.noarch',
+    'ant-7.7.5-1.noarch',
+    'antelope-5.0.7-1.noarch',
+    'ape-10.8.7-1.noarch',
+    'beaver-3.6.4-1.noarch',
+    'bird-2.10.0-1.noarch',
+    'camel-4.10.2-1.noarch',
+    'canary-8.3.8-1.noarch',
+    'chicken-0.4.0-1.noarch',
+    'dolphin-4.2.8-1.noarch',
+    'donkey-2.0.4-1.noarch',
+    'eagle-7.8.4-1.noarch',
+    'goat-10.4.3-1.noarch',
+    'hamster-3.5.8-1.noarch',
+    'hare-1.1.8-1.noarch',
+    'monkey-7.2.2-1.noarch',
+    'ostritch-1.8.4-1.noarch',
+    'panda-7.3.10-1.noarch',
+    'rabbit-1.5.6-1.noarch',
+    'seal-1.0.10-1.noarch',
+    'tapir-8.4.1-1.noarch',
+    'tortoise-6.6.10-1.noarch',
+]
 FAKE_9_YUM_OUTDATED_PACKAGES = [
     'bear-4.0-1.noarch',
     'crow-0.7-1.noarch',
@@ -733,7 +757,7 @@ FAKE_0_MODULAR_ERRATA_ID = 'RHEA-2012:0059'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
 FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
-FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
+FAKE_3_ERRATA_ID = 'RHEA-2012:3733'  # for FAKE_3_YUM_REPO
 FAKE_4_ERRATA_ID = 'WALRUS-2013:0002'
 FAKE_5_ERRATA_ID = 'RHBA-2012:1030'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 REAL_0_ERRATA_ID = 'RHBA-2020:1455'  # for rhst7
@@ -746,8 +770,8 @@ REAL_RHEL7_1_ERRATA_ID = 'RHBA-2017:0395'  # tcsh bug fix update
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_REPOS_COUNT = 32
-FAKE_3_YUM_ERRATUM_COUNT = 79
-FAKE_3_YUM_REPOS_COUNT = 136
+FAKE_3_YUM_ERRATUM_COUNT = 28
+FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_6_YUM_ERRATUM_COUNT = 5
 FAKE_9_YUM_ERRATUM_COUNT = 5
 FAKE_9_YUM_ERRATUM = [
