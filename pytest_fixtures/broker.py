@@ -2,7 +2,9 @@ import pytest
 from broker.broker import VMBroker
 
 from robottelo.constants import BROKER_RHEL77
+from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
+from robottelo.hosts import Satellite
 
 
 @pytest.fixture
@@ -39,3 +41,17 @@ def rhel77_contenthost_class(request):
     with VMBroker(host_classes={'host': ContentHost}, **BROKER_RHEL77) as host:
         request.cls.content_host = host
         yield
+
+
+@pytest.fixture
+def satellite_latest():
+    """A fixture that provides a latest Satellite"""
+    with VMBroker(host_classes={'host': Satellite}, workflow='deploy-sat-lite') as sat:
+        yield sat
+
+
+@pytest.fixture
+def capsule_latest():
+    """A fixture that provides an unconfigured latest Capsule"""
+    with VMBroker(host_classes={'host': Capsule}, workflow='deploy-sat-capsule') as cap:
+        yield cap
