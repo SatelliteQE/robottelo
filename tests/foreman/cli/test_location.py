@@ -16,49 +16,153 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
-from robottelo.cleanup import capsule_cleanup
-from robottelo.cleanup import location_cleanup
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.computeresource import ComputeResource
+from robottelo.cli.domain import Domain
+from robottelo.cli.environment import Environment
 from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_compute_resource
+from robottelo.cli.factory import make_domain
+from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
 from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import make_subnet
+from robottelo.cli.factory import make_template
+from robottelo.cli.factory import make_user
+from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.location import Location
-from robottelo.test import CLITestCase
+from robottelo.cli.medium import Medium
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.subnet import Subnet
+from robottelo.cli.template import Template
+from robottelo.cli.user import User
 
 
-class LocationTestCase(CLITestCase):
+def _proxy(request, options=None):
+    """Create a Proxy"""
+    proxy = make_proxy(options=options)
+
+    @request.addfinalizer
+    def _cleanup():
+        if Proxy.exists(search=('name', proxy['name'])):
+            Proxy.delete(options={'id': proxy['id']})
+
+    return proxy
+
+
+def _location(request, options=None):
+    location = make_location(options=options)
+
+    @request.addfinalizer
+    def _cleanup():
+        if Location.exists(search=('id', location['id'])):
+            Location.delete(options={'id': location['id']})
+
+    return location
+
+
+def _subnet(request):
+    subnet = make_subnet()
+
+    @request.addfinalizer
+    def _cleanup():
+        if Subnet.exists(search=('name', subnet['name'])):
+            Subnet.delete(options={'id': subnet['id']})
+
+    return subnet
+
+
+def _environment(request):
+    environment = make_environment()
+
+    @request.addfinalizer
+    def _cleanup():
+        if Environment.exists(search=('name', environment['name'])):
+            Environment.delete(options={'id': environment['id']})
+
+    return environment
+
+
+def _domain(request):
+    domain = make_domain()
+
+    @request.addfinalizer
+    def _cleanup():
+        if Domain.exists(search=('name', domain['name'])):
+            Domain.delete(options={'id': domain['id']})
+
+    return domain
+
+
+def _medium(request):
+    medium = make_medium()
+
+    @request.addfinalizer
+    def _cleanup():
+        if Medium.exists(search=('name', medium['name'])):
+            Medium.delete(options={'id': medium['id']})
+
+    return medium
+
+
+def _host_group(request):
+    host_group = make_hostgroup()
+
+    @request.addfinalizer
+    def _cleanup():
+        if HostGroup.exists(search=('id', host_group['id'])):
+            HostGroup.delete(options={'id': host_group['id']})
+
+    return host_group
+
+
+def _compute_resource(request):
+    compute_resource = make_compute_resource()
+
+    @request.addfinalizer
+    def _cleanup():
+        if ComputeResource.exists(search=('id', compute_resource['id'])):
+            ComputeResource.delete(options={'id': compute_resource['id']})
+
+    return compute_resource
+
+
+def _template(request):
+    template = make_template()
+
+    @request.addfinalizer
+    def _cleanup():
+        if Template.exists(search=('name', template['name'])):
+            Template.delete(options={'id': template['id']})
+
+    return template
+
+
+def _user(request):
+    user = make_user()
+
+    @request.addfinalizer
+    def _cleanup():
+        if User.exists(search=('login', user['login'])):
+            User.delete(options={'id': user['id']})
+
+    return user
+
+
+@pytest.fixture
+def _make_proxy(request):
+    yield _proxy(request)
+
+
+class TestLocation:
     """Tests for Location via Hammer CLI"""
-
-    def _make_proxy(self, options=None):
-        """Create a Proxy and register the cleanup function"""
-        proxy = make_proxy(options=options)
-        # Add capsule to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
-        return proxy
-
-    @classmethod
-    def setUpClass(cls):
-        """Set up reusable entities for tests."""
-        super().setUpClass()
-        cls.subnet = entities.Subnet().create()
-        cls.env = entities.Environment().create()
-        cls.env2 = entities.Environment().create()
-        cls.domain = entities.Domain().create()
-        cls.domain2 = entities.Domain().create()
-        cls.medium = make_medium()
-        cls.host_group = entities.HostGroup().create()
-        cls.host_group2 = entities.HostGroup().create()
-        cls.host_group3 = entities.HostGroup().create()
-        cls.comp_resource = entities.LibvirtComputeResource().create()
-        cls.template = entities.ProvisioningTemplate().create()
-        cls.user = entities.User().create()
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_create_update_delete(self):
+    def test_positive_create_update_delete(self, request):
         """Create new location with attributes, update and delete it
 
         :id: e1844d9d-ec4a-44b3-9743-e932cc70020d
@@ -73,65 +177,77 @@ class LocationTestCase(CLITestCase):
         """
         # Create
         description = gen_string('utf8')
-        loc = make_location(
+
+        subnet = _subnet(request)
+        environments = [_environment(request) for _ in range(0, 2)]
+        domains = [_domain(request) for _ in range(0, 2)]
+        host_groups = [_host_group(request) for _ in range(0, 3)]
+        medium = _medium(request)
+        compute_resource = _compute_resource(request)
+        template = _template(request)
+        user = _user(request)
+
+        location = _location(
+            request,
             {
                 'description': description,
-                'subnet-ids': self.subnet.id,
-                'puppet-environment-ids': self.env.id,
-                'domain-ids': [self.domain.id, self.domain2.id],
-                'hostgroup-ids': [self.host_group.id, self.host_group2.id],
-                'medium-ids': self.medium["id"],
-                'compute-resource-ids': self.comp_resource.id,
-                'provisioning-templates': self.template.name,
-                'user-ids': self.user.id,
-            }
+                'subnet-ids': subnet['id'],
+                'puppet-environment-ids': environments[0]['id'],
+                'domain-ids': [domains[0]['id'], domains[1]['id']],
+                'hostgroup-ids': [host_groups[0]['id'], host_groups[1]['id']],
+                'medium-ids': medium['id'],
+                'compute-resource-ids': compute_resource['id'],
+                'provisioning-templates': template['name'],
+                'user-ids': user['id'],
+            },
         )
 
-        self.assertEqual(loc['description'][0], description)
-        self.assertIn(self.subnet.name, loc['subnets'][0])
-        self.assertIn(self.subnet.network, loc['subnets'][0])
-        self.assertEqual(loc['environments'][0], self.env.name)
-        self.assertIn(self.domain.name, loc['domains'])
-        self.assertIn(self.domain2.name, loc['domains'])
-        self.assertIn(self.host_group.name, loc['hostgroups'])
-        self.assertIn(self.host_group2.name, loc['hostgroups'])
-        self.assertGreater(len(loc['installation-media']), 0)
-        self.assertEqual(loc['installation-media'][0], self.medium['name'])
-        self.assertEqual(loc['compute-resources'][0], self.comp_resource.name)
-        self.assertGreaterEqual(len(loc['templates']), 1)
-        # templates are returned as `name (type)` or just `name` if type is unset
-        if self.template.template_kind is None:
-            template_search = self.template.name
-        else:
-            template_search = '{} ({})'.format(
-                self.template.name, entities.TemplateKind().search()[0].name
-            )
-        self.assertIn(template_search, loc['templates'])
-        self.assertEqual(loc['users'][0], self.user.login)
+        assert location['description'][0] == description
+        assert location['subnets'][0] == (
+            f"{subnet['name']} ({subnet['network-addr']}/{subnet['network-prefix']})"
+        )
+        assert location['environments'][0] == environments[0]['name']
+        assert domains[0]['name'] in location['domains']
+        assert domains[1]['name'] in location['domains']
+        assert host_groups[0]['name'] in location['hostgroups']
+        assert host_groups[1]['name'] in location['hostgroups']
+        assert len(location['installation-media']) > 0
+        assert location['installation-media'][0] == medium['name']
+        assert location['compute-resources'][0] == compute_resource['name']
+        assert len(location['templates']) >= 1
+
+        template_search = (
+            (f"{template['name']} ({template['type']})")
+            if template.get('type')
+            else template['name']
+        )
+
+        assert template_search in location['templates']
+        assert location['users'][0] == user['login']
 
         # Update
         Location.update(
             {
-                'id': loc['id'],
-                'puppet-environment-ids': [self.env.id, self.env2.id],
-                'domain-ids': self.domain2.id,
-                'hostgroup-ids': [self.host_group2.id, self.host_group3.id],
+                'id': location['id'],
+                'puppet-environment-ids': [environments[0]['id'], environments[1]['id']],
+                'domain-ids': domains[1]['id'],
+                'hostgroup-ids': [host_groups[1]['id'], host_groups[2]['id']],
             }
         )
-        loc = Location.info({'id': loc['id']})
-        self.assertIn(self.host_group2.name, loc['hostgroups'])
-        self.assertIn(self.host_group3.name, loc['hostgroups'])
-        self.assertEqual(loc['domains'][0], self.domain2.name)
-        self.assertIn(self.env.name, loc['environments'])
-        self.assertIn(self.env2.name, loc['environments'])
+        location = Location.info({'id': location['id']})
+        assert host_groups[1]['name'] in location['hostgroups']
+        assert host_groups[2]['name'] in location['hostgroups']
+        assert location['domains'][0] == domains[1]['name']
+        assert environments[0]['name'] in location['environments']
+        assert environments[1]['name'] in location['environments']
 
         # Delete
-        Location.delete({'id': loc['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Location.info({'id': loc['id']})
+        Location.delete({'id': location['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Location.info({'id': location['id']})
 
     @pytest.mark.tier1
-    def test_positive_create_with_parent(self):
+    def test_positive_create_with_parent(self, request):
         """Create new location with parent location specified
 
         :id: 49b34733-103a-4fee-818b-6a3386253af1
@@ -144,12 +260,12 @@ class LocationTestCase(CLITestCase):
             expected parent location set
 
         """
-        parent_loc = make_location()
-        loc = make_location({'parent-id': parent_loc['id']})
-        self.assertEqual(loc['parent'], parent_loc['name'])
+        parent_location = _location(request)
+        location = _location(request, {'parent-id': parent_location['id']})
+        assert location['parent'] == parent_location['name']
 
     @pytest.mark.tier1
-    def test_negative_create_with_same_name(self):
+    def test_negative_create_with_same_name(self, request):
         """Try to create location using same name twice
 
         :id: 4fbaea41-9775-40a2-85a5-4dc05cc95134
@@ -159,13 +275,13 @@ class LocationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        loc = make_location({'name': name})
-        self.assertEqual(loc['name'], name)
-        with self.assertRaises(CLIFactoryError):
-            make_location({'name': name})
+        location = _location(request, options={'name': name})
+        assert location['name'] == name
+        with pytest.raises(CLIFactoryError):
+            _location(request, options={'name': name})
 
     @pytest.mark.tier1
-    def test_negative_create_with_user_by_name(self):
+    def test_negative_create_with_user_by_name(self, request):
         """Try to create new location with incorrect user assigned to it
         Use user login as a parameter
 
@@ -175,13 +291,13 @@ class LocationTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(CLIFactoryError):
-            make_location({'users': gen_string('utf8', 80)})
+        with pytest.raises(CLIFactoryError):
+            _location(request, options={'users': gen_string('utf8', 80)})
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_add_and_remove_capsule(self):
+    def test_positive_add_and_remove_capsule(self, request):
         """Add a capsule to location and remove it
 
         :id: 15e3c1e6-4fa3-4965-8808-a9ba01d1c050
@@ -192,19 +308,19 @@ class LocationTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        loc = make_location()
-        proxy = self._make_proxy()
-        self.addCleanup(location_cleanup, loc['id'])
+        location = _location(request)
+        proxy = _proxy(request)
 
-        Location.add_smart_proxy({'name': loc['name'], 'smart-proxy-id': proxy['id']})
-        loc = Location.info({'name': loc['name']})
-        self.assertIn(proxy['name'], loc['smart-proxies'])
-        Location.remove_smart_proxy({'name': loc['name'], 'smart-proxy': proxy['name']})
-        loc = Location.info({'name': loc['name']})
-        self.assertNotIn(proxy['name'], loc['smart-proxies'])
+        Location.add_smart_proxy({'name': location['name'], 'smart-proxy-id': proxy['id']})
+        location = Location.info({'name': location['name']})
+        assert proxy['name'] in location['smart-proxies']
+
+        Location.remove_smart_proxy({'name': location['name'], 'smart-proxy': proxy['name']})
+        location = Location.info({'name': location['name']})
+        assert proxy['name'] not in location['smart-proxies']
 
     @pytest.mark.tier1
-    def test_positive_add_update_remove_parameter(self):
+    def test_positive_add_update_remove_parameter(self, request):
         """Add, update and remove parameter to location
 
         :id: 61b564f2-a42a-48de-833d-bec3a127d0f5
@@ -217,30 +333,30 @@ class LocationTestCase(CLITestCase):
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
         param_new_value = gen_string('alpha')
-        location = make_location()
+        location = _location(request)
         Location.set_parameter(
             {'name': param_name, 'value': param_value, 'location-id': location['id']}
         )
         location = Location.info({'id': location['id']})
-        self.assertEqual(len(location['parameters']), 1)
-        self.assertEqual(param_value, location['parameters'][param_name.lower()])
+        assert len(location['parameters']) == 1
+        assert param_value == location['parameters'][param_name.lower()]
 
         # Update
         Location.set_parameter(
             {'name': param_name, 'value': param_new_value, 'location': location['name']}
         )
         location = Location.info({'id': location['id']})
-        self.assertEqual(len(location['parameters']), 1)
-        self.assertEqual(param_new_value, location['parameters'][param_name.lower()])
+        assert len(location['parameters']) == 1
+        assert param_new_value == location['parameters'][param_name.lower()]
 
         # Remove
         Location.delete_parameter({'name': param_name, 'location': location['name']})
         location = Location.info({'id': location['id']})
-        self.assertEqual(len(location['parameters']), 0)
-        self.assertNotIn(param_name.lower(), location['parameters'])
+        assert len(location['parameters']) == 0
+        assert param_name.lower() not in location['parameters']
 
     @pytest.mark.tier2
-    def test_positive_update_parent(self):
+    def test_positive_update_parent(self, request):
         """Update location's parent location
 
         :id: 34522d1a-1190-48d8-9285-fc9a9bcf6c6a
@@ -253,15 +369,16 @@ class LocationTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        parent_loc = make_location()
-        loc = make_location({'parent-id': parent_loc['id']})
-        new_parent_loc = make_location()
-        Location.update({'id': loc['id'], 'parent-id': new_parent_loc['id']})
-        loc = Location.info({'id': loc['id']})
-        self.assertEqual(loc['parent'], new_parent_loc['name'])
+        parent_location = _location(request)
+        location = _location(request, {'parent-id': parent_location['id']})
+
+        parent_location_2 = _location(request)
+        Location.update({'id': location['id'], 'parent-id': parent_location_2['id']})
+        location = Location.info({'id': location['id']})
+        assert location['parent'] == parent_location_2['name']
 
     @pytest.mark.tier1
-    def test_negative_update_parent_with_child(self):
+    def test_negative_update_parent_with_child(self, request):
         """Attempt to set child location as a parent and vice versa
 
         :id: fd4cb1cf-377f-4b48-b7f4-d4f6ca56f544
@@ -274,17 +391,17 @@ class LocationTestCase(CLITestCase):
 
         :CaseImportance: High
         """
-        parent_loc = make_location()
-        loc = make_location({'parent-id': parent_loc['id']})
+        parent_location = _location(request)
+        location = _location(request, {'parent-id': parent_location['id']})
 
         # set parent as child
-        with self.assertRaises(CLIReturnCodeError):
-            Location.update({'id': parent_loc['id'], 'parent-id': loc['id']})
-        parent_loc = Location.info({'id': parent_loc['id']})
-        self.assertIsNone(parent_loc.get('parent'))
+        with pytest.raises(CLIReturnCodeError):
+            Location.update({'id': parent_location['id'], 'parent-id': location['id']})
+        parent_location = Location.info({'id': parent_location['id']})
+        assert parent_location.get('parent') is None
 
         # set child as parent
-        with self.assertRaises(CLIReturnCodeError):
-            Location.update({'id': loc['id'], 'parent-id': loc['id']})
-        loc = Location.info({'id': loc['id']})
-        self.assertEqual(loc['parent'], parent_loc['name'])
+        with pytest.raises(CLIReturnCodeError):
+            Location.update({'id': location['id'], 'parent-id': location['id']})
+        location = Location.info({'id': location['id']})
+        assert location['parent'] == parent_location['name']
