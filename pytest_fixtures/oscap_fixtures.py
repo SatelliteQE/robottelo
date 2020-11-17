@@ -39,7 +39,7 @@ def scap_content(import_ansible_roles, import_puppet_classes):
 
     scap_profile_id = [
         profile['id']
-        for profile in scap_info['scap-content-profiles']
+        for profile in scap_info.scap_content_profiles
         if OSCAP_PROFILE['security7'] in profile['title']
     ][0]
     return {
