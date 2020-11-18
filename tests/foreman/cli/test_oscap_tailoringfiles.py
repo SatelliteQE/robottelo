@@ -174,7 +174,7 @@ class TestTailoringFiles:
             2. Upload a Mutually exclusive tailoring file
             3. Associate the scap content with tailoring file
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :expectedresults: Association should give some warning
 
@@ -252,7 +252,7 @@ class TestTailoringFiles:
             7. Puppet should configure and fetch the scap content
                and tailoring file
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :expectedresults: ARF report should be sent to satellite reflecting
                          the changes done via tailoring files
@@ -279,7 +279,7 @@ class TestTailoringFiles:
             7. Puppet should configure and fetch the scap content
                and tailoring file from external capsule
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :expectedresults: ARF report should be sent to satellite
                          reflecting the changes done via tailoring files
@@ -306,7 +306,7 @@ class TestTailoringFiles:
             7. Puppet should configure and fetch the scap content
                and send arf-report to satellite
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :expectedresults: ARF report should have information
                           about the tailoring file used, if any

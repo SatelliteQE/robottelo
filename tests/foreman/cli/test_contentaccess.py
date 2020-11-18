@@ -1,4 +1,4 @@
-""""Test for Content Access (Golden Ticket) CLI
+"""Test for Content Access (Golden Ticket) CLI
 
 :Requirement: Content Access
 
@@ -7,8 +7,6 @@
 :CaseComponent: Hosts-Content
 
 :TestType: Functional
-
-:CaseImportance: high
 
 :Upstream: No
 """
@@ -143,7 +141,7 @@ class ContentAccessTestCase(CLITestCase):
             3. Run `hammer package list` specifying option
                packages-restrict-applicable="true".
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :expectedresults:
             1. Update package is available independent of subscription because
@@ -185,7 +183,7 @@ class ContentAccessTestCase(CLITestCase):
 
         :id: e8dc52b9-884b-40d7-9244-680b5a736cf7
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :steps:
             1. register a host to unrestricted org with Library
@@ -227,7 +225,7 @@ class ContentAccessTestCase(CLITestCase):
 
             1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is not present.
@@ -253,7 +251,7 @@ class ContentAccessTestCase(CLITestCase):
 
             1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is present.

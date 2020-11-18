@@ -129,7 +129,7 @@ def test_positive_provision_with_rule_priority():
     :expectedresults: Host with lower count have higher priority and that
         rule should be executed first
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: High
     """
@@ -148,7 +148,7 @@ def test_positive_multi_provision_with_rule_limit():
     :expectedresults: Rule should only be applied to 2 discovered hosts
         and the rule should already be skipped for the 3rd one.
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: High
     """
@@ -166,7 +166,7 @@ def test_positive_provision_with_updated_discovery_rule():
     :expectedresults: User should be able to update the rule and it should
         be applied on discovered host
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: High
     """

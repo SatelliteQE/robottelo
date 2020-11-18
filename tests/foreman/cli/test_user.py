@@ -236,7 +236,7 @@ class UserTestCase(CLITestCase):
 
         :expectedresults: User is created without specifying the password
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: Integration
         """

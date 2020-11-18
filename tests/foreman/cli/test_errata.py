@@ -485,7 +485,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: List of affected content hosts for an erratum is
             displayed.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         result = Host.list(
             {
@@ -572,7 +572,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         :expectedresults: List of affected content hosts for an erratum is
             displayed filtered with corresponding restrict flags.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         # Create list of uninstallable errata by removing FAKE_2_ERRATA_ID
         UNINSTALLABLE = [erratum for erratum in FAKE_9_YUM_ERRATUM if erratum != FAKE_2_ERRATA_ID]

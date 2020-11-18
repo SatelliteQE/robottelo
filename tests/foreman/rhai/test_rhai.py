@@ -162,7 +162,7 @@ def test_positive_rule_disable_enable():
 
     :expectedresults: rule is disabled, rule is enabled
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -193,7 +193,7 @@ def test_positive_playbook_run():
 
     :expectedresults: playbook run finished successfully
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -226,7 +226,7 @@ def test_positive_playbook_customized_run():
 
     :expectedresults: customized playbook run finished successfully
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -256,7 +256,7 @@ def test_positive_playbook_download():
 
     :expectedresults: sane playbook downloaded
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -287,7 +287,7 @@ def test_positive_plan_export_csv():
 
     :expectedresults: plan exported to sane csv file
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -318,7 +318,7 @@ def test_positive_plan_edit_remove_system():
 
     :expectedresults: plan becomes empty
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -349,7 +349,7 @@ def test_positive_plan_edit_remove_rule():
 
     :expectedresults: rule is not present in the plan
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -372,7 +372,7 @@ def test_positive_inventory_export_csv():
 
     :expectedresults: inventory is exported in sane csv file
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -394,7 +394,7 @@ def test_positive_inventory_create_new_plan():
 
     :expectedresults: new plan is created and involves the chosen system
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -421,7 +421,7 @@ def test_positive_inventory_add_to_existing_plan():
 
     :expectedresults: existing plan gets extended of new system
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -446,7 +446,7 @@ def test_positive_inventory_group_systems():
 
     :expectedresults: systems are groupped in new Insights system group
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """

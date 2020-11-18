@@ -286,7 +286,7 @@ def test_positive_update_email_delivery_method_smtp():
 
     :CaseLevel: Acceptance
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -321,7 +321,7 @@ def test_negative_update_email_delivery_method_smtp():
 
     :CaseLevel: Acceptance
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -411,7 +411,7 @@ def test_negative_update_email_delivery_method_sendmail():
 
     :CaseLevel: Acceptance
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -443,7 +443,7 @@ def test_positive_email_yaml_config_precedence():
 
     :CaseLevel: Acceptance
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 

@@ -228,7 +228,7 @@ class TestOpenScap:
 
         :BZ: 1474172
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -429,7 +429,7 @@ class TestOpenScap:
 
         :expectedresults: The scap-content is deleted successfully.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -947,7 +947,7 @@ class TestOpenScap:
 
         :expectedresults: The arf-reports are listed successfully.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.upgrade
@@ -974,7 +974,7 @@ class TestOpenScap:
 
         :expectedresults: The information of arf-report is listed successfully.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -1000,5 +1000,5 @@ class TestOpenScap:
 
         :expectedresults: Arf-report is deleted successfully.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """

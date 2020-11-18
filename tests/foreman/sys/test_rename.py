@@ -62,7 +62,7 @@ class TestRenameHost:
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
@@ -150,7 +150,7 @@ class TestRenameHost:
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
@@ -180,7 +180,7 @@ class TestRenameHost:
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         with get_connection() as connection:
             original_name = connection.run('hostname').stdout[0]
@@ -204,7 +204,7 @@ class TestRenameHost:
         :expectedresults: script terminates with a message, hostname
             is not changed
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         username = settings.server.admin_username
         with get_connection() as connection:
@@ -246,7 +246,7 @@ class TestRenameHost:
         :expectedresults: Capsule hostname is successfully updated
             and the capsule fuctions correctly
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         # Save original hostname, get credentials, eventually will
         # end up in setUpClass

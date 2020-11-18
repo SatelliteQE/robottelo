@@ -50,7 +50,7 @@ def test_positive_puppet_scenario(self):
 
     :expectedresults: multiple asserts along the code
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -86,7 +86,7 @@ def test_positive_puppet_capsule_scenario(self):
 
     :expectedresults: multiple asserts along the code
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """

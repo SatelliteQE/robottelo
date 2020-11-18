@@ -567,7 +567,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseLevel: System
 
@@ -649,7 +649,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseLevel: System
 
@@ -713,7 +713,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseLevel: System
 
@@ -815,7 +815,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -840,7 +840,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -863,7 +863,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -886,7 +886,7 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -920,7 +920,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -943,7 +943,7 @@ class AnsibleREXProvisionedTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """

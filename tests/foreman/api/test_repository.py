@@ -2028,7 +2028,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2048,7 +2048,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2070,7 +2070,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2094,7 +2094,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :expectedresults: entire directory is synced over http
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2118,7 +2118,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2143,7 +2143,7 @@ class FileRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
 

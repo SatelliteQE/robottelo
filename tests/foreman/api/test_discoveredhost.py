@@ -330,7 +330,7 @@ def test_positive_provision_pxe_less_host():
 
     :expectedresults: Host should be provisioned successfully
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: Critical
     """
@@ -498,7 +498,7 @@ def test_positive_auto_provision_all():
     :expectedresults: All discovered hosts should be auto-provisioned
         successfully
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: High
     """
@@ -521,7 +521,7 @@ def test_positive_refresh_facts_pxe_host():
     :expectedresults: Added Fact should be displayed on refreshing the
         facts
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: High
     """

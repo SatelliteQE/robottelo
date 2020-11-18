@@ -1145,7 +1145,7 @@ def test_positive_create_baremetal_with_bios():
 
     :expectedresults: Host is created
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -1166,7 +1166,7 @@ def test_positive_create_baremetal_with_uefi():
 
     :expectedresults: Host is created
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -1198,7 +1198,7 @@ def test_positive_verify_files_with_pxegrub_uefi():
 
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -1230,7 +1230,7 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseComponent: TFTP
 
@@ -1264,7 +1264,7 @@ def test_positive_verify_files_with_pxegrub2_uefi():
 
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseComponent: TFTP
 
@@ -1298,7 +1298,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
         And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: Integration
 

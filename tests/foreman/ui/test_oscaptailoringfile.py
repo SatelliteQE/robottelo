@@ -102,7 +102,7 @@ def test_positive_oscap_run_with_tailoring_file_and_external_capsule():
         7. Puppet should configure and fetch the scap content
            and tailoring file from external capsule
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :expectedresults: ARF report should be sent to satellite
                      reflecting the changes done via tailoring files
@@ -131,7 +131,7 @@ def test_positive_fetch_tailoring_file_information_from_arfreports():
         7. Puppet should configure and fetch the scap content
            and send arf-report to satellite
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :expectedresults: ARF report should have information
                       about the tailoring file used, if any
