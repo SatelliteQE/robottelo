@@ -15,131 +15,131 @@
 :Upstream: No
 """
 import pytest
-from fauxfactory import gen_choice
 from fauxfactory import gen_string
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_content_view_filter
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product_wait
 from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.test import CLITestCase
 
 
-class ContentViewFilterTestCase(CLITestCase):
+@pytest.fixture(scope='module')
+def sync_repo(module_org, module_product):
+    repo = make_repository({'organization-id': module_org.id, 'product-id': module_product.id})
+    Repository.synchronize({'id': repo['id']})
+    return repo
+
+
+@pytest.fixture
+def content_view(module_org, sync_repo):
+    return make_content_view(
+        {'organization-id': module_org.id, 'repository-ids': [sync_repo['id']]}
+    )
+
+
+class TestContentViewFilter:
     """Content View Filter CLI tests"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Init single organization, product and repository for all tests"""
-        super().setUpClass()
-        cls.org = make_org()
-        cls.product = make_product_wait({'organization-id': cls.org['id']})
-        cls.content_view = make_content_view({'organization-id': cls.org['id']})
-        for _ in range(2):
-            cls.repo = make_repository({'product-id': cls.product['id']})
-            Repository.synchronize({'id': cls.repo['id']})
-            ContentView.add_repository(
-                {'id': cls.content_view['id'], 'repository-id': cls.repo['id']}
-            )
-
     @pytest.mark.tier1
-    def test_positive_create_with_name_by_cv_id(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    @pytest.mark.parametrize(
+        'filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd']
+    )
+    def test_positive_create_with_name_by_cv_id(
+        self, name, filter_content_type, module_org, content_view
+    ):
         """Create new content view filter and assign it to existing content
         view by id. Use different value types as a name and random filter
         content type as a parameter for this filter
 
         :id: 2cfdf72e-179d-4bba-8aab-288594cac836
 
+        :parametrized: yes
+
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                filter_content_type = gen_choice(['rpm', 'package_group', 'erratum', 'modulemd'])
-                ContentView.filter.create(
-                    {
-                        'content-view-id': self.content_view['id'],
-                        'name': name,
-                        'organization-id': self.org['id'],
-                        'type': filter_content_type,
-                    }
-                )
-                cvf = ContentView.filter.info(
-                    {'content-view-id': self.content_view['id'], 'name': name}
-                )
-                self.assertEqual(cvf['name'], name)
-                self.assertEqual(cvf['type'], filter_content_type)
+        ContentView.filter.create(
+            {
+                'content-view-id': content_view['id'],
+                'name': name,
+                'organization-id': module_org.id,
+                'type': filter_content_type,
+            },
+        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': name})
+        assert cvf['name'] == name
+        assert cvf['type'] == filter_content_type
 
     @pytest.mark.tier1
-    def test_positive_create_with_content_type_by_cv_id(self):
+    @pytest.mark.parametrize(
+        'filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd']
+    )
+    def test_positive_create_with_content_type_by_cv_id(
+        self, filter_content_type, module_org, content_view
+    ):
         """Create new content view filter and assign it to existing content
         view by id. Use different content types as a parameter
 
         :id: b3e5a58b-eddc-4ceb-ae34-6c0ab5664784
 
+        :parametrized: yes
+
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
 
         :CaseImportance: Critical
         """
-        for filter_content_type in ('rpm', 'package_group', 'erratum', 'modulemd'):
-            with self.subTest(filter_content_type):
-                cvf_name = gen_string('utf8')
-                ContentView.filter.create(
-                    {
-                        'content-view-id': self.content_view['id'],
-                        'name': cvf_name,
-                        'organization-id': self.org['id'],
-                        'type': filter_content_type,
-                    }
-                )
-                cvf = ContentView.filter.info(
-                    {'content-view-id': self.content_view['id'], 'name': cvf_name}
-                )
-                self.assertEqual(cvf['type'], filter_content_type)
+        cvf_name = gen_string('utf8')
+        ContentView.filter.create(
+            {
+                'content-view-id': content_view['id'],
+                'name': cvf_name,
+                'organization-id': module_org.id,
+                'type': filter_content_type,
+            },
+        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['type'] == filter_content_type
 
     @pytest.mark.tier1
-    def test_positive_create_with_inclusion_by_cv_id(self):
+    @pytest.mark.parametrize('inclusion', ['true', 'false'])
+    def test_positive_create_with_inclusion_by_cv_id(self, inclusion, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Use different inclusions as a parameter
 
         :id: 4a18ee71-3f0d-4e8b-909e-999d722ebc0a
 
+        :parametrized: yes
+
         :expectedresults: Content view filter created successfully and has
             correct and expected parameters
 
         :CaseImportance: Critical
         """
-        for inclusion in ('true', 'false'):
-            with self.subTest(inclusion):
-                cvf_name = gen_string('utf8')
-                ContentView.filter.create(
-                    {
-                        'content-view-id': self.content_view['id'],
-                        'inclusion': inclusion,
-                        'name': cvf_name,
-                        'organization-id': self.org['id'],
-                        'type': 'rpm',
-                    }
-                )
-                cvf = ContentView.filter.info(
-                    {'content-view-id': self.content_view['id'], 'name': cvf_name}
-                )
-                self.assertEqual(cvf['inclusion'], inclusion)
+        cvf_name = gen_string('utf8')
+        ContentView.filter.create(
+            {
+                'content-view-id': content_view['id'],
+                'inclusion': inclusion,
+                'name': cvf_name,
+                'organization-id': module_org.id,
+                'type': 'rpm',
+            },
+        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['inclusion'] == inclusion
 
     @pytest.mark.tier1
-    def test_positive_create_with_description_by_cv_id(self):
+    def test_positive_create_with_description_by_cv_id(self, module_org, content_view):
         """Create new content view filter with description and assign it to
         existing content view.
 
@@ -154,21 +154,21 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'description': description,
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'package_group',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(cvf['description'], description)
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['description'] == description
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier1
-    def test_positive_create_with_default_taxonomies(self):
+    def test_positive_create_with_default_taxonomies(
+        self, module_org, module_location, content_view
+    ):
         """Create new content view filter and assign it to existing content
         view by name. Use default organization and location to find necessary
         content view
@@ -183,28 +183,25 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        location = make_location()
-        Defaults.add({'param-name': 'organization_id', 'param-value': self.org['id']})
-        Defaults.add({'param-name': 'location_id', 'param-value': location['id']})
+        Defaults.add({'param-name': 'organization_id', 'param-value': module_org.id})
+        Defaults.add({'param-name': 'location_id', 'param-value': module_location.id})
         try:
             ContentView.filter.create(
                 {
-                    'content-view': self.content_view['name'],
+                    'content-view': content_view['name'],
                     'name': name,
                     'type': 'erratum',
                     'inclusion': 'true',
-                }
+                },
             )
-            cvf = ContentView.filter.info(
-                {'content-view': self.content_view['name'], 'name': name}
-            )
-            self.assertEqual(cvf['name'], name)
+            cvf = ContentView.filter.info({'content-view': content_view['name'], 'name': name})
+            assert cvf['name'] == name
         finally:
             Defaults.delete({'param-name': 'organization_id'})
             Defaults.delete({'param-name': 'location_id'})
 
     @pytest.mark.tier1
-    def test_positive_list_by_name_and_org(self):
+    def test_positive_list_by_name_and_org(self, module_org, content_view):
         """Create new content view filter and try to list it by its name and
         organization it belongs
 
@@ -219,20 +216,20 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'package_group',
-            }
+            },
         )
         cv_filters = ContentView.filter.list(
-            {'content-view': self.content_view['name'], 'organization': self.org['name']}
+            {'content-view': content_view['name'], 'organization': module_org.name}
         )
-        self.assertGreaterEqual(len(cv_filters), 1)
-        self.assertIn(cvf_name, [cvf['name'] for cvf in cv_filters])
+        assert len(cv_filters) >= 1
+        assert cvf_name in [cvf['name'] for cvf in cv_filters]
 
     @pytest.mark.tier1
-    def test_positive_create_by_cv_name(self):
+    def test_positive_create_by_cv_name(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by name. Use organization id for reference
 
@@ -247,17 +244,17 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view': self.content_view['name'],
+                'content-view': content_view['name'],
                 'inclusion': 'true',
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'package_group',
-            }
+            },
         )
-        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
 
     @pytest.mark.tier1
-    def test_positive_create_by_org_name(self):
+    def test_positive_create_by_org_name(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by name. Use organization name for reference
 
@@ -270,17 +267,17 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view': self.content_view['name'],
+                'content-view': content_view['name'],
                 'inclusion': 'false',
                 'name': cvf_name,
-                'organization': self.org['name'],
+                'organization': module_org.name,
                 'type': 'erratum',
-            }
+            },
         )
-        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
 
     @pytest.mark.tier1
-    def test_positive_create_by_org_label(self):
+    def test_positive_create_by_org_label(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by name. Use organization label for reference
 
@@ -293,17 +290,17 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view': self.content_view['name'],
+                'content-view': content_view['name'],
                 'inclusion': 'true',
                 'name': cvf_name,
-                'organization-label': self.org['label'],
+                'organization-label': module_org.label,
                 'type': 'erratum',
-            }
+            },
         )
-        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
 
     @pytest.mark.tier1
-    def test_positive_create_with_repo_by_id(self):
+    def test_positive_create_with_repo_by_id(self, module_org, sync_repo, content_view):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Use that repository id for
         proper filter assignment.
@@ -318,23 +315,23 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'true',
                 'name': cvf_name,
-                'repository-ids': self.repo['id'],
-                'organization-id': self.org['id'],
+                'repository-ids': sync_repo['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
         # Check that only one, specified above, repository is displayed
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] == sync_repo['name']
 
     @pytest.mark.tier1
-    def test_positive_create_with_repo_by_name(self):
+    def test_positive_create_with_repo_by_name(
+        self, module_org, module_product, sync_repo, content_view
+    ):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Use that repository name for
         proper filter assignment.
@@ -351,24 +348,22 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'false',
                 'name': cvf_name,
-                'product': self.product['name'],
-                'repositories': self.repo['name'],
-                'organization-id': self.org['id'],
+                'product': module_product.name,
+                'repositories': sync_repo['name'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
         # Check that only one, specified above, repository is displayed
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] == sync_repo['name']
 
     @pytest.mark.tier1
-    def test_positive_create_with_original_pkgs(self):
+    def test_positive_create_with_original_pkgs(self, sync_repo, content_view):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Enable 'original packages'
         option for that filter
@@ -383,21 +378,21 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'true',
                 'name': cvf_name,
                 'original-packages': 'true',
-                'repository-ids': self.repo['id'],
+                'repository-ids': sync_repo['id'],
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['repositories'][0]['name'] == sync_repo['name']
 
     @pytest.mark.tier2
-    def test_positive_create_with_repos_yum_and_docker(self):
+    def test_positive_create_with_repos_yum_and_docker(
+        self, module_org, module_product, sync_repo, content_view
+    ):
         """Create new docker repository and add to content view that has yum
         repo already assigned to it. Create new content view filter and assign
         it to mentioned content view. Use these repositories id for proper
@@ -412,56 +407,57 @@ class ContentViewFilterTestCase(CLITestCase):
             {
                 'content-type': 'docker',
                 'docker-upstream-name': 'busybox',
-                'product-id': self.product['id'],
+                'organization-id': module_org.id,
+                'product-id': module_product.id,
                 'url': DOCKER_REGISTRY_HUB,
-            }
+            },
         )
+
         ContentView.add_repository(
-            {'id': self.content_view['id'], 'repository-id': docker_repository['id']}
+            {'id': content_view['id'], 'repository-id': docker_repository['id']}
         )
-        repos = [self.repo['id'], docker_repository['id']]
+        repos = [sync_repo['id'], docker_repository['id']]
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'true',
                 'name': cvf_name,
                 'repository-ids': repos,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(len(cvf['repositories']), 2)
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert len(cvf['repositories']) == 2
         for repo in cvf['repositories']:
-            self.assertIn(repo['id'], repos)
+            assert repo['id'] in repos
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_invalid_name(self, name, module_org, content_view):
         """Try to create content view filter using invalid names only
 
         :id: f3497a23-6e34-4fee-9964-f95762fc737c
+
+        :parametrized: yes
 
         :expectedresults: Content view filter is not created
 
         :CaseImportance: Low
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.create(
-                        {
-                            'content-view-id': self.content_view['id'],
-                            'name': name,
-                            'organization-id': self.org['id'],
-                            'type': 'rpm',
-                        }
-                    )
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.create(
+                {
+                    'content-view-id': content_view['id'],
+                    'name': name,
+                    'organization-id': module_org.id,
+                    'type': 'rpm',
+                },
+            )
 
     @pytest.mark.tier1
-    def test_negative_create_with_same_name(self):
+    def test_negative_create_with_same_name(self, module_org, content_view):
         """Try to create content view filter using same name twice
 
         :id: 7e7444f4-e2b5-406d-a210-49b4008c88d9
@@ -473,24 +469,24 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.create(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': cvf_name,
-                    'organization-id': self.org['id'],
+                    'organization-id': module_org.id,
                     'type': 'rpm',
-                }
+                },
             )
 
     @pytest.mark.tier1
-    def test_negative_create_without_type(self):
+    def test_negative_create_without_type(self, module_org, content_view):
         """Try to create content view filter without providing required
         parameter 'type'
 
@@ -500,13 +496,13 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.create(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': gen_string('utf8'),
-                    'organization-id': self.org['id'],
-                }
+                    'organization-id': module_org.id,
+                },
             )
 
     @pytest.mark.tier1
@@ -520,11 +516,11 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.create({'name': gen_string('utf8'), 'type': 'rpm'})
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_repo_id(self):
+    def test_negative_create_with_invalid_repo_id(self, module_org, content_view):
         """Try to create content view filter using incorrect repository
 
         :id: 21fdbeca-ad0a-4e29-93dc-f850b5639f4f
@@ -533,24 +529,27 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.create(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': gen_string('utf8'),
                     'repository-ids': gen_string('numeric', 6),
-                    'organization-id': self.org['id'],
+                    'organization-id': module_org.id,
                     'type': 'rpm',
-                }
+                },
             )
 
     @pytest.mark.tier2
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
+    def test_positive_update_name(self, new_name, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Try to update that filter using different value types as a
         name
 
         :id: 70ba8916-5898-4911-9de8-21d2e0fb3df9
+
+        :parametrized: yes
 
         :expectedresults: Content view filter updated successfully and has
             proper and expected name
@@ -560,31 +559,28 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        cvf = make_content_view_filter(
+        cvf = ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
+            },
+        )
+        ContentView.filter.update(
+            {
+                'content-view-id': content_view['id'],
+                'id': cvf['filter-id'],
+                'new-name': new_name,
             }
         )
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                ContentView.filter.update(
-                    {
-                        'content-view-id': self.content_view['id'],
-                        'id': cvf['filter-id'],
-                        'new-name': new_name,
-                    }
-                )
-                cvf = ContentView.filter.info(
-                    {'content-view-id': self.content_view['id'], 'name': new_name}
-                )
-                self.assertEqual(cvf['name'], new_name)
-                cvf_name = new_name  # updating cvf name for next iteration
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': new_name})
+        assert cvf['name'] == new_name
 
     @pytest.mark.tier2
-    def test_positive_update_repo_with_same_type(self):
+    def test_positive_update_repo_with_same_type(
+        self, module_org, module_product, sync_repo, content_view
+    ):
         """Create new content view filter and apply it to existing content view
         that has repository assigned to it. Try to update that filter and
         change affected repository on another one.
@@ -601,41 +597,39 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'repository-ids': self.repo['id'],
+                'repository-ids': sync_repo['id'],
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] == sync_repo['name']
 
-        new_repo = make_repository({'product-id': self.product['id']})
-        ContentView.add_repository(
-            {'id': self.content_view['id'], 'repository-id': new_repo['id']}
+        new_repo = make_repository(
+            {'organization-id': module_org.id, 'product-id': module_product.id},
         )
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': new_repo['id']})
 
         ContentView.filter.update(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
                 'repository-ids': new_repo['id'],
             }
         )
 
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
-        self.assertEqual(cvf['repositories'][0]['name'], new_repo['name'])
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] != sync_repo['name']
+        assert cvf['repositories'][0]['name'] == new_repo['name']
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_update_repo_with_different_type(self):
+    def test_positive_update_repo_with_different_type(
+        self, module_org, module_product, sync_repo, content_view
+    ):
         """Create new content view filter and apply it to existing content view
         that has repository assigned to it. Try to update that filter and
         change affected repository on another one. That new repository should
@@ -651,44 +645,39 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'repository-ids': self.repo['id'],
+                'repository-ids': sync_repo['id'],
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] == sync_repo['name']
         docker_repo = make_repository(
             {
                 'content-type': 'docker',
                 'docker-upstream-name': 'busybox',
-                'product-id': self.product['id'],
+                'organization-id': module_org.id,
+                'product-id': module_product.id,
                 'url': DOCKER_REGISTRY_HUB,
-            }
+            },
         )
-        ContentView.add_repository(
-            {'id': self.content_view['id'], 'repository-id': docker_repo['id']}
-        )
+        ContentView.add_repository({'id': content_view['id'], 'repository-id': docker_repo['id']})
         ContentView.filter.update(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
                 'repository-ids': docker_repo['id'],
             }
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(len(cvf['repositories']), 1)
-        self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
-        self.assertEqual(cvf['repositories'][0]['name'], docker_repo['name'])
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert len(cvf['repositories']) == 1
+        assert cvf['repositories'][0]['name'] != sync_repo['name']
+        assert cvf['repositories'][0]['name'] == docker_repo['name']
 
     @pytest.mark.tier2
-    def test_positive_update_inclusion(self):
+    def test_positive_update_inclusion(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Try to update that filter and assign opposite inclusion
         value for it
@@ -703,30 +692,33 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'true',
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
+            },
+        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['inclusion'] == 'true'
+        ContentView.filter.update(
+            {
+                'content-view-id': content_view['id'],
+                'name': cvf_name,
+                'inclusion': 'false',
             }
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(cvf['inclusion'], 'true')
-        ContentView.filter.update(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name, 'inclusion': 'false'}
-        )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(cvf['inclusion'], 'false')
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['inclusion'] == 'false'
 
     @pytest.mark.tier1
-    def test_negative_update_with_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
+    def test_negative_update_with_name(self, new_name, content_view):
         """Try to update content view filter using invalid names only
 
         :id: 6c40e452-f786-4e28-9f03-b1935b55b33a
+
+        :parametrized: yes
 
         :expectedresults: Content view filter is not updated
 
@@ -735,23 +727,22 @@ class ContentViewFilterTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.update(
-                        {
-                            'content-view-id': self.content_view['id'],
-                            'name': cvf_name,
-                            'new-name': new_name,
-                        }
-                    )
-                with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.info(
-                        {'content-view-id': self.content_view['id'], 'name': new_name}
-                    )
+        ContentView.filter.create(
+            {'content-view-id': content_view['id'], 'name': cvf_name, 'type': 'rpm'}
+        )
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.update(
+                {
+                    'content-view-id': content_view['id'],
+                    'name': cvf_name,
+                    'new-name': new_name,
+                }
+            )
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.info({'content-view-id': content_view['id'], 'name': new_name})
 
     @pytest.mark.tier1
-    def test_negative_update_with_same_name(self):
+    def test_negative_update_with_same_name(self, module_org, content_view):
         """Try to update content view filter using name of already
         existing entity
 
@@ -764,32 +755,32 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
         new_name = gen_string('alpha', 100)
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': new_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.update(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': new_name,
                     'new-name': cvf_name,
                 }
             )
 
     @pytest.mark.tier1
-    def test_negative_update_inclusion(self):
+    def test_negative_update_inclusion(self, module_org, content_view):
         """Try to update content view filter and assign incorrect inclusion
         value for it
 
@@ -802,28 +793,26 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'inclusion': 'true',
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.update(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'inclusion': 'wrong_value',
                     'name': cvf_name,
                 }
             )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
-        self.assertEqual(cvf['inclusion'], 'true')
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
+        assert cvf['inclusion'] == 'true'
 
     @pytest.mark.tier1
-    def test_negative_update_with_non_existent_repo_id(self):
+    def test_negative_update_with_non_existent_repo_id(self, sync_repo, content_view):
         """Try to update content view filter using non-existing repository ID
 
         :id: 457af8c2-fb32-4164-9e19-98676f4ea063
@@ -835,23 +824,25 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'repository-ids': self.repo['id'],
+                'repository-ids': sync_repo['id'],
                 'type': 'rpm',
-            }
+            },
         )
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.update(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': cvf_name,
                     'repository-ids': gen_string('numeric', 6),
                 }
             )
 
     @pytest.mark.tier1
-    def test_negative_update_with_invalid_repo_id(self):
+    def test_negative_update_with_invalid_repo_id(
+        self, module_org, module_product, sync_repo, content_view
+    ):
         """Try to update filter and assign repository which does not belong to
         filter content view
 
@@ -864,56 +855,55 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'repository-ids': self.repo['id'],
+                'repository-ids': sync_repo['id'],
                 'type': 'rpm',
-            }
+            },
         )
-        new_repo = make_repository({'product-id': self.product['id']})
-        with self.assertRaises(CLIReturnCodeError):
+        new_repo = make_repository(
+            {'organization-id': module_org.id, 'product-id': module_product.id},
+        )
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.update(
                 {
-                    'content-view-id': self.content_view['id'],
+                    'content-view-id': content_view['id'],
                     'name': cvf_name,
                     'repository-ids': new_repo['id'],
                 }
             )
 
     @pytest.mark.tier1
-    def test_positive_delete_by_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_delete_by_name(self, name, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using different value types as a
         name
 
         :id: a01baf17-9c3c-4923-bfe0-865a4cbc4223
 
+        :parametrized: yes
+
         :expectedresults: Content view filter deleted successfully
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                ContentView.filter.create(
-                    {
-                        'content-view-id': self.content_view['id'],
-                        'name': name,
-                        'organization-id': self.org['id'],
-                        'type': 'rpm',
-                    }
-                )
-                ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': name})
-                ContentView.filter.delete(
-                    {'content-view-id': self.content_view['id'], 'name': name}
-                )
-                with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter.info(
-                        {'content-view-id': self.content_view['id'], 'name': name}
-                    )
+        ContentView.filter.create(
+            {
+                'content-view-id': content_view['id'],
+                'name': name,
+                'organization-id': module_org.id,
+                'type': 'rpm',
+            },
+        )
+        ContentView.filter.info({'content-view-id': content_view['id'], 'name': name})
+        ContentView.filter.delete({'content-view-id': content_view['id'], 'name': name})
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.info({'content-view-id': content_view['id'], 'name': name})
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_delete_by_id(self):
+    def test_positive_delete_by_id(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using its id as a parameter
 
@@ -926,21 +916,19 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        cvf = ContentView.filter.info(
-            {'content-view-id': self.content_view['id'], 'name': cvf_name}
-        )
+        cvf = ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
         ContentView.filter.delete({'id': cvf['filter-id']})
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
 
     @pytest.mark.tier1
-    def test_positive_delete_by_org_name(self):
+    def test_positive_delete_by_org_name(self, module_org, content_view):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using organization and content
         view names where that filter was applied
@@ -954,25 +942,25 @@ class ContentViewFilterTestCase(CLITestCase):
         cvf_name = gen_string('utf8')
         ContentView.filter.create(
             {
-                'content-view-id': self.content_view['id'],
+                'content-view-id': content_view['id'],
                 'name': cvf_name,
-                'organization-id': self.org['id'],
+                'organization-id': module_org.id,
                 'type': 'rpm',
-            }
+            },
         )
-        ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
         ContentView.filter.delete(
             {
-                'content-view': self.content_view['name'],
+                'content-view': content_view['name'],
                 'name': cvf_name,
-                'organization': self.org['name'],
+                'organization': module_org.name,
             }
         )
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.filter.info({'content-view-id': self.content_view['id'], 'name': cvf_name})
+        with pytest.raises(CLIReturnCodeError):
+            ContentView.filter.info({'content-view-id': content_view['id'], 'name': cvf_name})
 
     @pytest.mark.tier1
-    def test_negative_delete_by_name(self):
+    def test_negative_delete_by_name(self, content_view):
         """Try to delete non-existent filter using generated name
 
         :id: 84509061-6652-4594-b68a-4566c04bc289
@@ -981,7 +969,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ContentView.filter.delete(
-                {'content-view-id': self.content_view['id'], 'name': 'invalid_cv_filter'}
+                {'content-view-id': content_view['id'], 'name': gen_string('utf8')}
             )
