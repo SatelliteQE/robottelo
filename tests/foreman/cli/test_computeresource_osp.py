@@ -276,7 +276,7 @@ class OSPComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned with host group
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -299,5 +299,5 @@ class OSPComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """

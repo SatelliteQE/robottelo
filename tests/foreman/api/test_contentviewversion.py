@@ -867,7 +867,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                content-host
             5. At content-host some package from cv1 is installable
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -908,7 +908,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                content-host
             6. At content-host some package from cv2 is installable
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -944,7 +944,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         :expectedresults: content view version in capsule is removed from
             Library and DEV and exists only in QE and PROD
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """

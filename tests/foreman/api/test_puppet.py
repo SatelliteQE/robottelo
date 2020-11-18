@@ -63,7 +63,7 @@ class PuppetTestCase(APITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -108,7 +108,7 @@ class PuppetCapsuleTestCase(APITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """

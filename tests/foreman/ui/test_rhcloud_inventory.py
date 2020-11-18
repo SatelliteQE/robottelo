@@ -203,7 +203,7 @@ def test_hits_synchronization():
         1. There's Insights column with number of recommendations and link to cloud
         2. Recommendations are listed on single host page
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -227,5 +227,5 @@ def test_hosts_synchronization():
         2. Presence in cloud is displayed in popover status of host
         3. Presence in cloud is displayed in "Properties" tab on single host page
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """

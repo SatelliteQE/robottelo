@@ -36,7 +36,7 @@ class EmailTestCase(APITestCase):
         :expectedresults: Enabling and disabling email notification preferences
             saved accordingly.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """

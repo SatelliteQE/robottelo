@@ -114,7 +114,7 @@ class TestContentView:
 
         :CaseLevel: Integration
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseImportance: High
         """

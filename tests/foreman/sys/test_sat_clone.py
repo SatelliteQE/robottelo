@@ -3,7 +3,7 @@
 
 :Requirement: SatClone
 
-:CaseAutomation: notautomated
+:CaseAutomation: NotAutomated
 
 :CaseLevel: System
 
@@ -64,7 +64,7 @@ class SatCloneTestCase(TestCase):
         :expectedresults: The backup succeeds  and the host gets the requested
             content.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -94,7 +94,7 @@ class SatCloneTestCase(TestCase):
         :expectedresults: The backup succeeds  and the host gets the requested
             content.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -124,6 +124,6 @@ class SatCloneTestCase(TestCase):
         :expectedresults: The backup succeeds  and the host gets the requested
             content.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """

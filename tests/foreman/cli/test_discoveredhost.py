@@ -172,7 +172,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: All defined custom facts should be displayed
             correctly
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -195,7 +195,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: All defined custom facts should be displayed
             correctly
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -308,7 +308,7 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -346,7 +346,7 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -384,7 +384,7 @@ class DiscoveredTestCase(CLITestCase):
             6. Ensure the host is created in Hosts
             7. Ensure the entry from discovered host list disappeared
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -525,7 +525,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseImportance: High
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -573,7 +573,7 @@ class DiscoveredTestCase(CLITestCase):
             8. Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -623,7 +623,7 @@ class DiscoveredTestCase(CLITestCase):
             8. Ensure the host is provisioned with correct attributes
             9. Ensure the entry from discovered host list disappeared
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -679,7 +679,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Facts should be refreshed successfully with a new NIC
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -695,7 +695,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Facts should be refreshed successfully with a new NIC
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -711,7 +711,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host is rebooted
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Medium
         """
@@ -727,7 +727,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host is rebooted
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -742,7 +742,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully rebooted and provisioned
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -757,7 +757,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be successfully rebooted and provisioned
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -771,7 +771,7 @@ class DiscoveredTestCase(CLITestCase):
 
         :expectedresults: Host should be discovered and listed with names.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -787,7 +787,7 @@ class DiscoveredTestCase(CLITestCase):
             destroy one or more discovered host as well view, create_new, edit,
             execute and delete discovery rules.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -802,7 +802,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: User should be able to list, provision, and destroy
             one or more discovered host
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -818,7 +818,7 @@ class DiscoveredTestCase(CLITestCase):
         :expectedresults: Host should be discovered with name as
             'Hostname_prefix + hostname_facts'.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """

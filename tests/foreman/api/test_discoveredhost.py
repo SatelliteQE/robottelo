@@ -234,7 +234,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should be provisioned successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -355,7 +355,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Discovered Host should be deleted successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -374,7 +374,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Discovered Host should be deleted successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -393,7 +393,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -412,7 +412,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected Host should be auto-provisioned successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -432,7 +432,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: All discovered hosts should be auto-provisioned
             successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -455,7 +455,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -477,7 +477,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Added Fact should be displayed on refreshing the
             facts
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -496,7 +496,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host should be rebooted successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Medium
         """
@@ -515,7 +515,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Selected host should be rebooted successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -533,7 +533,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: Host should reboot and provision
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -551,7 +551,7 @@ class DiscoveryTestCase(APITestCase):
 
         :expectedresults: All Hosts of same subnet should reboot and provision
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -569,7 +569,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Host with lower count have higher priority and that
             rule should be executed first
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -587,7 +587,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: Rule should only be applied to one discovered host
             and for other rule should already be skipped.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -604,7 +604,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: User should be able to update the rule and it should
             be applied on discovered host
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """
@@ -622,7 +622,7 @@ class DiscoveryTestCase(APITestCase):
         :expectedresults: The host name should be updated and host should be
             provisioned
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: High
         """

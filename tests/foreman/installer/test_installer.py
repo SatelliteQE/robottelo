@@ -1506,7 +1506,7 @@ def test_satellite_installation_on_ipv6():
 
     :CaseLevel: System
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1531,7 +1531,7 @@ def test_capsule_installation_on_ipv6():
 
     :CaseLevel: System
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -1557,5 +1557,5 @@ def test_installer_check_on_ipv6():
 
     :CaseLevel: System
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """

@@ -185,7 +185,7 @@ class SettingTestCase(APITestCase):
 
         :expectedresults: Default set fact should be updated with facts list.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -199,7 +199,7 @@ class SettingTestCase(APITestCase):
         :expectedresults: Validation error should be raised on updating
             hostname_prefix with invalid string, should start w/ letter
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @run_in_one_thread

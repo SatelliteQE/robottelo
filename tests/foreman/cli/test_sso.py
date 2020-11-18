@@ -45,7 +45,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -59,7 +59,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -73,5 +73,5 @@ class SingleSignOnTestCase(CLITestCase):
 
         :expectedresults: Log in to hammer cli successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
