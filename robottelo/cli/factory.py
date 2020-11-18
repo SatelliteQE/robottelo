@@ -1974,6 +1974,10 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         custom_repo_url = settings.sattools_repo['rhel6']
     elif options.get('repository') == REPOS['rhst7']['name']:
         custom_repo_url = settings.sattools_repo['rhel7']
+    elif options.get('repository') == REPOS['rhel6']['name']:
+        custom_repo_url = settings.rhel6_os
+    elif options.get('repository') == REPOS['rhel7']['name']:
+        custom_repo_url = settings.rhel7_os
     elif 'Satellite Capsule' in options.get('repository'):
         custom_repo_url = settings.capsule_repo
     if force_use_cdn or settings.cdn or not custom_repo_url:
