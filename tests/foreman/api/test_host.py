@@ -153,6 +153,7 @@ def test_positive_update_owner_type(owner_type, module_org, module_location, mod
     assert host.owner.read() == owners[owner_type]
 
 
+@pytest.mark.build_sanity
 @pytest.mark.tier1
 def test_positive_create_and_update_with_name():
     """Create and update a host with different names and minimal input parameters
