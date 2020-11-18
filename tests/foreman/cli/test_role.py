@@ -73,6 +73,7 @@ class TestRole:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
     def test_positive_create_with_permission(self):
         """Create new role with a set of permission
 
