@@ -40,7 +40,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -63,7 +63,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -82,7 +82,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -100,7 +100,7 @@ class InfobloxTestCase(TestCase):
 
         :expectedresults: Check DNS plugin is enabled on host
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -116,7 +116,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -134,7 +134,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -150,7 +150,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -168,7 +168,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -188,5 +188,5 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """

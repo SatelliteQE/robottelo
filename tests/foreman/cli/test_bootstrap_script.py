@@ -44,7 +44,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: system is registered, host is created
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -65,7 +65,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :expectedresults: system is newly registered, host is created
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """

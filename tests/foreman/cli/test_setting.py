@@ -49,7 +49,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Error should be raised on setting empty value for
             hostname_facts setting
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @tier2
@@ -87,7 +87,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Default set fact should be updated with facts list.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -101,7 +101,7 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Validation error should be raised on updating
             hostname_prefix with invalid string, should start w/ letter
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @tier2
@@ -184,7 +184,7 @@ class SettingTestCase(CLITestCase):
 
         :CaseImportance: Low
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -204,7 +204,7 @@ class SettingTestCase(CLITestCase):
 
         :CaseImportance: Low
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @tier2
@@ -216,8 +216,6 @@ class SettingTestCase(CLITestCase):
         :expectedresults: email_reply_address is updated
 
         :CaseImportance: Low
-
-        :CaseAutomation: automated
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -241,8 +239,6 @@ class SettingTestCase(CLITestCase):
         :expectedresults: email_reply_address is not updated
 
         :CaseImportance: Low
-
-        :CaseAutomation: automated
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -256,8 +252,6 @@ class SettingTestCase(CLITestCase):
         :id: c8e6b323-7b39-43d6-a9f1-5474f920bba2
 
         :expectedresults: email_subject_prefix is updated
-
-        :CaseAutomation: automated
 
         :CaseImportance: Low
         """
@@ -277,7 +271,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_subject_prefix is not updated
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Low
         """
@@ -291,8 +285,6 @@ class SettingTestCase(CLITestCase):
         :steps: valid values: boolean true or false
 
         :expectedresults: send_welcome_email is updated
-
-        :CaseAutomation: automated
 
         :CaseImportance: Low
         """
@@ -310,8 +302,6 @@ class SettingTestCase(CLITestCase):
         :steps: Set rss_enable true or false
 
         :expectedresults: rss_enable is updated
-
-        :CaseAutomation: automated
         """
         orig_value = Settings.list({'search': 'name=rss_enable'})[0]['value']
         for value in ['true', 'false']:
@@ -333,8 +323,6 @@ class SettingTestCase(CLITestCase):
             4. Restore the original feed URL
 
         :expectedresults: RSS feed URL is updated
-
-        :CaseAutomation: automated
         """
         orig_url = Settings.list({'search': 'name=rss_url'})[0]['value']
         for test_url in valid_url_list():
@@ -356,8 +344,6 @@ def test_negative_update_send_welcome_email(value):
     :steps: set invalid values: not booleans
 
     :expectedresults: send_welcome_email is not updated
-
-    :CaseAutomation: automated
 
     :CaseImportance: Low
     """
@@ -402,8 +388,6 @@ class BruteForceLogin(CLITestCase):
          :CaseLevel: System
 
          :expectedresults: failed_login_attempts_limit works as expected
-
-         :CaseAutomation: automated
 
          :BZ: 1778599
          """

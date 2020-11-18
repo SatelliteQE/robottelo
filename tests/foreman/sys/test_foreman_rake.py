@@ -25,7 +25,7 @@ def test_positive_katello_reimport():
     """ Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.
 
-    :CaseComponent: contentManagement
+    :CaseComponent: ContentManagement
 
     :id: b4119265-1bf0-4b0b-8b96-43f68af39708
 

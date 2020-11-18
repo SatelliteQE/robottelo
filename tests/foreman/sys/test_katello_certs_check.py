@@ -167,7 +167,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Katello-certs should be updated.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         try:
             with get_connection(timeout=600) as connection:
@@ -223,7 +223,7 @@ class TestKatelloCertsCheck:
 
         :BZ: 1466688
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
@@ -272,7 +272,7 @@ class TestKatelloCertsCheck:
 
         :BZ: 1466688
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
@@ -317,7 +317,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Checking expiration of certificate check should fail.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -334,7 +334,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Checking ca bundle against the cert file should fail.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -352,7 +352,7 @@ class TestKatelloCertsCheck:
         :expectedresults: Check for validating the certificate subject should
             fail.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -369,7 +369,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Private key match with the certificate should fail.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -386,7 +386,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Checking expiration of CA bundle should fail.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -404,7 +404,7 @@ class TestKatelloCertsCheck:
         :expectedresults: Check for non ascii character should fail gracefully
                           e.g. no traces.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -425,7 +425,7 @@ class TestKatelloCertsCheck:
         :expectedresults: Katello-certs-check should generate correct commands
             with options.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
 
@@ -478,7 +478,7 @@ class TestCapsuleCertsCheckTestCase:
 
         :BZ: 1747581
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         DNS_Check = False
         with get_connection(timeout=200) as connection:

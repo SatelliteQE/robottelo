@@ -389,7 +389,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: Integration
         """

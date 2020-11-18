@@ -848,7 +848,7 @@ class HostCreateTestCase(CLITestCase):
           2. Files not deployed on TFTP
           3. Host not created
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -1375,7 +1375,7 @@ class HostProvisionTestCase(CLITestCase):
           6. GRUB config changes the boot order (boot local first)
           7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -1412,7 +1412,7 @@ class HostProvisionTestCase(CLITestCase):
           6. GRUB config changes the boot order (boot local first)
           7. Hosts boots straight to RHEL after reboot (step #4)
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -1452,7 +1452,7 @@ class HostProvisionTestCase(CLITestCase):
           7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -1494,7 +1494,7 @@ class HostProvisionTestCase(CLITestCase):
           7. Hosts boots straight to RHEL after reboot (step #4)
 
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -1528,7 +1528,7 @@ class HostProvisionTestCase(CLITestCase):
 
         :expectedresults: Host is provisioned
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """

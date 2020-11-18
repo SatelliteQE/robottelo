@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: logging
+:CaseComponent: Logging
 
 :TestType: Functional
 

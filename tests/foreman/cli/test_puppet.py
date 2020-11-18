@@ -65,7 +65,7 @@ class PuppetTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -112,7 +112,7 @@ class PuppetCapsuleTestCase(CLITestCase):
 
         :expectedresults: multiple asserts along the code
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """

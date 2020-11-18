@@ -761,7 +761,7 @@ class ErrataTestCase(APITestCase):
         :expectedresults: Selected errata are applied to multiple content views
             in multiple environments.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -782,7 +782,7 @@ class ErrataTestCase(APITestCase):
 
         :expectedresults: Subset of environments/content views retrieved.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -805,7 +805,7 @@ class ErrataTestCase(APITestCase):
         :expectedresults: Packages are applied to multiple environments/content
             views.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
