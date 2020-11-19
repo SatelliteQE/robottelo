@@ -166,29 +166,23 @@ def default_os(
     default_architecture,
     default_partitiontable,
     default_pxetemplate,
-    os=None,
+    request,
 ):
+    """Returns an Operating System entity read from searching Redhat family
+
+    Indirect parametrization should pass an operating system version string like 'RHEL 7.9'
+    Default operating system will find the first RHEL6 or RHEL7 entity
+    """
+    os = getattr(request, 'param', None)
     if os is None:
-        os = (
-            entities.OperatingSystem()
-            .search(
-                query={
-                    'search': f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
-                    f'OR major="{RHEL_7_MAJOR_VERSION}")'
-                }
-            )[0]
-            .read()
+        search_string = (
+            f'name="RedHat" AND (major="{RHEL_6_MAJOR_VERSION}" '
+            f'OR major="{RHEL_7_MAJOR_VERSION}")'
         )
     else:
-        major = os.split(' ')[1].split('.')[0]
-        minor = os.split(' ')[1].split('.')[1]
-        os = (
-            entities.OperatingSystem()
-            .search(query={'search': f'family="Redhat" AND major="{major}" AND minor="{minor}"'})[
-                0
-            ]
-            .read()
-        )
+        version = os.split(' ')[1].split('.')
+        search_string = f'family="Redhat" AND major="{version[0]}" AND minor="{version[1]}"'
+    os = entities.OperatingSystem().search(query={'search': search_string})[0].read()
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
     os.provisioning_template.append(default_pxetemplate)
