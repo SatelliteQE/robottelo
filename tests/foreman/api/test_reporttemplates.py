@@ -81,6 +81,8 @@ def test_positive_CRUDL(name):
 
     :id: a2a577db-144e-4761-a42e-e83885464786
 
+    :parametrized: yes
+
     :setup: User with reporting access rights
 
     :steps:
@@ -96,7 +98,6 @@ def test_positive_CRUDL(name):
     :CaseImportance: Critical
     """
     # Create
-    rt = None
     template1 = gen_string('alpha')
     rt = entities.ReportTemplate(name=name, template=template1).create()
     # List
