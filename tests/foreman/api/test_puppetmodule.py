@@ -21,28 +21,36 @@ from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.helpers import get_data_file
 
 
-@pytest.fixture(scope='module')
-def make_product_repo():
+@pytest.fixture(scope='class')
+def class_product():
     product = entities.Product().create()
-    repo = entities.Repository(content_type='puppet', product=product).create()
-    return {'product': product, 'repo': repo}
+    yield product
+    product.delete()
 
 
 @pytest.fixture(scope='function')
-def make_cv(make_product_repo):
+def blank_repo(class_product):
+    return entities.Repository(content_type='puppet', product=class_product).create()
+
+
+@pytest.fixture(scope='class')
+def class_repo_with_content(class_product):
+    repo = entities.Repository(content_type='puppet', product=class_product).create()
     with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-        make_product_repo['repo'].upload_content(files={'content': handle})
-    content_view = entities.ContentView(
-        organization=make_product_repo['product'].organization
-    ).create()
-    return content_view
+        repo.upload_content(files={'content': handle})
+    return repo
+
+
+@pytest.fixture(scope='function')
+def make_cv(class_product, class_repo_with_content):
+    return entities.ContentView(organization=class_product.organization).create()
 
 
 class TestRepositorySearch:
     """Tests that search for puppet modules and filter by repository."""
 
     @pytest.mark.tier1
-    def test_positive_search_no_results(self, make_product_repo):
+    def test_positive_search_no_results(self, blank_repo):
         """Search for puppet modules in an empty repository.
 
         :id: eafc7a71-d550-4983-9941-b87aa57b83e9
@@ -51,11 +59,11 @@ class TestRepositorySearch:
 
         :CaseImportance: Critical
         """
-        query = {'repository_id': make_product_repo['repo'].id}
+        query = {'repository_id': blank_repo.id}
         assert len(entities.PuppetModule().search(query=query)) == 0
 
     @pytest.mark.tier1
-    def test_positive_search_single_result(self, make_product_repo):
+    def test_positive_search_single_result(self, blank_repo):
         """Search for puppet modules in a non-empty repository.
 
         :id: 5337b2be-e207-4580-8407-19b88cb40403
@@ -67,8 +75,8 @@ class TestRepositorySearch:
         :CaseImportance: Critical
         """
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            make_product_repo['repo'].upload_content(files={'content': handle})
-        query = {'repository_id': make_product_repo['repo'].id}
+            blank_repo.upload_content(files={'content': handle})
+        query = {'repository_id': blank_repo.id}
         assert len(entities.PuppetModule().search(query=query)) == 1
 
 
