@@ -201,6 +201,7 @@ class TestKatelloCertsCheck:
                 result = connection.run('foreman-maintain health check --label services-up -y')
                 assert result.return_code == 0, 'Not all services are running'
 
+    @pytest.mark.skip_if_open('BZ:1899108')
     @pytest.mark.destructive
     def test_positive_generate_capsule_certs_using_absolute_path(self, cert_setup, cert_data):
         """Create Capsule certs using absolute paths.
@@ -216,7 +217,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Capsule certs are generated.
 
-        :BZ: 1466688
+        :BZ: 1466688, 1899108
 
         :CaseAutomation: automated
         """
@@ -249,6 +250,7 @@ class TestKatelloCertsCheck:
             # assert the certs.tar was built
             assert connection.run('test -e /root/capsule_cert/capsule_certs_Abs.tar')
 
+    @pytest.mark.skip_if_open('BZ:1899108')
     @pytest.mark.destructive
     @pytest.mark.upgrade
     def test_positive_generate_capsule_certs_using_relative_path(self, cert_setup, cert_data):
@@ -265,7 +267,7 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Capsule certs are generated.
 
-        :BZ: 1466688
+        :BZ: 1466688, 1899108
 
         :CaseAutomation: automated
         """
