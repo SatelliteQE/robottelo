@@ -16,8 +16,11 @@
 """
 import http
 import random
+from collections import defaultdict
+from pprint import pformat
 
 import pytest
+from deepdiff import DeepDiff
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
@@ -283,6 +286,9 @@ API_PATHS = {
         '/katello/api/content_view_versions/:id/export',
         '/katello/api/content_view_versions/:id/promote',
         '/katello/api/content_view_versions/:id/republish_repositories',
+        '/katello/api/content_view_versions/export_histories',
+        '/katello/api/content_view_versions/export_api_status',
+        '/katello/api/content_view_versions/import',
         '/katello/api/content_view_versions/incremental_update',
     ),
     'dashboard': ('/api/dashboard',),
@@ -369,7 +375,6 @@ API_PATHS = {
         '/foreman_tasks/api/tasks',
         '/foreman_tasks/api/tasks/:id',
         '/foreman_tasks/api/tasks/:id/details',
-        '/foreman_tasks/api/tasks/:id/sub_tasks',
         '/foreman_tasks/api/tasks/bulk_resume',
         '/foreman_tasks/api/tasks/bulk_cancel',
         '/foreman_tasks/api/tasks/bulk_stop',
@@ -463,23 +468,24 @@ API_PATHS = {
     ),
     'hosts_bulk_actions': (
         '/api/hosts/bulk/add_host_collections',
+        '/api/hosts/bulk/remove_host_collections',
         '/api/hosts/bulk/add_subscriptions',
+        '/api/hosts/bulk/remove_subscriptions',
         '/api/hosts/bulk/auto_attach',
         '/api/hosts/bulk/applicable_errata',
+        '/api/hosts/bulk/installable_errata',
         '/api/hosts/bulk/available_incremental_updates',
         '/api/hosts/bulk/content_overrides',
         '/api/hosts/bulk/destroy',
         '/api/hosts/bulk/environment_content_view',
         '/api/hosts/bulk/install_content',
-        '/api/hosts/bulk/installable_errata',
+        '/api/hosts/bulk/update_content',
+        '/api/hosts/bulk/remove_content',
         '/api/hosts/bulk/module_streams',
         '/api/hosts/bulk/release_version',
-        '/api/hosts/bulk/remove_content',
-        '/api/hosts/bulk/remove_host_collections',
-        '/api/hosts/bulk/remove_subscriptions',
-        '/api/hosts/bulk/update_content',
         '/api/hosts/bulk/resolve_traces',
         '/api/hosts/bulk/traces',
+        '/api/hosts/bulk/system_purpose',
     ),
     'host_errata': (
         '/api/hosts/:host_id/errata',
@@ -646,6 +652,7 @@ API_PATHS = {
         '/katello/api/products/bulk/destroy',
         '/katello/api/products/bulk/http_proxy',
         '/katello/api/products/bulk/sync_plan',
+        '/katello/api/products/bulk/verify_checksum',
     ),
     'products': (
         '/katello/api/products',
@@ -715,6 +722,7 @@ API_PATHS = {
         '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
+    'registration': ('/api/register', '/api/register'),
     'report_templates': (
         '/api/report_templates',
         '/api/report_templates/:id',
@@ -745,6 +753,7 @@ API_PATHS = {
         '/katello/api/repositories/:id/sync',
         '/katello/api/repositories/:id/upload_content',
         '/katello/api/repositories/repository_types',
+        '/katello/api/repositories/:id/verify_checksum',
     ),
     'repository_sets': (
         '/katello/api/repository_sets',
@@ -769,6 +778,7 @@ API_PATHS = {
         '/api/compliance/scap_contents/:id',
         '/api/compliance/scap_contents/:id',
         '/api/compliance/scap_contents/:id/xml',
+        '/api/compliance/scap_contents/bulk_upload',
     ),
     'settings': ('/api/settings', '/api/settings/:id', '/api/settings/:id'),
     'smart_class_parameters': (
@@ -862,6 +872,12 @@ API_PATHS = {
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions/ping',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
+        'simple_content_access/eligible',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
+        'simple_content_access/enable',
+        '/katello/api/organizations/:organization_id/upstream_subscriptions/'
+        'simple_content_access/disable',
     ),
     'usergroups': (
         '/api/usergroups',
@@ -880,22 +896,28 @@ API_PATHS = {
     ),
 }
 
-if is_open('BZ:1887932'):
-    missing = '/katello/api/activation_keys/:activation_key_id/subscriptions'
-    API_PATHS['subscriptions'] = tuple(
-        [subscription for subscription in API_PATHS['subscriptions'] if subscription != missing]
-    )
 
-
+@pytest.mark.build_sanity
 class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
 
     longMessage = True
     maxDiff = None
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """Define commonly-used variables."""
-        self.path = f'{settings.server.get_url()}/api/v2'
+        super().setUpClass()
+        cls.path = f'{settings.server.get_url()}/api/v2'
+        missing = defaultdict(list)
+        if is_open('BZ:1887932'):
+            missing['subscriptions'].append(
+                '/katello/api/activation_keys/:activation_key_id/subscriptions'
+            )
+        for endpoint, missing_paths in missing.items():
+            API_PATHS[endpoint] = tuple(
+                path for path in API_PATHS[endpoint] if path not in missing_paths
+            )
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -925,14 +947,6 @@ class AvailableURLsTestCase(TestCase):
         # Did the server give us any paths at all?
         response = client.get(self.path, auth=settings.server.get_credentials(), verify=False)
         response.raise_for_status()
-        # See below for an explanation of this transformation.
-        api_paths = response.json()['links']
-        for group, path_pairs in api_paths.items():
-            api_paths[group] = list(path_pairs.values())
-        self.assertEqual(frozenset(api_paths.keys()), frozenset(API_PATHS.keys()))
-        for group in api_paths.keys():
-            self.assertItemsEqual(api_paths[group], API_PATHS[group], group)
-        # noqa (line-too-long)
         # response.json()['links'] is a dict like this:
         #
         #     {'content_views': {
@@ -951,6 +965,16 @@ class AvailableURLsTestCase(TestCase):
         #          '/katello/api/organizations/:organization_id/content_views',
         #          '/katello/api/organizations/:organization_id/content_views',
         #     ], …}
+        api_paths = response.json()['links']
+        transformed_paths = {ep: tuple(paths.values()) for ep, paths in api_paths.items()}
+        api_diff = DeepDiff(
+            API_PATHS,
+            transformed_paths,
+            ignore_order=True,
+            report_repetition=True,
+            verbose_level=0,
+        )
+        assert api_diff == {}, f'API path mismatch (expected first): \n{pformat(api_diff)}'
 
 
 class EndToEndTestCase(TestCase, ClientProvisioningMixin):
@@ -963,6 +987,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -977,6 +1002,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
@@ -991,6 +1017,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
@@ -1005,6 +1032,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
+    @pytest.mark.skip_if_open('BZ:1897360')
     def test_positive_ping(self):
         """Check if all services are running
 
