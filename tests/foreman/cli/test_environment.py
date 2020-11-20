@@ -34,11 +34,6 @@ from robottelo.datafactory import parametrized
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
 def module_locs():
     return [entities.Location().create(), entities.Location().create()]
 
