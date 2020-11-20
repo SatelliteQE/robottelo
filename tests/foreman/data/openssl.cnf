@@ -47,7 +47,7 @@ emailAddress= fake@example.com
 localityName= My Town
 stateOrProvinceName= My State
 countryName= US
-commonName= Fake CA
+commonName= <cert_hostname>
 
 [ v3_ca ]
 basicConstraints                        = CA:TRUE
