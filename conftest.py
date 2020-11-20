@@ -17,4 +17,5 @@ pytest_plugins = [
     "pytest_fixtures.oscap_fixtures",
     "pytest_fixtures.smartproxy_fixtures",
     "pytest_fixtures.user_fixtures",
+    "pytest_fixtures.upgrade_fixtures",
 ]
