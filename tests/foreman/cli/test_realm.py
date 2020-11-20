@@ -19,6 +19,8 @@ import random
 import pytest
 from fauxfactory import gen_string
 
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import realm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
@@ -27,10 +29,11 @@ from robottelo.cli.realm import Realm
 
 
 @pytest.fixture(scope='module')
-def _make_proxy(options=None):
+def _make_proxy(request):
     """Create a Proxy and register the cleanup function"""
-    proxy = make_proxy(options=options)
-    yield proxy
+    proxy = make_proxy()
+    request.addfinalizer(lambda: capsule_cleanup(proxy['id']))
+    return proxy
 
 
 @pytest.mark.run_in_one_thread
@@ -66,7 +69,7 @@ class TestRealm:
             Realm.info({'id': realm['id']})
 
     @pytest.mark.tier1
-    def test_positive_realm_info_name(self, _make_proxy):
+    def test_positive_realm_info_name(self, _make_proxy, request):
         """Test realm info functionality
 
         :id: 2e3e92df-61f3-4c6b-98b9-dc9c2f8d140c
@@ -82,12 +85,13 @@ class TestRealm:
                 'locations': proxy['locations'],
             }
         )
+        request.addfinalizer(lambda: realm_cleanup(realm['id']))
         info = Realm.info({'name': realm['name']})
         for key in info.keys():
             assert info[key] == realm[key]
 
     @pytest.mark.tier1
-    def test_positive_realm_info_id(self, _make_proxy):
+    def test_positive_realm_info_id(self, _make_proxy, request):
         """Test realm info functionality
 
         :id: 1ae7b3af-221e-4480-9e93-d05d573456b4
@@ -103,13 +107,14 @@ class TestRealm:
                 'locations': proxy['locations'],
             }
         )
+        request.addfinalizer(lambda: realm_cleanup(realm['id']))
         info = Realm.info({'id': realm['id']})
         for key in info.keys():
             assert info[key] == realm[key]
         assert info == Realm.info({'id': realm['id']})
 
     @pytest.mark.tier2
-    def test_positive_realm_update_name(self, _make_proxy):
+    def test_positive_realm_update_name(self, _make_proxy, request):
         """Test updating realm name
 
         :id: c09e6599-c77a-4290-ac93-311d06e3d860
@@ -127,6 +132,7 @@ class TestRealm:
                 'locations': proxy['locations'],
             }
         )
+        request.addfinalizer(lambda: realm_cleanup(realm['id']))
         assert realm['name'] == realm_name
         up = Realm.update({'id': realm['id'], 'new-name': new_realm_name})
         assert up[0]['message'] == f'Realm [{new_realm_name}] updated.'
@@ -134,7 +140,7 @@ class TestRealm:
         assert info['name'] == new_realm_name
 
     @pytest.mark.tier1
-    def test_negative_realm_update_invalid_type(self, _make_proxy):
+    def test_negative_realm_update_invalid_type(self, _make_proxy, request):
         """Test updating realm with an invalid type
 
         :id: 3097f8e5-9152-4d8d-9991-969bdfc9c4d4
@@ -152,6 +158,7 @@ class TestRealm:
                 'locations': proxy['locations'],
             }
         )
+        request.addfinalizer(lambda: realm_cleanup(realm['id']))
         with pytest.raises(CLIReturnCodeError):
             Realm.update({'id': realm['id'], 'realm-type': new_realm_type})
 

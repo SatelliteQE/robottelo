@@ -40,7 +40,7 @@ def module_host_group(module_loc, module_org):
 
 @pytest.mark.tier2
 def test_positive_check_dashboard(
-    session, module_host_group, module_loc, module_org, oscap_content_path
+    session, module_host_group, module_loc, module_org, oscap_content_path, import_ansible_roles
 ):
     """Create OpenScap Policy which is connected to the host. That policy
     dashboard should be rendered and correctly display information about
@@ -109,7 +109,13 @@ def test_positive_check_dashboard(
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_end_to_end(
-    session, module_host_group, module_loc, module_org, oscap_content_path, tailoring_file_path
+    session,
+    module_host_group,
+    module_loc,
+    module_org,
+    oscap_content_path,
+    tailoring_file_path,
+    import_ansible_roles,
 ):
     """Perform end to end testing for oscap policy component
 
