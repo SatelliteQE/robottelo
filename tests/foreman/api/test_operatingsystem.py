@@ -30,12 +30,12 @@ from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.test import APITestCase
 from robottelo.utils.issue_handlers import is_open
 
 
-class OperatingSystemParameterTestCase(APITestCase):
+class TestOperatingSystemParameter:
     """Tests for operating system parameters."""
 
     @pytest.mark.tier1
@@ -52,7 +52,7 @@ class OperatingSystemParameterTestCase(APITestCase):
         # Check whether OS 1 exists.
         os1 = entities.OperatingSystem(id=1).read_raw()
         if os1.status_code == NOT_FOUND and entities.OperatingSystem().create().id != 1:
-            self.skipTest('Cannot execute test, as operating system 1 is not available.')
+            pytest.skip('Cannot execute test, as operating system 1 is not available.')
 
         # Create and read a parameter for operating system 1. The purpose of
         # this test is to make sure an HTTP 422 is not returned, but we're also
@@ -63,40 +63,38 @@ class OperatingSystemParameterTestCase(APITestCase):
         os_param = entities.OperatingSystemParameter(
             name=name, operatingsystem=1, value=value
         ).create()
-        self.assertEqual(os_param.name, name)
-        self.assertEqual(os_param.value, value)
+        assert os_param.name == name
+        assert os_param.value == value
 
 
-class OperatingSystemTestCase(APITestCase):
+class TestOperatingSystem:
     """Tests for operating systems."""
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an organization which can be re-used in tests."""
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_create_with_name(self, name):
         """Create operating system with valid name only
 
         :id: e95707bf-3344-4d85-866f-4642a8f66cff
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and has proper
             name
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                os = entities.OperatingSystem(name=name).create()
-                self.assertEqual(os.name, name)
+        os = entities.OperatingSystem(name=name).create()
+        assert os.name == name
 
     @pytest.mark.tier1
-    def test_positive_create_with_os_family(self):
+    @pytest.mark.parametrize('os_family', **parametrized(OPERATING_SYSTEMS))
+    def test_positive_create_with_os_family(self, os_family):
         """Create operating system with every OS family possible
 
         :id: 6ad32d22-53cc-4bab-ac10-f466f75d7cc6
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and has proper OS
             family assigned
@@ -105,13 +103,10 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for os_family in OPERATING_SYSTEMS:
-            with self.subTest(os_family):
-                if is_open('BZ:1709683'):
-                    if os_family == 'Debian':
-                        continue
-                os = entities.OperatingSystem(family=os_family).create()
-                self.assertEqual(os.family, os_family)
+        if is_open('BZ:1709683') and os_family == 'Debian':
+            pytest.skip("BZ 1709683")
+        os = entities.OperatingSystem(family=os_family).create()
+        assert os.family == os_family
 
     @pytest.mark.tier1
     def test_positive_create_with_minor_version(self):
@@ -126,7 +121,7 @@ class OperatingSystemTestCase(APITestCase):
         """
         minor_version = gen_string('numeric')
         os = entities.OperatingSystem(minor=minor_version).create()
-        self.assertEqual(os.minor, minor_version)
+        assert os.minor == minor_version
 
     @pytest.mark.tier1
     def test_positive_read_minor_version_as_string(self):
@@ -142,13 +137,16 @@ class OperatingSystemTestCase(APITestCase):
         """
         minor = int(gen_string('numeric', random.randint(1, 16)))
         operating_sys = entities.OperatingSystem(minor=minor).create()
-        self.assertEqual(operating_sys.minor, str(minor))
+        assert operating_sys.minor == str(minor)
 
     @pytest.mark.tier1
-    def test_positive_create_with_description(self):
+    @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
+    def test_positive_create_with_description(self, desc):
         """Create operating system with description
 
         :id: 980e6411-da11-4fec-ae46-47722367ae40
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and has proper
             description
@@ -156,27 +154,26 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        for desc in valid_data_list():
-            with self.subTest(desc):
-                os = entities.OperatingSystem(name=name, description=desc).create()
-                self.assertEqual(os.name, name)
-                self.assertEqual(os.description, desc)
+        os = entities.OperatingSystem(name=name, description=desc).create()
+        assert os.name == name
+        assert os.description == desc
 
     @pytest.mark.tier1
-    def test_positive_create_with_password_hash(self):
+    @pytest.mark.parametrize('pass_hash', **parametrized(('SHA256', 'SHA512')))
+    def test_positive_create_with_password_hash(self, pass_hash):
         """Create operating system with valid password hash option
 
         :id: 00830e71-b414-41ab-bc8f-03fd2fbd5a84
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and has proper
             password hash type
 
         :CaseImportance: Critical
         """
-        for pass_hash in ['SHA256', 'SHA512']:
-            with self.subTest(pass_hash):
-                os = entities.OperatingSystem(password_hash=pass_hash).create()
-                self.assertEqual(os.password_hash, pass_hash)
+        os = entities.OperatingSystem(password_hash=pass_hash).create()
+        assert os.password_hash == pass_hash
 
     @pytest.mark.tier2
     def test_positive_create_with_arch(self):
@@ -191,8 +188,8 @@ class OperatingSystemTestCase(APITestCase):
         """
         arch = entities.Architecture().create()
         operating_sys = entities.OperatingSystem(architecture=[arch]).create()
-        self.assertEqual(len(operating_sys.architecture), 1)
-        self.assertEqual(operating_sys.architecture[0].id, arch.id)
+        assert len(operating_sys.architecture) == 1
+        assert operating_sys.architecture[0].id == arch.id
 
     @pytest.mark.tier2
     def test_positive_create_with_archs(self):
@@ -209,10 +206,8 @@ class OperatingSystemTestCase(APITestCase):
         amount = range(random.randint(3, 5))
         archs = [entities.Architecture().create() for _ in amount]
         operating_sys = entities.OperatingSystem(architecture=archs).create()
-        self.assertEqual(len(operating_sys.architecture), len(amount))
-        self.assertEqual(
-            {arch.id for arch in operating_sys.architecture}, {arch.id for arch in archs}
-        )
+        assert len(operating_sys.architecture) == len(amount)
+        assert {arch.id for arch in operating_sys.architecture} == {arch.id for arch in archs}
 
     @pytest.mark.tier2
     def test_positive_create_with_ptable(self):
@@ -227,8 +222,8 @@ class OperatingSystemTestCase(APITestCase):
         """
         ptable = entities.PartitionTable().create()
         operating_sys = entities.OperatingSystem(ptable=[ptable]).create()
-        self.assertEqual(len(operating_sys.ptable), 1)
-        self.assertEqual(operating_sys.ptable[0].id, ptable.id)
+        assert len(operating_sys.ptable) == 1
+        assert operating_sys.ptable[0].id == ptable.id
 
     @pytest.mark.tier2
     def test_positive_create_with_ptables(self):
@@ -245,14 +240,11 @@ class OperatingSystemTestCase(APITestCase):
         amount = range(random.randint(3, 5))
         ptables = [entities.PartitionTable().create() for _ in amount]
         operating_sys = entities.OperatingSystem(ptable=ptables).create()
-        self.assertEqual(len(operating_sys.ptable), len(amount))
-        self.assertEqual(
-            {ptable.id for ptable in operating_sys.ptable},
-            {ptable.id for ptable in ptables},
-        )
+        assert len(operating_sys.ptable) == len(amount)
+        assert {ptable.id for ptable in operating_sys.ptable} == {ptable.id for ptable in ptables}
 
     @pytest.mark.tier2
-    def test_positive_create_with_media(self):
+    def test_positive_create_with_media(self, module_org):
         """Create an operating system that points at a media.
 
         :id: 56fadee4-c676-48b6-a2db-e6fef9d2a575
@@ -262,13 +254,13 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        medium = entities.Media(organization=[self.org]).create()
+        medium = entities.Media(organization=[module_org]).create()
         operating_sys = entities.OperatingSystem(medium=[medium]).create()
-        self.assertEqual(len(operating_sys.medium), 1)
-        self.assertEqual(operating_sys.medium[0].id, medium.id)
+        assert len(operating_sys.medium) == 1
+        assert operating_sys.medium[0].id == medium.id
 
     @pytest.mark.tier2
-    def test_positive_create_with_template(self):
+    def test_positive_create_with_template(self, module_org):
         """Create an operating system that points at a provisioning template.
 
         :id: df73ecba-5a1c-4201-9c2f-b2e03e8fec25
@@ -278,26 +270,27 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        template = entities.ProvisioningTemplate(organization=[self.org]).create()
+        template = entities.ProvisioningTemplate(organization=[module_org]).create()
         operating_sys = entities.OperatingSystem(provisioning_template=[template]).create()
-        self.assertEqual(len(operating_sys.provisioning_template), 1)
-        self.assertEqual(operating_sys.provisioning_template[0].id, template.id)
+        assert len(operating_sys.provisioning_template) == 1
+        assert operating_sys.provisioning_template[0].id == template.id
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_invalid_name(self, name):
         """Try to create operating system entity providing an invalid
         name
 
         :id: cd4286fd-7128-4385-9c8d-ef979c22ee38
 
+        :parametrized: yes
+
         :expectedresults: Operating system entity is not created
 
         :CaseImportance: Critical
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.OperatingSystem(name=name).create()
+        with pytest.raises(HTTPError):
+            entities.OperatingSystem(name=name).create()
 
     @pytest.mark.tier1
     def test_negative_create_with_invalid_os_family(self):
@@ -310,7 +303,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
 
     @pytest.mark.tier1
@@ -326,41 +319,43 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(description=gen_string('alphanumeric', 256)).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_major_version(self):
+    @pytest.mark.parametrize('major_version', **parametrized((gen_string('numeric', 6), '', '-6')))
+    def test_negative_create_with_invalid_major_version(self, major_version):
         """Try to create operating system entity providing incorrect
         major version value (More than 5 characters, empty value, negative
         number)
 
         :id: f2646bc2-d639-4079-bdcb-ff76679f1457
 
+        :parametrized: yes
+
         :expectedresults: Operating system entity is not created
 
         :CaseImportance: Critical
         """
-        for major_version in gen_string('numeric', 6), '', '-6':
-            with self.subTest(major_version):
-                with self.assertRaises(HTTPError):
-                    entities.OperatingSystem(major=major_version).create()
+        with pytest.raises(HTTPError):
+            entities.OperatingSystem(major=major_version).create()
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_minor_version(self):
+    @pytest.mark.parametrize('minor_version', **parametrized((gen_string('numeric', 17), '-5')))
+    def test_negative_create_with_invalid_minor_version(self, minor_version):
         """Try to create operating system entity providing incorrect
         minor version value (More than 16 characters and negative number)
 
         :id: dec4b456-153c-4a66-8b8e-b12ac7800e51
 
+        :parametrized: yes
+
         :expectedresults: Operating system entity is not created
 
         :CaseImportance: Critical
         """
-        for minor_version in gen_string('numeric', 17), '-5':
-            with self.subTest(minor_version):
-                with self.assertRaises(HTTPError):
-                    entities.OperatingSystem(minor=minor_version).create()
+        with pytest.raises(HTTPError):
+            entities.OperatingSystem(minor=minor_version).create()
 
     @pytest.mark.tier1
     def test_negative_create_with_invalid_password_hash(self):
@@ -373,7 +368,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(password_hash='INVALID_HASH').create()
 
     @pytest.mark.tier1
@@ -389,15 +384,18 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(name=os.name, major=os.major).create()
 
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
+    def test_positive_update_name(self, new_name):
         """Create operating system entity providing the initial name,
         then update its name to another valid name.
 
         :id: 2898e16a-865a-4de6-b2a5-bb0934fc2b76
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and updated
             properly
@@ -405,17 +403,18 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
-                self.assertEqual(os.name, new_name)
+        os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
+        assert os.name == new_name
 
     @pytest.mark.tier1
-    def test_positive_update_description(self):
+    @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
+    def test_positive_update_description(self, new_desc):
         """Create operating entity providing the initial description,
         then update that description to another valid one.
 
         :id: c809700a-b6ab-4651-9bd0-d0d9bd6a47dd
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is created and updated
             properly
@@ -423,12 +422,8 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem(description=gen_string('utf8')).create()
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                os = entities.OperatingSystem(id=os.id, description=new_desc).update(
-                    ['description']
-                )
-                self.assertEqual(os.description, new_desc)
+        os = entities.OperatingSystem(id=os.id, description=new_desc).update(['description'])
+        assert os.description == new_desc
 
     @pytest.mark.tier1
     def test_positive_update_major_version(self):
@@ -445,7 +440,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem().create()
         new_major_version = gen_string('numeric', 5)
         os = entities.OperatingSystem(id=os.id, major=new_major_version).update(['major'])
-        self.assertEqual(os.major, new_major_version)
+        assert os.major == new_major_version
 
     @pytest.mark.tier1
     def test_positive_update_minor_version(self):
@@ -462,7 +457,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         new_minor_version = gen_string('numeric')
         os = entities.OperatingSystem(id=os.id, minor=new_minor_version).update(['minor'])
-        self.assertEqual(os.minor, new_minor_version)
+        assert os.minor == new_minor_version
 
     @pytest.mark.tier1
     def test_positive_update_os_family(self):
@@ -479,7 +474,7 @@ class OperatingSystemTestCase(APITestCase):
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         new_os_family = OPERATING_SYSTEMS[random.randint(1, len(OPERATING_SYSTEMS) - 1)]
         os = entities.OperatingSystem(id=os.id, family=new_os_family).update(['family'])
-        self.assertEqual(os.family, new_os_family)
+        assert os.family == new_os_family
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -497,11 +492,11 @@ class OperatingSystemTestCase(APITestCase):
         arch_1 = entities.Architecture().create()
         arch_2 = entities.Architecture().create()
         os = entities.OperatingSystem(architecture=[arch_1]).create()
-        self.assertEqual(len(os.architecture), 1)
-        self.assertEqual(os.architecture[0].id, arch_1.id)
+        assert len(os.architecture) == 1
+        assert os.architecture[0].id == arch_1.id
         os = entities.OperatingSystem(id=os.id, architecture=[arch_2]).update(['architecture'])
-        self.assertEqual(len(os.architecture), 1)
-        self.assertEqual(os.architecture[0].id, arch_2.id)
+        assert len(os.architecture) == 1
+        assert os.architecture[0].id == arch_2.id
 
     @pytest.mark.tier2
     def test_positive_update_ptable(self):
@@ -518,14 +513,14 @@ class OperatingSystemTestCase(APITestCase):
         ptable_1 = entities.PartitionTable().create()
         ptable_2 = entities.PartitionTable().create()
         os = entities.OperatingSystem(ptable=[ptable_1]).create()
-        self.assertEqual(len(os.ptable), 1)
-        self.assertEqual(os.ptable[0].id, ptable_1.id)
+        assert len(os.ptable) == 1
+        assert os.ptable[0].id == ptable_1.id
         os = entities.OperatingSystem(id=os.id, ptable=[ptable_2]).update(['ptable'])
-        self.assertEqual(len(os.ptable), 1)
-        self.assertEqual(os.ptable[0].id, ptable_2.id)
+        assert len(os.ptable) == 1
+        assert os.ptable[0].id == ptable_2.id
 
     @pytest.mark.tier2
-    def test_positive_update_media(self):
+    def test_positive_update_media(self, module_org):
         """Create an operating system that points at media entity and
         then update it to point to another media
 
@@ -536,18 +531,18 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        media_1 = entities.Media(organization=[self.org]).create()
-        media_2 = entities.Media(organization=[self.org]).create()
+        media_1 = entities.Media(organization=[module_org]).create()
+        media_2 = entities.Media(organization=[module_org]).create()
         os = entities.OperatingSystem(medium=[media_1]).create()
-        self.assertEqual(len(os.medium), 1)
-        self.assertEqual(os.medium[0].id, media_1.id)
+        assert len(os.medium) == 1
+        assert os.medium[0].id == media_1.id
         os = entities.OperatingSystem(id=os.id, medium=[media_2]).update(['medium'])
-        self.assertEqual(len(os.medium), 1)
-        self.assertEqual(os.medium[0].id, media_2.id)
+        assert len(os.medium) == 1
+        assert os.medium[0].id == media_2.id
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_update_medias(self):
+    def test_positive_update_medias(self, module_org):
         """Create an operating system that points at media entity and
         then update it to point to another multiple different medias.
 
@@ -558,19 +553,19 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        initial_media = entities.Media(organization=[self.org]).create()
+        initial_media = entities.Media(organization=[module_org]).create()
         os = entities.OperatingSystem(medium=[initial_media]).create()
-        self.assertEqual(len(os.medium), 1)
-        self.assertEqual(os.medium[0].id, initial_media.id)
+        assert len(os.medium) == 1
+        assert os.medium[0].id == initial_media.id
         amount = range(random.randint(3, 5))
         medias = [entities.Media().create() for _ in amount]
         os = entities.OperatingSystem(id=os.id, medium=medias).update(['medium'])
-        self.assertEqual(len(os.medium), len(amount))
-        self.assertEqual({medium.id for medium in os.medium}, {medium.id for medium in medias})
+        assert len(os.medium) == len(amount)
+        assert {medium.id for medium in os.medium} == {medium.id for medium in medias}
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_update_template(self):
+    def test_positive_update_template(self, module_org):
         """Create an operating system that points at provisioning template and
         then update it to point to another template
 
@@ -581,33 +576,34 @@ class OperatingSystemTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        template_1 = entities.ProvisioningTemplate(organization=[self.org]).create()
-        template_2 = entities.ProvisioningTemplate(organization=[self.org]).create()
+        template_1 = entities.ProvisioningTemplate(organization=[module_org]).create()
+        template_2 = entities.ProvisioningTemplate(organization=[module_org]).create()
         os = entities.OperatingSystem(provisioning_template=[template_1]).create()
-        self.assertEqual(len(os.provisioning_template), 1)
-        self.assertEqual(os.provisioning_template[0].id, template_1.id)
+        assert len(os.provisioning_template) == 1
+        assert os.provisioning_template[0].id == template_1.id
         os = entities.OperatingSystem(id=os.id, provisioning_template=[template_2]).update(
             ['provisioning_template']
         )
-        self.assertEqual(len(os.provisioning_template), 1)
-        self.assertEqual(os.provisioning_template[0].id, template_2.id)
+        assert len(os.provisioning_template) == 1
+        assert os.provisioning_template[0].id == template_2.id
 
     @pytest.mark.tier1
-    def test_negative_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
+    def test_negative_update_name(self, new_name):
         """Create operating system entity providing the initial name,
         then update its name to invalid one.
 
         :id: 3ba55d6e-99cb-4878-b41b-a59476d1db58
+
+        :parametrized: yes
 
         :expectedresults: Operating system entity is not updated
 
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                with self.assertRaises(HTTPError):
-                    os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
+        with pytest.raises(HTTPError):
+            os = entities.OperatingSystem(id=os.id, name=new_name).update(['name'])
 
     @pytest.mark.tier1
     def test_negative_update_major_version(self):
@@ -621,7 +617,7 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(id=os.id, major='-20').update(['major'])
 
     @pytest.mark.tier1
@@ -636,7 +632,7 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(id=os.id, minor='INVALID_VERSION').update(['minor'])
 
     @pytest.mark.tier1
@@ -651,23 +647,24 @@ class OperatingSystemTestCase(APITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             entities.OperatingSystem(id=os.id, family='NON_EXISTENT_OS').update(['family'])
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_delete(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_delete(self, name):
         """Create new operating system entity and then delete it.
 
         :id: 3dbffb56-ad99-441d-921c-0fad6504d257
+
+        :parametrized: yes
 
         :expectedresults: Operating System entity is deleted successfully
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                os = entities.OperatingSystem(name=name).create()
-                os.delete()
-                with self.assertRaises(HTTPError):
-                    os.read()
+        os = entities.OperatingSystem(name=name).create()
+        os.delete()
+        with pytest.raises(HTTPError):
+            os.read()
