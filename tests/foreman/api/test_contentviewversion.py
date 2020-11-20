@@ -36,7 +36,7 @@ from robottelo.helpers import read_data_file
 
 
 @pytest.fixture(scope='module')
-def setUp(module_org):
+def module_lce_cv(module_org):
     """Create some entities for all tests."""
     lce1 = entities.LifecycleEnvironment(organization=module_org).create()
     lce2 = entities.LifecycleEnvironment(organization=module_org, prior=lce1).create()
@@ -100,7 +100,7 @@ def test_negative_create(module_org):
 
 
 @pytest.mark.tier2
-def test_positive_promote_valid_environment(setUp, module_org):
+def test_positive_promote_valid_environment(module_lce_cv, module_org):
     """Promote a content view version to 'next in sequence'
     lifecycle environment.
 
@@ -113,7 +113,7 @@ def test_positive_promote_valid_environment(setUp, module_org):
     :CaseImportance: Critical
     """
     # Create a new content view...
-    lce1, _, _ = setUp
+    lce1, _, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and promote it.
     cv.publish()
@@ -134,7 +134,7 @@ def test_positive_promote_valid_environment(setUp, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_promote_out_of_sequence_environment(module_org, setUp):
+def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv):
     """Promote a content view version to a lifecycle environment
     that is 'out of sequence'.
 
@@ -145,7 +145,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, setUp):
     :CaseLevel: Integration
     """
     # Create a new content view...
-    _, lce2, _ = setUp
+    _, lce2, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
@@ -163,7 +163,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, setUp):
 
 
 @pytest.mark.tier2
-def test_negative_promote_valid_environment(setUp):
+def test_negative_promote_valid_environment(module_lce_cv):
     """Promote the default content view version.
 
     :id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
@@ -174,13 +174,13 @@ def test_negative_promote_valid_environment(setUp):
 
     :CaseImportance: Low
     """
-    lce1, _, default_cv = setUp
+    lce1, _, default_cv = module_lce_cv
     with pytest.raises(HTTPError):
         promote(default_cv, lce1.id)
 
 
 @pytest.mark.tier2
-def test_negative_promote_out_of_sequence_environment(setUp, module_org):
+def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org):
     """Promote a content view version to a lifecycle environment
     that is 'out of sequence'.
 
@@ -191,7 +191,7 @@ def test_negative_promote_out_of_sequence_environment(setUp, module_org):
     :CaseLevel: Integration
     """
     # Create a new content view...
-    _, lce2, _ = setUp
+    _, lce2, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
@@ -210,7 +210,7 @@ def test_negative_promote_out_of_sequence_environment(setUp, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete():
+def test_positive_delete(module_org):
     """Create content view and publish it. After that try to
     disassociate content view from 'Library' environment through
     'delete_from_environment' command and delete content view version from
@@ -226,16 +226,15 @@ def test_positive_delete():
     :CaseImportance: Critical
     """
     key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
-    org = entities.Organization().create()
-    gpgkey = entities.GPGKey(content=key_content, organization=org).create()
+    gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new product without selecting GPGkey
-    product = entities.Product(organization=org).create()
+    product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(gpg_key=gpgkey, product=product, url=FAKE_1_YUM_REPO).create()
     # sync repository
     repo.sync()
     # Create content view
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     # Associate repository to new content view
     content_view.repository = [repo]
     content_view = content_view.update(['repository'])
@@ -256,7 +255,7 @@ def test_positive_delete():
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_delete_non_default():
+def test_positive_delete_non_default(module_org):
     """Create content view and publish and promote it to new
     environment. After that try to disassociate content view from 'Library'
     and one more non-default environments through 'delete_from_environment'
@@ -270,14 +269,13 @@ def test_positive_delete_non_default():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     # Publish content view
     content_view.publish()
     content_view = content_view.read()
     assert len(content_view.version) == 1
     assert len(content_view.version[0].read().environment) == 1
-    lce = entities.LifecycleEnvironment(organization=org).create()
+    lce = entities.LifecycleEnvironment(organization=module_org).create()
     promote(content_view.version[0], lce.id)
     cvv = content_view.version[0].read()
     assert len(cvv.environment) == 2
@@ -292,7 +290,7 @@ def test_positive_delete_non_default():
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete_composite_version():
+def test_positive_delete_composite_version(module_org):
     """Create composite content view and publish it. After that try to
     disassociate content view from 'Library' environment through
     'delete_from_environment' command and delete content view version from
@@ -307,17 +305,16 @@ def test_positive_delete_composite_version():
 
     :BZ: 1276479
     """
-    org = entities.Organization().create()
     # Create and publish product/repository
-    product = entities.Product(organization=org).create()
+    product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
     repo.sync()
     # Create and publish content views
-    content_view = entities.ContentView(organization=org, repository=[repo]).create()
+    content_view = entities.ContentView(organization=module_org, repository=[repo]).create()
     content_view.publish()
     # Create and publish composite content view
     composite_cv = entities.ContentView(
-        organization=org, composite=True, component=[content_view.read().version[0]]
+        organization=module_org, composite=True, component=[content_view.read().version[0]]
     ).create()
     composite_cv.publish()
     composite_cv = composite_cv.read()
@@ -336,7 +333,7 @@ def test_positive_delete_composite_version():
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete_with_puppet_content():
+def test_positive_delete_with_puppet_content(module_org):
     """Delete content view version with puppet module content
 
     :id: cae1164c-6608-4e19-923c-936e75ed807b
@@ -354,18 +351,17 @@ def test_positive_delete_with_puppet_content():
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
     lce_library = (
-        entities.LifecycleEnvironment(organization=org, name=ENVIRONMENT).search()[0].read()
+        entities.LifecycleEnvironment(organization=module_org, name=ENVIRONMENT).search()[0].read()
     )
-    lce = entities.LifecycleEnvironment(organization=org, prior=lce_library).create()
-    product = entities.Product(organization=org).create()
+    lce = entities.LifecycleEnvironment(organization=module_org, prior=lce_library).create()
+    product = entities.Product(organization=module_org).create()
     puppet_repo = entities.Repository(
         url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add the yum repo to it
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     # get a random puppet module
     puppet_module = random.choice(content_view.available_puppet_modules()['results'])
     # add the puppet module to content view
@@ -395,7 +391,7 @@ def test_positive_delete_with_puppet_content():
 
 
 @pytest.mark.tier2
-def test_negative_delete():
+def test_negative_delete(module_org):
     """Create content view and publish it. Try to delete content
     view version while content view is still associated with lifecycle
     environment
@@ -408,8 +404,7 @@ def test_negative_delete():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     # Publish content view
     content_view.publish()
     content_view = content_view.read()
@@ -422,7 +417,7 @@ def test_negative_delete():
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_remove_renamed_cv_version_from_default_env():
+def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     """Remove version of renamed content view from Library environment
 
     :id: 7d5961d0-6a9a-4610-979e-cbc4ddbc50ca
@@ -441,13 +436,12 @@ def test_positive_remove_renamed_cv_version_from_default_env():
     :CaseLevel: Integration
     """
     new_name = gen_string('alpha')
-    org = entities.Organization().create()
     # create yum product and repo
-    product = entities.Product(organization=org).create()
+    product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
     # create a content view and add to it the yum repo
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -472,7 +466,7 @@ def test_positive_remove_renamed_cv_version_from_default_env():
 
 
 @pytest.mark.tier2
-def test_positive_remove_qe_promoted_cv_version_from_default_env():
+def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     """Remove QE promoted content view version from Library environment
 
     :id: c7795762-93bd-419c-ac49-d10dc26b842b
@@ -491,10 +485,9 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env():
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    lce_dev = entities.LifecycleEnvironment(organization=org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
-    product = entities.Product(organization=org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
+    product = entities.Product(organization=module_org).create()
     docker_repo = entities.Repository(
         content_type='docker',
         docker_upstream_name='busybox',
@@ -503,7 +496,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env():
     ).create()
     docker_repo.sync()
     # create a content view and add to it the docker repo
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [docker_repo]
     content_view = content_view.update(['repository'])
     # publish the content view
@@ -529,7 +522,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env():
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_remove_prod_promoted_cv_version_from_default_env():
+def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     """Remove PROD promoted content view version from Library environment
 
     :id: 24911876-7c2a-4a12-a3aa-98051dfda29d
@@ -548,11 +541,10 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env():
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    lce_dev = entities.LifecycleEnvironment(organization=org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
-    lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
-    product = entities.Product(organization=org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
+    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
+    product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
     docker_repo = entities.Repository(
@@ -567,7 +559,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env():
     ).create()
     puppet_repo.sync()
     # create a content view and add to it the yum and docker repos
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
     # get a random puppet module and add it to content view
@@ -600,7 +592,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env():
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_env():
+def test_positive_remove_cv_version_from_env(module_org):
     """Remove promoted content view version from environment
 
     :id: 17cf18bf-09d5-4641-b0e0-c50e628fa6c8
@@ -622,12 +614,11 @@ def test_positive_remove_cv_version_from_env():
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    lce_dev = entities.LifecycleEnvironment(organization=org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
-    product = entities.Product(organization=org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
+    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
+    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
+    product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
@@ -635,7 +626,7 @@ def test_positive_remove_cv_version_from_env():
     ).create()
     puppet_repo.sync()
     # create a content view and add to it the yum repo
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     # get a random puppet module and add it to content view
@@ -674,7 +665,7 @@ def test_positive_remove_cv_version_from_env():
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_remove_cv_version_from_multi_env():
+def test_positive_remove_cv_version_from_multi_env(module_org):
     """Remove promoted content view version from multiple environment
 
     :id: 18b86a68-8e6a-43ea-b95e-188fba125a26
@@ -694,12 +685,11 @@ def test_positive_remove_cv_version_from_multi_env():
 
     :CaseImportance: Low
     """
-    org = entities.Organization().create()
-    lce_dev = entities.LifecycleEnvironment(organization=org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
-    product = entities.Product(organization=org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
+    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
+    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
+    product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
@@ -707,7 +697,7 @@ def test_positive_remove_cv_version_from_multi_env():
     ).create()
     puppet_repo.sync()
     # create a content view and add to it the yum repo
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     # get a random puppet module and add it to content view
@@ -743,7 +733,7 @@ def test_positive_remove_cv_version_from_multi_env():
 @pytest.mark.upgrade
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete_cv_promoted_to_multi_env():
+def test_positive_delete_cv_promoted_to_multi_env(module_org):
     """Delete published content view with version promoted to multiple
      environments
 
@@ -765,12 +755,11 @@ def test_positive_delete_cv_promoted_to_multi_env():
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    lce_dev = entities.LifecycleEnvironment(organization=org).create()
-    lce_qe = entities.LifecycleEnvironment(organization=org, prior=lce_dev).create()
-    lce_stage = entities.LifecycleEnvironment(organization=org, prior=lce_qe).create()
-    lce_prod = entities.LifecycleEnvironment(organization=org, prior=lce_stage).create()
-    product = entities.Product(organization=org).create()
+    lce_dev = entities.LifecycleEnvironment(organization=module_org).create()
+    lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
+    lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
+    lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
+    product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
@@ -778,7 +767,7 @@ def test_positive_delete_cv_promoted_to_multi_env():
     ).create()
     puppet_repo.sync()
     # create a content view and add to it the yum repo
-    content_view = entities.ContentView(organization=org).create()
+    content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     # get a random puppet module and add it to content view
@@ -895,14 +884,14 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
 @pytest.mark.tier3
 def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
     """Remove promoted content view version from multiple environment,
-    with satellite setup to use capsule
+    with satellite module_lce_cv to use capsule
 
     :id: 1e8a8e64-eec8-49e0-b121-919c53f416d2
 
     :Steps:
 
         1. Create a content view
-        2. Setup satellite to use a capsule and to sync all lifecycle
+        2. module_lce_cv satellite to use a capsule and to sync all lifecycle
            environments
         3. Add a yum repo, puppet module and a docker repo to the content
            view
