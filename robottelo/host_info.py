@@ -64,7 +64,7 @@ def _extract_sat_version(ssh_cmd):
     ssh_result = ssh.command(ssh_cmd)
     if ssh_result.stdout:
         version_description = ssh_result.stdout[0]
-        version_re = r'[^\d]*(?P<version>\d(\.\d){1})'
+        version_re = r'[^\d]*(?P<version>\d(\.\d){2})'
         result = re.search(version_re, version_description)
         if result:
             host_sat_version = result.group('version')
