@@ -16,7 +16,7 @@ from robottelo.utils.issue_handlers import should_deselect
 from robottelo.utils.version import search_version_key
 from robottelo.utils.version import VersionEncoder
 
-LOGGER = logging.getLogger('robottelo')
+LOGGER = logging.getLogger('robottelo.collection')
 
 DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 
