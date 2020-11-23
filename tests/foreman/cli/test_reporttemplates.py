@@ -128,15 +128,15 @@ class ReportTemplateTestCase(CLITestCase):
         :CaseImportance: High
         """
         base = Base().execute('--help')
-        self.assertGreater(len([i for i in base if 'report-template' in i]), 0)
+        assert len([i for i in base if 'report-template' in i]) > 0
         base = Base().execute('report-template --help')
-        self.assertGreater(len([i for i in base if 'hammer report-template' in i]), 0)
-        self.assertGreater(len([i for i in base if 'info' and 'report template' in i]), 0)
-        self.assertGreater(len([i for i in base if 'generate' and 'report' in i]), 0)
+        assert len([i for i in base if 'hammer report-template' in i]) > 0
+        assert len([i for i in base if 'info' and 'report template' in i]) > 0
+        assert len([i for i in base if 'generate' and 'report' in i]) > 0
         base = Base().execute('report-template create --help')
-        self.assertGreater(len([i for i in base if 'hammer report-template create' in i]), 0)
-        self.assertGreater(len([i for i in base if '--audit-comment' in i]), 0)
-        self.assertGreater(len([i for i in base if '--interactive' in i]), 0)
+        assert len([i for i in base if 'hammer report-template create' in i]) > 0
+        assert len([i for i in base if '--audit-comment' in i]) > 0
+        assert len([i for i in base if '--interactive' in i]) > 0
 
     @pytest.mark.tier1
     def test_positive_end_to_end_crud_and_list(self):
@@ -168,28 +168,28 @@ class ReportTemplateTestCase(CLITestCase):
         # create
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
-        self.assertEqual(report_template['name'], name)
+        assert report_template['name'] == name
 
         # list - create second template
         tmp_name = gen_string('alpha')
         tmp_report_template = make_report_template({'name': tmp_name})
         result_list = ReportTemplate.list()
-        self.assertIn(name, [rt['name'] for rt in result_list])
+        assert name in [rt['name'] for rt in result_list]
 
         # info
         result = ReportTemplate.info({'id': report_template['id']})
-        self.assertEqual(result['name'], name)
+        assert name == result['name']
 
         # update
         new_name = gen_string('alpha')
         result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
-        self.assertEqual(result[0]['name'], new_name)
+        assert new_name == result[0]['name']
         rt_list = ReportTemplate.list()
-        self.assertNotIn(name, [rt['name'] for rt in rt_list])
+        assert name not in [rt['name'] for rt in rt_list]
 
         # delete tmp
         ReportTemplate.delete({'name': tmp_report_template['name']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.info({'id': tmp_report_template['id']})
 
     @pytest.mark.tier1
@@ -218,13 +218,13 @@ class ReportTemplateTestCase(CLITestCase):
         host2 = make_fake_host({'name': host_name_2})
 
         result_list = ReportTemplate.list()
-        self.assertIn('Host - Statuses', [rt['name'] for rt in result_list])
+        assert 'Host - Statuses' in [rt['name'] for rt in result_list]
 
         rt_host_statuses = ReportTemplate.info({'name': 'Host - Statuses'})
         result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
-        self.assertIn(host1['name'], [item.split(',')[0] for item in result_no_filter])
-        self.assertIn(host2['name'], [item.split(',')[0] for item in result_no_filter])
+        assert host1['name'] in [item.split(',')[0] for item in result_no_filter]
+        assert host2['name'] in [item.split(',')[0] for item in result_no_filter]
 
         result = ReportTemplate.generate(
             {
@@ -236,8 +236,8 @@ class ReportTemplateTestCase(CLITestCase):
                 ),
             }
         )
-        self.assertIn(host1['name'], [item.split(',')[0] for item in result])
-        self.assertNotIn(host2['name'], [item.split(',')[0] for item in result])
+        assert host1['name'] in [item.split(',')[0] for item in result]
+        assert host2['name'] not in [item.split(',')[0] for item in result]
 
     @pytest.mark.tier2
     def test_positive_lock_and_unlock_report(self):
@@ -260,12 +260,12 @@ class ReportTemplateTestCase(CLITestCase):
         report_template = make_report_template({'name': name})
         ReportTemplate.update({'name': report_template['name'], 'locked': 1})
         new_name = gen_string('alpha')
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
 
         ReportTemplate.update({'name': report_template['name'], 'locked': 0})
         result = ReportTemplate.update({'name': report_template['name'], 'new-name': new_name})
-        self.assertEqual(result[0]['name'], new_name)
+        assert result[0]['name'] == new_name
 
     @pytest.mark.tier2
     def test_positive_report_add_userinput(self):
@@ -290,7 +290,7 @@ class ReportTemplateTestCase(CLITestCase):
             {'name': ti_name, 'input-type': 'user', 'template-id': report_template['id']}
         )
         result = ReportTemplate.info({'name': report_template['name']})
-        self.assertEqual(result['template-inputs'][0]['name'], template_input['name'])
+        assert result['template-inputs'][0]['name'] == template_input['name']
 
     @pytest.mark.tier2
     def test_positive_dump_report(self):
@@ -312,7 +312,7 @@ class ReportTemplateTestCase(CLITestCase):
         content = gen_string('alpha')
         report_template = make_report_template({'name': name, 'content': content})
         result = ReportTemplate.dump({'id': report_template['id']})
-        self.assertIn(content, result)
+        assert content in result
 
     @pytest.mark.tier2
     def test_positive_clone_locked_report(self):
@@ -337,10 +337,10 @@ class ReportTemplateTestCase(CLITestCase):
         new_name = gen_string('alpha')
         ReportTemplate.clone({'id': report_template['id'], 'new-name': new_name})
         result_list = ReportTemplate.list()
-        self.assertIn(new_name, [rt['name'] for rt in result_list])
+        assert new_name in [rt['name'] for rt in result_list]
         result_info = ReportTemplate.info({'id': report_template['id']})
-        self.assertEqual(result_info['locked'], 'yes')
-        self.assertEqual(result_info['default'], 'yes')
+        assert result_info['locked'] == 'yes'
+        assert result_info['default'] == 'yes'
 
     @pytest.mark.tier2
     def test_positive_generate_report_sanitized(self):
@@ -387,9 +387,9 @@ class ReportTemplateTestCase(CLITestCase):
         report_template = make_report_template({'content': REPORT_TEMPLATE_FILE})
 
         result = ReportTemplate.generate({'name': report_template['name']})
-        self.assertIn('Name,Operating System', result)  # verify header of custom template
-        self.assertIn(
-            '{},"{}"'.format(host['name'], host['operating-system']['operating-system']), result
+        assert 'Name,Operating System' in result  # verify header of custom template
+        assert (
+            '{},"{}"'.format(host['name'], host['operating-system']['operating-system']) in result
         )
 
     @pytest.mark.tier3
@@ -474,7 +474,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with self.assertRaises(CLIFactoryError):
+        with pytest.raises(CLIFactoryError):
             make_report_template({'name': ''})
 
     @pytest.mark.tier2
@@ -498,7 +498,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         ReportTemplate.update({'name': report_template['name'], 'locked': 1})
 
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.delete({'name': report_template['name']})
 
     @pytest.mark.tier2
@@ -520,7 +520,7 @@ class ReportTemplateTestCase(CLITestCase):
         name = gen_string('alpha')
         report_template = make_report_template({'name': name})
 
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.schedule(
                 {'name': report_template['name'], 'mail-to': gen_string('alpha')}
             )
@@ -624,8 +624,8 @@ class ReportTemplateTestCase(CLITestCase):
             {'id': report_template['name'], 'job-id': schedule[0].split("Job ID: ", 1)[1]}
         )
 
-        self.assertIn(content, report_data)
-        with self.assertRaises(CLIReturnCodeError):
+        assert content in report_data
+        with pytest.raises(CLIReturnCodeError):
             ReportTemplate.with_user(username=user2['login'], password=password).report_data(
                 {'id': report_template['name'], 'job-id': schedule[0].split("Job ID: ", 1)[1]}
             )
@@ -655,17 +655,9 @@ class ReportTemplateTestCase(CLITestCase):
         host_name = gen_string('alpha')
         host = make_fake_host({'name': host_name})
 
-        # make sure the template is in the default org
-        org_names = ReportTemplate.info({'name': 'Host - Statuses'})['organizations']
-        default_org = Org.info({'name': DEFAULT_ORG})
-        if default_org['name'] not in org_names:
-            org_ids = [Org.info({'name': org_name})['id'] for org_name in org_names]
-            org_ids.append(default_org['id'])
-            ReportTemplate.update({'name': 'Host - Statuses', 'organization-ids': org_ids})
-
         result = ReportTemplate.generate({'name': 'Host - Statuses', 'organization': DEFAULT_ORG})
 
-        self.assertIn(host['name'], [item.split(',')[0] for item in result])
+        assert host['name'], [item.split(',')[0] for item in result]
 
     @pytest.mark.tier2
     @pytest.mark.skip_if_open('BZ:1782807')
