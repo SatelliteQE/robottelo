@@ -99,7 +99,6 @@ This set of decorators defines test levels:
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports"""
 
-
 skip_if_not_set
 ---------------
 
