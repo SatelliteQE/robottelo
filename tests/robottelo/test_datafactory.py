@@ -28,6 +28,7 @@ class TestFilteredDataPoint:
         if run_one_datapoint:
             assert len(datafactory.generate_strings_list()) == 1
             assert len(datafactory.invalid_emails_list()) == 1
+            assert len(datafactory.invalid_environments_list()) == 1
             assert len(datafactory.invalid_id_list()) == 1
             assert len(datafactory.invalid_interfaces_list()) == 1
             assert len(datafactory.invalid_names_list()) == 1
@@ -47,6 +48,7 @@ class TestFilteredDataPoint:
         else:
             assert len(datafactory.generate_strings_list()) == 7
             assert len(datafactory.invalid_emails_list()) == 8
+            assert len(datafactory.invalid_environments_list()) == 4
             assert len(datafactory.invalid_id_list()) == 4
             assert len(datafactory.invalid_interfaces_list()) == 8
             assert len(datafactory.invalid_names_list()) == 7
@@ -86,26 +88,28 @@ class TestReturnTypes:
 
         1. :meth:`robottelo.datafactory.generate_strings_list`
         2. :meth:`robottelo.datafactory.invalid_emails_list`
-        3. :meth:`robottelo.datafactory.invalid_names_list`
-        4. :meth:`robottelo.datafactory.valid_data_list`
-        5. :meth:`robottelo.datafactory.valid_docker_repository_names`
-        6. :meth:`robottelo.datafactory.valid_emails_list`
-        7. :meth:`robottelo.datafactory.valid_environments_list`
-        8. :meth:`robottelo.datafactory.valid_hosts_list`
-        9. :meth:`robottelo.datafactory.valid_hostgroups_list`
-        10. :meth:`robottelo.datafactory.valid_labels_list`
-        11. :meth:`robottelo.datafactory.valid_names_list`
-        12. :meth:`robottelo.datafactory.valid_org_names_list`
-        13. :meth:`robottelo.datafactory.valid_usernames_list`
-        14. :meth:`robottelo.datafactory.invalid_id_list`
-        15. :meth:`robottelo.datafactory.invalid_interfaces_list`
-        16. :meth:`robottelo.datafactory.valid_interfaces_list`
-        17. :meth:`robottelo.datafactory.valid_cron_expressions`
+        3. :meth:`robottelo.datafactory.invalid_environments_list`
+        4. :meth:`robottelo.datafactory.invalid_names_list`
+        5. :meth:`robottelo.datafactory.valid_data_list`
+        6. :meth:`robottelo.datafactory.valid_docker_repository_names`
+        7. :meth:`robottelo.datafactory.valid_emails_list`
+        8. :meth:`robottelo.datafactory.valid_environments_list`
+        9. :meth:`robottelo.datafactory.valid_hosts_list`
+        10. :meth:`robottelo.datafactory.valid_hostgroups_list`
+        11. :meth:`robottelo.datafactory.valid_labels_list`
+        12. :meth:`robottelo.datafactory.valid_names_list`
+        13. :meth:`robottelo.datafactory.valid_org_names_list`
+        14. :meth:`robottelo.datafactory.valid_usernames_list`
+        15. :meth:`robottelo.datafactory.invalid_id_list`
+        16. :meth:`robottelo.datafactory.invalid_interfaces_list`
+        17. :meth:`robottelo.datafactory.valid_interfaces_list`
+        18. :meth:`robottelo.datafactory.valid_cron_expressions`
 
         """
         for item in itertools.chain(
             datafactory.generate_strings_list(),
             datafactory.invalid_emails_list(),
+            datafactory.invalid_environments_list(),
             datafactory.invalid_interfaces_list(),
             datafactory.invalid_names_list(),
             datafactory.valid_data_list(),
