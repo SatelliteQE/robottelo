@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-LOGGER = logging.getLogger('robottelo')
+LOGGER = logging.getLogger('robottelo.collection')
 
 IMPORTANCE_LEVELS = []
 
@@ -13,11 +13,11 @@ def pytest_addoption(parser):
     """Add CLI options related to Testimony token based mark collection"""
     parser.addoption(
         '--importance',
-        help='Comma separated list of importance levels to include in collection',
+        help='Comma separated list of importance levels to include in test collection',
     )
     parser.addoption(
         '--component',
-        help="Comma separated list of component names to include in collection",
+        help="Comma separated list of component names to include in test collection",
     )
 
 
@@ -26,7 +26,6 @@ def pytest_configure(config):
     for marker in [
         'importance: CaseImportance testimony token, use --importance to filter',
         'component: Component testimony token, use --component to filter',
-        # TODO: components read from testimony.yaml
     ]:
         config.addinivalue_line("markers", marker)
 
@@ -66,8 +65,10 @@ def pytest_collection_modifyitems(session, items, config):
             for d in map(inspect.getdoc, (item.function, getattr(item, 'cls', None), item.module))
             if d is not None
         ]
+        item_mark_names = [m.name for m in item.iter_markers()]
         for docstring in item_docstrings:
-            item_mark_names = [m.name for m in item.iter_markers()]
+            # Add marker starting at smallest docstring scope
+            # only add the mark if it hasn't already been applied at a lower scope
             doc_component = component_regex.findall(docstring)
             if doc_component and 'component' not in item_mark_names:
                 item.add_marker(pytest.mark.component(doc_component[0]))
@@ -102,5 +103,6 @@ def pytest_collection_modifyitems(session, items, config):
                 continue
             selected.append(item)
 
+    # selected will be empty if no filter option was passed, defaulting to full items list
     items[:] = selected or items
     config.hook.pytest_deselected(items=deselected)
