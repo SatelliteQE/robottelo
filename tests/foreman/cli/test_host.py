@@ -1789,7 +1789,8 @@ def test_negative_without_attach(module_host_subscription, host_subscription_cli
 def test_negative_without_attach_with_lce(module_host_subscription, host_subscription_client):
     """Attempt to enable a repository of a subscription that was not
     attached to a host
-    This test is not using the setUpClass Entities except subscription_name and repository_id
+    This test is not using the host_subscription entities except
+    subscription_name and repository_id
 
     :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
