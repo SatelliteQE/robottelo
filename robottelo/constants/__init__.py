@@ -343,15 +343,16 @@ REPOSET = {
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhva6': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'),
-    'rhsc7': 'Red Hat Satellite Capsule 6.6 (for RHEL 7 Server) (RPMs)',
-    'rhsc7_iso': 'Red Hat Satellite Capsule 6.6 (for RHEL 7 Server) (ISOs)',
-    'rhsc6': 'Red Hat Satellite Capsule 6.6 (for RHEL 6 Server) (RPMs)',
-    'rhst7': 'Red Hat Satellite Tools 6.7 (for RHEL 7 Server) (RPMs)',
+    'rhsc7': 'Red Hat Satellite Capsule 6.8 (for RHEL 7 Server) (RPMs)',
+    'rhsc7_iso': 'Red Hat Satellite Capsule 6.8 (for RHEL 7 Server) (ISOs)',
+    'rhsc6': 'Red Hat Satellite Capsule 6.8 (for RHEL 6 Server) (RPMs)',
+    'rhst7': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
     'rhst7_64': 'Red Hat Satellite Tools 6.4 (for RHEL 7 Server) (RPMs)',
     'rhst7_65': 'Red Hat Satellite Tools 6.5 (for RHEL 7 Server) (RPMs)',
     'rhst7_66': 'Red Hat Satellite Tools 6.6 (for RHEL 7 Server) (RPMs)',
     'rhst7_67': 'Red Hat Satellite Tools 6.7 (for RHEL 7 Server) (RPMs)',
-    'rhst6': 'Red Hat Satellite Tools 6.6 (for RHEL 6 Server) (RPMs)',
+    'rhst7_68': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
+    'rhst6': 'Red Hat Satellite Tools 6.8 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
@@ -395,31 +396,31 @@ REPOS = {
         'version': '6.8',
     },
     'rhsc7': {
-        'id': 'rhel-7-server-satellite-capsule-6.6-rpms',
-        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.6',
+        'id': 'rhel-7-server-satellite-capsule-6.8-rpms',
+        'name': ('Red Hat Satellite Capsule 6.8 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.8',
         'reposet': REPOSET['rhsc7'],
         'product': PRDS['rhsc'],
         'distro': DISTRO_RHEL7,
         'key': 'rhsc',
     },
     'rhsc7_iso': {
-        'id': 'rhel-7-server-satellite-capsule-6.6-isos',
-        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 7 Server ISOs x86_64'),
+        'id': 'rhel-7-server-satellite-capsule-6.8-isos',
+        'name': ('Red Hat Satellite Capsule 6.8 for RHEL 7 Server ISOs x86_64'),
     },
     'rhsc6': {
-        'id': 'rhel-6-server-satellite-capsule-6.6-rpms',
-        'name': ('Red Hat Satellite Capsule 6.6 for RHEL 6 Server RPMs x86_64'),
-        'version': '6.6',
+        'id': 'rhel-6-server-satellite-capsule-6.8-rpms',
+        'name': ('Red Hat Satellite Capsule 6.8 for RHEL 6 Server RPMs x86_64'),
+        'version': '6.8',
         'reposet': REPOSET['rhsc6'],
         'product': PRDS['rhsc'],
         'distro': DISTRO_RHEL6,
         'key': 'rhsc',
     },
     'rhst7': {
-        'id': 'rhel-7-server-satellite-tools-6.7-rpms',
-        'name': ('Red Hat Satellite Tools 6.7 for RHEL 7 Server RPMs x86_64'),
-        'version': '6.7',
+        'id': 'rhel-7-server-satellite-tools-6.8-rpms',
+        'name': ('Red Hat Satellite Tools 6.8 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.8',
         'reposet': REPOSET['rhst7'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL7,
@@ -461,10 +462,19 @@ REPOS = {
         'distro': DISTRO_RHEL7,
         'key': 'rhst',
     },
+    'rhst7_68': {
+        'id': 'rhel-7-server-satellite-tools-6.8-rpms',
+        'name': ('Red Hat Satellite Tools 6.8 for RHEL 7 Server RPMs x86_64'),
+        'version': '6.8',
+        'reposet': REPOSET['rhst7_68'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhst',
+    },
     'rhst6': {
-        'id': 'rhel-6-server-satellite-tools-6.6-rpms',
-        'name': ('Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64'),
-        'version': '6.6',
+        'id': 'rhel-6-server-satellite-tools-6.8-rpms',
+        'name': ('Red Hat Satellite Tools 6.8 for RHEL 6 Server RPMs x86_64'),
+        'version': '6.8',
         'reposet': REPOSET['rhst6'],
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL6,
@@ -487,6 +497,14 @@ REPOS = {
         'product': PRDS['rhel'],
         'distro': DISTRO_RHEL6,
         'key': 'rhva65',
+    },
+    'rhva610': {
+        'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.10'),
+        'version': '6.10',
+        'reposet': REPOSET['rhva6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhva610',
     },
     'rhct6': {
         'name': 'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6Server',
@@ -530,7 +548,7 @@ DISTRO_REPOS = {
 # list of tuples. It actually includes following two repos under
 # Reposet: Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs
 #
-# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.5
+# Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.8
 # Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64
 # 6Server
 
@@ -544,6 +562,15 @@ RHVA_REPO_TREE = [
     ),
     ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
+    (
+        'rhel',
+        'rhva6',
+        'rhva610',
+        'repo_name',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs x86_64 6.10',
+    ),
+    ('rhel', 'rhva6', 'rhva610', 'repo_arch', 'x86_64'),
+    ('rhel', 'rhva6', 'rhva610', 'repo_ver', '6.10'),
     (
         'rhel',
         'rhva6',
@@ -561,10 +588,10 @@ SAT6_TOOLS_TREE = [
         'rhst6',
         'rhst6',
         'repo_name',
-        'Red Hat Satellite Tools 6.6 for RHEL 6 Server RPMs x86_64',
+        'Red Hat Satellite Tools 6.8 for RHEL 6 Server RPMs x86_64',
     ),
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.6'),
+    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.8'),
 ]
 
 ATOMIC_HOST_TREE = [
