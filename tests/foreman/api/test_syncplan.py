@@ -144,6 +144,7 @@ def test_positive_get_routes():
     assert response1.json()['results'] == response2.json()['results']
 
 
+@pytest.mark.build_sanity
 @pytest.mark.parametrize("enabled", [False, True])
 @pytest.mark.tier1
 def test_positive_create_enabled_disabled(module_org, enabled):
