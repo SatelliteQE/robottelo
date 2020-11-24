@@ -224,7 +224,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             ansible=settings.ansible_repo,
             maint=settings.satmaintenance_repo,
         )
-        self.configure_rhel_repo(settings.__dict__[self.distro + '_repo'])
+        self.configure_rhel_repo(getattr(settings, f"{self.distro}_repo"))
         self.run('yum repolist')
         self.run('yum -y update')
         self.run('yum -y install satellite-capsule', timeout=1200)
