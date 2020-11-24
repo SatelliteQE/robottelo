@@ -63,6 +63,7 @@ def create_gpg_key_file(content=None):
 search_key = 'name'
 
 
+@pytest.mark.build_sanity
 @pytest.mark.tier1
 def test_verify_gpg_key_content_displayed(module_org):
     """content-credential info should display key content
