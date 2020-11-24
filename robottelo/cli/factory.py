@@ -1955,7 +1955,7 @@ def _setup_org_for_a_rh_repo(options=None):
 
 def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use_cdn=False):
     """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
-    instead of CDN's 'Satellite Capsule' and 'Satellite Tools' if
+    instead of CDN's 'Satellite Capsule', 'Satellite Tools'  and base OS repos if
     ``settings.cdn == 0`` and URL for custom repositories is set in properties.
 
     :param options: a dict with options to pass to function
