@@ -1446,15 +1446,6 @@ ANY_CONTEXT = {'org': "Any Organization", 'location': "Any Location"}
 
 SUBNET_IPAM_TYPES = {'dhcp': 'DHCP', 'internal': 'Internal DB', 'none': 'None'}
 
-TREND_TYPES = {
-    'environment': 'Environment',
-    'os': 'Operating system',
-    'model': 'Model',
-    'facts': 'Facts',
-    'host_group': 'Host group',
-    'compute_resource': 'Compute resource',
-}
-
 LDAP_SERVER_TYPE = {
     'API': {'ipa': 'free_ipa', 'ad': 'active_directory', 'posix': 'posix'},
     'CLI': {'ipa': 'free_ipa', 'ad': 'active_directory', 'posix': 'posix'},
