@@ -100,7 +100,6 @@ CaseComponent:
     - TasksPlugin
     - TemplatesPlugin
     - TFTP
-    - Trends
     - Upgrades
     - UsersRoles
     - Virt-whoConfigurePlugin

@@ -802,7 +802,6 @@ API_PATHS = {
         '/api/users/:user_id/ssh_keys/:id',
         '/api/users/:user_id/ssh_keys/:id',
     ),
-    'statistics': ('/api/statistics',),
     'subnet_disks': ('/bootdisk/api', '/bootdisk/api/subnets/:subnet_id'),
     'subnets': (
         '/api/subnets',
@@ -865,7 +864,6 @@ API_PATHS = {
     ),
     'template_invocations': ('/api/job_invocations/:job_invocation_id/template_invocations',),
     'template_kinds': ('/api/template_kinds',),
-    'trends': ('/api/trends', '/api/trends/:id', '/api/trends', '/api/trends/:id'),
     'upstream_subscriptions': (
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
