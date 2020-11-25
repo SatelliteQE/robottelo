@@ -584,6 +584,8 @@ def test_negative_create_with_invalid_name(name):
 
     :id: f0aecf1e-d093-4365-af85-b3650ed21318
 
+    :parametrized: yes
+
     :expectedresults: organization is not created
 
     """
@@ -648,6 +650,8 @@ def test_negative_update_name(new_name, module_org):
     """Fail to update organization name for invalid values.
 
     :id: 582d41b8-370d-45ed-9b7b-8096608e1324
+
+    :parametrized: yes
 
     :expectedresults: organization name is not updated
 
