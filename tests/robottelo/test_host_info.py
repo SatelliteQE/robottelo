@@ -1,3 +1,4 @@
+import os
 from unittest import mock
 from unittest.mock import call
 
@@ -113,37 +114,27 @@ class TestGetHostSatVersion:
         host_info.get_host_sat_version.cache_clear()
         patcher.stop()
 
-    def test_sat_6_dot_2(self, ssh_result):
-        """Check if can parse major 6.2.x versions"""
+    def test_sat_6_dot_y_dot_z(self, ssh_result):
+        """Check if can parse satellite version as 6.y.z versions"""
         ssh_result.return_value.stdout = ['satellite-6.2.0-21.1.el7sat.noarch']
-        assert '6.2' == host_info.get_host_sat_version.__wrapped__()
-        ssh_result.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
+        assert '6.2.0' == host_info.get_host_sat_version.__wrapped__()
+        ssh_result.assert_called_once_with(host_info._SAT_6_VERSION_COMMAND)
 
-    def test_sat_6_dot_1(self, ssh_result):
-        """Check if can parse major 6.2.x versions"""
-        ssh_result_success = mock.Mock()
-        ssh_result_success.return_code = 0
-        ssh_result_success.stdout = ['  VERSION = "6.1.8"']
-
-        ssh_result.side_effect = (self.SSH_RESULT_ERROR, ssh_result_success)
-        sat_version = host_info.get_host_sat_version.__wrapped__()
-
-        assert "6.1" == sat_version
-        calls = [
-            call(host_info._SAT_6_2_VERSION_COMMAND),
-            call(host_info._SAT_6_1_VERSION_COMMAND),
-        ]
-        ssh_result.assert_has_calls(calls)
+    def test_sat_6_dot_y_dot_z_env_var(self, ssh_result):
+        """Check if satellite version is parsed from Env Var and has higher precedence"""
+        os.environ['SATELLITE_VERSION'] = '6.8.2'
+        ssh_result.return_value.stdout = ['satellite-6.8.1-21.1.el7sat.noarch']
+        assert '6.8.2' == host_info.get_sat_version().base_version
 
     def test_cache(self, ssh_result):
         """Check get_host_sat_version() calls are cached"""
-        ssh_result.return_value.stdout = ['  SATELLITE_SHORT_VERSION = "6.2"']
-        assert '6.2' == host_info.get_host_sat_version()
-        ssh_result.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
-        ssh_result.return_value.stdout = ['Doesnt matter because because its cached']
-        assert '6.2' == host_info.get_host_sat_version()
+        ssh_result.return_value.stdout = ['  SATELLITE_VERSION = "6.2.8"']
+        assert '6.2.8' == host_info.get_host_sat_version()
+        ssh_result.assert_called_once_with(host_info._SAT_6_VERSION_COMMAND)
+        ssh_result.return_value.stdout = ['Doesnt matter because its cached']
+        assert '6.2.8' == host_info.get_host_sat_version()
         # if called more than once cache didn't worked
-        ssh_result.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
+        ssh_result.assert_called_once_with(host_info._SAT_6_VERSION_COMMAND)
 
     @mock.patch('robottelo.host_info.LOGGER')
     def test_command_error(self, logger, ssh_result):
@@ -153,10 +144,7 @@ class TestGetHostSatVersion:
 
         sat_version = host_info.get_host_sat_version.__wrapped__()
         assert 'Not Available' == sat_version
-        calls = [
-            call(host_info._SAT_6_2_VERSION_COMMAND),
-            call(host_info._SAT_6_1_VERSION_COMMAND),
-        ]
+        calls = [call(host_info._SAT_6_VERSION_COMMAND)]
         ssh_result.assert_has_calls(calls)
         logger.warning.assert_called_once_with(
             'Host Satellite version not available: %r' % self.SSH_RESULT_ERROR
