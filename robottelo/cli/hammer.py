@@ -205,8 +205,8 @@ def parse_info(output):
     second_level_key = None  # is set when a possible second level is detected
 
     for line in output:
-        # skip empty lines
-        if line == '':
+        # skip empty lines and dividers
+        if line == '' or line == '---':
             continue
         current_indent_level = get_line_indentation_level(line)
         if current_indent_level <= 1:
