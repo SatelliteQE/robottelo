@@ -55,6 +55,7 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+from robottelo.rhsso_utils import run_command
 from robottelo.virtwho_utils import create_fake_hypervisor_content
 from robottelo.vm import VirtualMachine
 
@@ -1353,3 +1354,28 @@ def test_search_for_virt_who_hypervisors(session):
         # Search with hypervisor=false gives the correct result.
         content_hosts = [host['Name'] for host in session.contenthost.search("hypervisor = false")]
         assert hypervisor_display_name not in content_hosts
+
+
+@pytest.mark.destructive
+@pytest.mark.run_in_one_thread
+@pytest.mark.upgrade
+def test_content_access_after_stopped_foreman(session, vm, foreman_service_teardown):
+    """Install a package even after foreman service is stopped
+
+    :id: 71ae6a56-30bb-11eb-8489-d46d6dd3b5b2
+
+    :expectedresults: Package should get installed even after foreman service is stopped
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+
+    :CaseComponent: Infrastructure
+    """
+    result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    run_command('systemctl stop foreman')
+    result = ssh.command('foreman-maintain service status --only=foreman')
+    assert result.return_code == 1
+    result = vm.run(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
+    assert result.return_code == 0

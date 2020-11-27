@@ -12,6 +12,7 @@ pytest_plugins = [
     "pytest_fixtures.broker",
     # Component Fixtures
     "pytest_fixtures.satellite_auth",
+    "pytest_fixtures.sys_fixtures",
     "pytest_fixtures.templatesync_fixtures",
     "pytest_fixtures.ansible_fixtures",
     "pytest_fixtures.oscap_fixtures",
