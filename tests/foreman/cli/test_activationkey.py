@@ -162,7 +162,7 @@ def test_positive_create_with_cv(name, module_org, get_default_env):
     new_ak_cv = make_activation_key(
         {
             'content-view': new_cv['name'],
-            'environment': get_default_env()['name'],
+            'environment': get_default_env['name'],
             'organization-id': module_org.id,
         }
     )
@@ -348,7 +348,9 @@ def test_positive_delete_with_cv(module_org):
     :CaseLevel: Integration
     """
     new_cv = make_content_view({'organization-id': module_org.id})
-    new_ak = make_activation_key({'organization-id': module_org, 'content-view': new_cv['name']})
+    new_ak = make_activation_key(
+        {'organization-id': module_org.id, 'content-view': new_cv['name']}
+    )
     ActivationKey.delete({'id': new_ak['id']})
     with pytest.raises(CLIReturnCodeError):
         ActivationKey.info({'id': new_ak['id']})
@@ -446,7 +448,7 @@ def test_positive_update_lce(module_org, get_default_env):
     :CaseLevel: Integration
     """
     ak_env = make_activation_key(
-        {'oragnization-id': module_org.id, 'lifecycle-environment-id': get_default_env['id']}
+        {'organization-id': module_org.id, 'lifecycle-environment-id': get_default_env['id']}
     )
     env = make_lifecycle_environment({'organization-id': module_org.id})
     new_cv = make_content_view({'organization-id': module_org.id})
@@ -606,7 +608,7 @@ def test_positive_usage_limit(module_org):
             assert vm1.subscribed
             vm2.install_katello_ca()
             result = vm2.register_contenthost(module_org.label, new_ak['name'])
-            assert vm2.subscribed
+            assert not vm2.subscribed
             assert result.return_code == 70
             assert len(result.stderr) > 0
 
@@ -1049,7 +1051,7 @@ def test_positive_remove_host_collection_by_name(module_org, host_col):
 
 
 @pytest.mark.tier2
-def test_create_ak_with_syspurpose_set(module_org):
+def test_create_ak_with_syspurpose_set(module_org, module_manifest_org):
     """Test that an activation key can be created with system purpose values set.
 
     :id: ac8931e5-7089-494a-adac-cee2a8ab57ee
@@ -1071,7 +1073,7 @@ def test_create_ak_with_syspurpose_set(module_org):
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
             'service-level': "Self-Support",
-            'organization-id': module_org.id,
+            'organization-id': module_manifest_org.id,
         }
     )
     assert new_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
@@ -1094,11 +1096,10 @@ def test_create_ak_with_syspurpose_set(module_org):
     assert updated_ak['system-purpose']['purpose-addons'] == ''
     assert updated_ak['system-purpose']['purpose-role'] == ''
     assert updated_ak['system-purpose']['purpose-usage'] == ''
-    assert updated_ak['system-purpose']['purpose-level'] == ''
 
 
 @pytest.mark.tier2
-def test_update_ak_with_syspurpose_values(module_org):
+def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
     """Test that system purpose values can be added to an existing activation key
     and can then be changed.
 
@@ -1119,12 +1120,11 @@ def test_update_ak_with_syspurpose_values(module_org):
     """
     # Requires Cls org and manifest. Manifest is for self-support values.
     # Create an AK with no system purpose values set
-    new_ak = make_activation_key({'organization-id': module_org.id})
+    new_ak = make_activation_key({'organization-id': module_manifest_org.id})
     # Assert system purpose values are null after creating the AK and adding the manifest.
     assert new_ak['system-purpose']['purpose-addons'] == ''
     assert new_ak['system-purpose']['purpose-role'] == ''
     assert new_ak['system-purpose']['purpose-usage'] == ''
-    assert new_ak['system-purpose']['purpose-level'] == ''
 
     # Check that system purpose values can be added to an AK.
     ActivationKey.update(
@@ -1134,10 +1134,12 @@ def test_update_ak_with_syspurpose_values(module_org):
             'purpose-role': "test-role1",
             'purpose-usage': "test-usage1",
             'service-level': "Self-Support",
-            'organization-id': module_org.id,
+            'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_org.id})
+    updated_ak = ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role1"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage1"
@@ -1150,10 +1152,12 @@ def test_update_ak_with_syspurpose_values(module_org):
             'purpose-role': "test-role2",
             'purpose-usage': "test-usage2",
             'service-level': "Premium",
-            'organization-id': module_org.id,
+            'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_org.id})
+    updated_ak = ActivationKey.info(
+        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
+    )
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon3, test-addon4"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
