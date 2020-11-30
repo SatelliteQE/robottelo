@@ -18,7 +18,9 @@ from datetime import datetime
 
 import pytest
 from airgun.session import Session
+from fauxfactory import gen_integer
 from fauxfactory import gen_string
+from fauxfactory import gen_url
 
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
@@ -51,6 +53,29 @@ def form_data():
 
 
 class TestVirtwhoConfigforEsx:
+    def create_http_proxy(self, name=None, url=None, type='https'):
+        """
+        Creat a new http-proxy with attributes.
+        :param name: Name of the proxy
+        :param url: URL of the proxy including schema (https://proxy.example.com:8080)
+        :param type: https or http
+        :return:
+        """
+        http_proxy_name = name or gen_string('alpha', 15)
+        http_proxy_url = url or '{}:{}'.format(
+            gen_url(scheme=type), gen_integer(min_value=10, max_value=9999)
+        )
+
+        with Session("create_http_proxy") as session:
+            session.http_proxy.create(
+                {'http_proxy.name': http_proxy_name, 'http_proxy.url': http_proxy_url}
+            )
+            assert session.http_proxy.search(http_proxy_name)[0]['Name'] == http_proxy_name
+            http_proxy_values = session.http_proxy.read(http_proxy_name)
+            assert http_proxy_values['http_proxy']['name'] == http_proxy_name
+            assert http_proxy_values['http_proxy']['url'] == http_proxy_url
+        return http_proxy_url
+
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
         """Verify configure created and deployed with id.
@@ -281,27 +306,35 @@ class TestVirtwhoConfigforEsx:
         :id: 6659d577-0135-4bf0-81af-14b930011536
 
         :expectedresults:
-            http_proxy ad NO_PROXY will be setting in /etc/sysconfig/virt-who.
+            http_proxy/https_proxy and NO_PROXY will be setting in /etc/sysconfig/virt-who.
 
         :CaseLevel: Integration
 
         :CaseImportance: Medium
         """
+        https_proxy = self.create_http_proxy()
+        http_proxy = self.create_http_proxy(type='http')
         name = gen_string('alpha')
         form_data['name'] = name
         with session:
             session.virtwho_configure.create(form_data)
             config_id = get_configure_id(name)
             config_command = get_configure_command(config_id)
-            http_proxy = 'test.example.com:3128'
             no_proxy = 'test.satellite.com'
-            session.virtwho_configure.edit(name, {'proxy': http_proxy, 'no_proxy': no_proxy})
+            # Check the https proxy and No_PROXY settings
+            session.virtwho_configure.edit(name, {'proxy': https_proxy, 'no_proxy': no_proxy})
             results = session.virtwho_configure.read(name)
-            assert results['overview']['proxy'] == http_proxy
+            assert results['overview']['proxy'] == https_proxy
             assert results['overview']['no_proxy'] == no_proxy
             deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-            assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
+            assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy
             assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+            # Check the http proxy setting
+            session.virtwho_configure.edit(name, {'proxy': http_proxy})
+            results = session.virtwho_configure.read(name)
+            assert results['overview']['proxy'] == http_proxy
+            deploy_configure_by_command(config_command, form_data['hypervisor_type'])
+            assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
@@ -603,7 +636,8 @@ class TestVirtwhoConfigforEsx:
         name = gen_string('alpha')
         form_data['name'] = name
         hypervisor_type = form_data['hypervisor_type']
-        form_data['proxy'] = 'test.example.com:3128'
+        http_proxy_url = self.create_http_proxy()
+        form_data['proxy'] = http_proxy_url
         form_data['no_proxy'] = 'test.satellite.com'
         regex = '.*redhat.com'
         whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
