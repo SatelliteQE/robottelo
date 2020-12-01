@@ -349,11 +349,11 @@ def test_positive_remove_host_collection(module_org):
 
     # Associate host collection with activation key.
     act_key.add_host_collection(data={'host_collection_ids': [host_collection.id]})
-    assert len(act_key.host_collection) == 1
+    assert len(act_key.read().host_collection) == 1
 
     # Disassociate host collection from the activation key.
     act_key.remove_host_collection(data={'host_collection_ids': [host_collection.id]})
-    assert len(act_key.host_collection) == 0
+    assert len(act_key.read().host_collection) == 0
 
 
 @pytest.mark.tier1
