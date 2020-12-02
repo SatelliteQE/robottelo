@@ -21,7 +21,9 @@ from airgun.session import Session
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
+from nailgun import entities
 
+from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
 from robottelo.virtwho_utils import delete_configure_option
@@ -61,19 +63,16 @@ class TestVirtwhoConfigforEsx:
         :param type: https or http
         :return:
         """
+        default_org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
         http_proxy_name = name or gen_string('alpha', 15)
         http_proxy_url = url or '{}:{}'.format(
             gen_url(scheme=type), gen_integer(min_value=10, max_value=9999)
         )
-
-        with Session("create_http_proxy") as session:
-            session.http_proxy.create(
-                {'http_proxy.name': http_proxy_name, 'http_proxy.url': http_proxy_url}
-            )
-            assert session.http_proxy.search(http_proxy_name)[0]['Name'] == http_proxy_name
-            http_proxy_values = session.http_proxy.read(http_proxy_name)
-            assert http_proxy_values['http_proxy']['name'] == http_proxy_name
-            assert http_proxy_values['http_proxy']['url'] == http_proxy_url
+        entities.HTTPProxy(
+            name=http_proxy_name,
+            url=http_proxy_url,
+            organization=[default_org.id],
+        ).create()
         return http_proxy_url
 
     @pytest.mark.tier2
