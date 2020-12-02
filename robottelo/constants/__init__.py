@@ -736,7 +736,7 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 FAKE_4_ERRATA_ID = 'WALRUS-2013:0002'
 FAKE_5_ERRATA_ID = 'RHBA-2012:1030'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
-REAL_0_ERRATA_ID = 'RHBA-2020:1455'  # for rhst7
+REAL_0_ERRATA_ID = 'RHBA-2020:4367'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
@@ -822,7 +822,6 @@ PERMISSIONS = {
         'view_log_viewer',
         'view_plugins',
         'view_recurring_logics',
-        'view_statistics',
         'view_rh_search',
         'view_tasks',
         'view_statuses',
@@ -1057,7 +1056,6 @@ PERMISSIONS = {
         'create_template_invocations',
         'view_template_invocations',
     ],
-    'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
     'Host': [
@@ -1074,7 +1072,6 @@ PERMISSIONS = {
         'play_roles_on_host',
         'power_hosts',
         'provision_discovered_hosts',
-        'puppetrun_hosts',
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
@@ -1096,10 +1093,6 @@ PERMISSIONS = {
         'export_content_views',
     ],
     'Katello::GpgKey': [
-        'view_gpg_keys',
-        'create_gpg_keys',
-        'edit_gpg_keys',
-        'destroy_gpg_keys',
         'view_content_credentials',
         'create_content_credentials',
         'edit_content_credentials',
@@ -1146,6 +1139,7 @@ PERMISSIONS = {
         'create_sync_plans',
         'edit_sync_plans',
         'destroy_sync_plans',
+        'sync_sync_plans',
     ],
 }
 
@@ -1166,7 +1160,6 @@ PERMISSIONS_UI = {
         'view_cases',
         'view_log_viewer',
         'view_plugins',
-        'view_statistics',
         'view_rh_search',
         'view_tasks',
         'view_statuses',
@@ -1263,7 +1256,6 @@ PERMISSIONS_UI = {
     ],
     'Fact value': ['view_facts', 'upload_facts'],
     'Filter': ['view_filters', 'create_filters', 'edit_filters', 'destroy_filters'],
-    'GPG Keys': ['view_gpg_keys', 'create_gpg_keys', 'edit_gpg_keys', 'destroy_gpg_keys'],
     'Host': [
         'view_hosts',
         'create_hosts',
@@ -1273,7 +1265,6 @@ PERMISSIONS_UI = {
         'power_hosts',
         'console_hosts',
         'ipmi_boot_hosts',
-        'puppetrun_hosts',
         'view_discovered_hosts',
         'submit_discovered_hosts',
         'auto_provision_discovered_hosts',
@@ -1431,12 +1422,12 @@ PERMISSIONS_UI = {
         'create_sync_plans',
         'edit_sync_plans',
         'destroy_sync_plans',
+        'sync_sync_plans',
     ],
     'Template invocation': [
         'execute_template_invocation',
         'filter_autocompletion_for_template_invocation',
     ],
-    'Trend': ['view_trends', 'create_trends', 'edit_trends', 'destroy_trends', 'update_trends'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
 }

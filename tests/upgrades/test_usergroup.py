@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
@@ -23,89 +24,74 @@ from upgrade_tests import pre_upgrade
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
-from robottelo.test import APITestCase
 
 
-class scenario_positive_verify_usergroup_membership(APITestCase):
-    """Usergroup membership should not lost post upgrade.
-
-    :id: 0bcaa050-7740-4ef5-ba77-b706b6380113
+@pre_upgrade
+def test_pre_create_usergroup_with_ldap_user(request):
+    """Create Usergroup in preupgrade version.
 
     :steps:
-
         1. Create ldap auth pre upgrade.
         2. Login with ldap User in satellite and logout.
         3. Create usergroup and assign ldap user to it.
-        4. Perform upgrade.
-        5. After upgrade verify ldap user is part of user group.
 
-    :expectedresults: Usergroup membership should not lost post upgrade.
-
-    :BZ: 1753907
+    :expectedresults: The usergroup, with ldap user as member, should be created successfully.
     """
+    authsource = entities.AuthSourceLDAP(
+        onthefly_register=True,
+        account=settings.ldap.username,
+        account_password=settings.ldap.password,
+        base_dn=settings.ldap.basedn,
+        groups_base=settings.ldap.grpbasedn,
+        attr_firstname=LDAP_ATTR['firstname'],
+        attr_lastname=LDAP_ATTR['surname'],
+        attr_login=LDAP_ATTR['login_ad'],
+        server_type=LDAP_SERVER_TYPE['API']['ad'],
+        attr_mail=LDAP_ATTR['mail'],
+        name=request.node.name + "_server",
+        host=settings.ldap.hostname,
+        tls=False,
+        port='389',
+    ).create()
+    assert authsource.name == request.node.name + "_server"
+    sc = ServerConfig(
+        auth=(settings.ldap.username, settings.ldap.password),
+        url=f'https://{settings.server.hostname}',
+        verify=False,
+    )
 
-    @classmethod
-    def setUpClass(cls):
-        cls.server_name = 'preupgrade_ldap_ad'
-        cls.preupgrade_usergroup = 'preupgrade_usergroup_ad'
-        cls.ldap_user_name = settings.ldap.username
-        cls.ldap_user_passwd = settings.ldap.password
-        cls.base_dn = settings.ldap.basedn
-        cls.group_base_dn = settings.ldap.grpbasedn
-        cls.ldap_hostname = settings.ldap.hostname
-        cls.sat_url = f'https://{settings.server.hostname}'
+    with pytest.raises(HTTPError):
+        entities.User(sc).search()
+    user_group = entities.UserGroup(name=request.node.name + "_user_group").create()
+    user = entities.User().search(query={'search': f'login={settings.ldap.username}'})[0]
+    user_group.user = [user]
+    user_group = user_group.update(['user'])
+    assert user.login == user_group.user[0].read().login
 
-    @pre_upgrade
-    def test_pre_create_usergroup_with_ldap_user(self):
-        """Create Usergroup in preupgrade version.
 
-        :steps:
-            1. Create ldap auth pre upgrade.
-            2. Login with ldap User in satellite and logout.
-            3. Create usergroup and assign ldap user to it.
+@post_upgrade(depend_on=test_pre_create_usergroup_with_ldap_user)
+def test_post_verify_usergroup_membership(request):
+    """After upgrade, check the LDAP user's(that we created before the upgrade) existence and
+    their functionality.
 
-        :expectedresults: The usergroup, with ldap user as member, should be created successfully.
-        """
-        authsource = entities.AuthSourceLDAP(
-            onthefly_register=True,
-            account=self.ldap_user_name,
-            account_password=self.ldap_user_passwd,
-            base_dn=self.base_dn,
-            groups_base=self.group_base_dn,
-            attr_firstname=LDAP_ATTR['firstname'],
-            attr_lastname=LDAP_ATTR['surname'],
-            attr_login=LDAP_ATTR['login_ad'],
-            server_type=LDAP_SERVER_TYPE['API']['ad'],
-            attr_mail=LDAP_ATTR['mail'],
-            name=self.server_name,
-            host=self.ldap_hostname,
-            tls=False,
-            port='389',
-        ).create()
-        self.assertEqual(authsource.name, self.server_name)
-        sc = ServerConfig(
-            auth=(self.ldap_user_name, self.ldap_user_passwd), url=self.sat_url, verify=False
-        )
-        with self.assertRaises(HTTPError):
-            entities.User(sc).search()
-        user_group = entities.UserGroup(name=self.preupgrade_usergroup).create()
-        user = entities.User().search(query={'search': f'login={self.ldap_user_name}'})[0]
-        user_group.user = [user]
-        user_group = user_group.update(['user'])
-        self.assertEqual(user.login, user_group.user[0].read().login)
+    :steps:
+        1. verify ldap user(created before upgrade) is part of user group.
+        2. Update ldap auth.
 
-    @post_upgrade
-    def test_post_verify_usergroup_membership(self):
-        """Verify ldap user is part of user group.
-
-        :steps:
-            1. Postupgrade, verify ldap user is part of user group.
-            2. Update ldap auth postupgrade.
-
-        :expectedresults: Usergroup membership should not lost post upgrade.
-        """
-        user_group = entities.UserGroup().search(
-            query={'search': f'name={self.preupgrade_usergroup}'}
-        )[0]
-        user = entities.User().search(query={'search': f'login={self.ldap_user_name}'})[0]
-        self.assertEqual(user.read().id, user_group.read().user[0].id)
+    :expectedresults: After upgrade, user group membership should remain the same and LDAP
+    auth update should work.
+    """
+    pre_test_name = [
+        mark.kwargs['depend_on'].__name__
+        for mark in request.node.own_markers
+        if 'depend_on' in mark.kwargs
+    ][0]
+    user_group = entities.UserGroup().search(query={'search': f'name={pre_test_name}_user_group'})
+    authsource = entities.AuthSourceLDAP().search(
+        query={'search': f'name={pre_test_name}_server'}
+    )[0]
+    request.addfinalizer(authsource.delete)
+    request.addfinalizer(user_group[0].delete)
+    user = entities.User().search(query={'search': f'login={settings.ldap.username}'})[0]
+    request.addfinalizer(user.delete)
+    assert user.read().id == user_group[0].read().user[0].id

@@ -21,6 +21,7 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.ssh import get_connection
+from robottelo.utils.issue_handlers import is_open
 
 BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = (
@@ -57,7 +58,7 @@ class TestRenameHost:
                 resync repos, republish CVs and re-register hosts
             7. Create new entities (run end-to-end test from robottelo)
 
-        :BZ: 1469466
+        :BZ: 1469466, 1897360, 1901983
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
@@ -81,9 +82,10 @@ class TestRenameHost:
             )
             assert result.return_code == 0, 'unsuccessful rename'
             assert BCK_MSG in result.stdout
-            # services running after rename?
-            result = connection.run('hammer ping')
-            assert result.return_code == 0, 'services did not start properly'
+            if not is_open('BZ:1901983') or not is_open('BZ:1897360'):
+                # services running after rename?
+                result = connection.run('hammer ping')
+                assert result.return_code == 0, 'services did not start properly'
             # basic hostname check
             result = connection.run('hostname')
             assert result.return_code == 0
