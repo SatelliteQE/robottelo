@@ -83,25 +83,28 @@ def pytest_addoption(parser):
 
         Defect_types:
             Collect failed tests marked with defect types: {[*ReportPortal.defect_types.keys()]}
-        '''
+    '''
     parser.addoption("--only-failed", const='all', nargs='?', help=help_text)
     help_text = '''
         Collects only skipped tests in Report Portal to run only skipped tests.
 
         Usage: --only-skipped
-        '''
+    '''
     parser.addoption("--only-skipped", action='store_true', default=False, help=help_text)
     help_text = '''
-            Collects user tests from report portal.
+        Collects user tests from report portal.
 
-            Usage: --user [value]
+        Usage: --user [value]
 
-            Value: [ Report_portal_username ]
-
-            Defect_types:
-                Collect tests of specific user from Report Portal
-        '''
+        Value: [ Report_portal_username ]
+    '''
     parser.addoption("--user", nargs='?', help=help_text)
+    help_text = '''
+        Rerun Upgrade launch tests instead of Regular Tier launch from Report Portal,
+
+        Usage: --upgrades-rerun
+    '''
+    parser.addoption("--upgrades-rerun", action='store_true', default=False, help=help_text)
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -113,13 +116,20 @@ def pytest_collection_modifyitems(items, config):
     fail_args = config.getoption('only_failed', False)
     skip_arg = config.getoption('only_skipped', False)
     user_arg = config.getoption('user', False)
-    if not any([fail_args, skip_arg, user_arg]):
+    upgrades_rerun = config.getoption('upgrades_rerun', False)
+    if not any([fail_args, skip_arg, user_arg, upgrades_rerun]):
         return
     rp = ReportPortal()
     version = settings.server.version
     sat_version = f'{version.base_version}.{version.epoch}'
     LOGGER.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
-    launch = next(iter(rp.launches(sat_version=sat_version).values()))
+    launch = next(
+        iter(
+            rp.launches(
+                sat_version=sat_version, launch_type='upgrades' if upgrades_rerun else 'satellite6'
+            ).values()
+        )
+    )
     _validate_launch(launch, sat_version)
     test_args = {}
     if fail_args:
