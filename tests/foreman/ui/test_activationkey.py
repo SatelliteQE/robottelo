@@ -55,11 +55,6 @@ from robottelo.products import SatelliteToolsRepository
 from robottelo.vm import VirtualMachine
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end_crud(session, module_org):
