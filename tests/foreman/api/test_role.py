@@ -1546,7 +1546,7 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -1570,7 +1570,7 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -1595,7 +1595,7 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -1620,7 +1620,7 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: System
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
 

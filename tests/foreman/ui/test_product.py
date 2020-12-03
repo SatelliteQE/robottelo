@@ -135,7 +135,7 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
 
     :CaseLevel: Integration
 
-    :CaseImportance: medium
+    :CaseImportance: Medium
     """
     product_name = gen_string('alpha')
     product_description = gen_string('alpha')

@@ -3214,7 +3214,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Promotion is restarted.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -3231,7 +3231,7 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Publish is restarted.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         """
 
@@ -3946,7 +3946,7 @@ class ContentViewTestCase(CLITestCase):
                content-host
             5. At content-host some package from cv1 is installable
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -3986,7 +3986,7 @@ class ContentViewTestCase(CLITestCase):
                content-host
             6. At content-host some package from cv2 is installable
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -4024,7 +4024,7 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: content view version in capsule is removed from
             Library and DEV and exists only in QE and PROD
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseLevel: System
 
@@ -4917,7 +4917,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check FR is added to CV
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: Integration
 
@@ -4958,7 +4958,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check FR is removed from CV
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: Integration
         """
@@ -4985,7 +4985,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: Check CV with FR is synced over Capsule
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseLevel: System
         """
@@ -5010,7 +5010,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :expectedresults: Check arbitrary files from FR is available on
             content view version environment
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseLevel: Integration
 
@@ -5054,7 +5054,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
 
         :expectedresults: id datatype is bigint
 
-        :CaseImportance: medium
+        :CaseImportance: Medium
 
         :BZ: 1793701
         """

@@ -41,7 +41,7 @@ class InstallerTestCase(CLITestCase):
             passenger-analytics, httpd, foreman_proxy, elasticsearch,
             postgresql, mongod} are started
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -56,7 +56,7 @@ class InstallerTestCase(CLITestCase):
             tomcat6, foreman, pulp, passenger-analytics,httpd, foreman_proxy,
             elasticsearch, postgresql, mongod} logfiles.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -68,7 +68,7 @@ class InstallerTestCase(CLITestCase):
         :expectedresults: Progress indicator increases appropriately as install
             commences, through to completion
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -79,7 +79,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install from ISO is sucessful.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -90,7 +90,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of main instance successful.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -101,7 +101,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of capsule successful.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -113,7 +113,7 @@ class InstallerTestCase(CLITestCase):
 
         :expectedresults: Install of disconnected utility successful.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -126,7 +126,7 @@ class InstallerTestCase(CLITestCase):
         :expectedresults: capsule is communicating properly with parent,
             following install.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -139,5 +139,5 @@ class InstallerTestCase(CLITestCase):
 
         :BZ: 1072780
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """

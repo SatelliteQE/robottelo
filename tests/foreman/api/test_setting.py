@@ -150,7 +150,7 @@ def test_positive_update_hostname_default_facts():
 
     :expectedresults: Default set fact should be updated with facts list.
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -165,7 +165,7 @@ def test_negative_discover_host_with_invalid_prefix():
     :expectedresults: Validation error should be raised on updating
         hostname_prefix with invalid string, should start w/ letter
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 

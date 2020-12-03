@@ -1831,7 +1831,7 @@ class RepositoryTestCase(CLITestCase):
          shows correct count and details with create, update, delete and
          even duplicate repositories.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
 
         :CaseImportance: Critical
         """
@@ -1891,7 +1891,7 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Verify the module-stream list response.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         repo1 = self._make_repository({'content-type': 'yum', 'url': CUSTOM_MODULE_STREAM_REPO_1})
         Repository.synchronize({'id': repo1['id']})
@@ -1924,7 +1924,7 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Verify the module-stream info response.
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         product2 = make_product_wait({'organization-id': self.org['id']})
         repo2 = self._make_repository(
@@ -2311,7 +2311,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing local GIT puppet mirror
             content is created
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2330,7 +2330,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing local GIT puppet mirror
             content is modified
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2350,7 +2350,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing local GIT puppet mirror
             content no longer exists/is available.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2369,7 +2369,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing remote GIT puppet mirror
             content is created
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2388,7 +2388,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing remote GIT puppet mirror
             content is modified
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2408,7 +2408,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content source containing remote GIT puppet mirror
             content no longer exists/is available.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2429,7 +2429,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Confirmation that various resources actually exist in
             local content repo
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2458,7 +2458,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Puppet module has been updated in our content, even
             though the module's version number has not changed.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2477,7 +2477,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Content is pulled down without error  on expected
             schedule
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
     @pytest.mark.stubbed
@@ -2496,7 +2496,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :expectedresults: Spot-checked items (filenames, dates, perhaps
             checksums?) are correct.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
         """
 
 
@@ -2563,7 +2563,7 @@ class FileRepositoryTestCase(CLITestCase):
 
         :expectedresults: uploaded file permissions are kept after upload
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: NotAutomated
 
         :CaseImportance: Critical
         """
@@ -2697,7 +2697,7 @@ class FileRepositoryTestCase(CLITestCase):
         :expectedresults: entire directory is synced, including files
             referred by symlinks
 
-        :CaseAutomation: automated
+        :CaseAutomation: Automated
         """
         # Downloading the pulp repository into Satellite Host
         ssh.command(f"mkdir -p {CUSTOM_LOCAL_FOLDER}")

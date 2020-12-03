@@ -1,6 +1,6 @@
 BZ: {}
 CaseAutomation:
-    casesensitive: false
+    casesensitive: true
     choices:
     - Automated
     - NotAutomated
@@ -8,7 +8,7 @@ CaseAutomation:
     required: true
     type: choice
 CaseComponent:
-    casesensitive: false
+    casesensitive: true
     choices:
     # No spaces allowed
     - ActivationKeys
@@ -60,8 +60,8 @@ CaseComponent:
     - Infrastructure
     - Installer
     - InterSatelliteSync
-    - katello-agent
-    - katello-tracer
+    - Katello-agent
+    - Katello-tracer
     - LDAP
     - Leappintegration
     - LifecycleEnvironments
@@ -107,7 +107,7 @@ CaseComponent:
     required: true
     type: choice
 CaseImportance:
-    casesensitive: false
+    casesensitive: true
     choices:
     - Critical
     - High
@@ -116,7 +116,7 @@ CaseImportance:
     required: true
     type: choice
 CaseLevel:
-    casesensitive: false
+    casesensitive: true
     choices:
     - Component
     - Integration

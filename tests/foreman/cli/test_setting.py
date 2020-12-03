@@ -42,7 +42,7 @@ def test_negative_update_hostname_with_empty_fact():
 
     :expectedresults: Error should be raised on setting empty value for hostname_facts setting
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -91,7 +91,7 @@ def test_positive_update_hostname_default_facts():
 
     :expectedresults: Default set fact should be updated with facts list.
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -106,7 +106,7 @@ def test_negative_discover_host_with_invalid_prefix():
     :expectedresults: Validation error should be raised on updating
         hostname_prefix with invalid string, should start with letter
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -202,7 +202,7 @@ def test_positive_update_email_delivery_method_smtp():
 
     :CaseImportance: Low
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -223,7 +223,7 @@ def test_positive_update_email_delivery_method_sendmail():
 
     :CaseImportance: Low
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
 
@@ -240,7 +240,7 @@ def test_positive_update_email_reply_address(setting_update):
 
     :CaseImportance: Low
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
     """
     email_address = random.choice(list(valid_emails_list()))
     email_address = email_address.replace('"', r'\"').replace('`', r'\`')
@@ -266,7 +266,7 @@ def test_negative_update_email_reply_address(setting_update):
 
     :CaseImportance: Low
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
     """
     invalid_email_address = random.choice(list(invalid_emails_list()))
     with pytest.raises(CLIReturnCodeError):
@@ -284,7 +284,7 @@ def test_positive_update_email_subject_prefix(setting_update):
 
     :expectedresults: email_subject_prefix is updated
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
 
     :CaseImportance: Low
     """
@@ -305,7 +305,7 @@ def test_negative_update_email_subject_prefix():
 
     :expectedresults: email_subject_prefix is not updated
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseImportance: Low
     """
@@ -325,7 +325,7 @@ def test_positive_update_send_welcome_email(setting_update, send_welcome_email_v
 
     :expectedresults: send_welcome_email is updated
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
 
     :CaseImportance: Low
     """
@@ -348,7 +348,7 @@ def test_positive_enable_disable_rssfeed(setting_update, rss_enable_value):
 
     :expectedresults: rss_enable is updated
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
     """
     Settings.set({'name': 'rss_enable', 'value': rss_enable_value})
     rss_setting = Settings.list({'search': 'name=rss_enable'})[0]
@@ -372,7 +372,7 @@ def test_positive_update_rssfeed_url(setting_update):
 
     :expectedresults: RSS feed URL is updated
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
     """
     test_url = random.choice(list(valid_url_list()))
     Settings.set({'name': 'rss_url', 'value': test_url})
@@ -395,7 +395,7 @@ def test_negative_update_send_welcome_email(value):
 
     :expectedresults: send_welcome_email is not updated
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
 
     :CaseImportance: Low
     """
@@ -428,7 +428,7 @@ def test_positive_failed_login_attempts_limit(setting_update):
 
     :expectedresults: failed_login_attempts_limit works as expected
 
-    :CaseAutomation: automated
+    :CaseAutomation: Automated
 
     :BZ: 1778599
     """

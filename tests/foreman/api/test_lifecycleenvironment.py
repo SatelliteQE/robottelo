@@ -235,5 +235,5 @@ def test_positive_create_environment_after_host_register():
 
     :CaseLevel: Integration
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """

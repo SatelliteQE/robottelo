@@ -248,7 +248,7 @@ class TestRole:
 class TestCannedRole:
     """Implements Canned Roles tests from UI
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
     """
 
     @pytest.mark.stubbed
