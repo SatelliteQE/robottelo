@@ -13,8 +13,5 @@ sauceclient==1.0.0
 sphinx
 sphinx-autoapi
 
-# For running UI tests within a docker browser
-docker-py
-
 # For 'manage' interactive shell
 manage>=0.1.13
