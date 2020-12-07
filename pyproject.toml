@@ -15,3 +15,6 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.pytest.ini_options]
+junit_logging = 'all'
