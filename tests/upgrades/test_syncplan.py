@@ -15,33 +15,22 @@
 :Upstream: No
 """
 from fauxfactory import gen_choice
-from fauxfactory import gen_string
 from nailgun import entities
-from requests.exceptions import HTTPError
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import valid_cron_expressions
-from robottelo.test import APITestCase
 
 
-class ScenarioSyncPlan(APITestCase):
-    """The test class contains pre-upgrade and post-upgrade scenarios to test
+class TestSyncPlan:
+    """
+    The test class contains pre-upgrade and post-upgrade scenario to test
     sync_plan migration from pulp to katello
-
-    Test Steps:
-
-    1. Before Satellite upgrade, Create Sync plan and assign repo to sync plan
-    2. Upgrade satellite.
-    3. Post upgrade, verify the sync plan exists and performs same as pre-upgrade.
-
     """
 
     @pre_upgrade
-    def test_pre_sync_plan_migration(self):
+    def test_pre_sync_plan_migration(self, request):
         """Pre-upgrade scenario that creates sync plan and assigns repo to sync plan
 
         :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
@@ -54,60 +43,53 @@ class ScenarioSyncPlan(APITestCase):
         :expectedresults: Run sync plan create, get, assign and verify it should pass
 
         """
-        org = entities.Organization().create()
-        sync_plan_name = "Test_Sync_plan_Migration_{}".format(gen_string('alpha'))
-        sync_plan = entities.SyncPlan(organization=org, name=sync_plan_name).create()
-        product = entities.Product(organization=org).create()
-        entities.Repository(product=product).create()
+        org = entities.Organization(name=f'{request.node.name}_org').create()
+        sync_plan = entities.SyncPlan(
+            organization=org, name=f'{request.node.name}_syncplan', interval="hourly"
+        ).create()
+        product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
+        entities.Repository(product=product, name=f'{request.node.name}_repos').create()
         sync_plan.add_products(data={'product_ids': [product.id]})
         product.sync()
         product = product.read()
-        self.assertEqual(product.sync_plan.id, sync_plan.id)
-        sync_plan = sync_plan.read()
-        scenario_dict = {
-            self.__class__.__name__: {
-                'sync_plan_name': sync_plan_name,
-                'interval': sync_plan.interval,
-                'sync_date': sync_plan.sync_date,
-                'product_id': product.id,
-                'sync_plan_id': sync_plan.id,
-                'org_id': org.id,
-            }
-        }
-        create_dict(scenario_dict)
+        assert product.sync_plan.id == sync_plan.id
 
     @post_upgrade(depend_on=test_pre_sync_plan_migration)
-    def test_post_sync_plan_migration(self):
-        """Post-upgrade scenario that tests existing sync plans are working as
-        expected after satellite upgrade with migrating from pulp to katello
+    def test_post_sync_plan_migration(self, request, dependent_scenario_name):
+        """After upgrade, Sync interval update should work on existing sync plan(created before
+        upgrade)
 
         :id: badaeec2-d42f-41d5-bd85-4b23d6d5a724
 
         :steps:
             1. Verify sync plan exists and works as earlier
+            2. Check the all available sync_interval type update with pre-created sync_plan
 
-        :expectedresults: Post Upgrade, Sync plans exists and works as earlier.
+        :expectedresults: After upgrade, the sync plan should remain the same with their all
+        entities and sync_interval updated with their all supported sync interval type.
 
         """
-        beforeupgrade_data = get_entity_data(self.__class__.__name__)
-        org = entities.Organization(id=beforeupgrade_data.get('org_id'))
-        product = entities.Product(id=beforeupgrade_data.get("product_id")).read()
-        sync_plan = entities.SyncPlan(
-            id=beforeupgrade_data.get("sync_plan_id"), organization=org
-        ).read()
-        self.assertEqual(product.sync_plan.id, sync_plan.id)
-        self.assertEqual(sync_plan.name, beforeupgrade_data.get("sync_plan_name"))
-        self.assertEqual(sync_plan.interval, beforeupgrade_data.get("interval"))
-        self.assertEqual(sync_plan.sync_date, beforeupgrade_data.get("sync_date"))
-        # checking sync plan update on upgraded satellite
-        sync_plan.interval = SYNC_INTERVAL['custom']
-        sync_plan.cron_expression = gen_choice(valid_cron_expressions())
-        self.assertEqual(
-            sync_plan.update(['interval', 'cron_expression']).interval, SYNC_INTERVAL['custom']
-        )
-        # checking sync plan delete on upgraded satellite
-        sync_plan.delete()
-        product = product.read()
-        self.assertIsNone(product.sync_plan)
-        with self.assertRaises(HTTPError):
-            sync_plan.read()
+        pre_test_name = dependent_scenario_name
+        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        request.addfinalizer(org.delete)
+        product = entities.Product(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_prod"'}
+        )[0]
+        request.addfinalizer(product.delete)
+        sync_plan = entities.SyncPlan(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_syncplan"'}
+        )[0]
+        request.addfinalizer(sync_plan.delete)
+        assert product.sync_plan.id == sync_plan.id
+        assert sync_plan.name == f'{pre_test_name}_syncplan'
+        assert sync_plan.interval == 'hourly'
+        for sync_interval in SYNC_INTERVAL:
+            if sync_interval == "custom":
+                sync_plan.interval = SYNC_INTERVAL['custom']
+                sync_plan.cron_expression = gen_choice(valid_cron_expressions())
+                sync_plan.update(['interval', 'cron_expression'])
+            else:
+                sync_plan.interval = SYNC_INTERVAL[sync_interval]
+                sync_plan.update(['interval'])
+            sync_plan = sync_plan.read()
+            assert sync_plan.interval == SYNC_INTERVAL[sync_interval]
