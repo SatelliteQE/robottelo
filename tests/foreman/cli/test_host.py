@@ -26,7 +26,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
-from robottelo.api.utils import promote
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -83,12 +82,6 @@ from robottelo.vm import VirtualMachineError
 def module_default_proxy():
     """ Use the default installation smart proxy """
     return Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[0]
-
-
-@pytest.fixture(scope="module")
-def module_promoted_cv(module_lce, module_published_cv):
-    promote(module_published_cv.version[0], environment_id=module_lce.id)
-    return module_published_cv
 
 
 @pytest.fixture(scope="function")
@@ -192,8 +185,8 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
     host = entities.Host()
     host.create_missing()
     interface = (
-        "type=interface,mac={},identifier=eth0,name={},domain_id={},"
-        "ip={},primary=true,provision=true"
+        'type=interface,mac={},identifier=eth0,name={},domain_id={},'
+        'ip={},primary=true,provision=true'
     ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
     new_host = make_host(
         {
@@ -477,7 +470,7 @@ def test_positive_katello_and_openscap_loaded():
     for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
         assert any(
             f'--{arg}' in line for line in help_output
-        ), f"--{arg} not supported by update subcommand"
+        ), f'--{arg} not supported by update subcommand'
 
 
 @pytest.mark.host_create

@@ -15,5 +15,16 @@ def pytest_configure(config):
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
     ]
+    markers = markers + module_markers()
     for marker in markers:
         config.addinivalue_line("markers", marker)
+
+
+def module_markers():
+    """ Register custom markers for each module """
+    return [
+        "host_create: Marks host creation CLI tests",
+        "host_update: Marks host update CLI tests",
+        "host_parameter: Marks host parameter CLI tests",
+        "host_subscription: Marks host subscription CLI tests",
+    ]

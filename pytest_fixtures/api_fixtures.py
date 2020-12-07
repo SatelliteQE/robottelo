@@ -5,6 +5,7 @@ from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
+from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
@@ -417,7 +418,14 @@ def module_published_cv(module_org):
     return content_view.read()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
+def module_promoted_cv(module_lce, module_published_cv):
+    """ Promote published content view """
+    promote(module_published_cv.version[0], environment_id=module_lce.id)
+    return module_published_cv
+
+
+@pytest.fixture(scope='session')
 def default_contentview(module_org):
     return entities.ContentView().search(
         query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
