@@ -895,7 +895,6 @@ API_PATHS = {
 }
 
 
-@pytest.mark.build_sanity
 class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
 
@@ -919,6 +918,7 @@ class AvailableURLsTestCase(TestCase):
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
+    @pytest.mark.build_sanity
     def test_positive_get_status_code(self):
         """GET ``api/v2`` and examine the response.
 
