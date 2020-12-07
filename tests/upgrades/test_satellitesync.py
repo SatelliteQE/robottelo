@@ -14,138 +14,122 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+import pytest
 from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
-from upgrade_tests.helpers.scenarios import create_dict
-from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
-from robottelo.test import CLITestCase
 
 
-class scenario_preversion_cv_exports_imports(CLITestCase):
-    """Test Content-view created before upgrade can be exported and imported after upgrade
-
-    Test Steps:
-
-    1. Before upgrade, Create a ContentView
-    2. Publish and promote the CV
-    3. Upgrade the satellite
-    4. Post upgrade, Export and Import the Content Views version created before upgrade
-
-    :expectedresults: Content-view created before upgrade should be exported and imported
-        after upgrade
+class TestSatelliteSync:
+    """
+    Test Content-view created before upgrade can be exported and imported after upgrade
     """
 
-    export_base = '/var/lib/pulp/katello-export/'
-
-    def tearDownScenario(self):
-        """Removes CV export file/directory from export base directory"""
-        ssh.command(f'rm -rf {self.export_base}/*')
-
-    def set_importing_org(self, product, repo, cv):
-        """Sets same CV, product and repository in importing organization as
-        exporting organization
-
-        :param str product: The product name same as exporting product
-        :param str repo: The repo name same as exporting repo
-        :param str cv: The cv name same as exporting cv
-        """
-        self.importing_org = entities.Organization().create()
-        self.importing_prod = entities.Product(
-            organization=self.importing_org, name=product
-        ).create()
-        self.importing_repo = entities.Repository(
-            name=repo,
-            mirror_on_sync='no',
-            download_policy='immediate',
-            product=self.importing_prod,
-        ).create()
-        self.importing_cv = entities.ContentView(name=cv, organization=self.importing_org).create()
-        self.importing_cv.repository = [self.importing_repo]
-        self.importing_cv.update(['repository'])
-
     @pre_upgrade
-    def test_pre_version_cv_export_import(self):
-        """Create Content view and publish promote it
+    def test_pre_version_cv_export_import(self, request):
+        """Before Upgrade, Create the content view and publish, and promote it.
 
         :id: preupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
 
         :steps:
 
-        1. Before upgrade, Create a ContentView
+        1. Create a ContentView
         2. Publish and promote the Content View
+        3. Check the package count of promoted content view.
 
-        :expectedresults: content view should be published and promoted
+        :expectedresults: Before the upgrade, Content view published and promoted, and  package
+        count should be greater than 0.
         """
-        exporting_cv_name = gen_string('alphanumeric')
-        exporting_prod_name = gen_string('alphanumeric')
-        exporting_repo_name = gen_string('alphanumeric')
-        org = entities.Organization().create()
-        product = entities.Product(organization=org, name=exporting_prod_name).create()
+        test_name = request.node.name
+        org = entities.Organization(name=f"{test_name}_org").create()
+        product = entities.Product(organization=org, name=f"{test_name}_prod").create()
         repo = entities.Repository(
             product=product,
-            name=exporting_repo_name,
+            name=f"{test_name}_repo",
             mirror_on_sync=False,
             download_policy='immediate',
         ).create()
         repo.sync()
-        cv = entities.ContentView(name=exporting_cv_name, organization=org).create()
+        cv = entities.ContentView(name=f"{test_name}_cv", organization=org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
         cv = cv.read()
-        self.assertTrue(cv.version[0].read().package_count > 0)
-        scenario_facts = {
-            self.__class__.__name__: {
-                'exporting_orgid': org.id,
-                'exporting_cvname': exporting_cv_name,
-                'exporting_prodname': exporting_prod_name,
-                'exporting_reponame': exporting_repo_name,
-            }
-        }
-        create_dict(scenario_facts)
+        assert cv.version[0].read().package_count > 0
 
     @post_upgrade(depend_on=test_pre_version_cv_export_import)
-    def test_post_version_cv_export_import(self):
-        """Export and Import cv version created before upgrade
+    @pytest.mark.parametrize(
+        'set_importing_org',
+        [
+            (
+                "test_pre_version_cv_export_import_prod",
+                "test_pre_version_cv_export_import_repo",
+                "test_pre_version_cv_export_import_cv",
+                "no",
+            )
+        ],
+        indirect=True,
+    )
+    def test_post_version_cv_export_import(
+        self, request, set_importing_org, dependent_scenario_name
+    ):
+        """After upgrade, content view version import and export works on the existing content
+         view(that we created before the upgrade).
 
         :id: postupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
 
-        :steps: Export and Import the Content Views version created before upgrade
+        :parametrized: yes
 
-        :expectedresults: Content-view created before upgrade should be exported and imported
-            after upgrade
+        :steps:
+            1: Export the existing content-view version.
+            2: Import the existing content-view version.
+            3: Delete the imported and exported content-vew, product, repo and organization.
+
+        :expectedresults: After upgrade,
+            1: Content view created before upgrade should be imported and exported successfully.
+            2: Imported and Exported content view should be deleted successfully
         """
-        prescene_dict = get_entity_data(self.__class__.__name__)
-        exporting_cv = entities.ContentView(organization=prescene_dict['exporting_orgid']).search(
-            query={'search': 'name={}'.format(prescene_dict['exporting_cvname'])}
+        pre_test_name = dependent_scenario_name
+        export_base = '/var/lib/pulp/katello-export/'
+        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        request.addfinalizer(org.delete)
+        product = entities.Product(organization=org).search(
+            query={'search': f'name="{pre_test_name}_prod"'}
         )[0]
+        request.addfinalizer(product.delete)
+        exporting_cv = entities.ContentView(organization=org).search(
+            query={'search': f'name="{pre_test_name}_cv"'}
+        )[0]
+        request.addfinalizer(exporting_cv.delete)
+
         exporting_cvv_id = max([cvv.id for cvv in exporting_cv.version])
         exporting_cvv_version = entities.ContentViewVersion(id=exporting_cvv_id).read().version
-        ContentView.version_export({'export-dir': f'{self.export_base}', 'id': exporting_cvv_id})
-        exported_tar = '{}/export-{}-{}.tar'.format(
-            self.export_base, exporting_cv.name, exporting_cvv_version
-        )
+
+        ContentView.version_export({'export-dir': f'{export_base}', 'id': exporting_cvv_id})
+        exported_tar = f'{export_base}/export-{exporting_cv.name}-{exporting_cvv_version}.tar'
+
         result = ssh.command(f"[ -f {exported_tar} ]")
-        self.assertEqual(result.return_code, 0)
+        assert result.return_code == 0
+
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
-        self.assertTrue(len(exported_packages) > 0)
-        self.set_importing_org(
-            prescene_dict['exporting_prodname'],
-            prescene_dict['exporting_reponame'],
-            exporting_cv.name,
-        )
+        assert len(exported_packages) > 0
+        importing_cv, importing_org = set_importing_org
         ContentView.version_import(
-            {'export-tar': exported_tar, 'organization-id': self.importing_org.id}
+            {'export-tar': f'{exported_tar}', 'organization-id': importing_org.id}
         )
-        importing_cvv = self.importing_cv.read().version
-        self.assertTrue(len(importing_cvv) == 1)
+        importing_cvv = importing_cv.read().version
+        assert len(importing_cvv) == 1
         imported_packages = Package.list({'content-view-version-id': importing_cvv[0].id})
-        self.assertTrue(len(imported_packages) > 0)
-        self.assertEqual(len(exported_packages), len(imported_packages))
-        self.tearDownScenario()
+        assert len(imported_packages) > 0
+        assert len(exported_packages) == len(imported_packages)
+        ssh.command(f'rm -rf {export_base}/*')
+        exporting_cv_json = exporting_cv.read_json()
+        importing_cv_json = importing_cv.read_json()
+        exporting_cv_env_id = exporting_cv_json['environments'][0]['id']
+        importing_cv_env_id = importing_cv_json['environments'][0]['id']
+        assert exporting_cv.delete_from_environment(exporting_cv_env_id)
+        assert importing_cv.delete_from_environment(importing_cv_env_id)

@@ -520,3 +520,28 @@ def repo_setup():
     yield details
     for property_name in ['lce', 'repo', 'product', 'org']:
         details[property_name].delete()
+
+
+@pytest.fixture
+def set_importing_org(request):
+    """
+    Sets same CV, product and repository in importing organization as exporting organization
+    """
+    product_name, repo_name, cv_name, mos = request.param
+    importing_org = entities.Organization().create()
+    importing_prod = entities.Product(organization=importing_org, name=product_name).create()
+
+    importing_repo = entities.Repository(
+        name=repo_name,
+        mirror_on_sync=mos,
+        download_policy='immediate',
+        product=importing_prod,
+    ).create()
+
+    importing_cv = entities.ContentView(name=cv_name, organization=importing_org).create()
+    importing_cv.repository = [importing_repo]
+    importing_cv.update(['repository'])
+    yield [importing_cv, importing_org]
+    importing_cv.delete()
+    importing_prod.delete()
+    importing_org.delete()
