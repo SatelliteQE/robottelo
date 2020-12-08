@@ -361,7 +361,7 @@ class TestVirtWhoConfigforEsx:
         """
         command = get_configure_command(virtwho_config.id)
         deploy_configure_by_command(command, form_data['hypervisor_type'])
-        search_result = virtwho_config.get_organization_configs(data={'per_page': 1000})
+        search_result = virtwho_config.get_organization_configs(data={'per_page': '1000'})
         assert [item for item in search_result['results'] if item['name'] == form_data['name']]
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
