@@ -28,20 +28,18 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_hostgroups_list
 from robottelo.helpers import get_data_file
-from robottelo.test import APITestCase
 
 
-class HostGroupTestCase(APITestCase):
+@pytest.fixture
+def hostgroup(module_org, module_location):
+    return entities.HostGroup(location=[module_location], organization=[module_org]).create()
+
+
+class TestHostGroup:
     """Tests for host group entity."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Set up organization and location for tests."""
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location(organization=[cls.org]).create()
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
@@ -75,7 +73,7 @@ class HostGroupTestCase(APITestCase):
         content_view = entities.ContentView(name=gen_string('alpha'), organization=org).create()
 
         result = content_view.available_puppet_modules()['results']
-        self.assertEqual(len(result), 1)
+        assert len(result) == 1
         entities.ContentViewPuppetModule(
             author=result[0]['author'], name=result[0]['name'], content_view=content_view
         ).create()
@@ -84,23 +82,21 @@ class HostGroupTestCase(APITestCase):
         lc_env = entities.LifecycleEnvironment(name=gen_string('alpha'), organization=org).create()
         promote(content_view.version[0], lc_env.id)
         content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
-        self.assertEqual(len(content_view.puppet_module), 1)
+        assert len(content_view.version) == 1
+        assert len(content_view.puppet_module) == 1
 
         # Form environment name variable for our test
-        env_name = 'KT_{}_{}_{}_{}'.format(
-            org.name, lc_env.name, content_view.name, str(content_view.id)
-        )
+        env_name = f'KT_{org.name}_{lc_env.name}_{content_view.name}_{content_view.id}'
 
         # Get all environments for current organization.
         # We have two environments (one created after publishing and one more
         # was created after promotion), so we need to select promoted one
         environments = entities.Environment().search(query={'organization_id': org.id})
-        self.assertEqual(len(environments), 2)
+        assert len(environments) == 2
         environments = [
             environment for environment in environments if environment.name == env_name
         ]
-        self.assertEqual(len(environments), 1)
+        assert len(environments) == 1
         environment = environments[0].read()
         environment.location = [location]
         environment.update()
@@ -115,7 +111,7 @@ class HostGroupTestCase(APITestCase):
             architecture=[architecture], ptable=[ptable]
         ).create()
         medium = entities.Media(operatingsystem=[operatingsystem]).create()
-        host_group = entities.HostGroup(
+        hostgroup = entities.HostGroup(
             architecture=architecture,
             domain=domain,
             environment=environment,
@@ -126,7 +122,7 @@ class HostGroupTestCase(APITestCase):
             organization=[org.id],
             ptable=ptable,
         ).create()
-        self.assertEqual(len(host_group.read_json()['all_puppetclasses']), 0)
+        assert len(hostgroup.read_json()['all_puppetclasses']) == 0
 
         # Get puppet class id for ntp module
         response = client.get(
@@ -140,18 +136,18 @@ class HostGroupTestCase(APITestCase):
 
         # Assign puppet class
         client.post(
-            host_group.path('self') + '/puppetclass_ids',
+            hostgroup.path('self') + '/puppetclass_ids',
             data={'puppetclass_id': puppet_class_id},
             auth=settings.server.get_credentials(),
             verify=False,
         ).raise_for_status()
-        host_group_attrs = host_group.read_json()
-        self.assertEqual(len(host_group_attrs['all_puppetclasses']), 1)
-        self.assertEqual(host_group_attrs['all_puppetclasses'][0]['name'], 'ntp')
+        hostgroup_attrs = hostgroup.read_json()
+        assert len(hostgroup_attrs['all_puppetclasses']) == 1
+        assert hostgroup_attrs['all_puppetclasses'][0]['name'] == 'ntp'
 
         # Create Host entity using HostGroup
         host = entities.Host(
-            hostgroup=host_group,
+            hostgroup=hostgroup,
             mac=mac,
             root_pass=root_pass,
             environment=environment,
@@ -164,12 +160,12 @@ class HostGroupTestCase(APITestCase):
             name=gen_string('alpha'),
         ).create(False)
         host_attrs = host.read_json()
-        self.assertEqual(len(host_attrs['all_puppetclasses']), 1)
-        self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
+        assert len(host_attrs['all_puppetclasses']) == 1
+        assert host_attrs['all_puppetclasses'][0]['name'] == 'ntp'
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    def test_rebuild_config(self):
+    def test_rebuild_config(self, module_org, module_location, hostgroup):
         """'Rebuild orchestration config' of an existing host group
 
         :id: 58bf7015-18fc-4d25-9b64-7f2dd6dde425
@@ -178,45 +174,43 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        content_view = entities.ContentView(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        content_view = entities.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
         promote(content_view.version[0], environment_id=lce.id)
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         entities.Host(
             hostgroup=hostgroup,
-            location=self.loc,
-            organization=self.org,
+            location=module_location,
+            organization=module_org,
             managed=True,
             content_facet_attributes={
                 'content_view_id': content_view.id,
                 'lifecycle_environment_id': lce.id,
             },
         ).create()
-        self.assertEqual(
-            hostgroup.rebuild_config()['message'], 'Configuration successfully rebuilt.'
-        )
+        assert hostgroup.rebuild_config()['message'] == 'Configuration successfully rebuilt.'
 
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
+    def test_positive_create_with_name(self, name, module_org, module_location):
         """Create a hostgroup with different names
 
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
+
+        :parametrized: yes
 
         :expectedresults: A hostgroup is created with expected name
 
         :CaseImportance: Critical
         """
-        for name in valid_hostgroups_list():
-            with self.subTest(name):
-                hostgroup = entities.HostGroup(
-                    location=[self.loc], name=name, organization=[self.org]
-                ).create()
-                self.assertEqual(name, hostgroup.name)
+        hostgroup = entities.HostGroup(
+            location=[module_location], name=name, organization=[module_org]
+        ).create()
+        assert name == hostgroup.name
 
     @pytest.mark.tier1
-    def test_positive_clone(self):
+    def test_positive_clone(self, hostgroup):
         """Create a hostgroup by cloning an existing one
 
         :id: 44ac8b3b-9cb0-4a9e-ad9b-2c67b2411922
@@ -225,28 +219,24 @@ class HostGroupTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         hostgroup_cloned_name = gen_string('alpha')
         hostgroup_cloned = entities.HostGroup(id=hostgroup.id).clone(
             data={'name': hostgroup_cloned_name}
         )
         hostgroup_origin = hostgroup.read_json()
 
-        # remove unset values before comparison
-        unset_keys = set(hostgroup_cloned) - set(hostgroup_origin)
-        for key in unset_keys:
-            del hostgroup_cloned[key]
+        # remove unset and unique values before comparison
+        unique_keys = ('updated_at', 'created_at', 'title', 'id', 'name')
+        hostgroup_cloned_reduced = {
+            k: v
+            for k, v in hostgroup_cloned.items()
+            if k in hostgroup_origin and k not in unique_keys
+        }
 
-        # remove unique values before comparison
-        uniqe_keys = ('updated_at', 'created_at', 'title', 'id', 'name')
-        for key in uniqe_keys:
-            del hostgroup_cloned[key]
-
-        self.assertDictContainsSubset(hostgroup_cloned, hostgroup_origin)
-        self.assertEqual(hostgroup_cloned, hostgroup_cloned)
+        assert hostgroup_cloned_reduced.items() <= hostgroup_origin.items()
 
     @pytest.mark.tier1
-    def test_positive_create_with_properties(self):
+    def test_positive_create_with_properties(self, module_org, module_location):
         """Create a hostgroup with properties
 
         :id: 528afd01-356a-4082-9e88-a5b2a715a792
@@ -258,25 +248,25 @@ class HostGroupTestCase(APITestCase):
 
         :CaseImportance: High
         """
-        env = entities.Environment(location=[self.loc], organization=[self.org]).create()
+        env = entities.Environment(location=[module_location], organization=[module_org]).create()
         parent_hostgroup = entities.HostGroup(
-            location=[self.loc], organization=[self.org]
+            location=[module_location], organization=[module_org]
         ).create()
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
         os = entities.OperatingSystem(architecture=[arch], ptable=[ptable]).create()
         media = entities.Media(
-            operatingsystem=[os], location=[self.loc], organization=[self.org]
+            operatingsystem=[os], location=[module_location], organization=[module_org]
         ).create()
         proxy = entities.SmartProxy().search(
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
-        subnet = entities.Subnet(location=[self.loc], organization=[self.org]).create()
-        domain = entities.Domain(location=[self.loc], organization=[self.org]).create()
-        content_view = entities.ContentView(organization=self.org).create()
+        subnet = entities.Subnet(location=[module_location], organization=[module_org]).create()
+        domain = entities.Domain(location=[module_location], organization=[module_org]).create()
+        content_view = entities.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         promote(content_view.version[0], lce.id)
         hostgroup = entities.HostGroup(
             architecture=arch,
@@ -285,29 +275,29 @@ class HostGroupTestCase(APITestCase):
             domain=domain,
             environment=env,
             lifecycle_environment=lce,
-            location=[self.loc],
+            location=[module_location],
             medium=media,
             operatingsystem=os,
-            organization=[self.org],
+            organization=[module_org],
             parent=parent_hostgroup,
             ptable=ptable,
             puppet_ca_proxy=proxy,
             puppet_proxy=proxy,
             subnet=subnet,
         ).create()
-        self.assertEqual(hostgroup.environment.read().name, env.name)
-        self.assertEqual(hostgroup.parent.read().name, parent_hostgroup.name)
-        self.assertEqual(hostgroup.architecture.read().name, arch.name)
-        self.assertEqual(hostgroup.operatingsystem.read().name, os.name)
-        self.assertEqual(hostgroup.medium.read().name, media.name)
-        self.assertEqual(hostgroup.ptable.read().name, ptable.name)
-        self.assertEqual(hostgroup.puppet_ca_proxy.read().name, proxy.name)
-        self.assertEqual(hostgroup.subnet.read().name, subnet.name)
-        self.assertEqual(hostgroup.domain.read().name, domain.name)
-        self.assertEqual(hostgroup.puppet_proxy.read().name, proxy.name)
-        self.assertEqual(hostgroup.content_source.read().name, proxy.name)
-        self.assertEqual(hostgroup.content_view.read().name, content_view.name)
-        self.assertEqual(hostgroup.lifecycle_environment.read().name, lce.name)
+        assert hostgroup.environment.read().name == env.name
+        assert hostgroup.parent.read().name == parent_hostgroup.name
+        assert hostgroup.architecture.read().name == arch.name
+        assert hostgroup.operatingsystem.read().name == os.name
+        assert hostgroup.medium.read().name == media.name
+        assert hostgroup.ptable.read().name == ptable.name
+        assert hostgroup.puppet_ca_proxy.read().name == proxy.name
+        assert hostgroup.subnet.read().name == subnet.name
+        assert hostgroup.domain.read().name == domain.name
+        assert hostgroup.puppet_proxy.read().name == proxy.name
+        assert hostgroup.content_source.read().name == proxy.name
+        assert hostgroup.content_view.read().name == content_view.name
+        assert hostgroup.lifecycle_environment.read().name == lce.name
 
         # create new properties for update
         new_org = entities.Organization().create()
@@ -356,27 +346,27 @@ class HostGroupTestCase(APITestCase):
                 'medium',
             ]
         )
-        self.assertEqual(hostgroup.parent.read().name, new_parent.name)
-        self.assertEqual(hostgroup.environment.read().name, new_env.name)
-        self.assertEqual(hostgroup.operatingsystem.read().name, new_os.name)
-        self.assertEqual(hostgroup.architecture.read().name, new_arch.name)
-        self.assertEqual(hostgroup.ptable.read().name, new_ptable.name)
-        self.assertEqual(hostgroup.subnet.read().name, new_subnet.name)
-        self.assertEqual(hostgroup.domain.read().name, new_domain.name)
-        self.assertEqual(hostgroup.content_view.read().name, new_cv.name)
-        self.assertEqual(hostgroup.lifecycle_environment.read().name, new_lce.name)
-        self.assertEqual(hostgroup.location[0].read().name, new_loc.name)
-        self.assertEqual(hostgroup.organization[0].read().name, new_org.name)
-        self.assertEqual(hostgroup.medium.read().name, new_media.name)
+        assert hostgroup.parent.read().name == new_parent.name
+        assert hostgroup.environment.read().name == new_env.name
+        assert hostgroup.operatingsystem.read().name == new_os.name
+        assert hostgroup.architecture.read().name == new_arch.name
+        assert hostgroup.ptable.read().name == new_ptable.name
+        assert hostgroup.subnet.read().name == new_subnet.name
+        assert hostgroup.domain.read().name == new_domain.name
+        assert hostgroup.content_view.read().name == new_cv.name
+        assert hostgroup.lifecycle_environment.read().name == new_lce.name
+        assert hostgroup.location[0].read().name == new_loc.name
+        assert hostgroup.organization[0].read().name == new_org.name
+        assert hostgroup.medium.read().name == new_media.name
 
         # delete
         hostgroup.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             hostgroup.read()
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @pytest.mark.tier2
-    def test_positive_create_with_realm(self):
+    def test_positive_create_with_realm(self, module_org, module_location):
         """Create a hostgroup with realm specified
 
         :id: 4f07ff8d-746f-4ab5-ae0b-03d629f6296c
@@ -386,19 +376,19 @@ class HostGroupTestCase(APITestCase):
         :CaseLevel: Integration
         """
         realm = entities.Realm(
-            location=[self.loc],
-            organization=[self.org],
+            location=[module_location],
+            organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
                 query={'search': f'url = https://{settings.server.hostname}:9090'}
             )[0],
         ).create()
         hostgroup = entities.HostGroup(
-            location=[self.loc], organization=[self.org], realm=realm
+            location=[module_location], organization=[module_org], realm=realm
         ).create()
-        self.assertEqual(hostgroup.realm.read().name, realm.name)
+        assert hostgroup.realm.read().name == realm.name
 
     @pytest.mark.tier2
-    def test_positive_create_with_locs(self):
+    def test_positive_create_with_locs(self, module_org):
         """Create a hostgroup with multiple locations specified
 
         :id: 0c2ee2ff-9e7a-4931-8cea-f4eecbd8c4c0
@@ -408,11 +398,11 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        locs = [entities.Location(organization=[self.org]).create() for _ in range(randint(3, 5))]
-        hostgroup = entities.HostGroup(location=locs, organization=[self.org]).create()
-        self.assertEqual(
-            {loc.name for loc in locs}, {loc.read().name for loc in hostgroup.location}
-        )
+        locs = [
+            entities.Location(organization=[module_org]).create() for _ in range(randint(3, 5))
+        ]
+        hostgroup = entities.HostGroup(location=locs, organization=[module_org]).create()
+        assert {loc.name for loc in locs} == {loc.read().name for loc in hostgroup.location}
 
     @pytest.mark.tier2
     def test_positive_create_with_orgs(self):
@@ -427,29 +417,27 @@ class HostGroupTestCase(APITestCase):
         """
         orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
         hostgroup = entities.HostGroup(organization=orgs).create()
-        self.assertEqual(
-            {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
-        )
+        assert {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
 
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
+    def test_positive_update_name(self, name, hostgroup):
         """Update a hostgroup with a new name
 
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
+
+        :parametrized: yes
 
         :expectedresults: A hostgroup is updated with expected name
 
         :CaseImportance: Critical
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
-        for name in valid_hostgroups_list():
-            with self.subTest(name):
-                hostgroup.name = name
-                hostgroup = hostgroup.update(['name'])
-                self.assertEqual(name, hostgroup.name)
+        hostgroup.name = name
+        hostgroup = hostgroup.update(['name'])
+        assert name == hostgroup.name
 
     @pytest.mark.tier2
-    def test_positive_update_puppet_ca_proxy(self):
+    def test_positive_update_puppet_ca_proxy(self, hostgroup):
         """Update a hostgroup with a new puppet CA proxy
 
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
@@ -458,17 +446,16 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         new_proxy = entities.SmartProxy().search(
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         hostgroup.puppet_ca_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_ca_proxy'])
-        self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
+        assert hostgroup.puppet_ca_proxy.read().name == new_proxy.name
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @pytest.mark.tier2
-    def test_positive_update_realm(self):
+    def test_positive_update_realm(self, module_org, module_location):
         """Update a hostgroup with a new realm
 
         :id: fd9d141f-7a71-4439-92c7-1dbc1eea4772
@@ -478,28 +465,28 @@ class HostGroupTestCase(APITestCase):
         :CaseLevel: Integration
         """
         realm = entities.Realm(
-            location=[self.loc],
-            organization=[self.org],
+            location=[module_location],
+            organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
                 query={'search': f'url = https://{settings.server.hostname}:9090'}
             )[0],
         ).create()
         hostgroup = entities.HostGroup(
-            location=[self.loc], organization=[self.org], realm=realm
+            location=[module_location], organization=[module_org], realm=realm
         ).create()
         new_realm = entities.Realm(
-            location=[self.loc],
-            organization=[self.org],
+            location=[module_location],
+            organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
                 query={'search': f'url = https://{settings.server.hostname}:9090'}
             )[0],
         ).create()
         hostgroup.realm = new_realm
         hostgroup = hostgroup.update(['realm'])
-        self.assertEqual(hostgroup.realm.read().name, new_realm.name)
+        assert hostgroup.realm.read().name == new_realm.name
 
     @pytest.mark.tier2
-    def test_positive_update_puppet_proxy(self):
+    def test_positive_update_puppet_proxy(self, hostgroup):
         """Update a hostgroup with a new puppet proxy
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
@@ -508,16 +495,15 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         new_proxy = entities.SmartProxy().search(
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         hostgroup.puppet_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_proxy'])
-        self.assertEqual(hostgroup.puppet_proxy.read().name, new_proxy.name)
+        assert hostgroup.puppet_proxy.read().name == new_proxy.name
 
     @pytest.mark.tier2
-    def test_positive_update_content_source(self):
+    def test_positive_update_content_source(self, hostgroup):
         """Update a hostgroup with a new puppet proxy
 
         :id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
@@ -526,16 +512,15 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         new_content_source = entities.SmartProxy().search(
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         hostgroup.content_source = new_content_source
         hostgroup = hostgroup.update(['content_source'])
-        self.assertEqual(hostgroup.content_source.read().name, new_content_source.name)
+        assert hostgroup.content_source.read().name == new_content_source.name
 
     @pytest.mark.tier2
-    def test_positive_update_locs(self):
+    def test_positive_update_locs(self, module_org, hostgroup):
         """Update a hostgroup with new multiple locations
 
         :id: b045f7e8-d7c0-428b-a29c-8d54e53742e2
@@ -544,18 +529,15 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         new_locs = [
-            entities.Location(organization=[self.org]).create() for _ in range(randint(3, 5))
+            entities.Location(organization=[module_org]).create() for _ in range(randint(3, 5))
         ]
         hostgroup.location = new_locs
         hostgroup = hostgroup.update(['location'])
-        self.assertEqual(
-            {loc.name for loc in new_locs}, {loc.read().name for loc in hostgroup.location}
-        )
+        assert {loc.name for loc in new_locs}, {loc.read().name for loc in hostgroup.location}
 
     @pytest.mark.tier2
-    def test_positive_update_orgs(self):
+    def test_positive_update_orgs(self, hostgroup):
         """Update a hostgroup with new multiple organizations
 
         :id: 5f6bd4f9-4bd6-4d7e-9a91-de824299020e
@@ -564,53 +546,52 @@ class HostGroupTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         new_orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
         hostgroup.organization = new_orgs
         hostgroup = hostgroup.update(['organization'])
-        self.assertEqual(
-            {org.name for org in new_orgs},
-            {org.read().name for org in hostgroup.organization},
-        )
+        assert {org.name for org in new_orgs} == {
+            org.read().name for org in hostgroup.organization
+        }
 
     @pytest.mark.tier1
-    def test_negative_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    def test_negative_create_with_name(self, name, module_org, module_location):
         """Attempt to create a hostgroup with invalid names
 
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
+
+        :parametrized: yes
 
         :expectedresults: A hostgroup is not created
 
         :CaseImportance: Critical
         """
-        for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.HostGroup(
-                        location=[self.loc], name=name, organization=[self.org]
-                    ).create()
+        with pytest.raises(HTTPError):
+            entities.HostGroup(
+                location=[module_location], name=name, organization=[module_org]
+            ).create()
 
     @pytest.mark.tier1
-    def test_negative_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
+    def test_negative_update_name(self, new_name, hostgroup):
         """Attempt to update a hostgroup with invalid names
 
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
+
+        :parametrized: yes
 
         :expectedresults: A hostgroup is not updated
 
         :CaseImportance: Critical
         """
-        hostgroup = entities.HostGroup(location=[self.loc], organization=[self.org]).create()
         original_name = hostgroup.name
-        for new_name in invalid_values_list():
-            with self.subTest(new_name):
-                hostgroup.name = new_name
-                with self.assertRaises(HTTPError):
-                    hostgroup.update(['name'])
-                self.assertEqual(hostgroup.read().name, original_name)
+        hostgroup.name = new_name
+        with pytest.raises(HTTPError):
+            hostgroup.update(['name'])
+        assert hostgroup.read().name == original_name
 
     @pytest.mark.tier2
-    def test_positive_create_with_group_parameters(self):
+    def test_positive_create_with_group_parameters(self, module_org):
         """Create a hostgroup with 'group parameters' specified
 
         :id: 0959e2a2-d635-482b-9b2e-d33990d6f0dc
@@ -623,13 +604,13 @@ class HostGroupTestCase(APITestCase):
         """
         group_params = {'name': gen_string('alpha'), 'value': gen_string('alpha')}
         hostgroup = entities.HostGroup(
-            organization=[self.org], group_parameters_attributes=[group_params]
+            organization=[module_org], group_parameters_attributes=[group_params]
         ).create()
-        self.assertEqual(group_params['name'], hostgroup.group_parameters_attributes[0]['name'])
-        self.assertEqual(group_params['value'], hostgroup.group_parameters_attributes[0]['value'])
+        assert group_params['name'] == hostgroup.group_parameters_attributes[0]['name']
+        assert group_params['value'] == hostgroup.group_parameters_attributes[0]['value']
 
 
-class HostGroupMissingAttrTestCase(APITestCase):
+class TestHostGroupMissingAttr:
     """Tests to see if the server returns the attributes it should.
 
     Satellite should return a full description of an entity each time an entity
@@ -638,15 +619,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
     Satellite may assign to fields.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Create a ``HostGroup``."""
-        super().setUpClass()
-        host_group = entities.HostGroup().create()
-        cls.host_group_attrs = set(host_group.read_json().keys())
-
     @pytest.mark.tier2
-    def test_positive_get_content_source(self):
+    def test_positive_get_content_source(self, hostgroup):
         """Read a host group. Inspect the server's response.
 
         :id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
@@ -657,15 +631,13 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :CaseLevel: Integration
         """
         names = one_to_one_names('content_source')
-        self.assertTrue(
-            names.issubset(self.host_group_attrs),
-            '{} not found in {}'.format(
-                names.difference(self.host_group_attrs), self.host_group_attrs
-            ),
-        )
+        hostgroup_attrs = set(hostgroup.read_json().keys())
+        assert names.issubset(
+            hostgroup_attrs
+        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_get_cv(self):
+    def test_positive_get_cv(self, hostgroup):
         """Read a host group. Inspect the server's response.
 
         :id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
@@ -676,15 +648,13 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :CaseLevel: Integration
         """
         names = one_to_one_names('content_view')
-        self.assertTrue(
-            names.issubset(self.host_group_attrs),
-            '{} not found in {}'.format(
-                names.difference(self.host_group_attrs), self.host_group_attrs
-            ),
-        )
+        hostgroup_attrs = set(hostgroup.read_json().keys())
+        assert names.issubset(
+            hostgroup_attrs
+        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_get_lce(self):
+    def test_positive_get_lce(self, hostgroup):
         """Read a host group. Inspect the server's response.
 
         :id: efa17f59-47f9-40c6-821d-c348c4d852ff
@@ -695,12 +665,10 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :CaseLevel: Integration
         """
         names = one_to_one_names('lifecycle_environment')
-        self.assertTrue(
-            names.issubset(self.host_group_attrs),
-            '{} not found in {}'.format(
-                names.difference(self.host_group_attrs), self.host_group_attrs
-            ),
-        )
+        hostgroup_attrs = set(hostgroup.read_json().keys())
+        assert names.issubset(
+            hostgroup_attrs
+        ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
     def test_positive_read_puppet_proxy_name(self):
@@ -719,8 +687,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         hg = entities.HostGroup(puppet_proxy=proxy).create().read_json()
-        self.assertIn('puppet_proxy_name', hg)
-        self.assertEqual(proxy.name, hg['puppet_proxy_name'])
+        assert 'puppet_proxy_name' in hg
+        assert proxy.name == hg['puppet_proxy_name']
 
     @pytest.mark.tier2
     def test_positive_read_puppet_ca_proxy_name(self):
@@ -739,5 +707,5 @@ class HostGroupMissingAttrTestCase(APITestCase):
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
         hg = entities.HostGroup(puppet_ca_proxy=proxy).create().read_json()
-        self.assertIn('puppet_ca_proxy_name', hg)
-        self.assertEqual(proxy.name, hg['puppet_ca_proxy_name'])
+        assert 'puppet_ca_proxy_name' in hg
+        assert proxy.name == hg['puppet_ca_proxy_name']
