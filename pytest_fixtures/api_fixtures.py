@@ -518,8 +518,6 @@ def repo_setup():
     lce = entities.LifecycleEnvironment(organization=org).create()
     details = {'org': org, 'product': product, 'repo': repo, 'lce': lce}
     yield details
-    for property_name in ['lce', 'repo', 'product', 'org']:
-        details[property_name].delete()
 
 
 @pytest.fixture
@@ -542,6 +540,3 @@ def set_importing_org(request):
     importing_cv.repository = [importing_repo]
     importing_cv.update(['repository'])
     yield [importing_cv, importing_org]
-    importing_cv.delete()
-    importing_prod.delete()
-    importing_org.delete()
