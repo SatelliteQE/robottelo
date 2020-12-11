@@ -14,11 +14,13 @@
 
 :Upstream: No
 """
+import pytest
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 
-class scenario_positive_create_parameters_in_existing_subnet:
+@pytest.mark.stubbed
+class TestPositiveCreateParamInExistingSubnet:
     """Parameters can be created in existing subnet post upgrade
 
     :id: 319317d5-70f0-40f3-bc33-d8846432dea2

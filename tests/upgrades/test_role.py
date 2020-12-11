@@ -14,14 +14,14 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
-from robottelo.test import APITestCase
 
-
-class scenario_positive_existing_overridden_filter:
+@pytest.mark.stubbed
+class TestOverriddenFilter:
     """Filter associated with taxonomies becomes overridden filter post upgrade
 
     :id: e8ecf446-375e-45fa-8e2c-558a40a7d8d0
@@ -73,7 +73,8 @@ class scenario_positive_existing_overridden_filter:
         """
 
 
-class scenario_positive_builtin_roles_locked:
+@pytest.mark.stubbed
+class TestBuiltInRolesLocked:
     """Builtin roles in satellite gets locked post upgrade
 
     :id: a856ca29-cb0d-4707-9b3b-90be822dd386
@@ -102,7 +103,8 @@ class scenario_positive_builtin_roles_locked:
         """
 
 
-class scenario_positive_new_organization_admin_role:
+@pytest.mark.stubbed
+class TestNewOrganizationAdminRole:
     """New Organization Admin role creates post upgrade
 
     :id: 5765b8e2-5810-4cb7-86ac-a93f36de1dd9
@@ -143,7 +145,7 @@ class scenario_positive_new_organization_admin_role:
         """
 
 
-class scenario_positive_default_role_added_permission(APITestCase):
+class TestRoleAddPermission:
     """Default role extra added permission should be intact post upgrade
 
     :id: 3a350e4a-96b3-4033-b562-3130fc43a4bc
@@ -175,7 +177,7 @@ class scenario_positive_default_role_added_permission(APITestCase):
             ),
             role=defaultrole,
         ).create()
-        self.assertIn(subnetfilter.id, [filt.id for filt in defaultrole.read().filters])
+        assert subnetfilter.id in [filt.id for filt in defaultrole.read().filters]
 
     @post_upgrade(depend_on=test_pre_default_role_added_permission)
     def test_post_default_role_added_permission(self):
@@ -188,12 +190,12 @@ class scenario_positive_default_role_added_permission(APITestCase):
         subnetfilt = entities.Filter().search(
             query={'search': f'role_id={defaultrole.id} and permission="view_subnets"'}
         )
-        self.assertTrue(subnetfilt)
+        assert subnetfilt
         # Teardown
         subnetfilt[0].delete()
 
 
-class scenario_positive_default_role_added_permission_with_filter(APITestCase):
+class TestRoleAddPermissionWithFilter:
     """Default role extra added permission with filter should be intact post
         upgrade
 
@@ -230,7 +232,7 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
             role=defaultrole,
             search='name ~ a',
         ).create()
-        self.assertIn(domainfilter.id, [filt.id for filt in defaultrole.read().filters])
+        assert domainfilter.id in [filt.id for filt in defaultrole.read().filters]
 
     @post_upgrade(depend_on=test_pre_default_role_added_permission_with_filter)
     def test_post_default_role_added_permission_with_filter(self):
@@ -244,7 +246,7 @@ class scenario_positive_default_role_added_permission_with_filter(APITestCase):
         domainfilt = entities.Filter().search(
             query={'search': f'role_id={defaultrole.id} and permission="view_domains"'}
         )
-        self.assertTrue(domainfilt)
-        self.assertEqual(domainfilt[0].search, 'name ~ a')
+        assert domainfilt
+        assert domainfilt[0].search == 'name ~ a'
         # Teardown
         domainfilt[0].delete()
