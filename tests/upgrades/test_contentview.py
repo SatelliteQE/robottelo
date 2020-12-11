@@ -6,7 +6,7 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ContentViews
 
 :TestType: Functional
 
@@ -14,245 +14,168 @@
 
 :Upstream: No
 """
-import os
-
-from fauxfactory import gen_string
+from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.cli.repository import Repository
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.helpers import get_data_file
-from robottelo.test import CLITestCase
 
 
-class Scenario_contentview_upgrade(CLITestCase):
-    """Test Content-view created before migration gets updated successfully
-    post migration.
-
-        Test Steps:
-
-        1. Before Satellite upgrade:
-        2. Create a product.
-        3. Create custom yum, puppet and file repositories in that product.
-        4. Create content-view.
-        5. Add puppet module, repositories to content view
-        6. Publish content-view
-        7. Upgrade satellite.
-        8. Remove yum repository which was added to content-view before upgrade.
-        9. Create new yum repository and add it to content-view.
-        10. Remove puppet module which was added to content-view before upgrade.
-        11. Add another puppet module to content-view
-        12. Publish content-view
+class TestContentView:
+    """The test class contains the pre-upgrade and post-upgrade scenario to test the behavior of
+    content view before and after the upgrade.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.cls_name = 'Scenario_contentview_upgrade'
-        cls.org_name = 'org_' + cls.cls_name
-        cls.product_name = 'product_' + cls.cls_name
-        cls.yum_repo1_name = 'yum_repo1_' + cls.cls_name
-        cls.yum_repo2_name = 'yum_repo2_' + cls.cls_name
-        cls.cv_name = 'cv_' + cls.cls_name
-        cls.file_repo_name = 'file_repo_' + cls.cls_name
-        cls.puppet_module_name = 'versioned'
-        cls.puppet_module_author = 'robottelo'
-        cls.puppet_repo_name = 'puppet_repo_' + cls.cls_name
+    @pre_upgrade
+    def test_cv_preupgrade_scenario(self, request):
+        """Pre-upgrade scenario that creates content-view with various repositories.
 
-    def setupScenario(self):
-        """Create yum, puppet repositories and synchronize them."""
-        self.org = make_org({'name': self.org_name})
-        self.product = make_product({'name': self.product_name, 'organization-id': self.org['id']})
-        self.yum_repo1 = make_repository(
-            {
-                'name': self.yum_repo1_name,
-                'product-id': self.product['id'],
-                'content-type': 'yum',
-                'url': FAKE_1_YUM_REPO,
-            }
-        )
-        Repository.synchronize({'id': self.yum_repo1['id']})
-        self.module = {'name': self.puppet_module_name, 'version': '3.3.3'}
-        self.puppet_repo = make_repository(
-            {
-                'name': self.puppet_repo_name,
-                'content-type': 'puppet',
-                'product-id': self.product['id'],
-                'url': CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': self.puppet_repo['id']})
-        self.puppet_module = PuppetModule.list(
-            {'search': 'name={name} and version={version}'.format(**self.module)}
+        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+
+        :steps:
+          1. Create custom repositories of yum, puppet and file type.
+          2. Create content-view.
+          3. Add yum, file repositories and puppet module in the content view.
+          4. Publish the content-view.
+
+        :expectedresults: Content-view created with various repositories.
+        """
+        test_name = request.node.name
+        puppet_module = {'name': 'versioned', 'version': '3.3.3'}
+        org = entities.Organization(name=f'{request.node.name}_org').create()
+        product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
+        yum_repository = entities.Repository(
+            product=product, name=f'{test_name}_yum_repo', url=FAKE_1_YUM_REPO
+        ).create()
+        entities.Repository.sync(yum_repository)
+        puppet_repository = entities.Repository(
+            product=product,
+            name=f'{request.node.name}_puppet_repo',
+            content_type="puppet",
+            url=CUSTOM_PUPPET_REPO,
+        ).create()
+        entities.Repository.sync(puppet_repository)
+        puppet_module_list = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**puppet_module)}
         )[0]
 
-    def make_file_repository_upload_contents(self, options=None):
-        """Makes a new File repository, Upload File/Multiple Files
-        and asserts its success.
-        """
-        if options is None:
-            options = {
-                'name': self.file_repo_name,
-                'product-id': self.product['id'],
-                'content-type': 'file',
-            }
-        if not options.get('content-type'):
-            raise CLIFactoryError('Please provide a valid Content Type.')
-        file_repo = make_repository(options)
-        remote_path = f"/tmp/{RPM_TO_UPLOAD}"
-        if 'multi_upload' not in options or not options['multi_upload']:
-            ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
-        else:
-            remote_path = "/tmp/{}/".format(gen_string('alpha'))
-            ssh.upload_files(local_dir=os.getcwd() + "/../data/", remote_dir=remote_path)
+        file_repository = entities.Repository(
+            product=product, name=f'{test_name}_file_repo', content_type="file"
+        ).create()
 
-        result = Repository.upload_content(
-            {
-                'name': file_repo['name'],
-                'organization': file_repo['organization'],
-                'path': remote_path,
-                'product-id': file_repo['product']['id'],
-            }
-        )
-        self.assertIn(f"Successfully uploaded file '{RPM_TO_UPLOAD}'", result[0]['message'])
-        file_repo = Repository.info({'id': file_repo['id']})
-        self.assertGreater(int(file_repo['content-counts']['files']), 0)
-        return file_repo
+        remote_file_path = f"/tmp/{RPM_TO_UPLOAD}"
 
-    @pre_upgrade
-    def test_cv_preupgrade_scenario(self):
-        """This is pre-upgrade scenario test to verify if we can create a
-        content-view with various repositories.
-
-        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
-
-        :steps:
-          1. Create custom yum, puppet and file repositories.
-          2. Create content-view.
-          3. Add yum, file repositories and puppet module to content view.
-          4. Publish content-view.
-
-        :expectedresults: content-view created with various repositories.
-        """
-        self.setupScenario()
-        file_repo = self.make_file_repository_upload_contents()
-        content_view = make_content_view(
-            {
-                'name': self.cv_name,
-                'organization-id': self.org['id'],
-                'repository-ids': [self.yum_repo1['id'], file_repo['id']],
-            }
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        self.assertEqual(
-            content_view['yum-repositories'][0]['name'],
-            self.yum_repo1['name'],
-            'Repo was not associated to CV',
-        )
+        ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_file_path)
+        with open(f'{get_data_file(RPM_TO_UPLOAD)}', "rb") as content:
+            file_repository.upload_content(files={'content': content})
+        assert RPM_TO_UPLOAD in file_repository.files()["results"][0]['name']
+        cv = entities.ContentView(name=f"{test_name}_cv", organization=org).create()
+        cv.repository = [yum_repository, file_repository]
+        cv.update(['repository'])
         ContentView.puppet_module_add(
             {
-                'content-view-id': content_view['id'],
-                'name': self.puppet_module['name'],
-                'author': self.puppet_module['author'],
+                'content-view-id': cv.id,
+                'name': puppet_module_list['name'],
+                'author': puppet_module_list['author'],
             }
         )
-        content_view = ContentView.info({'id': content_view['id']})
-        self.assertGreater(len(content_view['puppet-modules']), 0)
-        ContentView.publish({'id': content_view['id']})
-        cv = ContentView.info({'id': content_view['id']})
-        self.assertEqual(len(cv['versions']), 1)
+        cv.publish()
+        assert len(cv.puppet_module) == 0
+        assert len(cv.read_json()['versions']) == 1
 
     @post_upgrade(depend_on=test_cv_preupgrade_scenario)
-    def test_cv_postupgrade_scenario(self):
-        """This is post-upgrade scenario test to verify if we can update
-        content-view created in pre-upgrade scenario with various repositories.
+    def test_cv_postupgrade_scenario(self, request, dependent_scenario_name):
+        """After upgrade, the existing content-view(created before upgrade) should be updated.
 
         :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
 
         :steps:
-          1. Remove yum repository which was added to content-view before upgrade.
-          2. Create new yum repository and add it to content-view.
-          3. Remove puppet module which was added to content-view before upgrade.
-          4. Add another puppet module to content-view
-          5. Publish content-view
+          1. Check yum, puppet and file repository which was added in CV before upgrade.
+          2. Check the content view which was was created before upgrade.
+          3. Remove yum repository from existing CV.
+          4. Create new yum repository in existing CV.
+          5. Remove puppet module which was added to content-view before upgrade.
+          6. Add another puppet module to content-view
+          7. Publish content-view
 
-        :expectedresults: content-view updated with various repositories.
+        :expectedresults: After upgrade,
+          1. All the repositories should be intact.
+          2. Content view created before upgrade should be intact.
+          3. The new repository should be added/updated to the CV.
+          4. Puppet module should be added/updated to the CV.
+
         """
-        product_id = Repository.info(
-            {
-                'name': self.yum_repo1_name,
-                'organization': self.org_name,
-                'product': self.product_name,
-            }
-        )['product']['id']
-        ContentView.remove_repository(
-            {
-                'organization': self.org_name,
-                'name': self.cv_name,
-                'repository': self.yum_repo1_name,
-            }
-        )
-        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
-        self.assertNotIn(self.yum_repo1_name, content_view['yum-repositories'])
-        yum_repo2 = make_repository(
-            {
-                'name': self.yum_repo2_name,
-                'organization': self.org_name,
-                'content-type': 'yum',
-                'product-id': product_id,
-                'url': FAKE_2_YUM_REPO,
-            }
-        )
-        Repository.synchronize({'id': yum_repo2['id'], 'organization': self.org_name})
-        ContentView.add_repository(
-            {
-                'name': self.cv_name,
-                'organization': self.org_name,
-                'product': self.product_name,
-                'repository-id': yum_repo2['id'],
-            }
-        )
-        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
-        self.assertEqual(
-            content_view['yum-repositories'][0]['name'],
-            self.yum_repo2_name,
-            'Repo was not associated to CV',
-        )
+        pre_test_name = dependent_scenario_name
+        puppet_module = {'name': 'versioned', 'version': '3.3.3'}
+        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
+        request.addfinalizer(org.delete)
+        product = entities.Product(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_prod"'}
+        )[0]
+        request.addfinalizer(product.delete)
+        cv = entities.ContentView(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_cv"'}
+        )[0]
+        yum_repo = entities.Repository(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_yum_repo"'}
+        )[0]
+        request.addfinalizer(yum_repo.delete)
+        file_repo = entities.Repository(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_file_repo"'}
+        )[0]
+        request.addfinalizer(file_repo.delete)
+        puppet_repo = entities.Repository(organization=org.id).search(
+            query={'search': f'name="{pre_test_name}_puppet_repo"'}
+        )[0]
+        request.addfinalizer(puppet_repo.delete)
+        request.addfinalizer(cv.delete)
+        puppet_module_list = PuppetModule.list(
+            {'search': 'name={name} and version={version}'.format(**puppet_module)}
+        )[0]
+        cv.repository = []
+        cv.update(['repository'])
+        assert len(cv.read_json()['repositories']) == 0
+
+        yum_repository2 = entities.Repository(
+            product=product, name=f'{pre_test_name}_yum_repos2', url=FAKE_2_YUM_REPO
+        ).create()
+        yum_repository2.sync()
+        cv.repository = [yum_repository2]
+        cv.update(['repository'])
+        assert cv.read_json()['repositories'][0]['name'] == yum_repository2.name
+
         ContentView.puppet_module_remove(
             {
-                'organization': self.org_name,
-                'content-view': self.cv_name,
-                'name': self.puppet_module_name,
-                'author': self.puppet_module_author,
+                'organization': org.name,
+                'content-view': cv.name,
+                'name': puppet_module_list['name'],
+                'author': puppet_module_list['author'],
             }
         )
-        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
-        self.assertEqual(len(content_view['puppet-modules']), 0)
+        assert len(cv.read_json()['puppet_modules']) == 0
+
         module = {'name': 'versioned', 'version': '2.2.2'}
-        puppet_module = PuppetModule.list(
+        puppet_module_list = PuppetModule.list(
             {'search': 'name={name} and version={version}'.format(**module)}
         )[0]
         ContentView.puppet_module_add(
             {
-                'organization': self.org_name,
-                'content-view': self.cv_name,
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
+                'organization': org.name,
+                'content-view': cv.name,
+                'name': puppet_module_list['name'],
+                'author': puppet_module_list['author'],
             }
         )
-        content_view = ContentView.info({'id': content_view['id']})
-        self.assertGreater(len(content_view['puppet-modules']), 0)
-        ContentView.publish({'name': self.cv_name, 'organization': self.org_name})
-        content_view = ContentView.info({'name': self.cv_name, 'organization': self.org_name})
-        self.assertEqual(len(content_view['versions']), 2)
+        assert len(cv.read_json()['puppet_modules']) > 0
+        cv.publish()
+        assert len(cv.read_json()['versions']) == 2
+        content_view_json = cv.read_json()['environments'][0]
+        cv.delete_from_environment(content_view_json['id'])
+        assert len(cv.read_json()['environments']) == 0
