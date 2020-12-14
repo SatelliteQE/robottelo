@@ -3,7 +3,6 @@
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
-FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_VIRTWHO_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), virtwho)
 FOREMAN_ENDTOEND_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), endtoend)
 FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui})
@@ -38,7 +37,6 @@ help:
 	@echo "  test-foreman-cli-threaded  to do the above with threading."
 	@echo "                             Requires pytest-xdist"
 	@echo "  test-foreman-rhai          to test Red Hat Insights plugin"
-	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
 	@echo "  test-foreman-virtwho       to test a Foreman deployment Virtwho Configure plugin"
@@ -71,7 +69,6 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/installer
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/longrun
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
-	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/virtwho
@@ -97,9 +94,6 @@ test-foreman-cli-threaded:
 
 test-foreman-rhai:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
-
-test-foreman-rhci:
-	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
 
 test-foreman-ui:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_UI_TESTS_PATH)
@@ -177,7 +171,7 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
         test-robottelo-coverage test-foreman-api test-foreman-cli \
-        test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
+        test-foreman-rhai test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
         test-foreman-virtwho test-foreman-ui \
