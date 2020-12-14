@@ -111,6 +111,8 @@ def test_positive_create_with_default_org(name, module_org, default_org):
 
     :id: 4265dfd1-dc64-4119-8a64-8724b09d6fb7
 
+    :parametrized: yes
+
     :expectedresults: gpg key is created
 
     :CaseImportance: Critical
@@ -133,6 +135,8 @@ def test_positive_create_with_custom_org(name, module_org):
     import using a new organization
 
     :id: 10dd9fc0-e088-4cf1-9fb6-24fe04df2895
+
+    :parametrized: yes
 
     :expectedresults: gpg key is created
 
@@ -182,6 +186,8 @@ def test_negative_create_with_no_gpg_key(name, module_org):
 
     :id: bbfd5306-cfe7-40c1-a3a2-35834108163c
 
+    :parametrized: yes
+
     :expectedresults: gpg key is not created
 
     :CaseImportance: Critical
@@ -197,6 +203,8 @@ def test_negative_create_with_invalid_name(name, module_org):
     file import
 
     :id: fbbaf8a5-1570-4910-9f6a-baa35b15d2ad
+
+    :parametrized: yes
 
     :expectedresults: gpg key is not created
 
@@ -215,6 +223,8 @@ def test_positive_delete(name, module_org):
     import then delete it
 
     :id: 9640cabc-e0c3-41a0-b4de-99b06bf51c02
+
+    :parametrized: yes
 
     :expectedresults: gpg key is deleted
 
@@ -242,6 +252,8 @@ def test_positive_update_name(new_name, module_org):
 
     :id: f3bb254d-f831-4f86-944a-26d9a36bd906
 
+    :parametrized: yes
+
     :expectedresults: gpg key is updated
 
     :CaseImportance: Critical
@@ -264,6 +276,8 @@ def test_positive_update_key(name, module_org):
     import then update its gpg key file
 
     :id: d3a72892-3414-4178-98b7-e0780d9b6587
+
+    :parametrized: yes
 
     :expectedresults: gpg key is updated
 
@@ -290,6 +304,8 @@ def test_negative_update_name(new_name, module_org):
     import then fail to update its name
 
     :id: 98cda40a-49d0-42ce-91a6-31fa7b7f330b
+
+    :parametrized: yes
 
     :expectedresults: gpg key is not updated
 
@@ -846,6 +862,8 @@ def test_positive_search(name, module_org):
     """Create gpg key and search for it
 
     :id: f72648f1-b468-4662-9653-3464e7d0c349
+
+    :parametrized: yes
 
     :expectedresults: gpg key can be found
 
