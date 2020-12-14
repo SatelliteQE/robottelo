@@ -32,9 +32,9 @@ def module_user(request, module_org):
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    # take only "module" from "tests.ui.test_module"
+    # take only "module" from "tests.foreman.rhai.test_module"
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
-    login = '{}_{}'.format(test_module_name, gen_string('alphanumeric'))
+    login = f'{test_module_name}_{gen_string("alphanumeric")}'
     password = gen_string('alphanumeric')
     LOGGER.debug('Creating session user %r', login)
     user = nailgun.entities.User(
@@ -53,33 +53,12 @@ def module_user(request, module_org):
         LOGGER.warning(f'Unable to delete session user: {err}')
 
 
-@pytest.fixture()
-def test_name(request):
-    """Returns current test full name, prefixed by module name and test class
-    name (if present).
-
-    Examples::
-
-        tests.foreman.ui.test_activationkey.test_positive_create
-        tests.foreman.api.test_errata.ErrataTestCase.test_positive_list
-
-    """
-    # test module name, e.g. 'test_activationkey'
-    name = [request.module.__name__]
-    # test class name (if present), e.g. 'ActivationKeyTestCase'
-    if request.instance:
-        name.append(request.instance.__class__.__name__)
-    # test name, e.g. 'test_positive_create'
-    name.append(request.node.name)
-    return '.'.join(name)
-
-
-@pytest.fixture()
-def autosession(test_name, module_user, request):
+@pytest.fixture
+def autosession(test_name, module_user):
     """Session fixture which automatically initializes and starts airgun UI
     session and correctly passes current test name to it. Use it when you want
     to have a session started before test steps and closed after all of them,
-    i.e. when you don't need manual control over when the session is started or
+    i.e., when you don't need manual control over when the session is started or
     closed.
 
     Usage::
@@ -89,8 +68,5 @@ def autosession(test_name, module_user, request):
             autosession.architecture.create({'name': 'bar'})
 
     """
-    test_name = f'{request.module.__name__}.{request.node.name}'
-    login = module_user.login
-    password = module_user.password
-    with Session(test_name, login, password) as started_session:
+    with Session(test_name, module_user.login, module_user.password) as started_session:
         yield started_session

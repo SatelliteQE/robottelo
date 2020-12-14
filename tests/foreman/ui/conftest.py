@@ -69,27 +69,6 @@ def module_user(request, module_org, module_loc):
 
 
 @pytest.fixture()
-def test_name(request):
-    """Returns current test full name, prefixed by module name and test class
-    name (if present).
-
-    Examples::
-
-        tests.foreman.ui.test_activationkey.test_positive_create
-        tests.foreman.api.test_errata.ErrataTestCase.test_positive_list
-
-    """
-    # test module name, e.g. 'test_activationkey'
-    name = [request.module.__name__]
-    # test class name (if present), e.g. 'ActivationKeyTestCase'
-    if request.instance:
-        name.append(request.instance.__class__.__name__)
-    # test name, e.g. 'test_positive_create'
-    name.append(request.node.name)
-    return '.'.join(name)
-
-
-@pytest.fixture()
 def session(test_name, module_user):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared
@@ -122,7 +101,6 @@ def autosession(test_name, module_user, request):
             autosession.architecture.create({'name': 'bar'})
 
     """
-    test_name = f'{request.module.__name__}.{request.node.name}'
     login = module_user.login
     password = module_user.password
     with Session(test_name, login, password) as started_session:

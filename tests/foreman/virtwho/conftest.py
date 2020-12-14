@@ -47,9 +47,9 @@ def module_user(request, module_org, module_loc):
 
     :rtype: :class:`nailgun.entities.Organization`
     """
-    # take only "module" from "tests.ui.test_module"
+    # take only "module" from "tests.foreman.virtwho.test_module"
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
-    login = '{}_{}'.format(test_module_name, gen_string('alphanumeric'))
+    login = f'{test_module_name}_{gen_string("alphanumeric")}'
     password = gen_string('alphanumeric')
     LOGGER.debug('Creating session user %r', login)
     user = nailgun.entities.User(
@@ -69,28 +69,7 @@ def module_user(request, module_org, module_loc):
         LOGGER.warning('Unable to delete session user: %s', str(err))
 
 
-@pytest.fixture()
-def test_name(request):
-    """Returns current test full name, prefixed by module name and test class
-    name (if present).
-
-    Examples::
-
-        tests.foreman.ui.test_activationkey.test_positive_create
-        tests.foreman.api.test_errata.ErrataTestCase.test_positive_list
-
-    """
-    # test module name, e.g. 'test_activationkey'
-    name = [request.module.__name__]
-    # test class name (if present), e.g. 'ActivationKeyTestCase'
-    if request.instance:
-        name.append(request.instance.__class__.__name__)
-    # test name, e.g. 'test_positive_create'
-    name.append(request.node.name)
-    return '.'.join(name)
-
-
-@pytest.fixture()
+@pytest.fixture
 def session(test_name, module_user):
     """Session fixture which automatically initializes (but does not start!)
     airgun UI session and correctly passes current test name to it. Uses shared
