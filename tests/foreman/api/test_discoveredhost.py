@@ -344,6 +344,8 @@ def test_positive_provision_pxe_host(_module_user, discovery_settings, provision
 
     :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
 
+    :parametrized: yes
+
     :Setup: Provisioning should be configured and a host should be
         discovered
 
@@ -425,6 +427,8 @@ def test_positive_auto_provision_pxe_host(
     """Auto provision a pxe-based host by executing discovery rules
 
     :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
+
+    :parametrized: yes
 
     :Setup: Provisioning should be configured and a host should be
         discovered
@@ -535,6 +539,8 @@ def test_positive_reboot_pxe_host(_module_user, discovery_settings, provisioning
 
     :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
 
+    :parametrized: yes
+
     :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
 
     :Steps: PUT /api/v2/discovered_hosts/:id/reboot
@@ -583,6 +589,8 @@ def test_positive_reboot_all_pxe_hosts(
     """Rebooting all pxe-based discovered hosts
 
     :id: 69c807f8-5646-4aa6-8b3c-5ecdb69560ed
+
+    :parametrized: yes
 
     :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
 

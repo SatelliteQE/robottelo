@@ -333,6 +333,8 @@ class TestOpenLdapAuthSource:
 
         :id: f84db334-0189-11eb-846c-d46d6dd3b5b2
 
+        :parametrized: yes
+
         :expectedresults: Whether creating/updating/deleting LDAP Auth with OpenLDAP is successful.
 
         :CaseImportance: High

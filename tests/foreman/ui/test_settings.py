@@ -237,8 +237,6 @@ def test_negative_settings_access_to_non_admin():
         3. Navigate to /settings
         4. Check message permission denied is present
 
-    :parametrized: yes
-
     :expectedresults: Administer -> Settings tab should not be available to non admin users
 
     :CaseImportance: Medium
