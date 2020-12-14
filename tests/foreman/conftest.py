@@ -19,13 +19,9 @@ def log(message, level="DEBUG"):
     """Pytest has a limitation to use logging.logger from conftest.py
     so we need to emulate the logger by stdouting the output
     """
-    now = datetime.datetime.utcnow()
-    full_message = "{date} - conftest - {level} - {message}".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
-    )
-    print(full_message)  # noqa
+    now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     with open('robottelo.log', 'a') as log_file:
-        log_file.write(full_message)
+        log_file.write(f'{now} - conftest - {level} - {message}\n')
 
 
 def pytest_report_header(config):
@@ -112,13 +108,24 @@ def robottelo_logger(request, worker_id):
 
 
 @pytest.fixture(autouse=True)
-def log_test_execution(robottelo_logger, request):
-    test_name = request.node.name
-    parent_name = request.node.parent.name
-    test_full_name = f'{parent_name}/{test_name}'
-    robottelo_logger.debug(f'Started Test: {test_full_name}')
-    yield None
-    robottelo_logger.debug(f'Finished Test: {test_full_name}')
+def log_test_execution(robottelo_logger, test_name):
+    robottelo_logger.debug(f'Started Test: {test_name}')
+    yield
+    robottelo_logger.debug(f'Finished Test: {test_name}')
+
+
+@pytest.fixture
+def test_name(request):
+    """Returns current test full name, prefixed by module name and test class
+    name (if present).
+
+    Examples::
+
+        tests.foreman.ui.test_activationkey::test_positive_create
+        tests.foreman.api.test_errata::TestErrata::test_positive_list
+
+    """
+    return request.node._nodeid
 
 
 def pytest_collection_modifyitems(session, items, config):
