@@ -15,7 +15,7 @@ def pytest_configure(config):
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
     ]
-    markers = markers + module_markers()
+    markers.extend(module_markers())
     for marker in markers:
         config.addinivalue_line("markers", marker)
 

@@ -41,9 +41,7 @@ from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_role
@@ -77,6 +75,8 @@ from robottelo.decorators import skip_if_not_set
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
 
+# TODO replace make - create fixtures if possible, if not use API
+
 
 @pytest.fixture(scope="module")
 def module_default_proxy():
@@ -107,25 +107,14 @@ def function_host_content_source(
     Host.delete({'id': host['id']})
 
 
-@pytest.fixture(scope="module")
-def module_make_ak(module_lce, module_org, module_promoted_cv):
-    return make_activation_key(
-        {
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'organization-id': module_org.id,
-        }
-    )
-
-
 @pytest.fixture(scope="function")
-def function_make_host(module_default_proxy):
+def function_host(module_default_proxy):
     host_template = entities.Host()
     host_template.create_missing()
     org_id = host_template.organization.id
     loc_id = host_template.location.id
     # using CLI to create host
-    return make_host(
+    host = make_host(
         {
             'architecture-id': host_template.architecture.id,
             'domain-id': host_template.domain.id,
@@ -141,29 +130,33 @@ def function_make_host(module_default_proxy):
             'root-password': host_template.root_pass,
         }
     )
+    yield host
+    Host.delete({'id': host['id']})
+    # Host.delete({'id': host_template.id})
 
 
 @pytest.fixture(scope="function")
-def function_make_user(function_make_host):
+def function_user(function_host):
     """
     Returns dict with user object and with password to this user
     """
     user_name = gen_string('alphanumeric')
     user_password = gen_string('alphanumeric')
-    org = Org.info({'name': function_make_host['organization']})
-    location = Location.info({'name': function_make_host['location']})
+    org = Org.info({'name': function_host['organization']})
+    location = Location.info({'name': function_host['location']})
     user = make_user(
         {
             'admin': False,
-            'default-organization-id': org['id'],
-            'organization-ids': [org['id']],
+            'default-organization-id': org.id,
+            'organization-ids': [org.id],
             'default-location-id': location['id'],
             'location-ids': [location['id']],
             'login': user_name,
             'password': user_password,
         }
     )
-    return {'user': user, 'password': user_password}
+    yield {'user': user, 'password': user_password}
+    User.delete({'id': user['id']})
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
@@ -496,7 +489,7 @@ def test_positive_register_with_no_ak(module_lce, module_org, module_promoted_cv
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_negative_register_twice(module_make_ak, module_org):
+def test_negative_register_twice(module_ak_with_cv, module_org):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
@@ -507,9 +500,9 @@ def test_negative_register_twice(module_make_ak, module_org):
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
         client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_make_ak['name'])
+        client.register_contenthost(module_org.label, module_ak_with_cv.name)
         assert client.subscribed
-        result = client.register_contenthost(module_org.label, module_make_ak['name'], force=False)
+        result = client.register_contenthost(module_org.label, module_ak_with_cv.name, force=False)
         # Depending on distro version, successful return_code may be 0 or
         # 1, so we can't verify host wasn't registered by return_code != 0
         # check. Verifying return_code == 64 here, which stands for content
@@ -554,7 +547,7 @@ def test_positive_list_scparams(module_env_search, module_org, module_puppet_cla
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-def test_positive_list(module_make_ak, module_lce, module_org):
+def test_positive_list(module_ak_with_cv, module_lce, module_org):
     """List hosts for a given org
 
     :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
@@ -565,7 +558,7 @@ def test_positive_list(module_make_ak, module_lce, module_org):
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
         client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_make_ak['name'])
+        client.register_contenthost(module_org.label, module_ak_with_cv.name)
         assert client.subscribed
         hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
         assert len(hosts) >= 1
@@ -602,7 +595,7 @@ def test_positive_list_by_last_checkin(module_lce, module_org, module_promoted_c
 @pytest.mark.host_create
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_unregister(module_make_ak, module_lce, module_org):
+def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
     """Unregister a host
 
     :id: c5ce988d-d0ea-4958-9956-5a4b039b285c
@@ -615,7 +608,7 @@ def test_positive_unregister(module_make_ak, module_lce, module_org):
     """
     with VirtualMachine(distro=DISTRO_RHEL7) as client:
         client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_make_ak['name'])
+        client.register_contenthost(module_org.label, module_ak_with_cv.name)
         assert client.subscribed
         hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
         assert len(hosts) >= 1
@@ -846,7 +839,7 @@ def test_negative_create_with_incompatible_pxe_loader():
 # -------------------------- UPDATE SCENARIOS -------------------------
 @pytest.mark.host_update
 @pytest.mark.tier1
-def test_positive_update_parameters_by_name(function_make_host):
+def test_positive_update_parameters_by_name(function_host, module_location):
     """A host can be updated with a new name, mac address, domain,
         location, environment, architecture, operating system and medium.
         Use id to access the host
@@ -863,24 +856,25 @@ def test_positive_update_parameters_by_name(function_make_host):
     """
     new_name = valid_hosts_list()[0]
     new_mac = gen_mac(multicast=False)
-    new_loc = make_location()
+    new_loc = module_location
+    host = Host.info({'id': function_host['id']})
     new_domain = make_domain(
-        {'locations': new_loc['name'], 'organizations': function_make_host['organization']}
+        {'locations': new_loc.name, 'organizations': function_host['organization']}
     )
     new_env = make_environment(
-        {'locations': new_loc['name'], 'organizations': function_make_host['organization']}
+        {'locations': new_loc.name, 'organizations': function_host['organization']}
     )
     new_arch = make_architecture()
     new_os = make_os(
         {
             'architectures': new_arch['name'],
-            'partition-tables': function_make_host['operating-system']['partition-table'],
+            'partition-tables': function_host['operating-system']['partition-table'],
         }
     )
     new_medium = make_medium(
         {
-            'locations': new_loc['name'],
-            'organizations': function_make_host['organization'],
+            'locations': new_loc.name,
+            'organizations': function_host['organization'],
             'operatingsystems': new_os['title'],
         }
     )
@@ -889,17 +883,17 @@ def test_positive_update_parameters_by_name(function_make_host):
             'architecture': new_arch['name'],
             'domain': new_domain['name'],
             'environment': new_env['name'],
-            'name': function_make_host['name'],
+            'name': function_host['name'],
             'mac': new_mac,
             'medium-id': new_medium['id'],
             'new-name': new_name,
             'operatingsystem': new_os['title'],
-            'new-location-id': new_loc['id'],
+            'new-location-id': new_loc.id,
         }
     )
-    host = Host.info({'id': function_make_host['id']})
+    host = Host.info({'id': function_host['id']})
     assert '{}.{}'.format(new_name, host['network']['domain']) == host['name']
-    assert host['location'] == new_loc['name']
+    assert host['location'] == new_loc.name
     assert host['network']['mac'] == new_mac
     assert host['network']['domain'] == new_domain['name']
     assert host['puppet-environment'] == new_env['name']
@@ -910,7 +904,7 @@ def test_positive_update_parameters_by_name(function_make_host):
 
 @pytest.mark.tier1
 @pytest.mark.host_update
-def test_negative_update_name(function_make_host):
+def test_negative_update_name(function_host):
     """A host can not be updated with invalid or empty name
 
     :id: e8068d2a-6a51-4627-908b-60a516c67032
@@ -921,14 +915,14 @@ def test_negative_update_name(function_make_host):
     """
     new_name = gen_choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'id': function_make_host['id'], 'new-name': new_name})
-    host = Host.info({'id': function_make_host['id']})
+        Host.update({'id': function_host['id'], 'new-name': new_name})
+    host = Host.info({'id': function_host['id']})
     assert '{}.{}'.format(new_name, host['network']['domain']).lower() != host['name']
 
 
 @pytest.mark.tier1
 @pytest.mark.host_update
-def test_negative_update_mac(function_make_host):
+def test_negative_update_mac(function_host):
     """A host can not be updated with invalid or empty MAC address
 
     :id: 2f03032d-789d-419f-9ff2-a6f3561444da
@@ -939,14 +933,14 @@ def test_negative_update_mac(function_make_host):
     """
     new_mac = gen_choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'id': function_make_host['id'], 'mac': new_mac})
-    host = Host.info({'id': function_make_host['id']})
+        Host.update({'id': function_host['id'], 'mac': new_mac})
+    host = Host.info({'id': function_host['id']})
     assert host['network']['mac'] != new_mac
 
 
 @pytest.mark.tier2
 @pytest.mark.host_update
-def test_negative_update_arch(function_make_host):
+def test_negative_update_arch(function_host):
     """A host can not be updated with a architecture, which does not
     belong to host's operating system
 
@@ -958,14 +952,14 @@ def test_negative_update_arch(function_make_host):
     """
     new_arch = make_architecture()
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'architecture': new_arch['name'], 'id': function_make_host['id']})
-    host = Host.info({'id': function_make_host['id']})
+        Host.update({'architecture': new_arch['name'], 'id': function_host['id']})
+    host = Host.info({'id': function_host['id']})
     assert host['operating-system']['architecture'] != new_arch['name']
 
 
 @pytest.mark.tier2
 @pytest.mark.host_update
-def test_negative_update_os(function_make_host):
+def test_negative_update_os(function_host):
     """A host can not be updated with a operating system, which is
     not associated with host's medium
 
@@ -979,18 +973,18 @@ def test_negative_update_os(function_make_host):
     new_os = make_os(
         {
             'architectures': new_arch['name'],
-            'partition-tables': function_make_host['operating-system']['partition-table'],
+            'partition-tables': function_host['operating-system']['partition-table'],
         }
     )
     with pytest.raises(CLIReturnCodeError):
         Host.update(
             {
                 'architecture': new_arch['name'],
-                'id': function_make_host['id'],
+                'id': function_host['id'],
                 'operatingsystem': new_os['title'],
             }
         )
-    host = Host.info({'id': function_make_host['id']})
+    host = Host.info({'id': function_host['id']})
     assert host['operating-system']['operating-system'] != new_os['title']
 
 
@@ -1019,7 +1013,7 @@ def test_hammer_host_info_output():
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
 @pytest.mark.host_parameter
 @pytest.mark.tier1
-def test_positive_parameter_crud(function_make_host):
+def test_positive_parameter_crud(function_host):
     """Add, update and remove host parameter with valid name.
 
     :id: 76034424-cf18-4ced-916b-ee9798c311bc
@@ -1031,8 +1025,8 @@ def test_positive_parameter_crud(function_make_host):
     """
     name = next(iter(valid_data_list()))
     value = valid_data_list()[name]
-    Host.set_parameter({'host-id': function_make_host['id'], 'name': name, 'value': value})
-    host = Host.info({'id': function_make_host['id']})
+    Host.set_parameter({'host-id': function_host['id'], 'name': name, 'value': value})
+    host = Host.info({'id': function_host['id']})
     assert name in host['parameters'].keys()
     assert value == host['parameters'][name]
 
@@ -1049,7 +1043,7 @@ def test_positive_parameter_crud(function_make_host):
 
 @pytest.mark.host_parameter
 @pytest.mark.tier1
-def test_negative_add_parameter(function_make_host):
+def test_negative_add_parameter(function_host):
     """Try to add host parameter with different invalid names.
 
     :id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
@@ -1063,18 +1057,18 @@ def test_negative_add_parameter(function_make_host):
     with pytest.raises(CLIReturnCodeError):
         Host.set_parameter(
             {
-                'host-id': function_make_host['id'],
+                'host-id': function_host['id'],
                 'name': name,
                 'value': gen_string('alphanumeric'),
             }
         )
-    host = Host.info({'id': function_make_host['id']})
+    host = Host.info({'id': function_host['id']})
     assert name not in host['parameters'].keys()
 
 
 @pytest.mark.host_parameter
 @pytest.mark.tier2
-def test_negative_view_parameter_by_non_admin_user(function_make_host, function_make_user):
+def test_negative_view_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to view parameters with non admin user without Parameter
      permissions
 
@@ -1096,10 +1090,8 @@ def test_negative_view_parameter_by_non_admin_user(function_make_host, function_
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter(
-        {'host-id': function_make_host['id'], 'name': param_name, 'value': param_value}
-    )
-    host = Host.info({'id': function_make_host['id']})
+    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
+    host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = make_role()
     add_role_permissions(
@@ -1109,16 +1101,16 @@ def test_negative_view_parameter_by_non_admin_user(function_make_host, function_
             'Organization': {'permissions': ['view_organizations']},
         },
     )
-    User.add_role({'id': function_make_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
     host = Host.with_user(
-        username=function_make_user['user']['login'], password=function_make_user['password']
+        username=function_user['user']['login'], password=function_user['password']
     ).info({'id': host['id']})
     assert not host.get('parameters')
 
 
 @pytest.mark.host_parameter
 @pytest.mark.tier2
-def test_positive_view_parameter_by_non_admin_user(function_make_host, function_make_user):
+def test_positive_view_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to view parameters with non admin user that has
     Parameter::vew_params permission
 
@@ -1141,10 +1133,8 @@ def test_positive_view_parameter_by_non_admin_user(function_make_host, function_
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter(
-        {'host-id': function_make_host['id'], 'name': param_name, 'value': param_value}
-    )
-    host = Host.info({'id': function_make_host['id']})
+    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
+    host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = make_role()
     add_role_permissions(
@@ -1155,9 +1145,9 @@ def test_positive_view_parameter_by_non_admin_user(function_make_host, function_
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_make_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
     host = Host.with_user(
-        username=function_make_user['user']['login'], password=function_make_user['password']
+        username=function_user['user']['login'], password=function_user['password']
     ).info({'id': host['id']})
     assert param_name in host['parameters']
     assert host['parameters'][param_name] == param_value
@@ -1165,7 +1155,7 @@ def test_positive_view_parameter_by_non_admin_user(function_make_host, function_
 
 @pytest.mark.host_parameter
 @pytest.mark.tier2
-def test_negative_edit_parameter_by_non_admin_user(function_make_host, function_make_user):
+def test_negative_edit_parameter_by_non_admin_user(function_host, function_user):
     """Attempt to edit parameter with non admin user that has
     Parameter::vew_params permission
 
@@ -1188,10 +1178,8 @@ def test_negative_edit_parameter_by_non_admin_user(function_make_host, function_
     """
     param_name = gen_string('alpha').lower()
     param_value = gen_string('alphanumeric')
-    Host.set_parameter(
-        {'host-id': function_make_host['id'], 'name': param_name, 'value': param_value}
-    )
-    host = Host.info({'id': function_make_host['id']})
+    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
+    host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
     role = make_role()
     add_role_permissions(
@@ -1202,22 +1190,22 @@ def test_negative_edit_parameter_by_non_admin_user(function_make_host, function_
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_make_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
     param_new_value = gen_string('alphanumeric')
     with pytest.raises(CLIReturnCodeError):
 
         Host.with_user(
-            username=function_make_user['user']['login'], password=function_make_user['password']
+            username=function_user['user']['login'], password=function_user['password']
         ).set_parameter(
-            {'host-id': function_make_host['id'], 'name': param_name, 'value': param_new_value}
+            {'host-id': function_host['id'], 'name': param_name, 'value': param_new_value}
         )
-    host = Host.info({'id': function_make_host['id']})
+    host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
 
 
 @pytest.mark.host_parameter
 @pytest.mark.tier2
-def test_positive_set_multi_line_and_with_spaces_parameter_value(function_make_host):
+def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
     """Check that host parameter value with multi-line and spaces is
     correctly restored from yaml format
 
@@ -1242,17 +1230,15 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_make_h
     )
     # count parameters of a host
     response = Host.info(
-        {'id': function_make_host['id']}, output_format='yaml', return_raw_response=True
+        {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.return_code == 0
     yaml_content = yaml.load('\n'.join(response.stdout))
     host_initial_params = yaml_content.get('Parameters')
     # set parameter
-    Host.set_parameter(
-        {'host-id': function_make_host['id'], 'name': param_name, 'value': param_value}
-    )
+    Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     response = Host.info(
-        {'id': function_make_host['id']}, output_format='yaml', return_raw_response=True
+        {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.return_code == 0
     yaml_content = yaml.load('\n'.join(response.stdout))
@@ -1464,10 +1450,7 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 # ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
 @skip_if_not_set('fake_manifest')
 @pytest.fixture(scope="module")
-def host_subscription(module_cv, module_lce, module_org):
-    activation_key = make_activation_key(
-        {'lifecycle-environment-id': module_lce.id, 'organization-id': module_org.id}
-    )
+def host_subscription(module_ak, module_cv, module_lce, module_org):
 
     subscription_name = SATELLITE_SUBSCRIPTION_NAME
     # create a satellite tools repository content
@@ -1479,7 +1462,7 @@ def host_subscription(module_cv, module_lce, module_org):
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': activation_key['id'],
+            'activationkey-id': module_ak.id,
             'subscription': subscription_name,
         },
         force_use_cdn=True,
@@ -1504,7 +1487,7 @@ def host_subscription(module_cv, module_lce, module_org):
         }
     )
     return {
-        'ak': activation_key,
+        'ak': module_ak,
         'cv': content_view,
         'default_subscription_id': default_subscription_id,
         'hosts_env': hosts_env,
@@ -1606,7 +1589,7 @@ class HostSubscription:
         activation_key = make_activation_key(
             {
                 'organization-id': self.org.id,
-                'content-view-id': self.content_view['id'],
+                'content-view-id': self.content_view.id,
                 'lifecycle-environment-id': self.hosts_env['id'],
             }
         )
@@ -1628,7 +1611,7 @@ class HostSubscription:
         Host.subscription_register(
             {
                 'organization-id': self.org.id,
-                'content-view-id': self.content_view['id'],
+                'content-view-id': self.content_view.id,
                 'lifecycle-environment-id': self.hosts_env['id'],
                 'name': self.client.hostname,
             }
@@ -1793,52 +1776,53 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     """
     # Setup as in host_subscription
     module_host_subscription.set_client(host_subscription_client)
-    org = make_org()
-    lce_env = make_lifecycle_environment({'organization-id': org['id']})
-    content_view = make_content_view({'organization-id': org['id']})
-    activation_key = make_activation_key(
-        {'lifecycle-environment-id': lce_env['id'], 'organization-id': org['id']}
-    )
+    org = entities.Organization().create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    content_view = entities.ContentView(organization=org).create()
+    ak = entities.ActivationKey(
+        environment=lce,
+        organization=org,
+    ).create()
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': org['id'],
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lce_env['id'],
-            'activationkey-id': activation_key['id'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': lce.id,
+            'activationkey-id': ak.id,
             'subscription': module_host_subscription.subscription_name,
         },
         force_use_cdn=True,
     )
-    hosts_env = make_lifecycle_environment({'organization-id': org['id']})
+    hosts_env = make_lifecycle_environment({'organization-id': org.id})
     # refresh content view data
-    content_view = ContentView.info({'id': content_view['id']})
+    content_view = ContentView.info({'id': content_view.id})
     content_view_version = content_view['versions'][-1]
     ContentView.version_promote(
         {
             'id': content_view_version['id'],
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'to-lifecycle-environment-id': hosts_env['id'],
         }
     )
 
     # register client
     module_host_subscription.client.register_contenthost(
-        org['name'],
+        org.name,
         lce='{}/{}'.format(hosts_env['name'], content_view['name']),
         auto_attach=False,
     )
 
     # disable repository set to
-    default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': org['id']})
-    default_lce = LifecycleEnvironment.info({'name': ENVIRONMENT, 'organization-id': org['id']})
+    default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': org.id})
+    default_lce = LifecycleEnvironment.info({'name': ENVIRONMENT, 'organization-id': org.id})
     ContentView.remove(
         {
             'id': content_view['id'],
-            'lifecycle-environments': ",".join([ENVIRONMENT, lce_env['name'], hosts_env['name']]),
-            'organization-id': org['id'],
+            'lifecycle-environments': ",".join([ENVIRONMENT, lce.name, hosts_env['name']]),
+            'organization-id': org.id,
             'system-content-view-id': default_cv['id'],
             'system-environment-id': default_lce['id'],
             'key-content-view-id': default_cv['id'],
@@ -1850,7 +1834,7 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
         {
             'basearch': 'x86_64',
             'name': REPOSET['rhst7'],
-            'organization-id': org['id'],
+            'organization-id': org.id,
             'product': PRDS['rhel'],
         }
     )
@@ -2014,8 +1998,9 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     module_host_subscription.set_client(host_subscription_client)
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
+    entities.ActivationKey().create()
     activation_key = make_activation_key(
-        {
+        content_view={
             'purpose-addons': purpose_addons,
             'purpose-role': "test-role",
             'purpose-usage': "test-usage",
