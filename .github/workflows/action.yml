@@ -25,6 +25,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo apt update
           sudo apt-get install -y libgnutls28-dev libcurl4-openssl-dev libssl-dev
           wget https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example
           pip install -U --no-binary=pycurl -r requirements.txt -r requirements-optional.txt
