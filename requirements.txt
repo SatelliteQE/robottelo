@@ -21,7 +21,7 @@ pytest-ibutsu==1.13
 PyYAML==5.3.1
 requests==2.25.0
 selenium==3.141.0
-tenacity==6.2.0
+tenacity==6.3.1
 testimony==2.2.0
 unittest2==1.1.0
 wait-for==1.1.5
