@@ -119,7 +119,7 @@ def pytest_collection_modifyitems(items, config):
         return
     rp = ReportPortal()
     version = settings.server.version
-    sat_version = f'{version.base_version}.{version.epoch}'
+    sat_version = version.base_version
     LOGGER.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
     launch = next(iter(rp.launches(sat_version=sat_version).values()))
     _validate_launch(launch, sat_version)

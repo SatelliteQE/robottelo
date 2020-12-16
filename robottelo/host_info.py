@@ -31,9 +31,7 @@ def get_host_os_version():
     return 'Not Available'
 
 
-_SAT_6_2_VERSION_COMMAND = 'rpm -q satellite'
-
-_SAT_6_1_VERSION_COMMAND = 'grep "VERSION" /usr/share/foreman/lib/satellite/version.rb'
+_SAT_6_VERSION_COMMAND = 'rpm -q satellite'
 
 
 @functools.lru_cache(maxsize=1)
@@ -42,14 +40,10 @@ def get_host_sat_version():
     :return: Satellite version
     :rtype: version
     """
-    commands = (
-        _extract_sat_version(c) for c in (_SAT_6_2_VERSION_COMMAND, _SAT_6_1_VERSION_COMMAND)
-    )
-    for version, ssh_result in commands:
-        if version != 'Not Available':
-            LOGGER.debug('Host Satellite version: {}'.format(version))
-            return version
-
+    version, ssh_result = _extract_sat_version(_SAT_6_VERSION_COMMAND)
+    if version != 'Not Available':
+        LOGGER.debug('Host Satellite version: {}'.format(version))
+        return version
     LOGGER.warning('Host Satellite version not available: {!r}'.format(ssh_result))
     return version
 
@@ -64,7 +58,7 @@ def _extract_sat_version(ssh_cmd):
     ssh_result = ssh.command(ssh_cmd)
     if ssh_result.stdout:
         version_description = ssh_result.stdout[0]
-        version_re = r'[^\d]*(?P<version>\d(\.\d){1})'
+        version_re = r'[^\d]*(?P<version>\d(\.\d){2})'
         result = re.search(version_re, version_description)
         if result:
             host_sat_version = result.group('version')
