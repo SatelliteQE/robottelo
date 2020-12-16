@@ -38,10 +38,7 @@ def valid_sc_parameters_data():
         {'sc_type': 'boolean', 'value': choice(['0', '1'])},
         {'sc_type': 'integer', 'value': gen_integer(min_value=1000)},
         {'sc_type': 'real', 'value': -123.0},
-        {
-            'sc_type': 'array',
-            'value': f"['{gen_string('alpha')}', '{gen_integer()}', '{gen_boolean()}']",
-        },
+        {'sc_type': 'array', 'value': [gen_string('alpha'), gen_integer(), gen_boolean()]},
         {'sc_type': 'hash', 'value': f'{{"{gen_string("alpha")}": "{gen_string("alpha")}"}}'},
         {'sc_type': 'yaml', 'value': 'name=>XYZ'},
         {'sc_type': 'json', 'value': '{"name": "XYZ"}'},
@@ -79,7 +76,7 @@ def module_puppet():
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skipif(not settings.repos_hosting_url, reason="repos_hosting_url is not defined")
+@pytest.mark.skipif(not settings.repos_hosting_url, reason='repos_hosting_url is not defined')
 class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in API"""
 
@@ -114,8 +111,7 @@ class TestSmartClassParameters:
         if data['sc_type'] == 'boolean':
             assert sc_param.default_value == (data['value'] == '1')
         elif data['sc_type'] == 'array':
-            string_list = [str(element) for element in sc_param.default_value]
-            assert str(string_list) == data['value']
+            assert sc_param.default_value == data['value']
         elif data['sc_type'] in ('json', 'hash'):
             assert sc_param.default_value == json.loads(data['value'])  # convert string to dict
         else:
@@ -152,7 +148,7 @@ class TestSmartClassParameters:
             sc_param.default_value = test_data['value']
             sc_param.update(['override', 'parameter_type', 'default_value'])
         assert sc_param.read().default_value != test_data['value']
-        assert "Validation failed: Default value is invalid" in context.value.response.text
+        assert 'Validation failed: Default value is invalid' in context.value.response.text
 
     @pytest.mark.tier1
     def test_positive_validate_default_value_required_check(self, module_puppet):
@@ -240,7 +236,7 @@ class TestSmartClassParameters:
         sc_param.validator_rule = '[0-9]'
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
-        assert "Validation failed: Default value is invalid" in context.value.response.text
+        assert 'Validation failed: Default value is invalid' in context.value.response.text
         assert sc_param.read().default_value != value
 
     @pytest.mark.tier1
@@ -308,7 +304,7 @@ class TestSmartClassParameters:
         sc_param.validator_rule = '25, example, 50'
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'default_value', 'validator_type', 'validator_rule'])
-        assert "Validation failed: Lookup values is invalid" in context.value.response.text
+        assert 'Validation failed: Lookup values is invalid' in context.value.response.text
         assert sc_param.read().default_value != 50
 
     @pytest.mark.tier1
@@ -393,7 +389,7 @@ class TestSmartClassParameters:
             sc_param.default_value = gen_string('alpha')
             sc_param.update(['parameter_type', 'default_value'])
         assert (
-            "Validation failed: Default value is invalid, Lookup values is invalid"
+            'Validation failed: Default value is invalid, Lookup values is invalid'
             in context.value.response.text
         )
 
@@ -478,13 +474,13 @@ class TestSmartClassParameters:
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'parameter_type', 'default_value', 'merge_overrides'])
         assert (
-            "Validation failed: Merge overrides can only be set for array or hash"
+            'Validation failed: Merge overrides can only be set for array or hash'
             in context.value.response.text
         )
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'parameter_type', 'default_value', 'merge_default'])
         assert (
-            "Validation failed: Merge default can only be set when merge overrides is set"
+            'Validation failed: Merge default can only be set when merge overrides is set'
             in context.value.response.text
         )
         sc_param = sc_param.read()
@@ -509,7 +505,7 @@ class TestSmartClassParameters:
         sc_param = module_puppet['sc_params'].pop()
         sc_param.override = True
         sc_param.parameter_type = 'array'
-        sc_param.default_value = f"[{gen_string('alpha')}, {gen_string('alpha')}]"
+        sc_param.default_value = f'[{gen_string("alpha")}, {gen_string("alpha")}]'
         sc_param.merge_overrides = True
         sc_param.avoid_duplicates = True
         sc_param.update(
@@ -542,8 +538,8 @@ class TestSmartClassParameters:
         with pytest.raises(HTTPError) as context:
             sc_param.update(['override', 'parameter_type', 'default_value', 'avoid_duplicates'])
         assert (
-            "Validation failed: Avoid duplicates can only be set for arrays "
-            "that have merge_overrides set to true"
+            'Validation failed: Avoid duplicates can only be set for arrays '
+            'that have merge_overrides set to true'
         ) in context.value.response.text
         assert sc_param.read().avoid_duplicates is False
 

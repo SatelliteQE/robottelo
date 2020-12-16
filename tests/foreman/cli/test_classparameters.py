@@ -20,8 +20,6 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
 from robottelo.cli.factory import publish_puppet_module
@@ -34,25 +32,15 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return make_org()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return make_location()
-
-
-@pytest.fixture(scope='module')
-def module_puppet(module_org, module_loc):
+def module_puppet(module_org, module_location):
     puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
-    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, module_org['id'])
+    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, module_org.id)
     env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
     Environment.update(
         {
             'name': env['name'],
-            'organization-ids': module_org['id'],
-            'location-ids': module_loc['id'],
+            'organization-ids': module_org.id,
+            'location-ids': module_location.id,
         }
     )
     puppet_class = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
@@ -78,7 +66,7 @@ class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in CLI"""
 
     @pytest.mark.tier1
-    def test_positive_list(self, module_org, module_loc, module_puppet, module_sc_params):
+    def test_positive_list(self, module_org, module_location, module_puppet, module_sc_params):
         """List all the parameters included in specific elements.
 
         :id: 9fcfbe32-d388-435d-a629-6969a50a4243
@@ -90,8 +78,8 @@ class TestSmartClassParameters:
         :CaseImportance: Medium
         """
         host = entities.Host(
-            organization=module_org['id'],
-            location=module_loc['id'],
+            organization=module_org.id,
+            location=module_location.id,
             environment=module_puppet['env']['name'],
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
@@ -128,7 +116,7 @@ class TestSmartClassParameters:
             # Check that only unique results are returned
             assert len(sc_params) == len(
                 {scp['id'] for scp in sc_params}
-            ), f"Not only unique resutls returned for query: {query}"
+            ), f'Not only unique results returned for query: {query}'
 
     @pytest.mark.tier1
     def test_positive_list_with_non_admin_user(self, module_puppet):
@@ -179,7 +167,7 @@ class TestSmartClassParameters:
 
         :CaseImportance: Low
         """
-        cv = publish_puppet_module(module_puppet['modules'], CUSTOM_PUPPET_REPO, module_org['id'])
+        cv = publish_puppet_module(module_puppet['modules'], CUSTOM_PUPPET_REPO, module_org.id)
         env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
         puppet_class = Puppet.info(
             {'name': module_puppet['modules'][0]['name'], 'environment': env['name']}
