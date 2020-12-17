@@ -293,7 +293,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Create a Product, Repository for custom RHEL6 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        product=product, url=settings.rhel7_os, download_policy='immediate'
+        product=product, url=str(settings.rhel7_os), download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion
@@ -323,8 +323,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Search for SmartProxy, and associate location
     proxy = entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})
     proxy = proxy[0].read()
-    proxy.location.append(loc)
-    proxy.organization.append(org)
+    if loc.id not in [location.id for location in proxy.location]:
+        proxy.location.append(loc)
+    if org.id not in [organization.id for organization in proxy.organization]:
+        proxy.organization.append(org)
     proxy = proxy.update(['location', 'organization'])
 
     # Search for existing domain or create new otherwise. Associate org,
