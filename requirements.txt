@@ -19,7 +19,7 @@ pytest-mock==3.3.1
 pytest-xdist==2.1.0
 pytest-ibutsu==1.13
 PyYAML==5.3.1
-requests==2.25.0
+requests==2.25.1
 selenium==3.141.0
 tenacity==6.2.0
 testimony==2.2.0
