@@ -409,8 +409,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     ptable = (
         entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0].read()
     )
-    ptable.location.append(loc)
-    ptable.organization.append(org)
+    if loc.id not in [location.id for location in ptable.location]:
+        ptable.location.append(loc)
+    if org.id not in [organization.id for organization in ptable.organization]:
+        ptable.organization.append(org)
     ptable = ptable.update(['location', 'organization'])
 
     # Get the OS ID
@@ -444,8 +446,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     )
     provisioning_template = provisioning_template[0].read()
     provisioning_template.operatingsystem.append(os)
-    provisioning_template.organization.append(org)
-    provisioning_template.location.append(loc)
+    if org.id not in [organization.id for organization in provisioning_template.organization]:
+        provisioning_template.organization.append(org)
+    if loc.id not in [location.id for location in provisioning_template.location]:
+        provisioning_template.location.append(loc)
     provisioning_template = provisioning_template.update(
         ['location', 'operatingsystem', 'organization']
     )
@@ -456,8 +460,10 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     )
     pxe_template = pxe_template[0].read()
     pxe_template.operatingsystem.append(os)
-    pxe_template.organization.append(org)
-    pxe_template.location.append(loc)
+    if org.id not in [organization.id for organization in pxe_template.organization]:
+        pxe_template.organization.append(org)
+    if loc.id not in [location.id for location in pxe_template.location]:
+        pxe_template.location.append(loc)
     pxe_template = pxe_template.update(['location', 'operatingsystem', 'organization'])
 
     # Get the arch ID
