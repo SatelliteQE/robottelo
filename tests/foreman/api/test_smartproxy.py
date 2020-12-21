@@ -22,22 +22,41 @@ from requests import HTTPError
 from robottelo.api.utils import one_to_many_names
 from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
-from robottelo.test import APITestCase
+
+
+@pytest.fixture(scope='class')
+def class_proxy_attrs():
+    """Find a ``SmartProxy``.
+
+    Every Satellite has a built-in smart proxy, so searching for an
+    existing smart proxy should always succeed.
+    """
+    smart_proxy = entities.SmartProxy().search(
+        query={'search': f'url = https://{settings.server.hostname}:9090'}
+    )
+    # Check that proxy is found and unpack it from the list
+    assert len(smart_proxy) > 0, "No smart proxy is found"
+    smart_proxy = smart_proxy[0]
+    return set(smart_proxy.update_json([]).keys())
 
 
 @pytest.mark.run_in_one_thread
-class CapsuleTestCase(APITestCase):
+class TestCapsule:
     """Tests for Smart Proxy (Capsule) entity."""
 
-    def _create_smart_proxy(self, **kwargs):
-        """Create a Smart Proxy and register the cleanup function"""
+    def _create_smart_proxy(self, request, **kwargs):
+        """Create a Smart Proxy and add the finalizer"""
         proxy = entities.SmartProxy(**kwargs).create()
-        # Add proxy id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
+
+        @request.addfinalizer
+        def _cleanup():
+            capsule_cleanup(proxy.id)
+
         return proxy
 
     @skip_if_not_set('fake_capsules')
@@ -53,13 +72,14 @@ class CapsuleTestCase(APITestCase):
 
         """
         # Create a random proxy
-        with self.assertRaises(HTTPError) as context:
+        with pytest.raises(HTTPError) as context:
             entities.SmartProxy(url=gen_url(scheme='https')).create()
-        self.assertRegexpMatches(context.exception.response.text, 'Unable to communicate')
+        assert 'Unable to communicate' in context.value.response.text
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_create_with_name(self, request, name):
         """Proxy creation with valid name
 
         :id: 0ffe0dc5-675e-45f4-b7e1-a14d3dd81f6e
@@ -68,13 +88,13 @@ class CapsuleTestCase(APITestCase):
 
         :CaseLevel: Component
 
+        :Parametrized: Yes
+
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                new_port = get_available_capsule_port()
-                with default_url_on_new_port(9090, new_port) as url:
-                    proxy = self._create_smart_proxy(name=name, url=url)
-                    self.assertEquals(proxy.name, name)
+        new_port = get_available_capsule_port()
+        with default_url_on_new_port(9090, new_port) as url:
+            proxy = self._create_smart_proxy(request, name=name, url=url)
+            assert proxy.name == name
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
@@ -94,12 +114,12 @@ class CapsuleTestCase(APITestCase):
         with default_url_on_new_port(9090, new_port) as url:
             proxy = entities.SmartProxy(url=url).create()
             proxy.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             proxy.read()
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    def test_positive_update_name(self, request):
         """Proxy name update
 
         :id: f279640e-d7e9-48a3-aed8-7bf406e9d6f2
@@ -111,16 +131,15 @@ class CapsuleTestCase(APITestCase):
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
             for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    proxy.name = new_name
-                    proxy = proxy.update(['name'])
-                    self.assertEqual(proxy.name, new_name)
+                proxy.name = new_name
+                proxy = proxy.update(['name'])
+                assert proxy.name == new_name
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_update_url(self):
+    def test_positive_update_url(self, request):
         """Proxy url update
 
         :id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
@@ -133,17 +152,17 @@ class CapsuleTestCase(APITestCase):
         # Create fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
         # Open another tunnel to update url
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
             proxy.url = url
             proxy = proxy.update(['url'])
-            self.assertEqual(proxy.url, url)
+            assert proxy.url == url
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_update_organization(self):
+    def test_positive_update_organization(self, request):
         """Proxy name update with the home proxy
 
         :id: 62631275-7a92-4d34-a949-c56e0c4063f1
@@ -156,16 +175,14 @@ class CapsuleTestCase(APITestCase):
         organizations = [entities.Organization().create() for _ in range(2)]
         newport = get_available_capsule_port()
         with default_url_on_new_port(9090, newport) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
             proxy.organization = organizations
             proxy = proxy.update(['organization'])
-            self.assertEqual(
-                {org.id for org in proxy.organization}, {org.id for org in organizations}
-            )
+            assert {org.id for org in proxy.organization} == {org.id for org in organizations}
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_update_location(self):
+    def test_positive_update_location(self, request):
         """Proxy name update with the home proxy
 
         :id: e08eaaa9-7c11-4cda-bbe7-6d1f7c732569
@@ -178,15 +195,15 @@ class CapsuleTestCase(APITestCase):
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
             proxy.location = locations
             proxy = proxy.update(['location'])
-            self.assertEqual({loc.id for loc in proxy.location}, {loc.id for loc in locations})
+            assert {loc.id for loc in proxy.location} == {loc.id for loc in locations}
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_refresh_features(self):
+    def test_positive_refresh_features(self, request):
         """Refresh smart proxy features, search for proxy by id
 
         :id: d0237546-702e-4d1a-9212-8391295174da
@@ -203,12 +220,12 @@ class CapsuleTestCase(APITestCase):
         # get an available port for our fake capsule
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
             proxy.refresh()
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier2
-    def test_positive_import_puppet_classes(self):
+    def test_positive_import_puppet_classes(self, request):
         """Import puppet classes from proxy
 
         :id: 385efd1b-6146-47bf-babf-0127ce5955ed
@@ -221,17 +238,16 @@ class CapsuleTestCase(APITestCase):
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = self._create_smart_proxy(url=url)
+            proxy = self._create_smart_proxy(request, url=url)
             result = proxy.import_puppetclasses()
-            self.assertEqual(
-                result['message'],
+            assert (
                 "Successfully updated environment and puppetclasses from "
-                "the on-disk puppet installation",
-            )
+                "the on-disk puppet installation"
+            ) in result['message']
 
 
 @pytest.mark.run_in_one_thread
-class SmartProxyMissingAttrTestCase(APITestCase):
+class TestSmartProxyMissingAttr:
     """Tests to see if the server returns the attributes it should.
 
     Satellite should return a full description of an entity each time an entity
@@ -240,24 +256,8 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     Satellite may assign to fields.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Find a ``SmartProxy``.
-
-        Every Satellite has a built-in smart proxy, so searching for an
-        existing smart proxy should always succeed.
-        """
-        super().setUpClass()
-        smart_proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
-        )
-        # Check that proxy is found and unpack it from the list
-        assert len(smart_proxy) > 0, "No smart proxy is found"
-        smart_proxy = smart_proxy[0]
-        cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
-
     @pytest.mark.tier1
-    def test_positive_update_loc(self):
+    def test_positive_update_loc(self, class_proxy_attrs):
         """Update a smart proxy. Inspect the server's response.
 
         :id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
@@ -273,14 +273,10 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         """
         names = one_to_many_names('location')
-        self.assertGreaterEqual(
-            len(names & self.smart_proxy_attrs),
-            1,
-            f'None of {names} are in {self.smart_proxy_attrs}',
-        )
+        assert len(names & class_proxy_attrs) >= 1, f'None of {names} are in {class_proxy_attrs}'
 
     @pytest.mark.tier1
-    def test_positive_update_org(self):
+    def test_positive_update_org(self, class_proxy_attrs):
         """Update a smart proxy. Inspect the server's response.
 
         :id: fbde9f87-33db-4b95-a5f7-71a618460c84
@@ -296,8 +292,4 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         """
         names = one_to_many_names('organization')
-        self.assertGreaterEqual(
-            len(names & self.smart_proxy_attrs),
-            1,
-            f'None of {names} are in {self.smart_proxy_attrs}',
-        )
+        assert len(names & class_proxy_attrs) >= 1, f'None of {names} are in {class_proxy_attrs}'
