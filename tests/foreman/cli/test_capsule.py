@@ -23,22 +23,25 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
-from robottelo.test import CLITestCase
 
 
 @pytest.mark.run_in_one_thread
-class CapsuleTestCase(CLITestCase):
+class TestCapsule:
     """Proxy cli tests"""
 
-    def _make_proxy(self, options=None):
-        """Create a Proxy and register the cleanup function"""
+    def _make_proxy(self, request, options=None):
+        """Create a Proxy and add the finalizer"""
         proxy = make_proxy(options=options)
-        # Add proxy id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
+
+        @request.addfinalizer
+        def _cleanup():
+            capsule_cleanup(proxy['id'])
+
         return proxy
 
     @skip_if_not_set('fake_capsules')
@@ -54,14 +57,15 @@ class CapsuleTestCase(CLITestCase):
 
         """
         # Create a random proxy
-        with self.assertRaisesRegex(CLIFactoryError, 'Could not create the proxy:'):
+        with pytest.raises(CLIFactoryError, match='Could not create the proxy:'):
             make_proxy(
                 {'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
             )
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_create_with_name(self, request, name):
         """Proxy creation with the home proxy
 
         :id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
@@ -70,16 +74,17 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
+        :Parametrized: Yes
+
         :BZ: 1398695
         """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                proxy = self._make_proxy({'name': name})
-                self.assertEquals(proxy['name'], name)
+        proxy = self._make_proxy(request, {'name': name})
+        assert proxy['name'] == name
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_delete_by_id(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
+    def test_positive_delete_by_id(self, name):
         """Proxy deletion with the home proxy
 
         :id: 1b6973b1-259d-4866-b36f-c2d5fb154035
@@ -88,18 +93,18 @@ class CapsuleTestCase(CLITestCase):
 
         :CaseLevel: Component
 
+        :Parametrized: Yes
+
         :BZ: 1398695
         """
-        for name in valid_data_list().values():
-            with self.subTest(name):
-                proxy = make_proxy({'name': name})
-                Proxy.delete({'id': proxy['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Proxy.info({'id': proxy['id']})
+        proxy = make_proxy({'name': name})
+        Proxy.delete({'id': proxy['id']})
+        with pytest.raises(CLIReturnCodeError):
+            Proxy.info({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    def test_positive_update_name(self, request):
         """Proxy name update with the home proxy
 
         :id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
@@ -110,18 +115,17 @@ class CapsuleTestCase(CLITestCase):
 
         :BZ: 1398695
         """
-        proxy = self._make_proxy({'name': gen_alphanumeric()})
+        proxy = self._make_proxy(request, {'name': gen_alphanumeric()})
         for new_name in valid_data_list().values():
-            with self.subTest(new_name):
-                newport = get_available_capsule_port()
-                with default_url_on_new_port(9090, newport) as url:
-                    Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
-                    proxy = Proxy.info({'id': proxy['id']})
-                    self.assertEqual(proxy['name'], new_name)
+            newport = get_available_capsule_port()
+            with default_url_on_new_port(9090, newport) as url:
+                Proxy.update({'id': proxy['id'], 'name': new_name, 'url': url})
+                proxy = Proxy.info({'id': proxy['id']})
+                assert proxy['name'] == new_name
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier2
-    def test_positive_refresh_features_by_id(self):
+    def test_positive_refresh_features_by_id(self, request):
         """Refresh smart proxy features, search for proxy by id
 
         :id: d3db63ce-b877-40eb-a863-294c12489ddd
@@ -140,12 +144,12 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({'url': url})
+            proxy = self._make_proxy(request, {'url': url})
             Proxy.refresh_features({'id': proxy['id']})
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier2
-    def test_positive_refresh_features_by_name(self):
+    def test_positive_refresh_features_by_name(self, request):
         """Refresh smart proxy features, search for proxy by name
 
         :id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
@@ -164,12 +168,12 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({'url': url})
+            proxy = self._make_proxy(request, {'url': url})
             Proxy.refresh_features({'id': proxy['name']})
 
     @skip_if_not_set('fake_capsules')
     @pytest.mark.tier1
-    def test_positive_import_puppet_classes(self):
+    def test_positive_import_puppet_classes(self, request):
         """Import puppet classes from proxy
 
         :id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
@@ -181,12 +185,12 @@ class CapsuleTestCase(CLITestCase):
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = self._make_proxy({'url': url})
+            proxy = self._make_proxy(request, {'url': url})
             Proxy.import_classes({'id': proxy['id']})
 
 
 @pytest.mark.run_in_one_thread
-class CapsuleIntegrationTestCase(CLITestCase):
+class TestCapsuleIntegration:
     """Tests for capsule functionality."""
 
     @pytest.mark.stubbed
