@@ -1,0 +1,75 @@
+ROBOTTELO:
+  # The directory where screenshots will be saved.
+  # Note:- Content under /tmp may be deleted after a reboot.
+  SCREENSHOTS_PATH: /tmp/robottelo/screenshots/
+  LOCALE: en_US.UTF-8
+  # Update upstream=false for downstream run
+  UPSTREAM: false
+  # Logging verbosity, one of debug, info, warning, error, critical
+  VERBOSITY: debug
+  # Directory for temporary files
+  TMP_DIR: /var/tmp
+  # Web Server to provide various test artifacts
+  ARTIFACTS_SERVER: replace-with-artifacts-server-hostname
+  # Webdriver logging options
+  # A list of commands to be logged
+  LOG_DRIVER_COMMANDS:
+    - newSession
+    - windowMaximize
+    - get
+    - findElement
+    - sendKeysToElement
+    - clickElement
+    - mouseMoveTo
+  # - The URL of container hosting repos on SatLab
+  # Example url - http://<container_hostname_or_ip>:<port>
+  # Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
+  REPOS_HOSTING_URL: replace-with-repo-hosting-url
+  # browser tells robottelo which browser to use when testing UI. Valid values
+  # are:
+  # * selenium
+  # * docker: to use a browser inside a docker container. In order to use this
+  #   feature make sure that the docker daemon is running locally and has its
+  #   unix socket published at unix://var/run/docker.sock. Also make sure that
+  #   the docker image selenium/standalone-firefox is available.
+  # * remote: to access the remote browser, the webdriver and command_executor
+  #   are required.
+  BROWSER: selenium
+  # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
+  WEBDRIVER: chrome
+  # Run browser for UI tests with semicolon delimeted options such as headless. Currently supported for only chrome.
+  BROWSEROPTIONS: replace-with-browser-options
+  # Binary location for selected wedriver (not needed if using saucelabs)
+  # WEBDRIVER_BINARY: /usr/bin/firefox
+  # webdriver_binary=/usr/bin/chromedriver
+  # webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
+  WEBDRIVER_BINARY: replace-with-webdriver-binary
+  # Zalenium command_executor
+  COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
+  # CDN sync
+  CDN: true
+  # Run one datapoint or multiple datapoints for tests
+  RUN_ONE_DATAPOINT: false
+  # Provide link to rhel6/7/8 repo here, as puppet rpm would require packages from
+  # RHEL 6/7/8 repo and syncing the entire repo on the fly would take longer for
+  # tests to run Specify the *.repo link to an internal repo for tests to execute properly
+  RHEL6_REPO: replace-with-rhel8-repo-http-link
+  RHEL7_REPO: replace-with-rhel8-repo-http-link
+  RHEL8_REPO: replace-with-rhel8-repo-http-link
+  # Provide link to rhel6/7/8 repositories URL as we need all OS packages in order
+  # to have real installation media for provisioning procedure
+  RHEL6_OS: replace-with-rhel6-os-http-link
+  RHEL7_OS: replace-with-rhel7-os-http-link
+  RHEL8_OS:
+    BASEOS: replace-with-rhel8-os-baseos-http-link
+    APPSTREAM: replace-with-rhel8-os-appstream-http-link
+  # If capsule and satellite tools repositories available related packages will
+  # be pulled from there instead of using the CDN channel. These information is
+  # more suited to be used for downstream, downstream-iso and zstream builds.
+  CAPSULE_REPO: replace-with-capsule-http-link
+  SATTOOLS_REPO:
+    RHEL6: replace-with-rhel6-http-link
+    RHEL7: replace-with-rhel7-http-link
+  # Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
+  # which are essentially required for generating swid tags in RHEL8 content host.
+  SWID_TOOLS_REPO: replace-with-swid-https-link
