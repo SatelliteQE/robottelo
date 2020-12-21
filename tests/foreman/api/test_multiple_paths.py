@@ -21,68 +21,50 @@ import pytest
 from nailgun import client
 from nailgun import entities
 from nailgun import entity_fields
-from requests.exceptions import HTTPError
 
 from robottelo.config import settings
+from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
-from robottelo.test import APITestCase
-from robottelo.utils.issue_handlers import is_open
 
 logger = logging.getLogger('robottelo')
-
-BZ_1118015_ENTITIES = (
+VALID_ENTITIES = {
     entities.ActivationKey,
     entities.Architecture,
+    entities.AuthSourceLDAP,
+    entities.ComputeProfile,
     entities.ProvisioningTemplate,
     entities.ContentView,
+    entities.DiscoveryRule,
+    entities.Domain,
     entities.Environment,
     entities.GPGKey,
     entities.Host,
     entities.HostCollection,
-    entities.HostGroup,
     entities.LibvirtComputeResource,
+    entities.HostGroup,
     entities.LifecycleEnvironment,
+    entities.Media,
+    entities.Model,
     entities.OperatingSystem,
     entities.Organization,
     entities.Product,
+    entities.PuppetClass,
     entities.Repository,
     entities.Role,
     entities.Subnet,
+    entities.TemplateKind,
     entities.User,
-)
-
-
-def valid_entities():
-    """Returns a tuple of all valid entities."""
-    return (
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ProvisioningTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.TemplateKind,
-        entities.User,
-        entities.UserGroup,
-    )
+    entities.UserGroup,
+}
+STATUS_CODE_ENTITIES = {
+    entities.ActivationKey,  # need organization_id or environment_id
+    entities.ContentView,  # need organization_id
+    entities.GPGKey,  # need organization_id
+    entities.HostCollection,  # need organization_id
+    entities.LifecycleEnvironment,  # need organization_id
+    entities.Product,  # need organization_id
+    entities.Repository,  # need organization_id
+}
 
 
 def _get_readable_attributes(entity):
@@ -124,76 +106,75 @@ def _get_readable_attributes(entity):
     return attributes
 
 
-class EntityTestCase(APITestCase):
+def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
+    """Limit the number of entities that have to be tested for negative
+    unauthorized tests.
+    """
+    # FIXME: this must be replaced by a setup function that disable
+    # 'Brute-force attack prevention' for negative tests when disabling
+    # feature is available downstream
+    return list(all_entities - exclude_entities)[:max_num]
+
+
+class TestEntity:
     """Issue HTTP requests to various ``entity/`` paths."""
 
-    @staticmethod
-    def get_entities_for_unauthorized(all_entities, exclude_entities):
-        """Limit the number of entities that have to be tested for negative
-        unauthorized tests.
-        """
-        # FIXME: this must be replaced by a setup function that disable
-        # "Brute-force attack prevention" for negative tests when disabling
-        # feature is available downstream
-        max_entities = 10
-        test_entities = list(set(all_entities) - set(exclude_entities))
-        if len(test_entities) > max_entities:
-            test_entities = test_entities[:max_entities]
-        return test_entities
-
     @pytest.mark.tier3
-    def test_positive_get_status_code(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized(VALID_ENTITIES - STATUS_CODE_ENTITIES),
+    )
+    def test_positive_get_status_code(self, entity_cls):
         """GET an entity-dependent path.
 
         :id: 89e4fafe-7780-4be4-acc1-90f7c02a8530
+
+        :parametrized: yes
 
         :expectedresults: HTTP 200 is returned with an ``application/json``
             content-type
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.ActivationKey,  # need organization_id or environment_id
-            entities.ContentView,  # need organization_id
-            entities.GPGKey,  # need organization_id
-            entities.HostCollection,  # need organization_id
-            entities.LifecycleEnvironment,  # need organization_id
-            entities.Product,  # need organization_id
-            entities.Repository,  # need organization_id
+        logger.info('test_get_status_code arg: %s', entity_cls)
+        response = client.get(
+            entity_cls().path(), auth=settings.server.get_credentials(), verify=False
         )
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_get_status_code arg: %s', entity_cls)
-                response = client.get(
-                    entity_cls().path(), auth=settings.server.get_credentials(), verify=False
-                )
-                response.raise_for_status()
-                self.assertEqual(http.client.OK, response.status_code)
-                self.assertIn('application/json', response.headers['content-type'])
+        response.raise_for_status()
+        assert http.client.OK == response.status_code
+        assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    def test_negative_get_unauthorized(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.ActivationKey})),
+    )
+    def test_negative_get_unauthorized(self, entity_cls):
         """GET an entity-dependent path without credentials.
 
         :id: 49127c71-55a2-42d1-b418-59229e9bad00
+
+        :parametrized: yes
 
         :expectedresults: HTTP 401 is returned
 
         :CaseImportance: Critical
         """
-        exclude_list = (entities.ActivationKey,)  # need organization_id or environment_id
-        test_entities = self.get_entities_for_unauthorized(valid_entities(), exclude_list)
-        for entity_cls in test_entities:
-            with self.subTest(entity_cls):
-                self.logger.info('test_get_unauthorized arg: %s', entity_cls)
-                response = client.get(entity_cls().path(), auth=(), verify=False)
-                self.assertEqual(http.client.UNAUTHORIZED, response.status_code)
+        logger.info('test_get_unauthorized arg: %s', entity_cls)
+        response = client.get(entity_cls().path(), auth=(), verify=False)
+        assert http.client.UNAUTHORIZED == response.status_code
 
     @pytest.mark.tier3
-    def test_positive_post_status_code(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
+    )
+    def test_positive_post_status_code(self, entity_cls):
         """Issue a POST request and check the returned status code.
 
         :id: 40247cdd-ad72-4b7b-97c6-583addb1b25a
+
+        :parametrized: yes
 
         :expectedresults: HTTP 201 is returned with an ``application/json``
             content-type
@@ -202,79 +183,67 @@ class EntityTestCase(APITestCase):
 
         :BZ: 1118015
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_post_status_code arg: %s', entity_cls)
-
-                # Libvirt compute resources suffer from BZ 1118015. However,
-                # partials cannot be compared for class identity and the class
-                # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
-                # comment it out above.
-                if entity_cls in BZ_1118015_ENTITIES and is_open('BZ:1118015'):
-                    logger.info(
-                        'Pytest can skip inside a subTest, continuing the loop'
-                        ' due to BZ:1118015'
-                    )
-                    continue
-
-                response = entity_cls().create_raw()
-                self.assertEqual(http.client.CREATED, response.status_code)
-                self.assertIn('application/json', response.headers['content-type'])
+        response = entity_cls().create_raw()
+        assert http.client.CREATED == response.status_code
+        assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    def test_negative_post_unauthorized(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
+    )
+    def test_negative_post_unauthorized(self, entity_cls):
         """POST to an entity-dependent path without credentials.
 
         :id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
+
+        :parametrized: yes
 
         :expectedresults: HTTP 401 is returned
 
         :BZ: 1122257
 
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        test_entities = self.get_entities_for_unauthorized(valid_entities(), exclude_list)
-        for entity_cls in test_entities:
-            with self.subTest(entity_cls):
-                self.logger.info('test_post_unauthorized arg: %s', entity_cls)
-                server_cfg = get_nailgun_config()
-                server_cfg.auth = ()
-                return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
-                self.assertEqual(http.client.UNAUTHORIZED, return_code)
+        server_cfg = get_nailgun_config()
+        server_cfg.auth = ()
+        return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
+        assert http.client.UNAUTHORIZED == return_code
 
 
-class EntityIdTestCase(APITestCase):
+class TestEntityId:
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
     @pytest.mark.tier1
-    def test_positive_get_status_code(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_get_status_code(self, entity_cls):
         """Create an entity and GET it.
 
         :id: 4fb6cca6-c63f-4d4f-811e-53bf4e6b9752
+
+        :parametrized: yes
 
         :expectedresults: HTTP 200 is returned with an ``application/json``
             content-type
 
         :CaseImportance: Critical
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_get_status_code arg: %s', entity_cls)
-                try:
-                    entity = entity_cls(id=entity_cls().create_json()['id'])
-                except HTTPError as err:
-                    self.fail(err)
-                response = entity.read_raw()
-                self.assertEqual(http.client.OK, response.status_code)
-                self.assertIn('application/json', response.headers['content-type'])
+        entity = entity_cls(id=entity_cls().create_json()['id'])
+        response = entity.read_raw()
+        assert http.client.OK == response.status_code
+        assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    def test_positive_put_status_code(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_put_status_code(self, entity_cls):
         """Issue a PUT request and check the returned status code.
 
         :id: 1a2186b1-0709-4a73-8199-71114e10afce
+
+        :parametrized: yes
 
         :expectedresults: HTTP 200 is returned with an ``application/json``
             content-type
@@ -283,60 +252,54 @@ class EntityIdTestCase(APITestCase):
 
         :BZ: 1378009
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_put_status_code arg: %s', entity_cls)
+        # Create an entity
+        entity_id = entity_cls().create_json()['id']
 
-                # Create an entity
-                entity_id = entity_cls().create_json()['id']
-
-                # Update that entity.
-                entity = entity_cls()
-                entity.create_missing()
-                response = client.put(
-                    entity_cls(id=entity_id).path(),
-                    entity.update_payload(),
-                    auth=settings.server.get_credentials(),
-                    verify=False,
-                )
-                self.assertEqual(http.client.OK, response.status_code)
-                self.assertIn('application/json', response.headers['content-type'])
+        # Update that entity.
+        entity = entity_cls()
+        entity.create_missing()
+        response = client.put(
+            entity_cls(id=entity_id).path(),
+            entity.update_payload(),
+            auth=settings.server.get_credentials(),
+            verify=False,
+        )
+        assert http.client.OK == response.status_code
+        assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    def test_positive_delete_status_code(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_delete_status_code(self, entity_cls):
         """Issue an HTTP DELETE request and check the returned status
         code.
 
         :id: bacf4bf2-eb2b-4201-a21c-8d15f5b06e7a
+
+        :parametrized: yes
 
         :expectedresults: HTTP 200, 202 or 204 is returned with an
             ``application/json`` content-type.
 
         :CaseImportance: Critical
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_delete_status_code arg: %s', entity_cls)
-                try:
-                    entity = entity_cls(id=entity_cls().create_json()['id'])
-                except HTTPError as err:
-                    self.fail(err)
-                response = entity.delete_raw()
-                self.assertIn(
-                    response.status_code,
-                    (http.client.NO_CONTENT, http.client.OK, http.client.ACCEPTED),
-                )
+        entity = entity_cls(id=entity_cls().create_json()['id'])
+        response = entity.delete_raw()
+        assert response.status_code in (
+            http.client.NO_CONTENT,
+            http.client.OK,
+            http.client.ACCEPTED,
+        )
 
-                # According to RFC 2616, HTTP 204 responses "MUST NOT include a
-                # message-body". If a message does not have a body, there is no
-                # need to set the content-type of the message.
-                if response.status_code is not http.client.NO_CONTENT:
-                    self.assertIn('application/json', response.headers['content-type'])
+        # According to RFC 2616, HTTP 204 responses "MUST NOT include a
+        # message-body". If a message does not have a body, there is no
+        # need to set the content-type of the message.
+        if response.status_code is not http.client.NO_CONTENT:
+            assert 'application/json' in response.headers['content-type']
 
 
-class DoubleCheckTestCase(APITestCase):
+class TestDoubleCheck:
     """Perform in-depth tests on URLs.
 
     Do not just assume that an HTTP response with a good status code indicates
@@ -344,13 +307,16 @@ class DoubleCheckTestCase(APITestCase):
     action to ensure that the intended action was accomplished.
     """
 
-    longMessage = True
-
     @pytest.mark.tier1
-    def test_positive_put_and_get_requests(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_put_and_get_requests(self, entity_cls):
         """Update an entity, then read it back.
 
         :id: f5d3039f-5468-4dd2-8ac9-6e948ef39866
+
+        :parametrized: yes
 
         :expectedresults: The entity is updated with the given attributes.
 
@@ -358,112 +324,110 @@ class DoubleCheckTestCase(APITestCase):
 
         :BZ: 1378009
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_put_and_get arg: %s', entity_cls)
+        # Create an entity.
+        entity = entity_cls().create_json()
 
-                # Create an entity.
-                entity_id = entity_cls().create_json()['id']
+        # Update that entity. FIXME: This whole procedure is a hack.
+        kwargs = {'organization': entity['organization_id']} if 'organization_id' in entity else {}
+        new_entity = entity_cls(**kwargs)
+        # Generate randomized instance attributes
+        new_entity.create_missing()
+        response = client.put(
+            entity_cls(id=entity['id']).path(),
+            new_entity.create_payload(),
+            auth=settings.server.get_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
 
-                # Update that entity. FIXME: This whole procedure is a hack.
-                entity = entity_cls()
-                # Generate randomized instance attributes
-                entity.create_missing()
-                response = client.put(
-                    entity_cls(id=entity_id).path(),
-                    entity.create_payload(),
-                    auth=settings.server.get_credentials(),
-                    verify=False,
-                )
-                response.raise_for_status()
-
-                # Compare `payload` against entity information returned by the
-                # server.
-                payload = _get_readable_attributes(entity)
-                entity_attrs = entity_cls(id=entity_id).read_json()
-                for key, value in payload.items():
-                    self.assertIn(key, entity_attrs.keys())
-                    self.assertEqual(value, entity_attrs[key], key)
+        # Compare `payload` against entity information returned by the
+        # server.
+        payload = _get_readable_attributes(new_entity)
+        entity_attrs = entity_cls(id=entity['id']).read_json()
+        for key, value in payload.items():
+            assert key in entity_attrs.keys()
+            assert value == entity_attrs[key]
 
     @pytest.mark.tier1
-    def test_positive_post_and_get_requests(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_post_and_get_requests(self, entity_cls):
         """Create an entity, then read it back.
 
         :id: c658095b-2bf9-4c3e-8ddf-c1792e743a10
+
+        :parametrized: yes
 
         :expectedresults: The entity is created with the given attributes.
 
         :CaseImportance: Medium
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_post_and_get arg: %s', entity_cls)
+        entity = entity_cls()
+        entity_id = entity.create_json()['id']
 
-                entity = entity_cls()
-                entity_id = entity.create_json()['id']
-
-                # Compare `payload` against entity information returned by the
-                # server.
-                payload = _get_readable_attributes(entity)
-                entity_attrs = entity_cls(id=entity_id).read_json()
-                for key, value in payload.items():
-                    self.assertIn(key, entity_attrs.keys())
-                    self.assertEqual(value, entity_attrs[key], key)
+        # Compare `payload` against entity information returned by the
+        # server.
+        payload = _get_readable_attributes(entity)
+        entity_attrs = entity_cls(id=entity_id).read_json()
+        for key, value in payload.items():
+            assert key in entity_attrs.keys()
+            assert value == entity_attrs[key]
 
     @pytest.mark.tier1
-    def test_positive_delete_and_get_requests(self):
+    @pytest.mark.parametrize(
+        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
+    )
+    def test_positive_delete_and_get_requests(self, entity_cls):
         """Issue an HTTP DELETE request and GET the deleted entity.
 
         :id: 04a37ba7-c553-40e1-bc4c-ec2ebf567647
+
+        :parametrized: yes
 
         :expectedresults: An HTTP 404 is returned when fetching the missing
             entity.
 
         :CaseImportance: Critical
         """
-        exclude_list = (entities.TemplateKind,)  # see comments in class definition
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_delete_and_get arg: %s', entity_cls)
-
-                # Create an entity, delete it and get it.
-                try:
-                    entity = entity_cls(id=entity_cls().create_json()['id'])
-                except HTTPError as err:
-                    self.fail(err)
-                entity.delete()
-                self.assertEqual(http.client.NOT_FOUND, entity.read_raw().status_code)
+        # Create an entity, delete it and get it.
+        entity = entity_cls(id=entity_cls().create_json()['id'])
+        entity.delete()
+        assert http.client.NOT_FOUND == entity.read_raw().status_code
 
 
-class EntityReadTestCase(APITestCase):
+class TestEntityRead:
     """Check whether classes inherited from
     ``nailgun.entity_mixins.EntityReadMixin`` are working properly.
     """
 
     @pytest.mark.tier1
-    def test_positive_entity_read(self):
+    @pytest.mark.parametrize(
+        'entity_cls',
+        **parametrized(
+            VALID_ENTITIES
+            - {
+                entities.Architecture,  # see test_architecture_read
+                entities.OperatingSystemParameter,  # see test_osparameter_read
+                entities.TemplateKind,  # see comments in class definition
+            }
+        ),
+    )
+    def test_positive_entity_read(self, entity_cls):
         """Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         :id: 78bddedd-bbcf-4e26-a9f7-746874f58529
+
+        :parametrized: yes
 
         :expectedresults: The just-read entity is an instance of the correct
             class.
 
         :CaseImportance: Critical
         """
-        exclude_list = (
-            entities.Architecture,  # see test_architecture_read
-            entities.OperatingSystemParameter,  # see test_osparameter_read
-            entities.TemplateKind,  # see comments in class definition
-        )
-        for entity_cls in set(valid_entities()) - set(exclude_list):
-            with self.subTest(entity_cls):
-                self.logger.info('test_entity_read arg: %s', entity_cls)
-                entity_id = entity_cls().create_json()['id']
-                self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
+        entity_id = entity_cls().create_json()['id']
+        assert isinstance(entity_cls(id=entity_id).read(), entity_cls)
 
     @pytest.mark.tier1
     def test_positive_architecture_read(self):
@@ -479,8 +443,8 @@ class EntityReadTestCase(APITestCase):
         os_id = entities.OperatingSystem().create_json()['id']
         arch_id = entities.Architecture(operatingsystem=[os_id]).create_json()['id']
         architecture = entities.Architecture(id=arch_id).read()
-        self.assertEqual(len(architecture.operatingsystem), 1)
-        self.assertEqual(architecture.operatingsystem[0].id, os_id)
+        assert len(architecture.operatingsystem) == 1
+        assert architecture.operatingsystem[0].id == os_id
 
     @pytest.mark.tier1
     def test_positive_syncplan_read(self):
@@ -496,7 +460,7 @@ class EntityReadTestCase(APITestCase):
         """
         org_id = entities.Organization().create_json()['id']
         syncplan_id = entities.SyncPlan(organization=org_id).create_json()['id']
-        self.assertIsInstance(
+        assert isinstance(
             entities.SyncPlan(organization=org_id, id=syncplan_id).read(), entities.SyncPlan
         )
 
@@ -514,7 +478,7 @@ class EntityReadTestCase(APITestCase):
         """
         os_id = entities.OperatingSystem().create_json()['id']
         osp_id = entities.OperatingSystemParameter(operatingsystem=os_id).create_json()['id']
-        self.assertIsInstance(
+        assert isinstance(
             entities.OperatingSystemParameter(id=osp_id, operatingsystem=os_id).read(),
             entities.OperatingSystemParameter,
         )
@@ -531,9 +495,9 @@ class EntityReadTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        perm = entities.Permission().search(query={'per_page': 1})[0]
-        self.assertGreater(len(perm.name), 0)
-        self.assertGreater(len(perm.resource_type), 0)
+        perm = entities.Permission().search(query={'per_page': '1'})[0]
+        assert perm.name
+        assert perm.resource_type
 
     @pytest.mark.tier1
     def test_positive_media_read(self):
@@ -548,5 +512,5 @@ class EntityReadTestCase(APITestCase):
         os_id = entities.OperatingSystem().create_json()['id']
         media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']
         media = entities.Media(id=media_id).read()
-        self.assertEqual(len(media.operatingsystem), 1)
-        self.assertEqual(media.operatingsystem[0].id, os_id)
+        assert len(media.operatingsystem) == 1
+        assert media.operatingsystem[0].id == os_id
