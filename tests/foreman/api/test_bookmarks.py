@@ -1,4 +1,4 @@
-"""Test classes for Bookmark tests
+"""Tests for common Bookmark operations via API
 
 :Requirement: Bookmarks
 
@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import random
+
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -22,364 +24,373 @@ from requests.exceptions import HTTPError
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
-from robottelo.test import APITestCase
-
 
-# Create a new list reference to prevent constant modification
-BOOKMARK_ENTITIES = list(BOOKMARK_ENTITIES)
 
+# List of unique bookmark controller values, preserving order
+CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES))
 
-class BookmarkTestCase(APITestCase):
-    """Test for common Bookmark operations via API"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Filter entities list if affected by BZ"""
-        super().setUpClass()
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_create_with_name(controller):
+    """Create a bookmark
 
-    # CREATE TESTS
-    @pytest.mark.tier1
-    def test_positive_create_with_name(self):
-        """Create a bookmark
-
-        :id: aeef0944-379a-4a27-902d-aa5969dbd441
-
-        :Steps:
-
-            1. Create a bookmark with a random name, query and random valid
-               controller
-            2. List the bookmarks
-
-        :expectedresults: No errors, Bookmark is listed, controller matches the
-            controller the bookmark was created for
+    :id: aeef0944-379a-4a27-902d-aa5969dbd441
 
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                for name in valid_data_list().values():
-                    with self.subTest(name):
-                        bm = entities.Bookmark(
-                            controller=entity['controller'], name=name, public=False
-                        ).create()
-                        self.assertEqual(bm.controller, entity['controller'])
-                        self.assertEqual(bm.name, name)
-
-    @pytest.mark.tier1
-    def test_positive_create_with_query(self):
-        """Create a bookmark
-
-        :id: 9fb6d485-92b5-43ea-b776-012c13734100
-
-        :Steps:
-
-            1. Create a bookmark with a random query, name and random valid
-               controller
-            2. List the bookmarks
-
-        :expectedresults: No errors, Bookmark is listed, controller matches the
-            controller the bookmark was created for
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                for query in valid_data_list().values():
-                    with self.subTest(query):
-                        bm = entities.Bookmark(
-                            controller=entity['controller'], query=query
-                        ).create()
-                        self.assertEqual(bm.controller, entity['controller'])
-                        self.assertEqual(bm.query, query)
-
-    @pytest.mark.tier1
-    def test_positive_create_public(self):
-        """Create a public bookmark
-
-        :id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
-
-        :Steps:
-
-            1. Create a bookmark with a random name and public = true
-            2. List the bookmarks
-
-        :expectedresults: No errors, Bookmark is listed, controller matches the
-            entity the bookmark was created for and is displayed as public
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                for public in (True, False):
-                    with self.subTest(public):
-                        bm = entities.Bookmark(
-                            controller=entity['controller'], public=public
-                        ).create()
-                        self.assertEqual(bm.controller, entity['controller'])
-                        self.assertEqual(bm.public, public)
+    :parametrized: yes
 
-    @pytest.mark.tier1
-    def test_negative_create_with_invalid_name(self):
-        """Create a bookmark with invalid name
-
-        :id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
-
-        :Steps:
-
-            1. Attempt to create a bookmark with providing an invalid name
-            2. List the bookmarks
-
-        :expectedresults: Error returned, Bookmark is not created (not listed)
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                for name in invalid_values_list():
-                    with self.subTest(name):
-                        with self.assertRaises(HTTPError):
-                            entities.Bookmark(
-                                controller=entity['controller'], name=name, public=False
-                            ).create()
-                        result = entities.Bookmark().search(query={'search': f'name="{name}"'})
-                        self.assertEqual(len(result), 0)
-
-    @pytest.mark.tier1
-    def test_negative_create_empty_query(self):
-        """Create a bookmark with empty query
-
-        :id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
-
-        :Steps:
-
-            1. Create a bookmark with providing an empty query
-            2. List the bookmarks
-
-        :expectedresults: Error notification - search query cannot be empty,
-            Bookmark is not created (not listed)
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                name = gen_string('alpha')
-                with self.assertRaises(HTTPError):
-                    entities.Bookmark(
-                        controller=entity['controller'], name=name, query=''
-                    ).create()
-                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
-                self.assertEqual(len(result), 0)
-
-    @pytest.mark.tier1
-    def test_negative_create_same_name(self):
-        """Create bookmarks with the same names
-
-        :id: f78f6e97-da77-4a61-95c2-622c439d325d
-
-        :Setup: Create a bookmark with a random name
-
-        :Steps:
-
-            1. Create a new bookmark using a random name
-            2. Create a second bookmark, using the same name as the previous
-               Bookmark. Assert that an error is raised.
-            3. List the bookmarks. Assert that the Bookmark created is present
-               and there's only one listed
-
-        :expectedresults: Error notification - name already taken, Bookmark is
-            not created (not listed)
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                name = gen_string('alphanumeric')
-                entities.Bookmark(controller=entity['controller'], name=name).create()
-                with self.assertRaises(HTTPError):
-                    entities.Bookmark(controller=entity['controller'], name=name).create()
-                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
-                self.assertEqual(len(result), 1)
-
-    @pytest.mark.tier1
-    def test_negative_create_null_public(self):
-        """Create a bookmark omitting the public parameter
-
-        :id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
-
-        :Steps:
-
-            1. Create a new bookmark using a random name, random query and omit
-               the 'public' parameter
-            2. List the bookmarks
-
-        :expectedresults: Error notification - public is required, Bookmark is
-            not created (not listed)
-
-        :BZ: 1302725
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                name = gen_string('alphanumeric')
-                with self.assertRaises(HTTPError):
-                    entities.Bookmark(
-                        controller=entity['controller'], name=name, public=None
-                    ).create()
-                result = entities.Bookmark().search(query={'search': f'name="{name}"'})
-                self.assertEqual(len(result), 0)
-
-    # UPDATE TESTS
-    @pytest.mark.tier1
-    def test_positive_update_name(self):
-        """Update a bookmark
-
-        :id: 1cde270a-26fb-4cff-bdff-89fef17a7624
-
-        :Setup: Create a new bookmark with a random name and random query
-
-        :Steps: Update the previously created bookmark with another random name
-
-        :expectedresults: The new bookmark name is listed
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                bm = entities.Bookmark(controller=entity['controller'], public=False).create()
-                for new_name in valid_data_list().values():
-                    with self.subTest(new_name):
-                        bm.name = new_name
-                        bm = bm.update(['name'])
-                        self.assertEqual(bm.name, new_name)
-
-    @pytest.mark.tier1
-    def test_negative_update_same_name(self):
-        """Update a bookmark with name already taken
-
-        :id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
-
-        :Setup: Create 2 bookmarks with a random names with random query
-
-        :Steps: Try to update the name of the first (or second) Bookmark
-            created in the Setup with the name of the second (or first)
-            Bookmark
-
-        :expectedresults: Error - name already taken, bookmark not updated
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                name = gen_string('alphanumeric')
-                entities.Bookmark(controller=entity['controller'], name=name).create()
-                bm = entities.Bookmark(controller=entity['controller']).create()
-                bm.name = name
-                with self.assertRaises(HTTPError):
-                    bm.update(['name'])
-                bm = bm.read()
-                self.assertNotEqual(bm.name, name)
-
-    @pytest.mark.tier1
-    def test_negative_update_invalid_name(self):
-        """Update a bookmark with an invalid name
-
-        :id: 479795bb-aeed-45b3-a7e3-d3449c808087
-
-        :Setup: Create a bookmark with a random name and random query
-
-        :Steps: Update the name of the previously created bookmarks to an
-            invalid value
-
-        :expectedresults: Error - bookmark not updated
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                bm = entities.Bookmark(controller=entity['controller'], public=False).create()
-                for new_name in invalid_values_list():
-                    with self.subTest(new_name):
-                        bm.name = new_name
-                        with self.assertRaises(HTTPError):
-                            bm.update(['name'])
-                        bm = bm.read()
-                        self.assertNotEqual(bm.name, new_name)
-
-    @pytest.mark.tier1
-    def test_positive_update_query(self):
-        """Update a bookmark query
-
-        :id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
-
-        :Setup: Create a bookmark with a random name and random query
-
-        :Steps: Update the query of the previously created bookmark
-
-        :expectedresults: The updated query submitted
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                bm = entities.Bookmark(controller=entity['controller']).create()
-                for new_query in valid_data_list().values():
-                    with self.subTest(new_query):
-                        bm.query = new_query
-                        bm = bm.update(['query'])
-                        self.assertEqual(bm.query, new_query)
-
-    @pytest.mark.tier1
-    def test_negative_update_empty_query(self):
-        """Update a bookmark with an empty query
-
-        :id: 948602d3-532a-47fe-b313-91e3fab809bf
-
-        :Setup: Create a bookmark with a random name and random query
-
-        :Steps: Update the query of the pre-created bookmark with an empty
-            value
-
-        :expectedresults: Error - search query cannot be empty, bookmark not
-            updated
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                bm = entities.Bookmark(controller=entity['controller']).create()
-                bm.query = ''
-                with self.assertRaises(HTTPError):
-                    bm.update(['query'])
-                bm = bm.read()
-                self.assertNotEqual(bm.query, '')
-
-    @pytest.mark.tier1
-    def test_positive_update_public(self):
-        """Update a bookmark public state to private and vice versa
-
-        :id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
-
-        :Setup: Create a bookmark with a random name and random query with
-            public attribute set to True/False
-
-        :Steps:
-
-            1. Update the bookmarks 'public' attribute
-            2. List the bookmarks
-
-        :expectedresults: Bookmark is updated with new public state
-
-        :CaseImportance: Critical
-        """
-        for entity in BOOKMARK_ENTITIES:
-            with self.subTest(entity['controller']):
-                for public in (True, False):
-                    with self.subTest(public):
-                        bm = entities.Bookmark(
-                            controller=entity['controller'], public=not public
-                        ).create()
-                        self.assertNotEqual(bm.public, public)
-                        bm.public = public
-                        bm = bm.update(['public'])
-                        self.assertEqual(bm.public, public)
+    :Steps:
+
+        1. Create a bookmark with a random name and valid controller.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        2. bookmark is listed. Name and controller match the ones specified.
+
+    :CaseImportance: Critical
+    """
+    name = random.choice(list(valid_data_list().values()))
+    bm = entities.Bookmark(controller=controller, name=name, public=False).create()
+    assert bm.controller == controller
+    assert bm.name == name
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_create_with_query(controller):
+    """Create a bookmark
+
+    :id: 9fb6d485-92b5-43ea-b776-012c13734100
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a random query and valid controller.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        2. Bookmark is listed. Query and controller match the ones specified.
+
+    :CaseImportance: Critical
+    """
+    query = random.choice(list(valid_data_list().values()))
+    bm = entities.Bookmark(controller=controller, query=query).create()
+    assert bm.controller == controller
+    assert bm.query == query
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('public', (True, False))
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_create_public(controller, public):
+    """Create a public bookmark
+
+    :id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a valid controller and public attribute True or False.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        2. Bookmark is listed. Controller and public attribute match the ones specified.
+
+    :CaseImportance: Critical
+    """
+    bm = entities.Bookmark(controller=controller, public=public).create()
+    assert bm.controller == controller
+    assert bm.public == public
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_create_with_invalid_name(controller):
+    """Create a bookmark with invalid name
+
+    :id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Attempt to create a bookmark with an invalid name.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        1. Error returned.
+        2. Bookmark is not listed.
+
+    :CaseImportance: Critical
+    """
+    name = random.choice(invalid_values_list())
+    with pytest.raises(HTTPError):
+        entities.Bookmark(controller=controller, name=name, public=False).create()
+    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+    assert len(result) == 0
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_create_empty_query(controller):
+    """Create a bookmark with empty query
+
+    :id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Attempt to create a bookmark with a random name, valid controller, and empty query.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        1. Error returned.
+        2. Bookmark is not listed.
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('alpha')
+    with pytest.raises(HTTPError):
+        entities.Bookmark(controller=controller, name=name, query='').create()
+    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+    assert len(result) == 0
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_create_same_name(controller):
+    """Create bookmarks with the same names
+
+    :id: f78f6e97-da77-4a61-95c2-622c439d325d
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a random name and valid controller.
+        2. Attempt to create a second bookmark, using the same name as the previous bookmark.
+        3. List the bookmarks.
+
+    :expectedresults:
+
+        2. Error returned.
+        3. Only the first bookmark is listed.
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('alphanumeric')
+    entities.Bookmark(controller=controller, name=name).create()
+    with pytest.raises(HTTPError):
+        entities.Bookmark(controller=controller, name=name).create()
+    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+    assert len(result) == 1
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_create_null_public(controller):
+    """Create a bookmark omitting the public parameter
+
+    :id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Attempt to create a bookmark with a random name and valid controller, with public
+        attribute set to None.
+        2. List the bookmarks.
+
+    :expectedresults:
+
+        1. Error returned.
+        2. Bookmark is not listed.
+
+    :BZ: 1302725
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('alphanumeric')
+    with pytest.raises(HTTPError):
+        entities.Bookmark(controller=controller, name=name, public=None).create()
+    result = entities.Bookmark().search(query={'search': f'name="{name}"'})
+    assert len(result) == 0
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_update_name(controller):
+    """Update a bookmark
+
+    :id: 1cde270a-26fb-4cff-bdff-89fef17a7624
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a valid controller.
+        2. Update the bookmark with a random name.
+
+    :expectedresults:
+
+        2. The updated bookmark has the new name.
+
+    :CaseImportance: Critical
+    """
+    new_name = random.choice(list(valid_data_list().values()))
+    bm = entities.Bookmark(controller=controller, public=False).create()
+    bm.name = new_name
+    bm = bm.update(['name'])
+    assert bm.name == new_name
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_update_same_name(controller):
+    """Update a bookmark with name already taken
+
+    :id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a random name and valid controller.
+        2. Create a second bookmark for the same controller.
+        3. Attempt to update the second bookmark to have the same name as the first bookmark.
+
+    :expectedresults:
+
+        3. Error returned. Second bookmark's name is not updated.
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('alphanumeric')
+    entities.Bookmark(controller=controller, name=name).create()
+    bm = entities.Bookmark(controller=controller).create()
+    bm.name = name
+    with pytest.raises(HTTPError):
+        bm.update(['name'])
+    bm = bm.read()
+    assert bm.name != name
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_update_invalid_name(controller):
+    """Update a bookmark with an invalid name
+
+    :id: 479795bb-aeed-45b3-a7e3-d3449c808087
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with valid controller.
+        2. Attempt to update the bookmark with an invalid name.
+
+    :expectedresults:
+
+        2. Error returned. Bookmark name is not updated.
+
+    :CaseImportance: Critical
+    """
+    new_name = random.choice(invalid_values_list())
+    bm = entities.Bookmark(controller=controller, public=False).create()
+    bm.name = new_name
+    with pytest.raises(HTTPError):
+        bm.update(['name'])
+    bm = bm.read()
+    assert bm.name != new_name
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_update_query(controller):
+    """Update a bookmark query
+
+    :id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark with a valid controller.
+        2. Update the bookmark's query with a random value.
+
+    :expectedresults:
+
+        2. The updated bookmark has the new query.
+
+    :CaseImportance: Critical
+    """
+    new_query = random.choice(list(valid_data_list().values()))
+    bm = entities.Bookmark(controller=controller).create()
+    bm.query = new_query
+    bm = bm.update(['query'])
+    assert bm.query == new_query
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_negative_update_empty_query(controller):
+    """Update a bookmark with an empty query
+
+    :id: 948602d3-532a-47fe-b313-91e3fab809bf
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark for a valid controller.
+        2. Attempt to update the query to an empty value.
+
+    :expectedresults:
+
+        2. Error returned. Query is not empty.
+
+    :CaseImportance: Critical
+    """
+    bm = entities.Bookmark(controller=controller).create()
+    bm.query = ''
+    with pytest.raises(HTTPError):
+        bm.update(['query'])
+    bm = bm.read()
+    assert bm.query != ''
+
+
+@pytest.mark.tier1
+@pytest.mark.parametrize('public', (True, False))
+@pytest.mark.parametrize('controller', CONTROLLERS)
+def test_positive_update_public(controller, public):
+    """Update a bookmark public state to private and vice versa
+
+    :id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
+
+    :parametrized: yes
+
+    :Steps:
+
+        1. Create a bookmark for a valid controller.
+        2. Update the bookmark's public attribute.
+        3. List the bookmarks.
+
+    :expectedresults:
+
+        3. Bookmark is updated with the new public attribute.
+
+    :CaseImportance: Critical
+    """
+    bm = entities.Bookmark(controller=controller, public=not public).create()
+    assert bm.public != public
+    bm.public = public
+    bm = bm.update(['public'])
+    assert bm.public == public
