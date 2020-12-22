@@ -1,15 +1,15 @@
 # For running tests and checking code quality using these modules.
-codecov
-flake8
-pytest-cov
-redis
-tox
-pre-commit
+codecov==2.1.11
+flake8==3.8.4
+pytest-cov==2.10.1
+redis==3.5.3
+tox==3.20.1
+pre-commit==2.9.3
 
 
 # For generating documentation.
-sphinx
-sphinx-autoapi
+sphinx==3.4.0
+sphinx-autoapi==1.5.1
 
 # For 'manage' interactive shell
 manage>=0.1.13
