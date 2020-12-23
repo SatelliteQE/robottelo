@@ -98,8 +98,8 @@ def repos_collection_for_module_streams(module_org):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL8,
         repositories=[
-            YumRepository(url=settings.rhel8_os['baseos']),
-            YumRepository(url=settings.rhel8_os['appstream']),
+            YumRepository(url=settings.rhel8_os.baseos),
+            YumRepository(url=settings.rhel8_os.appstream),
             YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
             YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
         ],

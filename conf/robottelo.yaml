@@ -10,7 +10,7 @@ ROBOTTELO:
   # Directory for temporary files
   TMP_DIR: /var/tmp
   # Web Server to provide various test artifacts
-  ARTIFACTS_SERVER: replace-with-artifacts-server-hostname
+  # ARTIFACTS_SERVER: replace-with-artifacts-server
   # Webdriver logging options
   # A list of commands to be logged
   LOG_DRIVER_COMMANDS:
@@ -24,7 +24,7 @@ ROBOTTELO:
   # - The URL of container hosting repos on SatLab
   # Example url - http://<container_hostname_or_ip>:<port>
   # Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
-  REPOS_HOSTING_URL: replace-with-repo-hosting-url
+  # REPOS_HOSTING_URL: replace-with-repo-hosting-url
   # browser tells robottelo which browser to use when testing UI. Valid values
   # are:
   # * selenium
@@ -38,14 +38,24 @@ ROBOTTELO:
   # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
   WEBDRIVER: chrome
   # Run browser for UI tests with semicolon delimeted options such as headless. Currently supported for only chrome.
-  BROWSEROPTIONS: replace-with-browser-options
+  # BROWSEROPTIONS: replace-with-browser-options
+  # The base DesiredCapabilities dict will be get by the browser
+  # specified by webdriver config. If you override browserName then that
+  # browser will be used instead.
+  # WEBDRIVER_DESIRED_CAPABILITIES:
+    # PLATFORM:
+    # MAXDURATION:
+    # IDLETIMEOUT:
+    # START-MAXIMISED:
+    # SCREENRESOLUTION:
+    # TAGS:
   # Binary location for selected wedriver (not needed if using saucelabs)
   # WEBDRIVER_BINARY: /usr/bin/firefox
   # webdriver_binary=/usr/bin/chromedriver
   # webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
-  WEBDRIVER_BINARY: replace-with-webdriver-binary
+  WEBDRIVER_BINARY: /usr/bin/chromedriver
   # Zalenium command_executor
-  COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
+  # COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
   # CDN sync
   CDN: true
   # Run one datapoint or multiple datapoints for tests
@@ -53,23 +63,30 @@ ROBOTTELO:
   # Provide link to rhel6/7/8 repo here, as puppet rpm would require packages from
   # RHEL 6/7/8 repo and syncing the entire repo on the fly would take longer for
   # tests to run Specify the *.repo link to an internal repo for tests to execute properly
-  RHEL6_REPO: replace-with-rhel8-repo-http-link
-  RHEL7_REPO: replace-with-rhel8-repo-http-link
-  RHEL8_REPO: replace-with-rhel8-repo-http-link
+  # RHEL6_REPO: replace-with-rhel8-repo-http-link
+  # RHEL7_REPO: replace-with-rhel8-repo-http-link
+  # RHEL8_REPO: replace-with-rhel8-repo-http-link
   # Provide link to rhel6/7/8 repositories URL as we need all OS packages in order
   # to have real installation media for provisioning procedure
-  RHEL6_OS: replace-with-rhel6-os-http-link
-  RHEL7_OS: replace-with-rhel7-os-http-link
-  RHEL8_OS:
-    BASEOS: replace-with-rhel8-os-baseos-http-link
-    APPSTREAM: replace-with-rhel8-os-appstream-http-link
+  # RHEL6_OS: replace-with-rhel6-os-http-link
+  # RHEL7_OS: replace-with-rhel7-os-http-link
+  # RHEL8_OS:
+    # BASEOS: replace-with-rhel8-os-baseos-http-link
+    # APPSTREAM: replace-with-rhel8-os-appstream-http-link
   # If capsule and satellite tools repositories available related packages will
   # be pulled from there instead of using the CDN channel. These information is
   # more suited to be used for downstream, downstream-iso and zstream builds.
-  CAPSULE_REPO: replace-with-capsule-http-link
-  SATTOOLS_REPO:
-    RHEL6: replace-with-rhel6-http-link
-    RHEL7: replace-with-rhel7-http-link
+  # CAPSULE_REPO: replace-with-capsule-http-link
+  # SATTOOLS_REPO:
+    # RHEL6: replace-with-rhel6-http-link
+    # RHEL7: replace-with-rhel7-http-link
+    # RHEL8: replace-with-rhel8-http-link
+  # Downstream Satellite-maintain repo
+  # SATMAINTENANCE_REPO: replace_with_sat_maintain_repo
+  # Software Collection Repo
+  # RHSCL_REPO: replace_with_rhscl_repo
+  # Ansible 2.8 Repo
+  # ANSIBLE_REPO: replace_with_ansible_repo
   # Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
   # which are essentially required for generating swid tags in RHEL8 content host.
-  SWID_TOOLS_REPO: replace-with-swid-https-link
+  # SWID_TOOLS_REPO: replace_with_swid_tools_repo
