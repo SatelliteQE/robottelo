@@ -33,10 +33,15 @@ def _get_tests(launch, **kwargs):
     :return list: The list of test names retrieved from RP launch
     """
     tests = []
-    if 'defect_types' in kwargs:
-        defect_types = kwargs.pop('defect_types')
-        for dtype in defect_types:
-            tests.extend(launch.tests(**kwargs, defect_type=dtype).keys())
+    if 'status' in kwargs:
+        all_status = kwargs.pop('status')
+        for status in all_status:
+            if status == 'failed' and 'defect_types' in kwargs:
+                defect_types = kwargs.pop('defect_types')
+                for dtype in defect_types:
+                    tests.extend(launch.tests(**kwargs, status=status, defect_type=dtype).keys())
+            else:
+                tests.extend(launch.tests(**kwargs, status=status).keys())
     else:
         tests.extend(launch.tests(**kwargs).keys())
     transformed_tests = _transform_rp_tests_to_pytest(tests)
@@ -132,8 +137,9 @@ def pytest_collection_modifyitems(items, config):
     )
     _validate_launch(launch, sat_version)
     test_args = {}
+    test_args.setdefault('status', list)
     if fail_args:
-        test_args['status'] = 'failed'
+        test_args['status'].append('failed')
         if not fail_args == 'all':
             defect_types = fail_args.split(',') if ',' in fail_args else [fail_args]
             allowed_args = [*rp.defect_types.keys()]
@@ -143,8 +149,8 @@ def pytest_collection_modifyitems(items, config):
                     f'\'{fail_args}\'. It should be none/one/mix of {allowed_args}'
                 )
             test_args['defect_types'] = defect_types
-    elif skip_arg:
-        test_args['status'] = 'skipped'
+    if skip_arg:
+        test_args['status'].append('skipped')
     if user_arg:
         test_args['user'] = user_arg
     rp_tests = _get_tests(launch, **test_args)
