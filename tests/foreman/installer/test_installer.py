@@ -694,6 +694,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--puppet-user',
     '--puppet-vardir',
     '--puppet-version',
+    '--register-with-insights',
     '--reset-certs-ca-common-name',
     '--reset-certs-ca-expiration',
     '--reset-certs-city',
@@ -1315,6 +1316,31 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '-v',
 }
 
+LAST_SAVED_SECTIONS = {
+    '= Generic:',
+    '= Module certs:',
+    '= Module foreman:',
+    '= Module foreman_cli:',
+    '= Module foreman_compute_ec2:',
+    '= Module foreman_compute_gce:',
+    '= Module foreman_compute_libvirt:',
+    '= Module foreman_compute_openstack:',
+    '= Module foreman_compute_ovirt:',
+    '= Module foreman_compute_vmware:',
+    '= Module foreman_plugin_tasks:',
+    '= Module foreman_proxy:',
+    '= Module foreman_proxy_content:',
+    '= Module foreman_proxy_plugin_ansible:',
+    '= Module foreman_proxy_plugin_dhcp_infoblox:',
+    '= Module foreman_proxy_plugin_dhcp_remote_isc:',
+    '= Module foreman_proxy_plugin_discovery:',
+    '= Module foreman_proxy_plugin_dns_infoblox:',
+    '= Module foreman_proxy_plugin_openscap:',
+    '= Module foreman_proxy_plugin_pulp:',
+    '= Module foreman_proxy_plugin_remote_execution_ssh:',
+    '= Module katello:',
+    '= Module puppet:',
+}
 
 SATELLITE_SERVICES = {
     'dynflow-sidekiq@orchestrator',
@@ -1337,20 +1363,25 @@ SATELLITE_SERVICES = {
 }
 
 
-def extract_params(lst):
-    """Generator function to extract satellite installer params from lst.
+def extract_help(filter='params'):
+    """Generator function to extract satellite installer params and sections from lines of help text.
     In general lst is cmd.stdout, e.g., a list of strings representing host
     stdout
 
-    :param lst: list  of strings
-    :return: generator with all params
+    :param string filter: Filter `sections` or `params` in full help, default is params
+    :return: generator with params or sections depends on filter parameter
     """
-    for line in lst:
+    stdout = ssh.command('satellite-installer --full-help').stdout
+    for line in stdout or []:
         line = line.strip()
-        first_2_tokens = line.split()[:2]
-        for token in first_2_tokens:
-            if token[0] == '-':
-                yield token.replace(',', '')
+        if filter == 'sections':
+            if line.startswith('= '):
+                yield line
+        else:
+            first_2_tokens = line.split()[:2]
+            for token in first_2_tokens:
+                if token[0] == '-':
+                    yield token.replace(',', '')
 
 
 @pytest.mark.upgrade
@@ -1419,31 +1450,33 @@ def test_positive_check_installer_services():
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_installer_options_and_flags():
-    """Look for changes on installer options and flags
+@pytest.mark.parametrize('filter', ['params', 'sections'])
+def test_installer_options_and_sections(filter):
+    """Look for changes on installer sections and options/flags
 
     :id: a51d3b9f-f347-4a96-a31a-770349db08c7
 
-    :Steps:
-        1. parse installer options and flags
-        2. compare with last options
+    :parametrized: yes
 
-    :expectedresults: Ideally options should not change on zstreams.
+    :Steps:
+        1. parse installer sections and options/flags
+        2. compare with last saved data
+
+    :expectedresults: Ideally sections and options should not change on zstreams.
         Documentation must be updated accordingly when such changes occur.
         So when this test fail we QE can act on it, asking dev if
         changes occurs on zstream and checking docs are up to date.
 
     :CaseImportance: Medium
     """
-    stdout = ssh.command('satellite-installer --full-help').stdout
-
-    current_installer_options = set(extract_params(stdout or []))
-    removed_options = list(PREVIOUS_INSTALLER_OPTIONS - current_installer_options)
-    removed_options.sort()
-    added_options = list(current_installer_options - PREVIOUS_INSTALLER_OPTIONS)
-    added_options.sort()
-    msg = f"###Removed options:\n{removed_options}\n###Added options:\n{added_options}"
-    assert PREVIOUS_INSTALLER_OPTIONS == current_installer_options, msg
+    current = set(extract_help(filter=filter))
+    previous = PREVIOUS_INSTALLER_OPTIONS if filter == 'params' else LAST_SAVED_SECTIONS
+    removed = list(previous - current)
+    removed.sort()
+    added = list(current - previous)
+    added.sort()
+    msg = f"###Removed {filter}:\n{removed}\n###Added {filter}:\n{added}"
+    assert previous == current, msg
 
 
 @pytest.mark.stubbed
@@ -1514,6 +1547,108 @@ def test_installer_check_on_ipv6():
     :expectedresults:
         1. Tuning parameter set successfully for medium size.
         2. custom-hiera.yaml related changes should be successfully applied.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier1
+def test_installer_verbose_stdout():
+    """Look for Satellite installer verbose STDOUT
+
+    :id: 5d0fb30a-4a63-41b3-bc6f-c4057942ce3c
+
+    steps:
+        1. Install satellite package.
+        2. Run Satellite installer
+        3. Observe installer STDOUT.
+
+    :expectedresults:
+        1. Installer STDOUTs following groups hooks completion.
+            pre_migrations, boot, init, pre_values, pre_validations, pre_commit, pre, post
+        2. Installer STDOUTs system configuration completion.
+        3. Finally, Installer informs running satellite url, credentials,
+            external capsule installation pre-requisite, upgrade capsule instruction,
+            running internal capsule url, log file.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier1
+def test_installer_answers_file():
+    """Answers file to configure plugins and hooks
+
+    :id: 5cb40e4b-1acb-49f9-a085-a7dead1664b5
+
+    steps:
+        1. Install satellte package
+        2. Modify `/etc/foreman-installer/scenarios.d/satellite-answers.yaml` file to
+            configure hook/plugin on satellite
+        3. Run Satellite installer
+
+    :expectedresults: Installer configures plugins and hooks in answers file.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier1
+def test_capsule_installer_verbose_stdout():
+    """Look for Capsule installer verbose STDOUT
+
+    :id: 323e85e3-2ad1-4018-aa35-1d51f1e7f5a2
+
+    steps:
+        1. Install capsule package.
+        2. Run Satellite installer --scenario capsule
+        3. Observe installer STDOUT.
+
+    :expectedresults:
+        1. Installer STDOUTs following groups hooks completion.
+            pre_migrations, boot, init, pre_values, pre_validations, pre_commit, pre, post
+        2. Installer STDOUTs system configuration completion.
+        3. Finally, Installer informs running capsule url, log file.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_installer_timestamp_logs():
+    """Look for Satellite installer timestamp based logs
+
+    :id: 9b4d32f6-d471-4bdb-8a79-9bb20ecb86aa
+
+    steps:
+        1. Install satellite package.
+        2. Run Satellite installer
+        3. Observe installer log file `/var/log/foreman-installer/satellite.log`.
+
+    :expectedresults:
+        1. Installer logs satellite installation with timestamps in following format
+            YYYY-MM-DD HH:MM:SS
+
 
     :CaseImportance: Critical
 
