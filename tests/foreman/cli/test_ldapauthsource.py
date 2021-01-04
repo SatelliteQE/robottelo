@@ -75,11 +75,11 @@ class TestADAuthSource:
 
         :id: 093f6abc-91e7-4449-b484-71e4a14ac808
 
+        :parametrized: yes
+
         :expectedresults: Whether creating/upating/deleting LDAP Auth with AD is successful.
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {
@@ -115,14 +115,16 @@ class TestADAuthSource:
 
         :id: 2e913e76-49c3-11eb-b4c6-d46d6dd3b5b2
 
+        :customerscenario: true
+
         :CaseImportance: Medium
 
         :bz: 1901392
 
+        :parametrized: yes
+
         :expectedresults: external user-group sync works as expected automatically
             based on user-sync
-
-        :parametrized: yes
         """
         group_base_dn = ",".join(ad_data['group_base_dn'].split(',')[1:])
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
@@ -214,9 +216,10 @@ class TestIPAAuthSource:
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with FreeIPA is successful.
 
+        :parametrized: yes
+
         :CaseImportance: High
 
-        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {
