@@ -23,23 +23,30 @@ import pytest
 import yaml
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
+from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
 from wrapanapi import GoogleCloudSystem
 
+from robottelo import manifests
 from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import skip_yum_update_during_provisioning
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_scap_policy
+from robottelo.cli.globalparam import GlobalParameter
+from robottelo.cli.host import Host
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
@@ -48,6 +55,7 @@ from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
@@ -59,6 +67,7 @@ from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import download_server_file
+from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
 
 
@@ -153,29 +162,6 @@ def module_os(default_architecture, default_partition_table, module_org, module_
         query={'search': 'name="RedHat" AND major="7"'}
     ) or entities.OperatingSystem().search(query={'search': 'name="RedHat" AND major="6"'})
     os = os[0].read()
-    # Get the templates and update with OS, Org, Location
-    templates = []
-    for template_name in [
-        'Kickstart default PXELinux',
-        'Discovery Red Hat kexec',
-        'Kickstart default iPXE',
-        'Kickstart default',
-        'Kickstart default finish',
-        'Kickstart default user data',
-    ]:
-        template = (
-            entities.ProvisioningTemplate()
-            .search(query={'search': f'name="{template_name}"'})[0]
-            .read()
-        )
-        template.operatingsystem.append(os)
-        template = template.update(['operatingsystem'])
-        templates.append(template)
-    # Update the OS to associate architecture, ptable, templates
-    os.architecture = [default_architecture]
-    os.ptable = [default_partition_table]
-    os.provisioning_template = templates
-    os = os.update(['architecture', 'provisioning_template', 'ptable'])
     return os
 
 
@@ -370,6 +356,36 @@ def module_libvirt_hostgroup(
         ptable=default_partition_table,
         medium=module_libvirt_media,
     ).create()
+
+
+@pytest.fixture(scope='module')
+def manifest_org(module_org):
+    """Upload manifest to organization."""
+    with manifests.clone() as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    return module_org
+
+
+@pytest.fixture(scope='module')
+def module_activation_key(manifest_org):
+    """Create activation key using default CV and library environment."""
+    activation_key = entities.ActivationKey(
+        auto_attach=True,
+        content_view=manifest_org.default_content_view.id,
+        environment=manifest_org.library.id,
+        organization=manifest_org,
+    ).create()
+
+    # Find the 'Red Hat Employee Subscription' and attach it to the activation key.
+    for subs in entities.Subscription(organization=manifest_org).search():
+        if subs.name == DEFAULT_SUBSCRIPTION_NAME:
+            # 'quantity' must be 1, not subscription['quantity']. Greater
+            # values produce this error: 'RuntimeError: Error: Only pools
+            # with multi-entitlement product subscriptions can be added to
+            # the activation key with a quantity greater than one.'
+            activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subs.id})
+            break
+    return activation_key
 
 
 @pytest.mark.tier2
@@ -1287,6 +1303,136 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
         values = session.host.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce['name']
         assert values['host']['content_view'] == content_view['name']
+
+
+@pytest.mark.tier2
+def test_positive_global_registration_form(
+    session, module_activation_key, module_org, module_loc, module_os
+):
+    """Host registration form produces a correct curl command for various inputs
+
+    :id: f81c2ec4-85b1-4372-8e63-464ddbf70296
+
+    :customerscenario: true
+
+    :expectedresults: The curl command contains all required parameters
+
+    :CaseLevel: Integration
+    """
+    # rex and insigths parameters are only specified in curl when differing from
+    # inerited parameters
+    result = GlobalParameter().list({'search': 'host_registration_remote_execution'})
+    rex_value = not result[0]['value']
+    result = GlobalParameter().list({'search': 'host_registration_insights'})
+    insights_value = not result[0]['value']
+    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
+    iface = 'eth0'
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'setup_insights': 'Yes' if insights_value else 'No',
+                'remote_execution': 'Yes' if rex_value else 'No',
+                'insecure': True,
+                'hostgroup': hostgroup.name,
+                'operatingsystem': module_os.title,
+                'activation_keys': module_activation_key.name,
+                'remote_execution_interface': iface,
+            }
+        )
+    expected_pairs = [
+        f'organization_id={module_org.id}',
+        f'activation_key={module_activation_key.name}',
+        f'hostgroup_id={hostgroup.id}',
+        f'location_id={module_loc.id}',
+        f'operatingsystem_id={module_os.id}',
+        f'remote_execution_interface={iface}',
+        f'setup_insights={"true" if insights_value else "false"}',
+        f'setup_remote_execution={"true" if rex_value else "false"}',
+        f'{settings.server.hostname}',
+        'insecure',
+    ]
+    for pair in expected_pairs:
+        assert pair in cmd
+
+
+@pytest.mark.tier3
+def test_positive_global_registration_end_to_end(
+    session, module_activation_key, module_org, module_loc, module_os, module_proxy
+):
+    """Host registration form produces a correct registration command and host is
+    registered successfully with it, remote execution and insights are set up
+
+    :id: a02658bf-097e-47a8-8472-5d9f649ba07a
+
+    :customerscenario: true
+
+    :expectedresults: Host is succesfully registered, remote execution and insights
+         client work out of the box
+
+    :CaseLevel: Integration
+    """
+    # make sure global parameters for rex and insights are set to true
+    GlobalParameter().set({'name': 'host_registration_insights', 'value': 1})
+    GlobalParameter().set({'name': 'host_registration_remote_execution', 'value': 1})
+    # rex interface
+    iface = 'eth0'
+    # fill in the global registration form
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'capsule': module_proxy.name,
+                'operatingsystem': module_os.title,
+                'activation_keys': module_activation_key.name,
+                'remote_execution_interface': iface,
+                'insecure': True,
+            }
+        )
+    expected_pairs = [
+        f'organization_id={module_org.id}',
+        f'activation_key={module_activation_key.name}',
+        f'location_id={module_loc.id}',
+        f'operatingsystem_id={module_os.id}',
+        f'{module_proxy.name}:9090',
+        'insecure',
+    ]
+    for pair in expected_pairs:
+        assert pair in cmd
+    # register host
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
+        # rhel repo required for insights client installation,
+        # syncing it to the satellite would take too long
+        client.configure_rhel_repo(settings.rhel7_repo)
+        # run curl
+        result = client.execute(cmd)
+        assert result.status == 0
+        result = client.execute('subscription-manager identity')
+        assert result.status == 0
+        # Connect to host via ip
+        Host.set_parameter(
+            {
+                'host': client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        # run insights-client via REX
+        command = "insights-client --status"
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ~ {client.hostname}",
+            }
+        )
+        result = ' '.join(
+            JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
+        )
+        assert invocation_command['success'] == '1', result
+        assert 'Insights API confirms registration' in result
+        # check rex interface is set
+        host = Host.info({'name': client.hostname})
+        interface = [item for item in host['network-interfaces'] if item['identifier'] == iface]
+        assert 'execution' in interface[0]['type']
 
 
 @pytest.mark.tier2
