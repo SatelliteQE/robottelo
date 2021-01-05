@@ -48,6 +48,21 @@ from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_client_configuration
 
 
+@pytest.fixture()
+def ldap_tear_down():
+    """Teardown the all ldap settings user, usergroup and ldap delete"""
+    yield
+    ldap_auth_sources = entities.AuthSourceLDAP().search()
+    for ldap_auth in ldap_auth_sources:
+        users = entities.User(auth_source=ldap_auth).search()
+        for user in users:
+            user.delete()
+        user_groups = entities.UserGroup().search()
+        if user_groups:
+            user_groups[0].delete()
+        ldap_auth.delete()
+
+
 @pytest.mark.run_in_one_thread
 class TestADAuthSource:
     """Implements Active Directory feature tests in CLI"""
@@ -55,16 +70,16 @@ class TestADAuthSource:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
-    def test_positive_create_with_ad(self, ad_data, server_name):
+    def test_positive_create_with_ad(self, ad_data, server_name, ldap_tear_down):
         """Create/update/delete LDAP authentication with AD using names of different types
 
         :id: 093f6abc-91e7-4449-b484-71e4a14ac808
 
+        :parametrized: yes
+
         :expectedresults: Whether creating/upating/deleting LDAP Auth with AD is successful.
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {
@@ -92,6 +107,65 @@ class TestADAuthSource:
         LDAPAuthSource.delete({'name': new_name})
         with pytest.raises(CLIReturnCodeError):
             LDAPAuthSource.info({'name': new_name})
+
+    @pytest.mark.tier1
+    @pytest.mark.parametrize('member_group', ['foobargroup', 'foobar.group'])
+    def test_positive_refresh_usergroup_with_ad(self, member_group, ad_data, ldap_tear_down):
+        """Verify the usergroup-sync functionality in AD Auth Source
+
+        :id: 2e913e76-49c3-11eb-b4c6-d46d6dd3b5b2
+
+        :customerscenario: true
+
+        :CaseImportance: Medium
+
+        :bz: 1901392
+
+        :parametrized: yes
+
+        :expectedresults: external user-group sync works as expected automatically
+            based on user-sync
+        """
+        group_base_dn = ",".join(ad_data['group_base_dn'].split(',')[1:])
+        LOGEDIN_MSG = "Using configured credentials for user '{0}'."
+        auth_source = make_ldap_auth_source(
+            {
+                'name': gen_string('alpha'),
+                'onthefly-register': 'true',
+                'host': ad_data['ldap_hostname'],
+                'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
+                'attr-login': LDAP_ATTR['login_ad'],
+                'attr-firstname': LDAP_ATTR['firstname'],
+                'attr-lastname': LDAP_ATTR['surname'],
+                'attr-mail': LDAP_ATTR['mail'],
+                'account': ad_data['ldap_user_name'],
+                'account-password': ad_data['ldap_user_passwd'],
+                'base-dn': ad_data['base_dn'],
+                'groups-base': group_base_dn,
+            }
+        )
+        # assert auth_source['account']['groups-base'] == group_base_dn
+        viewer_role = Role.info({'name': 'Viewer'})
+        user_group = make_usergroup()
+        make_usergroup_external(
+            {
+                'auth-source-id': auth_source['server']['id'],
+                'user-group-id': user_group['id'],
+                'name': member_group,
+            }
+        )
+        UserGroup.add_role({'id': user_group['id'], 'role-id': viewer_role['id']})
+        user_group = UserGroup.info({'id': user_group['id']})
+        result = Auth.with_user(
+            username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
+        ).status()
+        assert LOGEDIN_MSG.format(ad_data['ldap_user_name']) in result[0]['message']
+        UserGroupExternal.refresh({'user-group-id': user_group['id'], 'name': member_group})
+        user_group = UserGroup.info({'id': user_group['id']})
+        list = Role.with_user(
+            username=ad_data['ldap_user_name'], password=ad_data['ldap_user_passwd']
+        ).list()
+        assert len(list) > 1
 
 
 @pytest.mark.run_in_one_thread
@@ -135,16 +209,17 @@ class TestIPAAuthSource:
     @pytest.mark.tier2
     @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
-    def test_positive_end_to_end_with_ipa(self, ipa_data, server_name):
+    def test_positive_end_to_end_with_ipa(self, ipa_data, server_name, ldap_tear_down):
         """CRUD LDAP authentication with FreeIPA
 
         :id: 6cb54405-b579-4020-bf99-cb811a6aa28b
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with FreeIPA is successful.
 
+        :parametrized: yes
+
         :CaseImportance: High
 
-        :parametrized: yes
         """
         auth = make_ldap_auth_source(
             {
@@ -174,7 +249,7 @@ class TestIPAAuthSource:
             LDAPAuthSource.info({'name': new_name})
 
     @pytest.mark.tier3
-    def test_usergroup_sync_with_refresh(self, ipa_data):
+    def test_usergroup_sync_with_refresh(self, ipa_data, ldap_tear_down):
         """Verify the refresh functionality in Ldap Auth Source
 
         :id: c905eb80-2bd0-11ea-abc3-ddb7dbb3c930
@@ -250,7 +325,7 @@ class TestIPAAuthSource:
         assert 'Missing one of the required permissions' in error.value.message
 
     @pytest.mark.tier3
-    def test_usergroup_with_usergroup_sync(self, ipa_data):
+    def test_usergroup_with_usergroup_sync(self, ipa_data, ldap_tear_down):
         """Verify the usergroup-sync functionality in Ldap Auth Source
 
         :id: 2b63e886-2c53-11ea-9da5-db3ae0527554
