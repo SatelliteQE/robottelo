@@ -10,7 +10,7 @@ jobs:
       matrix:
         python-version: [3.8, 3.9]
     env:
-      PYCURL_SSL_LIBRARY: gnutls
+      PYCURL_SSL_LIBRARY: openssl
       SATELLITE_VERSION: 6.9
     steps:
       - name: Checkout Robottelo
