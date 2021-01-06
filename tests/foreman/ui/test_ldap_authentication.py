@@ -854,9 +854,7 @@ def test_positive_login_ad_user_no_roles(auth_source, test_name, ldap_tear_down,
         functional areas of UI
     """
     with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
-        assert ad_data['ldap_user_name'] in ldapsession.task.read_all()['current_user']
+        ldapsession.task.read_all()
 
 
 @pytest.mark.tier2
@@ -908,8 +906,6 @@ def test_positive_login_user_password_otp(auth_source_ipa, test_name, ldap_tear_
     with Session(test_name, ipa_data['ipa_otp_username'], otp_pass) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.user.search('')
-        expected_user = "{} {}".format(ipa_data['ipa_otp_username'], ipa_data['ipa_otp_username'])
-        assert ldapsession.task.read_all()['current_user'] == expected_user
     users = entities.User().search(
         query={'search': 'login="{}"'.format(ipa_data['ipa_otp_username'])}
     )
@@ -1427,7 +1423,7 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
     assert result.return_code == 0
-    group = settings.ipa.grpbasedn_ipa.split(',')
+    group = settings.ldap.grpbasedn.split(',')
     for line in group:
         if 'group' in line:
             _, group = line.split('=')
@@ -1838,9 +1834,7 @@ def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_dat
     # 'test_user' able to login before the filter is applied.
     test_user = ipa_add_user
     with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
-        with pytest.raises(NavigationTriesExceeded):
-            ldapsession.user.search('')
-        assert test_user in ldapsession.task.read_all()['current_user']
+        ldapsession.task.read_all()
 
     # updating the authsource with filter
     group_name = ipa_data['groups'][0]
