@@ -1727,7 +1727,7 @@ HOT_BACKUP_FILES = [
 ]
 
 VMWARE_CONSTANTS = {
-    'cluster': 'Satellite_Engineering',
+    'cluster': 'Satellite-Engineering',
     'folder': 'vm',
     'guest_os': 'Red Hat Enterprise Linux 7 (64-bit)',
     'scsicontroller': 'LSI Logic Parallel',
