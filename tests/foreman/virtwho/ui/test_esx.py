@@ -18,14 +18,11 @@ from datetime import datetime
 
 import pytest
 from airgun.session import Session
-from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from fauxfactory import gen_url
-from nailgun import entities
 
-from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
+from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import delete_configure_option
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
@@ -55,26 +52,6 @@ def form_data():
 
 
 class TestVirtwhoConfigforEsx:
-    def create_http_proxy(self, name=None, url=None, type='https'):
-        """
-        Creat a new http-proxy with attributes.
-        :param name: Name of the proxy
-        :param url: URL of the proxy including schema (https://proxy.example.com:8080)
-        :param type: https or http
-        :return:
-        """
-        default_org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-        http_proxy_name = name or gen_string('alpha', 15)
-        http_proxy_url = url or '{}:{}'.format(
-            gen_url(scheme=type), gen_integer(min_value=10, max_value=9999)
-        )
-        entities.HTTPProxy(
-            name=http_proxy_name,
-            url=http_proxy_url,
-            organization=[default_org.id],
-        ).create()
-        return http_proxy_url
-
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, session, form_data):
         """Verify configure created and deployed with id.
@@ -311,8 +288,8 @@ class TestVirtwhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        https_proxy = self.create_http_proxy()
-        http_proxy = self.create_http_proxy(type='http')
+        https_proxy, https_proxy_name, https_proxy_id = create_http_proxy()
+        http_proxy, http_proxy_name, http_proxy_id = create_http_proxy(type='http')
         name = gen_string('alpha')
         form_data['name'] = name
         with session:
@@ -635,7 +612,7 @@ class TestVirtwhoConfigforEsx:
         name = gen_string('alpha')
         form_data['name'] = name
         hypervisor_type = form_data['hypervisor_type']
-        http_proxy_url = self.create_http_proxy()
+        http_proxy_url, proxy_name, proxy_id = create_http_proxy()
         form_data['proxy'] = http_proxy_url
         form_data['no_proxy'] = 'test.satellite.com'
         regex = '.*redhat.com'
