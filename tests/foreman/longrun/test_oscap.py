@@ -202,19 +202,19 @@ class OpenScapTestCase(CLITestCase):
                 'content': self.rhel6_content,
                 'hgrp': hgrp6_name,
                 'policy': policy6_name,
-                'profile': OSCAP_PROFILE['security6'],
+                'profile': OSCAP_PROFILE['dsrhel6'],
             },
             {
                 'content': self.rhel7_content,
                 'hgrp': hgrp7_name,
                 'policy': policy7_name,
-                'profile': OSCAP_PROFILE['security7'],
+                'profile': OSCAP_PROFILE['dsrhel7'],
             },
             {
                 'content': self.rhel8_content,
                 'hgrp': hgrp8_name,
                 'policy': policy8_name,
-                'profile': OSCAP_PROFILE['cbrhel8'],
+                'profile': OSCAP_PROFILE['dsrhel8'],
             },
         ]
         vm_values = [
