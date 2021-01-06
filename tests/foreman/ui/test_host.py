@@ -1364,7 +1364,7 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
         published_puppet_env = [
             env.name
             for env in entities.Environment().search(
-                query=dict(search=f'organization_id={module_org.id}', per_page=1000)
+                query=dict(search=f'organization_id={module_org.id}', per_page='1000')
             )
             if content_view in env.name
         ][0]

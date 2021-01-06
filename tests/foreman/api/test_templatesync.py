@@ -103,7 +103,7 @@ class TestTemplateSyncTestCase:
         assert imported_count == 8
         ptemplates = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 100,
+                'per_page': '100',
                 'search': f'name~{prefix}',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -112,7 +112,7 @@ class TestTemplateSyncTestCase:
         assert len(ptemplates) == 5
         ptables = entities.PartitionTable().search(
             query={
-                'per_page': 100,
+                'per_page': '100',
                 'search': f'name~{prefix}',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -121,7 +121,7 @@ class TestTemplateSyncTestCase:
         assert len(ptables) == 1
         jtemplates = entities.JobTemplate().search(
             query={
-                'per_page': 100,
+                'per_page': '100',
                 'search': f'name~{prefix}',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -130,7 +130,7 @@ class TestTemplateSyncTestCase:
         assert len(jtemplates) == 1
         rtemplates = entities.ReportTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -174,19 +174,19 @@ class TestTemplateSyncTestCase:
         ].count(False)
         assert not_imported_count == 8
         ptemplates = entities.ProvisioningTemplate().search(
-            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': module_org.id}
+            query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(ptemplates) == 6
         ptables = entities.PartitionTable().search(
-            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': module_org.id}
+            query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(ptables) == 1
         jtemplates = entities.JobTemplate().search(
-            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': module_org.id}
+            query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(jtemplates) == 1
         rtemplates = entities.ReportTemplate().search(
-            query={'per_page': 100, 'search': 'name~jenkins', 'organization_id': module_org.id}
+            query={'per_page': '100', 'search': 'name~jenkins', 'organization_id': module_org.id}
         )
         assert len(rtemplates) == 1
 
@@ -241,7 +241,7 @@ class TestTemplateSyncTestCase:
         # - Template 1 imported in X and Y taxonomies
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -252,7 +252,7 @@ class TestTemplateSyncTestCase:
         # - Template 1 not imported in metadata taxonomies
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}',
                 'organization_id': default_org.id,
                 'location_id': default_location.id,
@@ -276,7 +276,7 @@ class TestTemplateSyncTestCase:
         # - Template 1 taxonomies are not changed
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}example_template',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -287,7 +287,7 @@ class TestTemplateSyncTestCase:
         # - Template 2 should be imported in importing taxonomies
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}another_template',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -308,7 +308,7 @@ class TestTemplateSyncTestCase:
         # - Template 1 taxonomies are not changed
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}example_template',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,
@@ -319,7 +319,7 @@ class TestTemplateSyncTestCase:
         # - Template 2 taxonomies are not changed
         ptemplate = entities.ProvisioningTemplate().search(
             query={
-                'per_page': 10,
+                'per_page': '10',
                 'search': f'name~{prefix}another_template',
                 'organization_id': module_org.id,
                 'location_id': module_location.id,

@@ -332,10 +332,10 @@ class ErrataTestCase(APITestCase):
         ).create()
         repo2.sync()
         repo1_errata_ids = [
-            errata['errata_id'] for errata in repo1.errata(data={'per_page': 1000})['results']
+            errata['errata_id'] for errata in repo1.errata(data={'per_page': '1000'})['results']
         ]
         repo2_errata_ids = [
-            errata['errata_id'] for errata in repo2.errata(data={'per_page': 1000})['results']
+            errata['errata_id'] for errata in repo2.errata(data={'per_page': '1000'})['results']
         ]
         self.assertEqual(len(repo1_errata_ids), FAKE_9_YUM_ERRATUM_COUNT)
         self.assertEqual(len(repo2_errata_ids), FAKE_3_YUM_ERRATUM_COUNT)
@@ -375,7 +375,7 @@ class ErrataTestCase(APITestCase):
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
         erratum_list = entities.Errata(repository=repo).search(
-            query={'order': 'updated ASC', 'per_page': 1000}
+            query={'order': 'updated ASC', 'per_page': '1000'}
         )
         updated = [errata.updated for errata in erratum_list]
         self.assertEqual(updated, sorted(updated))
@@ -411,7 +411,7 @@ class ErrataTestCase(APITestCase):
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
         erratum_list = entities.Errata(repository=repo).search(
-            query={'order': 'cve DESC', 'per_page': 1000}
+            query={'order': 'cve DESC', 'per_page': '1000'}
         )
         # Most of Errata don't have any CVEs. Removing empty CVEs from results
         erratum_cves = [errata.cves for errata in erratum_list if errata.cves]
@@ -451,7 +451,7 @@ class ErrataTestCase(APITestCase):
             repo = entities.Repository(id=repo_with_cves_id)
         self.assertEqual(repo.sync()['result'], 'success')
         erratum_list = entities.Errata(repository=repo).search(
-            query={'order': 'issued ASC', 'per_page': 1000}
+            query={'order': 'issued ASC', 'per_page': '1000'}
         )
         issued = [errata.issued for errata in erratum_list]
         self.assertEqual(issued, sorted(issued))
@@ -505,8 +505,10 @@ class ErrataTestCase(APITestCase):
         new_cv = new_cv.update(['repository'])
         new_cv.publish()
         library_env = entities.LifecycleEnvironment(name='Library', organization=org).search()[0]
-        errata_library = entities.Errata(environment=library_env).search(query={'per_page': 1000})
-        errata_env = entities.Errata(environment=env).search(query={'per_page': 1000})
+        errata_library = entities.Errata(environment=library_env).search(
+            query={'per_page': '1000'}
+        )
+        errata_env = entities.Errata(environment=env).search(query={'per_page': '1000'})
         self.assertGreater(len(errata_library), len(errata_env))
 
     @pytest.mark.tier3
@@ -717,7 +719,7 @@ class ErrataTestCase(APITestCase):
         cvvs = content_view.read().version[-2:]
         promote(cvvs[-1], new_env.id)
         result = entities.Errata().compare(
-            data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': 9999}
+            data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': '9999'}
         )
         cvv2_only_errata = next(
             errata for errata in result['results'] if errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
