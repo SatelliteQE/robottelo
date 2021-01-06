@@ -17,7 +17,7 @@ from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
 
 satellite = settings.server.hostname
-rhsso_host = settings.rhsso.host_name
+rhsso_host = str(settings.rhsso.host_name)
 realm = settings.rhsso.realm
 rhsso_user = settings.rhsso.rhsso_user
 rhsso_password = settings.rhsso.password

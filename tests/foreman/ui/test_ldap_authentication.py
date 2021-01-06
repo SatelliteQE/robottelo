@@ -117,7 +117,7 @@ def groups_teardown():
     """teardown for groups created for external/remote groups"""
     yield
     # tier down groups
-    for group_name in ('sat_users', 'sat_admins'):
+    for group_name in ('sat_users', 'sat_admins', EXTERNAL_GROUP_NAME):
         user_groups = entities.UserGroup().search(query={'search': f'name="{group_name}"'})
         if user_groups:
             user_groups[0].delete()
@@ -1312,6 +1312,70 @@ def test_user_permissions_rhsso_user_multiple_group(
         assert rhsso_session.location.search(location_name)[0]['Name'] == location_name
         current_user = rhsso_session.location.read(location_name, 'current_user')['current_user']
         assert login_details['username'] in current_user
+
+
+@pytest.mark.destructive
+def test_totp_user_login(rhsso_setting_setup, session, ad_data):
+    """Verify the TOTP authentication of LDAP user interlinked with RH-SSO
+
+    :id: cf8dfa00-4f48-11eb-b7d5-d46d6dd3b5b2
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Setup the Satellite to integrate with RHSSO
+        2. Login into Satellite using LDAP user which is linked to RHSSO
+
+    :expectedresults: After entering the login details in RHSSO page user should
+        logged into Satellite
+    """
+    login_details = {
+        'username': ad_data['ldap_user_name'],
+        'password': ad_data['ldap_user_passwd'],
+    }
+    with Session(login=False) as rhsso_session:
+        totp = generate_otp(secret=settings.rhsso.totp_secret)
+        rhsso_session.rhsso_login.login(login_details, totp={'totp': totp})
+        assert rhsso_session.bookmark.search("controller = hosts")
+
+
+@pytest.mark.destructive
+def test_permissions_external_ldap_mapped_rhsso_group(
+    rhsso_setting_setup, session, ad_data, groups_teardown
+):
+    """Verify the usergroup permissions are synced correctly with LDAP usergroup mapped
+        with the rhsso. The ldap user gets right permissions based on the role
+
+    :id: a7bd84b8-4f6c-11eb-8eb2-d46d6dd3b5b2
+
+    :setup: Enroll the RH-SSO Configuration for External Authentication
+
+    :steps:
+        1. Setup the Satellite to integrate with RHSSO
+        2. Create the user group and mapped with the external ldap rhsso user group
+
+    :expectedresults: The external ldap mapped rhsso user should contain the permissions
+        based on the user group level
+
+    """
+    login_details = {
+        'username': ad_data['ldap_user_name'],
+        'password': ad_data['ldap_user_passwd'],
+    }
+    with Session(url='/users/login/') as session:
+        session.usergroup.create(
+            {
+                'usergroup.name': EXTERNAL_GROUP_NAME,
+                'roles.resources.assigned': ['Viewer'],
+                'external_groups.name': EXTERNAL_GROUP_NAME,
+                'external_groups.auth_source': 'EXTERNAL',
+            }
+        )
+
+    with Session(login=False) as rhsso_session:
+        totp = generate_otp(secret=settings.rhsso.totp_secret)
+        rhsso_session.rhsso_login.login(login_details, totp={'totp': totp})
+        assert rhsso_session.user.search(ad_data['ldap_user_name']) is not None
 
 
 @pytest.mark.tier2
