@@ -647,6 +647,7 @@ class RHSSOSettings(FeatureSettings):
         self.rhsso_user = None
         self.password = None
         self.realm = None
+        self.totp_secret = None
 
     def read(self, reader):
         """Read LDAP settings."""
@@ -655,6 +656,7 @@ class RHSSOSettings(FeatureSettings):
         self.rhsso_user = reader.get('rhsso', 'rhsso_user')
         self.password = reader.get('rhsso', 'user_password')
         self.realm = reader.get('rhsso', 'realm')
+        self.totp_secret = reader.get('rhsso', 'totp_secret')
 
     def validate(self):
         """Validate RHSSO settings."""
@@ -662,7 +664,7 @@ class RHSSOSettings(FeatureSettings):
         if not all(vars(self).values()):
             validation_errors.append(
                 'All [rhsso] host_name, host_url, rhsso_user, password, '
-                'realm options must be provided.'
+                'realm, totp_secret options must be provided.'
             )
         return validation_errors
 

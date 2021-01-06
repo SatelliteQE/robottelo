@@ -604,6 +604,8 @@ port_range=9091, 14999
 # user_password=
 # RH-SSO Host Realm
 # realm=
+# TOTP Secret
+totp_secret=
 
 # Report Portal Section for Rerunning failed tests
 # [report_portal]
