@@ -28,6 +28,7 @@ from robottelo.cli.user import User
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -289,18 +290,26 @@ class TestVirtWhoConfigforEsx:
 
         :CaseImportance: Medium
         """
-        http_proxy = 'test.example.com:3128'
+        # Check the https proxy option, update it via http proxy name
+        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy()
         no_proxy = 'test.satellite.com'
         VirtWhoConfig.update(
-            {'id': virtwho_config['id'], 'proxy': http_proxy, 'no-proxy': no_proxy}
+            {'id': virtwho_config['id'], 'http-proxy': https_proxy_name, 'no-proxy': no_proxy}
         )
         result = VirtWhoConfig.info({'id': virtwho_config['id']})
-        assert result['connection']['http-proxy'] == http_proxy
+        assert result['http-proxy']['http-proxy-name'] == https_proxy_name
         assert result['connection']['ignore-proxy'] == no_proxy
         command = get_configure_command(virtwho_config['id'])
         deploy_configure_by_command(command, form_data['hypervisor-type'])
-        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
+        assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy_url
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+
+        # Check the http proxy option, update it via http proxy id
+        http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(type='http')
+        VirtWhoConfig.update({'id': virtwho_config['id'], 'http-proxy-id': http_proxy_id})
+        deploy_configure_by_command(command, form_data['hypervisor-type'])
+        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy_url
+
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 

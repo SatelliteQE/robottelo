@@ -4,6 +4,10 @@ import re
 import uuid
 
 import requests
+from fauxfactory import gen_integer
+from fauxfactory import gen_string
+from fauxfactory import gen_url
+from nailgun import entities
 
 from robottelo import ssh
 from robottelo.cli.base import Base
@@ -406,3 +410,24 @@ def virtwho_package_locked():
     runcmd('rpm -e virt-who; foreman-maintain packages lock')
     result = runcmd('foreman-maintain packages is-locked')
     assert "Packages are locked" in result[1]
+
+
+def create_http_proxy(name=None, url=None, type='https'):
+    """
+    Creat a new http-proxy with attributes.
+    :param name: Name of the proxy
+    :param url: URL of the proxy including schema (https://proxy.example.com:8080)
+    :param type: https or http
+    :return:
+    """
+    default_org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    http_proxy_name = name or gen_string('alpha', 15)
+    http_proxy_url = url or '{}:{}'.format(
+        gen_url(scheme=type), gen_integer(min_value=10, max_value=9999)
+    )
+    http_proxy = entities.HTTPProxy(
+        name=http_proxy_name,
+        url=http_proxy_url,
+        organization=[default_org.id],
+    ).create()
+    return http_proxy.url, http_proxy.name, http_proxy.id
