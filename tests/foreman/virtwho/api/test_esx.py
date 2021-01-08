@@ -20,6 +20,7 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.config import settings
+from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -329,19 +330,29 @@ class TestVirtWhoConfigforEsx:
         :CaseLevel: Integration
 
         :CaseImportance: Medium
+
+        :BZ: 1902199
         """
         command = get_configure_command(virtwho_config.id)
         deploy_configure_by_command(command, form_data['hypervisor_type'])
+        # Check default NO_PROXY option
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == '*'
-        proxy = 'test.example.com:3128'
+        # Check HTTTP Proxy and No_PROXY option
+        http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(type='http')
         no_proxy = 'test.satellite.com'
-        virtwho_config.proxy = proxy
+        virtwho_config.http_proxy_id = http_proxy_id
         virtwho_config.no_proxy = no_proxy
-        virtwho_config.update(['proxy', 'no_proxy'])
+        virtwho_config.update(['http_proxy_id', 'no_proxy'])
         command = get_configure_command(virtwho_config.id)
         deploy_configure_by_command(command, form_data['hypervisor_type'])
-        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == proxy
+        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy_url
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+        # Check HTTTPs Proxy
+        https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy()
+        virtwho_config.http_proxy_id = https_proxy_id
+        virtwho_config.update(['http_proxy_id'])
+        deploy_configure_by_command(command, form_data['hypervisor_type'])
+        assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy_url
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
