@@ -690,7 +690,6 @@ API_PATHS = {
         '/api/puppetclasses/:id',
         '/api/puppetclasses/:id',
     ),
-    'puppet_hosts': ('/api/hosts/:id/puppetrun',),
     'puppet_modules': (
         '/katello/api/puppet_modules/compare',
         '/katello/api/puppet_modules/:id',

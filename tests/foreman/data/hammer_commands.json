@@ -22340,67 +22340,6 @@
           "subcommands": []
         },
         {
-          "description": "Force a Puppet agent run on the host",
-          "name": "puppetrun",
-          "options": [
-            {
-              "help": "",
-              "name": "id",
-              "shortname": null,
-              "value": "ID"
-            },
-            {
-              "help": "Set the current location context for the request. Name/Title/Id can be used",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Set the current location context for the request. Name/Title/Id can be used",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Set the current location context for the request. Name/Title/Id can be used",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "NAME"
-            },
-            {
-              "help": "Set the current organization context for the request. Name/Title/Id can be used",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Set the current organization context for the request. Name/Title/Id can be used",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Set the current organization context for the request. Name/Title/Id can be used",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
           "description": "Reboot a host",
           "name": "reboot",
           "options": [
