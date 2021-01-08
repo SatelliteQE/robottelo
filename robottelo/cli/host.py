@@ -1,19 +1,17 @@
 """
 Usage::
-
     hammer host [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
-
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
+    SUBCOMMAND                    Subcommand
+    [ARG] ...                     Subcommand arguments
 
 Subcommands::
-
      ansible-roles                 Manage Ansible roles on a host
      boot                          Boot host from specified device
      config-reports                List all reports
      create                        Create a host
+     deb-package                   Manage deb packages on your hosts
      delete                        Delete a host
      delete-parameter              Delete parameter for a host
      disassociate                  Disassociate a host
@@ -27,7 +25,6 @@ Subcommands::
      package-group                 Manage package-groups on your hosts
      policies-enc                  View policies ENC for host
      puppet-classes                List all Puppet classes
-     puppetrun                     Force a Puppet agent run on the host
      reboot                        Reboot a host
      rebuild-config                Rebuild orchestration related configurations for host
      reports                       List all reports
@@ -38,6 +35,7 @@ Subcommands::
      status                        Get status of host
      stop                          Power a host off
      subscription                  Manage subscription information on your hosts
+     traces                        List traces on your hosts
      update                        Update a host
 
 """
@@ -168,28 +166,6 @@ class Host(Base):
         """Uninstall package groups remotely."""
         cls.command_sub = 'package-group remove'
         return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def puppetrun(cls, options=None):
-        """
-        Force a puppet run on the agent.
-
-        Usage::
-
-            hammer host puppetrun [OPTIONS]
-
-        Options::
-
-            --id ID                       resource id
-            --name NAME                   resource name
-            -h, --help                    print help
-        """
-
-        cls.command_sub = 'puppetrun'
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
 
     @classmethod
     def reboot(cls, options=None):
