@@ -289,6 +289,8 @@ class TestVirtWhoConfigforEsx:
         :CaseLevel: Integration
 
         :CaseImportance: Medium
+
+        :BZ: 1902199
         """
         # Check the https proxy option, update it via http proxy name
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy()
