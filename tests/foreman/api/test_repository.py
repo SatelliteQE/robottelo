@@ -1058,7 +1058,7 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
         # Find repo packages and remove them
-        packages = entities.Package(repository=repo).search(query={'per_page': 1000})
+        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [package.id for package in packages]})
         assert repo.read().content_counts['rpm'] == 0
 
@@ -1289,7 +1289,7 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
         # Find repo packages and remove them
-        packages = entities.Package(repository=repo).search(query={'per_page': 1000})
+        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [package.id for package in packages]})
         assert repo.read().content_counts['rpm'] == 0
         # Re-synchronize repository
@@ -1321,7 +1321,7 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['puppet_module'] >= 1
         # Find repo packages and remove them
-        modules = entities.PuppetModule(repository=[repo]).search(query={'per_page': 1000})
+        modules = entities.PuppetModule(repository=[repo]).search(query={'per_page': '1000'})
         repo.remove_content(data={'ids': [module.id for module in modules]})
         assert repo.read().content_counts['puppet_module'] == 0
         # Re-synchronize repository

@@ -137,7 +137,7 @@ class TestPermission:
 
         :CaseImportance: Critical
         """
-        permissions = entities.Permission().search(query={'per_page': 1000})
+        permissions = entities.Permission().search(query={'per_page': '1000'})
         names = {perm.name for perm in permissions}
         resource_types = {perm.resource_type for perm in permissions}
         expected_names = set(self.permission_names)

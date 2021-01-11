@@ -71,7 +71,7 @@ def puppet_class(puppet_env):
 @pytest.fixture(scope='module')
 def sc_params_list(puppet_class):
     return entities.SmartClassParameters().search(
-        query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': 1000}
+        query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': '1000'}
     )
 
 

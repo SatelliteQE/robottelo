@@ -69,7 +69,7 @@ def module_puppet():
         query={'search': f'name = "{puppet_modules[0]["name"]}" and environment = "{env.name}"'}
     )[0]
     sc_params_list = entities.SmartClassParameters().search(
-        query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': 1000}
+        query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': '1000'}
     )
     yield {'env': env, 'class': puppet_class, 'sc_params': sc_params_list}
     delete_puppet_class(puppet_class.name)

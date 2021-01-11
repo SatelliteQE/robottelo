@@ -76,7 +76,7 @@ def test_positive_get_per_page():
     response = client.get(
         entities.Host().path(),
         auth=settings.server.get_credentials(),
-        data={'per_page': per_page},
+        data={'per_page': str(per_page)},
         verify=False,
     )
     assert response.status_code == http.client.OK

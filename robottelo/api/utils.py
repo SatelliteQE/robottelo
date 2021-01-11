@@ -558,7 +558,7 @@ def create_role_permissions(role, permissions_types_names, search=None):  # prag
                 )
 
             resource_type_permissions_entities = entities.Permission().search(
-                query={'per_page': 350, 'search': f'resource_type="{resource_type}"'}
+                query={'per_page': '350', 'search': f'resource_type="{resource_type}"'}
             )
             if not resource_type_permissions_entities:
                 raise entities.APIResponseError(
@@ -621,7 +621,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     if repo_name:
         repo_backend_id = (
             entities.Repository()
-            .search(query={'search': f'name="{repo_name}"', 'per_page': 1000})[0]
+            .search(query={'search': f'name="{repo_name}"', 'per_page': '1000'})[0]
             .backend_identifier
         )
     # Fetch the Pulp password
