@@ -15,7 +15,7 @@ productmd==1.30
 pyotp==2.4.1
 pytest==6.2.1
 pytest-services==2.2.1
-pytest-mock==3.4.0
+pytest-mock==3.5.1
 pytest-xdist==2.2.0
 pytest-ibutsu==1.13
 PyYAML==5.3.1
