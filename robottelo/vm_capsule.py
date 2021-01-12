@@ -226,7 +226,9 @@ class CapsuleVirtualMachine(VirtualMachine):
         )
         self.configure_rhel_repo(getattr(settings, f"{self.distro}_repo"))
         self.run('yum repolist')
-        self.run('yum -y update')
+        self.run('yum -y update', timeout=1800)
+        self.run('firewall-cmd --add-service RH-Satellite-6-capsule')
+        self.run('firewall-cmd --runtime-to-permanent')
         self.run('yum -y install satellite-capsule', timeout=1200)
         result = self.run('rpm -q satellite-capsule')
         if result.return_code != 0:
