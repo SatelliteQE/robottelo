@@ -293,7 +293,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # Create a Product, Repository for custom RHEL6 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        product=product, url=str(settings.rhel7_os), download_policy='immediate'
+        product=product, url=settings.rhel7_os, download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion

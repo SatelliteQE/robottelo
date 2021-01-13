@@ -68,6 +68,7 @@ WRAPPER_EXCEPTIONS = (
     'open_ldap.hostname',
     'open_ldap.group_base_dn',
     'open_ldap.open_ldap_user',
+    'rhel7_os',
     'rhel8_os',
     'rhsso.rhsso_user',
     'rhsso.password',
