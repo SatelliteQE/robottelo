@@ -325,7 +325,7 @@ class TestVirtWhoConfigforEsx:
 
         :id: e1b00b46-d5e6-40d5-a955-a45a75a5cfad
 
-        :expectedresults: http_proxy and no_proxy option can be updated.
+        :expectedresults: http_proxy/https_proxy and no_proxy option can be updated.
 
         :CaseLevel: Integration
 
@@ -347,7 +347,7 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor_type'])
         assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy_url
         assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
-        # Check HTTTPs Proxy
+        # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy()
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
