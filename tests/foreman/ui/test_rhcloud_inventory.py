@@ -139,6 +139,7 @@ def registered_hosts(organization_ak_setup, virtual_host, baremetal_host):
     return virtual_host, baremetal_host
 
 
+@pytest.mark.tier3
 def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session):
     """Generate report and verify its basic properties
 
