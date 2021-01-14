@@ -127,9 +127,9 @@ class HostCreateTestCase(CLITestCase):
         cls.puppet_cv = publish_puppet_module(
             puppet_modules, CUSTOM_PUPPET_REPO, cls.new_org['id']
         )
-        cls.puppet_env = Environment.list(
-            {'search': 'content_view="{}"'.format(cls.puppet_cv['name'])}
-        )[0]
+        cls.puppet_env = Environment.list({'search': f"content_view=\"{cls.puppet_cv['name']}\""})[
+            0
+        ]
         cls.puppet_class = Puppet.info(
             {'name': puppet_modules[0]['name'], 'puppet-environment': cls.puppet_env['name']}
         )
@@ -482,7 +482,7 @@ class HostCreateTestCase(CLITestCase):
             client.install_katello_ca()
             client.register_contenthost(
                 self.new_org['label'],
-                lce='{}/{}'.format(self.new_lce['label'], self.promoted_cv['label']),
+                lce=f"{self.new_lce['label']}/{self.promoted_cv['label']}",
             )
             self.assertTrue(client.subscribed)
 
@@ -540,7 +540,7 @@ class HostCreateTestCase(CLITestCase):
         sc_params_list = SmartClassParameter.list(
             {
                 'environment': self.puppet_env['name'],
-                'search': 'puppetclass="{}"'.format(self.puppet_class['name']),
+                'search': f"puppetclass=\"{self.puppet_class['name']}\"",
             }
         )
         scp_id = choice(sc_params_list)['id']
@@ -594,7 +594,7 @@ class HostCreateTestCase(CLITestCase):
             client.install_katello_ca()
             client.register_contenthost(
                 self.new_org['label'],
-                lce='{}/{}'.format(self.new_lce['label'], self.promoted_cv['label']),
+                lce=f"{self.new_lce['label']}/{self.promoted_cv['label']}",
             )
             self.assertTrue(client.subscribed)
             hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
@@ -929,9 +929,7 @@ class HostUpdateTestCase(CLITestCase):
             }
         )
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(
-            '{}.{}'.format(new_name, self.host['network']['domain']), self.host['name']
-        )
+        self.assertEqual(f"{new_name}.{self.host['network']['domain']}", self.host['name'])
         self.assertEqual(self.host['location'], new_loc['name'])
         self.assertEqual(self.host['network']['mac'], new_mac)
         self.assertEqual(self.host['network']['domain'], new_domain['name'])
@@ -956,7 +954,7 @@ class HostUpdateTestCase(CLITestCase):
                     Host.update({'id': self.host['id'], 'new-name': new_name})
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotEqual(
-                    '{}.{}'.format(new_name, self.host['network']['domain']).lower(),
+                    f"{new_name}.{self.host['network']['domain']}".lower(),
                     self.host['name'],
                 )
 
@@ -1860,7 +1858,7 @@ class HostSubscriptionTestCase(CLITestCase):
         if lce:
             result = self.client.register_contenthost(
                 self.org['name'],
-                lce='{}/{}'.format(self.hosts_env['name'], self.content_view['name']),
+                lce=f"{self.hosts_env['name']}/{self.content_view['name']}",
                 auto_attach=auto_attach,
             )
         else:
@@ -2068,7 +2066,7 @@ class HostSubscriptionTestCase(CLITestCase):
         # register client
         self.client.register_contenthost(
             org['name'],
-            lce='{}/{}'.format(hosts_env['name'], content_view['name']),
+            lce=f"{hosts_env['name']}/{content_view['name']}",
             auto_attach=False,
         )
 
@@ -2107,7 +2105,7 @@ class HostSubscriptionTestCase(CLITestCase):
         )
         pool_id = subscriptions.stdout[0]
         # attach to plain RHEL subsctiption
-        self.client.run('subscription-manager attach --pool "%s"' % pool_id)
+        self.client.run(f'subscription-manager attach --pool "{pool_id}"')
         self.assertTrue(self.client.subscribed)
         result = self._client_enable_repo()
         self.assertNotEqual(result.return_code, 0)

@@ -230,9 +230,7 @@ class ReportTemplateTestCase(CLITestCase):
             {
                 'name': rt_host_statuses['name'],
                 'inputs': (
-                    rt_host_statuses['template-inputs'][0]['name']
-                    + "="
-                    + 'name={}'.format(host1['name'])
+                    rt_host_statuses['template-inputs'][0]['name'] + "=" + f"name={host1['name']}"
                 ),
             }
         )
@@ -388,9 +386,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         result = ReportTemplate.generate({'name': report_template['name']})
         assert 'Name,Operating System' in result  # verify header of custom template
-        assert (
-            '{},"{}"'.format(host['name'], host['operating-system']['operating-system']) in result
-        )
+        assert f"{host['name']},\"{host['operating-system']['operating-system']}\"" in result
 
     @pytest.mark.tier3
     @pytest.mark.stubbed

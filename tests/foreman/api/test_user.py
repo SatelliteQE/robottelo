@@ -461,7 +461,7 @@ class TestSshKeyInUser:
 
         :return: string type well formatted RSA key
         """
-        return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+        return f'ssh-rsa {paramiko.RSAKey.generate(2048).get_base64()}'
 
     @pytest.fixture(scope='class')
     def create_user(self):
@@ -749,9 +749,9 @@ class TestActiveDirectoryUser:
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(
-            query={'search': 'login={}'.format(create_ldap['ldap_user_name'])}
-        )[0]
+        user = entities.User().search(query={'search': f"login={create_ldap['ldap_user_name']}"})[
+            0
+        ]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
         for entity in [
@@ -873,9 +873,7 @@ class TestFreeIPAUser:
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(
-            query={'search': 'login={}'.format(create_ldap['username'])}
-        )[0]
+        user = entities.User().search(query={'search': f"login={create_ldap['username']}"})[0]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
         for entity in [

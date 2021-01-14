@@ -245,7 +245,7 @@ def add_authorized_key(
     ) as con:
 
         # ensure ssh directory exists
-        execute_command('mkdir -p %s' % ssh_path, con)
+        execute_command(f'mkdir -p {ssh_path}', con)
 
         # append the key if doesn't exists
         add_key = "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
@@ -254,13 +254,13 @@ def add_authorized_key(
         execute_command(add_key, con)
 
         # set proper permissions
-        execute_command('chmod 700 %s' % ssh_path, con)
-        execute_command('chmod 600 %s' % auth_file, con)
+        execute_command(f'chmod 700 {ssh_path}', con)
+        execute_command(f'chmod 600 {auth_file}', con)
         ssh_user = username or settings.server.ssh_username
         execute_command(f'chown -R {ssh_user} {ssh_path}', con)
 
         # Restore SELinux context with restorecon, if it's available:
-        cmd = 'command -v restorecon && restorecon -RvF %s || true' % ssh_path
+        cmd = f'command -v restorecon && restorecon -RvF {ssh_path} || true'
         execute_command(cmd, con)
 
 
@@ -449,7 +449,7 @@ def is_ssh_pub_key(key):
     """
 
     if not isinstance(key, str):
-        raise ValueError("Key should be a string type, received: {}".format(type(key)))
+        raise ValueError(f"Key should be a string type, received: {type(key)}")
 
     # 1) a valid pub key has 3 parts separated by space
     try:

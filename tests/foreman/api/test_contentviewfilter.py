@@ -800,9 +800,7 @@ class TestContentViewFilterRule:
             content_view=content_view,
             inclusion=False,
         ).create()
-        module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('duck')}
-        )
+        module_streams = entities.ModuleStream().search(query={'search': "name=\"duck\""})
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
         ).create()
@@ -910,9 +908,7 @@ class TestContentViewFilterRule:
             content_view=content_view,
             inclusion=False,
         ).create()
-        module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}"'.format('walrus')}
-        )
+        module_streams = entities.ModuleStream().search(query={'search': "name=\"walrus\""})
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams
         ).create()
@@ -948,7 +944,7 @@ class TestContentViewFilterRule:
             inclusion=False,
         ).create()
         module_streams = entities.ModuleStream().search(
-            query={'search': 'name="{}" and version="{}'.format('kangaroo', '20180730223407')}
+            query={'search': "name=\"kangaroo\" and version=\"20180730223407"}
         )
         entities.ContentViewFilterRule(
             content_view_filter=cv_filter, module_stream=module_streams

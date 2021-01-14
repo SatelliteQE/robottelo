@@ -127,7 +127,7 @@ def test_positive_end_to_end(
 
     :CaseImportance: High
     """
-    name = '{} {}'.format(gen_string('alpha'), gen_string('alpha'))
+    name = f"{gen_string('alpha')} {gen_string('alpha')}"
     new_name = gen_string('alpha')
     description = gen_string('alpha')
     oscap_content_title = gen_string('alpha')

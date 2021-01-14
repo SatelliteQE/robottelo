@@ -406,7 +406,7 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             global_param['overridden'] = False
 
     config_group = entities.ConfigGroup().create()
-    new_name = 'new{}'.format(gen_string("alpha").lower())
+    new_name = f"new{gen_string('alpha').lower()}"
     new_host_name = f'{new_name}.{module_host_template.domain.name}'
     with session:
         host_name = create_fake_host(

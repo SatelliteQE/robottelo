@@ -234,7 +234,7 @@ def test_positive_list_host_based_on_rule_search_query(
     )
     # create an other discovered host with an other cpu count
     create_discovered_host(options={'physicalprocessorcount': cpu_count + 1})
-    provisioned_host_name = '{}.{}'.format(discovered_host['name'], host.domain.read().name)
+    provisioned_host_name = f"{discovered_host['name']}.{host.domain.read().name}"
     with session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_loc.name)
@@ -247,7 +247,7 @@ def test_positive_list_host_based_on_rule_search_query(
         assert values['table'][0]['CPUs'] == str(cpu_count)
         # auto provision the discovered host
         session.discoveredhosts.apply_action('Auto Provision', [discovered_host['name']])
-        assert not session.discoveredhosts.search('name = "{}"'.format(discovered_host['name']))
+        assert not session.discoveredhosts.search(f"name = \"{discovered_host['name']}\"")
         values = session.discoveryrule.read_associated_hosts(discovery_rule.name)
         assert values['searchbox'] == f'discovery_rule = "{discovery_rule.name}"'
         assert len(values['table']) == 1
@@ -268,13 +268,13 @@ def test_positive_end_to_end(session, module_org, module_loc):
     :CaseImportance: Critical
     """
     rule_name = gen_string('alpha')
-    search = 'cpu_count = {}'.format(gen_integer(1, 5))
+    search = f'cpu_count = {gen_integer(1, 5)}'
     hg_name = gen_string('alpha')
     hostname = gen_string('alpha')
     hosts_limit = str(gen_integer(0, 100))
     priority = str(gen_integer(1, 100))
     new_rule_name = gen_string('alpha')
-    new_search = 'cpu_count = {}'.format(gen_integer(6, 10))
+    new_search = f'cpu_count = {gen_integer(6, 10)}'
     new_hg_name = gen_string('alpha')
     new_hostname = gen_string('alpha')
     new_hosts_limit = str(gen_integer(101, 200))

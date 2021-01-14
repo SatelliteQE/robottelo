@@ -61,7 +61,7 @@ def get_rhsso_client_id():
         cmd=f"{KEY_CLOAK_CLI} get clients --fields id,clientId",
         hostname=rhsso_host,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f"[{{{''.join(result)}")
     client_id = None
     for client in result_json:
         if client_name in client['clientId']:
@@ -76,7 +76,7 @@ def get_rhsso_user_details(username):
         cmd=f"{KEY_CLOAK_CLI} get users -r {realm} -q username={username}",
         hostname=rhsso_host,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f"[{{{''.join(result)}")
     return result_json[0]
 
 
@@ -86,7 +86,7 @@ def get_rhsso_groups_details(group_name):
         cmd=f"{KEY_CLOAK_CLI} get groups -r {realm} -q group_name={group_name}",
         hostname=rhsso_host,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f"[{{{''.join(result)}")
     return result_json[0]
 
 

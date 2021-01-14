@@ -71,7 +71,7 @@ class TestRenameHost:
             old_hostname = connection.run('hostname').stdout[0]
             new_hostname = f'new-{old_hostname}'
             # create installation medium with hostname in path
-            medium_path = 'http://{}/testpath-{}/os/'.format(old_hostname, gen_string('alpha'))
+            medium_path = f"http://{old_hostname}/testpath-{gen_string('alpha')}/os/"
             medium = entities.Media(organization=[module_org], path_=medium_path).create()
             repo = entities.Repository(product=module_product, name='testrepo').create()
             result = connection.run(

@@ -452,7 +452,7 @@ class DistroSettings(FeatureSettings):
         validation_errors = []
         if not all(self.__dict__.values()):
             validation_errors.append(
-                'All [distro] %s options must be provided.' % list(self.__dict__.keys())
+                f'All [distro] {list(self.__dict__.keys())} options must be provided.'
             )
         return validation_errors
 
@@ -1558,11 +1558,11 @@ class Settings:
         webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs')
         if self.browser not in browsers:
             validation_errors.append(
-                '[robottelo] browser should be one of {}.'.format(', '.join(browsers))
+                f"[robottelo] browser should be one of {', '.join(browsers)}."
             )
         if self.webdriver not in webdrivers:
             validation_errors.append(
-                '[robottelo] webdriver should be one of {}.'.format(', '.join(webdrivers))
+                f"[robottelo] webdriver should be one of {', '.join(webdrivers)}."
             )
         if self.browser == 'saucelabs':
             if self.saucelabs_user is None:

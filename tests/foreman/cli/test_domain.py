@@ -33,7 +33,7 @@ def valid_create_params():
     """Returns a list of valid domain create parameters"""
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f"white spaces {gen_string(str_type='utf8')}",
             'description': gen_string(str_type='alpha'),
         },
         {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
@@ -57,7 +57,7 @@ def valid_update_params():
     """Returns a list of valid domain update parameters"""
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f"white spaces {gen_string(str_type='utf8')}",
             'description': gen_string(str_type='alpha'),
         },
         {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
@@ -92,7 +92,7 @@ def invalid_set_params():
     """Returns a list of invalid domain set parameters"""
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f"white spaces {gen_string(str_type='utf8')}",
             'value': gen_string(str_type='utf8'),
         },
         {'name': '', 'value': gen_string(str_type='utf8')},

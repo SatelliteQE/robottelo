@@ -40,7 +40,7 @@ NAV_ITEMS = [
 
 @pytest.fixture(scope="module")
 def module_org():
-    org = entities.Organization(name="insights_{}".format(gen_string("alpha", 6))).create()
+    org = entities.Organization(name=f"insights_{gen_string('alpha', 6)}").create()
     with manifests.clone() as manifest:
         up_man(org.id, manifest.content)
     yield org

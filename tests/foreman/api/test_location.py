@@ -110,7 +110,7 @@ class TestLocation:
 
         :expectedresults: Location created successfully and has expected name
         """
-        name = '{}, {}'.format(gen_string('alpha'), gen_string('alpha'))
+        name = f"{gen_string('alpha')}, {gen_string('alpha')}"
         location = entities.Location(name=name).create()
         assert location.name == name
         location.delete()

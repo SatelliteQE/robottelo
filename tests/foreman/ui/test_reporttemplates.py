@@ -415,7 +415,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
                 'email_to': 'root@localhost',
             },
         )
-    file_path = '/tmp/{}.json'.format(gen_string('alpha'))
+    file_path = f"/tmp/{gen_string('alpha')}.json"
     gzip_path = f'{file_path}.gz'
     expect_script = (
         f'#!/usr/bin/env expect\n'

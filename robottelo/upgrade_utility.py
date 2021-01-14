@@ -73,7 +73,7 @@ def create_repo(rpm_name, repo_path, post_upgrade=False, other_rpm=None):
     """
     if post_upgrade:
         run(f'wget {rpm_name} -P {repo_path}')
-        run('rm -rf {}'.format(repo_path + other_rpm))
+        run(f'rm -rf {repo_path + other_rpm}')
         run(f'createrepo --update {repo_path}')
     else:
         run(f'rm -rf {repo_path}')

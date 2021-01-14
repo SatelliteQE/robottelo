@@ -40,33 +40,33 @@ DISTRO_IDS = [
     },
     {
         'id': 'Santiago',
-        'version': '6.{}'.format(gen_integer(1, 5)),
+        'version': f'6.{gen_integer(1, 5)}',
         'architecture': gen_choice(ARCHITECTURES),
         'kernel': '2.6.32-431.el6',
     },
     {
         'id': 'Tikanga',
-        'version': '5.{}'.format(gen_integer(1, 10)),
+        'version': f'5.{gen_integer(1, 10)}',
         'architecture': gen_choice(ARCHITECTURES),
         'kernel': '2.6.18-371.el5',
     },
     {
         'id': 'Nahant',
-        'version': '4.{}'.format(gen_integer(1, 9)),
+        'version': f'4.{gen_integer(1, 9)}',
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.6.9-100.el4',
     },
     {
         'id': 'Taroon',
-        'version': '3.{}'.format(gen_integer(1, 9)),
+        'version': f'3.{gen_integer(1, 9)}',
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.4.21-50.el3',
     },
     {
         'id': 'Pensacola',
-        'version': '2.{}'.format(gen_integer(1, 7)),
+        'version': f'2.{gen_integer(1, 7)}',
         # Assuming only 'i386' and 'x86_64'
         'architecture': gen_choice(ARCHITECTURES[:2]),
         'kernel': '2.4.9-e.57.el2',

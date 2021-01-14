@@ -91,7 +91,7 @@ def skip_if_not_set(*options):
                     missing.append(option)
             if not missing:
                 return func(*args, **kwargs)
-            raise unittest2.SkipTest('Missing configuration for: {}.'.format(', '.join(missing)))
+            raise unittest2.SkipTest(f"Missing configuration for: {', '.join(missing)}.")
 
         return wrapper
 

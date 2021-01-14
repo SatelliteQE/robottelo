@@ -178,7 +178,7 @@ class TestComputeResourceHost:
                 'provision-method': 'build',
             }
         )
-        hostname = '{}.{}'.format(host_name, provisioning['config_env']['domain'])
+        hostname = f"{host_name}.{provisioning['config_env']['domain']}"
         assert hostname == host['name']
         host_info = Host.info({'name': hostname})
         host_ip = host_info.get('network').get('ipv4-address')
@@ -266,7 +266,7 @@ class TestComputeResourceHost:
                 'provision-method': 'build',
             }
         )
-        hostname = '{}.{}'.format(host_name, provisioning['config_env']['domain'])
+        hostname = f"{host_name}.{provisioning['config_env']['domain']}"
         assert hostname == host['name']
         # Check on Vmware, if VM exists
         assert vmware['vmware_api'].does_vm_exist(hostname)

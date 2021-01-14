@@ -326,7 +326,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = (
-            "compute_network={},compute_public_ip=Static," "compute_private_ip=false".format(nw_id)
+            f"compute_network={nw_id},compute_public_ip=Static,compute_private_ip=false"
         )
 
     @pytest.fixture(scope='class')

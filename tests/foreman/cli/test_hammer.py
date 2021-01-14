@@ -58,7 +58,7 @@ def _format_commands_diff(commands_diff):
     for key, value in sorted(commands_diff.items()):
         if key == 'hammer':
             continue
-        output.write('{}{}\n'.format(key, ' (new command)' if value['added_command'] else ''))
+        output.write(f"{key}{' (new command)' if value['added_command'] else ''}\n")
         if value.get('added_subcommands'):
             output.write('  Added subcommands:\n')
             for subcommand in value.get('added_subcommands'):

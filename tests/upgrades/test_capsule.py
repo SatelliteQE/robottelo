@@ -225,7 +225,7 @@ class TestCapsuleSyncNewRepo:
         cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
         org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
         lc_env = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': 'name="{}"'.format('Dev')}
+            query={'search': "name=\"Dev\""}
         )[0]
 
         product = entities.Product(organization=org).create()

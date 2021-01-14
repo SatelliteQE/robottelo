@@ -583,7 +583,7 @@ def test_positive_host_re_registion_with_host_rename(session, module_org, repos_
     result = vm.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
     assert result.return_code == 0
     vm.unregister()
-    updated_hostname = '{}.{}'.format(gen_string('alpha'), vm.hostname).lower()
+    updated_hostname = f"{gen_string('alpha')}.{vm.hostname}".lower()
     vm.run(f'hostnamectl set-hostname {updated_hostname}')
     assert result.return_code == 0
     vm.register_contenthost(

@@ -56,7 +56,7 @@ class HttpProxyTestCase(CLITestCase):
         self.addCleanup(org_cleanup, org['id'])
         # Create http proxy
         name = gen_string('alpha', 15)
-        url = '{}:{}'.format(gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
+        url = f"{gen_url(scheme='https')}:{gen_integer(min_value=10, max_value=9999)}"
         password = gen_string('alpha', 15)
         username = gen_string('alpha', 15)
         updated_name = gen_string('alpha', 15)

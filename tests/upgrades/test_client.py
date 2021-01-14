@@ -46,7 +46,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     """
     client_os = client_os.upper()
     from_ver = settings.upgrade.from_version
-    rhel_prod_name = 'scenarios_rhel{}_prod'.format(client_os[-1])
+    rhel_prod_name = f'scenarios_rhel{client_os[-1]}_prod'
     rhel_repo_name = f'{rhel_prod_name}_repo'
     rhel_url = settings.rhel7_os
     if rhel_url is None:
@@ -116,7 +116,7 @@ def create_activation_key_for_client_registration(ak_name, client_os, org, envir
     ).create()
     if sat_state == 'pre':
         tools_sub = 'Red Hat Satellite Employee Subscription'
-        tools_content = 'rhel-{}-server-satellite-tools-{}-rpms'.format(client_os[-1], from_ver)
+        tools_content = f'rhel-{client_os[-1]}-server-satellite-tools-{from_ver}-rpms'
     else:
         tools_sub = tools_prod.name
     tools_subscription = entities.Subscription(organization=org.id).search(

@@ -85,9 +85,9 @@ class TestKatelloCertsCheck:
     def cert_setup(self, cert_data):
         # Need a subdirectory under ssl-build with same name as Capsule name
         with get_connection(timeout=100) as connection:
-            connection.run('mkdir ssl-build/{}'.format(cert_data['capsule_hostname']))
+            connection.run(f"mkdir ssl-build/{cert_data['capsule_hostname']}")
             # Ignore creation error, but assert directory exists
-            assert connection.run('test -e ssl-build/{}'.format(cert_data['capsule_hostname']))
+            assert connection.run(f"test -e ssl-build/{cert_data['capsule_hostname']}")
         upload_file(
             local_file=get_data_file('generate-ca.sh'),
             remote_file="generate-ca.sh",
@@ -104,9 +104,7 @@ class TestKatelloCertsCheck:
             assert result.return_code == 0
         # create the Satellite's cert
         with get_connection(timeout=300) as connection:
-            result = connection.run(
-                "yes | bash {} {}".format('generate-crt.sh', cert_data['sat6_hostname'])
-            )
+            result = connection.run(f"yes | bash generate-crt.sh {cert_data['sat6_hostname']}")
             assert result.return_code == 0
 
     @pytest.fixture()
@@ -350,7 +348,7 @@ class TestKatelloCertsCheck:
                 )
             )
             connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
+                f"cp \"{cert_data['cert_file_name']}\" /root/capsule_cert/capsule_cert.pem"
             )
             connection.run(
                 'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
@@ -401,7 +399,7 @@ class TestKatelloCertsCheck:
                 )
             )
             connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
+                f"cp \"{cert_data['cert_file_name']}\" /root/capsule_cert/capsule_cert.pem"
             )
             connection.run(
                 'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
@@ -542,7 +540,7 @@ class TestCapsuleCertsCheckTestCase:
     def file_setup(self):
         """Create working directory and file."""
         capsule_hostname = 'capsule.example.com'
-        tmp_dir = '/var/tmp/{}'.format(gen_string('alpha', 6))
+        tmp_dir = f"/var/tmp/{gen_string('alpha', 6)}"
         caps_cert_file = f'{tmp_dir}/ssl-build/capsule.example.com/cert-data'
         # Use same path locally as on remote for storing files
         Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)

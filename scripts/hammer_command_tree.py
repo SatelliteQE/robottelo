@@ -18,7 +18,7 @@ def generate_command_tree(command):
     contents = hammer.parse_help(output)
     if len(contents['subcommands']) > 0:
         for subcommand in contents['subcommands']:
-            subcommand.update(generate_command_tree('{} {}'.format(command, subcommand['name'])))
+            subcommand.update(generate_command_tree(f"{command} {subcommand['name']}"))
     return contents
 
 

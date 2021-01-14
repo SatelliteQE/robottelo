@@ -76,7 +76,7 @@ class UserGroupTestCase(CLITestCase):
         self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
         # List
-        result_list = UserGroup.list({'search': 'name={}'.format(user_group['name'])})
+        result_list = UserGroup.list({'search': f"name={user_group['name']}"})
         self.assertTrue(len(result_list) > 0)
         self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
 

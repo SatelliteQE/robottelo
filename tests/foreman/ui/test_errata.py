@@ -399,7 +399,7 @@ def test_positive_list_permission(test_name, module_org, module_repos_col, modul
             query={'search': 'resource_type="Katello::Product"'}
         ),
         role=role,
-        search='name = "{}"'.format(PRDS['rhel']),
+        search=f"name = \"{PRDS['rhel']}\"",
     ).create()
     user_password = gen_string('alphanumeric')
     user = entities.User(

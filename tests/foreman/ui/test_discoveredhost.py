@@ -60,7 +60,7 @@ def provisioning_env(module_org, module_loc):
     return configure_provisioning(
         org=module_org,
         loc=module_loc,
-        os='Redhat {}'.format(RHELRepository().repo_data['version']),
+        os=f"Redhat {RHELRepository().repo_data['version']}",
     )
 
 

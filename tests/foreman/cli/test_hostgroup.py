@@ -65,7 +65,7 @@ def cv(module_org):
 @pytest.fixture(scope='module')
 def env(cv):
     """Return the puppet environment."""
-    return Environment.list({'search': 'content_view="{}"'.format(cv['name'])})[0]
+    return Environment.list({'search': f"content_view=\"{cv['name']}\""})[0]
 
 
 @pytest.fixture(scope='module')
@@ -145,7 +145,7 @@ def test_positive_create_with_multiple_entities_and_delete(
     arch = make_architecture()
     ptable = make_partition_table({'location-ids': loc['id'], 'organization-ids': org_2.id})
     os = make_os({'architecture-ids': arch['id'], 'partition-table-ids': ptable['id']})
-    os_full_name = "{} {}.{}".format(os['name'], os['major-version'], os['minor-version'])
+    os_full_name = f"{os['name']} {os['major-version']}.{os['minor-version']}"
     media = make_medium(
         {
             'operatingsystem-ids': os['id'],

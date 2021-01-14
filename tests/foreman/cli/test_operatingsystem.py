@@ -54,7 +54,7 @@ class TestOperatingSystem:
         """
         os_list_before = OperatingSys.list()
         os = make_os()
-        os_list = OperatingSys.list({'search': 'name=%s' % os['name']})
+        os_list = OperatingSys.list({'search': f"name={os['name']}"})
         os_info = OperatingSys.info({'id': os_list[0]['id']})
         assert os['id'] == os_info['id']
         os_list_after = OperatingSys.list()
@@ -91,7 +91,7 @@ class TestOperatingSystem:
         os_list_before = OperatingSys.list()
         name = gen_string('alpha')
         os = make_os({'name': name})
-        os_list = OperatingSys.list({'search': 'name=%s' % name})
+        os_list = OperatingSys.list({'search': f'name={name}'})
         os_info = OperatingSys.info({'id': os_list[0]['id']})
         assert os['id'] == os_info['id']
         os_list_after = OperatingSys.list()

@@ -311,7 +311,7 @@ def test_positive_upload_facts():
     name = gen_choice(list(valid_data_list().values()))
     result = _create_discovered_host(name)
     discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
-    host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
+    host_name = f"mac{discovered_host['mac'].replace(':', '')}"
     assert discovered_host['name'] == host_name
 
 
@@ -411,9 +411,7 @@ def test_positive_delete_pxe_host():
     result = _create_discovered_host(name)
 
     entities.DiscoveredHost(id=result['id']).delete()
-    search = entities.DiscoveredHost().search(
-        query={'search': 'name == {}'.format(result['name'])}
-    )
+    search = entities.DiscoveredHost().search(query={'search': f"name == {result['name']}"})
     assert len(search) == 0
 
 

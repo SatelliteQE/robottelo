@@ -48,7 +48,7 @@ def module_user(request, module_org, module_loc):
     """
     # take only "module" from "tests.ui.test_module"
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
-    login = '{}_{}'.format(test_module_name, gen_string('alphanumeric'))
+    login = f"{test_module_name}_{gen_string('alphanumeric')}"
     password = gen_string('alphanumeric')
     LOGGER.debug('Creating session user %r', login)
     user = nailgun.entities.User(

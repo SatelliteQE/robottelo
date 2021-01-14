@@ -140,7 +140,7 @@ class VirtualMachine:
         self._domain = domain
         self._created = False
         self._subscribed = False
-        self._source_image = source_image or '{}-base'.format(image_map.get(self.distro))
+        self._source_image = source_image or f'{image_map.get(self.distro)}-base'
         self._target_image = target_image or gen_string('alphanumeric', 16).lower()
         if tag:
             self._target_image = tag + self._target_image
@@ -344,7 +344,7 @@ class VirtualMachine:
         )
         image_name = f'{self.target_image}.img'
         ssh.command(
-            'rm {}'.format(os.path.join(self.image_dir, image_name)),
+            f'rm {os.path.join(self.image_dir, image_name)}',
             hostname=self.provisioning_server,
             connection_timeout=30,
         )

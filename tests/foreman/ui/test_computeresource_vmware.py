@@ -54,7 +54,7 @@ def _get_normalized_size(size):
         size = round(size, 2)
     if size == int(size):
         size = int(size)
-    return '{} {}'.format(size, suffixes[suffix_index])
+    return f'{size} {suffixes[suffix_index]}'
 
 
 def _get_vmware_datastore_summary_string(data_store_name=VMWARE_CONSTANTS['datastore']):
@@ -174,7 +174,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_LARGE)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
-        assert '{} ({})'.format(new_cr_name, FOREMAN_PROVIDERS['vmware']) in profile_cr_names
+        assert f"{new_cr_name} ({FOREMAN_PROVIDERS['vmware']})" in profile_cr_names
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
 

@@ -100,16 +100,16 @@ class Scenario_yum_plugins_count(APITestCase):
         """
 
         from_version = settings.upgrade.from_version
-        repo2_name = 'rhst7_{}'.format(str(from_version).replace('.', ''))
+        repo2_name = f"rhst7_{str(from_version).replace('.', '')}"
 
         repo1_id = (
             entities.Repository(organization=self.org)
-            .search(query={'search': '{}'.format(REPOS['rhel7']['id'])})[0]
+            .search(query={'search': f"{REPOS['rhel7']['id']}"})[0]
             .id
         )
         repo2_id = (
             entities.Repository(organization=self.org)
-            .search(query={'search': '{}'.format(REPOS[repo2_name]['id'])})[0]
+            .search(query={'search': f"{REPOS[repo2_name]['id']}"})[0]
             .id
         )
 

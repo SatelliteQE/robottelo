@@ -1084,7 +1084,7 @@ def make_user(options=None):
         'password': gen_alphanumeric(),
     }
     logger.debug(
-        'User "{}" password not provided {} was generated'.format(args['login'], args['password'])
+        f"User \"{args['login']}\" password not provided {args['password']} was generated"
     )
 
     return create_object(User, args, options)
@@ -1484,7 +1484,7 @@ def make_medium(options=None):
         'organization-ids': None,
         'organizations': None,
         'os-family': None,
-        'path': 'http://{}'.format(gen_string('alpha', 6)),
+        'path': f"http://{gen_string('alpha', 6)}",
     }
 
     return create_object(Medium, args, options)
@@ -1689,9 +1689,7 @@ def activationkey_add_subscription_to_repo(options=None):
     )
     # Add subscription to activation-key
     if options['subscription'] not in (sub['name'] for sub in subscriptions):
-        raise CLIFactoryError(
-            'Subscription {} not found in the given org'.format(options['subscription'])
-        )
+        raise CLIFactoryError(f"Subscription {options['subscription']} not found in the given org")
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
             if subscription['quantity'] != 'Unlimited' and int(subscription['quantity']) == 0:
@@ -2166,7 +2164,7 @@ def configure_env_for_provision(org=None, loc=None):
         }
     )
     for template in (provisioning_template, pxe_template):
-        if '{} ({})'.format(template['name'], template['type']) not in os['templates']:
+        if f"{template['name']} ({template['type']})" not in os['templates']:
             OperatingSys.update(
                 {
                     'id': os['id'],
@@ -2682,7 +2680,7 @@ def virt_who_hypervisor_config(
     )
     # configure manually RHEL custom repo url as sync time is very big
     # (more than 2 hours for RHEL 7Server) and not critical in this context.
-    rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
+    rhel_repo_option_name = f'rhel{DISTROS_MAJOR_VERSION[DISTRO_RHEL7]}_repo'
     rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
     if not rhel_repo_url:
         raise ValueError(
@@ -2693,7 +2691,7 @@ def virt_who_hypervisor_config(
     virt_who_vm.configure_rhel_repo(rhel_repo_url)
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
-        hypervisor_ssh_key_name = 'hypervisor-{}.key'.format(gen_string('alpha').lower())
+        hypervisor_ssh_key_name = f"hypervisor-{gen_string('alpha').lower()}.key"
         # upload the ssh key
         vm_upload_ssh_key(virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
         # setup the ssh config and known_hosts files
@@ -2745,7 +2743,7 @@ def virt_who_hypervisor_config(
     # first report when started or with one shot command
     # the virt-who hypervisor will be registered to satellite with host name
     # like "virt-who-{hypervisor_hostname}-{organization_id}"
-    virt_who_hypervisor_hostname = 'virt-who-{}-{}'.format(hypervisor_hostname, org['id'])
+    virt_who_hypervisor_hostname = f"virt-who-{hypervisor_hostname}-{org['id']}"
     # find the registered virt-who hypervisor host
     org_hosts = Host.list(
         {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
@@ -2814,7 +2812,7 @@ def make_http_proxy(options=None):
         'organization-ids': None,
         'organization-titles': None,
         'password': None,
-        'url': '{}:{}'.format(gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)),
+        'url': f"{gen_url(scheme='https')}:{gen_integer(min_value=10, max_value=9999)}",
         'username': None,
     }
 

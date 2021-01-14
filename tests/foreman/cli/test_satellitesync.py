@@ -372,7 +372,7 @@ class ContentViewSync(CLITestCase):
     def setUp(self):
         """Create Directory for CV export"""
         super().setUp()
-        self.export_dir = "{}/{}".format(self.export_base, gen_string('alpha'))
+        self.export_dir = f"{self.export_base}/{gen_string('alpha')}"
         ssh.command(f'mkdir {self.export_dir}')
 
     def tearDown(self):

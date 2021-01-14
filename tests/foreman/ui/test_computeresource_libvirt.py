@@ -104,7 +104,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         # check that the compute resource is listed in one of the default compute profiles
         profile_cr_values = session.computeprofile.list_resources(COMPUTE_PROFILE_SMALL)
         profile_cr_names = [cr['Compute Resource'] for cr in profile_cr_values]
-        assert '{} ({})'.format(new_cr_name, FOREMAN_PROVIDERS['libvirt']) in profile_cr_names
+        assert f"{new_cr_name} ({FOREMAN_PROVIDERS['libvirt']})" in profile_cr_names
         session.computeresource.update_computeprofile(
             new_cr_name,
             COMPUTE_PROFILE_SMALL,

@@ -619,7 +619,7 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
     with session:
         for version in range(randint(2, 5)):
             result = session.contentview.publish(content_view.name)
-            assert result['Version'] == 'Version {}.0'.format(version + 1)
+            assert result['Version'] == f'Version {version + 1}.0'
 
 
 @pytest.mark.tier2
@@ -647,7 +647,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
         session.contentview.add_cv(composite_cv.name, content_view.name)
         for version in range(randint(2, 5)):
             result = session.contentview.publish(composite_cv.name)
-            assert result['Version'] == 'Version {}.0'.format(version + 1)
+            assert result['Version'] == f'Version {version + 1}.0'
 
 
 @pytest.mark.tier2
@@ -1193,7 +1193,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
     cv_name = gen_string('alpha')
     # will promote environment to 3 versions
     versions_count = 3
-    versions = ('Version {}.0'.format(ver + 1) for ver in range(versions_count))
+    versions = (f'Version {ver + 1}.0' for ver in range(versions_count))
     # create environment lifecycle
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo_names = [gen_string('alphanumeric') for _ in range(versions_count)]
@@ -2163,12 +2163,12 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
+            cv.name, VERSION, f"name = \"{package_name}\" and version = \"0.71\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
+            cv.name, VERSION, f"name = \"{package_name}\" and version = \"5.21\""
         )
         assert not packages[0]['Name']
         session.contentviewfilter.update_package_rule(
@@ -2180,11 +2180,11 @@ def test_positive_update_inclusive_filter_package_version(session, module_org):
         )
         new_version = session.contentview.publish(cv.name)['Version']
         packages = session.contentview.search_version_package(
-            cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
+            cv.name, new_version, f"name = \"{package_name}\" and version = \"0.71\""
         )
         assert not packages[0]['Name']
         packages = session.contentview.search_version_package(
-            cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
+            cv.name, new_version, f"name = \"{package_name}\" and version = \"5.21\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
@@ -2224,12 +2224,12 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
+            cv.name, VERSION, f"name = \"{package_name}\" and version = \"5.21\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '5.21'
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
+            cv.name, VERSION, f"name = \"{package_name}\" and version = \"0.71\""
         )
         assert not packages[0]['Name']
         session.contentviewfilter.update_package_rule(
@@ -2241,11 +2241,11 @@ def test_positive_update_exclusive_filter_package_version(session, module_org):
         )
         new_version = session.contentview.publish(cv.name)['Version']
         packages = session.contentview.search_version_package(
-            cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '5.21')
+            cv.name, new_version, f"name = \"{package_name}\" and version = \"5.21\""
         )
         assert not packages[0]['Name']
         packages = session.contentview.search_version_package(
-            cv.name, new_version, 'name = "{}" and version = "{}"'.format(package_name, '0.71')
+            cv.name, new_version, f"name = \"{package_name}\" and version = \"0.71\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == package_name and packages[0]['Version'] == '0.71'
@@ -2609,18 +2609,18 @@ def test_positive_update_filter_affected_repos(session, module_org):
         cv.publish()
         # Verify filter affected repo1
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '0.71')
+            cv.name, VERSION, f"name = \"{repo1_package_name}\" and version = \"0.71\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == repo1_package_name and packages[0]['Version'] == '0.71'
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '5.21')
+            cv.name, VERSION, f"name = \"{repo1_package_name}\" and version = \"5.21\""
         )
         # checking search showing empty result
         assert not packages[0]['Name']
         # Verify repo2 was not affected and repo2 packages are present
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo2_package_name, '5.6.6')
+            cv.name, VERSION, f"name = \"{repo2_package_name}\" and version = \"5.6.6\""
         )
         assert len(packages) == 1
         assert packages[0]['Name'] == repo2_package_name and packages[0]['Version'] == '5.6.6'
@@ -2941,9 +2941,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
                 'host_group.puppet_ca': sat_hostname,
                 'host_group.puppet_master': sat_hostname,
                 'operating_system.architecture': arch.name,
-                'operating_system.operating_system': '{} {}.{}'.format(
-                    os.name, os.major, os.minor
-                ),
+                'operating_system.operating_system': f'{os.name} {os.major}.{os.minor}',
                 'operating_system.ptable': ptable.name,
                 'operating_system.media_type': 'Synced Content',
                 'operating_system.media_content.synced_content': repo.name,
@@ -3325,7 +3323,7 @@ def test_positive_composite_child_inc_update(session):
     ).update(['content_view'])
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         repos_collection.setup_virtual_machine(vm)
-        result = vm.run('yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')))
+        result = vm.run(f"yum -y install {FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')}")
         assert result.return_code == 0
         create_repo(
             repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True

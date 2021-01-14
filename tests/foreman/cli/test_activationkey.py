@@ -1443,7 +1443,7 @@ class ActivationKeyTestCase(CLITestCase):
                 content = ActivationKey.product_content(
                     {'id': result['activationkey-id'], 'organization-id': self.org['id']}
                 )
-                self.assertEqual(content[0]['override'], 'enabled:{}'.format(int(override_value)))
+                self.assertEqual(content[0]['override'], f'enabled:{int(override_value)}')
 
     @pytest.mark.tier2
     def test_positive_remove_user(self):
@@ -1504,12 +1504,12 @@ class ActivationKeyTestCase(CLITestCase):
         """
         user_name = gen_alphanumeric()
         user_password = gen_alphanumeric()
-        ak_name_like = 'ak_{}'.format(gen_string('alpha'))
+        ak_name_like = f"ak_{gen_string('alpha')}"
         hc_names_like = (
-            'Test_*_{}'.format(gen_string('alpha')),
-            'Test_*_{}'.format(gen_string('alpha')),
+            f"Test_*_{gen_string('alpha')}",
+            f"Test_*_{gen_string('alpha')}",
         )
-        ak_name = '{}_{}'.format(ak_name_like, gen_string('alpha'))
+        ak_name = f"{ak_name_like}_{gen_string('alpha')}"
         org = make_org()
         self.upload_manifest(org['id'], manifests.clone())
         available_subscriptions = Subscription.list({'organization-id': org['id']}, per_page=False)

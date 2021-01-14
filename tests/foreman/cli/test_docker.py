@@ -856,7 +856,7 @@ class DockerContentViewTestCase(CLITestCase):
         Product.update({'name': new_prod_name, 'id': prod['id']})
         repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'], old_prod_name).lower()
+        expected_pattern = f"{content_view['label']}/{old_prod_name}".lower()
         self.assertEqual(lce['registry-name-pattern'], new_pattern)
         self.assertEqual(
             Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
@@ -869,7 +869,7 @@ class DockerContentViewTestCase(CLITestCase):
         )
         repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'], new_prod_name).lower()
+        expected_pattern = f"{content_view['label']}/{new_prod_name}".lower()
         self.assertEqual(
             Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
         )
@@ -910,7 +910,7 @@ class DockerContentViewTestCase(CLITestCase):
         Repository.update({'name': new_repo_name, 'id': repo['id'], 'product-id': prod['id']})
         repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'], old_repo_name).lower()
+        expected_pattern = f"{content_view['label']}/{old_repo_name}".lower()
         self.assertEqual(
             Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
         )
@@ -922,7 +922,7 @@ class DockerContentViewTestCase(CLITestCase):
         )
         repos = Repository.list({'environment-id': lce['id'], 'organization-id': self.org_id})
 
-        expected_pattern = "{}/{}".format(content_view['label'], new_repo_name).lower()
+        expected_pattern = f"{content_view['label']}/{new_repo_name}".lower()
         self.assertEqual(
             Repository.info({'id': repos[0]['id']})['container-repository-name'], expected_pattern
         )
@@ -1256,14 +1256,14 @@ class DockerClientTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
-                    'docker run {}'.format(repo['published-at']),
+                    f"docker run {repo['published-at']}",
                     hostname=self.docker_host.ip_addr,
                 )
                 self.assertEqual(result.return_code, 0)
             finally:
                 # Stop and remove the container
                 result = ssh.command(
-                    'docker ps -a | grep {}'.format(repo['published-at']),
+                    f"docker ps -a | grep {repo['published-at']}",
                     hostname=self.docker_host.ip_addr,
                 )
                 container_id = result.stdout[0].split()[0]
@@ -1271,9 +1271,7 @@ class DockerClientTestCase(CLITestCase):
                 ssh.command(f'docker rm {container_id}', hostname=self.docker_host.ip_addr)
         finally:
             # Remove docker image
-            ssh.command(
-                'docker rmi {}'.format(repo['published-at']), hostname=self.docker_host.ip_addr
-            )
+            ssh.command(f"docker rmi {repo['published-at']}", hostname=self.docker_host.ip_addr)
 
     @skip_if_not_set('docker')
     @pytest.mark.tier3

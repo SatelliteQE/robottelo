@@ -120,7 +120,7 @@ def parse_help(output):
             if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
-                contents['options'][-1]['help'] += ' {}'.format(match.group('help'))
+                contents['options'][-1]['help'] += f" {match.group('help')}"
             else:
                 contents['options'].append(
                     {

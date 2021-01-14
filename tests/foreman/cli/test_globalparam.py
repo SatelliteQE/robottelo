@@ -35,8 +35,8 @@ class GlobalParameterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
+        name = f"opt-{gen_string('alpha', 10)}"
+        value = f"val-{gen_string('alpha', 10)} {gen_string('alpha', 10)}"
         GlobalParameter().set({'name': name, 'value': value})
 
     @pytest.mark.tier1
@@ -50,8 +50,8 @@ class GlobalParameterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
+        name = f"opt-{gen_string('alpha', 10)}"
+        value = f"val-{gen_string('alpha', 10)} {gen_string('alpha', 10)}"
         GlobalParameter().set({'name': name, 'value': value})
         result = GlobalParameter().list({'search': name})
         self.assertEqual(len(result), 1)
@@ -69,8 +69,8 @@ class GlobalParameterTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        name = 'opt-%s' % gen_string('alpha', 10)
-        value = 'val-{} {}'.format(gen_string('alpha', 10), gen_string('alpha', 10))
+        name = f"opt-{gen_string('alpha', 10)}"
+        value = f"val-{gen_string('alpha', 10)} {gen_string('alpha', 10)}"
         GlobalParameter().set({'name': name, 'value': value})
         GlobalParameter().delete({'name': name})
         result = GlobalParameter().list({'search': name})

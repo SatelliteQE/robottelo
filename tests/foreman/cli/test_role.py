@@ -235,7 +235,7 @@ class TestRole:
         :CaseImportance: Critical
 
         """
-        role_list = Role.list({'search': 'name=\\"{}\\"'.format(choice(ROLES))})
+        role_list = Role.list({'search': f'name=\\"{choice(ROLES)}\\"'})
         assert len(role_list) == 1
         cloned_role = Role.clone(
             {'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')}
@@ -1277,7 +1277,7 @@ class TestSystemAdmin:
                 'firstname': gen_string('alpha'),
                 'lastname': gen_string('alpha'),
                 'login': gen_string('alpha'),
-                'mail': '{}@example.com'.format(gen_string('alpha')),
+                'mail': f"{gen_string('alpha')}@example.com",
                 'password': common_pass,
                 'organizations': org['name'],
                 'role-ids': role['id'],
@@ -1299,7 +1299,7 @@ class TestSystemAdmin:
                 'firstname': gen_string('alpha'),
                 'lastname': gen_string('alpha'),
                 'login': gen_string('alpha'),
-                'mail': '{}@example.com'.format(gen_string('alpha')),
+                'mail': f"{gen_string('alpha')}@example.com",
                 'password': common_pass,
                 'organizations': org['name'],
                 'role-ids': org_role['id'],

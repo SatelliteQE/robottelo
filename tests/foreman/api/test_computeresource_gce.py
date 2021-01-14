@@ -311,7 +311,7 @@ class TestGCEHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def google_host(self, googleclient):
         """Returns the Google Client Host object to perform the assertions"""
-        return googleclient.get_vm(name='{}'.format(self.fullhostname.replace('.', '-')))
+        return googleclient.get_vm(name=f"{self.fullhostname.replace('.', '-')}")
 
     @pytest.mark.tier1
     def test_positive_gce_host_provisioned(self, class_host):

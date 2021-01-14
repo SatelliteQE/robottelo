@@ -130,7 +130,7 @@ class Scenario_custom_repo_check(APITestCase):
         cls.sat_host = settings.server.hostname
         cls.docker_vm = settings.upgrade.docker_vm
         cls.file_path = '/var/www/html/pub/custom_repo/'
-        cls.custom_repo = 'https://{}{}'.format(cls.sat_host, '/pub/custom_repo/')
+        cls.custom_repo = f"https://{cls.sat_host}/pub/custom_repo/"
         _, cls.rpm1_name = os.path.split(rpm1)
         _, cls.rpm2_name = os.path.split(rpm2)
 

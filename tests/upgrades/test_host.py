@@ -117,12 +117,10 @@ class scenario_positive_gce_host_compute_resource(APITestCase):
         self.__class__.fullhost = f'{hostname}.{self.domain_name}'.lower()
         preentities = get_entity_data(self.__class__.__name__)
         gce_cr = entities.GCEComputeResource().search(
-            query={'search': 'name={}'.format(preentities['cr_name'])}
+            query={'search': f"name={preentities['cr_name']}"}
         )[0]
-        org = entities.Organization().search(
-            query={'search': 'name={}'.format(preentities['org'])}
-        )[0]
-        loc = entities.Location().search(query={'search': 'name={}'.format(preentities['loc'])})[0]
+        org = entities.Organization().search(query={'search': f"name={preentities['org']}"})[0]
+        loc = entities.Location().search(query={'search': f"name={preentities['loc']}"})[0]
         compute_attrs = {
             'machine_type': 'g1-small',
             'network': 'default',

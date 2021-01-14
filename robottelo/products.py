@@ -582,7 +582,7 @@ class GenericRHRepository(BaseRepository):
                 self.data['repository'], self.distro, hex(id(self))
             )
         else:
-            return '<RH custom Repo url: {} object: {}>'.format(self.url, hex(id(self)))
+            return f'<RH custom Repo url: {self.url} object: {hex(id(self))}>'
 
     def create(
         self,
@@ -988,7 +988,7 @@ class RepositoryCollection:
             install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
-            rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[self.distro])
+            rhel_repo_option_name = f'rhel{DISTROS_MAJOR_VERSION[self.distro]}_repo'
             rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
             if not rhel_repo_url:
                 raise ValueError(

@@ -239,7 +239,7 @@ class SimpleLoggingTestCase(CLITestCase):
             line_count_start = line_count(source_log, connection)
             # command for this test
             new_repo = self._make_repository({'name': gen_string('alpha')})
-            self.logger.info('Created Repo {} for dynflow log test'.format(new_repo['name']))
+            self.logger.info(f"Created Repo {new_repo['name']} for dynflow log test")
             # get the number of lines in the source log after the test
             line_count_end = line_count(source_log, connection)
             # get the log lines of interest, put them in test_logfile

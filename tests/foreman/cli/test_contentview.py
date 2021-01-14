@@ -255,9 +255,7 @@ class ContentViewTestCase(CLITestCase):
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
-        result = ssh.command(
-            'find /var/lib/pulp/published -name "*{}*"'.format(content_view['name'])
-        )
+        result = ssh.command(f"find /var/lib/pulp/published -name \"*{content_view['name']}*\"")
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         self.assertEqual(len(content_view['versions']), 1)
@@ -416,7 +414,7 @@ class ContentViewTestCase(CLITestCase):
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
-        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
+        result = ssh.command(f"find /var/lib/pulp -name \"*{content_view['name']}*\"")
         self.assertEqual(result.return_code, 0)
         self.assertNotEqual(len(result.stdout), 0)
         self.assertEqual(len(content_view['versions']), 1)
@@ -436,7 +434,7 @@ class ContentViewTestCase(CLITestCase):
         )
         ContentView.delete({'id': content_view['id']})
         # Check content view files presence after deletion
-        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
+        result = ssh.command(f"find /var/lib/pulp -name \"*{content_view['name']}*\"")
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
 
@@ -3081,7 +3079,7 @@ class ContentViewTestCase(CLITestCase):
             host_client.install_katello_ca()
             host_client.register_contenthost(
                 org['label'],
-                lce='{}/{}'.format(env['name'], content_view['name']),
+                lce=f"{env['name']}/{content_view['name']}",
                 username=user_name,
                 password=user_password,
             )
@@ -4884,7 +4882,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         if 'multi_upload' not in options or not options['multi_upload']:
             ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
         else:
-            remote_path = "/tmp/{}/".format(gen_string('alpha'))
+            remote_path = f"/tmp/{gen_string('alpha')}/"
             ssh.upload_files(local_dir=os.getcwd() + "/../data/", remote_dir=remote_path)
 
         Repository.upload_content(

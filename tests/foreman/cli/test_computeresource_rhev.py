@@ -55,7 +55,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         """
         ComputeResource.create(
             {
-                'name': 'cr {}'.format(gen_string(str_type='alpha')),
+                'name': f"cr {gen_string(str_type='alpha')}",
                 'provider': 'Ovirt',
                 'user': self.username,
                 'password': self.password,
@@ -266,7 +266,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
         ComputeResource.image_create(
             {
                 'compute-resource': comp_res['name'],
-                'name': 'img {}'.format(gen_string(str_type='alpha')),
+                'name': f"img {gen_string(str_type='alpha')}",
                 'uuid': self.image_uuid,
                 'operatingsystem': self.os['title'],
                 'architecture': self.image_arch,
@@ -310,8 +310,8 @@ class RHEVComputeResourceTestCase(CLITestCase):
             ComputeResource.image_create(
                 {
                     'compute-resource': comp_res['name'],
-                    'name': 'img {}'.format(gen_string(str_type='alpha')),
-                    'uuid': 'invalidimguuid {}'.format(gen_string(str_type='alpha')),
+                    'name': f"img {gen_string(str_type='alpha')}",
+                    'uuid': f"invalidimguuid {gen_string(str_type='alpha')}",
                     'operatingsystem': self.os['title'],
                     'architecture': self.image_arch,
                     'username': "root",
@@ -355,7 +355,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
                 {
                     'compute-resource': comp_res['name'],
                     # too long string (>255 chars)
-                    'name': 'img {}'.format(gen_string(str_type='alphanumeric', length=256)),
+                    'name': f"img {gen_string(str_type='alphanumeric', length=256)}",
                     'uuid': self.image_uuid,
                     'operatingsystem': self.os['title'],
                     'architecture': self.image_arch,

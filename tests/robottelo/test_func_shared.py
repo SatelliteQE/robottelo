@@ -137,7 +137,7 @@ def basic_shared_counter_string(prefix='', suffix='', counter=0, increment_by=1)
     """basic function that increment a counter and return a string with
     prefix
     """
-    return '{}_{}_{}'.format(prefix, counter + increment_by, suffix)
+    return f'{prefix}_{counter + increment_by}_{suffix}'
 
 
 class NotRestorableException(Exception):

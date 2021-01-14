@@ -56,8 +56,8 @@ def valid_name_desc_data():
         {'name': gen_string('alphanumeric'), 'description': gen_string('alphanumeric', 255)},
         {'name': gen_string('utf8'), 'description': gen_string('utf8')},
         {
-            'name': '<html>{}</html>'.format(gen_string('alpha')),
-            'description': '<html>{}</html>'.format(gen_string('alpha')),
+            'name': f"<html>{gen_string('alpha')}</html>",
+            'description': f"<html>{gen_string('alpha')}</html>",
         },
         {
             'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
@@ -81,7 +81,7 @@ def valid_update_data():
     return (
         {'new-name': gen_string('utf8', 255)},
         {'new-name': gen_string('alphanumeric')},
-        {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
+        {'new-name': f"white spaces {gen_string(str_type='alphanumeric')}"},
         {'description': gen_string('utf8', 255)},
         {'description': gen_string('alphanumeric')},
         {'url': gen_url()},
@@ -124,7 +124,7 @@ class ComputeResourceTestCase(CLITestCase):
         """
         ComputeResource.create(
             {
-                'name': 'cr {}'.format(gen_string(str_type='alpha')),
+                'name': f"cr {gen_string(str_type='alpha')}",
                 'provider': 'Libvirt',
                 'url': self.current_libvirt_url,
             }
@@ -169,7 +169,7 @@ class ComputeResourceTestCase(CLITestCase):
             {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': self.current_libvirt_url}
         )
         self.assertTrue(comp_res['name'])
-        result_list = ComputeResource.list({'search': 'name=%s' % comp_res['name']})
+        result_list = ComputeResource.list({'search': f"name={comp_res['name']}"})
         self.assertTrue(len(result_list) > 0)
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)

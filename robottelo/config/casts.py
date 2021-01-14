@@ -63,9 +63,7 @@ class LoggingLevel:
     def __call__(self, value):
         value = value.lower()
         if value not in self._logging_levels:
-            raise ValueError(
-                '{} should one of {}.'.format(value, ', '.join(self._logging_levels.keys()))
-            )
+            raise ValueError(f"{value} should one of {', '.join(self._logging_levels.keys())}.")
         return self._logging_levels[value]
 
 

@@ -210,12 +210,12 @@ def test_positive_rh_repo_search_and_check_file_list(session, module_org, module
     """
     with session:
         session.organization.select(org_name=module_org.name)
-        assert session.package.search(
-            'name = {}'.format('puppet-agent'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('puppet-agent')
-        assert session.package.search(
-            'name = {}'.format('katello-host-tools'), repository=module_rh_repo.name
-        )[0]['RPM'].startswith('katello-host-tools')
+        assert session.package.search("name = puppet-agent", repository=module_rh_repo.name)[0][
+            'RPM'
+        ].startswith('puppet-agent')
+        assert session.package.search("name = katello-host-tools", repository=module_rh_repo.name)[
+            0
+        ]['RPM'].startswith('katello-host-tools')
         package_details = session.package.read('tracer-common', repository=module_rh_repo.name)
         assert {
             '/etc/bash_completion.d/tracer',

@@ -102,7 +102,7 @@ class TestRemoteExecution:
                 'value': 'True',
             }
         )
-        command = "echo {}".format(gen_string('alpha'))
+        command = f"echo {gen_string('alpha')}"
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
@@ -124,7 +124,7 @@ class TestRemoteExecution:
             raise AssertionError(result)
 
         task = Task.list_tasks({"search": command})[0]
-        search = Task.list_tasks({"search": 'id={}'.format(task["id"])})
+        search = Task.list_tasks({"search": f"id={task['id']}"})
         assert search[0]["action"] == task["action"]
 
     @pytest.mark.skip_if_open('BZ:1804685')
@@ -358,7 +358,7 @@ class TestRemoteExecution:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=self.client.ip_addr)
+        result = ssh.command(f"rpm -q {' '.join(packages)}", hostname=self.client.ip_addr)
         assert result.return_code == 0
 
     @pytest.mark.tier3

@@ -101,7 +101,7 @@ class LibvirtGuest:
         self.ip_addr = None
         self._domain = None
         self._created = False
-        self.guest_name = 'mac{}'.format(self.mac.replace(':', ""))
+        self.guest_name = f"mac{self.mac.replace(':', '')}"
 
     def create(self):
         """Creates a virtual machine on the libvirt server using
@@ -179,7 +179,7 @@ class LibvirtGuest:
         ssh.command(f'virsh undefine {self.hostname}', hostname=self.libvirt_server)
         image_name = f'{self.hostname}.img'
         ssh.command(
-            'rm {}'.format(os.path.join(self.image_dir, image_name)),
+            f'rm {os.path.join(self.image_dir, image_name)}',
             hostname=self.libvirt_server,
         )
 

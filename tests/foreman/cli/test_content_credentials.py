@@ -288,7 +288,7 @@ def test_positive_update_key(name, module_org):
     assert gpg_key['content'] != content
     local_key = create_gpg_key_file(content)
     assert gpg_key, 'GPG Key file must be created'
-    key = '/tmp/%s' % gen_alphanumeric()
+    key = f'/tmp/{gen_alphanumeric()}'
     ssh.upload_file(local_file=local_key, remote_file=key)
     ContentCredential.update(
         {'key': key, 'name': gpg_key['name'], 'organization-id': module_org.id}

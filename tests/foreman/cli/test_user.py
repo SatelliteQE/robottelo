@@ -106,13 +106,13 @@ class UserTestCase(CLITestCase):
                 )
 
         # list by firstname and lastname
-        result = User.list({'search': 'firstname = {}'.format(user_params['firstname'])})
+        result = User.list({'search': f"firstname = {user_params['firstname']}"})
         # make sure user is in list result
         self.assertEqual(
             {user['id'], user['login'], user['name']},
             {result[0]['id'], result[0]['login'], result[0]['name']},
         )
-        result = User.list({'search': 'lastname = {}'.format(user_params['lastname'])})
+        result = User.list({'search': f"lastname = {user_params['lastname']}"})
         # make sure user is in list result
         self.assertEqual(
             {user['id'], user['login'], user['name']},
@@ -336,7 +336,7 @@ class SshKeyInUserTestCase(CLITestCase):
 
         :return: string type well formatted RSA key
         """
-        return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+        return f'ssh-rsa {paramiko.RSAKey.generate(2048).get_base64()}'
 
     @classmethod
     def setUpClass(cls):

@@ -78,7 +78,7 @@ class TestGetHostOsVersion:
         os_version = host_info.get_host_os_version.__wrapped__()
         assert 'Not Available' == os_version
         ssh_result.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with('Host version not available: %r' % cmd)
+        logger.warning.assert_called_once_with(f'Host version not available: {cmd!r}')
 
     @mock.patch('robottelo.host_info.LOGGER')
     def test_command_parsing_error(self, logger, ssh_result):
@@ -90,7 +90,7 @@ class TestGetHostOsVersion:
         os_version = host_info.get_host_os_version.__wrapped__()
         assert 'Not Available' == os_version
         ssh_result.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with('Host version not available: %r' % cmd)
+        logger.warning.assert_called_once_with(f'Host version not available: {cmd!r}')
 
 
 class TestGetHostSatVersion:
@@ -157,7 +157,7 @@ class TestGetHostSatVersion:
         ]
         ssh_result.assert_has_calls(calls)
         logger.warning.assert_called_once_with(
-            'Host Satellite version not available: %r' % self.SSH_RESULT_ERROR
+            f'Host Satellite version not available: {self.SSH_RESULT_ERROR!r}'
         )
 
 
