@@ -46,6 +46,7 @@ WRAPPER_EXCEPTIONS = (
     'gce.project_id',
     'gce.zone',
     'gce.zone',
+    'http_proxy.un_auth_proxy_url',
     'http_proxy.auth_proxy_url',
     'http_proxy.password',
     'http_proxy.username',
