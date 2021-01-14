@@ -25,6 +25,9 @@ from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
+CAPSULE_TARGET_VERSION = '6.9.z'
+
+
 @pytest.mark.tier4
 def test_positive_run_capsule_upgrade_playbook():
     """Run Capsule Upgrade playbook against an External Capsule
@@ -40,13 +43,19 @@ def test_positive_run_capsule_upgrade_playbook():
     :CaseImportance: Medium
     """
     with CapsuleVirtualMachine() as capsule_vm:
+        template_id = (
+            entities.JobTemplate()
+            .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
+            .id
+        )
+
         add_remote_execution_ssh_key(capsule_vm.ip_addr)
         job = entities.JobInvocation().run(
             synchronous=False,
             data={
-                'job_template_id': 170,
+                'job_template_id': template_id,
                 'inputs': {
-                    'target_version': "6.8.z",
+                    'target_version': CAPSULE_TARGET_VERSION,
                     'whitelist_options': "repositories-validate,repositories-setup",
                 },
                 'targeting_type': "static_query",
@@ -66,7 +75,7 @@ def test_positive_run_capsule_upgrade_playbook():
             id=entities.SmartProxy(name=capsule_vm.hostname).search()[0].id
         ).refresh()
         feature_list = [feat['name'] for feat in result['features']]
-        assert {'SSH', 'TFTP', 'HTTPBoot', 'Dynflow', 'Pulp Node', 'Logs'}.issubset(feature_list)
+        assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)
 
 
 @pytest.mark.destructive
@@ -95,8 +104,8 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
             data={
                 'job_template_id': template_id,
                 'inputs': {
-                    'target_version': "6.8.z",
-                    'whitelist_options': "repositories-validate,repositories-setup",
+                    'target_version': CAPSULE_TARGET_VERSION,
+                    'whitelist_options': "repositories-validqqate,repositories-setup",
                 },
                 'targeting_type': "static_query",
                 'search_query': f"name = {sat.name}",
