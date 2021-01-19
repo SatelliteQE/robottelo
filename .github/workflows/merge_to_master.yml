@@ -48,6 +48,9 @@ jobs:
           pytest -n 8 --setup-plan --disable-pytest-warnings -m pre_upgrade tests/upgrades/
           pytest -n 8 --setup-plan --disable-pytest-warnings -m post_upgrade tests/upgrades/
 
+      - name: Test Robottelo Coverage
+        run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
+
       - name: Make Docs
         run: |
           make test-docstrings
