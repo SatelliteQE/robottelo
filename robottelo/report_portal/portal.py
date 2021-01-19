@@ -46,7 +46,7 @@ class ReportPortal:
         """Super url of report portal
         :returns: Base url for API request
         """
-        return f'{self.rp_url}/api/v1/{self.rp_project}/'
+        return f'{self.rp_url}/api/v1/{self.rp_project}'
 
     @property
     def headers(self):
@@ -80,7 +80,7 @@ class ReportPortal:
 
         :returns dict: The json of all RP launches
         """
-        params = {'page.page': 1, 'page.size': 500, 'page.sort': 'start_time'}
+        params = {'page.page': 1, 'page.size': 500, 'page.sort': 'startTime'}
         resp = requests.get(
             url=f'{self.api_url}/launch', headers=self.headers, params=params, verify=False
         )
@@ -110,7 +110,7 @@ class ReportPortal:
             )
         data = self._launch_requester()
         sorted_launches = sorted(
-            data['content'], key=lambda launch: launch['start_time'], reverse=True
+            data['content'], key=lambda launch: launch['startTime'], reverse=True
         )
         typed_launches = filter(
             lambda launch: launch['name'].lower() == launch_type, sorted_launches
@@ -168,13 +168,21 @@ class Launch:
     def _versions(self):
         """Sets satellite and snap version attributes of a launch"""
         version_compiler = re.compile(r'([\d\.]+)[\.-](\d+\.\d|[A-Z]+)')
-        launch_tags = self.info['tags']
+        if not self.info['attributes']:
+            LOGGER.debug(
+                'Launch with no launch_attributes is detected. '
+                'This will be removed from launch collection.'
+            )
+            return
+        launch_attrs = [
+            self.info['attributes'][attr]['value'] for attr in range(len(self.info['attributes']))
+        ]
         try:
-            launch_name = next(filter(version_compiler.search, launch_tags))
+            launch_name = next(filter(version_compiler.search, launch_attrs))
         except StopIteration:
             LOGGER.debug(
-                'Launch with no build name in launch_tags is detected. '
-                f'The launch has tags {launch_tags}'
+                'Launch with no build name in launch_attributes is detected. '
+                f'The launch has tags {launch_attrs}'
             )
             return
         self.satellite_version = re.search(version_compiler, launch_name).group(1)
@@ -186,15 +194,15 @@ class Launch:
         :returns dict: The parameters dict for API test items request
         """
         params = [
-            ('filter.eq.launch', self.info['id']),
+            ('filter.eq.launchId', self.info['id']),
             ('page.page', 1),
             ('page.size', 50),
-            ('page.sort', 'start_time'),
+            ('page.sort', 'startTime'),
         ]
         rp_defect_types = ReportPortal.defect_types
         if defect_type:
             if defect_type in rp_defect_types:
-                params.insert(0, ('filter.eq.issue$issue_type', rp_defect_types[defect_type]))
+                params.insert(0, ('filter.eq.issueType', rp_defect_types[defect_type].lower()))
             else:
                 raise ValueError(
                     f'Invalid value \'{defect_type}\' for defect type parameter, '
@@ -210,11 +218,12 @@ class Launch:
                     f'should be one of {rp_statuses}'
                 )
         if user:
-            params.insert(2, ('filter.eq.tags', user))
+            params.insert(0, ('filter.has.attributeKey', 'case_owner'))
+            params.insert(1, ('filter.has.attributeValue', user))
         return dict(params)
 
     @retry(
-        stop=stop_after_attempt(4),
+        stop=stop_after_attempt(6),
         wait=wait_fixed(10),
     )
     def _test_requester(self, params, page):
