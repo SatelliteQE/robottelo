@@ -15,54 +15,60 @@
 :Upstream: No
 """
 import pytest
+from broker.broker import VMBroker
+from nailgun import entities
 
-from robottelo.test import CLITestCase
+from robottelo.hosts import ContentHost
+from robottelo.test import settings
 
 
-class BootstrapScriptTestCase(CLITestCase):
-    """Test class for bootstrap script."""
+@pytest.mark.tier1
+def test_positive_register(
+    module_org, module_location, module_lce, module_ak, module_published_cv
+):
+    """System is registered
 
-    @classmethod
-    def setUpClass(cls):
-        """create VM for testing """
-        super().setUpClass()
+    :id: e34561fd-e0d6-4587-84eb-f86bd131aab1
 
-    @pytest.mark.tier1
-    @pytest.mark.stubbed
-    def test_positive_register(self):
-        """System is registered
+    :Steps:
 
-        :id: e34561fd-e0d6-4587-84eb-f86bd131aab1
+        1. Ensure system is not registered
+        2. Register a system
+        3. Ensure system is registered
+        4. Register system once again
 
-        :Steps:
 
-            1. assure system is not registered
-            2. register a system
+    :expectedresults: system is registered, host is created
 
-        :expectedresults: system is registered, host is created
+    :CaseAutomation: Automated
 
-        :CaseAutomation: NotAutomated
-
-        :CaseImportance: Critical
-        """
-
-    @pytest.mark.tier1
-    @pytest.mark.stubbed
-    @pytest.mark.upgrade
-    def test_positive_reregister(self):
-        """Registered system is re-registered
-
-        :id: d8a7aef1-7522-47a8-8478-77e81ca236be
-
-        :Steps:
-
-            1. register a system
-            2. assure system is registered
-            3. register system once again
-
-        :expectedresults: system is newly registered, host is created
-
-        :CaseAutomation: NotAutomated
-
-        :CaseImportance: Critical
-        """
+    :CaseImportance: Critical
+    """
+    hg = entities.HostGroup(location=[module_location], organization=[module_org]).create()
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+        # assure system is not registered
+        result = vm.execute('subscription-manager identity')
+        # result will be 1 if not registered
+        assert result.status == 1
+        assert vm.execute(
+            f'curl -o /root/bootstrap.py "http://{settings.server.hostname}/pub/bootstrap.py" '
+        )
+        assert vm.execute(
+            f'python /root/bootstrap.py -s {settings.server.hostname} -o {module_org.name}'
+            f' -L {module_location.name} -a {module_ak.name} --hostgroup={hg.name}'
+            ' --skip puppet --skip foreman'
+        )
+        # assure system is registered
+        result = vm.execute('subscription-manager identity')
+        # result will be 0 if registered
+        assert result.status == 0
+        # register system once again
+        assert vm.execute(
+            f'python /root/bootstrap.py -s "{settings.server.hostname}" -o {module_org.name} '
+            f'-L {module_location.name} -a {module_ak.name} --hostgroup={hg.name}'
+            '--skip puppet --skip foreman '
+        )
+        # assure system is registered
+        result = vm.execute('subscription-manager identity')
+        # result will be 0 if registered
+        assert result.status == 0
