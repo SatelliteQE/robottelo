@@ -7,8 +7,11 @@ from robottelo.constants import VALID_GCE_ZONES
 validators = dict(
     server=[
         Validator("server.hostname", must_exist=True),
-        Validator("server.ssh_key", must_exist=True)
-        | Validator("server.ssh_password", must_exist=True),
+        (
+            Validator("server.ssh_key", must_exist=True)
+            | Validator("server.ssh_password", must_exist=True)
+            | Validator("server.ssh_key_string", must_exist=True)
+        ),
         Validator("server.admin_password", default="changeme"),
         Validator("server.admin_username", default="admin"),
         Validator("server.scheme", default="https"),
