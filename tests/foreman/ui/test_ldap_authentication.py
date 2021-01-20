@@ -45,6 +45,7 @@ from robottelo.rhsso_utils import delete_rhsso_user
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_rhsso_user
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -523,7 +524,7 @@ def test_positive_update_external_roles(
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ad_data['ldap_user_name']
+            assert ad_data['ldap_user_name'] in current_user
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]}
         )
@@ -532,7 +533,7 @@ def test_positive_update_external_roles(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ad_data['ldap_user_name']
+        assert ad_data['ldap_user_name'] in current_user
 
 
 @pytest.mark.tier2
@@ -579,9 +580,11 @@ def test_positive_delete_external_roles(
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
+            if is_open('BZ:1851905'):
+                ldapsession.browser.execute_script("window.history.go(-1)")
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ad_data['ldap_user_name']
+            assert ad_data['ldap_user_name'] in current_user
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]}
         )
@@ -639,9 +642,11 @@ def test_positive_update_external_user_roles(
             test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
+            if is_open('BZ:1851905'):
+                ldapsession.browser.execute_script("window.history.go(-1)")
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert current_user == ad_data['ldap_user_name']
+            assert ad_data['ldap_user_name'] in current_user
         session.user.update(
             ad_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
         )
@@ -651,7 +656,7 @@ def test_positive_update_external_user_roles(
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert current_user == ad_data['ldap_user_name']
+        assert ad_data['ldap_user_name'] in current_user
 
 
 @pytest.mark.tier2
@@ -690,6 +695,8 @@ def test_positive_add_admin_role_with_org_loc(
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
     with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         session.location.create({'name': location_name})
+        if is_open('BZ:1851905'):
+            session.browser.execute_script("window.history.go(-1)")
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
         assert ad_data['ldap_user_name'] in location['current_user']
@@ -1021,7 +1028,7 @@ def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
 
 
 @pytest.mark.destructive
-def test_single_sign_on_using_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
+def test_single_sign_on_using_rhsso(rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
     :id: 18a77de8-570f-11ea-a202-d46d6dd3b5b2
@@ -1879,6 +1886,8 @@ def test_verify_group_permissions(
     location_name = gen_string('alpha')
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
+        if is_open('BZ:1851905'):
+            ldapsession.browser.execute_script("window.history.go(-1)")
         assert ldapsession.location.search(location_name)[0]['Name'] == location_name
 
 
