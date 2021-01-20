@@ -40,6 +40,28 @@ class TestKatelloCertsCheck:
     CA cert (a.k.a cacert.crt or rootCA.pem) can be used as bundle file.
     """
 
+    invalid_inputs = [
+        (
+            {
+                'check': "Checking CA bundle against the certificate file",
+                'message': "error 26 at 0 depth lookup:unsupported certificate purpose",
+            },
+            "certs/invalid.crt",
+            "certs/invalid.key",
+            "certs/ca.crt",
+        ),
+        (
+            {
+                'check': "Checking for use of shortname as CN",
+                'message': "shortname.crt is using a shortname for "
+                "Common Name (CN) and cannot be used",
+            },
+            "certs/shortname.crt",
+            "certs/shortname.key",
+            "certs/ca.crt",
+        ),
+    ]
+
     @pytest.fixture(scope="module")
     def cert_data(self):
         """Get host name, scripts, and create working directory."""
@@ -59,7 +81,7 @@ class TestKatelloCertsCheck:
         }
         return cert_data
 
-    @pytest.fixture(scope="module")
+    @pytest.fixture()
     def cert_setup(self, cert_data):
         # Need a subdirectory under ssl-build with same name as Capsule name
         with get_connection(timeout=100) as connection:
@@ -85,6 +107,37 @@ class TestKatelloCertsCheck:
             result = connection.run(
                 "yes | bash {} {}".format('generate-crt.sh', cert_data['sat6_hostname'])
             )
+            assert result.return_code == 0
+
+    @pytest.fixture()
+    def certs_cleanup(self):
+        yield
+        files = [
+            'cacert.crt',
+            'cacert.crt',
+            'certindex*',
+            'generate-*.sh',
+            'capsule_cert' 'openssl.cnf',
+            'private',
+            'serial*',
+            settings.server.hostname,
+        ]
+        with get_connection(timeout=300) as connection:
+            result = connection.run("rm -rf {}".format(" ".join(files)))
+            assert result.return_code == 0
+
+    @pytest.fixture(scope="module")
+    def generate_certs(self):
+        upload_file(
+            local_file=get_data_file('certs.sh'),
+            remote_file="certs.sh",
+        )
+        upload_file(
+            local_file=get_data_file('extensions.txt'),
+            remote_file="extensions.txt",
+        )
+        with get_connection(timeout=300) as connection:
+            result = connection.run("bash certs.sh")
             assert result.return_code == 0
 
     def validate_output(self, result, cert_data):
@@ -118,7 +171,9 @@ class TestKatelloCertsCheck:
         assert set(options) == expected_result
 
     @pytest.mark.tier1
-    def test_positive_validate_katello_certs_check_output(self, cert_setup, cert_data):
+    def test_positive_validate_katello_certs_check_output(
+        self, cert_setup, cert_data, certs_cleanup
+    ):
         """Validate that katello-certs-check generates correct output.
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
@@ -145,8 +200,75 @@ class TestKatelloCertsCheck:
             )
         self.validate_output(result, cert_data)
 
+    @pytest.mark.tier1
+    def test_katello_certs_check_output_wildcard_inputs(self, generate_certs, cert_data):
+        """Validate that katello-certs-check generates correct output with wildcard certs.
+
+        :id: 7f9da806-5b23-11eb-b7ea-d46d6dd3b5b2
+
+        :steps:
+
+            1. Get valid wildcard certs from generate_certs
+            2. Run katello-certs-check with the required valid arguments
+               katello-certs-check -c CERT_FILE -k KEY_FILE -r REQ_FILE
+               -b CA_BUNDLE_FILE
+            3. Assert the output has correct commands with options
+
+        :expectedresults: katello-certs-check should generate correct commands
+         with options.
+        """
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-certs-check -c {} -k {} -b {}'.format(
+                    "certs/wildcard.crt",
+                    "certs/wildcard.key",
+                    "certs/ca.crt",
+                ),
+                output_format='plain',
+            )
+        self.validate_output(result, cert_data)
+
+    @pytest.mark.parametrize("error, cert_file, key_file, ca_file", invalid_inputs)
+    @pytest.mark.tier1
+    def test_katello_certs_check_output_invalid_input(
+        self, generate_certs, error, cert_file, key_file, ca_file
+    ):
+        """Validate that katello-certs-check raise the correct errors for invalid
+         inputs
+
+        :id: 37742f5e-598a-11eb-a349-d46d6dd3b5b2
+
+        :steps:
+
+            1. Get invalid certs from generate_certs
+            2. Run katello-certs-check with the required valid arguments
+               katello-certs-check -c CERT_FILE -k KEY_FILE -r REQ_FILE
+               -b CA_BUNDLE_FILE
+            3. Assert the output has correct error with message
+
+        :expectedresults: Katello-certs-check should raise error when it receives the invalid
+         inputs.
+        """
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-certs-check -c {} -k {} -b {}'.format(
+                    cert_file,
+                    key_file,
+                    ca_file,
+                ),
+                output_format='plain',
+            )
+            results = result.stdout.split("\n\n")
+            for each_result in results:
+                if error['check'] in each_result:
+                    assert '[FAIL]' in each_result
+                    assert error['message'] in " ".join([result.stdout, result.stderr])
+                    break
+            else:
+                assert 0, "Failed to receive the error for invalid katello-cert-check"
+
     @pytest.mark.destructive
-    def test_positive_update_katello_certs(self, cert_setup, cert_data):
+    def test_positive_update_katello_certs(self, cert_setup, cert_data, certs_cleanup):
         """Update certificates on a currently running satellite instance.
 
         :id: 0ddf6954-dc83-435e-b156-b567b877c2a5
@@ -201,9 +323,10 @@ class TestKatelloCertsCheck:
                 result = connection.run('foreman-maintain health check --label services-up -y')
                 assert result.return_code == 0, 'Not all services are running'
 
-    @pytest.mark.skip_if_open('BZ:1899108')
     @pytest.mark.destructive
-    def test_positive_generate_capsule_certs_using_absolute_path(self, cert_setup, cert_data):
+    def test_positive_generate_capsule_certs_using_absolute_path(
+        self, cert_setup, cert_data, certs_cleanup
+    ):
         """Create Capsule certs using absolute paths.
 
         :id: 72024757-be6f-49f0-8b88-c57c83f5e7e9
@@ -250,10 +373,11 @@ class TestKatelloCertsCheck:
             # assert the certs.tar was built
             assert connection.run('test -e /root/capsule_cert/capsule_certs_Abs.tar')
 
-    @pytest.mark.skip_if_open('BZ:1899108')
     @pytest.mark.destructive
     @pytest.mark.upgrade
-    def test_positive_generate_capsule_certs_using_relative_path(self, cert_setup, cert_data):
+    def test_positive_generate_capsule_certs_using_relative_path(
+        self, cert_setup, cert_data, certs_cleanup
+    ):
         """Create Capsule certs using relative paths.
 
         :id: 50df0b87-d2d3-42fb-86d5-988ebaaa9ba3
@@ -313,23 +437,6 @@ class TestKatelloCertsCheck:
             2. Run katello-certs-check with the required arguments
 
         :expectedresults: Checking expiration of certificate check should fail.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_negative_check_ca_bundle(self):
-        """Check ca bundle file that contains invalid data.
-
-        :id: ca89e3b9-db15-413b-a395-eaa80bd30c9c
-
-        :steps:
-
-            1. Have in the CA bundle any other data instead of the cert.request
-            2. Run katello-certs-check with the required arguments
-
-        :expectedresults: Checking ca bundle against the cert file should fail.
 
         :CaseAutomation: NotAutomated
         """
