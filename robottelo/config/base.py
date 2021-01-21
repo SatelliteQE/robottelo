@@ -8,11 +8,7 @@ from configparser import NoSectionError
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
-import airgun.settings
 import yaml
-from nailgun import entities
-from nailgun import entity_mixins
-from nailgun.config import ServerConfig
 
 from robottelo.config import casts
 from robottelo.constants import AZURERM_VALID_REGIONS
@@ -1468,8 +1464,6 @@ class Settings:
             raise ImproperlyConfigured(f'Not able to find settings file at {settings_path}')
 
         self.reader = INIReader(settings_path)
-        self._read_robottelo_settings()
-        self._validation_errors.extend(self._validate_robottelo_settings())
 
         attrs = map(lambda attr_name: (attr_name, getattr(self, attr_name)), dir(self))
         feature_settings = filter(lambda tpl: isinstance(tpl[1], FeatureSettings), attrs)
@@ -1483,97 +1477,7 @@ class Settings:
                 'Failed to validate the configuration, check the message(s):\n'
                 '{}'.format('\n'.join(self._validation_errors))
             )
-
-        self._configure_logging()
-        self._configure_third_party_logging()
-        self._configure_entities()
-        self._configure_airgun()
         self._configured = True
-
-    def _read_robottelo_settings(self):
-        """Read Robottelo's general settings."""
-        self.log_driver_commands = self.reader.get(
-            'robottelo',
-            'log_driver_commands',
-            [
-                'newSession',
-                'windowMaximize',
-                'get',
-                'findElement',
-                'sendKeysToElement',
-                'clickElement',
-                'mouseMoveTo',
-            ],
-            list,
-        )
-        self.browser = self.reader.get('robottelo', 'browser', 'selenium')
-        self.cdn = self.reader.get('robottelo', 'cdn', True, bool)
-        self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
-        self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
-        self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
-        self.rhel8_repo = self.reader.get('robottelo', 'rhel8_repo', None)
-        self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
-        self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
-        self.rhel8_os = self.reader.get('robottelo', 'rhel8_os', None, dict)
-        self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
-        self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
-        self.ansible_repo = self.reader.get('robottelo', 'ansible_repo', None)
-        self.sattools_repo = self.reader.get('robottelo', 'sattools_repo', None, dict)
-        self.satmaintenance_repo = self.reader.get('robottelo', 'satmaintenance_repo', None)
-        self.swid_tools_repo = self.reader.get('robottelo', 'swid_tools_repo', None)
-        self.screenshots_path = self.reader.get(
-            'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots'
-        )
-        self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
-        self.artifacts_server = self.reader.get('robottelo', 'artifacts_server', None)
-        self.run_one_datapoint = self.reader.get('robottelo', 'run_one_datapoint', False, bool)
-        self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
-        self.verbosity = self.reader.get(
-            'robottelo',
-            'verbosity',
-            INIReader.cast_logging_level('debug'),
-            INIReader.cast_logging_level,
-        )
-        self.webdriver = self.reader.get('robottelo', 'webdriver', 'chrome')
-        self.saucelabs_user = self.reader.get('robottelo', 'saucelabs_user', None)
-        self.saucelabs_key = self.reader.get('robottelo', 'saucelabs_key', None)
-        self.webdriver_binary = self.reader.get('robottelo', 'webdriver_binary', None)
-        self.browseroptions = self.reader.get('robottelo', 'browseroptions', None)
-        self.webdriver_desired_capabilities = self.reader.get(
-            'robottelo',
-            'webdriver_desired_capabilities',
-            None,
-            cast=INIReader.cast_webdriver_desired_capabilities,
-        )
-        self.command_executor = self.reader.get(
-            'robottelo', 'command_executor', 'http://127.0.0.1:4444/wd/hub'
-        )
-        self.window_manager_command = self.reader.get('robottelo', 'window_manager_command', None)
-        self.repos_hosting_url = self.reader.get('robottelo', 'repos_hosting_url', None)
-
-    def _validate_robottelo_settings(self):
-        """Validate Robottelo's general settings."""
-        validation_errors = []
-        browsers = ('selenium', 'docker', 'saucelabs', 'remote')
-        webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs')
-        if self.browser not in browsers:
-            validation_errors.append(
-                '[robottelo] browser should be one of {}.'.format(', '.join(browsers))
-            )
-        if self.webdriver not in webdrivers:
-            validation_errors.append(
-                '[robottelo] webdriver should be one of {}.'.format(', '.join(webdrivers))
-            )
-        if self.browser == 'saucelabs':
-            if self.saucelabs_user is None:
-                validation_errors.append(
-                    '[robottelo] saucelabs_user must be provided when browser is saucelabs.'
-                )
-            if self.saucelabs_key is None:
-                validation_errors.append(
-                    '[robottelo] saucelabs_key must be provided when browser is saucelabs.'
-                )
-        return validation_errors
 
     @property
     def configured(self):
@@ -1588,97 +1492,6 @@ class Settings:
                 name for name, value in vars(self).items() if isinstance(value, FeatureSettings)
             ]
         return self._all_features
-
-    def _configure_entities(self):
-        """Configure NailGun's entity classes.
-
-        Do the following:
-
-        * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
-            ``EntityCreateMixin.create_raw`` to generate values for empty and
-            required fields.
-        * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
-            returned by :meth:`robottelo.helpers.get_nailgun_config`. See
-            ``robottelo.entity_mixins.Entity`` for more information on the effects
-            of this.
-        * Set a default value for ``nailgun.entities.GPGKey.content``.
-        """
-        entity_mixins.CREATE_MISSING = True
-        entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
-            self.server.get_url(), self.server.get_credentials(), verify=False
-        )
-
-        gpgkey_init = entities.GPGKey.__init__
-
-        def patched_gpgkey_init(self, server_config=None, **kwargs):
-            """Set a default value on the ``content`` field."""
-            gpgkey_init(self, server_config, **kwargs)
-            self._fields['content'].default = os.path.join(
-                get_project_root(), 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
-            )
-
-        entities.GPGKey.__init__ = patched_gpgkey_init
-
-    def _configure_airgun(self):
-        """Pass required settings to AirGun"""
-        airgun.settings.configure(
-            {
-                'airgun': {
-                    'verbosity': logging.getLevelName(self.verbosity),
-                    'tmp_dir': self.tmp_dir,
-                },
-                'satellite': {
-                    'hostname': self.server.hostname,
-                    'password': self.server.admin_password,
-                    'username': self.server.admin_username,
-                },
-                'selenium': {
-                    'browser': self.browser,
-                    'saucelabs_key': self.saucelabs_key,
-                    'saucelabs_user': self.saucelabs_user,
-                    'screenshots_path': self.screenshots_path,
-                    'webdriver': self.webdriver,
-                    'webdriver_binary': self.webdriver_binary,
-                    'command_executor': self.command_executor,
-                    'browseroptions': self.browseroptions,
-                },
-                'webdriver_desired_capabilities': (self.webdriver_desired_capabilities or {}),
-            }
-        )
-
-    def _configure_logging(self):
-        """Configure logging for the entire framework.
-
-        If a config named ``logging.conf`` exists in Robottelo's root
-        directory, the logger is configured using the options in that file.
-        Otherwise, a custom logging output format is set, and default values
-        are used for all other logging options.
-        """
-        # All output should be made by the logging module, including warnings
-        logging.captureWarnings(True)
-
-        # Set the logging level based on the Robottelo's verbosity
-        for name in ('nailgun', 'robottelo'):
-            logging.getLogger(name).setLevel(self.verbosity)
-
-        # Allow overriding logging config based on the presence of logging.conf
-        # file on Robottelo's project root
-        logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
-        if os.path.isfile(logging_conf_path):
-            logging.config.fileConfig(logging_conf_path)
-        else:
-            logging.basicConfig(format='%(levelname)s %(module)s:%(lineno)d: %(message)s')
-
-    def _configure_third_party_logging(self):
-        """Increase the level of third party packages logging."""
-        loggers = (
-            'easyprocess',
-            'paramiko',
-            'requests.packages.urllib3.connectionpool',
-            'selenium.webdriver.remote.remote_connection',
-        )
-        for logger in loggers:
-            logging.getLogger(logger).setLevel(logging.WARNING)
 
 
 class HttpProxySettings(FeatureSettings):

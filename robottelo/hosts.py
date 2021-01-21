@@ -77,9 +77,9 @@ class ContentHost(Host):
         """
         downstream_repo = None
         if repo == REPOS['rhst6']['id']:
-            downstream_repo = settings.sattools_repo['rhel6']
+            downstream_repo = settings.sattools_repo.rhel6
         elif repo == REPOS['rhst7']['id']:
-            downstream_repo = settings.sattools_repo['rhel7']
+            downstream_repo = settings.sattools_repo.rhel7
         elif repo in (REPOS['rhsc6']['id'], REPOS['rhsc7']['id']):
             downstream_repo = settings.capsule_repo
         if force or settings.cdn or not downstream_repo:
