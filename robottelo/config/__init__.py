@@ -9,6 +9,7 @@ from robottelo.config.base import Settings as LegacySettings
 from robottelo.config.facade import SettingsFacade
 from robottelo.config.facade import SettingsNodeWrapper
 
+
 logger = logging.getLogger('robottelo.config')
 
 legacy_settings = LegacySettings()
@@ -46,3 +47,7 @@ settings_proxy = SettingsFacade()
 settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 
 settings = SettingsNodeWrapper(settings_proxy)
+settings.configure_nailgun()
+settings.configure_airgun()
+settings.configure_logging()
+settings.configure_third_party_logging()
