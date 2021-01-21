@@ -1,5 +1,6 @@
 """
-Export::
+Export
+
 Usage::
     hammer export-templates [OPTIONS]
 
@@ -7,8 +8,8 @@ Options::
     branch                        Branch in Git repo.
     commit-msg                    Custom commit message for templates export
     dirname                       The directory within Git repo containing the templates
-    filter                        Export templates with names matching this regex (
-                                    case-insensitive; snippets are not filtered).
+    filter                        Export templates with names matching this regex ( \
+                                  case-insensitive; snippets are not filtered).
     location[-id|-title]          Name/Title/Id of associated location
     location[s|-ids|-titles]      REPLACE locations with given Names/Titles/Ids
     metadata-export-mode          Specify how to handle metadata
@@ -18,7 +19,8 @@ Options::
     repo                          Override the default repo from settings.
 
 
-Import::
+Import
+
 Usage::
     hammer import-templates [OPTIONS]
 

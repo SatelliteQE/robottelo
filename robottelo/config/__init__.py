@@ -3,7 +3,7 @@ import logging
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
 
-from .validators import validators
+from .validators import validators as dynaconf_validators
 from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import Settings as LegacySettings
 from robottelo.config.facade import SettingsFacade
@@ -22,7 +22,7 @@ dynaconf_settings = LazySettings(
     envless_mode=True,
     lowercase_read=True,
 )
-dynaconf_settings.validators.register(**validators)
+dynaconf_settings.validators.register(**dynaconf_validators)
 
 try:
     legacy_settings.configure()

@@ -30,7 +30,7 @@ Linting
 
 Docstrings
 
-* Every class, method and function will have a `properly formatted`_ docstring.
+* Every class, method and function will have a sphinx formatted docstring.
 * Docstring will also contain `testimony`_ and `sphinx`_ directives, as
   appropriate.
 
