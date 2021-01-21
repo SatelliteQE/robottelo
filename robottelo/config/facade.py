@@ -15,6 +15,7 @@ logger = logging.getLogger('robottelo.config.facade')
 WRAPPER_EXCEPTIONS = (
     'server.hostname',
     'server.ssh_key',
+    'server.ssh_key_string',
     'server.ssh_password',
     'server.port',
     'server.scheme',

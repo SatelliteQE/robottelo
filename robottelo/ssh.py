@@ -6,6 +6,7 @@ import re
 import time
 from contextlib import contextmanager
 from fnmatch import fnmatch
+from io import StringIO
 
 import paramiko
 
@@ -86,25 +87,35 @@ def _call_paramiko_sshclient():  # pragma: no cover
 
 
 def get_client(
-    hostname=None, username=None, password=None, key_filename=None, timeout=None, port=22
+    hostname=None,
+    username=None,
+    password=None,
+    key_filename=None,
+    key_string=None,
+    timeout=None,
+    port=22,
 ):
-    """Returns a SSH client connected to given hostname"""
-    if hostname is None:
-        hostname = settings.server.hostname
-    if username is None:
-        username = settings.server.ssh_username
-    if key_filename is None and password is None:
-        key_filename = settings.server.ssh_key
+    """Returns a SSH client connected to given hostname
+
+    Processes ssh credentials in the order: password, key_filename, ssh_key
+    Config validation enforces one of the three must be set in settings.server
+    """
+    hostname = hostname or settings.server.hostname
+    username = username or settings.server.ssh_username
+    password = password or settings.server.ssh_password
     if password is None:
-        password = settings.server.ssh_password
-    if timeout is None:
-        timeout = settings.ssh_client.connection_timeout
+        key_filename = key_filename or settings.server.ssh_key
+    if password is None and key_filename is None:
+        key_string = key_string or settings.server.ssh_key_string
+        key_string = paramiko.rsakey.RSAKey.from_private_key(StringIO(str(key_string)))
+    timeout = timeout or settings.ssh_client.connection_timeout
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
         hostname=hostname,
         username=username,
         key_filename=key_filename,
+        pkey=key_string,
         password=password,
         timeout=timeout,
         port=port,
@@ -115,7 +126,13 @@ def get_client(
 
 @contextmanager
 def get_connection(
-    hostname=None, username=None, password=None, key_filename=None, timeout=None, port=22
+    hostname=None,
+    username=None,
+    password=None,
+    key_filename=None,
+    key_string=None,
+    timeout=None,
+    port=22,
 ):
     """Yield an ssh connection object.
 
@@ -129,27 +146,21 @@ def get_connection(
         with get_connection() as connection:
             ...
 
-    :param str hostname: The hostname of the server to establish connection.If
-        it is ``None`` ``hostname`` from configuration's ``server`` section
-        will be used.
-    :param str username: The username to use when connecting. If it is ``None``
-        ``ssh_username`` from configuration's ``server`` section will be used.
-    :param str password: The password to use when connecting. If it is ``None``
-        ``ssh_password`` from configuration's ``server`` section will be used.
-        Should be applied only in case ``key_filename`` is not set
-    :param str key_filename: The path of the ssh private key to use when
-        connecting to the server. If it is ``None`` ``key_filename`` from
-        configuration's ``server`` section will be used.
-    :param int timeout: Time to wait for establish the connection.
-    :param int port: The server port to connect to, the default port is 22.
+    kwargs are passed through to get_client
 
     :return: An SSH connection.
     :rtype: ``paramiko.SSHClient``
 
     """
-    if timeout is None:
-        timeout = settings.ssh_client.connection_timeout
-    client = get_client(hostname, username, password, key_filename, timeout, port)
+    client = get_client(
+        hostname=hostname,
+        username=username,
+        password=password,
+        key_filename=key_filename,
+        key_string=key_string,
+        timeout=timeout,
+        port=port,
+    )
     try:
         logger.debug(f'Instantiated Paramiko client {client._id}')
         logger.info('Connected to [%s]', hostname)
@@ -160,7 +171,9 @@ def get_connection(
 
 
 @contextmanager
-def get_sftp_session(hostname=None, username=None, password=None, key_filename=None, timeout=None):
+def get_sftp_session(
+    hostname=None, username=None, password=None, key_filename=None, key_string=None, timeout=None
+):
     """Yield a SFTP session object.
 
     The session will be configured with the host whose hostname is
@@ -174,25 +187,14 @@ def get_sftp_session(hostname=None, username=None, password=None, key_filename=N
       with get_sftp_session() as session:
       ...
 
-    :param str hostname: The hostname of the server to establish connection.If
-        it is ``None`` ``hostname`` from configuration's ``server`` section
-        will be used.
-    :param str username: The username to use when connecting.If it is ``None``
-        ``ssh_username`` from configuration's ``server`` section will be used.
-    :param str password: The password to use when connecting. If it is
-        ``None``  ``ssh_password`` from configuration's ``server`` section
-        will be used. Should be applied only in case ``key_filename`` is not
-        set
-    :param str key_filename: The path of the ssh private key to use when
-        connecting to the server. If it is ``None`` ``key_filename`` from
-        configuration's ``server`` section will be used.
-    :param int timeout: Time to wait for establish the connection.
+    kwargs are passed through to get_connection
     """
     with get_connection(
         hostname=hostname,
         username=username,
         password=password,
         key_filename=key_filename,
+        key_string=key_string,
         timeout=timeout,
     ) as connection:
         try:
@@ -203,25 +205,21 @@ def get_sftp_session(hostname=None, username=None, password=None, key_filename=N
 
 
 def add_authorized_key(
-    key, hostname=None, username=None, password=None, key_filename=None, timeout=None
+    key,
+    hostname=None,
+    username=None,
+    password=None,
+    key_filename=None,
+    key_string=None,
+    timeout=None,
 ):
     """Appends a local public ssh key to remote authorized keys
 
     refer to: remote_execution_ssh_keys provisioning template
 
+    kwargs are passed through to get_client
+
     :param key: either a file path, key string or a file-like obj to append.
-    :param str hostname: The hostname of the server to establish connection. If
-        it is ``None`` ``hostname`` from configuration's ``server`` section
-        will be used.
-    :param str username: The username to use when connecting. If it is ``None``
-        ``ssh_username`` from configuration's ``server`` section will be used.
-    :param str password: The password to use when connecting. If it is ``None``
-        ``ssh_password`` from configuration's ``server`` section will be used.
-        Should be applied only in case ``key_filename`` is not set
-    :param str key_filename: The path of the ssh private key to use when
-        connecting to the server. If it is ``None`` ``key_filename`` from
-        configuration's ``server`` section will be used.
-    :param int timeout: Time to wait for establish the connection.
     """
 
     if getattr(key, 'read', None):  # key is a file-like object
@@ -233,9 +231,6 @@ def add_authorized_key(
             key_content = key_file.read()
     else:
         raise AttributeError('Invalid key')
-
-    if timeout is None:
-        timeout = settings.ssh_client.connection_timeout
 
     key_content = key_content.strip()
     ssh_path = '~/.ssh'
@@ -269,7 +264,7 @@ def add_authorized_key(
         execute_command(cmd, con)
 
 
-def upload_file(local_file, remote_file, key_filename=None, hostname=None):
+def upload_file(local_file, remote_file, key_filename=None, key_string=None, hostname=None):
     """Upload a local file to a remote machine
 
     :param local_file: either a file path or a file-like object to be uploaded.
@@ -282,11 +277,15 @@ def upload_file(local_file, remote_file, key_filename=None, hostname=None):
         configuration's ``server`` section will be used.
     """
 
-    with get_sftp_session(hostname=hostname, key_filename=key_filename) as sftp:
+    with get_sftp_session(
+        hostname=hostname, key_filename=key_filename, key_string=key_string
+    ) as sftp:
         _upload_file(sftp, local_file, remote_file)
 
 
-def upload_files(local_dir, remote_dir, file_search="*.txt", hostname=None, key_filename=None):
+def upload_files(
+    local_dir, remote_dir, file_search='*.txt', hostname=None, key_filename=None, key_string=None
+):
     """Upload all files from directory to a remote directory
 
     :param local_dir: all files from local path to be uploaded.
@@ -349,39 +348,29 @@ def command(
     username=None,
     password=None,
     key_filename=None,
+    key_string=None,
     timeout=None,
     connection_timeout=None,
     port=22,
 ):
     """Executes SSH command(s) on remote hostname.
 
+    kwargs are passed through to get_connection
+
     :param str cmd: The command to run
     :param str output_format: json, csv or None
-    :param str hostname: The hostname of the server to establish connection. If
-        it is ``None`` ``hostname`` from configuration's ``server`` section
-        will be used.
-    :param str username: The username to use when connecting. If it is ``None``
-        ``ssh_username`` from configuration's ``server`` section will be used.
-    :param str password: The password to use when connecting. If it is ``None``
-        ``ssh_password`` from configuration's ``server`` section will be used.
-        Should be applied only in case ``key_filename`` is not set
-    :param str key_filename: The path of the ssh private key to use when
-        connecting to the server. If it is ``None`` ``key_filename`` from
-        configuration's ``server`` section will be used.
     :param int timeout: Time to wait for the ssh command to finish.
     :param connection_timeout: Time to wait for establishing the connection.
-    :param int port: The server port to connect to, the default port is 22.
     """
     hostname = hostname or settings.server.hostname
-    if timeout is None:
-        timeout = settings.ssh_client.command_timeout
-    if connection_timeout is None:
-        connection_timeout = settings.ssh_client.connection_timeout
+    timeout = timeout or settings.ssh_client.command_timeout
+    connection_timeout = connection_timeout or settings.ssh_client.connection_timeout
     with get_connection(
         hostname=hostname,
         username=username,
         password=password,
         key_filename=key_filename,
+        key_string=key_string,
         timeout=connection_timeout,
         port=port,
     ) as connection:

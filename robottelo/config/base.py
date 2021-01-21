@@ -135,6 +135,7 @@ class ServerSettings(FeatureSettings):
         self.port = None
         self.scheme = None
         self.ssh_key = None
+        self.ssh_key_string = None
         self.ssh_password = None
         self.ssh_username = None
         self._version = None
@@ -147,6 +148,7 @@ class ServerSettings(FeatureSettings):
         self.port = reader.get('server', 'port', cast=int)
         self.scheme = reader.get('server', 'scheme', 'https')
         self.ssh_key = reader.get('server', 'ssh_key')
+        self.ssh_key_string = reader.get('sever', 'ssh_key_string')
         self.ssh_password = reader.get('server', 'ssh_password')
         self.ssh_username = reader.get('server', 'ssh_username', 'root')
         self._version = reader.get('server', 'version', None)
@@ -165,8 +167,10 @@ class ServerSettings(FeatureSettings):
         validation_errors = []
         if self.hostname is None:
             validation_errors.append('[server] hostname must be provided.')
-        if self.ssh_key is None and self.ssh_password is None:
-            validation_errors.append('[server] ssh_key or ssh_password must be provided.')
+        if not any([self.ssh_key, self.ssh_password, self.ssh_key_string]):
+            validation_errors.append(
+                '[server] ssh_key or ssh_password or ssh_key_string must be provided.'
+            )
         return validation_errors
 
     def get_credentials(self):

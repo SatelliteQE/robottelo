@@ -1,5 +1,6 @@
 """Tests for module ``robottelo.ssh``."""
 import os
+from io import StringIO
 from unittest import mock
 
 import paramiko
@@ -47,6 +48,7 @@ class MockSSHClient:
         self.hostname = None
         self.username = None
         self.key_filename = None
+        self.pkey = None
         self.password = None
         self.ret_code = 0
 
@@ -83,6 +85,7 @@ class MockSSHClient:
         self.username = username
         self.password = password
         self.key_filename = key_filename
+        self.pkey = pkey
 
     def close(self):
         """A no-op stub method."""
@@ -111,7 +114,9 @@ class TestSSH:
         key_filename = os.path.join(os.path.abspath(__name__), 'data', 'test_dsa.key')
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
+        settings.server.ssh_password = None
         settings.server.ssh_key = key_filename
+        settings.server.ssh_key_string = None
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:
@@ -121,6 +126,8 @@ class TestSSH:
             assert connection.hostname == 'example.com'
             assert connection.username == 'nobody'
             assert connection.key_filename == key_filename
+            assert connection.password is None
+            assert connection.pkey is None
         assert connection.set_missing_host_key_policy_ == 1
         assert connection.connect_ == 1
         assert connection.close_ == 1
@@ -141,6 +148,7 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.server.ssh_key_string = None
         settings.ssh_client.command_timeout = 300
         settings.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:
@@ -150,6 +158,43 @@ class TestSSH:
             assert connection.hostname == 'example.com'
             assert connection.username == 'nobody'
             assert connection.password == 'test_password'
+            assert connection.key_filename is None
+            assert connection.pkey is None
+        assert connection.set_missing_host_key_policy_ == 1
+        assert connection.connect_ == 1
+        assert connection.close_ == 1
+
+    @mock.patch('robottelo.ssh.settings')
+    def test_get_connection_key_string(self, settings):
+        """Test method ``get_connection`` using key file to connect to the
+        server.
+
+        Mock up ``paramiko.SSHClient`` (by overriding method
+        ``_call_paramiko_sshclient``) before calling ``get_connection``.
+        Assert that certain parameters are passed to the (mock)
+        ``paramiko.SSHClient`` object, and that certain methods on that object
+        are called.
+        """
+        ssh._call_paramiko_sshclient = MockSSHClient
+        key_string = StringIO('')
+        rsa_key = paramiko.rsakey.RSAKey.generate(512)
+        rsa_key.write_private_key(key_string)
+        settings.server.hostname = 'example.com'
+        settings.server.ssh_username = 'nobody'
+        settings.server.ssh_password = None
+        settings.server.ssh_key = None
+        settings.server.ssh_key_string = key_string.getvalue()  # resolve StringIO stream
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
+        with ssh.get_connection() as connection:
+            assert connection.set_missing_host_key_policy_ == 1
+            assert connection.connect_ == 1
+            assert connection.close_ == 0
+            assert connection.hostname == 'example.com'
+            assert connection.username == 'nobody'
+            assert connection.password is None
+            assert connection.key_filename is None
+            assert connection.pkey == rsa_key  # PKey.__cmp__
         assert connection.set_missing_host_key_policy_ == 1
         assert connection.connect_ == 1
         assert connection.close_ == 1
