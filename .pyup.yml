@@ -1,3 +1,9 @@
 pin: False
+
 requirements:
   - requirements.txt
+  - requirements-optional.txt
+
+label_prs: dependencies
+
+close_prs: True
