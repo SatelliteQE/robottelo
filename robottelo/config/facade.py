@@ -19,6 +19,7 @@ logger = logging.getLogger('robottelo.config.facade')
 
 WRAPPER_EXCEPTIONS = (
     'server.hostname',
+    # 'server.hostnames',
     'server.ssh_key',
     'server.ssh_key_string',
     'server.ssh_password',
@@ -376,11 +377,11 @@ class SettingsFacade:
         elif key == "server.get_credentials":
             value = self._cached_function(self.__server_get_credentials)
         elif key == "server.get_url":
-            value = self._cached_function(self.__server_get_url)
+            value = self.__server_get_url
         elif key == "server.get_pub_url":
-            value = self._cached_function(self.__server_get_pub_url)
+            value = self.__server_get_pub_url
         elif key == "server.get_cert_rpm_url":
-            value = self._cached_function(self.__server_get_cert_rpm_url)
+            value = self.__server_get_cert_rpm_url
         elif key == 'server.get_hostname':
             value = self.__server_get_hostname
         elif key == "server.version":

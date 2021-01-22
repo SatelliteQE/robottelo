@@ -259,7 +259,10 @@ def __initiate(config):
         for upgrade_mark in (PRE_UPGRADE_MARK, POST_UPGRADE_MARK)
         if upgrade_mark in config.option.markexpr
     ]:
-        raise OptionMarksError('options error: pre_upgrade or post_upgrade marks must be selected')
+        pytest.skip(
+            'options error: pre_upgrade or post_upgrade marks must be selected',
+            allow_module_level=True,
+        )
     if PRE_UPGRADE_MARK in config.option.markexpr:
         pre_upgrade_failed_tests = []
         PRE_UPGRADE = True

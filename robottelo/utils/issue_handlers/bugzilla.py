@@ -47,7 +47,10 @@ def is_open_bz(issue, data=None):
     # BZ is CLOSED with a resolution in (ERRATA, CURRENT_RELEASE, ...)
     # server.version is higher or equal than BZ version
     # Consider fixed,  BZ is not open
-    if settings.server.version >= extract_min_version(bz):
+    if hasattr(settings.server.version, 'release'):
+        if settings.server.version.release >= extract_min_version(bz).release:
+            return False
+    elif settings.server.version >= extract_min_version(bz):
         return False
 
     # Not in OPEN_STATUSES
