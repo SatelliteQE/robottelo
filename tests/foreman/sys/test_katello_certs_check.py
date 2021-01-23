@@ -123,7 +123,8 @@ class TestKatelloCertsCheck:
             settings.server.hostname,
         ]
         with get_connection(timeout=300) as connection:
-            result = connection.run("rm -rf {}".format(" ".join(files)))
+            files = " ".join(files)
+            result = connection.run(f"rm -rf {files}")
             assert result.return_code == 0
 
     @pytest.fixture(scope="module")
@@ -265,7 +266,7 @@ class TestKatelloCertsCheck:
                     assert error['message'] in " ".join([result.stdout, result.stderr])
                     break
             else:
-                assert 0, "Failed to receive the error for invalid katello-cert-check"
+                pytest.fail("Failed to receive the error for invalid katello-cert-check")
 
     @pytest.mark.destructive
     def test_positive_update_katello_certs(self, cert_setup, cert_data, certs_cleanup):
