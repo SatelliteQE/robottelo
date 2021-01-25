@@ -120,6 +120,7 @@ class TestKatelloCertsCheck:
             'capsule_cert' 'openssl.cnf',
             'private',
             'serial*',
+            'certs/*',
             settings.server.hostname,
         ]
         with get_connection(timeout=300) as connection:
@@ -202,7 +203,9 @@ class TestKatelloCertsCheck:
         self.validate_output(result, cert_data)
 
     @pytest.mark.tier1
-    def test_katello_certs_check_output_wildcard_inputs(self, generate_certs, cert_data):
+    def test_katello_certs_check_output_wildcard_inputs(
+        self, generate_certs, cert_data, certs_cleanup
+    ):
         """Validate that katello-certs-check generates correct output with wildcard certs.
 
         :id: 7f9da806-5b23-11eb-b7ea-d46d6dd3b5b2
@@ -220,11 +223,7 @@ class TestKatelloCertsCheck:
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-certs-check -c {} -k {} -b {}'.format(
-                    "certs/wildcard.crt",
-                    "certs/wildcard.key",
-                    "certs/ca.crt",
-                ),
+                'katello-certs-check -c certs/wildcard.crt -k certs/wildcard.key -b certs/ca.crt',
                 output_format='plain',
             )
         self.validate_output(result, cert_data)
@@ -232,7 +231,7 @@ class TestKatelloCertsCheck:
     @pytest.mark.parametrize("error, cert_file, key_file, ca_file", invalid_inputs)
     @pytest.mark.tier1
     def test_katello_certs_check_output_invalid_input(
-        self, generate_certs, error, cert_file, key_file, ca_file
+        self, generate_certs, error, cert_file, key_file, ca_file, certs_cleanup
     ):
         """Validate that katello-certs-check raise the correct errors for invalid
          inputs
@@ -251,19 +250,17 @@ class TestKatelloCertsCheck:
          inputs.
         """
         with get_connection() as connection:
-            result = connection.run(
-                'katello-certs-check -c {} -k {} -b {}'.format(
-                    cert_file,
-                    key_file,
-                    ca_file,
-                ),
+            certs_check_result = connection.run(
+                f'katello-certs-check -c {cert_file} -k {key_file} -b {ca_file}',
                 output_format='plain',
             )
-            results = result.stdout.split("\n\n")
-            for each_result in results:
-                if error['check'] in each_result:
-                    assert '[FAIL]' in each_result
-                    assert error['message'] in " ".join([result.stdout, result.stderr])
+            for result in certs_check_result.stdout.split("\n\n"):
+                if error['check'] in result:
+                    assert '[FAIL]' in result
+                    assert (
+                        error['message']
+                        in f'{certs_check_result.stdout} {certs_check_result.stderr}'
+                    )
                     break
             else:
                 pytest.fail("Failed to receive the error for invalid katello-cert-check")
