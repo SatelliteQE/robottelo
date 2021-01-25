@@ -26,32 +26,19 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
+from robottelo.api.utils import promote
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_architecture
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_domain
-from robottelo.cli.factory import make_environment
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_medium
-from robottelo.cli.factory import make_os
 from robottelo.cli.factory import make_proxy
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
-from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.cli.location import Location
-from robottelo.cli.org import Org
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.scparams import SmartClassParameter
@@ -74,8 +61,6 @@ from robottelo.datafactory import valid_hosts_list
 from robottelo.decorators import skip_if_not_set
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
-
-# TODO replace make - create fixtures if possible, if not use API
 
 
 @pytest.fixture(scope="module")
@@ -132,7 +117,6 @@ def function_host(module_default_proxy):
     )
     yield host
     Host.delete({'id': host['id']})
-    # Host.delete({'id': host_template.id})
 
 
 @pytest.fixture(scope="function")
@@ -142,21 +126,23 @@ def function_user(function_host):
     """
     user_name = gen_string('alphanumeric')
     user_password = gen_string('alphanumeric')
-    org = Org.info({'name': function_host['organization']})
-    location = Location.info({'name': function_host['location']})
-    user = make_user(
-        {
-            'admin': False,
-            'default-organization-id': org.id,
-            'organization-ids': [org.id],
-            'default-location-id': location['id'],
-            'location-ids': [location['id']],
-            'login': user_name,
-            'password': user_password,
-        }
-    )
+    org = entities.Organization().search(
+        query={'search': f'name="{function_host["organization"]}"'}
+    )[0]
+    location = entities.Location().search(query={'search': f'name="{function_host["location"]}"'})[
+        0
+    ]
+    user = entities.User(
+        admin=False,
+        default_organization=org.id,
+        organization=[org.id],
+        default_location=location.id,
+        location=[location.id],
+        login=user_name,
+        password=user_password,
+    ).create()
     yield {'user': user, 'password': user_password}
-    User.delete({'id': user['id']})
+    user.delete()
 
 
 # -------------------------- CREATE SCENARIOS -------------------------
@@ -217,7 +203,7 @@ def test_positive_create_and_delete(module_lce_library, module_published_cv):
 
 @pytest.mark.host_create
 @pytest.mark.tier1
-def test_positive_add_interface_by_id():
+def test_positive_add_interface_by_id(default_location, default_org):
     """New network interface can be added to existing host
 
     :id: e97dba92-61eb-47ad-a7d7-5f989292b12a
@@ -227,13 +213,12 @@ def test_positive_add_interface_by_id():
 
     :CaseImportance: Critical
     """
-    domain = make_domain(
-        {'organizations': 'Default Organization', 'locations': 'Default Location'}
-    )
+    domain = entities.Domain(location=[default_location], organization=[default_org]).create()
+
     mac = gen_mac(multicast=False)
-    host = make_fake_host({'domain-id': domain['id']})
+    host = make_fake_host({'domain-id': domain.id})
     HostInterface.create(
-        {'host-id': host['id'], 'domain-id': domain['id'], 'mac': mac, 'type': 'interface'}
+        {'host-id': host['id'], 'domain-id': domain.id, 'mac': mac, 'type': 'interface'}
     )
     host = Host.info({'id': host['id']})
     host_interface = HostInterface.info(
@@ -242,7 +227,7 @@ def test_positive_add_interface_by_id():
             'id': [ni for ni in host['network-interfaces'] if ni['mac-address'] == mac][0]['id'],
         }
     )
-    assert host_interface['domain'] == domain['name']
+    assert host_interface['domain'] == domain.name
     assert host_interface['mac-address'] == mac
 
 
@@ -675,19 +660,17 @@ def test_positive_create_inherit_lce_cv(module_published_cv, module_lce_library,
 
     :BZ: 1391656
     """
-    hostgroup = make_hostgroup(
-        {
-            'content-view-id': module_published_cv.id,
-            'lifecycle-environment-id': module_lce_library.id,
-            'organization-ids': module_org.id,
-        }
-    )
-    host = make_fake_host({'hostgroup-id': hostgroup['id'], 'organization-id': module_org.id})
+    hostgroup = entities.HostGroup(
+        content_view=module_published_cv,
+        lifecycle_environment=module_lce_library,
+        organization=[module_org],
+    ).create()
+    host = make_fake_host({'hostgroup-id': hostgroup.id, 'organization-id': module_org.id})
     assert (
-        host['content-information']['lifecycle-environment']['name']
-        == hostgroup['lifecycle-environment']['name']
+        int(host['content-information']['lifecycle-environment']['id'])
+        == hostgroup.lifecycle_environment.id
     )
-    assert host['content-information']['content-view']['name'] == hostgroup['content-view']['name']
+    assert int(host['content-information']['content-view']['id']) == hostgroup.content_view.id
 
 
 @pytest.mark.host_create
@@ -706,41 +689,38 @@ def test_positive_create_inherit_nested_hostgroup():
     """
     options = entities.Host()
     options.create_missing()
-    lce = make_lifecycle_environment({'organization-id': options.organization.id})
-    cv = make_content_view({'organization-id': options.organization.id})
-    ContentView.publish({'id': cv['id']})
-    version_id = ContentView.version_list({'content-view-id': cv['id']})[0]['id']
-    ContentView.version_promote({'id': version_id, 'to-lifecycle-environment-id': lce['id']})
+    lce = entities.LifecycleEnvironment(organization=options.organization).create()
+    content_view = entities.ContentView(organization=options.organization).create()
+    content_view.publish()
+    promote(content_view.read().version[0], environment_id=lce.id)
     host_name = gen_string('alpha').lower()
     nested_hg_name = gen_string('alpha')
     parent_hostgroups = []
     nested_hostgroups = []
     for _ in range(2):
         parent_hg_name = gen_string('alpha')
-        parent_hostgroups.append(
-            make_hostgroup({'name': parent_hg_name, 'organization-ids': options.organization.id})
-        )
-        nested_hostgroups.append(
-            make_hostgroup(
-                {
-                    'name': nested_hg_name,
-                    'parent': parent_hg_name,
-                    'organization-ids': options.organization.id,
-                    'architecture-id': options.architecture.id,
-                    'domain-id': options.domain.id,
-                    'medium-id': options.medium.id,
-                    'operatingsystem-id': options.operatingsystem.id,
-                    'partition-table-id': options.ptable.id,
-                    'location-ids': options.location.id,
-                    'content-view-id': cv['id'],
-                    'lifecycle-environment-id': lce['id'],
-                }
-            )
-        )
+        parent_hg = entities.HostGroup(
+            name=parent_hg_name, organization=[options.organization]
+        ).create()
+        parent_hostgroups.append(parent_hg)
+        nested_hg = entities.HostGroup(
+            architecture=options.architecture,
+            content_view=content_view,
+            domain=options.domain,
+            lifecycle_environment=lce,
+            location=[options.location],
+            medium=options.medium,
+            name=nested_hg_name,
+            operatingsystem=options.operatingsystem,
+            organization=[options.organization],
+            parent=parent_hg,
+            ptable=options.ptable,
+        ).create()
+        nested_hostgroups.append(nested_hg)
 
     host = make_host(
         {
-            'hostgroup-title': nested_hostgroups[0]['title'],
+            'hostgroup-title': f'{parent_hostgroups[0].name}/{nested_hostgroups[0].name}',
             'location-id': options.location.id,
             'organization-id': options.organization.id,
             'name': host_name,
@@ -771,30 +751,29 @@ def test_positive_list_with_nested_hostgroup():
     host_name = gen_string('alpha').lower()
     parent_hg_name = gen_string('alpha')
     nested_hg_name = gen_string('alpha')
-    lce = make_lifecycle_environment({'organization-id': options.organization.id})
-    cv = make_content_view({'organization-id': options.organization.id})
-    ContentView.publish({'id': cv['id']})
-    version_id = ContentView.version_list({'content-view-id': cv['id']})[0]['id']
-    ContentView.version_promote({'id': version_id, 'to-lifecycle-environment-id': lce['id']})
-    make_hostgroup({'name': parent_hg_name, 'organization-ids': options.organization.id})
-    nested_hostgroup = make_hostgroup(
-        {
-            'name': nested_hg_name,
-            'parent': parent_hg_name,
-            'organization-ids': options.organization.id,
-            'architecture-id': options.architecture.id,
-            'domain-id': options.domain.id,
-            'medium-id': options.medium.id,
-            'operatingsystem-id': options.operatingsystem.id,
-            'partition-table-id': options.ptable.id,
-            'location-ids': options.location.id,
-            'content-view-id': cv['id'],
-            'lifecycle-environment-id': lce['id'],
-        }
-    )
+    lce = entities.LifecycleEnvironment(organization=options.organization).create()
+    content_view = entities.ContentView(organization=options.organization).create()
+    content_view.publish()
+    promote(content_view.read().version[0], environment_id=lce.id)
+    parent_hg = entities.HostGroup(
+        name=parent_hg_name, organization=[options.organization]
+    ).create()
+    nested_hg = entities.HostGroup(
+        architecture=options.architecture,
+        content_view=content_view,
+        domain=options.domain,
+        lifecycle_environment=lce,
+        location=[options.location],
+        medium=options.medium,
+        name=nested_hg_name,
+        operatingsystem=options.operatingsystem,
+        organization=[options.organization],
+        parent=parent_hg,
+        ptable=options.ptable,
+    ).create()
     make_host(
         {
-            'hostgroup-id': nested_hostgroup['id'],
+            'hostgroup-id': nested_hg.id,
             'location-id': options.location.id,
             'organization-id': options.organization.id,
             'name': host_name,
@@ -839,7 +818,7 @@ def test_negative_create_with_incompatible_pxe_loader():
 # -------------------------- UPDATE SCENARIOS -------------------------
 @pytest.mark.host_update
 @pytest.mark.tier1
-def test_positive_update_parameters_by_name(function_host, module_location):
+def test_positive_update_parameters_by_name(function_host, module_architecture, module_location):
     """A host can be updated with a new name, mac address, domain,
         location, environment, architecture, operating system and medium.
         Use id to access the host
@@ -857,37 +836,39 @@ def test_positive_update_parameters_by_name(function_host, module_location):
     new_name = valid_hosts_list()[0]
     new_mac = gen_mac(multicast=False)
     new_loc = module_location
-    host = Host.info({'id': function_host['id']})
-    new_domain = make_domain(
-        {'locations': new_loc.name, 'organizations': function_host['organization']}
-    )
-    new_env = make_environment(
-        {'locations': new_loc.name, 'organizations': function_host['organization']}
-    )
-    new_arch = make_architecture()
-    new_os = make_os(
-        {
-            'architectures': new_arch['name'],
-            'partition-tables': function_host['operating-system']['partition-table'],
-        }
-    )
-    new_medium = make_medium(
-        {
-            'locations': new_loc.name,
-            'organizations': function_host['organization'],
-            'operatingsystems': new_os['title'],
-        }
-    )
+    organization = entities.Organization().search(
+        query={'search': f'name="{function_host["organization"]}"'}
+    )[0]
+    new_domain = entities.Domain(location=[new_loc], organization=[organization]).create()
+    new_env = entities.Environment(
+        name=gen_string('alphanumeric'),
+        organization=[organization],
+        location=[new_loc],
+    ).create()
+    p_table_name = function_host['operating-system']['partition-table']
+    p_table = entities.PartitionTable().search(query={'search': f'name="{p_table_name}"'})
+    new_os = entities.OperatingSystem(
+        major=gen_integer(0, 10),
+        minor=gen_integer(0, 10),
+        name=gen_string('alphanumeric'),
+        architecture=[module_architecture.id],
+        ptable=[p_table[0].id],
+    ).create()
+    new_medium = entities.Media(
+        location=[new_loc],
+        organization=[organization],
+        operatingsystem=[new_os],
+    ).create()
     Host.update(
         {
-            'architecture': new_arch['name'],
-            'domain': new_domain['name'],
-            'environment': new_env['name'],
+            'architecture': module_architecture.name,
+            'domain': new_domain.name,
+            'environment': new_env.name,
             'name': function_host['name'],
             'mac': new_mac,
-            'medium-id': new_medium['id'],
+            'medium-id': new_medium.id,
             'new-name': new_name,
-            'operatingsystem': new_os['title'],
+            'operatingsystem': new_os.title,
             'new-location-id': new_loc.id,
         }
     )
@@ -895,11 +876,11 @@ def test_positive_update_parameters_by_name(function_host, module_location):
     assert '{}.{}'.format(new_name, host['network']['domain']) == host['name']
     assert host['location'] == new_loc.name
     assert host['network']['mac'] == new_mac
-    assert host['network']['domain'] == new_domain['name']
-    assert host['puppet-environment'] == new_env['name']
-    assert host['operating-system']['architecture'] == new_arch['name']
-    assert host['operating-system']['operating-system'] == new_os['title']
-    assert host['operating-system']['medium'] == new_medium['name']
+    assert host['network']['domain'] == new_domain.name
+    assert host['puppet-environment'] == new_env.name
+    assert host['operating-system']['architecture'] == module_architecture.name
+    assert host['operating-system']['operating-system'] == new_os.title
+    assert host['operating-system']['medium'] == new_medium.name
 
 
 @pytest.mark.tier1
@@ -940,7 +921,7 @@ def test_negative_update_mac(function_host):
 
 @pytest.mark.tier2
 @pytest.mark.host_update
-def test_negative_update_arch(function_host):
+def test_negative_update_arch(function_host, module_architecture):
     """A host can not be updated with a architecture, which does not
     belong to host's operating system
 
@@ -950,16 +931,15 @@ def test_negative_update_arch(function_host):
 
     :CaseLevel: Integration
     """
-    new_arch = make_architecture()
     with pytest.raises(CLIReturnCodeError):
-        Host.update({'architecture': new_arch['name'], 'id': function_host['id']})
+        Host.update({'architecture': module_architecture.name, 'id': function_host['id']})
     host = Host.info({'id': function_host['id']})
-    assert host['operating-system']['architecture'] != new_arch['name']
+    assert host['operating-system']['architecture'] != module_architecture.name
 
 
 @pytest.mark.tier2
 @pytest.mark.host_update
-def test_negative_update_os(function_host):
+def test_negative_update_os(function_host, module_architecture):
     """A host can not be updated with a operating system, which is
     not associated with host's medium
 
@@ -969,23 +949,24 @@ def test_negative_update_os(function_host):
 
     :CaseLevel: Integration
     """
-    new_arch = make_architecture()
-    new_os = make_os(
-        {
-            'architectures': new_arch['name'],
-            'partition-tables': function_host['operating-system']['partition-table'],
-        }
-    )
+    p_table = function_host['operating-system']['partition-table']
+    p_table = entities.PartitionTable().search(query={'search': f'name="{p_table}"'})[0]
+    new_os = entities.OperatingSystem(
+        major=gen_integer(0, 10),
+        name=gen_string('alphanumeric'),
+        architecture=[module_architecture.id],
+        ptable=[p_table.id],
+    ).create()
     with pytest.raises(CLIReturnCodeError):
         Host.update(
             {
-                'architecture': new_arch['name'],
+                'architecture': module_architecture.name,
                 'id': function_host['id'],
-                'operatingsystem': new_os['title'],
+                'operatingsystem': new_os.title,
             }
         )
     host = Host.info({'id': function_host['id']})
-    assert host['operating-system']['operating-system'] != new_os['title']
+    assert host['operating-system']['operating-system'] != new_os.title
 
 
 @pytest.mark.run_in_one_thread
@@ -1004,10 +985,10 @@ def test_hammer_host_info_output():
 
     :BZ: 1779093
     """
-    result_list = User.list()
+    user = entities.User().search(query={'search': f'login={settings.server.admin_username}'})[0]
     Host.update({'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'})
     result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
-    assert result_info['additional-info']['owner-id'] in [result['id'] for result in result_list]
+    assert int(result_info['additional-info']['owner-id']) == user.id
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
@@ -1093,17 +1074,17 @@ def test_negative_view_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = make_role()
+    role = entities.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
-        role['id'],
+        role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
             'Organization': {'permissions': ['view_organizations']},
         },
     )
-    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
     host = Host.with_user(
-        username=function_user['user']['login'], password=function_user['password']
+        username=function_user['user'].login, password=function_user['password']
     ).info({'id': host['id']})
     assert not host.get('parameters')
 
@@ -1136,18 +1117,18 @@ def test_positive_view_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = make_role()
+    role = entities.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
-        role['id'],
+        role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
             'Organization': {'permissions': ['view_organizations']},
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
     host = Host.with_user(
-        username=function_user['user']['login'], password=function_user['password']
+        username=function_user['user'].login, password=function_user['password']
     ).info({'id': host['id']})
     assert param_name in host['parameters']
     assert host['parameters'][param_name] == param_value
@@ -1181,21 +1162,21 @@ def test_negative_edit_parameter_by_non_admin_user(function_host, function_user)
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
     host = Host.info({'id': function_host['id']})
     assert host['parameters'][param_name] == param_value
-    role = make_role()
+    role = entities.Role(name=gen_string('alphanumeric')).create()
     add_role_permissions(
-        role['id'],
+        role.id,
         resource_permissions={
             'Host': {'permissions': ['view_hosts']},
             'Organization': {'permissions': ['view_organizations']},
             'Parameter': {'permissions': ['view_params']},
         },
     )
-    User.add_role({'id': function_user['user']['id'], 'role-id': role['id']})
+    User.add_role({'id': function_user['user'].id, 'role-id': role.id})
     param_new_value = gen_string('alphanumeric')
     with pytest.raises(CLIReturnCodeError):
 
         Host.with_user(
-            username=function_user['user']['login'], password=function_user['password']
+            username=function_user['user'].login, password=function_user['password']
         ).set_parameter(
             {'host-id': function_host['id'], 'name': param_name, 'value': param_new_value}
         )
@@ -1233,7 +1214,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.return_code == 0
-    yaml_content = yaml.load('\n'.join(response.stdout))
+    yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
     host_initial_params = yaml_content.get('Parameters')
     # set parameter
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
@@ -1241,7 +1222,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.return_code == 0
-    yaml_content = yaml.load('\n'.join(response.stdout))
+    yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
     host_parameters = yaml_content.get('Parameters')
     # check that number of params increased by one
     assert len(host_parameters) == 1 + len(host_initial_params)
@@ -1475,22 +1456,15 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
             default_subscription_id = org_subscription['id']
             break
     # create a new lce for hosts subscription
-    hosts_env = make_lifecycle_environment({'organization-id': module_org.id})
+    host_lce = entities.LifecycleEnvironment(organization=module_org).create()
     # refresh content view data
-    content_view = ContentView.info({'id': module_cv.id})
-    content_view_version = content_view['versions'][-1]
-    ContentView.version_promote(
-        {
-            'id': content_view_version['id'],
-            'organization-id': module_org.id,
-            'to-lifecycle-environment-id': hosts_env['id'],
-        }
-    )
+    module_cv.publish()
+    promote(module_cv.read().version[-1], environment_id=host_lce.id)
     return {
         'ak': module_ak,
-        'cv': content_view,
+        'cv': module_cv,
         'default_subscription_id': default_subscription_id,
-        'hosts_env': hosts_env,
+        'host_lce': host_lce,
         'lce': module_lce,
         'org': module_org,
         'repository_id': repository_id,
@@ -1520,7 +1494,7 @@ class HostSubscription:
         self.ak = host_subscription['ak']
         self.content_view = host_subscription['cv']
         self.default_subscription_id = host_subscription['default_subscription_id']
-        self.hosts_env = host_subscription['hosts_env']
+        self.host_lce = host_subscription['host_lce']
         self.lce = host_subscription['lce']
         self.org = host_subscription['org']
         self.repository_id = host_subscription['repository_id']
@@ -1559,12 +1533,12 @@ class HostSubscription:
         if lce:
             result = self.client.register_contenthost(
                 self.org.name,
-                lce='{}/{}'.format(self.hosts_env['name'], self.content_view['name']),
+                lce=f'{self.host_lce.name}/{self.content_view.name}',
                 auto_attach=auto_attach,
             )
         else:
             result = self.client.register_contenthost(
-                self.org.name, activation_key=activation_key['name']
+                self.org.name, activation_key=activation_key.name
             )
             if auto_attach and self.client.subscribed:
                 result = self.client.run('subscription-manager attach --auto')
@@ -1586,23 +1560,15 @@ class HostSubscription:
             subscription to the created activation key
         :return: the created activation key
         """
-        activation_key = make_activation_key(
-            {
-                'organization-id': self.org.id,
-                'content-view-id': self.content_view.id,
-                'lifecycle-environment-id': self.hosts_env['id'],
-            }
-        )
-        ActivationKey.update(
-            {'organization-id': self.org.id, 'id': activation_key['id'], 'auto-attach': 0}
-        )
+        activation_key = entities.ActivationKey(
+            content_view=self.content_view,
+            organization=self.org,
+            environment=self.host_lce,
+            auto_attach=False,
+        ).create()
         if add_subscription:
-            ActivationKey.add_subscription(
-                {
-                    'organization-id': self.org.id,
-                    'id': activation_key['id'],
-                    'subscription-id': self.default_subscription_id,
-                }
+            activation_key.add_subscriptions(
+                data={'subscription_id': self.default_subscription_id}
             )
         return activation_key
 
@@ -1612,7 +1578,7 @@ class HostSubscription:
             {
                 'organization-id': self.org.id,
                 'content-view-id': self.content_view.id,
-                'lifecycle-environment-id': self.hosts_env['id'],
+                'lifecycle-environment-id': self.host_lce.id,
                 'name': self.client.hostname,
             }
         )
@@ -1654,7 +1620,7 @@ def test_positive_register(module_host_subscription, host_subscription_client):
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -1783,6 +1749,8 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
         environment=lce,
         organization=org,
     ).create()
+    # entities.ContentView().search(
+    #     query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
@@ -1796,40 +1764,38 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
         },
         force_use_cdn=True,
     )
-    hosts_env = make_lifecycle_environment({'organization-id': org.id})
+    host_lce = entities.LifecycleEnvironment(organization=org).create()
     # refresh content view data
-    content_view = ContentView.info({'id': content_view.id})
-    content_view_version = content_view['versions'][-1]
-    ContentView.version_promote(
-        {
-            'id': content_view_version['id'],
-            'organization-id': org.id,
-            'to-lifecycle-environment-id': hosts_env['id'],
-        }
-    )
+    content_view.publish()
+    promote(content_view.read().version[-1], environment_id=host_lce.id)
 
     # register client
     module_host_subscription.client.register_contenthost(
         org.name,
-        lce='{}/{}'.format(hosts_env['name'], content_view['name']),
+        lce=f'{host_lce.name}/{content_view.name}',
         auto_attach=False,
     )
 
+    default_content_view = entities.ContentView().search(
+        query={'search': f'name="{DEFAULT_CV}"', 'organization_id': f'{org.id}'}
+    )[0]
+    default_lce = entities.LifecycleEnvironment().search(
+        query={'search': f'name="{ENVIRONMENT}"'}
+    )[0]
+
     # disable repository set to
-    default_cv = ContentView.info({'name': DEFAULT_CV, 'organization-id': org.id})
-    default_lce = LifecycleEnvironment.info({'name': ENVIRONMENT, 'organization-id': org.id})
     ContentView.remove(
         {
-            'id': content_view['id'],
-            'lifecycle-environments': ",".join([ENVIRONMENT, lce.name, hosts_env['name']]),
+            'id': content_view.id,
+            'lifecycle-environments': ",".join([ENVIRONMENT, lce.name, host_lce.name]),
             'organization-id': org.id,
-            'system-content-view-id': default_cv['id'],
-            'system-environment-id': default_lce['id'],
-            'key-content-view-id': default_cv['id'],
-            'key-environment-id': default_lce['id'],
+            'system-content-view-id': default_content_view.id,
+            'system-environment-id': default_lce.id,
+            'key-content-view-id': default_content_view.id,
+            'key-environment-id': default_lce.id,
         }
     )
-    ContentView.delete({'id': content_view['id']})
+    ContentView.delete({'id': content_view.id})
     RepositorySet.disable(
         {
             'basearch': 'x86_64',
@@ -1871,7 +1837,7 @@ def test_positive_remove(module_host_subscription, host_subscription_client):
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -1889,7 +1855,7 @@ def test_positive_remove(module_host_subscription, host_subscription_client):
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -1906,7 +1872,7 @@ def test_positive_remove(module_host_subscription, host_subscription_client):
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -1965,7 +1931,7 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -1978,7 +1944,7 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
         ActivationKey.subscriptions(
             {
                 'organization-id': module_host_subscription.org.id,
-                'id': activation_key['id'],
+                'id': activation_key.id,
                 'host-id': host['id'],
             }
         )
@@ -1998,22 +1964,19 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     module_host_subscription.set_client(host_subscription_client)
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
-    entities.ActivationKey().create()
-    activation_key = make_activation_key(
-        content_view={
-            'purpose-addons': purpose_addons,
-            'purpose-role': "test-role",
-            'purpose-usage': "test-usage",
-            'service-level': "Self-Support",
-            'lifecycle-environment-id': module_host_subscription.lce.id,
-            'organization-id': module_host_subscription.org.id,
-            'content-view-id': module_host_subscription.content_view['id'],
-        }
-    )
+    activation_key = entities.ActivationKey(
+        content_view=module_host_subscription.content_view,
+        environment=module_host_subscription.lce,
+        organization=module_host_subscription.org,
+        purpose_addons=[purpose_addons],
+        purpose_role="test-role",
+        purpose_usage="test-usage",
+        service_level="Self-Support",
+    ).create()
     ActivationKey.add_subscription(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'subscription-id': module_host_subscription.default_subscription_id,
         }
     )
@@ -2047,7 +2010,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
     host_subscriptions = ActivationKey.subscriptions(
         {
             'organization-id': module_host_subscription.org.id,
-            'id': activation_key['id'],
+            'id': activation_key.id,
             'host-id': host['id'],
         },
         output_format='json',
@@ -2062,7 +2025,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
         ActivationKey.subscriptions(
             {
                 'organization-id': module_host_subscription.org.id,
-                'id': activation_key['id'],
+                'id': activation_key.id,
                 'host-id': host['id'],
             }
         )

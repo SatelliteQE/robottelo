@@ -55,7 +55,7 @@ def module_location(module_org):
 
 @pytest.fixture(scope='session')
 def default_lce():
-    return entities.LifecycleEnvironment().search(query={'search': f'name={ENVIRONMENT}'})[0]
+    return entities.LifecycleEnvironment().search(query={'search': f'name="{ENVIRONMENT}"'})[0]
 
 
 @pytest.fixture(scope='module')
@@ -444,7 +444,7 @@ def module_promoted_cv(module_lce, module_published_cv):
     return module_published_cv
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def default_contentview(module_org):
     return entities.ContentView().search(
         query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
