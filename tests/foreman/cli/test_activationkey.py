@@ -1408,7 +1408,7 @@ def test_positive_content_override(module_org):
         content = ActivationKey.product_content(
             {'id': result['activationkey-id'], 'organization-id': module_org.id}
         )
-        assert content[0]['override'] == 'enabled:{}'.format(int(override_value))
+        assert content[0]['override'] == f'enabled:{int(override_value)}'
 
 
 @pytest.mark.tier2
@@ -1471,12 +1471,12 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
     """
     user_name = gen_alphanumeric()
     user_password = gen_alphanumeric()
-    ak_name_like = 'ak_{}'.format(gen_string('alpha'))
+    ak_name_like = f'ak_{gen_string("alpha")}'
     hc_names_like = (
-        'Test_*_{}'.format(gen_string('alpha')),
-        'Test_*_{}'.format(gen_string('alpha')),
+        f'Test_*_{gen_string("alpha")}',
+        f'Test_*_{gen_string("alpha")}',
     )
-    ak_name = '{}_{}'.format(ak_name_like, gen_string('alpha'))
+    ak_name = f'{ak_name_like}_{gen_string("alpha")}'
     available_subscriptions = Subscription.list(
         {'organization-id': module_manifest_org.id}, per_page=False
     )
@@ -1507,7 +1507,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
         },
         'Katello::HostCollection': {
             'permissions': ['view_host_collections', 'edit_host_collections'],
-            'search': "name ~ {} || name ~ {}".format(*hc_names_like),
+            'search': f'name ~ {hc_names_like[0]} || name ~ {hc_names_like[1]}',
         },
         'Organization': {'permissions': ['view_organizations', 'assign_organizations']},
         'Katello::Subscription': {

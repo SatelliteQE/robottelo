@@ -494,7 +494,7 @@ def test_positive_add_future_subscription():
 
 
 @pytest.mark.tier1
-def test_positive_search_by_org(module_org, module_activation_key):
+def test_positive_search_by_org():
     """Search for all activation keys in an organization.
 
     :id: aedba598-2e47-44a8-826c-4dc304ba00be
@@ -504,6 +504,8 @@ def test_positive_search_by_org(module_org, module_activation_key):
 
     :CaseImportance: Critical
     """
-    act_keys = entities.ActivationKey(organization=module_org).search()
-    assert len(act_keys) == 1
-    assert act_keys[0].id == module_activation_key.id
+    org = entities.Organization().create()
+    act_key = entities.ActivationKey(organization=org).create()
+    keys = entities.ActivationKey(organization=org).search()
+    assert len(keys) == 1
+    assert act_key.id == keys[0].id
