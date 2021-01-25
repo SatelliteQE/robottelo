@@ -316,7 +316,6 @@ def test_positive_upload_facts():
 
 
 @pytest.mark.stubbed
-@pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_provision_pxe_less_host():
     """Provision a pxe-less discovered hosts
