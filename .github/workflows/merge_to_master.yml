@@ -1,7 +1,10 @@
 # CI stages to execute against master branch on PR merge
 name: update_robottelo_image
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 env:
     PYCURL_SSL_LIBRARY: openssl
