@@ -28,6 +28,7 @@ from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import INVALID_URL
 from robottelo.constants import REPO_TYPE
@@ -394,7 +395,10 @@ def test_positive_sync_custom_repo_docker(session, module_org):
     """
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+        url=DOCKER_REGISTRY_HUB,
+        product=product,
+        content_type=REPO_TYPE['docker'],
+        docker_upstream_name=DOCKER_UPSTREAM_NAME,
     ).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)

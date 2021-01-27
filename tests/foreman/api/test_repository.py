@@ -1752,8 +1752,8 @@ class TestDockerRepository:
         :CaseLevel: Integration
         """
         msg = (
-            f'DKR1007: Could not fetch repository {repo_options["docker_upstream_name"]} from'
-            f' registry {repo_options["url"]} - Unauthorized or Not Found'
+            f'DKR1007.*Could not fetch repository {repo_options["docker_upstream_name"]} from'
+            f' registry {repo_options["url"]}.*Unauthorized or Not Found'
         )
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
@@ -1895,20 +1895,20 @@ class TestDockerRepository:
 
         :expectedresults: Non-whitelisted tags are not removed
         """
-        # TODO: add timeout support to sync(). This repo needs more than the default 300 seconds.
-        repo.sync()
+        repo.sync(timeout=600)
         repo = repo.read()
+        tag_count = repo.content_counts['docker_tag']
         assert len(repo.docker_tags_whitelist) == 0
-        assert repo.content_counts['docker_tag'] >= 2
+        assert tag_count > 0
 
-        tags = ['latest']
+        tags = ['no_such_tag']
         repo.docker_tags_whitelist = tags
         repo.update(['docker_tags_whitelist'])
         repo.sync()
-        repo = repo.read()
 
+        repo = repo.read()
         assert repo.docker_tags_whitelist == tags
-        assert repo.content_counts['docker_tag'] >= 2
+        assert repo.content_counts['docker_tag'] == tag_count
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(

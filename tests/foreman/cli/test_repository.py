@@ -49,6 +49,7 @@ from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
@@ -135,8 +136,8 @@ def gpg_key(module_org):
     return make_gpg_key({'organization-id': module_org.id})
 
 
-class TestRepository:
-    """Repository CLI tests."""
+class TestDockerRepository:
+    """Docker Repository CLI tests."""
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -167,6 +168,234 @@ class TestRepository:
         :CaseImportance: Critical
         """
         assert repo.get('upstream-repository-name') == repo_options['docker-upstream-name']
+
+    @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'name': valid_docker_repository_names()[0],
+                    'url': DOCKER_REGISTRY_HUB,
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_create_docker_repo_with_upstream_name(self, repo_options, repo):
+        """Create a Docker repository with upstream name.
+
+        :id: 776f92eb-8b40-4efd-8315-4fbbabcb2d4e
+
+        :parametrized: yes
+
+        :expectedresults: Docker repository is created and contains correct
+            values.
+
+        :CaseImportance: Critical
+        """
+        for key in 'url', 'content-type', 'name':
+            assert repo.get(key) == repo_options[key]
+
+    @pytest.mark.tier1
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'name': name,
+                    'url': DOCKER_REGISTRY_HUB,
+                }
+                for name in valid_docker_repository_names()
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_create_docker_repo_with_name(self, repo_options, repo):
+        """Create a Docker repository with a random name.
+
+        :id: b6a01434-8672-4196-b61a-dcb86c49f43b
+
+        :parametrized: yes
+
+        :expectedresults: Docker repository is created and contains correct
+            values.
+
+        :CaseImportance: Critical
+        """
+        for key in 'url', 'content-type', 'name':
+            assert repo.get(key) == repo_options[key]
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'name': valid_docker_repository_names()[0],
+                    'url': DOCKER_REGISTRY_HUB,
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo(self, repo):
+        """Check if Docker repository can be created and synced
+
+        :id: cb9ae788-743c-4785-98b2-6ae0c161bc9a
+
+        :parametrized: yes
+
+        :expectedresults: Docker repository is created and synced
+        """
+        # Assertion that repo is not yet synced
+        assert repo['sync']['status'] == 'Not Synced'
+        # Synchronize it
+        Repository.synchronize({'id': repo['id']})
+        # Verify it has finished
+        new_repo = Repository.info({'id': repo['id']})
+        assert new_repo['sync']['status'] == 'Success'
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'url': DOCKER_REGISTRY_HUB,
+                    'docker-tags-whitelist': 'latest',
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo_with_tags_whitelist(self, repo_options, repo):
+        """Check if only whitelisted tags are synchronized
+
+        :id: aa820c65-2de1-4b32-8890-98bd8b4320dc
+
+        :parametrized: yes
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        assert repo_options['docker-tags-whitelist'] in repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) == 1
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'url': DOCKER_REGISTRY_HUB,
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_synchronize_docker_repo_set_tags_later(self, repo):
+        """Verify that adding tags whitelist and re-syncing after
+        synchronizing full repository doesn't remove content that was
+        already pulled in
+
+        :id: 97f2087f-6041-4242-8b7c-be53c68f46ff
+
+        :parametrized: yes
+
+        :expectedresults: Non-whitelisted tags are not removed
+        """
+        tags = 'latest'
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        assert not repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) > 1
+        Repository.update({'id': repo['id'], 'docker-tags-whitelist': tags})
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        assert tags in repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) >= 2
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'url': DOCKER_REGISTRY_HUB,
+                    'docker-tags-whitelist': f"latest,{gen_string('alpha')}",
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(
+        self, repo_options, repo
+    ):
+        """Set tags whitelist to contain both valid and invalid (non-existing)
+        tags. Check if only whitelisted tags are synchronized
+
+        :id: 75668da8-cc94-4d39-ade1-d3ef91edc812
+
+        :parametrized: yes
+
+        :expectedresults: Only whitelisted tag is synchronized
+        """
+        Repository.synchronize({'id': repo['id']})
+        repo = _validated_image_tags_count(repo=repo)
+        for tag in repo_options['docker-tags-whitelist'].split(','):
+            assert tag in repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) == 1
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'docker',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                    'url': DOCKER_REGISTRY_HUB,
+                    'docker-tags-whitelist': ",".join([gen_string('alpha') for _ in range(3)]),
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_negative_synchronize_docker_repo_with_invalid_tags(self, repo_options, repo):
+        """Set tags whitelist to contain only invalid (non-existing)
+        tags. Check that no data is synchronized.
+
+        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
+
+        :parametrized: yes
+
+        :expectedresults: Tags are not synchronized
+        """
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        for tag in repo_options['docker-tags-whitelist'].split(','):
+            assert tag in repo['container-image-tags-filter']
+        assert int(repo['content-counts']['container-image-tags']) == 0
+
+
+class TestRepository:
+    """Repository CLI tests."""
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -646,67 +875,6 @@ class TestRepository:
         for key in 'content-type', 'checksum-type':
             assert repo.get(key) == repo_options[key]
 
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
-                    'name': valid_docker_repository_names()[0],
-                    'url': DOCKER_REGISTRY_HUB,
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_docker_repo_with_upstream_name(self, repo_options, repo):
-        """Create a Docker repository with upstream name.
-
-        :id: 776f92eb-8b40-4efd-8315-4fbbabcb2d4e
-
-        :parametrized: yes
-
-        :expectedresults: Docker repository is created and contains correct
-            values.
-
-        :CaseImportance: Critical
-        """
-        for key in 'url', 'content-type', 'name':
-            assert repo.get(key) == repo_options[key]
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
-                    'name': name,
-                    'url': DOCKER_REGISTRY_HUB,
-                }
-                for name in valid_docker_repository_names()
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_docker_repo_with_name(self, repo_options, repo):
-        """Create a Docker repository with a random name.
-
-        :id: b6a01434-8672-4196-b61a-dcb86c49f43b
-
-        :parametrized: yes
-
-        :expectedresults: Docker repository is created and contains correct
-            values.
-
-        :CaseImportance: Critical
-        """
-        for key in 'url', 'content-type', 'name':
-            assert repo.get(key) == repo_options[key]
-
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
@@ -1062,169 +1230,6 @@ class TestRepository:
         # Verify it has finished
         new_repo = Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
-                    'name': valid_docker_repository_names()[0],
-                    'url': DOCKER_REGISTRY_HUB,
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_docker_repo(self, repo):
-        """Check if Docker repository can be created and synced
-
-        :id: cb9ae788-743c-4785-98b2-6ae0c161bc9a
-
-        :parametrized: yes
-
-        :expectedresults: Docker repository is created and synced
-        """
-        # Assertion that repo is not yet synced
-        assert repo['sync']['status'] == 'Not Synced'
-        # Synchronize it
-        Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        new_repo = Repository.info({'id': repo['id']})
-        assert new_repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
-                    'url': DOCKER_REGISTRY_HUB,
-                    'docker-tags-whitelist': 'latest',
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_docker_repo_with_tags_whitelist(self, repo_options, repo):
-        """Check if only whitelisted tags are synchronized
-
-        :id: aa820c65-2de1-4b32-8890-98bd8b4320dc
-
-        :parametrized: yes
-
-        :expectedresults: Only whitelisted tag is synchronized
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = _validated_image_tags_count(repo=repo)
-        assert repo_options['docker-tags-whitelist'] in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 1
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'hello-world',
-                    'url': DOCKER_REGISTRY_HUB,
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_docker_repo_set_tags_later(self, repo):
-        """Verify that adding tags whitelist and re-syncing after
-        synchronizing full repository doesn't remove content that was
-        already pulled in
-
-        :id: 97f2087f-6041-4242-8b7c-be53c68f46ff
-
-        :parametrized: yes
-
-        :expectedresults: Non-whitelisted tags are not removed
-        """
-        tags = 'latest'
-        Repository.synchronize({'id': repo['id']})
-        repo = _validated_image_tags_count(repo=repo)
-        assert not repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
-        Repository.update({'id': repo['id'], 'docker-tags-whitelist': tags})
-        Repository.synchronize({'id': repo['id']})
-        repo = _validated_image_tags_count(repo=repo)
-        assert tags in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) >= 2
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
-                    'url': DOCKER_REGISTRY_HUB,
-                    'docker-tags-whitelist': f"latest,{gen_string('alpha')}",
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(
-        self, repo_options, repo
-    ):
-        """Set tags whitelist to contain both valid and invalid (non-existing)
-        tags. Check if only whitelisted tags are synchronized
-
-        :id: 75668da8-cc94-4d39-ade1-d3ef91edc812
-
-        :parametrized: yes
-
-        :expectedresults: Only whitelisted tag is synchronized
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = _validated_image_tags_count(repo=repo)
-        for tag in repo_options['docker-tags-whitelist'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 1
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
-                    'url': DOCKER_REGISTRY_HUB,
-                    'docker-tags-whitelist': ",".join([gen_string('alpha') for _ in range(3)]),
-                }
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_synchronize_docker_repo_with_invalid_tags(self, repo_options, repo):
-        """Set tags whitelist to contain only invalid (non-existing)
-        tags. Check that no data is synchronized.
-
-        :id: da05cdb1-2aea-48b9-9424-6cc700bc1194
-
-        :parametrized: yes
-
-        :expectedresults: Tags are not synchronized
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        for tag in repo_options['docker-tags-whitelist'].split(','):
-            assert tag in repo['container-image-tags-filter']
-        assert int(repo['content-counts']['container-image-tags']) == 0
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
