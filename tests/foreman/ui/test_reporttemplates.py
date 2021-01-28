@@ -250,11 +250,11 @@ def test_positive_end_to_end(session, module_org, module_loc):
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_registered_hosts_report(session, module_org, module_loc):
-    """Use provided Registered Hosts report for testing
+    """Use provided Host - Registered Content Hosts report for testing
 
     :id: b44d4cd8-a78e-47cf-9993-0bb871ac2c96
 
-    :expectedresults: The Registered Hosts report is generated (with host filter) and it
+    :expectedresults: The Host - Registered Content Hosts report is generated (with host filter) and it
                       contains created host with correct data
 
     :CaseLevel: Integration
@@ -276,7 +276,7 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
         host_names = [create_fake_host(session, host_template) for host_template in host_templates]
         host_name = host_names[1]  # pick some that is not first and is not last
         file_path = session.reporttemplate.generate(
-            "Registered hosts", values={'inputs': {'Hosts filter': host_name}}
+            "Host - Registered Content Hosts", values={'hosts_filter': host_name}
         )
         with open(file_path) as csvfile:
             dreader = csv.DictReader(csvfile)
@@ -309,9 +309,6 @@ def test_positive_generate_subscriptions_report_json(session, module_org, module
 
     :CaseImportance: Medium
     """
-    # make sure we have some subscriptions
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
     # generate Subscriptions report
     with session:
         file_path = session.reporttemplate.generate(
@@ -373,7 +370,7 @@ def test_positive_autocomplete(session):
     :setup: User with reporting access rights, some Host, some report with host input
     :steps:
         1. Monitor -> Report Templates
-        2. Registered Hosts -> Generate
+        2. Host - Registered Content Hosts -> Generate
         3. Fill in part of the Host name
         4. Check if the Host is within suggestions
         5. Select the Host
@@ -391,7 +388,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
     :setup: User with reporting access rights, some Host
     :steps:
         1. Monitor -> Report Templates
-        2. Registered Hosts -> Generate
+        2. Host - Registered Content Hosts -> Generate
         3. Set schedule to current time + 1 minute
         4. Check that the result should be sent via e-mail
         5. Submit
@@ -401,9 +398,6 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
                       The result is compressed.
     :CaseImportance: High
     """
-    # make sure we have some subscriptions
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
     # generate Subscriptions report
     with session:
         session.reporttemplate.schedule(
@@ -454,7 +448,7 @@ def test_negative_bad_email(session):
     :setup: User with reporting access rights, some Host, some report with host input
     :steps:
         1. Monitor -> Report Templates
-        2. Registered Hosts -> Generate
+        2. Host - Registered Content Hosts -> Generate
         3. Check that the result should be sent via e-mail
         4. Submit
     :expectedresults: Error message about wrong e-mail address, no task is triggered
