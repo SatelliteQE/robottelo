@@ -5,6 +5,7 @@ from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
+from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
@@ -421,6 +422,19 @@ def default_contentview(module_org):
     return entities.ContentView().search(
         query={'search': 'label=Default_Organization_View', 'organization_id': f'{module_org.id}'}
     )
+
+
+@pytest.fixture(scope='module')
+def module_ak(module_org, module_lce, module_published_cv):
+    """Module Activation key"""
+    promote(module_published_cv.version[0], module_lce.id)
+    module_published_cv = module_published_cv.read()
+    module_ak = entities.ActivationKey(
+        content_view=module_published_cv,
+        environment=module_lce,
+        organization=module_org,
+    ).create()
+    return module_ak
 
 
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
