@@ -49,6 +49,7 @@ from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
@@ -653,7 +654,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'name': valid_docker_repository_names()[0],
                     'url': DOCKER_REGISTRY_HUB,
                 }
@@ -683,7 +684,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'name': name,
                     'url': DOCKER_REGISTRY_HUB,
                 }
@@ -1071,7 +1072,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'name': valid_docker_repository_names()[0],
                     'url': DOCKER_REGISTRY_HUB,
                 }
@@ -1104,7 +1105,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'url': DOCKER_REGISTRY_HUB,
                     'docker-tags-whitelist': 'latest',
                 }
@@ -1133,7 +1134,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'hello-world',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'url': DOCKER_REGISTRY_HUB,
                 }
             ]
@@ -1169,7 +1170,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'url': DOCKER_REGISTRY_HUB,
                     'docker-tags-whitelist': f"latest,{gen_string('alpha')}",
                 }
@@ -1202,7 +1203,7 @@ class TestRepository:
             [
                 {
                     'content-type': 'docker',
-                    'docker-upstream-name': 'alpine',
+                    'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                     'url': DOCKER_REGISTRY_HUB,
                     'docker-tags-whitelist': ",".join([gen_string('alpha') for _ in range(3)]),
                 }
