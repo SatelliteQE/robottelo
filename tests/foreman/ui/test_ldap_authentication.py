@@ -522,6 +522,8 @@ def test_positive_update_external_roles(
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
+            if is_open('BZ:1851905'):
+                ldapsession.browser.execute_script("window.history.go(-1)")
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ad_data['ldap_user_name'] in current_user
