@@ -169,9 +169,7 @@ def module_os(default_architecture, default_partition_table, module_org, module_
             .read()
         )
         template.operatingsystem.append(os)
-        template.organization.append(module_org)
-        template.location.append(module_loc)
-        template = template.update(['location', 'operatingsystem', 'organization'])
+        template = template.update(['operatingsystem'])
         templates.append(template)
     # Update the OS to associate architecture, ptable, templates
     os.architecture = [default_architecture]
@@ -201,9 +199,6 @@ def module_proxy(module_org, module_loc):
         .search(query={'search': f'name={settings.server.hostname}'})[0]
         .read()
     )
-    proxy.location.append(module_loc)
-    proxy.organization.append(module_org)
-    proxy = proxy.update(['location', 'organization'])
     return proxy
 
 
