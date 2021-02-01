@@ -769,7 +769,10 @@ class TestRepository:
         'repo_options',
         **parametrized(
             [
-                {'url': repo.format(cred['login'], cred['pass'])}
+                {
+                    'url': repo.format(cred['login'], cred['pass']),
+                    'name': gen_string('alpha'),
+                }
                 for cred in valid_http_credentials()
                 if cred['quote']
                 for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
@@ -796,7 +799,10 @@ class TestRepository:
         'repo_options',
         **parametrized(
             [
-                {'url': repo.format(cred['login'], cred['pass'])}
+                {
+                    'url': repo.format(cred['login'], cred['pass']),
+                    'name': gen_string('alpha'),
+                }
                 for cred in invalid_http_credentials()
                 for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
             ]
