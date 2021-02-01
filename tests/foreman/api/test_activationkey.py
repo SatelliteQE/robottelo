@@ -75,6 +75,8 @@ def test_positive_create_limited_hosts(max_host):
         number is limited
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
     assert act_key.max_hosts == max_host
@@ -91,6 +93,8 @@ def test_positive_create_with_name(key_name):
     :expectedresults: Activation key is created and contains provided name.
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey(name=key_name).create()
     assert key_name == act_key.name
@@ -104,6 +108,8 @@ def test_positive_create_with_description(desc):
     :id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
 
     :expectedresults: Created entity contains the provided description.
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey(description=desc).create()
     assert desc == act_key.description
@@ -133,6 +139,8 @@ def test_negative_create_with_invalid_host_limit(max_host):
     :expectedresults: Activation key is not created
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         entities.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
@@ -148,6 +156,8 @@ def test_negative_create_with_invalid_name(name):
     :expectedresults: Activation key is not created
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         entities.ActivationKey(name=name).create()
@@ -161,6 +171,8 @@ def test_positive_update_limited_host(max_host):
     :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
 
     :expectedresults: Activation key is created, updated to limited host
+
+    :parametrized: yes
     """
     # unlimited_hosts defaults to True.
     act_key = entities.ActivationKey().create()
@@ -182,6 +194,8 @@ def test_positive_update_name(new_name):
 
     :expectedresults: Activation key is created, and its name can be
         updated.
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey().create()
     updated = entities.ActivationKey(id=act_key.id, name=new_name).update(['name'])
@@ -202,6 +216,8 @@ def test_negative_update_limit(max_host):
         3. Record is not changed
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey().create()
     want = {'max_hosts': act_key.max_hosts, 'unlimited_hosts': act_key.unlimited_hosts}
@@ -225,6 +241,8 @@ def test_negative_update_name(new_name):
         updated.
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey().create()
     with pytest.raises(HTTPError):
@@ -386,6 +404,8 @@ def test_positive_delete(name):
     :expectedresults: Activation key is successfully deleted.
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     act_key = entities.ActivationKey().create()
     act_key.delete()

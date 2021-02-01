@@ -74,6 +74,8 @@ def test_positive_create_with_name(module_manifest_org, name):
     :expectedresults: Activation key is created with chosen name
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     new_ak = make_activation_key({'organization-id': module_manifest_org.id, 'name': name})
     assert new_ak['name'] == name
@@ -89,6 +91,8 @@ def test_positive_create_with_description(desc, module_org):
     :expectedresults: Activation key is created with chosen description
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     new_ak = make_activation_key({'organization-id': module_org.id, 'description': desc})
     assert new_ak['description'] == desc
@@ -157,6 +161,8 @@ def test_positive_create_with_cv(name, module_org, get_default_env):
         assigned
 
     :CaseLevel: Integration
+
+    :parametrized: yes
     """
     new_cv = make_content_view({'name': name, 'organization-id': module_org.id})
     new_ak_cv = make_activation_key(
@@ -231,6 +237,8 @@ def test_negative_create_with_invalid_name(name, module_org):
         shown.
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(CLIFactoryError) as raise_ctx:
         make_activation_key({'organization-id': module_org.id, 'name': name})
@@ -253,6 +261,8 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit):
         shown.
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     # exclude numeric values from invalid values list
     # invalid_values = [value for value in invalid_values_list() if not value.isdigit()]
@@ -277,6 +287,8 @@ def test_negative_create_with_usage_limit_with_invalid_integers(module_org, inva
         shown.
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     with pytest.raises(CLIFactoryError) as raise_ctx:
         make_activation_key({'organization-id': module_org.id, 'max-hosts': invalid_values})
@@ -294,6 +306,8 @@ def test_positive_delete_by_name(name, module_org):
     :expectedresults: Activation key is deleted
 
     :CaseImportance: High
+
+    :parametrized: yes
     """
     new_ak = make_activation_key({'name': name, 'organization-id': module_org.id})
     ActivationKey.delete({'name': new_ak['name'], 'organization-id': module_org.id})
@@ -385,6 +399,8 @@ def test_positive_update_name_by_id(module_org, name):
     :expectedresults: Activation key is updated
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     activation_key = make_activation_key({'organization-id': module_org.id})
     ActivationKey.update(
@@ -424,6 +440,8 @@ def test_positive_update_description(description, module_org):
     :expectedresults: Activation key is updated
 
     :CaseImportance: High
+
+    :parametrized: yes
     """
     activation_key = make_activation_key({'organization-id': module_org.id})
     ActivationKey.update(
@@ -536,6 +554,8 @@ def test_negative_update_name(module_org, name):
         shown.
 
     :CaseImportance: Low
+
+    :parametrized: yes
     """
     new_ak = make_activation_key({'organization-id': module_org.id})
     with pytest.raises(CLIReturnCodeError) as raise_ctx:
@@ -627,6 +647,8 @@ def test_positive_update_host_collection(module_org, host_col_name):
         Activation key
 
     :CaseLevel: Integration
+
+    :parametrized: yes
     """
     activation_key = make_activation_key({'organization-id': module_org.id})
     new_host_col_name = make_host_collection(
@@ -734,20 +756,20 @@ def test_positive_add_custom_product(module_org):
 def test_positive_add_redhat_and_custom_products(module_org):
     """Test if RH/Custom product can be associated to Activation key
 
-        :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
+    :id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
 
-        :Steps:
+    :Steps:
 
-            1. Create Activation key
-            2. Associate RH product(s) to Activation Key
-            3. Associate custom product(s) to Activation Key
+        1. Create Activation key
+        2. Associate RH product(s) to Activation Key
+        3. Associate custom product(s) to Activation Key
 
-        :expectedresults: RH/Custom product is successfully associated to
-            Activation key
+    :expectedresults: RH/Custom product is successfully associated to
+        Activation key
 
-        :CaseLevel: System
-    self
-        :BZ: 1426386
+    :CaseLevel: System
+
+    :BZ: 1426386
     """
     org = make_org()
     # Using CDN as we need this repo to be RH one no matter are we in
@@ -907,6 +929,8 @@ def test_positive_list_by_name(module_org, name):
     :expectedresults: Activation key is listed
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     make_activation_key({'organization-id': module_org.id, 'name': name})
     result = ActivationKey.list({'name': name, 'organization-id': module_org.id})
@@ -1024,6 +1048,8 @@ def test_positive_remove_host_collection_by_name(module_org, host_col):
     :CaseLevel: Integration
 
     :BZ: 1336716
+
+    :parametrized: yes
     """
     activation_key = make_activation_key({'organization-id': module_org.id})
     new_host_col = make_host_collection({'name': host_col, 'organization-id': module_org.id})
@@ -1207,6 +1233,8 @@ def test_positive_copy_by_parent_id(module_org, new_name):
     :expectedresults: Activation key is successfully copied
 
     :CaseImportance: Critical
+
+    :parametrized: yes
     """
     parent_ak = make_activation_key({'organization-id': module_org.id})
     result = ActivationKey.copy(
