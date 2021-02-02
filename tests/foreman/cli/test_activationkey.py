@@ -250,7 +250,8 @@ def test_negative_create_with_invalid_name(name, module_org):
 
 @pytest.mark.tier3
 @pytest.mark.parametrize(
-    'limit', [value for value in invalid_values_list() if not value.isdigit()] + [0.5]
+    'limit',
+    **parametrized([value for value in invalid_values_list() if not value.isdigit()] + [0.5]),
 )
 def test_negative_create_with_usage_limit_with_not_integers(module_org, limit):
     """Create Activation key with non integers Usage Limit
