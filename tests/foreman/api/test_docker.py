@@ -1,4 +1,4 @@
-"""Unit tests for the Docker feature.
+"""Tests for the Docker feature.
 
 :Requirement: Docker
 
@@ -24,29 +24,30 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_docker_upstream_names
+from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_docker_upstream_names
-from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
 
 
 def _create_repository(product, name=None, upstream_name=None):
-    """Creates a Docker-based repository.
+    """Create a Docker-based repository.
 
     :param product: A ``Product`` object.
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
-        If ``None`` then defaults to ``busybox``.
+        If ``None`` then defaults to DOCKER_UPSTREAM_NAME.
     :return: A ``Repository`` object.
     """
     if name is None:
         name = choice(generate_strings_list(15, ['numeric', 'html']))
     if upstream_name is None:
-        upstream_name = 'busybox'
+        upstream_name = DOCKER_UPSTREAM_NAME
     return entities.Repository(
         content_type='docker',
         docker_upstream_name=upstream_name,
@@ -56,7 +57,49 @@ def _create_repository(product, name=None, upstream_name=None):
     ).create()
 
 
-class DockerRepositoryTestCase(APITestCase):
+@pytest.fixture
+def repo(module_product):
+    """Create a single repository."""
+    return _create_repository(module_product)
+
+
+@pytest.fixture
+def repos(module_product):
+    """Create and return a list of repositories."""
+    return [_create_repository(module_product) for _ in range(randint(2, 5))]
+
+
+@pytest.fixture
+def content_view(module_org):
+    """Create a content view."""
+    return entities.ContentView(composite=False, organization=module_org).create()
+
+
+@pytest.fixture
+def content_view_with_repo(content_view, repo):
+    """Assign a docker-based repository to a content view."""
+    content_view.repository = [repo]
+    return content_view.update(['repository'])
+
+
+@pytest.fixture
+def content_view_publish_promote(content_view_with_repo, module_lce):
+    """Publish and promote a new content view version into the lifecycle environment."""
+    cv = content_view_with_repo
+    cv.publish()
+
+    cvv = cv.read().version[0].read()
+    promote(cvv, module_lce.id)
+
+    return cv.read()
+
+
+@pytest.fixture
+def content_view_version(content_view_publish_promote):
+    return content_view_publish_promote.version[0].read()
+
+
+class TestDockerRepository:
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
 
@@ -65,70 +108,64 @@ class DockerRepositoryTestCase(APITestCase):
     :Assignee: tpapaioa
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-
     @pytest.mark.tier1
-    def test_positive_create_with_name(self):
+    @pytest.mark.parametrize('name', **parametrized(valid_docker_repository_names()))
+    def test_positive_create_with_name(self, module_product, name):
         """Create one Docker-type repository
 
         :id: 3360aab2-74f3-4f6e-a083-46498ceacad2
+
+        :parametrized: yes
 
         :expectedresults: A repository is created with a Docker upstream
             repository.
 
         :CaseImportance: Critical
         """
-        for name in valid_docker_repository_names():
-            with self.subTest(name):
-                repo = _create_repository(entities.Product(organization=self.org).create(), name)
-                self.assertEqual(repo.name, name)
-                self.assertEqual(repo.docker_upstream_name, 'busybox')
-                self.assertEqual(repo.content_type, 'docker')
+        repo = _create_repository(module_product, name)
+        assert repo.name == name
+        assert repo.docker_upstream_name == DOCKER_UPSTREAM_NAME
+        assert repo.content_type == 'docker'
 
     @pytest.mark.tier1
-    def test_positive_create_with_upstream_name(self):
+    @pytest.mark.parametrize('upstream_name', **parametrized(valid_docker_upstream_names()))
+    def test_positive_create_with_upstream_name(self, module_product, upstream_name):
         """Create a Docker-type repository with a valid docker upstream
         name
 
         :id: 742a2118-0ab2-4e63-b978-88fe9f52c034
+
+        :parametrized: yes
 
         :expectedresults: A repository is created with the specified upstream
             name.
 
         :CaseImportance: Critical
         """
-        for upstream_name in valid_docker_upstream_names():
-            with self.subTest(upstream_name):
-                repo = _create_repository(
-                    entities.Product(organization=self.org).create(), upstream_name=upstream_name
-                )
-                self.assertEqual(repo.docker_upstream_name, upstream_name)
-                self.assertEqual(repo.content_type, 'docker')
+        repo = _create_repository(module_product, upstream_name=upstream_name)
+        assert repo.docker_upstream_name == upstream_name
+        assert repo.content_type == 'docker'
 
     @pytest.mark.tier1
-    def test_negative_create_with_invalid_upstream_name(self):
+    @pytest.mark.parametrize('upstream_name', **parametrized(invalid_docker_upstream_names()))
+    def test_negative_create_with_invalid_upstream_name(self, module_product, upstream_name):
         """Create a Docker-type repository with a invalid docker
         upstream name.
 
         :id: 2c5abb4a-e50b-427a-81d2-57eaf8f57a0f
+
+        :parametrized: yes
 
         :expectedresults: A repository is not created and a proper error is
             raised.
 
         :CaseImportance: Critical
         """
-        product = entities.Product(organization=self.org).create()
-        for upstream_name in invalid_docker_upstream_names():
-            with self.subTest(upstream_name):
-                with self.assertRaises(HTTPError):
-                    _create_repository(product, upstream_name=upstream_name)
+        with pytest.raises(HTTPError):
+            _create_repository(module_product, upstream_name=upstream_name)
 
     @pytest.mark.tier2
-    def test_positive_create_repos_using_same_product(self):
+    def test_positive_create_repos_using_same_product(self, module_product):
         """Create multiple Docker-type repositories
 
         :id: 4a6929fc-5111-43ff-940c-07a754828630
@@ -138,14 +175,12 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        product = entities.Product(organization=self.org).create()
         for _ in range(randint(2, 5)):
-            repo = _create_repository(product)
-            product = product.read()
-            self.assertIn(repo.id, [repo_.id for repo_ in product.repository])
+            repo = _create_repository(module_product)
+            assert repo.id in [repo_.id for repo_ in module_product.read().repository]
 
     @pytest.mark.tier2
-    def test_positive_create_repos_using_multiple_products(self):
+    def test_positive_create_repos_using_multiple_products(self, module_org):
         """Create multiple Docker-type repositories on multiple products
 
         :id: 5a65d20b-d3b5-4bd7-9c8f-19c8af190558
@@ -157,14 +192,14 @@ class DockerRepositoryTestCase(APITestCase):
         :CaseLevel: Integration
         """
         for _ in range(randint(2, 5)):
-            product = entities.Product(organization=self.org).create()
+            product = entities.Product(organization=module_org).create()
             for _ in range(randint(2, 3)):
                 repo = _create_repository(product)
                 product = product.read()
-                self.assertIn(repo.id, [repo_.id for repo_ in product.repository])
+                assert repo.id in [repo_.id for repo_ in product.repository]
 
     @pytest.mark.tier1
-    def test_positive_sync(self):
+    def test_positive_sync(self, module_product):
         """Create and sync a Docker-type repository
 
         :id: 80fbcd84-1c6f-444f-a44e-7d2738a0cba2
@@ -174,33 +209,31 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        repo.sync()
+        repo = _create_repository(module_product)
+        repo.sync(timeout=600)
         repo = repo.read()
-        self.assertGreaterEqual(repo.content_counts['docker_manifest'], 1)
+        assert repo.content_counts['docker_manifest'] >= 1
 
     @pytest.mark.tier1
-    def test_positive_update_name(self):
+    @pytest.mark.parametrize('new_name', **parametrized(valid_docker_repository_names()))
+    def test_positive_update_name(self, module_product, repo, new_name):
         """Create a Docker-type repository and update its name.
 
         :id: 7967e6b5-c206-4ad0-bcf5-64a7ce85233b
+
+        :parametrized: yes
 
         :expectedresults: A repository is created with a Docker upstream
             repository and that its name can be updated.
 
         :CaseImportance: Critical
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-
-        # Update the repository name to random value
-        for new_name in valid_docker_repository_names():
-            with self.subTest(new_name):
-                repo.name = new_name
-                repo = repo.update()
-                self.assertEqual(repo.name, new_name)
+        repo.name = new_name
+        repo = repo.update()
+        assert repo.name == new_name
 
     @pytest.mark.tier1
-    def test_positive_update_upstream_name(self):
+    def test_positive_update_upstream_name(self, repo):
         """Create a Docker-type repository and update its upstream name.
 
         :id: 4e2fb78d-0b6a-4455-8869-8eaf9d4a61b0
@@ -210,17 +243,16 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        new_upstream_name = 'fedora/ssh'
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        self.assertNotEqual(repo.docker_upstream_name, new_upstream_name)
+        assert repo.docker_upstream_name == DOCKER_UPSTREAM_NAME
 
         # Update the repository upstream name
+        new_upstream_name = 'fedora/ssh'
         repo.docker_upstream_name = new_upstream_name
         repo = repo.update()
-        self.assertEqual(repo.docker_upstream_name, new_upstream_name)
+        assert repo.docker_upstream_name == new_upstream_name
 
     @pytest.mark.tier2
-    def test_positive_update_url(self):
+    def test_positive_update_url(self, module_product, repo):
         """Create a Docker-type repository and update its URL.
 
         :id: 6a588e65-bf1d-4ca9-82ce-591f9070215f
@@ -230,18 +262,17 @@ class DockerRepositoryTestCase(APITestCase):
 
         :BZ: 1489322
         """
-        new_url = gen_url()
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        self.assertEqual(repo.url, DOCKER_REGISTRY_HUB)
+        assert repo.url == DOCKER_REGISTRY_HUB
 
         # Update the repository URL
+        new_url = gen_url()
         repo.url = new_url
         repo = repo.update()
-        self.assertEqual(repo.url, new_url)
-        self.assertNotEqual(repo.url, DOCKER_REGISTRY_HUB)
+        assert repo.url == new_url
+        assert repo.url != DOCKER_REGISTRY_HUB
 
     @pytest.mark.tier1
-    def test_positive_delete(self):
+    def test_positive_delete(self, repo):
         """Create and delete a Docker-type repository
 
         :id: 92df93cb-9de2-40fa-8451-b8c1ba8f45be
@@ -251,14 +282,13 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
         # Delete it
         repo.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             repo.read()
 
     @pytest.mark.tier2
-    def test_positive_delete_random_repo(self):
+    def test_positive_delete_random_repo(self, module_org):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
 
@@ -268,26 +298,28 @@ class DockerRepositoryTestCase(APITestCase):
             without altering the other products.
         """
         repos = []
-        products = [entities.Product(organization=self.org).create() for _ in range(randint(2, 5))]
+        products = [
+            entities.Product(organization=module_org).create() for _ in range(randint(2, 5))
+        ]
         for product in products:
             repo = _create_repository(product)
-            self.assertEqual(repo.content_type, 'docker')
+            assert repo.content_type == 'docker'
             repos.append(repo)
 
         # Delete a random repository
         shuffle(repos)
         repo = repos.pop()
         repo.delete()
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             repo.read()
 
         # Check if others repositories are not touched
         for repo in repos:
             repo = repo.read()
-            self.assertIn(repo.product.id, [prod.id for prod in products])
+            assert repo.product.id in [prod.id for prod in products]
 
 
-class DockerContentViewTestCase(APITestCase):
+class TestDockerContentView:
     """Tests specific to using ``Docker`` repositories with Content Views.
 
     :CaseComponent: ContentViews
@@ -297,14 +329,8 @@ class DockerContentViewTestCase(APITestCase):
     :CaseLevel: Integration
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an organization which can be re-used in tests."""
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-
     @pytest.mark.tier2
-    def test_positive_add_docker_repo(self):
+    def test_positive_add_docker_repo(self, repo, content_view):
         """Add one Docker-type repository to a non-composite content view
 
         :id: a065822f-bb41-4fc9-bf5c-65814ca11b2d
@@ -312,15 +338,13 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a non-composite content view
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        # Create content view and associate docker repo
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        # Associate docker repo with the content view
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+        assert repo.id in [repo_.id for repo_ in content_view.repository]
 
     @pytest.mark.tier2
-    def test_positive_add_docker_repos(self):
+    def test_positive_add_docker_repos(self, module_org, module_product, content_view):
         """Add multiple Docker-type repositories to a
         non-composite content view.
 
@@ -329,30 +353,26 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: Repositories are created with Docker upstream repos
             and the product is added to a non-composite content view.
         """
-        product = entities.Product(organization=self.org).create()
         repos = [
-            _create_repository(product, name=gen_string('alpha')) for _ in range(randint(2, 5))
+            _create_repository(module_product, name=gen_string('alpha'))
+            for _ in range(randint(2, 5))
         ]
-        self.assertEqual(len(product.read().repository), len(repos))
+        repo_ids = {r.id for r in repos}
+        assert repo_ids.issubset({r.id for r in module_product.read().repository})
 
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
         content_view.repository = repos
         content_view = content_view.update(['repository'])
 
-        self.assertEqual(len(content_view.repository), len(repos))
+        assert len(repos) == len(content_view.repository)
 
-        content_view.repository = [repo.read() for repo in content_view.repository]
-
-        self.assertEqual(
-            {repo.id for repo in repos}, {repo.id for repo in content_view.repository}
-        )
-
-        for repo in repos + content_view.repository:
-            self.assertEqual(repo.content_type, 'docker')
-            self.assertEqual(repo.docker_upstream_name, 'busybox')
+        for repo in content_view.repository:
+            r = repo.read()
+            assert r.id in repo_ids
+            assert r.content_type == 'docker'
+            assert r.docker_upstream_name == DOCKER_UPSTREAM_NAME
 
     @pytest.mark.tier2
-    def test_positive_add_synced_docker_repo(self):
+    def test_positive_add_synced_docker_repo(self, module_org, module_product):
         """Create and sync a Docker-type repository
 
         :id: 3c7d6f17-266e-43d3-99f8-13bf0251eca6
@@ -360,19 +380,19 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        repo.sync()
+        repo = _create_repository(module_product)
+        repo.sync(timeout=600)
         repo = repo.read()
-        self.assertGreaterEqual(repo.content_counts['docker_manifest'], 1)
+        assert repo.content_counts['docker_manifest'] > 0
 
         # Create content view and associate docker repo
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+        assert repo.id in [repo_.id for repo_ in content_view.repository]
 
     @pytest.mark.tier2
-    def test_positive_add_docker_repo_to_ccv(self):
+    def test_positive_add_docker_repo_to_ccv(self, module_org):
         """Add one Docker-type repository to a composite content view
 
         :id: fe278275-2bb2-4d68-8624-f0cfd63ecb57
@@ -381,29 +401,29 @@ class DockerContentViewTestCase(APITestCase):
             the product is added to a content view which is then added to a
             composite content view.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
+        repo = _create_repository(entities.Product(organization=module_org).create())
 
         # Create content view and associate docker repo
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+        assert repo.id in [repo_.id for repo_ in content_view.repository]
 
         # Publish it and grab its version ID (there should only be one version)
         content_view.publish()
         content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
+        assert len(content_view.version) == 1
 
         # Create composite content view and associate content view to it
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         comp_content_view.component = content_view.version
         comp_content_view = comp_content_view.update(['component'])
-        self.assertIn(
-            content_view.version[0].id, [component.id for component in comp_content_view.component]
-        )
+        assert content_view.version[0].id in [
+            component.id for component in comp_content_view.component
+        ]
 
     @pytest.mark.tier2
-    def test_positive_add_docker_repos_to_ccv(self):
+    def test_positive_add_docker_repos_to_ccv(self, module_org):
         """Add multiple Docker-type repositories to a composite
         content view.
 
@@ -414,14 +434,14 @@ class DockerContentViewTestCase(APITestCase):
             views which are then added to a composite content view.
         """
         cv_versions = []
-        product = entities.Product(organization=self.org).create()
+        product = entities.Product(organization=module_org).create()
         for _ in range(randint(2, 5)):
             # Create content view and associate docker repo
-            content_view = entities.ContentView(composite=False, organization=self.org).create()
+            content_view = entities.ContentView(composite=False, organization=module_org).create()
             repo = _create_repository(product)
             content_view.repository = [repo]
             content_view = content_view.update(['repository'])
-            self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+            assert repo.id in [repo_.id for repo_ in content_view.repository]
 
             # Publish it and grab its version ID (there should be one version)
             content_view.publish()
@@ -429,16 +449,14 @@ class DockerContentViewTestCase(APITestCase):
             cv_versions.append(content_view.version[0])
 
         # Create composite content view and associate content view to it
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         for cv_version in cv_versions:
             comp_content_view.component.append(cv_version)
             comp_content_view = comp_content_view.update(['component'])
-            self.assertIn(
-                cv_version.id, [component.id for component in comp_content_view.component]
-            )
+            assert cv_version.id in [component.id for component in comp_content_view.component]
 
     @pytest.mark.tier2
-    def test_positive_publish_with_docker_repo(self):
+    def test_positive_publish_with_docker_repo(self, module_org):
         """Add Docker-type repository to content view and publish it once.
 
         :id: 86a73e96-ead6-41fb-8095-154a0b83e344
@@ -447,26 +465,26 @@ class DockerContentViewTestCase(APITestCase):
             repository and the product is added to a content view which is then
             published only once.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
+        repo = _create_repository(entities.Product(organization=module_org).create())
 
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+        assert repo.id in [repo_.id for repo_ in content_view.repository]
 
         # Not published yet?
         content_view = content_view.read()
-        self.assertIsNone(content_view.last_published)
-        self.assertEqual(float(content_view.next_version), 1.0)
+        assert content_view.last_published is None
+        assert float(content_view.next_version) == 1.0
 
         # Publish it and check that it was indeed published.
         content_view.publish()
         content_view = content_view.read()
-        self.assertIsNotNone(content_view.last_published)
-        self.assertGreater(float(content_view.next_version), 1.0)
+        assert content_view.last_published is not None
+        assert float(content_view.next_version) > 1.0
 
     @pytest.mark.tier2
-    def test_positive_publish_with_docker_repo_composite(self):
+    def test_positive_publish_with_docker_repo_composite(self, module_org):
         """Add Docker-type repository to composite content view and
         publish it once.
 
@@ -479,39 +497,39 @@ class DockerContentViewTestCase(APITestCase):
 
         :BZ: 1217635
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
+        assert repo.id in [repo_.id for repo_ in content_view.repository]
 
         # Not published yet?
         content_view = content_view.read()
-        self.assertIsNone(content_view.last_published)
-        self.assertEqual(float(content_view.next_version), 1.0)
+        assert content_view.last_published is None
+        assert float(content_view.next_version) == 1.0
 
         # Publish it and check that it was indeed published.
         content_view.publish()
         content_view = content_view.read()
-        self.assertIsNotNone(content_view.last_published)
-        self.assertGreater(float(content_view.next_version), 1.0)
+        assert content_view.last_published is not None
+        assert float(content_view.next_version) > 1.0
 
         # Create composite content view…
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         comp_content_view.component = [content_view.version[0]]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertIn(
-            content_view.version[0].id, [component.id for component in comp_content_view.component]
-        )
+        assert content_view.version[0].id in [
+            component.id for component in comp_content_view.component
+        ]
         # … publish it…
         comp_content_view.publish()
         # … and check that it was indeed published
         comp_content_view = comp_content_view.read()
-        self.assertIsNotNone(comp_content_view.last_published)
-        self.assertGreater(float(comp_content_view.next_version), 1.0)
+        assert comp_content_view.last_published is not None
+        assert float(comp_content_view.next_version) > 1.0
 
     @pytest.mark.tier2
-    def test_positive_publish_multiple_with_docker_repo(self):
+    def test_positive_publish_multiple_with_docker_repo(self, module_org):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
@@ -521,22 +539,22 @@ class DockerContentViewTestCase(APITestCase):
             repository and the product is added to a content view which is then
             published multiple times.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
-        self.assertIsNone(content_view.read().last_published)
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
+        assert content_view.read().last_published is None
 
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             content_view.publish()
         content_view = content_view.read()
-        self.assertIsNotNone(content_view.last_published)
-        self.assertEqual(len(content_view.version), publish_amount)
+        assert content_view.last_published is not None
+        assert len(content_view.version) == publish_amount
 
     @pytest.mark.tier2
-    def test_positive_publish_multiple_with_docker_repo_composite(self):
+    def test_positive_publish_multiple_with_docker_repo_composite(self, module_org):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
@@ -547,34 +565,32 @@ class DockerContentViewTestCase(APITestCase):
             added to a composite content view which is then published multiple
             times.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
-        self.assertIsNone(content_view.read().last_published)
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
+        assert content_view.read().last_published is None
 
         content_view.publish()
         content_view = content_view.read()
-        self.assertIsNotNone(content_view.last_published)
+        assert content_view.last_published is not None
 
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         comp_content_view.component = [content_view.version[0]]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertEqual(
-            [content_view.version[0].id], [comp.id for comp in comp_content_view.component]
-        )
-        self.assertIsNone(comp_content_view.last_published)
+        assert [content_view.version[0].id] == [comp.id for comp in comp_content_view.component]
+        assert comp_content_view.last_published is None
 
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             comp_content_view.publish()
         comp_content_view = comp_content_view.read()
-        self.assertIsNotNone(comp_content_view.last_published)
-        self.assertEqual(len(comp_content_view.version), publish_amount)
+        assert comp_content_view.last_published is not None
+        assert len(comp_content_view.version) == publish_amount
 
     @pytest.mark.tier2
-    def test_positive_promote_with_docker_repo(self):
+    def test_positive_promote_with_docker_repo(self, module_org):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
@@ -583,24 +599,24 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
         """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = _create_repository(entities.Product(organization=self.org).create())
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
 
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
 
         content_view.publish()
         content_view = content_view.read()
         cvv = content_view.version[0].read()
-        self.assertEqual(len(cvv.environment), 1)
+        assert len(cvv.environment) == 1
 
         promote(cvv, lce.id)
-        self.assertEqual(len(cvv.read().environment), 2)
+        assert len(cvv.read().environment) == 2
 
     @pytest.mark.tier2
-    def test_positive_promote_multiple_with_docker_repo(self):
+    def test_positive_promote_multiple_with_docker_repo(self, module_org):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
@@ -609,24 +625,24 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
+        repo = _create_repository(entities.Product(organization=module_org).create())
 
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
 
         content_view.publish()
         cvv = content_view.read().version[0]
-        self.assertEqual(len(cvv.read().environment), 1)
+        assert len(cvv.read().environment) == 1
 
         for i in range(1, randint(3, 6)):
-            lce = entities.LifecycleEnvironment(organization=self.org).create()
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
             promote(cvv, lce.id)
-            self.assertEqual(len(cvv.read().environment), i + 1)
+            assert len(cvv.read().environment) == i + 1
 
     @pytest.mark.tier2
-    def test_positive_promote_with_docker_repo_composite(self):
+    def test_positive_promote_with_docker_repo_composite(self, module_org):
         """Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
         composite content view to the next available lifecycle-environment.
@@ -636,31 +652,31 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
         """
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
 
         content_view.publish()
         cvv = content_view.read().version[0].read()
 
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         comp_content_view.component = [cvv]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertEqual(cvv.id, comp_content_view.component[0].id)
+        assert cvv.id == comp_content_view.component[0].id
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0]
-        self.assertEqual(len(comp_cvv.read().environment), 1)
+        assert len(comp_cvv.read().environment) == 1
 
         promote(comp_cvv, lce.id)
-        self.assertEqual(len(comp_cvv.read().environment), 2)
+        assert len(comp_cvv.read().environment) == 2
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    def test_positive_promote_multiple_with_docker_repo_composite(self):
+    def test_positive_promote_multiple_with_docker_repo_composite(self, module_org):
         """Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
         composite content view to the multiple available lifecycle-environments
@@ -670,32 +686,32 @@ class DockerContentViewTestCase(APITestCase):
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environments.
         """
-        repo = _create_repository(entities.Product(organization=self.org).create())
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo = _create_repository(entities.Product(organization=module_org).create())
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
-        self.assertEqual([repo.id], [repo_.id for repo_ in content_view.repository])
+        assert [repo.id] == [repo_.id for repo_ in content_view.repository]
 
         content_view.publish()
         cvv = content_view.read().version[0].read()
 
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
         comp_content_view.component = [cvv]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertEqual(cvv.id, comp_content_view.component[0].id)
+        assert cvv.id == comp_content_view.component[0].id
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0]
-        self.assertEqual(len(comp_cvv.read().environment), 1)
+        assert len(comp_cvv.read().environment) == 1
 
         for i in range(1, randint(3, 6)):
-            lce = entities.LifecycleEnvironment(organization=self.org).create()
+            lce = entities.LifecycleEnvironment(organization=module_org).create()
             promote(comp_cvv, lce.id)
-            self.assertEqual(len(comp_cvv.read().environment), i + 1)
+            assert len(comp_cvv.read().environment) == i + 1
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_name_pattern_change(self):
+    def test_positive_name_pattern_change(self, module_org):
         """Promote content view with Docker repository to lifecycle environment.
         Change registry name pattern for that environment. Verify that repository
         name on product changed according to new pattern.
@@ -708,32 +724,32 @@ class DockerContentViewTestCase(APITestCase):
         pattern_prefix = gen_string('alpha', 5)
         docker_upstream_name = 'hello-world'
         new_pattern = (
-            "{}-<%= organization.label %>/<%= repository.docker_upstream_name %>"
-        ).format(pattern_prefix)
+            f'{pattern_prefix}-<%= organization.label %>/<%= repository.docker_upstream_name %>'
+        )
 
         repo = _create_repository(
-            entities.Product(organization=self.org).create(), upstream_name=docker_upstream_name
+            entities.Product(organization=module_org).create(), upstream_name=docker_upstream_name
         )
-        repo.sync()
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo.sync(timeout=600)
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         cvv = content_view.read().version[0]
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         promote(cvv, lce.id)
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
-        repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
+        repos = entities.Repository(organization=module_org).search(
+            query={'environment_id': lce.id}
+        )
 
-        expected_pattern = "{}-{}/{}".format(
-            pattern_prefix, self.org.label, docker_upstream_name
-        ).lower()
-        self.assertEqual(lce.registry_name_pattern, new_pattern)
-        self.assertEqual(repos[0].container_repository_name, expected_pattern)
+        expected_pattern = f'{pattern_prefix}-{module_org.label}/{docker_upstream_name}'.lower()
+        assert lce.registry_name_pattern == new_pattern
+        assert repos[0].container_repository_name == expected_pattern
 
     @pytest.mark.tier2
-    def test_positive_product_name_change_after_promotion(self):
+    def test_positive_product_name_change_after_promotion(self, module_org):
         """Promote content view with Docker repository to lifecycle environment.
         Change product name. Verify that repository name on product changed
         according to new pattern.
@@ -748,35 +764,39 @@ class DockerContentViewTestCase(APITestCase):
         docker_upstream_name = 'hello-world'
         new_pattern = "<%= organization.label %>/<%= product.name %>"
 
-        prod = entities.Product(organization=self.org, name=old_prod_name).create()
+        prod = entities.Product(organization=module_org, name=old_prod_name).create()
         repo = _create_repository(prod, upstream_name=docker_upstream_name)
-        repo.sync()
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo.sync(timeout=600)
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         cvv = content_view.read().version[0]
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
         promote(cvv, lce.id)
         prod.name = new_prod_name
         prod.update(['name'])
-        repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
+        repos = entities.Repository(organization=module_org).search(
+            query={'environment_id': lce.id}
+        )
 
-        expected_pattern = f"{self.org.label}/{old_prod_name}".lower()
-        self.assertEqual(repos[0].container_repository_name, expected_pattern)
+        expected_pattern = f"{module_org.label}/{old_prod_name}".lower()
+        assert repos[0].container_repository_name == expected_pattern
 
         content_view.publish()
         cvv = content_view.read().version[-1]
         promote(cvv, lce.id)
-        repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
+        repos = entities.Repository(organization=module_org).search(
+            query={'environment_id': lce.id}
+        )
 
-        expected_pattern = f"{self.org.label}/{new_prod_name}".lower()
-        self.assertEqual(repos[0].container_repository_name, expected_pattern)
+        expected_pattern = f"{module_org.label}/{new_prod_name}".lower()
+        assert repos[0].container_repository_name == expected_pattern
 
     @pytest.mark.tier2
-    def test_positive_repo_name_change_after_promotion(self):
+    def test_positive_repo_name_change_after_promotion(self, module_org):
         """Promote content view with Docker repository to lifecycle environment.
         Change repository name. Verify that Docker repository name on product
         changed according to new pattern.
@@ -792,37 +812,41 @@ class DockerContentViewTestCase(APITestCase):
         new_pattern = "<%= organization.label %>/<%= repository.name %>"
 
         repo = _create_repository(
-            entities.Product(organization=self.org).create(),
+            entities.Product(organization=module_org).create(),
             name=old_repo_name,
             upstream_name=docker_upstream_name,
         )
-        repo.sync()
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        repo.sync(timeout=600)
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
         cvv = content_view.read().version[0]
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
         promote(cvv, lce.id)
         repo.name = new_repo_name
         repo.update(['name'])
-        repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
+        repos = entities.Repository(organization=module_org).search(
+            query={'environment_id': lce.id}
+        )
 
-        expected_pattern = f"{self.org.label}/{old_repo_name}".lower()
-        self.assertEqual(repos[0].container_repository_name, expected_pattern)
+        expected_pattern = f"{module_org.label}/{old_repo_name}".lower()
+        assert repos[0].container_repository_name == expected_pattern
 
         content_view.publish()
         cvv = content_view.read().version[-1]
         promote(cvv, lce.id)
-        repos = entities.Repository(organization=self.org).search(query={'environment_id': lce.id})
+        repos = entities.Repository(organization=module_org).search(
+            query={'environment_id': lce.id}
+        )
 
-        expected_pattern = f"{self.org.label}/{new_repo_name}".lower()
-        self.assertEqual(repos[0].container_repository_name, expected_pattern)
+        expected_pattern = f"{module_org.label}/{new_repo_name}".lower()
+        assert repos[0].container_repository_name == expected_pattern
 
     @pytest.mark.tier2
-    def test_negative_set_non_unique_name_pattern_and_promote(self):
+    def test_negative_set_non_unique_name_pattern_and_promote(self, module_org, module_lce):
         """Set registry name pattern to one that does not guarantee uniqueness.
         Try to promote content view with multiple Docker repositories to
         lifecycle environment. Verify that content has not been promoted.
@@ -834,25 +858,25 @@ class DockerContentViewTestCase(APITestCase):
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
 
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         lce.registry_name_pattern = new_pattern
         lce = lce.update(['registry_name_pattern'])
-        prod = entities.Product(organization=self.org).create()
+        prod = entities.Product(organization=module_org).create()
         repos = []
         for docker_name in docker_upstream_names:
             repo = _create_repository(prod, upstream_name=docker_name)
-            repo.sync()
+            repo.sync(timeout=600)
             repos.append(repo)
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = repos
         content_view = content_view.update(['repository'])
         content_view.publish()
         cvv = content_view.read().version[0]
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             promote(cvv, lce.id)
 
     @pytest.mark.tier2
-    def test_negative_promote_and_set_non_unique_name_pattern(self):
+    def test_negative_promote_and_set_non_unique_name_pattern(self, module_org):
         """Promote content view with multiple Docker repositories to
         lifecycle environment. Set registry name pattern to one that
         does not guarantee uniqueness. Verify that pattern has not been
@@ -865,25 +889,25 @@ class DockerContentViewTestCase(APITestCase):
         docker_upstream_names = ['hello-world', 'alpine']
         new_pattern = "<%= organization.label %>"
 
-        prod = entities.Product(organization=self.org).create()
+        prod = entities.Product(organization=module_org).create()
         repos = []
         for docker_name in docker_upstream_names:
             repo = _create_repository(prod, upstream_name=docker_name)
-            repo.sync()
+            repo.sync(timeout=600)
             repos.append(repo)
-        content_view = entities.ContentView(composite=False, organization=self.org).create()
+        content_view = entities.ContentView(composite=False, organization=module_org).create()
         content_view.repository = repos
         content_view = content_view.update(['repository'])
         content_view.publish()
         cvv = content_view.read().version[0]
-        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        lce = entities.LifecycleEnvironment(organization=module_org).create()
         promote(cvv, lce.id)
-        with self.assertRaises(HTTPError):
+        with pytest.raises(HTTPError):
             lce.registry_name_pattern = new_pattern
             lce.update(['registry_name_pattern'])
 
 
-class DockerActivationKeyTestCase(APITestCase):
+class TestDockerActivationKey:
     """Tests specific to adding ``Docker`` repositories to Activation Keys.
 
     :CaseComponent: ActivationKeys
@@ -893,22 +917,10 @@ class DockerActivationKeyTestCase(APITestCase):
     :CaseLevel: Integration
     """
 
-    @classmethod
-    def setUpClass(cls):
-        """Create necessary objects which can be re-used in tests."""
-        super().setUpClass()
-        cls.org = entities.Organization().create()
-        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
-        cls.repo = _create_repository(entities.Product(organization=cls.org).create())
-        content_view = entities.ContentView(composite=False, organization=cls.org).create()
-        content_view.repository = [cls.repo]
-        cls.content_view = content_view.update(['repository'])
-        cls.content_view.publish()
-        cls.cvv = content_view.read().version[0].read()
-        promote(cls.cvv, cls.lce.id)
-
     @pytest.mark.tier2
-    def test_positive_add_docker_repo_cv(self):
+    def test_positive_add_docker_repo_cv(
+        self, module_lce, module_org, repo, content_view_publish_promote
+    ):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then create an activation key and associate it with the
         Docker content view.
@@ -918,18 +930,19 @@ class DockerActivationKeyTestCase(APITestCase):
         :expectedresults: Docker-based content view can be added to activation
             key
         """
+        content_view = content_view_publish_promote
         ak = entities.ActivationKey(
-            content_view=self.content_view, environment=self.lce, organization=self.org
+            content_view=content_view, environment=module_lce, organization=module_org
         ).create()
-        self.assertEqual(ak.content_view.id, self.content_view.id)
-        self.assertEqual(ak.content_view.read().repository[0].id, self.repo.id)
+        assert ak.content_view.id == content_view.id
+        assert ak.content_view.read().repository[0].id == repo.id
 
     @pytest.mark.tier2
-    def test_positive_remove_docker_repo_cv(self):
-        """Add Docker-type repository to a non-composite content view
-        and publish it. Create an activation key and associate it with the
-        Docker content view. Then remove this content view from the activation
-        key.
+    def test_positive_remove_docker_repo_cv(
+        self, module_org, module_lce, content_view_publish_promote
+    ):
+        """Create an activation key and associate it with the Docker content view. Then remove
+        this content view from the activation key.
 
         :id: 6a887a67-6700-47ac-9230-deaa0e382f22
 
@@ -938,15 +951,16 @@ class DockerActivationKeyTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        content_view = content_view_publish_promote
         ak = entities.ActivationKey(
-            content_view=self.content_view, environment=self.lce, organization=self.org
+            content_view=content_view, environment=module_lce, organization=module_org
         ).create()
-        self.assertEqual(ak.content_view.id, self.content_view.id)
+        assert ak.content_view.id == content_view.id
         ak.content_view = None
-        self.assertIsNone(ak.update(['content_view']).content_view)
+        assert ak.update(['content_view']).content_view is None
 
     @pytest.mark.tier2
-    def test_positive_add_docker_repo_ccv(self):
+    def test_positive_add_docker_repo_ccv(self, content_view_version, module_lce, module_org):
         """Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
         publish it. Create an activation key and associate it with the
@@ -957,22 +971,23 @@ class DockerActivationKeyTestCase(APITestCase):
         :expectedresults: Docker-based content view can be added to activation
             key
         """
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
-        comp_content_view.component = [self.cvv]
+        cvv = content_view_version
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
+        comp_content_view.component = [cvv]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertEqual(self.cvv.id, comp_content_view.component[0].id)
+        assert cvv.id == comp_content_view.component[0].id
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        promote(comp_cvv, self.lce.id)
+        promote(comp_cvv, module_lce.id)
 
         ak = entities.ActivationKey(
-            content_view=comp_content_view, environment=self.lce, organization=self.org
+            content_view=comp_content_view, environment=module_lce, organization=module_org
         ).create()
-        self.assertEqual(ak.content_view.id, comp_content_view.id)
+        assert ak.content_view.id == comp_content_view.id
 
     @pytest.mark.tier2
-    def test_positive_remove_docker_repo_ccv(self):
+    def test_positive_remove_docker_repo_ccv(self, module_lce, module_org, content_view_version):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
         and publish it. Create an activation key and associate it with the
@@ -984,18 +999,19 @@ class DockerActivationKeyTestCase(APITestCase):
         :expectedresults: Docker-based composite content view can be added and
             then removed from the activation key.
         """
-        comp_content_view = entities.ContentView(composite=True, organization=self.org).create()
-        comp_content_view.component = [self.cvv]
+        cvv = content_view_version
+        comp_content_view = entities.ContentView(composite=True, organization=module_org).create()
+        comp_content_view.component = [cvv]
         comp_content_view = comp_content_view.update(['component'])
-        self.assertEqual(self.cvv.id, comp_content_view.component[0].id)
+        assert cvv.id == comp_content_view.component[0].id
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        promote(comp_cvv, self.lce.id)
+        promote(comp_cvv, module_lce.id)
 
         ak = entities.ActivationKey(
-            content_view=comp_content_view, environment=self.lce, organization=self.org
+            content_view=comp_content_view, environment=module_lce, organization=module_org
         ).create()
-        self.assertEqual(ak.content_view.id, comp_content_view.id)
+        assert ak.content_view.id == comp_content_view.id
         ak.content_view = None
-        self.assertIsNone(ak.update(['content_view']).content_view)
+        assert ak.update(['content_view']).content_view is None

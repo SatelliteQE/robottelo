@@ -1349,6 +1349,8 @@ class Settings:
         self.rhel6_os = None
         self.rhel7_os = None
         self.rhel8_os = None
+        self.rhel7_optional = None
+        self.rhel7_extras = None
         self.capsule_repo = None
         self.rhscl_repo = None
         self.ansible_repo = None
@@ -1467,6 +1469,8 @@ class Settings:
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.rhel8_os = self.reader.get('robottelo', 'rhel8_os', None, dict)
+        self.rhel7_optional = self.reader.get('robottelo', 'rhel7_optional', None)
+        self.rhel7_extras = self.reader.get('robottelo', 'rhel7_extras', None)
         self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
         self.rhscl_repo = self.reader.get('robottelo', 'rhscl_repo', None)
         self.ansible_repo = self.reader.get('robottelo', 'ansible_repo', None)

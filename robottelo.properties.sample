@@ -126,6 +126,10 @@ ssh_key=
 # RHEL 8 repos
 # rhel8_os=baseos=http://example.com/rhel-8/BaseOS/x86_64/os/,appstream=http://example.com/rhel-8/AppStream/x86_64/os/
 
+# Link to rhel7 optional repository
+# rhel7_optional=http://example.com/yum/rhel7-optional/
+# Link to rhel7 extras repository
+# rhel7_extras=http://example.com/yum/rhel7-extras/
 
 # If capsule and satellite tools repositories available related packages will
 # be pulled from there instead of using the CDN channel. These information is

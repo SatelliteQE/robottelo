@@ -13,6 +13,8 @@ REPOS:
   # RHEL8_OS:
       # BASEOS: replace-with-rhel8-os-baseos-http-link
       # APPSTREAM: replace-with-rhel8-os-appstream-http-link
+  # RHEL7_OPTIONAL: replace-with-rhel7-optional-url
+  # RHEL7_EXTRAS: replace-with-rhel7-extras-url
   # If capsule and satellite tools repositories available related packages will
   # be pulled from there instead of using the CDN channel. These information is
   # more suited to be used for downstream, downstream-iso and zstream builds.
