@@ -24,7 +24,7 @@ from robottelo.test import settings
 
 @pytest.mark.tier1
 def test_positive_register(
-    module_org, module_location, module_lce, module_ak, module_published_cv
+    module_org, module_location, module_lce, module_ak_cv_lce, module_published_cv
 ):
     """System is registered
 
@@ -55,7 +55,7 @@ def test_positive_register(
         )
         assert vm.execute(
             f'python /root/bootstrap.py -s {settings.server.hostname} -o {module_org.name}'
-            f' -L {module_location.name} -a {module_ak.name} --hostgroup={hg.name}'
+            f' -L {module_location.name} -a {module_ak_cv_lce.name} --hostgroup={hg.name}'
             ' --skip puppet --skip foreman'
         )
         # assure system is registered
@@ -65,7 +65,7 @@ def test_positive_register(
         # register system once again
         assert vm.execute(
             f'python /root/bootstrap.py -s "{settings.server.hostname}" -o {module_org.name} '
-            f'-L {module_location.name} -a {module_ak.name} --hostgroup={hg.name}'
+            f'-L {module_location.name} -a {module_ak_cv_lce.name} --hostgroup={hg.name}'
             '--skip puppet --skip foreman '
         )
         # assure system is registered
