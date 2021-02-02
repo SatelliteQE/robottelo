@@ -5,9 +5,8 @@ from nailgun import entities
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
-
-from robottelo.api.utils import promote
 from robottelo import manifests
+from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import AZURERM_RG_DEFAULT
