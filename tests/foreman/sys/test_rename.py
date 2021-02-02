@@ -21,7 +21,6 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.ssh import get_connection
-from robottelo.utils.issue_handlers import is_open
 
 BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = (
@@ -36,6 +35,7 @@ BAD_CREDS_MSG = "Unable to authenticate user admin"
 class TestRenameHost:
     """Implements ``katello-change-hostname`` tests"""
 
+    @pytest.mark.skip_if_open("BZ:1897360")
     def test_positive_rename_satellite(self, module_org, module_product):
         """run katello-change-hostname on Satellite server
 
@@ -82,10 +82,9 @@ class TestRenameHost:
             )
             assert result.return_code == 0, 'unsuccessful rename'
             assert BCK_MSG in result.stdout
-            if not is_open('BZ:1901983') or not is_open('BZ:1897360'):
-                # services running after rename?
-                result = connection.run('hammer ping')
-                assert result.return_code == 0, 'services did not start properly'
+            # services running after rename?
+            result = connection.run('hammer ping')
+            assert result.return_code == 0, 'services did not start properly'
             # basic hostname check
             result = connection.run('hostname')
             assert result.return_code == 0
@@ -196,12 +195,13 @@ class TestRenameHost:
             result = connection.run('hostname')
             assert original_name == result.stdout[0], "Invalid hostame assigned"
 
+    @pytest.mark.skip_if_open("BZ:1897360")
     def test_negative_rename_sat_wrong_passwd(self):
         """change hostname with wrong password on Satellite server
 
         :id: e6d84c5b-4bb1-4400-8022-d01cc9216936
 
-        :BZ: 1485884
+        :BZ: 1485884, 1897360
 
         :expectedresults: script terminates with a message, hostname
             is not changed
