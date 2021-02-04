@@ -425,16 +425,16 @@ def default_contentview(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_ak(module_org, module_lce, module_published_cv):
-    """Module Activation key"""
+def module_ak_cv_lce(module_org, module_lce, module_published_cv):
+    """Module Activation key with CV promoted to LCE"""
     promote(module_published_cv.version[0], module_lce.id)
     module_published_cv = module_published_cv.read()
-    module_ak = entities.ActivationKey(
+    module_ak_cv_lce = entities.ActivationKey(
         content_view=module_published_cv,
         environment=module_lce,
         organization=module_org,
     ).create()
-    return module_ak
+    return module_ak_cv_lce
 
 
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
