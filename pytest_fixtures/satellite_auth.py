@@ -20,6 +20,7 @@ from robottelo.rhsso_utils import set_the_redirect_uri
 def ad_data():
     return {
         'ldap_user_name': settings.ldap.username,
+        'ldap_user_cn': settings.ldap.username,
         'ldap_user_passwd': settings.ldap.password,
         'base_dn': settings.ldap.basedn,
         'group_base_dn': settings.ldap.grpbasedn,
@@ -46,7 +47,14 @@ def ipa_data():
 
 @pytest.fixture(scope='session')
 def open_ldap_data():
-    return settings.open_ldap
+    return {
+        'ldap_user_name': settings.open_ldap.open_ldap_user,
+        'ldap_user_cn': settings.open_ldap.username,
+        'ldap_hostname': settings.open_ldap.hostname,
+        'ldap_user_passwd': settings.open_ldap.password,
+        'base_dn': settings.open_ldap.base_dn,
+        'group_base_dn': settings.open_ldap.group_base_dn,
+    }
 
 
 @pytest.fixture(scope='function')
@@ -93,8 +101,30 @@ def auth_source_ipa(module_org, module_loc, ipa_data):
     ).create()
 
 
+@pytest.fixture(scope='function')
+def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
+    return entities.AuthSourceLDAP(
+        onthefly_register=True,
+        account=open_ldap_data['ldap_user_cn'],
+        account_password=open_ldap_data['ldap_user_passwd'],
+        base_dn=open_ldap_data['base_dn'],
+        groups_base=open_ldap_data['group_base_dn'],
+        attr_firstname=LDAP_ATTR['firstname'],
+        attr_lastname=LDAP_ATTR['surname'],
+        attr_login=LDAP_ATTR['login'],
+        server_type=LDAP_SERVER_TYPE['API']['posix'],
+        attr_mail=LDAP_ATTR['mail'],
+        name=gen_string('alpha'),
+        host=open_ldap_data['ldap_hostname'],
+        tls=False,
+        port='389',
+        organization=[module_org],
+        location=[module_loc],
+    ).create()
+
+
 @pytest.fixture
-def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data):
+def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, open_ldap_data):
     if request.param.lower() == 'ad':
         # entity create with AD settings
         entities.AuthSourceLDAP(
@@ -137,31 +167,31 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data):
             location=[module_location],
         ).create()
         ldap_data = ipa_data
+    elif request.param.lower() == 'openldap':
+        # entity create with OpenLdap settings
+        entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=open_ldap_data['ldap_user_cn'],
+            account_password=open_ldap_data['ldap_user_passwd'],
+            base_dn=open_ldap_data['base_dn'],
+            groups_base=open_ldap_data['group_base_dn'],
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login'],
+            server_type=LDAP_SERVER_TYPE['API']['posix'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=open_ldap_data['ldap_hostname'],
+            tls=False,
+            port='389',
+            organization=[module_org],
+            location=[module_location],
+        ).create()
+        ldap_data = open_ldap_data
     else:
-        # default auth server settings
         raise Exception('Incorrect auth source parameter used')
+    ldap_data['auth_type'] = request.param.lower()
     yield ldap_data
-
-
-@pytest.fixture(scope='function')
-def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
-    return entities.AuthSourceLDAP(
-        onthefly_register=True,
-        account=open_ldap_data.username,
-        account_password=open_ldap_data.password,
-        base_dn=open_ldap_data.base_dn,
-        attr_firstname=LDAP_ATTR['firstname'],
-        attr_lastname=LDAP_ATTR['surname'],
-        attr_login=LDAP_ATTR['login'],
-        server_type=LDAP_SERVER_TYPE['API']['posix'],
-        attr_mail=LDAP_ATTR['mail'],
-        name=gen_string('alpha'),
-        host=open_ldap_data.hostname,
-        tls=False,
-        port='389',
-        organization=[module_org],
-        location=[module_loc],
-    ).create()
 
 
 @pytest.fixture(scope='session')
