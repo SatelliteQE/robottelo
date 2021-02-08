@@ -36,7 +36,6 @@ from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import gen_string
 from robottelo.decorators import setting_is_set
-# from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import file_downloader
 from robottelo.rhsso_utils import create_group
 from robottelo.rhsso_utils import create_new_rhsso_user
@@ -46,6 +45,8 @@ from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_rhsso_user
 from robottelo.utils.issue_handlers import is_open
+
+# from robottelo.decorators import skip_if_not_set
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -876,8 +877,8 @@ def test_positive_login_user_password_otp(
 
     :parametrized: yes
     """
-
-    otp_pass = f"{ldap_auth_source['ldap_user_passwd']}{generate_otp(ldap_auth_source['time_based_secret'])}"
+    otp = generate_otp(ldap_auth_source['time_based_secret'])
+    otp_pass = f"{ldap_auth_source['ldap_user_passwd']}{otp}"
     with Session(test_name, ldap_auth_source['ipa_otp_username'], otp_pass) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.user.search('')
