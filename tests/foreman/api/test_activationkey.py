@@ -400,14 +400,13 @@ def test_positive_delete(name):
 
     :id: aa28d8fb-e07d-45fa-b43a-fc90c706d633
 
-
     :expectedresults: Activation key is successfully deleted.
 
     :CaseImportance: Critical
 
     :parametrized: yes
     """
-    act_key = entities.ActivationKey().create()
+    act_key = entities.ActivationKey(name=name).create()
     act_key.delete()
     with pytest.raises(HTTPError):
         entities.ActivationKey(id=act_key.id).read()
