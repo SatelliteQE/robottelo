@@ -60,9 +60,8 @@ class ContentHost(Host):
 
         """
         self.execute(f'wget -nd -r -l1 --no-parent -A \'{package_name}.rpm\' {repo_url}')
-        self.execute(f'rpm -i {package_name}.rpm')
-        result = self.execute(f'rpm -q {package_name}')
-        if not result.status:
+        result = self.execute(f'rpm -i {package_name}.rpm')
+        if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
 
     def enable_repo(self, repo, force=False):
@@ -87,13 +86,13 @@ class ContentHost(Host):
             self.execute(f'subscription-manager repos --enable {repo}')
 
     def subscription_manager_list_repos(self):
-        return self.execute("subscription-manager repos --list")
+        return self.execute('subscription-manager repos --list')
 
     def subscription_manager_status(self):
-        return self.execute("subscription-manager status")
+        return self.execute('subscription-manager status')
 
     def subscription_manager_list(self):
-        return self.execute("subscription-manager list")
+        return self.execute('subscription-manager list')
 
     def create_custom_repos(self, **kwargs):
         """Create custom repofiles.
@@ -125,9 +124,8 @@ class ContentHost(Host):
         :raises robottelo.hosts.ContentHostError: If katello-host-tools wasn't
             installed.
         """
-        self.execute('yum install -y katello-host-tools')
-        result = self.execute('rpm -q katello-host-tools')
-        if not result.status:
+        result = self.execute('yum install -y katello-host-tools')
+        if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
 
     def install_katello_ca(self, sat_hostname=None):
@@ -155,16 +153,15 @@ class ContentHost(Host):
         """
         url = urlunsplit(('http', capsule, 'pub/', '', ''))
         ca_url = urljoin(url, 'katello-ca-consumer-latest.noarch.rpm')
-        self.execute(f'rpm -Uvh {ca_url}')
-        result = self.execute(f'rpm -q katello-ca-consumer-{capsule}')
-        if not result.status:
+        result = self.execute(f'rpm -Uvh {ca_url}')
+        if result.status != 0:
             raise ContentHostError('Failed to install the katello-ca rpm')
 
     def register_contenthost(
         self,
-        org="Default_Organization",
+        org='Default_Organization',
         activation_key=None,
-        lce="Library",
+        lce='Library',
         consumerid=None,
         force=True,
         releasever=None,
@@ -227,37 +224,18 @@ class ContentHost(Host):
             self.subscribed = True
         return result
 
-    def remove_katello_ca(self):
+    def remove_katello_ca(self, capsule=None):
         """Removes katello-ca rpm from the broker virtual machine.
 
+        :param: str capsule: (optional) Capsule hostname
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
         """
+        hostname = capsule or self.hostname
         try:
-            remove_katello_ca(hostname=self.hostname)
+            remove_katello_ca(hostname=hostname)
         except AssertionError:
             raise ContentHostError('Failed to remove the katello-ca rpm')
-
-    def remove_capsule_katello_ca(self, capsule=None):
-        """Removes katello-ca rpm and reset rhsm.conf from the broker virtual machine.
-
-        :param: str capsule: Capsule hostname
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
-        """
-        self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
-        result = self.execute(f'rpm -q katello-ca-consumer-{capsule}')
-        if result.status == 0:
-            raise ContentHostError('Failed to remove the katello-ca rpm')
-        rhsm_updates = [
-            's/^hostname.*/hostname=subscription.rhn.redhat.com/',
-            's|^prefix.*|prefix=/subscription|',
-            's|^baseurl.*|baseurl=https://cdn.redhat.com|',
-            's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
-        ]
-        for command in rhsm_updates:
-            result = self.execute(f'sed -i -e "{command}" /etc/rhsm/rhsm.conf')
-            if not result.status:
-                raise ContentHostError('Failed to reset the rhsm.conf')
 
     def unregister(self):
         """Run subscription-manager unregister.
@@ -283,9 +261,6 @@ class ContentHost(Host):
         :return: None.
 
         """
-        # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
-        # possible to sync the repo during the tests as they are huge(in GB's)
-        # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
         self.execute(f'curl -o /etc/yum.repos.d/rhel.repo {rhel_repo}')
 
     def execute_foreman_scap_client(self, policy_id=None):
@@ -301,7 +276,7 @@ class ContentHost(Host):
             )
             policy_id = result.stdout[0]
         result = self.execute(f'foreman_scap_client {policy_id}')
-        if not result.status:
+        if result.status != 0:
             raise ContentHostError('Failed to execute foreman_scap_client run.')
 
     def configure_rhai_client(self, activation_key, org, rhel_distro, register=True):
@@ -316,11 +291,11 @@ class ContentHost(Host):
         :param register: Whether to register client to insights
         :return: None
         """
-        # Download and Install ketello-ca rpm
+        # Install Satellite CA rpm
         self.install_katello_ca()
         self.register_contenthost(org, activation_key)
 
-        # Red Hat Access Insights requires RHEL 6/7/8 repo and it is not
+        # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
             DISTRO_RHEL6: settings.rhel6_repo,
@@ -334,41 +309,41 @@ class ContentHost(Host):
 
         self.configure_rhel_repo(rhel_repo)
 
-        # Install redhat-access-insights package
-        package_name = 'insights-client'
-        result = self.execute(f'yum install -y {package_name}')
+        # Install insights-client rpm
+        result = self.execute('yum install -y insights-client')
         if result.status != 0:
-            raise ContentHostError('Unable to install redhat-access-insights package')
-
-        # Verify if package is installed by rpm query
-        result = self.execute(f'rpm -qi {package_name}')
-        logger.info(f'Insights client rpm version: {result.stdout}')
-        if result.status != 0:
-            raise ContentHostError('Unable to install redhat-access-insights package')
+            raise ContentHostError('Unable to install insights-client rpm')
 
         if not register:
             return
 
-        # Register client with Red Hat Access Insights
+        # Register client
         result = self.execute('insights-client --register')
         if result.status != 0:
-            raise ContentHostError(
-                'Unable to register client to Access Insights through Satellite'
-            )
+            raise ContentHostError('Unable to register client to Insights through Satellite')
 
-    def set_infrastructure_type(self, infrastructure_type="physical"):
+    def unregister_insights(self):
+        """Unregister insights client.
+
+        :return: None
+        """
+        result = self.execute('insights-client --unregister')
+        if result.status != 0:
+            raise ContentHostError('Failed to unregister client from Insights through Satellite')
+
+    def set_infrastructure_type(self, infrastructure_type='physical'):
         """Force host to appear as bare-metal orbroker virtual machine in
         subscription-manager fact.
 
-        :param str infrastructure_type: One of "physical", "virtual"
+        :param str infrastructure_type: One of 'physical', 'virtual'
         """
-        script_path = "/usr/sbin/virt-what"
-        self.execute(f"cp -n {script_path} {script_path}.old")
+        script_path = '/usr/sbin/virt-what'
+        self.execute(f'cp -n {script_path} {script_path}.old')
 
-        script_content = ["#!/bin/sh -"]
-        if infrastructure_type == "virtual":
-            script_content.append("echo kvm")
-        script_content = "\n".join(script_content)
+        script_content = ['#!/bin/sh -']
+        if infrastructure_type == 'virtual':
+            script_content.append('echo kvm')
+        script_content = '\n'.join(script_content)
         self.execute(f"echo -e '{script_content}' > {script_path}")
 
     def patch_os_release_version(self, distro=DISTRO_RHEL7):
@@ -392,7 +367,7 @@ class ContentHost(Host):
 class Capsule(ContentHost):
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
-        result = self.execute('foreman-maintain service restart').status
+        result = self.execute('foreman-maintain service restart')
         return True if result.status == 0 else result.stdout
 
     def check_services(self):
@@ -406,7 +381,7 @@ class Capsule(ContentHost):
 
     def install(self, **cmd_kwargs):
         """General purpose installer"""
-        command_args = {"scenario": self.__class__.__name__.lower()}
+        command_args = {'scenario': self.__class__.__name__.lower()}
         command_args.update(cmd_kwargs)
         command_args = ' '.join(
             [f'--{key.replace("_", "-")} {value}' for key, value in command_args.items()]
@@ -510,9 +485,9 @@ class Satellite(Capsule):
                 listening = True
             if listening:
                 installer_command += ' ' + ' '.join(line.replace('\\', '').split())
-        installer_command = installer_command.replace("satellite-installer", "").strip()
+        installer_command = installer_command.replace('satellite-installer', '').strip()
         cmd_args = {
-            k: v for k, v in [s.strip().split() for s in installer_command.split("--") if s]
+            k: v for k, v in [s.strip().split() for s in installer_command.split('--') if s]
         }
         # capsule-certs-generate color codes this field which causes path recognition issues
         cmd_args['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
