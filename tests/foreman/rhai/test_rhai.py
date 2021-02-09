@@ -27,46 +27,80 @@ from robottelo.constants import ANY_CONTEXT
 pytestmark = pytest.mark.usefixtures('attach_subscription')
 
 NAV_ITEMS = [
-    ("insightsaction", "Details"),
-    ("insightsinventory", "All"),
-    ("insightsoverview", "Details"),
-    ("insightsplan", "All"),
-    ("insightsrule", "All"),
+    ('insightsaction', 'Details'),
+    ('insightsinventory', 'All'),
+    ('insightsoverview', 'Details'),
+    ('insightsplan', 'All'),
+    ('insightsrule', 'All'),
 ]
 
 
-def test_positive_register_client_to_rhai(vm, autosession):
-    """Check client registration to redhat-access-insights service.
+def test_positive_register_client_to_insights(vm, autosession):
+    """Verify registration via insights-client.
 
     :id: 9815151e-d50d-4160-9d29-ae7c89422e18
 
-    :expectedresults: Registered client should appear in the Systems sub-
-        menu of Red Hat Access Insights
+    :expectedresults: Client should appear in Insights > Inventory.
     """
     table = autosession.insightsinventory.search(vm.hostname)
-    assert table[0]["System Name"].text == vm.hostname
-    result = autosession.insightsinventory.total_systems
-    assert result == "1", "Registered clients are not listed"
+    assert table[0]['System Name'].text == vm.hostname
 
 
-def test_positive_unregister_client_to_rhai(vm, autosession):
-    """Check client canceling registration to redhat-access-insights service.
+@pytest.mark.stubbed
+def test_positive_register_client_with_template():
+    """Register an insights client using the Global Registration Template.
+
+    :id: c7664d22-e86d-470d-a4ee-4291e767c60c
+
+    :expectedresults: Registered client should appear in the Insights > Systems
+
+    :Steps:
+        0. Import manifest, then enable and sync rhel-7-server-rpms x86_64 7Server (required for
+           insights-client rpm).
+        1. Create an activation key and associate it with the synced repository.
+        2. In the Satellite web UI, navigate to Hosts > Provisioning Templates, find the Linux
+           registration default template and click it. Click the Association tab.
+        3. Ensure that the operating system that you want to register is in the Selected items
+           column. Click Submit.
+        4. Navigate to Hosts > Operating Systems and click the operating system that you want to
+           register. Click the Templates tab.
+        5. From the Registration template list, ensure that Linux registration default is
+           selected. Click Submit.
+        6. Navigate to Hosts > All Hosts > Register Host.
+        7. From the Operating System list, select the operating system of hosts that you want to
+           register.
+        8. From the Insights list, select to register the hosts to Insights.
+        9. In the Activation Key(s) field, enter the name of activation key previously created.
+        10. Click the Generate command.
+        11. Copy the generated curl command.
+        12. Configure host with the CA certificate:
+            # yum localinstall -y
+            http://satellite.example.com/pub/katello-ca-consumer-latest.noarch.rpm
+        13. On the host, enter the curl command as root.
+
+
+    :expectedresults: Client appears in Insights Inventory
+
+    :CaseAutomation: NotAutomated
+    """
+    pass
+
+
+def test_positive_unregister_client_from_insights(vm, autosession):
+    """Verify unregistration via insights-client.
 
     :id: 70d1045b-7d9d-472e-8ce9-8a5b81c41a85
 
-    :expectedresults: Unregistered client should not appear in the Systems sub-
-        menu of Red Hat Access Insights
+    :expectedresults: Client should disappear from Insights > Inventory.
     """
-    vm.unregister()
+    vm.unregister_insights()
     table = autosession.insightsinventory.search(vm.hostname)
-    assert not table[0].is_displayed
-    result = autosession.insightsinventory.total_systems
-    assert result == "0", "The client is still registered"
+    assert table.row_count == 0
 
 
-@pytest.mark.parametrize("nav_item", NAV_ITEMS, ids=lambda nav_item: nav_item[0])
-def test_rhai_navigation(autosession, nav_item):
-    """Test navigation across RHAI tab
+@pytest.mark.parametrize('nav_item', NAV_ITEMS, ids=lambda nav_item: nav_item[0])
+def test_insights_navigation(autosession, nav_item):
+    """Test navigation across Insights tabs
 
     :id: 1f5faa05-83c2-43b3-925a-78c77d30d1ef
 
@@ -86,14 +120,12 @@ def test_negative_org_not_selected(autosession):
 
     :id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
 
-    :expectedresults: 'Organization Selection Required' message must be
-        displayed if the user tries to view Access Insights overview
-        without selecting an org
+    :expectedresults: 'Organization Selection Required' message must be displayed if the user
+        tries to view Insights overview without selecting an org
     """
     autosession.organization.select(org_name=ANY_CONTEXT['org'])
-    with pytest.raises(InsightsOrganizationPageError) as context:
+    with pytest.raises(InsightsOrganizationPageError, match='Organization Selection Required'):
         autosession.insightsoverview.read()
-    assert "Organization Selection Required" in str(context.value)
 
 
 @pytest.mark.stubbed
@@ -328,6 +360,7 @@ def test_positive_plan_edit_remove_system():
 
     :CaseLevel: System
     """
+    pass
 
 
 @pytest.mark.stubbed
@@ -359,6 +392,7 @@ def test_positive_plan_edit_remove_rule():
 
     :CaseLevel: System
     """
+    pass
 
 
 @pytest.mark.stubbed
@@ -382,6 +416,7 @@ def test_positive_inventory_export_csv():
 
     :CaseLevel: System
     """
+    pass
 
 
 @pytest.mark.stubbed
@@ -404,6 +439,7 @@ def test_positive_inventory_create_new_plan():
 
     :CaseLevel: System
     """
+    pass
 
 
 @pytest.mark.stubbed
@@ -431,6 +467,7 @@ def test_positive_inventory_add_to_existing_plan():
 
     :CaseLevel: System
     """
+    pass
 
 
 @pytest.mark.stubbed
@@ -456,6 +493,7 @@ def test_positive_inventory_group_systems():
 
     :CaseLevel: System
     """
+    pass
 
 
 def test_numeric_group(vm, autosession):
@@ -471,14 +509,14 @@ def test_numeric_group(vm, autosession):
     assert not [rule for rule in values['rules'] if rule_title in rule['title']]
     # as groupadd with numeric value should fail, add a valid group and replace it with a numeric
     # one in the group file.
-    vm.run('groupadd test_group')
-    vm.run("sed -i 's/test_group/123456/' /etc/group")
-    vm.run('insights-client')
+    vm.execute('groupadd test_group')
+    vm.execute("sed -i 's/test_group/123456/' /etc/group")
+    vm.execute('insights-client')
     values = autosession.insightsinventory.read(vm.hostname, 'rules')
     # assert that the user and group numeric rule is present
     assert [rule for rule in values['rules'] if rule_title in rule['title']]
-    vm.run('groupdel 123456')
-    vm.run('insights-client')
+    vm.execute('groupdel 123456')
+    vm.execute('insights-client')
     values = autosession.insightsinventory.read(vm.hostname, 'rules')
     # assert that the user and group numeric rule is not present again
     assert not [rule for rule in values['rules'] if rule_title in rule['title']]
