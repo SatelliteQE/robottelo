@@ -1971,9 +1971,9 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
     """
     custom_repo_url = None
     if options.get('repository') == REPOS['rhst6']['name']:
-        custom_repo_url = settings.sattools_repo.rhel6
+        custom_repo_url = settings.sattools_repo['rhel6']
     elif options.get('repository') == REPOS['rhst7']['name']:
-        custom_repo_url = settings.sattools_repo.rhel7
+        custom_repo_url = settings.sattools_repo['rhel7']
     elif options.get('repository') == REPOS['rhel6']['name']:
         custom_repo_url = settings.rhel6_os
     elif options.get('repository') == REPOS['rhel7']['name']:
@@ -2658,8 +2658,8 @@ def virt_who_hypervisor_config(
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
             'repository-id': REPOS['rhst7']['id'],
-            'url': settings.sattools_repo.rhel7,
-            'cdn': bool(settings.cdn or not settings.sattools_repo.rhel7),
+            'url': settings.sattools_repo['rhel7'],
+            'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
         }
     ]
     repos.extend(extra_repos)

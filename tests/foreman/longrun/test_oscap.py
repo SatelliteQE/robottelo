@@ -113,9 +113,9 @@ class OpenScapTestCase(CLITestCase):
         ak_name_7 = gen_string('alpha')
         ak_name_6 = gen_string('alpha')
         repo_values = [
-            {'repo': settings.sattools_repo.rhel8, 'akname': ak_name_8},
-            {'repo': settings.sattools_repo.rhel7, 'akname': ak_name_7},
-            {'repo': settings.sattools_repo.rhel6, 'akname': ak_name_6},
+            {'repo': settings.sattools_repo['rhel8'], 'akname': ak_name_8},
+            {'repo': settings.sattools_repo['rhel7'], 'akname': ak_name_7},
+            {'repo': settings.sattools_repo['rhel6'], 'akname': ak_name_6},
         ]
         # Create new organization and environment.
         org = entities.Organization(name=gen_string('alpha')).create()
