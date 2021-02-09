@@ -397,19 +397,22 @@ class SettingsFacade:
 
         e.g `self.verbosity` instead of `self.robottelo.verbosity`
         """
-        robottelo_keys = [setting.lower() for setting in self._configs[0].robottelo.keys()]
-        top_key = key.split('.')[0]
-        if top_key in robottelo_keys:
-            try:
-                # From DynaConf
-                value = self.get(f'robottelo.{key}')
-            except KeyError:
-                # From Legacy Setting
-                value = self.get(key)
+        if hasattr(self._configs[0], 'robottelo'):
+            robottelo_keys = [setting.lower() for setting in self._configs[0].robottelo.keys()]
+            top_key = key.split('.')[0]
+            if top_key in robottelo_keys:
+                try:
+                    # From DynaConf
+                    value = self.get(f'robottelo.{key}')
+                except KeyError:
+                    # From Legacy Setting
+                    value = self.get(key)
+            else:
+                raise KeyError()
+            self._add_to_cache(key, value)
+            return value
         else:
             raise KeyError()
-        self._add_to_cache(key, value)
-        return value
 
     # TO DO: Should be removed when LegacySettings are removed
     def _dispatch_repos_value(self, key):
@@ -417,19 +420,22 @@ class SettingsFacade:
 
         e.g `self.capsule_repo` instead of `self.repos.capsule_repo`
         """
-        repos_keys = [setting.lower() for setting in self._configs[0].repos.keys()]
-        top_key = key.split('.')[0]
-        if top_key in repos_keys:
-            try:
-                # From DynaConf
-                value = self.get(f'repos.{key}')
-            except KeyError:
-                # From Legacy Setting
-                value = self.get(key)
+        if hasattr(self._configs[0], 'repos'):
+            repos_keys = [setting.lower() for setting in self._configs[0].repos.keys()]
+            top_key = key.split('.')[0]
+            if top_key in repos_keys:
+                try:
+                    # From DynaConf
+                    value = self.get(f'repos.{key}')
+                except KeyError:
+                    # From Legacy Setting
+                    value = self.get(key)
+            else:
+                raise KeyError()
+            self._add_to_cache(key, value)
+            return value
         else:
             raise KeyError()
-        self._add_to_cache(key, value)
-        return value
 
     def _get_from_configs(self, key):
         for config_provider in self._configs:

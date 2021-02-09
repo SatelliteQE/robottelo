@@ -9,7 +9,6 @@ from robottelo.config.base import Settings as LegacySettings
 from robottelo.config.facade import SettingsFacade
 from robottelo.config.facade import SettingsNodeWrapper
 
-
 logger = logging.getLogger('robottelo.config')
 
 legacy_settings = LegacySettings()
