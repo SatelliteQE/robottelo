@@ -7,6 +7,7 @@ pytest_plugins = [
     "pytest_plugins.issue_handlers",
     "pytest_plugins.testimony_markers",
     "pytest_plugins.manual_skipped",
+    "pytest_plugins.disable_rp_params",
     # Fixtures
     "pytest_fixtures.api_fixtures",
     "pytest_fixtures.xdist",
