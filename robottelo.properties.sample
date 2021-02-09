@@ -625,3 +625,7 @@ totp_secret=
 # auth_proxy_url=
 # username=
 # password=
+#
+# [iqe]
+# jenkins=https://jenkins.example.com
+# fifi_job=view/FiFi/job/iqe-remediations-fifi-prod-basic

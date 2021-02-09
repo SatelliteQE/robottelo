@@ -1446,6 +1446,7 @@ class Settings:
         self.virtwho = VirtWhoSettings()
         self.report_portal = ReportPortalSettings()
         self.http_proxy = HttpProxySettings()
+        self.iqe = IQESettings()
 
     def configure(self, settings_path=None):
         """Read the settings file and parse the configuration.
@@ -1705,4 +1706,31 @@ class HttpProxySettings(FeatureSettings):
             validation_errors.append(
                 f'All [http_proxy] {self.__dict__.keys()} options must be provided'
             )
+        return validation_errors
+
+
+class IQESettings(FeatureSettings):
+    """IQE settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.jenkins = None
+        self.fifi_job = None
+
+    def read(self, reader):
+        """Read IQE settings"""
+        self.jenkins = reader.get('iqe', 'jenkins')
+        self.fifi_job = reader.get('iqe', 'fifi_job')
+
+    def validate(self):
+        """Validate IQE settings."""
+        validation_errors = []
+        if not all(self.__dict__.values()):
+            validation_errors.append(f'All [iqe] {self.__dict__.keys()} options must be provided')
+        if (
+            self.jenkins is None
+            or 'http://' not in self.jenkins
+            and 'https://' not in self.jenkins
+        ):
+            validation_errors.append(f'Plase set [iqe]jenkins as (http|https)://fqdn')
         return validation_errors

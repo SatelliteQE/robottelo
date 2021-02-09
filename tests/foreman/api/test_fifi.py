@@ -24,7 +24,11 @@ Robottelo so Satellite QE's tooling (Report Portal, Polarion) can use it transpa
 import pytest
 import requests
 
+from robottelo.config import settings
+from robottelo.decorators import skip_if_not_set
 
+
+@skip_if_not_set('iqe')
 @pytest.mark.tier2
 def test_fifi():
     """Fetch FiFi test result from IQE's Jenkins
@@ -33,14 +37,12 @@ def test_fifi():
 
     :expectedresults: There are some tests found and all of the passed
     """
-    job = requests.get(
-        'https://insights-stg-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/view/'
-        'FiFi/job/iqe-remediations-fifi-prod-basic/api/json'
-    ).json()
+    jenkins = settings.iqe.jenkins
+    fifi_job = settings.iqe.fifi_job
+    job = requests.get(f'{jenkins}/{fifi_job}/api/json').json()
     last_build_number = job['lastCompletedBuild']['number']
     all_tests = requests.get(
-        f'https://insights-stg-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/view/FiFi/job/'
-        f'iqe-remediations-fifi-prod-basic/{last_build_number}/testReport/api/json/'
+        f'{jenkins}/{fifi_job}/{last_build_number}/testReport/api/json'
     ).json()['suites'][0]['cases']
     tests = [
         test for test in all_tests if 'sat69' in test['name']
