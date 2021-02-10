@@ -27,12 +27,14 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_RHEL7_0_0_PACKAGE
+from robottelo.constants import REAL_RHEL7_0_0_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_0_PACKAGE_NAME
 from robottelo.constants import REAL_RHEL7_0_1_PACKAGE_FILENAME
 from robottelo.constants import REAL_RHEL7_0_ERRATA_ID
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import skip_if_not_set
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
@@ -63,7 +65,7 @@ class ContentAccessTestCase(CLITestCase):
                 Consumer:
                     Name: ExampleCorp
                     UUID: c319a1d8-4b30-44cd-b2cf-2ccba4b9a8db
-                    Content Access Mode: org_environment
+                    Content Access Mode: Simple Content Access
                     Type: satellite
 
         :steps:
@@ -81,7 +83,7 @@ class ContentAccessTestCase(CLITestCase):
         # Create Organization
         cls.org = make_org()
         # upload organization manifest with org environment access enabled
-        cls.manifest = manifests.clone(org_environment_access=True)
+        cls.manifest = manifests.clone(org_environment_access=True, name='golden_ticket')
         manifests.upload_manifest_locked(
             cls.org['id'], cls.manifest, interface=manifests.INTERFACE_CLI
         )
@@ -154,7 +156,12 @@ class ContentAccessTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
             # install the packages that require updates
-            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
+            ssh.upload_file(
+                local_file=get_data_file(REAL_RHEL7_0_0_PACKAGE_FILENAME),
+                remote_file=f"/root/{REAL_RHEL7_0_0_PACKAGE_FILENAME}",
+                hostname=vm.ip_addr,
+            )
+            result = vm.run(f'yum localinstall -y {REAL_RHEL7_0_0_PACKAGE_FILENAME}')
             self.assertEqual(result.return_code, 0)
             result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
             self.assertEqual(result.return_code, 0)
@@ -200,9 +207,12 @@ class ContentAccessTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             self._setup_virtual_machine(vm)
             # install the packages that require updates
-            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
-            self.assertEqual(result.return_code, 0)
-            result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
+            ssh.upload_file(
+                local_file=get_data_file(REAL_RHEL7_0_0_PACKAGE_FILENAME),
+                remote_file=f"/root/{REAL_RHEL7_0_0_PACKAGE_FILENAME}",
+                hostname=vm.ip_addr,
+            )
+            result = vm.run(f'yum localinstall -y {REAL_RHEL7_0_0_PACKAGE_FILENAME}')
             self.assertEqual(result.return_code, 0)
             # check that package errata is applicable
             for _ in range(30):
@@ -228,7 +238,7 @@ class ContentAccessTestCase(CLITestCase):
         :CaseAutomation: Automated
 
         :expectedresults:
-            1. Assert `Content Access Mode: org_environment` is not present.
+            1. Assert `Content Access Mode: Simple Content Access` is not present.
 
         :CaseImportance: High
         """
@@ -238,7 +248,7 @@ class ContentAccessTestCase(CLITestCase):
         manifests.upload_manifest_locked(org['id'], manifest, interface=manifests.INTERFACE_CLI)
         result = ssh.command(f'rct cat-manifest {manifest.filename}')
         self.assertEqual(result.return_code, 0)
-        self.assertNotIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
+        self.assertNotIn('Content Access Mode: Simple Content Access', '\n'.join(result.stdout))
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -254,10 +264,10 @@ class ContentAccessTestCase(CLITestCase):
         :CaseAutomation: Automated
 
         :expectedresults:
-            1. Assert `Content Access Mode: org_environment` is present.
+            1. Assert `Content Access Mode: Simple Content Access` is present.
 
         :CaseImportance: Medium
         """
         result = ssh.command(f'rct cat-manifest {self.manifest.filename}')
         self.assertEqual(result.return_code, 0)
-        self.assertIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
+        self.assertIn('Content Access Mode: Simple Content Access', '\n'.join(result.stdout))
