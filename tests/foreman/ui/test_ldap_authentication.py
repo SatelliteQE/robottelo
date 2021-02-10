@@ -523,8 +523,11 @@ def test_positive_update_external_roles(
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+                current_url = ldapsession.browser.url
+                base_url = current_url.rsplit('/', 3)[0]
+                ldapsession.browser.selenium.get(base_url)
+            location = ldapsession.location.search(location_name)
+            assert location[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ad_data['ldap_user_name'] in current_user
         session.usergroup.update(
@@ -583,8 +586,11 @@ def test_positive_delete_external_roles(
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+                current_url = ldapsession.browser.url
+                base_url = current_url.rsplit('/', 3)[0]
+                ldapsession.browser.selenium.get(base_url)
+            location = ldapsession.location.search(location_name)
+            assert location[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ad_data['ldap_user_name'] in current_user
         session.usergroup.update(
@@ -645,8 +651,9 @@ def test_positive_update_external_user_roles(
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+                ldapsession.browser.selenium.back()
+                ldapsession.browser.refresh()
+                # assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ad_data['ldap_user_name'] in current_user
         session.user.update(
@@ -698,7 +705,8 @@ def test_positive_add_admin_role_with_org_loc(
     with Session(test_name, ad_data['ldap_user_name'], ad_data['ldap_user_passwd']) as session:
         session.location.create({'name': location_name})
         if is_open('BZ:1851905'):
-            session.browser.execute_script("window.history.go(-1)")
+            session.browser.selenium.back()
+            session.browser.refresh()
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
         assert ad_data['ldap_user_name'] in location['current_user']
@@ -1889,7 +1897,8 @@ def test_verify_group_permissions(
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
         if is_open('BZ:1851905'):
-            ldapsession.browser.execute_script("window.history.go(-1)")
+            ldapsession.browser.selenium.back()
+            ldapsession.browser.refresh()
         assert ldapsession.location.search(location_name)[0]['Name'] == location_name
 
 
