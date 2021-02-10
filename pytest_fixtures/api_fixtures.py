@@ -14,6 +14,7 @@ from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_UD_IMG_URN
 from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import DEFAULT_PTABLE
@@ -54,7 +55,7 @@ def module_location(module_org):
 
 @pytest.fixture(scope='session')
 def default_lce():
-    return entities.LifecycleEnvironment().search(query={'search': f'name={ENVIRONMENT}'})[0]
+    return entities.LifecycleEnvironment().search(query={'search': f'name="{ENVIRONMENT}"'})[0]
 
 
 @pytest.fixture(scope='module')
@@ -145,6 +146,25 @@ def module_provisioningtemplate_pxe(module_org, module_location):
     pxe_template.update(['organization', 'location'])
     pxe_template = entities.ProvisioningTemplate(id=pxe_template.id).read()
     return pxe_template
+
+
+@pytest.fixture(scope='module')
+def module_ak(module_lce, module_org):
+    ak = entities.ActivationKey(
+        environment=module_lce,
+        organization=module_org,
+    ).create()
+    return ak
+
+
+@pytest.fixture(scope='module')
+def module_ak_with_cv(module_lce, module_org, module_promoted_cv):
+    ak = entities.ActivationKey(
+        content_view=module_promoted_cv,
+        environment=module_lce,
+        organization=module_org,
+    ).create()
+    return ak
 
 
 @pytest.fixture(scope='session')
@@ -417,10 +437,17 @@ def module_published_cv(module_org):
     return content_view.read()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="module")
+def module_promoted_cv(module_lce, module_published_cv):
+    """ Promote published content view """
+    promote(module_published_cv.version[0], environment_id=module_lce.id)
+    return module_published_cv
+
+
+@pytest.fixture(scope='module')
 def default_contentview(module_org):
     return entities.ContentView().search(
-        query={'search': 'label=Default_Organization_View', 'organization_id': f'{module_org.id}'}
+        query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
     )
 
 
@@ -479,7 +506,7 @@ def module_env_search(module_org, module_location, module_cv_with_puppet_module)
 
 
 @pytest.fixture(scope='module')
-def module_lce_search(module_org):
+def module_lce_library(module_org):
     """ Returns the Library lifecycle environment from chosen organization """
     return (
         entities.LifecycleEnvironment()
