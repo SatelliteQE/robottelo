@@ -35,7 +35,7 @@ BAD_CREDS_MSG = "Unable to authenticate user admin"
 class TestRenameHost:
     """Implements ``katello-change-hostname`` tests"""
 
-    @pytest.mark.skip_if_open("BZ:1897360")
+    @pytest.mark.skip_if_open("BZ:1925616")
     def test_positive_rename_satellite(self, module_org, module_product):
         """run katello-change-hostname on Satellite server
 
@@ -58,7 +58,7 @@ class TestRenameHost:
                 resync repos, republish CVs and re-register hosts
             7. Create new entities (run end-to-end test from robottelo)
 
-        :BZ: 1469466, 1897360, 1901983
+        :BZ: 1469466, 1897360, 1901983, 1925616
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
@@ -195,13 +195,13 @@ class TestRenameHost:
             result = connection.run('hostname')
             assert original_name == result.stdout[0], "Invalid hostame assigned"
 
-    @pytest.mark.skip_if_open("BZ:1897360")
+    @pytest.mark.skip_if_open("BZ:1925616")
     def test_negative_rename_sat_wrong_passwd(self):
         """change hostname with wrong password on Satellite server
 
         :id: e6d84c5b-4bb1-4400-8022-d01cc9216936
 
-        :BZ: 1485884, 1897360
+        :BZ: 1485884, 1897360, 1925616
 
         :expectedresults: script terminates with a message, hostname
             is not changed
