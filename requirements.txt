@@ -16,7 +16,7 @@ pyotp==2.6.0
 pytest==6.2.2
 pytest-services==2.2.1
 pytest-mock==3.5.1
-pytest-reportportal==5.0.7
+pytest-reportportal==5.0.8
 # TODO remove rp-client requirement
 # https://github.com/reportportal/agent-python-pytest/pull/247
 reportportal-client==5.0.8
