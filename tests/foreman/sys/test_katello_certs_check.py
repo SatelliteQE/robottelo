@@ -335,39 +335,41 @@ class TestKatelloCertsCheck:
             2. Run capsule-certs-generate with custom certs and absolute path
                for --certs-tar
             3. Assert the certs tar file was created.
+            4. Assert include cname in certificates when specified --foreman-proxy-cname'
 
         :expectedresults: Capsule certs are generated.
 
-        :BZ: 1466688, 1899108
+        :BZ: 1466688, 1899108, 1857176
 
         :CaseAutomation: Automated
         """
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
-                'cp "{}" /root/capsule_cert/ca_cert_bundle.pem'.format(
-                    cert_data['ca_bundle_file_name']
-                )
+                f"cp {cert_data['ca_bundle_file_name']} /root/capsule_cert/ca_cert_bundle.pem"
             )
+            connection.run(f"cp {cert_data['cert_file_name']} /root/capsule_cert/capsule_cert.pem")
             connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
-            )
-            connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
-                    cert_data['key_file_name']
-                )
+                f"cp {cert_data['key_file_name']} /root/capsule_cert/capsule_cert_key.pem"
             )
             result = connection.run(
                 'capsule-certs-generate '
-                '--foreman-proxy-fqdn {} '
+                f"--foreman-proxy-fqdn {cert_data['capsule_hostname']} "
                 '--certs-tar /root/capsule_cert/capsule_certs_Abs.tar '
                 '--server-cert /root/capsule_cert/capsule_cert.pem '
                 '--server-key /root/capsule_cert/capsule_cert_key.pem '
                 '--server-ca-cert /root/capsule_cert/ca_cert_bundle.pem '
-                '--certs-update-server'.format(cert_data['capsule_hostname']),
-                timeout=80,
+                '--foreman-proxy-cname capsule.example1.com '
+                '--certs-update-server'
             )
             assert result.return_code == 0, 'Capsule certs generate script failed.'
+            # assert include cname in certificates when specified --foreman-proxy-cname'
+            result = connection.run(
+                'openssl x509 -in /root/ssl-build/capsule.example.com/'
+                'capsule.example.com-foreman-client.crt -text | '
+                'grep capsule.example1.com'
+            )
+            assert 'DNS:capsule.example1.com' in " ".join(result.stdout)
             # assert the certs.tar was built
             assert connection.run('test -e /root/capsule_cert/capsule_certs_Abs.tar')
 
