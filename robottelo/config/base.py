@@ -8,11 +8,7 @@ from configparser import NoSectionError
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
-import airgun.settings
 import yaml
-from nailgun import entities
-from nailgun import entity_mixins
-from nailgun.config import ServerConfig
 
 from robottelo.config import casts
 from robottelo.constants import AZURERM_VALID_REGIONS
@@ -1464,11 +1460,6 @@ class Settings:
                 'Failed to validate the configuration, check the message(s):\n'
                 '{}'.format('\n'.join(self._validation_errors))
             )
-
-        self._configure_logging()
-        self._configure_third_party_logging()
-        self._configure_entities()
-        self._configure_airgun()
         self._configured = True
 
     def _read_robottelo_settings(self):
@@ -1569,97 +1560,6 @@ class Settings:
                 name for name, value in vars(self).items() if isinstance(value, FeatureSettings)
             ]
         return self._all_features
-
-    def _configure_entities(self):
-        """Configure NailGun's entity classes.
-
-        Do the following:
-
-        * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
-            ``EntityCreateMixin.create_raw`` to generate values for empty and
-            required fields.
-        * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
-            returned by :meth:`robottelo.helpers.get_nailgun_config`. See
-            ``robottelo.entity_mixins.Entity`` for more information on the effects
-            of this.
-        * Set a default value for ``nailgun.entities.GPGKey.content``.
-        """
-        entity_mixins.CREATE_MISSING = True
-        entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
-            self.server.get_url(), self.server.get_credentials(), verify=False
-        )
-
-        gpgkey_init = entities.GPGKey.__init__
-
-        def patched_gpgkey_init(self, server_config=None, **kwargs):
-            """Set a default value on the ``content`` field."""
-            gpgkey_init(self, server_config, **kwargs)
-            self._fields['content'].default = os.path.join(
-                get_project_root(), 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
-            )
-
-        entities.GPGKey.__init__ = patched_gpgkey_init
-
-    def _configure_airgun(self):
-        """Pass required settings to AirGun"""
-        airgun.settings.configure(
-            {
-                'airgun': {
-                    'verbosity': logging.getLevelName(self.verbosity),
-                    'tmp_dir': self.tmp_dir,
-                },
-                'satellite': {
-                    'hostname': self.server.hostname,
-                    'password': self.server.admin_password,
-                    'username': self.server.admin_username,
-                },
-                'selenium': {
-                    'browser': self.browser,
-                    'saucelabs_key': self.saucelabs_key,
-                    'saucelabs_user': self.saucelabs_user,
-                    'screenshots_path': self.screenshots_path,
-                    'webdriver': self.webdriver,
-                    'webdriver_binary': self.webdriver_binary,
-                    'command_executor': self.command_executor,
-                    'browseroptions': self.browseroptions,
-                },
-                'webdriver_desired_capabilities': (self.webdriver_desired_capabilities or {}),
-            }
-        )
-
-    def _configure_logging(self):
-        """Configure logging for the entire framework.
-
-        If a config named ``logging.conf`` exists in Robottelo's root
-        directory, the logger is configured using the options in that file.
-        Otherwise, a custom logging output format is set, and default values
-        are used for all other logging options.
-        """
-        # All output should be made by the logging module, including warnings
-        logging.captureWarnings(True)
-
-        # Set the logging level based on the Robottelo's verbosity
-        for name in ('nailgun', 'robottelo'):
-            logging.getLogger(name).setLevel(self.verbosity)
-
-        # Allow overriding logging config based on the presence of logging.conf
-        # file on Robottelo's project root
-        logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
-        if os.path.isfile(logging_conf_path):
-            logging.config.fileConfig(logging_conf_path)
-        else:
-            logging.basicConfig(format='%(levelname)s %(module)s:%(lineno)d: %(message)s')
-
-    def _configure_third_party_logging(self):
-        """Increase the level of third party packages logging."""
-        loggers = (
-            'easyprocess',
-            'paramiko',
-            'requests.packages.urllib3.connectionpool',
-            'selenium.webdriver.remote.remote_connection',
-        )
-        for logger in loggers:
-            logging.getLogger(logger).setLevel(logging.WARNING)
 
 
 class HttpProxySettings(FeatureSettings):

@@ -46,3 +46,7 @@ settings_proxy = SettingsFacade()
 settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 
 settings = SettingsNodeWrapper(settings_proxy)
+settings.configure_nailgun()
+settings.configure_airgun()
+settings.configure_logging()
+settings.configure_third_party_logging()
