@@ -1246,6 +1246,36 @@ def test_syspurpose_matched(session, vm_module_streams):
 
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+def test_syspurpose_bulk_action(session, vm):
+    """
+    Set system purpose parameters via bulk action
+
+    :id: d084b04a-5fda-418d-ae65-a16f847c8c1d
+
+    :bz: 1905979, 1931527
+
+    :expectedresults: Syspurpose parameters are set and reflected on the host
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+    syspurpose_attributes = {
+        'service_level': 'Standard',
+        'role': 'Production',
+        'usage_type': 'Red Hat Enterprise Linux Server',
+    }
+    with session:
+        session.contenthost.bulk_set_syspurpose([vm.hostname], syspurpose_attributes)
+        details = session.contenthost.read(vm.hostname, widget_names='details')['details']
+        for key, val in syspurpose_attributes.items():
+            assert details[key] == val
+            result = run_remote_command_on_content_host('syspurpose show', vm)
+            assert val in result.stdout
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.tier3
 def test_syspurpose_mismatched(session, vm_module_streams):
     """
     Test that syspurpose status is 'Mismatched' if a syspurpose attribute
