@@ -223,24 +223,6 @@ class UserTestCase(CLITestCase):
         user = User.info({'id': user['id']})
         self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_create_in_ldap_modes(self):
-        """Create User in supported ldap modes
-
-        :id: ef107cea-c0e1-4d67-88e5-45cd30122d29
-
-        :Steps: Create User in all supported ldap modes - (Active Driectory,
-            IPA, Posix)
-
-        :expectedresults: User is created without specifying the password
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: Integration
-        """
-
     @pytest.mark.tier1
     def test_negative_delete_internal_admin(self):
         """Attempt to delete internal admin user
