@@ -44,7 +44,8 @@ FAKE_8_PUPPET_REPO = f'{REPOS_URL}/fake_puppet8'
 # With branches for each version. Some tests (test_positive_update_url) still need 2 repos URLs,
 # We will use the archived versions for now, but probably need to revisit this.
 FEDORA26_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
-FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/27/'
+FEDORA27_OSTREE_REPO = 'https://kojipkgs.fedoraproject.org/compose/ostree-20190207-old/26/'
+OSTREE_REPO = 'https://fixtures.pulpproject.org/ostree/small/'
 REPO_DISCOVERY_URL = f'{REPOS_URL}/repo_discovery/'
 FAKE_0_INC_UPD_URL = f'{REPOS_URL}/inc_update/'
 FAKE_PULP_REMOTE_FILEREPO = f'{REPOS_URL}/pulp_remote'
