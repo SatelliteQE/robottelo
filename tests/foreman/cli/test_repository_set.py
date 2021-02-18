@@ -1,4 +1,4 @@
-"""Tests for cli repository set
+"""Repository Set CLI tests.
 
 :Requirement: Repository Set
 
@@ -26,352 +26,241 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
 from robottelo.ssh import upload_file
-from robottelo.test import CLITestCase
+
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 
 
-@pytest.mark.run_in_one_thread
-class RepositorySetTestCase(CLITestCase):
-    """Repository Set CLI tests."""
+@pytest.fixture
+def params(manifest_org):
+    PRODUCT_NAME = PRDS['rhel']
+    REPOSET_NAME = REPOSET['rhva6']
+    ARCH = 'x86_64'
+    ARCH_2 = 'i386'
+    RELEASE = '6Server'
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    def test_positive_list_available_repositories(self):
-        """List available repositories for repository-set
+    product_id = Product.info({'name': PRODUCT_NAME, 'organization-id': manifest_org['id']})['id']
+    reposet_id = RepositorySet.info(
+        {'name': REPOSET_NAME, 'organization-id': manifest_org['id'], 'product-id': product_id}
+    )['id']
 
-        :id: 987d6b08-acb0-4264-a459-9cef0d2c6f3f
+    avail = {
+        'id': {
+            'name': REPOSET_NAME,
+            'organization-id': manifest_org['id'],
+            'product': PRODUCT_NAME,
+        },
+        'ids': {
+            'id': reposet_id,
+            'organization-id': manifest_org['id'],
+            'product-id': product_id,
+        },
+        'label': {
+            'name': REPOSET_NAME,
+            'organization-label': manifest_org['label'],
+            'product': PRODUCT_NAME,
+        },
+        'name': {
+            'name': REPOSET_NAME,
+            'organization': manifest_org['name'],
+            'product': PRODUCT_NAME,
+        },
+    }
 
-        :expectedresults: List of available repositories is displayed, with
-            valid amount of enabled repositories
+    enable = {
+        'arch_2': {
+            'basearch': ARCH_2,
+            'name': REPOSET_NAME,
+            'organization-id': manifest_org['id'],
+            'product': PRODUCT_NAME,
+            'releasever': RELEASE,
+        },
+        'id': {
+            'basearch': ARCH,
+            'name': REPOSET_NAME,
+            'organization-id': manifest_org['id'],
+            'product': PRODUCT_NAME,
+            'releasever': RELEASE,
+        },
+        'ids': {
+            'basearch': ARCH,
+            'id': reposet_id,
+            'organization-id': manifest_org['id'],
+            'product-id': product_id,
+            'releasever': RELEASE,
+        },
+        'label': {
+            'basearch': ARCH,
+            'name': REPOSET_NAME,
+            'organization-label': manifest_org['label'],
+            'product': PRODUCT_NAME,
+            'releasever': RELEASE,
+        },
+        'name': {
+            'basearch': ARCH,
+            'name': REPOSET_NAME,
+            'organization': manifest_org['name'],
+            'product': PRODUCT_NAME,
+            'releasever': RELEASE,
+        },
+    }
 
-        :CaseImportance: Critical
-        """
-        rhel_product_name = PRDS['rhel']
-        rhel_repo_set = REPOSET['rhva6']
+    match = {
+        'enabled': {'enabled': 'true'},
+        'enabled_arch_rel': {'enabled': 'true', 'arch': ARCH, 'release': RELEASE},
+    }
 
-        # Clone manifest and upload it
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+    return {'enable': enable, 'avail': avail, 'match': match}
 
-        # No repos should be enabled by default
-        result = RepositorySet.available_repositories(
-            {'name': rhel_repo_set, 'organization-id': org['id'], 'product': rhel_product_name}
-        )
-        self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 0)
 
-        # Enable repo from Repository Set
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': rhel_repo_set,
-                'organization-id': org['id'],
-                'product': rhel_product_name,
-                'releasever': '6Server',
-            }
-        )
+@pytest.fixture
+def org():
+    """Create and return an organization."""
+    return make_org()
 
-        # Only 1 repo should be enabled
-        result = RepositorySet.available_repositories(
-            {'name': rhel_repo_set, 'organization': org['name'], 'product': rhel_product_name}
-        )
-        self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 1)
 
-        # Enable one more repo
-        RepositorySet.enable(
-            {
-                'basearch': 'i386',
-                'name': rhel_repo_set,
-                'organization-id': org['id'],
-                'product': rhel_product_name,
-                'releasever': '6Server',
-            }
-        )
+@pytest.fixture
+def manifest_org(org):
+    """Upload a manifest to the organization."""
+    with manifests.clone() as manifest:
+        upload_file(manifest.content, manifest.filename)
+    Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
+    return org
 
-        # 2 repos should be enabled
-        result = RepositorySet.available_repositories(
-            {
-                'name': rhel_repo_set,
-                'organization-label': org['label'],
-                'product': rhel_product_name,
-            }
-        )
-        self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 2)
 
-        # Disable one repo
-        RepositorySet.disable(
-            {
-                'basearch': 'i386',
-                'name': rhel_repo_set,
-                'organization-id': org['id'],
-                'product': rhel_product_name,
-                'releasever': '6Server',
-            }
-        )
+def match_repos(repos, match_params):
+    """Return a list of all repos that match every key-value pair in match_params."""
+    return [repo for repo in repos if match_params.items() <= repo.items()]
 
-        # There should remain only 1 enabled repo
-        result = RepositorySet.available_repositories(
-            {'name': rhel_repo_set, 'organization-id': org['id'], 'product': rhel_product_name}
-        )
-        self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 1)
 
-        # Disable the last enabled repo
-        RepositorySet.disable(
-            {
-                'basearch': 'x86_64',
-                'name': rhel_repo_set,
-                'organization-id': org['id'],
-                'product': rhel_product_name,
-                'releasever': '6Server',
-            }
-        )
+@pytest.mark.upgrade
+def test_positive_list_available_repositories(params):
+    """List available repositories for repository-set
 
-        # There should be no enabled repos
-        result = RepositorySet.available_repositories(
-            {'name': rhel_repo_set, 'organization-id': org['id'], 'product': rhel_product_name}
-        )
-        self.assertEqual(sum(int(repo['enabled'] == 'true') for repo in result), 0)
+    :id: 987d6b08-acb0-4264-a459-9cef0d2c6f3f
 
-    @pytest.mark.tier1
-    def test_positive_enable_by_name(self):
-        """Enable repo from reposet by names of reposet, org and product
+    :expectedresults: List of available repositories is displayed, with
+        valid amount of enabled repositories
 
-        :id: a78537bd-b88d-4f00-8901-e7944e5de729
+    :CaseImportance: Critical
+    """
+    # No repos should be enabled by default
+    result = RepositorySet.available_repositories(params['avail']['id'])
+    assert len(match_repos(result, params['match']['enabled'])) == 0
 
-        :expectedresults: Repository was enabled
+    # Enable repo from Repository Set
+    RepositorySet.enable(params['enable']['id'])
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization': org['name'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {'name': REPOSET['rhva6'], 'organization': org['name'], 'product': PRDS['rhel']}
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'true')
+    # Only 1 repo should be enabled, and it should match the arch and releasever
+    result = RepositorySet.available_repositories(params['avail']['name'])
+    assert len(match_repos(result, params['match']['enabled'])) == 1
 
-    @pytest.mark.tier1
-    def test_positive_enable_by_label(self):
-        """Enable repo from reposet by org label, reposet and product
-        names
+    # Enable one more repo
+    RepositorySet.enable(params['enable']['arch_2'])
 
-        :id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
+    # 2 repos should be enabled
+    result = RepositorySet.available_repositories(params['avail']['label'])
+    assert len(match_repos(result, params['match']['enabled'])) == 2
 
-        :expectedresults: Repository was enabled
+    # Disable one repo
+    RepositorySet.disable(params['enable']['id'])
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-label': org['label'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {
-                'name': REPOSET['rhva6'],
-                'organization-label': org['label'],
-                'product': PRDS['rhel'],
-            }
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'true')
+    # There should remain only 1 enabled repo
+    result = RepositorySet.available_repositories(params['avail']['id'])
+    assert len(match_repos(result, params['match']['enabled'])) == 1
 
-    @pytest.mark.tier1
-    def test_positive_enable_by_id(self):
-        """Enable repo from reposet by IDs of reposet, org and product
+    # Disable the last enabled repo
+    RepositorySet.disable(params['enable']['arch_2'])
 
-        :id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
+    # There should be no enabled repos
+    result = RepositorySet.available_repositories(params['avail']['id'])
+    assert len(match_repos(result, params['match']['enabled'])) == 0
 
-        :expectedresults: Repository was enabled
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        product_id = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})['id']
-        reposet_id = RepositorySet.info(
-            {'name': REPOSET['rhva6'], 'organization-id': org['id'], 'product-id': product_id}
-        )['id']
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'id': reposet_id,
-                'organization-id': org['id'],
-                'product-id': product_id,
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {'id': reposet_id, 'organization-id': org['id'], 'product-id': product_id}
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'true')
+def test_positive_enable_by_name(params):
+    """Enable repo from reposet by names of reposet, org and product
 
-    @pytest.mark.tier1
-    def test_positive_disable_by_name(self):
-        """Disable repo from reposet by names of reposet, org and
-        product
+    :id: a78537bd-b88d-4f00-8901-e7944e5de729
 
-        :id: 1690a701-ae41-4724-bbc6-b0adba5a5319
+    :expectedresults: Repository was enabled
 
-        :expectedresults: Repository was disabled
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['name'])
+    result = RepositorySet.available_repositories(params['avail']['name'])
+    assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization': org['name'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        RepositorySet.disable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization': org['name'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {'name': REPOSET['rhva6'], 'organization': org['name'], 'product': PRDS['rhel']}
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'false')
 
-    @pytest.mark.tier1
-    def test_positive_disable_by_label(self):
-        """Disable repo from reposet by org label, reposet and product
-        names
+def test_positive_enable_by_label(params):
+    """Enable repo from reposet by org label, reposet and product
+    names
 
-        :id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
+    :id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
 
-        :expectedresults: Repository was disabled
+    :expectedresults: Repository was enabled
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-label': org['label'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        RepositorySet.disable(
-            {
-                'basearch': 'x86_64',
-                'name': REPOSET['rhva6'],
-                'organization-label': org['label'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {
-                'name': REPOSET['rhva6'],
-                'organization-label': org['label'],
-                'product': PRDS['rhel'],
-            }
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'false')
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['label'])
+    result = RepositorySet.available_repositories(params['avail']['label'])
+    assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
 
-    @pytest.mark.tier1
-    def test_positive_disable_by_id(self):
-        """Disable repo from reposet by IDs of reposet, org and product
 
-        :id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
+def test_positive_enable_by_id(params):
+    """Enable repo from reposet by IDs of reposet, org and product
 
-        :expectedresults: Repository was disabled
+    :id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
 
-        :CaseImportance: Critical
-        """
-        org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
-        product_id = Product.info({'name': PRDS['rhel'], 'organization-id': org['id']})['id']
-        reposet_id = RepositorySet.info(
-            {'name': REPOSET['rhva6'], 'organization-id': org['id'], 'product-id': product_id}
-        )['id']
-        RepositorySet.enable(
-            {
-                'basearch': 'x86_64',
-                'id': reposet_id,
-                'organization-id': org['id'],
-                'product-id': product_id,
-                'releasever': '6Server',
-            }
-        )
-        RepositorySet.disable(
-            {
-                'basearch': 'x86_64',
-                'id': reposet_id,
-                'organization-id': org['id'],
-                'product-id': product_id,
-                'releasever': '6Server',
-            }
-        )
-        result = RepositorySet.available_repositories(
-            {'id': reposet_id, 'organization-id': org['id'], 'product-id': product_id}
-        )
-        enabled = [
-            repo['enabled']
-            for repo in result
-            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
-        ][0]
-        self.assertEqual(enabled, 'false')
+    :expectedresults: Repository was enabled
+
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['ids'])
+    result = RepositorySet.available_repositories(params['avail']['ids'])
+    assert len(match_repos(result, params['match']['enabled_arch_rel'])) == 1
+
+
+def test_positive_disable_by_name(params):
+    """Disable repo from reposet by names of reposet, org and
+    product
+
+    :id: 1690a701-ae41-4724-bbc6-b0adba5a5319
+
+    :expectedresults: Repository was disabled
+
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['name'])
+    RepositorySet.disable(params['enable']['name'])
+    result = RepositorySet.available_repositories(params['avail']['name'])
+    assert len(match_repos(result, params['match']['enabled'])) == 0
+
+
+def test_positive_disable_by_label(params):
+    """Disable repo from reposet by org label, reposet and product
+    names
+
+    :id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
+
+    :expectedresults: Repository was disabled
+
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['label'])
+    RepositorySet.disable(params['enable']['label'])
+    result = RepositorySet.available_repositories(params['avail']['label'])
+    assert len(match_repos(result, params['match']['enabled'])) == 0
+
+
+def test_positive_disable_by_id(params):
+    """Disable repo from reposet by IDs of reposet, org and product
+
+    :id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
+
+    :expectedresults: Repository was disabled
+
+    :CaseImportance: Critical
+    """
+    RepositorySet.enable(params['enable']['ids'])
+    RepositorySet.disable(params['enable']['ids'])
+    result = RepositorySet.available_repositories(params['avail']['ids'])
+    assert len(match_repos(result, params['match']['enabled'])) == 0
