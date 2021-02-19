@@ -54,34 +54,23 @@ def pytest_report_header(config):
 
 
 @pytest.fixture(scope="session")
-def worker_id(request):
-    """Gets the worker ID when running in multi-threading with xdist"""
-    if hasattr(request.config, 'slaveinput'):
-        # return gw+(0..n)
-        return request.config.slaveinput['slaveid']
-    else:
-        return 'master'
-
-
-@pytest.fixture(scope="session")
 def configured_settings():
     if not settings.configured:
         settings.configure()
     return settings
 
 
-@pytest.fixture(autouse=True, scope='module')
+@pytest.fixture(autouse=True, scope='session')
 def robottelo_logger(request, worker_id):
     """Set up a separate logger for each pytest-xdist worker
     if worker_id != 'master' then xdist is running in multi-threading so
     a logfile named 'robottelo_gw{worker_id}.log' will be created.
     """
     logger = logging.getLogger('robottelo')
-    if (
-        hasattr(request.session.config, '_reportportal_configured')
-        and request.session.config._reportportal_configured
-    ):
+    use_rp_logger = getattr(request.session.config, '_reportportal_configured', False)
+    if use_rp_logger:
         logging.setLoggerClass(RPLogger)
+
     if f'{worker_id}' not in [h.get_name() for h in logger.handlers]:
         if worker_id != 'master':
             formatter = logging.Formatter(
@@ -95,10 +84,7 @@ def robottelo_logger(request, worker_id):
             logger.addHandler(handler)
             # Nailgun HTTP logs should also be included in gw* logs
             logging.getLogger('nailgun').addHandler(handler)
-            if (
-                hasattr(request.session.config, '_reportportal_configured')
-                and request.session.config._reportportal_configured
-            ):
+            if use_rp_logger:
                 rp_handler = RPLogHandler(request.node.config.py_test_service)
                 rp_handler.set_name(f'{worker_id}')
                 rp_handler.setFormatter(formatter)

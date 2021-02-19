@@ -18,3 +18,4 @@ exclude = '''
 
 [tool.pytest.ini_options]
 junit_logging = 'all'
+addopts = '--show-capture=no'
