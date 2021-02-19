@@ -48,9 +48,9 @@ jobs:
 
       - name: Collect Tests
         run: |
-          pytest -n 8 --setup-plan --disable-pytest-warnings tests/foreman/ tests/robottelo/
-          pytest -n 8 --setup-plan --disable-pytest-warnings -m pre_upgrade tests/upgrades/
-          pytest -n 8 --setup-plan --disable-pytest-warnings -m post_upgrade tests/upgrades/
+          pytest --collect-only --disable-pytest-warnings tests/foreman/ tests/robottelo/
+          pytest --collect-only --disable-pytest-warnings -m pre_upgrade tests/upgrades/
+          pytest --collect-only --disable-pytest-warnings -m post_upgrade tests/upgrades/
 
       - name: Test Robottelo Coverage
         run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
