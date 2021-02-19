@@ -10,15 +10,15 @@ pytest_plugins = [
     "pytest_plugins.disable_rp_params",
     # Fixtures
     "pytest_fixtures.api_fixtures",
-    "pytest_fixtures.xdist",
     "pytest_fixtures.broker",
+    "pytest_fixtures.xdist",
     # Component Fixtures
-    "pytest_fixtures.satellite_auth",
-    "pytest_fixtures.sys_fixtures",
-    "pytest_fixtures.templatesync_fixtures",
     "pytest_fixtures.ansible_fixtures",
     "pytest_fixtures.oscap_fixtures",
+    "pytest_fixtures.satellite_auth",
+    "pytest_fixtures.sys_fixtures",
     "pytest_fixtures.smartproxy_fixtures",
+    "pytest_fixtures.templatesync_fixtures",
     "pytest_fixtures.user_fixtures",
     "pytest_fixtures.upgrade_fixtures",
 ]
