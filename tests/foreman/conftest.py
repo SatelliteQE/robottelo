@@ -8,11 +8,7 @@ try:
     from pytest_reportportal import RPLogger, RPLogHandler
 except ImportError:
     pass
-from _pytest.junitxml import xml_key
 from robottelo.config import settings
-from robottelo.decorators import setting_is_set
-
-FMT_XUNIT_TIME = "%Y-%m-%dT%H:%M:%S"
 
 
 def log(message, level="DEBUG"):
@@ -22,35 +18,6 @@ def log(message, level="DEBUG"):
     now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     with open('robottelo.log', 'a') as log_file:
         log_file.write(f'{now} - conftest - {level} - {message}\n')
-
-
-def pytest_report_header(config):
-    """Called when pytest session starts"""
-    messages = []
-
-    shared_function_enabled = 'OFF'
-    scope = ''
-    storage = 'file'
-    if setting_is_set('shared_function'):
-        if settings.shared_function.enabled:
-            shared_function_enabled = 'ON'
-        scope = settings.shared_function.scope
-        if not scope:
-            scope = ''
-        storage = settings.shared_function.storage
-    messages.append(
-        'shared_function enabled - {} - scope: {} - storage: {}'.format(
-            shared_function_enabled, scope, storage
-        )
-    )
-    # workaround for https://github.com/pytest-dev/pytest/issues/7767
-    # remove if resolved and set autouse=True for record_testsuite_timestamp_xml fixture
-    if config.pluginmanager.hasplugin("junitxml"):
-        now = datetime.datetime.utcnow()
-        xml = config._store.get(xml_key, None)
-        if xml:
-            xml.add_global_property('start_time', now.strftime(FMT_XUNIT_TIME))
-    return messages
 
 
 @pytest.fixture(scope="session")
@@ -136,15 +103,3 @@ def pytest_collection_modifyitems(session, items, config):
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]
-
-
-@pytest.fixture(autouse=False, scope="session")
-def record_testsuite_timestamp_xml(record_testsuite_property):
-    now = datetime.datetime.utcnow()
-    record_testsuite_property("start_time", now.strftime(FMT_XUNIT_TIME))
-
-
-@pytest.fixture(autouse=True, scope="function")
-def record_test_timestamp_xml(record_property):
-    now = datetime.datetime.utcnow()
-    record_property("start_time", now.strftime(FMT_XUNIT_TIME))
