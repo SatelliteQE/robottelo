@@ -164,6 +164,17 @@ def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
     ).create()
 
 
+@pytest.fixture(scope='session', autouse=True)
+def setup_bfa_prevention():
+    """Setup task to set the `failed_login_attempts_limit` global setting
+    to control brute-force-attack prevention.
+    """
+    run_command(
+        cmd=f"hammer -u {settings.server.admin_username} -p {settings.server.admin_password} "
+        f"settings set --name failed_login_attempts_limit --value 0"
+    )
+
+
 @pytest.fixture(scope='session')
 def enroll_configure_rhsso_external_auth():
     """Enroll the Satellite6 Server to an RHSSO Server."""
