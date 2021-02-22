@@ -2,7 +2,6 @@ import datetime
 import glob
 import os
 from pathlib import Path
-from shutil import copyfile
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -22,7 +21,7 @@ def test_dummy(param):
     pass
 '''
 
-paths = [
+property_paths = [
     ["['testsuites']['testsuite']['properties']['property']"],
     [
         f"['testsuites']['testsuite']['testcase'][{i}]['properties']['property']"
@@ -31,17 +30,9 @@ paths = [
 ]
 
 
-@pytest.fixture(scope="session")
-def config():
-    path = Path(__file__).parent
-    conf_path = path / "../foreman"
-    copyfile(str(conf_path / '../foreman/conftest.py'), f'{str(path)}/conftest.py')
-    yield
-    os.remove(f'{str(path)}/conftest.py')
-
-
-@pytest.fixture(scope="session")
-def exec_test(config):
+@pytest.fixture(scope="function")
+def exec_test(request):
+    xdist_arg = request.param
     test_dir = str(Path(__file__).parent)
     report_file = f'report_{gen_string("alphanumeric")}.xml'
     with NamedTemporaryFile(dir=test_dir, mode='w', prefix='test_', suffix='.py') as f:
@@ -50,7 +41,7 @@ def exec_test(config):
         f.flush()
         pytest.main(
             [
-                '-n2',
+                xdist_arg,
                 f'--junit-xml={report_file}',
                 f'{f.name}::test_dummy',
             ]
@@ -65,12 +56,13 @@ def exec_test(config):
         pass
 
 
-@pytest.mark.parametrize('paths', paths, ids=['testsuite', 'testcase'])
-def test_junit_timestamps(exec_test, paths, request):
+@pytest.mark.parametrize('property_level', property_paths, ids=['testsuite', 'testcase'])
+@pytest.mark.parametrize('exec_test', ['-n2', '-n0'], ids=['xdist', 'non_xdist'], indirect=True)
+def test_junit_timestamps(exec_test, property_level):
     """Asserts the 'start_time' property nodes existence in the junit-xml test report"""
     with open(exec_test, 'rb') as f:
         junit = xmltodict.parse(f)  # NOQA
-    for path in paths:
+    for path in property_level:
         prop = eval(f"junit{path}")
         try:
             assert prop['@name'] == 'start_time'

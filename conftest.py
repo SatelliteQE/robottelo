@@ -12,6 +12,7 @@ pytest_plugins = [
     "pytest_fixtures.api_fixtures",
     "pytest_fixtures.broker",
     "pytest_fixtures.xdist",
+    "pytest_fixtures.reporting_fixtures",
     # Component Fixtures
     "pytest_fixtures.ansible_fixtures",
     "pytest_fixtures.oscap_fixtures",
