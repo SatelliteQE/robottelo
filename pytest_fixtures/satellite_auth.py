@@ -191,6 +191,15 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
     else:
         raise Exception('Incorrect auth source parameter used')
     ldap_data['auth_type'] = request.param.lower()
+    if ldap_data['auth_type'] == 'ipa':
+        ldap_data['server_type'] = LDAP_SERVER_TYPE['UI']['ipa']
+        ldap_data['attr_login'] = LDAP_ATTR['login']
+    elif ldap_data['auth_type'] == 'ad':
+        ldap_data['server_type'] = LDAP_SERVER_TYPE['UI']['ad']
+        ldap_data['attr_login'] = LDAP_ATTR['login_ad']
+    else:
+        ldap_data['server_type'] = LDAP_SERVER_TYPE['UI']['posix']
+        ldap_data['attr_login'] = LDAP_ATTR['login']
     yield ldap_data
 
 
