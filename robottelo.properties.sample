@@ -277,10 +277,6 @@ ssh_key=
 # REQ_FILE=~/certs/server.csr
 # CA_BUNDLE_FILE=~/certs/rootCA.pem
 
-# Atomic Ostree Kickstart Installer
-# [ostree]
-# ostree_installer=OSTREE_INSTALLER
-
 # Section for performance tests parameters.
 # [performance]
 # Control whether or not to time on hammer commands in robottelo/cli/base.py

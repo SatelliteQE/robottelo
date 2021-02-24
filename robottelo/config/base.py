@@ -1009,25 +1009,6 @@ class OSPSettings(FeatureSettings):
         return validation_errors
 
 
-class OstreeSettings(FeatureSettings):
-    """Ostree settings definitions."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.ostree_installer = None
-
-    def read(self, reader):
-        """Read Ostree settings."""
-        self.ostree_installer = reader.get('ostree', 'ostree_installer')
-
-    def validate(self):
-        """Validate Ostree settings."""
-        validation_errors = []
-        if self.ostree_installer is None:
-            validation_errors.append('[ostree] ostree_installer option must be provided.')
-        return validation_errors
-
-
 class PerformanceSettings(FeatureSettings):
     """Performance settings definitions."""
 
@@ -1410,7 +1391,6 @@ class Settings:
         self.ipa = LDAPIPASettings()
         self.open_ldap = OpenLDAPSettings()
         self.oscap = OscapSettings()
-        self.ostree = OstreeSettings()
         self.osp = OSPSettings()
         self.performance = PerformanceSettings()
         self.rhev = RHEVSettings()
