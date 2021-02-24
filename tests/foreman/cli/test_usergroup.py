@@ -37,10 +37,16 @@ from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_usernames_list
 from robottelo.decorators import skip_if_not_set
-from robottelo.test import CLITestCase
 
 
-class UserGroupTestCase(CLITestCase):
+@pytest.fixture(scope='function')
+def function_user_group(self):
+    """Create new usergroup per each test"""
+    user_group = make_usergroup()
+    yield user_group
+
+
+class TestUserGroup:
     """User group CLI related tests."""
 
     @pytest.mark.tier1
@@ -71,26 +77,26 @@ class UserGroupTestCase(CLITestCase):
             }
         )
 
-        self.assertEqual(user_group['name'], ug_name)
-        self.assertEqual(user_group['users'][0], user['login'])
-        self.assertEqual(len(user_group['roles']), 1)
-        self.assertEqual(user_group['roles'][0], role_name)
-        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
+        assert user_group['name'] == ug_name
+        assert user_group['users'][0] == user['login']
+        assert len(user_group['roles']) == 1
+        assert user_group['roles'][0] == role_name
+        assert user_group['user-groups'][0]['usergroup'] == sub_user_group['name']
 
         # List
         result_list = UserGroup.list({'search': 'name={}'.format(user_group['name'])})
-        self.assertTrue(len(result_list) > 0)
-        self.assertTrue(UserGroup.exists(search=('name', user_group['name'])))
+        assert len(result_list) > 0
+        assert UserGroup.exists(search=('name', user_group['name']))
 
         # Update
         new_name = random.choice(valid_usernames_list())
         UserGroup.update({'id': user_group['id'], 'new-name': new_name})
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['name'], new_name)
+        assert user_group['name'] == new_name
 
         # Delete
         UserGroup.delete({'name': user_group['name']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             UserGroup.info({'name': user_group['name']})
 
     @pytest.mark.tier1
@@ -112,11 +118,10 @@ class UserGroupTestCase(CLITestCase):
         user_group = make_usergroup(
             {'users': users, 'roles': roles, 'user-groups': sub_user_groups}
         )
-        self.assertEqual(sorted(users), sorted(user_group['users']))
-        self.assertEqual(sorted(roles), sorted(user_group['roles']))
-        self.assertEqual(
-            sorted(sub_user_groups),
-            sorted([ug['usergroup'] for ug in user_group['user-groups']]),
+        assert sorted(users) == sorted(user_group['users'])
+        assert sorted(roles) == sorted(user_group['roles'])
+        assert sorted(sub_user_groups) == sorted(
+            [ug['usergroup'] for ug in user_group['user-groups']]
         )
 
     @pytest.mark.tier2
@@ -143,12 +148,12 @@ class UserGroupTestCase(CLITestCase):
         UserGroup.add_user_group({'id': user_group['id'], 'user-group-id': sub_user_group['id']})
 
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(len(user_group['roles']), 1)
-        self.assertEqual(user_group['roles'][0], role['name'])
-        self.assertEqual(len(user_group['users']), 1)
-        self.assertEqual(user_group['users'][0], user['login'])
-        self.assertEqual(len(user_group['user-groups']), 1)
-        self.assertEqual(user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
+        assert len(user_group['roles']) == 1
+        assert user_group['roles'][0] == role['name']
+        assert len(user_group['users']) == 1
+        assert user_group['users'][0] == user['login']
+        assert len(user_group['user-groups']) == 1
+        assert user_group['user-groups'][0]['usergroup'] == sub_user_group['name']
 
         # Remove elements by name
         UserGroup.remove_role({'id': user_group['id'], 'role': role['name']})
@@ -156,9 +161,9 @@ class UserGroupTestCase(CLITestCase):
         UserGroup.remove_user_group({'id': user_group['id'], 'user-group': sub_user_group['name']})
 
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(len(user_group['roles']), 0)
-        self.assertEqual(len(user_group['users']), 0)
-        self.assertEqual(len(user_group['user-groups']), 0)
+        assert len(user_group['roles']) == 0
+        assert len(user_group['users']) == 0
+        assert len(user_group['user-groups']) == 0
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
@@ -176,64 +181,54 @@ class UserGroupTestCase(CLITestCase):
         user = make_user()
         user_group = make_usergroup()
         UserGroup.add_user({'id': user_group['id'], 'user-id': user['id']})
-        with self.assertNotRaises(CLIReturnCodeError):
-            User.delete({'id': user['id']})
+        User.delete({'id': user['id']})
+        user_group = UserGroup.info({'id': user_group['id']})
+        assert user['login'] not in user_group['users']
 
 
 @pytest.mark.run_in_one_thread
-class ActiveDirectoryUserGroupTestCase(CLITestCase):
+class TestActiveDirectoryUserGroup:
     """Implements Active Directory feature tests for user groups in CLI."""
 
-    @classmethod
+    @skip_if_not_set('ipa')
+    @pytest.fixture(scope='module')
+    def module_creds(self):
+        ldap_user_name = settings.ldap.username
+        ldap_user_passwd = settings.ldap.password
+        return {'username': ldap_user_name, 'password': ldap_user_passwd}
+
     @skip_if_not_set('ldap')
-    def setUpClass(cls):
+    @pytest.fixture(scope='module')
+    def module_auth(self, module_creds):
         """Read settings and create LDAP auth source that can be re-used in
         tests."""
-        super().setUpClass()
-        cls.ldap_user_name = settings.ldap.username
-        cls.ldap_user_passwd = settings.ldap.password
-        cls.base_dn = settings.ldap.basedn
-        cls.group_base_dn = settings.ldap.grpbasedn
-        cls.ldap_hostname = settings.ldap.hostname
-        cls.auth = make_ldap_auth_source(
+        base_dn = settings.ldap.basedn
+        group_base_dn = settings.ldap.grpbasedn
+        ldap_hostname = settings.ldap.hostname
+        auth = make_ldap_auth_source(
             {
                 'name': gen_string('alpha'),
                 'onthefly-register': 'true',
-                'host': cls.ldap_hostname,
+                'host': ldap_hostname,
                 'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
                 'attr-login': LDAP_ATTR['login_ad'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': cls.ldap_user_name,
-                'account-password': cls.ldap_user_passwd,
-                'base-dn': cls.base_dn,
-                'groups-base': cls.group_base_dn,
+                'account': module_creds['username'],
+                'account-password': module_creds['password'],
+                'base-dn': base_dn,
+                'groups-base': group_base_dn,
             }
         )
-
-    def setUp(self):
-        """Create new usergroup per each test"""
-        super().setUp()
-        self.user_group = make_usergroup()
-
-    def tearDown(self):
-        """Delete usergroup per each test"""
-        for dict in UserGroup.list():
-            if UserGroup.info({'id': dict['id']})['external-user-groups']:
-                UserGroup.delete({'id': dict['id']})
-        super().tearDown()
-
-    @classmethod
-    @skip_if_not_set('ldap')
-    def tearDownClass(cls):
-        """Delete the AD auth-source afterwards"""
-        LDAPAuthSource.delete({'id': cls.auth['server']['id']})
-        super().tearDownClass()
+        yield auth
+        LDAPAuthSource.delete({'id': auth['server']['id']})
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
+    def test_positive_create_and_refresh_external_usergroup_with_local_user(
+        self, module_auth, function_user_group
+    ):
         """Create and refresh external user group with AD LDAP. Verify Local user
            association from user-group with external group with AD LDAP
 
@@ -248,33 +243,31 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         """
         ext_user_group = make_usergroup_external(
             {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
+                'auth-source-id': module_auth['server']['id'],
+                'user-group-id': function_user_group['id'],
                 'name': 'foobargroup',
             }
         )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-        user = make_user()
-        UserGroup.add_user({'user': user['login'], 'id': self.user_group['id']})
-        self.assertEqual(
-            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name'],
+        assert ext_user_group['auth-source'] == module_auth['server']['name']
+        UserGroupExternal.refresh(
+            {'user-group-id': function_user_group['id'], 'name': 'foobargroup'}
         )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-        self.assertEqual(
-            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name'],
+        user = make_user()
+        UserGroup.add_user({'user': user['login'], 'id': function_user_group['id']})
+        assert (
+            User.info({'login': user['login']})['user-groups'][0]['usergroup']
+            == function_user_group['name']
+        )
+        UserGroupExternal.refresh(
+            {'user-group-id': function_user_group['id'], 'name': 'foobargroup'}
+        )
+        assert (
+            User.info({'login': user['login']})['user-groups'][0]['usergroup']
+            == function_user_group['name']
         )
 
     @pytest.mark.tier2
-    def test_positive_automate_bz1426957(self):
+    def test_positive_automate_bz1426957(self, module_creds, module_auth, function_user_group):
         """Verify role is properly reflected on AD user.
 
         :id: 1c1209a6-5bb8-489c-a151-bb2fce4dbbfc
@@ -287,24 +280,23 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         """
         ext_user_group = make_usergroup_external(
             {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
+                'auth-source-id': module_auth['server']['id'],
+                'user-group-id': function_user_group['id'],
                 'name': 'foobargroup',
             }
         )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
+        assert ext_user_group['auth-source'] == module_auth['server']['name']
         role = make_role()
-        UserGroup.add_role({'id': self.user_group['id'], 'role-id': role['id']})
-        with self.assertNotRaises(CLIReturnCodeError):
-            Task.with_user(username=self.ldap_user_name, password=self.ldap_user_passwd).list()
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-        self.assertIn(role['name'], User.info({'login': self.ldap_user_name})['user-groups'])
-        User.delete({'login': self.ldap_user_name})
+        UserGroup.add_role({'id': function_user_group['id'], 'role-id': role['id']})
+        Task.with_user(username=module_creds['username'], password=module_creds['password']).list()
+        UserGroupExternal.refresh(
+            {'user-group-id': function_user_group['id'], 'name': 'foobargroup'}
+        )
+        assert role['name'] in User.info({'login': module_creds['username']})['user-groups']
+        User.delete({'login': module_creds['username']})
 
     @pytest.mark.tier2
-    def test_negative_automate_bz1437578(self):
+    def test_negative_automate_bz1437578(self, module_auth, function_user_group):
         """Verify error message on usergroup create with 'Domain Users' on AD user.
 
         :id: d4caf33e-b9eb-4281-9e04-fbe1d5b035dc
@@ -315,78 +307,66 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
 
         :BZ: 1437578
         """
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             result = UserGroupExternal.create(
                 {
-                    'auth-source-id': self.auth['server']['id'],
-                    'user-group-id': self.user_group['id'],
+                    'auth-source-id': module_auth['server']['id'],
+                    'user-group-id': function_user_group['id'],
                     'name': 'Domain Users',
                 }
             )
-            self.assertEqual(
+            assert (
                 'Could not create external user group: '
                 'Name is not found in the authentication source'
                 'Name Domain Users is a special group in AD.'
                 ' Unfortunately, we cannot obtain membership information'
-                ' from a LDAP search and therefore sync it.',
-                result,
+                ' from a LDAP search and therefore sync it.' == result
             )
 
 
 @pytest.mark.run_in_one_thread
-class FreeIPAUserGroupTestCase(CLITestCase):
+class TestFreeIPAUserGroup:
     """Implements FreeIPA LDAP feature tests for user groups in CLI."""
 
-    @classmethod
     @skip_if_not_set('ipa')
-    def setUpClass(cls):
+    @pytest.fixture(scope='module')
+    def module_creds(self):
+        ldap_user_name = settings.ipa.username_ipa
+        ldap_user_passwd = settings.ipa.password_ipa
+        return {'username': ldap_user_name, 'password': ldap_user_passwd}
+
+    @skip_if_not_set('ipa')
+    @pytest.fixture(scope='module')
+    def module_auth(self, module_creds):
         """Read settings and create LDAP auth source that can be re-used in
         tests."""
-        super().setUpClass()
-        cls.ldap_user_name = settings.ipa.username_ipa
-        cls.ldap_user_passwd = settings.ipa.password_ipa
-        cls.base_dn = settings.ipa.basedn_ipa
-        cls.group_base_dn = settings.ipa.grpbasedn_ipa
-        cls.ldap_hostname = settings.ipa.hostname_ipa
-        cls.auth = make_ldap_auth_source(
+        base_dn = settings.ipa.basedn_ipa
+        group_base_dn = settings.ipa.grpbasedn_ipa
+        ldap_hostname = settings.ipa.hostname_ipa
+        auth = make_ldap_auth_source(
             {
                 'name': gen_string('alpha'),
                 'onthefly-register': 'true',
-                'host': cls.ldap_hostname,
+                'host': ldap_hostname,
                 'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
                 'attr-login': LDAP_ATTR['login'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': cls.ldap_user_name,
-                'account-password': cls.ldap_user_passwd,
-                'base-dn': cls.base_dn,
-                'groups-base': cls.group_base_dn,
+                'account': module_creds['username'],
+                'account-password': module_creds['password'],
+                'base-dn': base_dn,
+                'groups-base': group_base_dn,
             }
         )
-
-    def setUp(self):
-        """Create new usergroup per each test"""
-        super().setUp()
-        self.user_group = make_usergroup()
-
-    def tearDown(self):
-        """Delete usergroup per each test"""
-        for dict in UserGroup.list():
-            if UserGroup.info({'id': dict['id']})['external-user-groups']:
-                UserGroup.delete({'id': dict['id']})
-        super().tearDown()
-
-    @classmethod
-    @skip_if_not_set('ipa')
-    def tearDownClass(cls):
-        """Delete the IPA auth-source afterwards"""
-        LDAPAuthSource.delete({'id': cls.auth['server']['id']})
-        super().tearDownClass()
+        yield auth
+        LDAPAuthSource.delete({'id': auth['server']['id']})
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_create_and_refresh_external_usergroup_with_local_user(self):
+    def test_positive_create_and_refresh_external_usergroup_with_local_user(
+        self, module_auth, function_user_group
+    ):
         """Create and Refresh external user group with FreeIPA LDAP. Verify Local user
            association from user-group with external group with FreeIPA LDAP
 
@@ -402,28 +382,26 @@ class FreeIPAUserGroupTestCase(CLITestCase):
         """
         ext_user_group = make_usergroup_external(
             {
-                'auth-source-id': self.auth['server']['id'],
-                'user-group-id': self.user_group['id'],
+                'auth-source-id': module_auth['server']['id'],
+                'user-group-id': function_user_group['id'],
                 'name': 'foobargroup',
             }
         )
-        self.assertEqual(ext_user_group['auth-source'], self.auth['server']['name'])
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
-        user = make_user()
-        UserGroup.add_user({'user': user['login'], 'id': self.user_group['id']})
-        self.assertEqual(
-            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name'],
+        assert ext_user_group['auth-source'] == module_auth['server']['name']
+        UserGroupExternal.refresh(
+            {'user-group-id': function_user_group['id'], 'name': 'foobargroup'}
         )
-        with self.assertNotRaises(CLIReturnCodeError):
-            UserGroupExternal.refresh(
-                {'user-group-id': self.user_group['id'], 'name': 'foobargroup'}
-            )
+        user = make_user()
+        UserGroup.add_user({'user': user['login'], 'id': function_user_group['id']})
+        assert (
+            User.info({'login': user['login']})['user-groups'][0]['usergroup']
+            == function_user_group['name']
+        )
+        UserGroupExternal.refresh(
+            {'user-group-id': function_user_group['id'], 'name': 'foobargroup'}
+        )
         print(User.info({'login': user['login']}))
-        self.assertEqual(
-            User.info({'login': user['login']})['user-groups'][0]['usergroup'],
-            self.user_group['name'],
+        assert (
+            User.info({'login': user['login']})['user-groups'][0]['usergroup']
+            == function_user_group['name']
         )
