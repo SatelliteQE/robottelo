@@ -25,7 +25,7 @@ automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
 
 * UI tests, which rely on Selenium's `WebDriver`_ through `airgun`_.
-* CLI tests, which rely on `Paramiko`_ - and are being converted to using `ssh2-python`_.
+* CLI tests, which currently rely on `Paramiko`_ , but are being converted to use `ssh2-python`_.
 * API tests, which rely on `Requests`_ through `nailgun`_.
 
 The `full documentation
