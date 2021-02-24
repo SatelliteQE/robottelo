@@ -21,6 +21,7 @@ from tempfile import mkstemp
 
 import pytest
 from airgun.session import Session
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -41,6 +42,7 @@ from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
+from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
@@ -78,10 +80,6 @@ def golden_ticket_host_setup():
         environment=entities.LifecycleEnvironment(id=org.library.id),
         auto_attach=True,
     ).create()
-    subscription = entities.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     return org, ak
 
 
@@ -471,7 +469,7 @@ def test_positive_subscription_status_disabled_golden_ticket(session, golden_tic
 
     :CaseImportance: Medium
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         vm.install_katello_ca()
         org, ak = golden_ticket_host_setup
         vm.register_contenthost(org.label, ak.name)
@@ -481,7 +479,7 @@ def test_positive_subscription_status_disabled_golden_ticket(session, golden_tic
             host = session.contenthost.read(vm.hostname, widget_names='details')['details'][
                 'subscription_status'
             ]
-            assert "Disabled" in host
+            assert "Simple Content Access" in host
 
 
 @pytest.mark.libvirt_content_host

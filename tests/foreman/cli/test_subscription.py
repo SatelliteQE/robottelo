@@ -19,12 +19,12 @@
 import csv
 
 import pytest
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_org
@@ -34,13 +34,12 @@ from robottelo.cli.host import Host
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.hosts import ContentHost
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='class')
@@ -59,8 +58,6 @@ def golden_ticket_host_setup(request):
             'auto-attach': False,
         }
     )
-    subs_id = Subscription.list({'organization-id': org['id']}, per_page=False)
-    ActivationKey.add_subscription({'id': new_ak['id'], 'subscription-id': subs_id[0]['id']})
     request.cls.org_setup = org
     request.cls.ak_setup = new_ak
 
@@ -315,7 +312,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+        with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
             vm.install_katello_ca()
             vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
             assert vm.subscribed
@@ -323,4 +320,6 @@ class SubscriptionTestCase(CLITestCase):
             host_id = host[0]['id']
             with pytest.raises(CLIReturnCodeError) as context:
                 Host.subscription_auto_attach({'host-id': host_id})
-            assert 'Auto-attach is disabled' in str(context.value)
+            assert "This host's organization is in Simple Content Access mode" in str(
+                context.value
+            )
