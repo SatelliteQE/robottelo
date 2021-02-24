@@ -175,7 +175,6 @@ validators = dict(
             must_exist=True,
         )
     ],
-    ostree=[Validator("ostree.ostree_installer", must_exist=True)],
     performance=[
         Validator(
             "performance.cdn_address",
