@@ -8,7 +8,7 @@ import pytest
 import xmltodict
 from fauxfactory import gen_string
 
-XUNIT_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+XUNIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 dummy_test_count = 2
 dummy_test = f'''import pytest
 
@@ -30,7 +30,7 @@ property_paths = [
 ]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 def exec_test(request):
     xdist_arg = request.param
     test_dir = str(Path(__file__).parent)
@@ -47,7 +47,7 @@ def exec_test(request):
             ]
         )
     yield report_file
-    for logfile in glob.glob("robottelo*.log"):
+    for logfile in glob.glob('robottelo*.log'):
         os.remove(logfile)
     try:
         os.remove(report_file)
@@ -63,7 +63,7 @@ def test_junit_timestamps(exec_test, property_level):
     with open(exec_test, 'rb') as f:
         junit = xmltodict.parse(f)  # NOQA
     for path in property_level:
-        prop = eval(f"junit{path}")
+        prop = eval(f'junit{path}')
         try:
             assert prop['@name'] == 'start_time'
         except KeyError as e:
