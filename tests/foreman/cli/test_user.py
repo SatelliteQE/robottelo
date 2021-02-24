@@ -36,28 +36,24 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
-from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
 from robottelo.ssh import get_connection
-from robottelo.test import CLITestCase
 
 
-class UserTestCase(CLITestCase):
+class TestUser:
     """Implements Users tests in CLI"""
 
-    @classmethod
-    def setUpClass(cls):
+    @pytest.fixture(scope='module')
+    def module_roles(self):
         """
         Initializes class attribute ``dct_roles`` with several random roles
         saved on sat. roles is a dict so keys are role's id respective value is
         the role itself
         """
-
-        super().setUpClass()
         settings.configure()
         include_list = [gen_string("alphanumeric", 100)]
 
@@ -68,14 +64,8 @@ class UserTestCase(CLITestCase):
             for role_name in valid_usernames_list() + include_list:
                 yield make_role({'name': role_name})
 
-        cls.stubbed_roles = {role['id']: role for role in roles_helper()}
-
-    @classmethod
-    def tearDownClass(cls):
-        """Remove all roles created during tests"""
-        super().tearDownClass()
-        for role_id in cls.stubbed_roles:
-            Role.delete({'id': role_id})
+        stubbed_roles = {role['id']: role for role in roles_helper()}
+        yield stubbed_roles
 
     @pytest.mark.tier2
     def test_positive_CRUD(self):
@@ -102,25 +92,23 @@ class UserTestCase(CLITestCase):
         user_params.pop('mail')
         user_params['email'] = mail
         for key in user_params:
-            with self.subTest(key):
-                self.assertEqual(
-                    user_params[key], user[key], f'values for key "{key}" do not match'
-                )
+            assert user_params[key] == user[key], f'values for key "{key}" do not match'
 
         # list by firstname and lastname
         result = User.list({'search': 'firstname = {}'.format(user_params['firstname'])})
         # make sure user is in list result
-        self.assertEqual(
-            {user['id'], user['login'], user['name']},
-            {result[0]['id'], result[0]['login'], result[0]['name']},
-        )
+        assert {user['id'], user['login'], user['name']} == {
+            result[0]['id'],
+            result[0]['login'],
+            result[0]['name'],
+        }
         result = User.list({'search': 'lastname = {}'.format(user_params['lastname'])})
         # make sure user is in list result
-        self.assertEqual(
-            {user['id'], user['login'], user['name']},
-            {result[0]['id'], result[0]['login'], result[0]['name']},
-        )
-
+        assert {user['id'], user['login'], user['name']} == {
+            result[0]['id'],
+            result[0]['login'],
+            result[0]['name'],
+        }
         # update params
         new_mail = random.choice(valid_emails_list())
         user_params = {
@@ -136,14 +124,10 @@ class UserTestCase(CLITestCase):
         user_params.pop('mail')
         user_params['email'] = new_mail
         for key in user_params:
-            with self.subTest(key):
-                self.assertEqual(
-                    user_params[key], user[key], f'values for key "{key}" do not match'
-                )
-
+            assert user_params[key] == user[key], f'values for key "{key}" do not match'
         # delete
         User.delete({'login': user['login']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             User.info({'login': user['login']})
 
     @pytest.mark.tier1
@@ -159,18 +143,18 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         user = make_user({'admin': '1'})
-        self.assertEqual(user['admin'], 'yes')
+        assert user['admin'] == 'yes'
         # update to non admin by id
         User.update({'id': user['id'], 'admin': '0'})
         user = User.info({'id': user['id']})
-        self.assertEqual(user['admin'], 'no')
+        assert user['admin'] == 'no'
         # update back to admin by name
         User.update({'login': user['login'], 'admin': '1'})
         user = User.info({'login': user['login']})
-        self.assertEqual(user['admin'], 'yes')
+        assert user['admin'] == 'yes'
         # delete user
         User.delete({'login': user['login']})
-        with self.assertRaises(CLIReturnCodeError):
+        with pytest.raises(CLIReturnCodeError):
             User.info({'id': user['id']})
 
     @pytest.mark.tier1
@@ -185,8 +169,8 @@ class UserTestCase(CLITestCase):
         """
         location = make_location()
         user = make_user({'default-location-id': location['id'], 'location-ids': location['id']})
-        self.assertIn(location['name'], user['locations'])
-        self.assertEqual(location['name'], user['default-location'])
+        assert location['name'] in user['locations']
+        assert location['name'] == user['default-location']
 
     @pytest.mark.tier1
     def test_positive_create_with_defaut_org(self):
@@ -201,8 +185,8 @@ class UserTestCase(CLITestCase):
         """
         org = make_org()
         user = make_user({'default-organization-id': org['id'], 'organization-ids': org['id']})
-        self.assertIn(org['name'], user['organizations'])
-        self.assertEqual(org['name'], user['default-organization'])
+        assert org['name'] in user['organizations']
+        assert org['name'] == user['default-organization']
 
     @pytest.mark.tier2
     def test_positive_create_with_orgs_and_update(self):
@@ -217,13 +201,14 @@ class UserTestCase(CLITestCase):
         orgs_amount = 2
         orgs = [make_org() for _ in range(orgs_amount)]
         user = make_user({'organization-ids': [org['id'] for org in orgs]})
-        self.assertEqual(len(user['organizations']), orgs_amount)
+        assert len(user['organizations']) == orgs_amount
         for org in orgs:
-            self.assertIn(org['name'], user['organizations'])
+            assert org['name'] in user['organizations']
         orgs = [make_org() for _ in range(orgs_amount)]
         User.update({'id': user['id'], 'organization-ids': [org['id'] for org in orgs]})
         user = User.info({'id': user['id']})
-        self.assertItemsEqual(user['organizations'], [org['name'] for org in orgs])
+        for org in orgs:
+            assert org['name'] in user['organizations']
 
     @pytest.mark.tier1
     def test_negative_delete_internal_admin(self):
@@ -235,9 +220,9 @@ class UserTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        with self.assertRaisesRegex(CLIReturnCodeError, 'Could not delete the user:'):
-            User.delete({'login': self.foreman_user})
-        self.assertTrue(User.info({'login': self.foreman_user}))
+        with pytest.raises(CLIReturnCodeError):
+            User.delete({'login': settings.server.admin_username})
+        assert User.info({'login': settings.server.admin_username})
 
     @pytest.mark.tier2
     def test_positive_last_login_for_new_user(self):
@@ -276,7 +261,7 @@ class UserTestCase(CLITestCase):
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    def test_positive_add_and_delete_roles(self):
+    def test_positive_add_and_delete_roles(self, module_roles):
         """Add multiple roles to User, then delete them
 
         For now add-role user sub command does not allow multiple role ids
@@ -296,40 +281,46 @@ class UserTestCase(CLITestCase):
         original_role_names = set(user['roles'])
         expected_role_names = set(original_role_names)
 
-        for role_id, role in self.stubbed_roles.items():
+        for role_id, role in module_roles.items():
             User.add_role({'login': user['login'], 'role-id': role_id})
             expected_role_names.add(role['name'])
 
-        self.assertItemsEqual(expected_role_names, User.info({'id': user['id']})['roles'])
+        user_roles = User.info({'id': user['id']})['roles']
+        assert len(expected_role_names) == len(user_roles)
+        for role in expected_role_names:
+            assert role in user_roles
 
         roles_to_remove = expected_role_names - original_role_names
         for role_name in roles_to_remove:
             user_credentials = {'login': user['login'], 'role': role_name}
             User.remove_role(user_credentials)
             user = User.info({'id': user['id']})
-            self.assertNotIn(role_name, user['roles'])
+            assert role_name not in user['roles']
 
-        self.assertItemsEqual(original_role_names, User.info({'id': user['id']})['roles'])
+        user_roles = User.info({'id': user['id']})['roles']
+        assert len(original_role_names) == len(user_roles)
+        for role in original_role_names:
+            assert role in user_roles
 
 
-class SshKeyInUserTestCase(CLITestCase):
+class TestSshKeyInUser:
     """Implements the SSH Key in User Tests"""
 
-    def gen_ssh_rsakey(self):
+    @pytest.fixture(scope='function')
+    def ssh_key(self):
         """Generates RSA type ssh key using ssh module
 
         :return: string type well formatted RSA key
         """
         return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an user and import different keys from data json file"""
-        super().setUpClass()
-        cls.user = entities.User().create()
+    @pytest.fixture(scope='module')
+    def module_user(self):
+        """Create an user"""
+        return entities.User().create()
 
     @pytest.mark.tier1
-    def test_positive_CRD_ssh_key(self):
+    def test_positive_CRD_ssh_key(self, module_user, ssh_key):
         """SSH Key can be added to a User, listed and deletd
 
         :id: 57304fca-8e0d-454a-be31-34423345c8b2
@@ -340,18 +331,17 @@ class SshKeyInUserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
-        User.ssh_keys_add({'user': self.user.login, 'key': ssh_key, 'name': ssh_name})
-        result = User.ssh_keys_list({'user-id': self.user.id})
-        self.assertIn(ssh_name, [i['name'] for i in result])
-        result = User.ssh_keys_info({'user-id': self.user.id, 'name': ssh_name})
-        self.assertEqual(ssh_key, result[0]['public-key'])
-        result = User.ssh_keys_delete({'user-id': self.user.id, 'name': ssh_name})
-        result = User.ssh_keys_list({'user-id': self.user.id})
-        self.assertNotIn(ssh_name, [i['name'] for i in result])
+        User.ssh_keys_add({'user': module_user.login, 'key': ssh_key, 'name': ssh_name})
+        result = User.ssh_keys_list({'user-id': module_user.id})
+        assert ssh_name in [i['name'] for i in result]
+        result = User.ssh_keys_info({'user-id': module_user.id, 'name': ssh_name})
+        assert ssh_key in result[0]['public-key']
+        result = User.ssh_keys_delete({'user-id': module_user.id, 'name': ssh_name})
+        result = User.ssh_keys_list({'user-id': module_user.id})
+        assert ssh_name not in [i['name'] for i in result]
 
     @pytest.mark.tier1
-    def test_positive_create_ssh_key_super_admin_from_file(self):
+    def test_positive_create_ssh_key_super_admin_from_file(self, ssh_key):
         """SSH Key can be added to Super Admin user from file
 
         :id: b865d0ae-6317-475c-a6da-600615b71eeb
@@ -362,12 +352,11 @@ class SshKeyInUserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
         with get_connection() as connection:
             result = connection.run(f'''echo '{ssh_key}' > test_key.pub''')
-        self.assertEqual(result.return_code, 0, 'key file not created')
+        assert result.return_code == 0, 'key file not created'
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})
-        self.assertIn(ssh_name, [i['name'] for i in result])
+        assert ssh_name in [i['name'] for i in result]
         result = User.ssh_keys_info({'user': 'admin', 'name': ssh_name})
-        self.assertEqual(ssh_key, result[0]['public-key'])
+        assert ssh_key == result[0]['public-key']
