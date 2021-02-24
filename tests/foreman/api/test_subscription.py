@@ -21,6 +21,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 :Upstream: No
 """
 import pytest
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
@@ -31,14 +32,13 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import skip_if_not_set
+from robottelo.hosts import ContentHost
 from robottelo.test import APITestCase
 from robottelo.test import settings
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='class')
@@ -67,10 +67,6 @@ def golden_ticket_host_setup(request):
         environment=entities.LifecycleEnvironment(id=org.library.id),
         auto_attach=True,
     ).create()
-    subscription = entities.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     request.cls.org_setup = org
     request.cls.ak_setup = ak
 
@@ -226,6 +222,7 @@ class SubscriptionsTestCase(APITestCase):
     @pytest.mark.tier2
     @pytest.mark.libvirt_content_host
     @pytest.mark.usefixtures("golden_ticket_host_setup")
+    @pytest.mark.usefixtures("rhel77_contenthost_class")
     def test_positive_subscription_status_disabled(self):
         """Verify that Content host Subscription status is set to 'Disabled'
          for a golden ticket manifest
@@ -238,14 +235,14 @@ class SubscriptionsTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(self.org_setup.label, self.ak_setup.name)
-            assert vm.subscribed
-            host = entities.Host().search(query={'search': f'name={vm.hostname}'})
-            host_id = host[0].id
-            host_content = entities.Host(id=host_id).read_raw().content
-            assert "Disabled" in str(host_content)
+
+        self.rhel77_contenthost_class.install_katello_ca()
+        self.rhel77_contenthost_class.register_contenthost(self.org_setup.label, self.ak_setup.name)
+        assert self.rhel77_contenthost_class.subscribed
+        host = entities.Host().search(query={'search': f'name={self.rhel77_contenthost_class.hostname}'})
+        host_id = host[0].id
+        host_content = entities.Host(id=host_id).read_raw().content
+        assert "Simple Content Access" in str(host_content)
 
 
 @pytest.mark.tier2
