@@ -300,6 +300,7 @@ class SubscriptionTestCase(CLITestCase):
         """
 
     @pytest.mark.tier2
+    @pytest.mark.libvirt_content_host
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_auto_attach_disabled_golden_ticket(self):
         """Verify that Auto-Attach is disabled or "Not Applicable"

@@ -1060,6 +1060,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
     @skip_if_not_set('compute_resources')
     @pytest.mark.tier4
+    @pytest.mark.on_premises_provisioning
     @pytest.mark.upgrade
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_end_to_end(self):

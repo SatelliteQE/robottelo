@@ -128,6 +128,8 @@ def tear_down(provisioning):
         Host.delete({'id': host['id']})
 
 
+@pytest.mark.on_premises_provisioning
+@pytest.mark.vlan_networking
 @pytest.mark.tier3
 def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
     """Provision a host on RHEV compute resource with
@@ -205,6 +207,8 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
     host_provisioning_check(ip_addr=host_ip)
 
 
+@pytest.mark.on_premises_provisioning
+@pytest.mark.vlan_networking
 @pytest.mark.tier3
 def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_down, vmware_cr):
     """Provision a host on vmware compute resource with
@@ -278,6 +282,8 @@ def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_do
     host_provisioning_check(ip_addr=host_ip)
 
 
+@pytest.mark.on_premises_provisioning
+@pytest.mark.vlan_networking
 @pytest.mark.tier3
 def test_positive_provision_vmware_with_host_group_bootdisk(
     vmware, provisioning, tear_down, vmware_cr

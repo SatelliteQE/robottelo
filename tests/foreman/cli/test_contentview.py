@@ -2707,6 +2707,7 @@ class TestContentView:
         assert content_view['content-host-count'] == '1'
 
     @pytest.mark.tier3
+    @pytest.mark.libvirt_content_host
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self, module_org):
         """Attempt to subscribe a host with restricted user permissions and
@@ -2861,6 +2862,7 @@ class TestContentView:
             assert len(org_hosts) == 1
             assert org_hosts[0]['name'] == host_client.hostname
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(self, module_org):
         """Attempt to subscribe a host with restricted user permissions and
@@ -3905,6 +3907,7 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
+    @pytest.mark.libvirt_content_host
     @pytest.mark.upgrade
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self, module_org):

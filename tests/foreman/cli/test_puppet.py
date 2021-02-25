@@ -23,6 +23,7 @@ from robottelo.decorators import skip_if_not_set
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
+@pytest.mark.on_premises_provisioning
 @pytest.mark.upgrade
 @skip_if_not_set('clients')
 def test_positive_puppet_scenario():
@@ -61,6 +62,7 @@ def test_positive_puppet_scenario():
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
+@pytest.mark.on_premises_provisioning
 @pytest.mark.upgrade
 @skip_if_not_set('clients')
 def test_positive_puppet_capsule_scenario():

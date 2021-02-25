@@ -25,6 +25,8 @@ from robottelo.cli.factory import make_compute_resource
 from robottelo.cli.factory import make_os
 from robottelo.config import settings
 
+pytestmark = pytest.mark.on_premises_provisioning
+
 
 @pytest.fixture(scope='module')
 def rhev():

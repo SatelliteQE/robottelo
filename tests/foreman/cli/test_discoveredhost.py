@@ -110,6 +110,7 @@ class DiscoveredTestCase(CLITestCase):
         Settings.set({'name': 'discovery_auto', 'value': cls.default_discovery_auto['value']})
         super().tearDownClass()
 
+    @pytest.mark.libvirt_discovery
     @pytest.mark.tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -133,6 +134,7 @@ class DiscoveredTestCase(CLITestCase):
             self.assertIsNotNone(host)
 
     @pytest.mark.tier3
+    @pytest.mark.libvirt_discovery
     @pytest.mark.upgrade
     def test_positive_provision_pxeless_bios_syslinux(self):
         """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
@@ -208,6 +210,7 @@ class DiscoveredTestCase(CLITestCase):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
     @pytest.mark.tier3
+    @pytest.mark.libvirt_discovery
     @pytest.mark.upgrade
     def test_positive_provision_pxe_host_with_bios_syslinux(self):
         """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
@@ -348,6 +351,7 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @pytest.mark.tier3
+    @pytest.mark.libvirt_discovery
     def test_positive_delete(self):
         """Delete the selected discovered host
 

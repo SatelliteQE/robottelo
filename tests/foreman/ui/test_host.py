@@ -1634,6 +1634,7 @@ def test_positive_bulk_delete_host(session, module_loc):
         assert not values['table']
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier4
 def test_positive_provision_end_to_end(
     session,
@@ -1690,6 +1691,7 @@ def test_positive_provision_end_to_end(
         )
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier4
 def test_positive_delete_libvirt(
     session,

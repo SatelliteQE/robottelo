@@ -490,6 +490,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     """
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_gen_entitlements_reports_multiple_formats(session, setup_content, module_org):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.

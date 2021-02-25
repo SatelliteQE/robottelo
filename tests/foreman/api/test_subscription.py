@@ -224,6 +224,7 @@ class SubscriptionsTestCase(APITestCase):
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @pytest.mark.tier2
+    @pytest.mark.libvirt_content_host
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     def test_positive_subscription_status_disabled(self):
         """Verify that Content host Subscription status is set to 'Disabled'

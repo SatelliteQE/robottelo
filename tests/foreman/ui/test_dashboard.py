@@ -190,6 +190,7 @@ def test_positive_task_status(session):
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @skip_if_not_set('clients')
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_user_access_with_host_filter(test_name, module_loc):

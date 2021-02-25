@@ -196,6 +196,7 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_end_to_end(session, module_repos_col, vm):
     """Create all entities required for errata, set up applicable host,
@@ -545,6 +546,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
             )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_content_host_previous_env(session, module_org, module_repos_col, vm):
@@ -589,6 +591,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_content_host_library(session, module_org, vm):
     """Check if the applicable errata are available from the content
@@ -616,6 +619,7 @@ def test_positive_content_host_library(session, module_org, vm):
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
     """Search for errata on a content host's errata tab by type.
@@ -673,6 +677,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.skip_if_open("BZ:1655130")
 @pytest.mark.tier3
 def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
@@ -718,6 +723,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
         assert erratum_details['type'] == 'security'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
     """Available errata count displayed in Content hosts page
@@ -756,6 +762,7 @@ def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
             assert int(installable_errata[errata_type]) == 1
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_show_count_on_content_host_details_page(session, module_org, rhva_vm):
     """Errata count on Content host Details page
@@ -793,6 +800,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
             assert int(content_host_values['details'][errata_type]) == 1
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -887,6 +895,7 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_content_host_errata_search_commands(session, module_org, module_repos_col):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,

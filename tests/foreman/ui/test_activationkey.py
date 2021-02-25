@@ -95,6 +95,7 @@ def test_positive_end_to_end_crud(session, module_org):
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 def test_positive_end_to_end_register(session):
     """Create activation key and use it during content host registering
@@ -864,6 +865,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
 
 @skip_if_not_set('clients')
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 def test_positive_add_host(session, module_org):
     """Test that hosts can be associated to Activation Keys
 
@@ -896,6 +898,7 @@ def test_positive_add_host(session, module_org):
 
 
 @skip_if_not_set('clients')
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_delete_with_system(session):
     """Delete an Activation key which has registered systems
@@ -935,6 +938,7 @@ def test_positive_delete_with_system(session):
 
 
 @skip_if_not_set('clients')
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_negative_usage_limit(session, module_org):
     """Test that Usage limit actually limits usage
@@ -974,6 +978,7 @@ def test_negative_usage_limit(session, module_org):
 
 @skip_if_not_set('clients')
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_add_multiple_aks_to_system(session, module_org):
@@ -1030,6 +1035,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
 
 @skip_if_not_set('clients')
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_host_associations(session):
@@ -1072,6 +1078,7 @@ def test_positive_host_associations(session):
 
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(session):
     """Subscribe a host to activation key with Premium service level and with

@@ -80,6 +80,7 @@ def module_vm_client_by_ip(module_org, module_loc):
         yield vm_client
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip):
     """Run a job template against a single host by ip
@@ -117,6 +118,7 @@ def test_positive_run_default_job_template_by_ip(session, module_vm_client_by_ip
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip):
     """Run a job template on a host connected by ip
@@ -166,6 +168,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
 
 
 @pytest.mark.upgrade
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, module_loc):
     """Run a job template against multiple hosts by ip
@@ -218,6 +221,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
             )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_ip):
     """Schedule a job to be ran against a host by ip

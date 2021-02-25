@@ -240,6 +240,7 @@ def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
     set_the_redirect_uri()
 
 
+@pytest.mark.external_auth
 @pytest.fixture(scope='session')
 def enroll_idm_and_configure_external_auth():
     """Enroll the Satellite6 Server to an IDM Server."""
@@ -290,6 +291,7 @@ def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
     setting_entity.update({'value'})
 
 
+@pytest.mark.external_auth
 @pytest.fixture(scope='session')
 def enroll_ad_and_configure_external_auth():
     """Enroll Satellite Server to an AD Server."""

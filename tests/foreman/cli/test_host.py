@@ -466,6 +466,7 @@ def test_positive_katello_and_openscap_loaded():
 
 @pytest.mark.host_create
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 def test_positive_register_with_no_ak(module_lce, module_org, module_promoted_cv):
     """Register host to satellite without activation key
@@ -486,6 +487,7 @@ def test_positive_register_with_no_ak(module_lce, module_org, module_promoted_cv
 
 
 @pytest.mark.host_create
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_negative_register_twice(module_ak_with_cv, module_org):
     """Attempt to register a host twice to Satellite
@@ -544,6 +546,7 @@ def test_positive_list_scparams(module_env_search, module_org, module_puppet_cla
 
 
 @pytest.mark.host_create
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_list(module_ak_with_cv, module_lce, module_org):
     """List hosts for a given org
@@ -564,6 +567,7 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org):
 
 
 @pytest.mark.host_create
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_list_by_last_checkin(module_lce, module_org, module_promoted_cv):
     """List all content hosts using last checkin criteria
@@ -592,6 +596,7 @@ def test_positive_list_by_last_checkin(module_lce, module_org, module_promoted_c
 
 @pytest.mark.host_create
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
     """Unregister a host
@@ -619,6 +624,7 @@ def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
 
 @skip_if_not_set('compute_resources')
 @pytest.mark.host_create
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier1
 def test_positive_create_using_libvirt_without_mac(
     module_location, module_org, module_default_proxy
@@ -1820,6 +1826,7 @@ class HostSubscription:
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.host_subscription
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_register(module_host_subscription, host_subscription_client):
     """Attempt to register a host

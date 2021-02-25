@@ -396,6 +396,7 @@ def test_negative_create_with_invalid_name(module_org, name):
 
 
 @pytest.mark.tier1
+@pytest.mark.libvirt_content_host
 def test_positive_add_remove_subscription(
     module_org, module_lce, module_promoted_cv, module_ak_cv_lce
 ):

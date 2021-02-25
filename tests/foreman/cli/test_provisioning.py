@@ -20,6 +20,7 @@ import pytest
 
 
 @pytest.mark.stubbed
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 def test_rhel_pxe_provisioning_on_libvirt():
     """Provision RHEL system via PXE on libvirt and make sure it behaves

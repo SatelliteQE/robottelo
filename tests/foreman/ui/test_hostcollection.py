@@ -379,6 +379,7 @@ def test_positive_add_host(session):
         assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package(session, module_org, vm_content_hosts, vm_host_collection):
@@ -399,6 +400,7 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_collection):
@@ -422,6 +424,7 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
         )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Upgrade a package on hosts inside host collection remotely
@@ -442,6 +445,7 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package_group(session, module_org, vm_content_hosts, vm_host_collection):
@@ -466,6 +470,7 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
             assert _is_package_installed(vm_content_hosts, package)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package group from hosts inside host collection remotely
@@ -494,6 +499,7 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
             assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_collection):
@@ -516,6 +522,7 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_change_assigned_content(
     session, module_org, module_lce, vm_content_hosts, vm_host_collection, module_repos_collection
@@ -663,6 +670,7 @@ def test_negative_hosts_limit(session, module_org, module_loc):
         ) in str(context.value)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_module_stream(
@@ -700,6 +708,7 @@ def test_positive_install_module_stream(
         assert _is_package_installed(vm_content_hosts_module_stream, FAKE_3_CUSTOM_PACKAGE)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_modular_errata(
