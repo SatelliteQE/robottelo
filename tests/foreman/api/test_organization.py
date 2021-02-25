@@ -320,16 +320,8 @@ class TestOrganizationUpdate:
         assert len(org.smart_proxy) == 0
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'attrs',
-        # Immutable. See BZ 1089996.
-        [
-            {'name': gen_string(str_type='utf8', length=256)},
-            {'label': gen_string(str_type='utf8')},
-        ],
-        ids=['name', 'label'],
-    )
-    def test_negative_update(self, module_org, attrs):
+    @pytest.mark.parametrize('update_field', ['name', 'label'])
+    def test_negative_update(self, module_org, update_field):
         """Update an organization's attributes with invalid values.
 
         :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
@@ -339,6 +331,11 @@ class TestOrganizationUpdate:
         :CaseImportance: Critical
 
         :parametrized: yes
+
+        :BZ: 1089996
         """
+        update_dict = {
+            update_field: gen_string(str_type='utf8', length=256 if update_field == 'name' else 10)
+        }
         with pytest.raises(HTTPError):
-            entities.Organization(id=module_org.id, **attrs).update(attrs.keys())
+            entities.Organization(id=module_org.id, **update_dict).update([update_field])
