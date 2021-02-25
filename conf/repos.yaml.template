@@ -2,9 +2,10 @@ REPOS:
   # Provide link to rhel6/7/8 repo here, as puppet rpm would require packages from
   # RHEL 6/7/8 repo and syncing the entire repo on the fly would take longer for
   # tests to run Specify the *.repo link to an internal repo for tests to execute properly
-  RHEL6_REPO: replace-with-rhel8-repo-http-link
-  RHEL7_REPO: replace-with-rhel8-repo-http-link
-  RHEL8_REPO: replace-with-rhel8-repo-http-link
+  RHEL_REPO_HOST: http://rhel_repo.example.com
+  RHEL6_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel6.repo'
+  RHEL7_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel7.repo'
+  RHEL8_REPO: '@format {this[repos].rhel_repo_host}/pub/rhel8.repo'
   # Provide link to rhel6/7/8 repositories URL as we need all OS packages in order
   # to have real installation media for provisioning procedure
   # RHEL6_OS: replace-with-rhel6-os-http-link

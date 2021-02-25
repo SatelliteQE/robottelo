@@ -197,6 +197,30 @@ validators = dict(
         ),
         Validator("report_portal.fail_threshold", default=20),
     ],
+    repos=[
+        Validator(
+            'repos.rhel6_repo',
+            'repos.rhel7_repo',
+            'repos.rhel8_repo',
+            must_exist=True,
+            is_type_of=str,
+        ),
+        Validator(
+            'repos.rhel6_os',
+            'repos.rhel7_os',
+            'repos.rhel8_os.baseos',
+            'repos.rhel8_os.appstream',
+            'repos.sattools_repo.rhel6',
+            'repos.sattools_repo.rhel7',
+            'repos.sattools_repo.rhel8',
+            'repos.satmaintenance_repo',
+            'repos.rhscl_repo',
+            'repos.ansible_repo',
+            'repos.swid_tools_repo',
+            must_exist=False,
+            is_type_of=str,
+        ),
+    ],
     rhev=[
         Validator(
             "rhev.hostname",
