@@ -72,7 +72,16 @@ validators = dict(
             must_exist=True,
         )
     ],
-    docker=[Validator('docker.docker_image', 'docker.external_registry_1', must_exist=True)],
+    docker=[
+        Validator(
+            'docker.external_registry_1',
+            'docker.private_registry_url',
+            'docker.private_registry_name',
+            'docker.private_registry_username',
+            'docker.private_registry_password',
+            must_exist=True,
+        )
+    ],
     ec2=[
         Validator(
             'ec2.access_key',
@@ -210,6 +219,8 @@ validators = dict(
             'repos.rhel7_os',
             'repos.rhel8_os.baseos',
             'repos.rhel8_os.appstream',
+            'repos.rhel7_optional',
+            'repos.rhel7_extras',
             'repos.sattools_repo.rhel6',
             'repos.sattools_repo.rhel7',
             'repos.sattools_repo.rhel8',
