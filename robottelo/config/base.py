@@ -458,7 +458,6 @@ class DockerSettings(FeatureSettings):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.docker_image = None
         self.external_registry_1 = None
         self.private_registry_url = None
         self.private_registry_name = None
@@ -467,7 +466,6 @@ class DockerSettings(FeatureSettings):
 
     def read(self, reader):
         """Read docker settings."""
-        self.docker_image = reader.get('docker', 'docker_image')
         self.external_registry_1 = reader.get('docker', 'external_registry_1')
         self.private_registry_url = reader.get('docker', 'private_registry_url')
         self.private_registry_name = reader.get('docker', 'private_registry_name')
@@ -477,8 +475,6 @@ class DockerSettings(FeatureSettings):
     def validate(self):
         """Validate docker settings."""
         validation_errors = []
-        if not self.docker_image:
-            validation_errors.append('[docker] docker_image option must be provided or enabled.')
         if not self.external_registry_1:
             validation_errors.append('[docker] external_registry_1 option must be provided.')
         return validation_errors

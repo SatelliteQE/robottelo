@@ -1,0 +1,11 @@
+DOCKER:
+  # External docker registry URL in the format http[s]://<server>[:<port>]
+  # EXTERNAL_REGISTRY_1:
+  # Private docker registry URL in the format http[s]://<server>[:<port>]
+  PRIVATE_REGISTRY_URL: https://registry.hub.docker.com
+  # Private docker registry name
+  # PRIVATE_REGISTRY_NAME: username/imagename
+  # Private docker registry username
+  # PRIVATE_REGISTRY_USERNAME:
+  # Private docker registry password
+  # PRIVATE_REGISTRY_PASSWORD:

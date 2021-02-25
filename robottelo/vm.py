@@ -83,7 +83,6 @@ class VirtualMachine:
             DISTRO_RHEL8: settings.distro.image_el8,
             DISTRO_SLES11: settings.distro.image_sles11,
             DISTRO_SLES12: settings.distro.image_sles12,
-            'image_docker': settings.docker.docker_image,
         }
         self.cpu = cpu
         self.mac = None
