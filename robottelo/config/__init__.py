@@ -28,19 +28,14 @@ try:
     legacy_settings.configure()
 except ImproperlyConfigured:
     logger.warning(
-        (
-            "Legacy Robottelo settings configure() failed, most likely required "
-            "configuration option is not provided. Continuing for the sake of unit tests"
-        ),
-        exc_info=True,
+        "Legacy Robottelo settings configure() failed, most likely required "
+        "configuration option is not provided. Continuing for the sake of unit tests"
     )
 
 try:
     dynaconf_settings.validators.validate()
 except ValidationError:
-    logger.warning(
-        "Dynaconf validation failed, continuing for the sake of unit tests", exc_info=True
-    )
+    logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
 
 settings_proxy = SettingsFacade()
 settings_proxy.set_configs(dynaconf_settings, legacy_settings)
