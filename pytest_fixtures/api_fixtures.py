@@ -108,6 +108,7 @@ def module_domain(module_org, module_location):
     return entities.Domain(location=[module_location], organization=[module_org]).create()
 
 
+@pytest.mark.vlan_networking
 @pytest.fixture(scope='module')
 def module_subnet(module_org, module_location, default_domain, default_smart_proxy):
     network = settings.vlan_networking.subnet

@@ -207,6 +207,7 @@ def test_positive_create_with_all_users(session):
 
 
 @skip_if_not_set('compute_resources')
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):
     """Add/Remove compute resource from/to organization.

@@ -44,39 +44,6 @@ class HostNotDiscoveredException(Exception):
     """Raised when host is not discovered"""
 
 
-def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
-    """Creates discovered host by uploading few fake facts.
-
-    :param str name: Name of discovered host. If ``None`` then a random
-        value will be generated.
-    :param str ipaddress: A valid ip address.
-        If ``None`` then then a random value will be generated.
-    :param str macaddress: A valid mac address.
-        If ``None`` then then a random value will be generated.
-    :return: A ``dict`` of ``DiscoveredHost`` facts.
-    """
-    if name is None:
-        name = gen_string('alpha')
-    if ipaddress is None:
-        ipaddress = gen_ipaddr()
-    if macaddress is None:
-        macaddress = gen_mac(multicast=False)
-    return entities.DiscoveredHost().facts(
-        json={
-            'facts': {
-                'name': name,
-                'discovery_bootip': ipaddress,
-                'discovery_bootif': macaddress,
-                'interfaces': 'eth0',
-                'ipaddress': ipaddress,
-                'macaddress': macaddress,
-                'macaddress_eth0': macaddress,
-                'ipaddress_eth0': ipaddress,
-            }
-        }
-    )
-
-
 def _read_log(ch, pattern):
     """Read a first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
@@ -289,441 +256,481 @@ def discovered_host_cleanup():
         host.delete()
 
 
-@pytest.mark.tier2
-def test_positive_upload_facts():
-    """Upload fake facts to create a discovered host
+class TestFakeDiscoveryTests:
+    """Tests that uses fake discovered host."""
 
-    :id: c1f40204-bbb0-46d0-9b60-e42f00ad1649
+    def _create_discovered_host(self, name=None, ipaddress=None, macaddress=None):
+        """Creates discovered host by uploading few fake facts.
 
-    :BZ: 1349364, 1392919
+        :param str name: Name of discovered host. If ``None`` then a random
+            value will be generated.
+        :param str ipaddress: A valid ip address.
+            If ``None`` then then a random value will be generated.
+        :param str macaddress: A valid mac address.
+            If ``None`` then then a random value will be generated.
+        :return: A ``dict`` of ``DiscoveredHost`` facts.
+        """
+        if name is None:
+            name = gen_string('alpha')
+        if ipaddress is None:
+            ipaddress = gen_ipaddr()
+        if macaddress is None:
+            macaddress = gen_mac(multicast=False)
+        return entities.DiscoveredHost().facts(
+            json={
+                'facts': {
+                    'name': name,
+                    'discovery_bootip': ipaddress,
+                    'discovery_bootif': macaddress,
+                    'interfaces': 'eth0',
+                    'ipaddress': ipaddress,
+                    'macaddress': macaddress,
+                    'macaddress_eth0': macaddress,
+                    'ipaddress_eth0': ipaddress,
+                }
+            }
+        )
 
-    :Steps:
+    @pytest.mark.tier2
+    def test_positive_upload_facts(self):
+        """Upload fake facts to create a discovered host
 
-        1. POST /api/v2/discovered_hosts/facts
-        2. Read the created discovered host
+        :id: c1f40204-bbb0-46d0-9b60-e42f00ad1649
 
-    :expectedresults: Host should be created successfully
+        :BZ: 1349364, 1392919
 
-    :CaseImportance: High
+        :Steps:
 
-    :CaseLevel: Integration
+            1. POST /api/v2/discovered_hosts/facts
+            2. Read the created discovered host
 
-    :BZ: 1731112
-    """
-    name = gen_choice(list(valid_data_list().values()))
-    result = _create_discovered_host(name)
-    discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
-    host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
-    assert discovered_host['name'] == host_name
+        :expectedresults: Host should be created successfully
+
+        :CaseImportance: High
+
+        :CaseLevel: Integration
+
+        :BZ: 1731112
+        """
+        name = gen_choice(list(valid_data_list().values()))
+        result = self._create_discovered_host(name)
+        discovered_host = entities.DiscoveredHost(id=result['id']).read_json()
+        host_name = 'mac{}'.format(discovered_host['mac'].replace(':', ''))
+        assert discovered_host['name'] == host_name
+
+    @pytest.mark.tier3
+    def test_positive_delete_pxe_host(self):
+        """Delete a pxe-based discovered hosts
+
+        :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d675e
+
+        :Setup: Provisioning should be configured and a host should be
+            discovered
+
+        :Steps: DELETE /api/v2/discovered_hosts/:id
+
+        :expectedresults: Discovered Host should be deleted successfully
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: High
+        """
+        name = gen_choice(list(valid_data_list().values()))
+        result = self._create_discovered_host(name)
+
+        entities.DiscoveredHost(id=result['id']).delete()
+        search = entities.DiscoveredHost().search(
+            query={'search': 'name == {}'.format(result['name'])}
+        )
+        assert len(search) == 0
 
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_provision_pxe_less_host():
-    """Provision a pxe-less discovered hosts
+@pytest.mark.libvirt_discovery
+class TestLibvirtHostDiscovery:
+    """Tests that uses discovered hosts from LibVirt Provider"""
 
-    :id: 91bb254b-3c30-4608-b1ba-e18bcc22efb5
+    @pytest.mark.stubbed
+    @pytest.mark.tier3
+    def test_positive_provision_pxe_less_host(self):
+        """Provision a pxe-less discovered hosts
 
-    :Setup: Provisioning should be configured and a host should be
-        discovered
+        :id: 91bb254b-3c30-4608-b1ba-e18bcc22efb5
 
-    :Steps: PUT /api/v2/discovered_hosts/:id
+        :Setup: Provisioning should be configured and a host should be
+            discovered
 
-    :expectedresults: Host should be provisioned successfully
+        :Steps: PUT /api/v2/discovered_hosts/:id
 
-    :CaseAutomation: NotAutomated
+        :expectedresults: Host should be provisioned successfully
 
-    :CaseImportance: Critical
-    """
+        :CaseAutomation: NotAutomated
 
+        :CaseImportance: Critical
+        """
 
-@pytest.mark.destructive
-def test_positive_provision_pxe_host_dhcp_change(discovery_settings, provisioning_env):
-    """Discovered host is provisioned in dhcp range defined in subnet entity
+    @pytest.mark.run_in_one_thread
+    @skip_if_not_set('vlan_networking')
+    @pytest.mark.tier3
+    def test_positive_provision_pxe_host(self, _module_user, discovery_settings, provisioning_env):
+        """Provision a pxe-based discovered hosts
 
-    :id: 7ab654de-16dd-4a8b-946d-f6adde310340
+        :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
 
-    :bz: 1367549
+        :parametrized: yes
 
-    :Setup: Provisioning should be configured and a host should be
-        discovered
+        :Setup: Provisioning should be configured and a host should be
+            discovered
 
-    :Steps:
-        1. Set some dhcp range in dhcpd.conf in satellite.
-        2. Create subnet entity in satellite with a range different from whats defined
-            in `dhcpd.conf`.
-        3. Create Hostgroup with the step 2 subnet.
-        4. Discover a new host in satellite.
-        5. Provision a host with the hostgroup created in step 3.
+        :Steps: PUT /api/v2/discovered_hosts/:id
 
-    :expectedresults:
-        1. The discovered host should be discovered with range defined in dhcpd.conf
-        2. But provisoning the discovered host should acquire an IP from dhcp range
-            defined in subnet entity.
+        :expectedresults: Host should be provisioned successfully
 
-    :CaseImportance: Critical
-    """
-    subnet = entities.Subnet(id=provisioning_env['subnet']['id']).read()
-    # Updating satellite subnet component and dhcp conf ranges
-    # Storing now for restoring later
-    old_sub_from = subnet.from_
-    old_sub_to = subnet.to
-    old_sub_to_4o = old_sub_to.split('.')[-1]
-    # Calculating Subnet's new `from` range in Satellite Subnet Component
-    new_subnet_from = subnet.from_[: subnet.from_.rfind('.') + 1] + str(int(old_sub_to_4o) - 9)
-    # Same time, calculating dhcp confs new `to` range
-    new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
+        :CaseImportance: Critical
+        """
+        cfg = get_nailgun_config()
+        if _module_user:
+            cfg.auth = (_module_user[0].login, _module_user[1])
 
-    cfg = get_nailgun_config()
-    ssh_client = ssh.get_client()
-    with ssh_client.invoke_shell() as channel:
-        channel.send('foreman-tail\r')
-        try:
-            # updating the ranges in component and in dhcp.conf
-            subnet.from_ = new_subnet_from
-            subnet.update(['from_'])
-            ssh_client.exec_command(
-                f'cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd_backup.conf && '
-                f'sed -ie \'s/{subnet.to}/{new_dhcp_conf_to}/\' /etc/dhcp/dhcpd.conf && '
-                f'systemctl restart dhcpd'
-            )
+        # open a ssh channel and attach it to foreman-tail output
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
+            channel.send('foreman-tail\r')
+
             with LibvirtGuest() as pxe_host:
-                discovered_host = _assert_discovered_host(pxe_host, channel, cfg)
-                # Assert Discovered host discovered within dhcp.conf range before provisioning
-                assert int(discovered_host.ip.split('.')[-1]) <= int(
-                    new_dhcp_conf_to.split('.')[-1]
-                )
+                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
                 # Provision just discovered host
                 discovered_host.hostgroup = entities.HostGroup(
-                    id=provisioning_env['hostgroup']['id']
+                    cfg, id=provisioning_env['hostgroup']['id']
                 ).read()
                 discovered_host.root_pass = gen_string('alphanumeric')
                 discovered_host.update(['hostgroup', 'root_pass'])
                 # Assertions
-                provisioned_host = entities.Host().search(
+                provisioned_host = entities.Host(cfg).search(
                     query={
                         'search': 'name={}.{}'.format(
                             discovered_host.name, provisioning_env['domain']['name']
                         )
                     }
                 )[0]
-                assert int(provisioned_host.ip.split('.')[-1]) >= int(
-                    new_subnet_from.split('.')[-1]
+                assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
+                assert (
+                    provisioned_host.operatingsystem.read().ptable[0].read().name
+                    == provisioning_env['ptable']['name']
                 )
-                assert int(provisioned_host.ip.split('.')[-1]) <= int(old_sub_to_4o)
-                assert not entities.DiscoveredHost().search(
+                assert (
+                    provisioned_host.operatingsystem.read().title
+                    == provisioning_env['os']['title']
+                )
+                assert not entities.DiscoveredHost(cfg).search(
                     query={'search': f'name={discovered_host.name}'}
                 )
-        finally:
-            subnet.from_ = old_sub_from
-            subnet.update(['from_'])
-            ssh_client.exec_command(
-                'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
-            )
-
-
-@pytest.mark.run_in_one_thread
-@skip_if_not_set('vlan_networking')
-@pytest.mark.tier3
-def test_positive_provision_pxe_host(_module_user, discovery_settings, provisioning_env):
-    """Provision a pxe-based discovered hosts
-
-    :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
-
-    :parametrized: yes
-
-    :Setup: Provisioning should be configured and a host should be
-        discovered
-
-    :Steps: PUT /api/v2/discovered_hosts/:id
-
-    :expectedresults: Host should be provisioned successfully
-
-    :CaseImportance: Critical
-    """
-    cfg = get_nailgun_config()
-    if _module_user:
-        cfg.auth = (_module_user[0].login, _module_user[1])
-
-    # open a ssh channel and attach it to foreman-tail output
-    ssh_client = ssh.get_client()
-    with ssh_client.invoke_shell() as channel:
-        channel.send('foreman-tail\r')
-
-        with LibvirtGuest() as pxe_host:
-            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
-            # Provision just discovered host
-            discovered_host.hostgroup = entities.HostGroup(
-                cfg, id=provisioning_env['hostgroup']['id']
-            ).read()
-            discovered_host.root_pass = gen_string('alphanumeric')
-            discovered_host.update(['hostgroup', 'root_pass'])
-            # Assertions
-            provisioned_host = entities.Host(cfg).search(
-                query={
-                    'search': 'name={}.{}'.format(
-                        discovered_host.name, provisioning_env['domain']['name']
-                    )
-                }
-            )[0]
-            assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
-            assert (
-                provisioned_host.operatingsystem.read().ptable[0].read().name
-                == provisioning_env['ptable']['name']
-            )
-            assert provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
-            assert not entities.DiscoveredHost(cfg).search(
-                query={'search': f'name={discovered_host.name}'}
-            )
-
-
-@pytest.mark.tier3
-def test_positive_delete_pxe_host():
-    """Delete a pxe-based discovered hosts
-
-    :id: 2ab2ad88-4470-4d4c-8e0b-5892ad8d675e
-
-    :Setup: Provisioning should be configured and a host should be
-        discovered
-
-    :Steps: DELETE /api/v2/discovered_hosts/:id
-
-    :expectedresults: Discovered Host should be deleted successfully
-
-    :CaseAutomation: Automated
-
-    :CaseImportance: High
-    """
-    name = gen_choice(list(valid_data_list().values()))
-    result = _create_discovered_host(name)
-
-    entities.DiscoveredHost(id=result['id']).delete()
-    search = entities.DiscoveredHost().search(
-        query={'search': 'name == {}'.format(result['name'])}
-    )
-    assert len(search) == 0
-
-
-@pytest.mark.run_in_one_thread
-@pytest.mark.tier3
-@skip_if_not_set('vlan_networking')
-def test_positive_auto_provision_pxe_host(
-    _module_user, module_org, module_location, discovery_settings, provisioning_env
-):
-    """Auto provision a pxe-based host by executing discovery rules
-
-    :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
-
-    :parametrized: yes
-
-    :Setup: Provisioning should be configured and a host should be
-        discovered
 
-    :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
+    @pytest.mark.run_in_one_thread
+    @pytest.mark.tier3
+    @skip_if_not_set('vlan_networking')
+    def test_positive_auto_provision_pxe_host(
+        self, _module_user, module_org, module_location, discovery_settings, provisioning_env
+    ):
+        """Auto provision a pxe-based host by executing discovery rules
+
+        :id: c93fd7c9-41ef-4eb5-8042-f72e87e67e10
+
+        :parametrized: yes
+
+        :Setup: Provisioning should be configured and a host should be
+            discovered
+
+        :Steps: POST /api/v2/discovered_hosts/:id/auto_provision
+
+        :expectedresults: Selected Host should be auto-provisioned successfully
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: Critical
+        """
+        cfg = get_nailgun_config()
+        if _module_user:
+            cfg.auth = (_module_user[0].login, _module_user[1])
+
+        # open a ssh channel and attach it to foreman-tail output
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
+            channel.send('foreman-tail\r')
 
-    :expectedresults: Selected Host should be auto-provisioned successfully
+            with LibvirtGuest() as pxe_host:
+                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+                # Provision just discovered host
+                discovered_host.hostgroup = entities.HostGroup(
+                    cfg, id=provisioning_env['hostgroup']['id']
+                ).read()
+
+                # create a discovery rule that will match hosts MAC address
+                entities.DiscoveryRule(
+                    name=gen_string('alphanumeric'),
+                    search_=f"mac = {discovered_host.mac}",
+                    organization=[module_org],
+                    location=[module_location],
+                    hostgroup=entities.HostGroup(
+                        cfg, id=provisioning_env['hostgroup']['id']
+                    ).read(),
+                ).create()
+                # Auto-provision the host
+                discovered_host.auto_provision()
+
+                # Assertions
+                provisioned_host = entities.Host(cfg).search(
+                    query={
+                        'search': 'name={}.{}'.format(
+                            discovered_host.name, provisioning_env['domain']['name']
+                        )
+                    }
+                )[0]
+                assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
+                assert (
+                    provisioned_host.operatingsystem.read().ptable[0].read().name
+                    == provisioning_env['ptable']['name']
+                )
+                assert (
+                    provisioned_host.operatingsystem.read().title
+                    == provisioning_env['os']['title']
+                )
+                assert not entities.DiscoveredHost(cfg).search(
+                    query={'search': f'name={discovered_host.name}'}
+                )
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier3
+    def test_positive_auto_provision_all(self):
+        """Auto provision all host by executing discovery rules
+
+        :id: 954d3688-62d9-47f7-9106-a4fff8825ffa
+
+        :Setup: Provisioning should be configured and more than one host should
+            be discovered
+
+        :Steps: POST /api/v2/discovered_hosts/auto_provision_all
+
+        :expectedresults: All discovered hosts should be auto-provisioned
+            successfully
+
+        :CaseAutomation: NotAutomated
+
+        :CaseImportance: High
+        """
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier3
+    def test_positive_refresh_facts_pxe_host(self):
+        """Refresh the facts of pxe based discovered hosts by adding a new NIC
+
+        :id: 413fb608-cd5c-441d-af86-fd2d40346d96
+
+        :Setup:
+            1. Provisioning should be configured and more than one host should
+            be discovered
+            2. Add a NIC on discovered host
 
-    :CaseAutomation: Automated
+        :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
 
-    :CaseImportance: Critical
-    """
-    cfg = get_nailgun_config()
-    if _module_user:
-        cfg.auth = (_module_user[0].login, _module_user[1])
+        :expectedresults: Added Fact should be displayed on refreshing the
+            facts
 
-    # open a ssh channel and attach it to foreman-tail output
-    ssh_client = ssh.get_client()
-    with ssh_client.invoke_shell() as channel:
-        channel.send('foreman-tail\r')
+        :CaseAutomation: NotAutomated
 
-        with LibvirtGuest() as pxe_host:
-            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
-            # Provision just discovered host
-            discovered_host.hostgroup = entities.HostGroup(
-                cfg, id=provisioning_env['hostgroup']['id']
-            ).read()
+        :CaseImportance: High
+        """
 
-            # create a discovery rule that will match hosts MAC address
-            entities.DiscoveryRule(
-                name=gen_string('alphanumeric'),
-                search_=f"mac = {discovered_host.mac}",
-                organization=[module_org],
-                location=[module_location],
-                hostgroup=entities.HostGroup(cfg, id=provisioning_env['hostgroup']['id']).read(),
-            ).create()
-            # Auto-provision the host
-            discovered_host.auto_provision()
+    @pytest.mark.run_in_one_thread
+    @skip_if_not_set('vlan_networking')
+    @pytest.mark.tier3
+    def test_positive_reboot_pxe_host(self, _module_user, discovery_settings, provisioning_env):
+        """Rebooting a pxe based discovered host
 
-            # Assertions
-            provisioned_host = entities.Host(cfg).search(
-                query={
-                    'search': 'name={}.{}'.format(
-                        discovered_host.name, provisioning_env['domain']['name']
-                    )
-                }
-            )[0]
-            assert provisioned_host.subnet.read().name == provisioning_env['subnet']['name']
-            assert (
-                provisioned_host.operatingsystem.read().ptable[0].read().name
-                == provisioning_env['ptable']['name']
-            )
-            assert provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
-            assert not entities.DiscoveredHost(cfg).search(
-                query={'search': f'name={discovered_host.name}'}
-            )
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_auto_provision_all():
-    """Auto provision all host by executing discovery rules
+        :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
 
-    :id: 954d3688-62d9-47f7-9106-a4fff8825ffa
+        :parametrized: yes
 
-    :Setup: Provisioning should be configured and more than one host should
-        be discovered
+        :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
 
-    :Steps: POST /api/v2/discovered_hosts/auto_provision_all
+        :Steps: PUT /api/v2/discovered_hosts/:id/reboot
 
-    :expectedresults: All discovered hosts should be auto-provisioned
-        successfully
+        :expectedresults: Selected host should be rebooted successfully
 
-    :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
 
-    :CaseImportance: High
-    """
+        :CaseImportance: Medium
+        """
+        cfg = get_nailgun_config()
+        if _module_user:
+            cfg.auth = (_module_user[0].login, _module_user[1])
 
+        # open a ssh channel and attach it to foreman-tail output
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
+            channel.send('foreman-tail\r')
 
-@pytest.mark.stubbed
-@pytest.mark.tier3
-def test_positive_refresh_facts_pxe_host():
-    """Refresh the facts of pxe based discovered hosts by adding a new NIC
+            with LibvirtGuest() as pxe_host:
+                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+                discovered_host.reboot()
 
-    :id: 413fb608-cd5c-441d-af86-fd2d40346d96
-
-    :Setup:
-        1. Provisioning should be configured and more than one host should
-        be discovered
-        2. Add a NIC on discovered host
-
-    :Steps: PUT /api/v2/discovered_hosts/:id/refresh_facts
-
-    :expectedresults: Added Fact should be displayed on refreshing the
-        facts
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: High
-    """
-
-
-@pytest.mark.run_in_one_thread
-@skip_if_not_set('vlan_networking')
-@pytest.mark.tier3
-def test_positive_reboot_pxe_host(_module_user, discovery_settings, provisioning_env):
-    """Rebooting a pxe based discovered host
-
-    :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
-
-    :parametrized: yes
-
-    :Setup: Provisioning should be configured and a host should be discovered via PXE boot.
-
-    :Steps: PUT /api/v2/discovered_hosts/:id/reboot
-
-    :expectedresults: Selected host should be rebooted successfully
-
-    :CaseAutomation: Automated
-
-    :CaseImportance: Medium
-    """
-    cfg = get_nailgun_config()
-    if _module_user:
-        cfg.auth = (_module_user[0].login, _module_user[1])
-
-    # open a ssh channel and attach it to foreman-tail output
-    ssh_client = ssh.get_client()
-    with ssh_client.invoke_shell() as channel:
-        channel.send('foreman-tail\r')
-
-        with LibvirtGuest() as pxe_host:
-            discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
-            discovered_host.reboot()
-
-            # assert that server receives DHCP discover from hosts PXELinux
-            # this means that the host got rebooted
-            for pattern in [
-                (
-                    f"DHCPDISCOVER from {pxe_host.mac}",
-                    "DHCPDISCOVER",
-                ),
-                (f"DHCPACK on [0-9.]+ to {pxe_host.mac}", "DHCPACK"),
-            ]:
-                try:
-                    _wait_for_log(channel, pattern[0], timeout=30)
-                except TimedOutError:
-                    # raise assertion error
-                    raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
-
-
-@pytest.mark.run_in_one_thread
-@skip_if_not_set('vlan_networking')
-@pytest.mark.tier3
-def test_positive_reboot_all_pxe_hosts(
-    _module_user, discovered_host_cleanup, discovery_settings, provisioning_env
-):
-    """Rebooting all pxe-based discovered hosts
-
-    :id: 69c807f8-5646-4aa6-8b3c-5ecdb69560ed
-
-    :parametrized: yes
-
-    :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
-
-    :Steps: PUT /api/v2/discovered_hosts/reboot_all
-
-    :expectedresults: All disdcovered host should be rebooted successfully
-
-    :CaseAutomation: Automated
-
-    :CaseImportance: Medium
-    """
-    cfg = get_nailgun_config()
-    if _module_user:
-        cfg.auth = (_module_user[0].login, _module_user[1])
-
-    # open ssh channels and attach them to foreman-tail output
-    channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
-    channel_1.send('foreman-tail\r')
-    channel_2.send('foreman-tail\r')
-
-    with LibvirtGuest() as pxe_host_1:
-        _assert_discovered_host(pxe_host_1, channel_1, user_config=cfg)
-        with LibvirtGuest() as pxe_host_2:
-            _assert_discovered_host(pxe_host_2, channel_2, user_config=cfg)
-            # reboot_all method leads to general /discovered_hosts/ path, so it doesn't matter
-            # what DiscoveredHost object we execute this on
-            try:
-                entities.DiscoveredHost().reboot_all()
-            except simplejson.errors.JSONDecodeError as e:
-                if is_open('BZ:1893349'):
-                    pass
-                else:
-                    raise e
-            # assert that server receives DHCP discover from hosts PXELinux
-            # this means that the hosts got rebooted
-            for pxe_host in [(pxe_host_1, channel_1), (pxe_host_2, channel_2)]:
+                # assert that server receives DHCP discover from hosts PXELinux
+                # this means that the host got rebooted
                 for pattern in [
                     (
-                        f"DHCPDISCOVER from {pxe_host[0].mac}",
+                        f"DHCPDISCOVER from {pxe_host.mac}",
                         "DHCPDISCOVER",
                     ),
-                    (f"DHCPACK on [0-9.]+ to {pxe_host[0].mac}", "DHCPACK"),
+                    (f"DHCPACK on [0-9.]+ to {pxe_host.mac}", "DHCPACK"),
                 ]:
                     try:
-                        _wait_for_log(pxe_host[1], pattern[0], timeout=30)
+                        _wait_for_log(channel, pattern[0], timeout=30)
                     except TimedOutError:
                         # raise assertion error
-                        raise AssertionError(
-                            f'Timed out waiting for {pattern[1]} from ' f'{pxe_host[0].mac}'
-                        )
+                        raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
+
+    @pytest.mark.run_in_one_thread
+    @skip_if_not_set('vlan_networking')
+    @pytest.mark.tier3
+    def test_positive_reboot_all_pxe_hosts(
+        self, _module_user, discovered_host_cleanup, discovery_settings, provisioning_env
+    ):
+        """Rebooting all pxe-based discovered hosts
+
+        :id: 69c807f8-5646-4aa6-8b3c-5ecdb69560ed
+
+        :parametrized: yes
+
+        :Setup: Provisioning should be configured and a hosts should be discovered via PXE boot.
+
+        :Steps: PUT /api/v2/discovered_hosts/reboot_all
+
+        :expectedresults: All disdcovered host should be rebooted successfully
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: Medium
+        """
+        cfg = get_nailgun_config()
+        if _module_user:
+            cfg.auth = (_module_user[0].login, _module_user[1])
+
+        # open ssh channels and attach them to foreman-tail output
+        channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
+        channel_1.send('foreman-tail\r')
+        channel_2.send('foreman-tail\r')
+
+        with LibvirtGuest() as pxe_host_1:
+            _assert_discovered_host(pxe_host_1, channel_1, user_config=cfg)
+            with LibvirtGuest() as pxe_host_2:
+                _assert_discovered_host(pxe_host_2, channel_2, user_config=cfg)
+                # reboot_all method leads to general /discovered_hosts/ path, so it doesn't matter
+                # what DiscoveredHost object we execute this on
+                try:
+                    entities.DiscoveredHost().reboot_all()
+                except simplejson.errors.JSONDecodeError as e:
+                    if is_open('BZ:1893349'):
+                        pass
+                    else:
+                        raise e
+                # assert that server receives DHCP discover from hosts PXELinux
+                # this means that the hosts got rebooted
+                for pxe_host in [(pxe_host_1, channel_1), (pxe_host_2, channel_2)]:
+                    for pattern in [
+                        (
+                            f"DHCPDISCOVER from {pxe_host[0].mac}",
+                            "DHCPDISCOVER",
+                        ),
+                        (f"DHCPACK on [0-9.]+ to {pxe_host[0].mac}", "DHCPACK"),
+                    ]:
+                        try:
+                            _wait_for_log(pxe_host[1], pattern[0], timeout=30)
+                        except TimedOutError:
+                            # raise assertion error
+                            raise AssertionError(
+                                f'Timed out waiting for {pattern[1]} from ' f'{pxe_host[0].mac}'
+                            )
+
+    @pytest.mark.destructive
+    @skip_if_not_set('vlan_networking')
+    def test_positive_provision_pxe_host_dhcp_change(self, discovery_settings, provisioning_env):
+        """Discovered host is provisioned in dhcp range defined in subnet entity
+
+        :id: 7ab654de-16dd-4a8b-946d-f6adde310340
+
+        :bz: 1367549
+
+        :Setup: Provisioning should be configured and a host should be
+            discovered
+
+        :Steps:
+            1. Set some dhcp range in dhcpd.conf in satellite.
+            2. Create subnet entity in satellite with a range different from whats defined
+                in `dhcpd.conf`.
+            3. Create Hostgroup with the step 2 subnet.
+            4. Discover a new host in satellite.
+            5. Provision a host with the hostgroup created in step 3.
+
+        :expectedresults:
+            1. The discovered host should be discovered with range defined in dhcpd.conf
+            2. But provisoning the discovered host should acquire an IP from dhcp range
+                defined in subnet entity.
+
+        :CaseImportance: Critical
+        """
+        subnet = entities.Subnet(id=provisioning_env['subnet']['id']).read()
+        # Updating satellite subnet component and dhcp conf ranges
+        # Storing now for restoring later
+        old_sub_from = subnet.from_
+        old_sub_to = subnet.to
+        old_sub_to_4o = old_sub_to.split('.')[-1]
+        # Calculating Subnet's new `from` range in Satellite Subnet Component
+        new_subnet_from = subnet.from_[: subnet.from_.rfind('.') + 1] + str(int(old_sub_to_4o) - 9)
+        # Same time, calculating dhcp confs new `to` range
+        new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
+
+        cfg = get_nailgun_config()
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
+            channel.send('foreman-tail\r')
+            try:
+                # updating the ranges in component and in dhcp.conf
+                subnet.from_ = new_subnet_from
+                subnet.update(['from_'])
+                ssh_client.exec_command(
+                    f'cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd_backup.conf && '
+                    f'sed -ie \'s/{subnet.to}/{new_dhcp_conf_to}/\' /etc/dhcp/dhcpd.conf && '
+                    f'systemctl restart dhcpd'
+                )
+                with LibvirtGuest() as pxe_host:
+                    discovered_host = _assert_discovered_host(pxe_host, channel, cfg)
+                    # Assert Discovered host discovered within dhcp.conf range before provisioning
+                    assert int(discovered_host.ip.split('.')[-1]) <= int(
+                        new_dhcp_conf_to.split('.')[-1]
+                    )
+                    # Provision just discovered host
+                    discovered_host.hostgroup = entities.HostGroup(
+                        id=provisioning_env['hostgroup']['id']
+                    ).read()
+                    discovered_host.root_pass = gen_string('alphanumeric')
+                    discovered_host.update(['hostgroup', 'root_pass'])
+                    # Assertions
+                    provisioned_host = entities.Host().search(
+                        query={
+                            'search': 'name={}.{}'.format(
+                                discovered_host.name, provisioning_env['domain']['name']
+                            )
+                        }
+                    )[0]
+                    assert int(provisioned_host.ip.split('.')[-1]) >= int(
+                        new_subnet_from.split('.')[-1]
+                    )
+                    assert int(provisioned_host.ip.split('.')[-1]) <= int(old_sub_to_4o)
+                    assert not entities.DiscoveredHost().search(
+                        query={'search': f'name={discovered_host.name}'}
+                    )
+            finally:
+                subnet.from_ = old_sub_from
+                subnet.update(['from_'])
+                ssh_client.exec_command(
+                    'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
+                )

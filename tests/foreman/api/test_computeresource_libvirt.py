@@ -34,6 +34,8 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import skip_if_not_set
 
+pytestmark = pytest.mark.on_premises_provisioning
+
 
 @pytest.fixture(scope="module")
 @skip_if_not_set('compute_resources')

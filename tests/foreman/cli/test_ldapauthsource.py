@@ -467,6 +467,7 @@ class TestRHSSOAuthSource:
 
         request.addfinalizer(rh_sso_hammer_auth_cleanup)
 
+    @pytest.mark.external_auth
     @pytest.mark.destructive
     def test_rhsso_login_using_hammer(
         self, enable_external_auth_rhsso, rhsso_setting_setup, rh_sso_hammer_auth_setup
@@ -505,6 +506,7 @@ class TestRHSSOAuthSource:
             ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
+    @pytest.mark.external_auth
     @pytest.mark.destructive
     def test_rhsso_timeout_using_hammer(
         self,

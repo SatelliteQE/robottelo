@@ -2808,6 +2808,7 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
 
 
 @pytest.mark.upgrade
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
 def test_positive_subscribe_system_with_custom_content(session):
     """Attempt to subscribe a host to content view with custom repository
@@ -2840,6 +2841,7 @@ def test_positive_subscribe_system_with_custom_content(session):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_subscribe_system_with_puppet_modules(session):
     """Attempt to subscribe a host to content view with puppet modules

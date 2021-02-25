@@ -60,6 +60,7 @@ class KatelloAgentTestCase(CLITestCase):
     activation_key = None
 
     @classmethod
+    @pytest.mark.libvirt_content_host
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
@@ -282,6 +283,7 @@ class KatelloAgentTestCase(CLITestCase):
         assert result.return_code != 0
 
     @pytest.mark.tier3
+    @pytest.mark.libvirt_content_host
     @pytest.mark.upgrade
     def test_positive_register_host_ak_with_host_collection(self):
         """Attempt to register a host using activation key with host collection

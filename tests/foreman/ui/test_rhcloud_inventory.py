@@ -118,12 +118,14 @@ def organization_ak_setup(module_org):
     return module_org, ak
 
 
+@pytest.mark.libvirt_content_host
 @pytest.fixture(scope="module")
 def virtual_host():
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:
         yield vm
 
 
+@pytest.mark.libvirt_content_host
 @pytest.fixture(scope="module")
 def baremetal_host():
     with VirtualMachine(distro=DISTRO_RHEL7) as vm:

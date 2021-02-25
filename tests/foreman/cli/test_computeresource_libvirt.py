@@ -49,6 +49,8 @@ from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import parametrized
 from robottelo.decorators import skip_if_not_set
 
+pytestmark = pytest.mark.libvirt_content_host
+
 
 def valid_name_desc_data():
     """Random data for valid name and description"""

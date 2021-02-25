@@ -56,6 +56,7 @@ def module_lce(module_org):
 
 
 @pytest.mark.tier4
+@pytest.mark.libvirt_content_host
 @pytest.mark.parametrize('value', **xdist_adapter(_distro_cdn_variants()))
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_vm_install_package(value, module_org, module_lce):

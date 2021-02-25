@@ -112,6 +112,8 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
 @pytest.mark.tier3
+@pytest.mark.vlan_networking
+@pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_pxe_based_discovery(session, provisioning_env):
     """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -138,6 +140,8 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
 
 @skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @pytest.mark.tier3
+@pytest.mark.vlan_networking
+@pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
     """Discover a host with dhcp via bootable discovery ISO by setting
@@ -339,6 +343,8 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
 
 
 @skip_if_not_set('compute_resources', 'vlan_networking')
+@pytest.mark.libvirt_discovery
+@pytest.mark.vlan_networking
 @pytest.mark.tier3
 def test_positive_reboot(session, provisioning_env):
     """Reboot a discovered host.

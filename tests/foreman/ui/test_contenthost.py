@@ -141,6 +141,7 @@ def set_ignore_facts_for_os(value=False):
 def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.return_code == 0
+    return result
 
 
 def line_count(file, connection=None):
@@ -169,6 +170,7 @@ def module_host_template(module_org, module_loc):
     return host_template
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_end_to_end(session, repos_collection, vm):
     """Create all entities required for content host, set up host, register it
@@ -242,6 +244,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
         assert not session.contenthost.search(vm.hostname)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_end_to_end_bulk_update(session, vm):
@@ -298,6 +301,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
         session.contenthost.delete(vm.hostname)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_search_by_subscription_status(session, vm):
     """Register host into the system and search for it afterwards by
@@ -331,6 +335,7 @@ def test_positive_search_by_subscription_status(session, vm):
         assert values['table'][0]['Name'] == vm.hostname
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_negative_install_package(session, vm):
     """Attempt to install non-existent package to a host remotely
@@ -352,6 +357,7 @@ def test_negative_install_package(session, vm):
         assert result['result'] == 'warning'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_remove_package(session, vm):
@@ -373,6 +379,7 @@ def test_positive_remove_package(session, vm):
         assert not packages
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_upgrade_package(session, vm):
     """Upgrade a host package remotely
@@ -393,6 +400,7 @@ def test_positive_upgrade_package(session, vm):
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package_group(session, vm):
@@ -414,6 +422,7 @@ def test_positive_install_package_group(session, vm):
             assert packages[0]['Installed Package'] == package
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_remove_package_group(session, vm):
     """Remove a package group from a host remotely
@@ -434,6 +443,7 @@ def test_positive_remove_package_group(session, vm):
             assert not session.contenthost.search_package(vm.hostname, package)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_actions_katello_host_package_update_timeout(session, vm):
     """Check that Actions::Katello::Host::Package::Update task will time
@@ -495,6 +505,7 @@ def test_actions_katello_host_package_update_timeout(session, vm):
     assert error_line_found, "The expected time out error was not found in logs."
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_search_errata_non_admin(session, vm, module_org, test_name, default_viewer_role):
     """Search for host's errata by non-admin user with enough permissions
@@ -518,6 +529,7 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, de
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm):
@@ -559,6 +571,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
         assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_host_re_registion_with_host_rename(session, module_org, repos_collection, vm):
     """Ensure that content host should get re-registered after change in the hostname
@@ -597,6 +610,7 @@ def test_positive_host_re_registion_with_host_rename(session, module_org, repos_
         assert session.contenthost.search(updated_hostname)[0]['Name'] == updated_hostname
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 @pytest.mark.upgrade
@@ -673,6 +687,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
 
 @skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 def test_positive_virt_who_hypervisor_subscription_status(session):
     """Check that virt-who hypervisor shows the right subscription status
@@ -746,6 +761,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session):
             assert chost['details']['subscription_status'] == 'Fully entitled'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_module_stream_actions_on_content_host(session, vm_module_streams):
@@ -850,6 +866,7 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
         assert module_stream[0]['Status'] == ""
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_module_streams_customize_action(session, vm_module_streams):
     """Check remote execution for customized module action is working on content host.
@@ -899,6 +916,7 @@ def test_module_streams_customize_action(session, vm_module_streams):
         assert module_stream[0]['Stream'] == install_stream_version
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_install_modular_errata(session, vm_module_streams):
@@ -964,6 +982,7 @@ def test_install_modular_errata(session, vm_module_streams):
         assert module_stream[0]['Name'] == module_name
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_module_status_update_from_content_host_to_satellite(session, vm_module_streams):
     """Verify dnf upload-profile updates the module stream status to Satellite.
@@ -1012,6 +1031,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
         )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_module_status_update_without_force_upload_package_profile(session, vm, vm_module_streams):
     """Verify you do not have to run dnf upload-profile or restart rhsmcertd
@@ -1074,6 +1094,7 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
         )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_module_stream_update_from_satellite(session, vm_module_streams):
@@ -1134,6 +1155,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
         )
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_attributes_empty(session, vm_module_streams):
@@ -1159,6 +1181,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
             assert details[spname] == ''
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_set_syspurpose_attributes_cli(session, vm_module_streams):
@@ -1187,6 +1210,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
             assert details[spname] == spdata[1]
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
@@ -1221,6 +1245,7 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
             assert details[spname] == ''
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_matched(session, vm_module_streams):
@@ -1246,6 +1271,7 @@ def test_syspurpose_matched(session, vm_module_streams):
         assert details['system_purpose_status'] == "Matched"
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_bulk_action(session, vm):
@@ -1276,6 +1302,7 @@ def test_syspurpose_bulk_action(session, vm):
             assert val in result.stdout
 
 
+@pytest.mark.libvirt_content_host
 @skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_mismatched(session, vm_module_streams):
@@ -1388,6 +1415,7 @@ def test_search_for_virt_who_hypervisors(session):
         assert hypervisor_display_name not in content_hosts
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade

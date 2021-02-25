@@ -184,6 +184,7 @@ class TestCapsuleContentManagement:
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_insights_puppet_package_availability(self, capsule_vm):
@@ -216,6 +217,7 @@ class TestCapsuleContentManagement:
             )
         assert result.return_code == 0
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(self, capsule_vm):
@@ -293,6 +295,7 @@ class TestCapsuleContentManagement:
         assert len(capsule_rpms) == 1
         assert capsule_rpms[0] == RPM_TO_UPLOAD
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_checksum_sync(self, capsule_vm):
@@ -419,6 +422,7 @@ class TestCapsuleContentManagement:
         assert result.return_code == 0
         assert len(result.stdout) > 0
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -617,6 +621,7 @@ class TestCapsuleContentManagement:
             cvv_repo_path
         )
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_iso_library_sync(self, capsule_vm):
@@ -687,6 +692,7 @@ class TestCapsuleContentManagement:
         assert len(result) > 0
         assert set(sat_isos) == set(capsule_isos)
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -816,6 +822,7 @@ class TestCapsuleContentManagement:
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_mirror_on_sync(self, capsule_vm):
@@ -957,6 +964,7 @@ class TestCapsuleContentManagement:
             assert result.return_code == 0
             assert package_name in result.stdout[0]
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_update_with_immediate_sync(self, request, capsule_vm):
@@ -1112,6 +1120,7 @@ class TestCapsuleContentManagement:
 
         assert len(broken_links) == 0
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -1233,6 +1242,7 @@ class TestCapsuleContentManagement:
         )
         assert next(matching_filenames, None)
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, capsule_vm):

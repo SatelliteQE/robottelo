@@ -39,6 +39,7 @@ def module_libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url):
     """Perform end to end testing for compute resource Libvirt component.

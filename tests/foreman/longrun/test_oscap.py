@@ -166,6 +166,7 @@ class OpenScapTestCase(CLITestCase):
         }
 
     @pytest.mark.tier4
+    @pytest.mark.libvirt_content_host
     @pytest.mark.upgrade
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test, and push the updated scap content via puppet
@@ -349,6 +350,7 @@ class OpenScapTestCase(CLITestCase):
                 assert result is not None
 
     @pytest.mark.upgrade
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """End-to-End Oscap run with tailoring files and default capsule via puppet
@@ -461,6 +463,7 @@ class OpenScapTestCase(CLITestCase):
             assert result is not None
 
     @pytest.mark.upgrade
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     def test_positive_oscap_run_with_tailoring_file_with_ansible(self):
         """End-to-End Oscap run with tailoring files via ansible

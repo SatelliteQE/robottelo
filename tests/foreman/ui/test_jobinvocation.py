@@ -77,6 +77,7 @@ def module_vm_client_by_ip(module_org, module_loc):
         yield vm_client
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
 def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_client_by_ip):
     """Run a job template on a host connected by ip
@@ -113,6 +114,7 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
 def test_positive_run_custom_job_template_by_ip(session, module_org, module_vm_client_by_ip):
     """Run a job template on a host connected by ip

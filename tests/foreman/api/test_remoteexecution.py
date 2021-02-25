@@ -31,6 +31,7 @@ CAPSULE_TARGET_VERSION = '6.9.z'
 
 
 @pytest.mark.tier4
+@pytest.mark.libvirt_content_host
 def test_positive_run_capsule_upgrade_playbook():
     """Run Capsule Upgrade playbook against an External Capsule
 

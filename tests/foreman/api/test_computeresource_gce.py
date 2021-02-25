@@ -28,6 +28,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
 
+
 GCE_SETTINGS = dict(
     project_id=settings.gce.project_id,
     client_email=settings.gce.client_email,

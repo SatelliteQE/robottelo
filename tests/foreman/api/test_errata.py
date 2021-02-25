@@ -186,6 +186,7 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 
 @pytest.mark.upgrade
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_bulk_install_package(module_org, activation_key, custom_repo, rh_repo):
     """Bulk install package to a collection of hosts
@@ -218,6 +219,7 @@ def test_positive_bulk_install_package(module_org, activation_key, custom_repo, 
 
 
 @pytest.mark.upgrade
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo):
     """Install errata in a host-collection
@@ -261,6 +263,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 def test_positive_install_in_host(module_org, activation_key, custom_repo, rh_repo):
     """Install errata in a host
 
@@ -289,6 +292,7 @@ def test_positive_install_in_host(module_org, activation_key, custom_repo, rh_re
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 def test_positive_install_multiple_in_host(module_org, activation_key, custom_repo, rh_repo):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -530,6 +534,7 @@ def test_positive_filter_by_envs(module_org):
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 def test_positive_get_count_for_host(module_org):
     """Available errata count when retrieving Host
 
@@ -606,6 +611,7 @@ def test_positive_get_count_for_host(module_org):
 
 
 @pytest.mark.upgrade
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_get_applicable_for_host(module_org):
     """Get applicable errata ids for a host
@@ -747,6 +753,7 @@ def test_positive_get_diff_for_cv_envs():
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 def test_positive_incremental_update_required(
     module_org, module_lce, activation_key, module_cv, custom_repo, rh_repo
 ):
@@ -857,6 +864,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 
 
 @pytest.mark.tier3
+@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 def test_errata_installation_with_swidtags(module_org, module_lce, repos_collection):
     """Verify errata installation with swid_tags and swid tags get updated after

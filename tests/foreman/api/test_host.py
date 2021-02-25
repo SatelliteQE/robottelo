@@ -412,6 +412,7 @@ def test_positive_create_and_update_with_subnet(
 
 
 @pytest.mark.tier2
+@pytest.mark.on_premises_provisioning
 def test_positive_create_and_update_with_compresource(
     module_org, module_location, module_cr_libvirt
 ):
@@ -675,6 +676,7 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location):
 
 
 @pytest.mark.tier2
+@pytest.mark.on_premises_provisioning
 def test_positive_end_to_end_with_image(
     module_org, module_location, module_cr_libvirt, module_libvirt_image
 ):
@@ -706,6 +708,7 @@ def test_positive_end_to_end_with_image(
 
 
 @pytest.mark.tier1
+@pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('method', **parametrized(['build', 'image']))
 def test_positive_create_with_provision_method(
     method, module_org, module_location, module_cr_libvirt

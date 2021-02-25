@@ -46,6 +46,7 @@ from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.run_in_one_thread
 class IncrementalUpdateTestCase(TestCase):
     """Tests for the Incremental Update feature"""

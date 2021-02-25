@@ -39,6 +39,7 @@ from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.run_in_one_thread
 class ContentAccessTestCase(CLITestCase):
     """Content Access CLI tests."""

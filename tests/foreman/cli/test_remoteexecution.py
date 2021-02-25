@@ -81,6 +81,7 @@ def fixture_vmsetup(request, fixture_org):
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Run default template on host connected by ip and list task
@@ -129,6 +130,7 @@ class TestRemoteExecution:
         search = Task.list_tasks({"search": 'id={}'.format(task["id"])})
         assert search[0]["action"] == task["action"]
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, fixture_org):
@@ -202,6 +204,7 @@ class TestRemoteExecution:
         # assert the file is owned by the effective user
         assert username == result.stdout[0]
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Run custom template on host connected by ip
@@ -241,6 +244,7 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
@@ -298,6 +302,7 @@ class TestRemoteExecution:
                 )
             assert invocation_command['success'] == '2', output_msgs
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_install_multiple_packages_with_a_job_by_ip(
@@ -363,6 +368,7 @@ class TestRemoteExecution:
         result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=self.client.ip_addr)
         assert result.return_code == 0
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_run_recurring_job_with_max_iterations_by_ip(
         self, fixture_vmsetup, fixture_org
@@ -414,6 +420,7 @@ class TestRemoteExecution:
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, fixture_org):
         """Schedule a job to be ran against a host
@@ -523,6 +530,7 @@ class TestRemoteExecution:
 class TestAnsibleREX:
     """Test class for remote execution via Ansible"""
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_run_effective_user_job(self, fixture_vmsetup, fixture_org):
@@ -607,6 +615,7 @@ class TestAnsibleREX:
         # assert the file is owned by the effective user
         assert username == result.stdout[0], "file ownership mismatch"
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_run_reccuring_job(self, fixture_vmsetup, fixture_org):
@@ -666,6 +675,7 @@ class TestAnsibleREX:
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')

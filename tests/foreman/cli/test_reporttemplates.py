@@ -720,6 +720,7 @@ class ReportTemplateTestCase(CLITestCase):
 
         assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_generate_entitlements_report_multiple_formats(self):
         """Generate an report using the Subscription - Entitlement Report template
@@ -780,6 +781,7 @@ class ReportTemplateTestCase(CLITestCase):
             # BZ 1830289
             assert 'Subscription Quantity' in result_csv[0]
 
+    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
     def test_positive_schedule_Entitlements_report(self):
         """Schedule an report using the Subscription - Entitlement Report template in csv format.

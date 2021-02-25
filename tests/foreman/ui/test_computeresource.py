@@ -73,6 +73,7 @@ def module_loc():
     return entities.Location().create()
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_ca_cert, version):
@@ -121,6 +122,7 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
         assert not session.computeresource.search(new_name)
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
@@ -159,6 +161,7 @@ def test_positive_add_resource(session, module_ca_cert, rhev_data, version):
         assert resource_values['provider_content']['api4'] == version
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, version):
@@ -196,6 +199,7 @@ def test_positive_edit_resource_description(session, module_ca_cert, rhev_data, 
         assert resource_values['description'] == new_description
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version):
@@ -227,6 +231,7 @@ def test_positive_list_resource_vms(session, module_ca_cert, rhev_data, version)
         assert vm['Name'].read() == rhev_data['vm_name']
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
     """Edit RHEV Compute Resource with another protocol version
@@ -259,6 +264,7 @@ def test_positive_edit_resource_version(session, module_ca_cert, rhev_data):
         assert resource_values['provider_content']['api4']
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
 @pytest.mark.run_in_one_thread
@@ -307,6 +313,7 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
         assert session.computeresource.vm_status(name, rhev_data['vm_name']) is not status
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhev_data, version):
@@ -393,6 +400,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
     entities.Host(name=rhev_data['vm_name']).search()[0].delete()
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.parametrize('version', [True, False])
 def test_positive_update_organization(session, rhev_data, module_loc, module_ca_cert, version):
@@ -443,6 +451,7 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
         assert new_organization.name in resource_values['organizations']['resources']['assigned']
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cert):
     """Perform end to end testing for compute resource RHV component image.
@@ -504,6 +513,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
         )
 
 
+@pytest.mark.on_premises_provisioning
 @skip_if_not_set('vlan_networking')
 @pytest.mark.tier2
 def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_cert):
@@ -590,6 +600,7 @@ def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_ce
                 assert provided_value == expected_value
 
 
+@pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 def test_positive_associate_with_custom_profile_with_template(session, rhev_data, module_ca_cert):
     """Associate custom default (3-Large) compute profile to rhev compute

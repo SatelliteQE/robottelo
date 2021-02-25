@@ -1032,6 +1032,7 @@ def test_single_sign_on_using_rhsso(rhsso_setting_setup, session):
         assert settings.rhsso.rhsso_user in actual_user
 
 
+@pytest.mark.external_auth
 @pytest.mark.destructive
 def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, session):
     """Verify the external logout page navigation with external authentication RH-SSO
@@ -1060,6 +1061,7 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, 
         assert settings.rhsso.rhsso_user in actual_user
 
 
+@pytest.mark.external_auth
 @pytest.mark.destructive
 def test_session_expire_rhsso_idle_timeout(
     enable_external_auth_rhsso, rhsso_setting_setup_with_timeout, session
@@ -1085,6 +1087,7 @@ def test_session_expire_rhsso_idle_timeout(
         assert error.typename == "NavigationTriesExceeded"
 
 
+@pytest.mark.external_auth
 @pytest.mark.destructive
 def test_external_new_user_login_and_check_count_rhsso(
     enable_external_auth_rhsso, external_user_count, rhsso_setting_setup, session
@@ -1126,6 +1129,7 @@ def test_external_new_user_login_and_check_count_rhsso(
         assert error.typename == "NavigationTriesExceeded"
 
 
+@pytest.mark.external_auth
 @pytest.mark.skip_if_open("BZ:1873439")
 @pytest.mark.destructive
 def test_login_failure_rhsso_user_if_internal_user_exist(
@@ -1168,6 +1172,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         assert error.typename == "NavigationTriesExceeded"
 
 
+@pytest.mark.external_auth
 @pytest.mark.destructive
 def test_user_permissions_rhsso_user_after_group_delete(
     enable_external_auth_rhsso,
@@ -1232,6 +1237,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
         assert error.typename == "NavigationTriesExceeded"
 
 
+@pytest.mark.external_auth
 @pytest.mark.destructive
 def test_user_permissions_rhsso_user_multiple_group(
     enable_external_auth_rhsso,
