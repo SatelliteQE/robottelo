@@ -130,6 +130,17 @@ def validate_repo_content(repo, content_types, after_sync=True):
         assert count > 0 if after_sync else count == 0
 
 
+def disable_syncplan(sync_plan):
+    """
+    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
+    Note that only a Sync Plan with a repo would create a noticeable load.
+    You can also create sync plans in a disabled state where it is unlikely to impact the test.
+    """
+    SyncPlan.update({'id': sync_plan['id'], 'enabled': 'false'})
+    result = SyncPlan.info({'id': sync_plan['id']})
+    assert result['enabled'] == 'no'
+
+
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
 def test_positive_create_with_name(module_org, name):
@@ -143,7 +154,9 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = make_sync_plan({'name': name, 'organization-id': module_org.id})
+    sync_plan = make_sync_plan(
+        {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
+    )
     result = SyncPlan.info({'id': sync_plan['id']})
     assert result['name'] == name
 
@@ -161,7 +174,9 @@ def test_positive_create_with_description(module_org, desc):
 
     :CaseImportance: Critical
     """
-    new_sync_plan = make_sync_plan({'description': desc, 'organization-id': module_org.id})
+    new_sync_plan = make_sync_plan(
+        {'enabled': 'false', 'description': desc, 'organization-id': module_org.id}
+    )
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['description'] == desc
 
@@ -181,6 +196,7 @@ def test_positive_create_with_interval(module_org, test_data):
     """
     new_sync_plan = make_sync_plan(
         {
+            'enabled': 'false',
             'interval': test_data['interval'],
             'name': test_data['name'],
             'organization-id': module_org.id,
@@ -205,7 +221,7 @@ def test_negative_create_with_name(module_org, name):
     :CaseImportance: Critical
     """
     with pytest.raises(CLIFactoryError, match='Could not create the sync plan:'):
-        make_sync_plan({'name': name, 'organization-id': module_org.id})
+        make_sync_plan({'enabled': 'false', 'name': name, 'organization-id': module_org.id})
 
 
 @pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
@@ -219,7 +235,7 @@ def test_positive_update_description(module_org, new_desc):
 
     :expectedresults: Sync plan is created and description is updated
     """
-    new_sync_plan = make_sync_plan({'organization-id': module_org.id})
+    new_sync_plan = make_sync_plan({'enabled': 'false', 'organization-id': module_org.id})
     SyncPlan.update({'description': new_desc, 'id': new_sync_plan['id']})
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['description'] == new_desc
@@ -240,6 +256,7 @@ def test_positive_update_interval(module_org, test_data):
     """
     new_sync_plan = make_sync_plan(
         {
+            'enabled': 'false',
             'interval': test_data['interval'],
             'name': test_data['name'],
             'organization-id': module_org.id,
@@ -248,6 +265,8 @@ def test_positive_update_interval(module_org, test_data):
     SyncPlan.update({'id': new_sync_plan['id'], 'interval': test_data['new-interval']})
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['interval'] == test_data['new-interval']
+    # disable sync plan after test
+    disable_syncplan(new_sync_plan)
 
 
 @pytest.mark.tier1
@@ -285,6 +304,8 @@ def test_positive_update_sync_date(module_org):
     assert datetime.strptime(result['start-date'], '%Y/%m/%d %H:%M:%S') > datetime.strptime(
         new_sync_plan['start-date'], '%Y/%m/%d %H:%M:%S'
     ), 'Sync date was not updated'
+    # disable sync plan after test
+    disable_syncplan(new_sync_plan)
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -320,6 +341,8 @@ def test_positive_info_enabled_field_is_displayed(module_org):
     new_sync_plan = make_sync_plan({'organization-id': module_org.id})
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result.get('enabled') is not None
+    # disable sync plan after test
+    disable_syncplan(new_sync_plan)
 
 
 @pytest.mark.tier2
@@ -384,6 +407,8 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
     with pytest.raises(AssertionError):
         validate_task_status(repo['id'], module_org.id, max_tries=2)
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -436,6 +461,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -493,6 +520,8 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -560,6 +589,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     for repo in repos:
         validate_task_status(repo['id'], module_org.id)
         validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
@@ -628,6 +659,9 @@ def test_positive_synchronize_rh_product_past_sync_date(target_sat):
     # Verify product was synced successfully
     validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
+    # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=org['id'], id=sync_plan['id']).read()
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
@@ -703,6 +737,9 @@ def test_positive_synchronize_rh_product_future_sync_date(target_sat):
     # Verify product was synced successfully
     validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
+    # disable sync plan after test
+    sync_plan = entities.SyncPlan(organization=org['id'], id=sync_plan['id']).read()
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
@@ -751,6 +788,8 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
@@ -800,3 +839,5 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     # Verify product was synced successfully
     validate_task_status(repo['id'], module_org.id)
     validate_repo_content(repo, ['errata', 'package-groups', 'packages'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)

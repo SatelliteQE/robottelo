@@ -108,6 +108,17 @@ def validate_repo_content(repo, content_types, after_sync=True):
             ], 'Repository contains invalid number of content entities.'
 
 
+def disable_syncplan(sync_plan):
+    """
+    Disable sync plans after a test to reduce distracting task events, logs, and load on Satellite.
+    Note that only a Sync Plan with a repo would create a noticeable load.
+    You can also create sync plans in a disabled state where it is unlikely to impact the test.
+    """
+    sync_plan.enabled = False
+    sync_plan = sync_plan.update(['enabled'])
+    assert sync_plan.enabled is False
+
+
 @pytest.mark.tier1
 def test_positive_get_routes():
     """Issue an HTTP GET response to both available routes.
@@ -156,6 +167,8 @@ def test_positive_create_enabled_disabled(module_org, enabled):
     sync_plan = entities.SyncPlan(enabled=enabled, organization=module_org).create()
     sync_plan = sync_plan.read()
     assert sync_plan.enabled == enabled
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -171,7 +184,7 @@ def test_positive_create_with_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(name=name, organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, name=name, organization=module_org).create()
     sync_plan = sync_plan.read()
     assert sync_plan.name == name
 
@@ -190,7 +203,9 @@ def test_positive_create_with_description(module_org, description):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(description=description, organization=module_org).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, description=description, organization=module_org
+    ).create()
     sync_plan = sync_plan.read()
     assert sync_plan.description == description
 
@@ -209,7 +224,7 @@ def test_positive_create_with_interval(module_org, interval):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(
-        description=gen_string('alpha'), organization=module_org, interval=interval
+        enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
@@ -232,7 +247,9 @@ def test_positive_create_with_sync_date(module_org, sync_delta):
     :CaseImportance: Critical
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
-    sync_plan = entities.SyncPlan(organization=module_org, sync_date=sync_date).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, organization=module_org, sync_date=sync_date
+    ).create()
     sync_plan = sync_plan.read()
     assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
 
@@ -309,6 +326,8 @@ def test_positive_update_enabled(module_org, enabled):
     sync_plan.update(['enabled'])
     sync_plan = sync_plan.read()
     assert sync_plan.enabled == enabled
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -325,7 +344,7 @@ def test_positive_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     sync_plan.update(['name'])
     sync_plan = sync_plan.read()
@@ -344,7 +363,9 @@ def test_positive_update_description(module_org, description):
     :expectedresults: A sync plan is created and its description can be
         updated with the specified description.
     """
-    sync_plan = entities.SyncPlan(description=gen_string('alpha'), organization=module_org).create()
+    sync_plan = entities.SyncPlan(
+        enabled=False, description=gen_string('alpha'), organization=module_org
+    ).create()
     sync_plan.description = description
     sync_plan.update(['description'])
     sync_plan = sync_plan.read()
@@ -366,7 +387,7 @@ def test_positive_update_interval(module_org, interval):
     :CaseImportance: Critical
     """
     sync_plan = entities.SyncPlan(
-        description=gen_string('alpha'), organization=module_org, interval=interval
+        enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
@@ -399,7 +420,10 @@ def test_positive_update_interval_custom_cron(module_org, interval):
     """
     if interval != SYNC_INTERVAL['custom']:
         sync_plan = entities.SyncPlan(
-            description=gen_string('alpha'), organization=module_org, interval=interval
+            enabled=False,
+            description=gen_string('alpha'),
+            organization=module_org,
+            interval=interval,
         ).create()
 
         sync_plan.interval = SYNC_INTERVAL['custom']
@@ -424,7 +448,7 @@ def test_positive_update_sync_date(module_org, sync_delta):
     """
     sync_date = datetime.now() + timedelta(seconds=sync_delta)
     sync_plan = entities.SyncPlan(
-        organization=module_org, sync_date=datetime.now() + timedelta(days=10)
+        enabled=False, organization=module_org, sync_date=datetime.now() + timedelta(days=10)
     ).create()
     sync_plan.sync_date = sync_date
     sync_plan.update(['sync_date'])
@@ -446,7 +470,7 @@ def test_negative_update_name(module_org, name):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     with pytest.raises(HTTPError):
         sync_plan.update(['name'])
@@ -466,7 +490,7 @@ def test_negative_update_interval(module_org, interval):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.interval = interval
     with pytest.raises(HTTPError):
         sync_plan.update(['interval'])
@@ -485,12 +509,12 @@ def test_positive_add_product(module_org):
 
     :CaseImportance: Critical
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     product = entities.Product(organization=module_org).create()
-    syncplan.add_products(data={'product_ids': [product.id]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 1
-    assert syncplan.product[0].id == product.id
+    sync_plan.add_products(data={'product_ids': [product.id]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 1
+    assert sync_plan.product[0].id == product.id
 
 
 @pytest.mark.tier2
@@ -504,12 +528,12 @@ def test_positive_add_products(module_org):
 
     :CaseLevel: Integration
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 2
-    assert {product.id for product in products} == {product.id for product in syncplan.product}
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 2
+    assert {product.id for product in products} == {product.id for product in sync_plan.product}
 
 
 @pytest.mark.tier2
@@ -526,14 +550,14 @@ def test_positive_remove_product(module_org):
 
     :BZ: 1199150
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [products[0].id]})
-    syncplan = syncplan.read()
-    assert len(syncplan.product) == 1
-    assert syncplan.product[0].id == products[1].id
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [products[0].id]})
+    sync_plan = sync_plan.read()
+    assert len(sync_plan.product) == 1
+    assert sync_plan.product[0].id == products[1].id
 
 
 @pytest.mark.tier2
@@ -549,12 +573,12 @@ def test_positive_remove_products(module_org):
 
     :CaseLevel: Integration
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(enabled=False, organization=module_org).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 0
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 0
 
 
 @pytest.mark.tier2
@@ -570,13 +594,15 @@ def test_positive_repeatedly_add_remove(module_org):
 
     :BZ: 1199150
     """
-    syncplan = entities.SyncPlan(organization=module_org).create()
+    sync_plan = entities.SyncPlan(organization=module_org).create()
     product = entities.Product(organization=module_org).create()
     for _ in range(5):
-        syncplan.add_products(data={'product_ids': [product.id]})
-        assert len(syncplan.read().product) == 1
-        syncplan.remove_products(data={'product_ids': [product.id]})
-        assert len(syncplan.read().product) == 0
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        assert len(sync_plan.read().product) == 1
+        sync_plan.remove_products(data={'product_ids': [product.id]})
+        assert len(sync_plan.read().product) == 0
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier2
@@ -593,14 +619,16 @@ def test_positive_add_remove_products_custom_cron(module_org):
     """
     cron_expression = gen_choice(valid_cron_expressions())
 
-    syncplan = entities.SyncPlan(
+    sync_plan = entities.SyncPlan(
         organization=module_org, interval='custom cron', cron_expression=cron_expression
     ).create()
     products = [entities.Product(organization=module_org).create() for _ in range(2)]
-    syncplan.add_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 2
-    syncplan.remove_products(data={'product_ids': [product.id for product in products]})
-    assert len(syncplan.read().product) == 0
+    sync_plan.add_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 2
+    sync_plan.remove_products(data={'product_ids': [product.id for product in products]})
+    assert len(sync_plan.read().product) == 0
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -631,6 +659,8 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=2)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -678,6 +708,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -727,6 +759,8 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier4
@@ -784,6 +818,8 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     for repo in repos:
         validate_task_status(repo.id, module_org.id)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
@@ -854,6 +890,8 @@ def test_positive_synchronize_rh_product_past_sync_date():
     reposet.disable(data={'basearch': 'x86_64', 'releasever': None, 'product_id': product.id})
     # Assert that the Sync Plan now has no product associated with it
     assert len(sync_plan.read().product) == 0
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.run_in_one_thread
@@ -916,6 +954,8 @@ def test_positive_synchronize_rh_product_future_sync_date():
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
@@ -958,6 +998,8 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
@@ -1002,6 +1044,8 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
     validate_repo_content(repo, ['erratum', 'rpm', 'package_group'])
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier2

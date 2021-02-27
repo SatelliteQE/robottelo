@@ -24,6 +24,7 @@ import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
 
+from robottelo.api.utils import disable_syncplan
 from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import gen_string
@@ -195,7 +196,7 @@ def test_positive_search_scoped(session):
     name = gen_string('alpha')
     start_date = datetime.utcnow() + timedelta(days=10)
     org = entities.Organization().create()
-    entities.SyncPlan(
+    sync_plan = entities.SyncPlan(
         name=name,
         interval=SYNC_INTERVAL['day'],
         organization=org,
@@ -207,6 +208,8 @@ def test_positive_search_scoped(session):
         for query_type, query_value in [('interval', SYNC_INTERVAL['day']), ('enabled', 'true')]:
             assert session.syncplan.search(f'{query_type} = {query_value}')[0]['Name'] == name
         assert name not in session.syncplan.search('enabled = false')
+    # disable sync plan after test
+    disable_syncplan(sync_plan)
 
 
 @pytest.mark.tier3
