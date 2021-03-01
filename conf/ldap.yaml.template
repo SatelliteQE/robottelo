@@ -1,0 +1,9 @@
+# For Active Directory LDAP Authentication.
+LDAP:
+  # HOSTNAME: replace with AD ldap server name
+  USERNAME: foobar
+  # PASSWORD: update with password
+  # BASEDN: update base dn
+  # GRPBASEDN: update with group base dn
+  # REALM: update with realm address
+  # NAMESERVER: update with the ip of the ad ldap server name
