@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+import time
 from random import choice
 
 import pytest
@@ -27,6 +28,7 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import promote
+from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -36,9 +38,11 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_host
 from robottelo.cli.factory import make_proxy
+from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
+from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.scparams import SmartClassParameter
@@ -49,12 +53,19 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
 from robottelo.constants import SM_OVERALL_STATUS
+from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
@@ -1426,6 +1437,206 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
     :CaseLevel: System
     """
+
+
+@skip_if_not_set('clients', 'fake_manifest')
+@pytest.fixture(scope="module")
+def katello_host_tools_repos(module_ak, module_cv, module_lce, module_org):
+    """Create Org, Lifecycle Environment, Content View, Activation key"""
+    setup_org_for_a_rh_repo(
+        {
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': module_org.id,
+            'content-view-id': module_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': module_ak.id,
+        }
+    )
+    # Create custom repository content
+    setup_org_for_a_custom_repo(
+        {
+            'url': FAKE_6_YUM_REPO,
+            'organization-id': module_org.id,
+            'content-view-id': module_cv.id,
+            'lifecycle-environment-id': module_lce.id,
+            'activationkey-id': module_ak.id,
+        }
+    )
+    return {
+        'ak': module_ak,
+        'cv': module_cv,
+        'lce': module_lce,
+        'org': module_org,
+    }
+
+
+@skip_if_not_set('clients')
+@pytest.fixture(scope="function")
+def katello_host_tools_client(katello_host_tools_repos):
+    client = VirtualMachine(distro=DISTRO_RHEL7)
+    client.create()
+    client.install_katello_ca()
+    # Register content host and install katello-host-tools
+    client.register_contenthost(
+        katello_host_tools_repos['org'].label,
+        katello_host_tools_repos['ak'].name,
+    )
+    assert client.subscribed
+    host_info = Host.info({'name': client.hostname})
+    client.enable_repo(REPOS['rhst7']['id'])
+    client.install_katello_host_tools()
+    yield {'client': client, 'host_info': host_info}
+    vm_cleanup(client)
+
+
+@pytest.mark.katello_host_tools
+@pytest.mark.tier3
+def test_positive_report_package_installed_removed(
+    katello_host_tools_client,
+):
+    """Ensure installed/removed package is reported to satellite
+    :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
+    :customerscenario: true
+    :steps:
+        1. register a host to activation key with content view that contain
+           packages
+        2. install a package 1 from the available packages
+        3. list the host installed packages with search for package 1 name
+        4. remove the package 1
+        5. list the host installed packages with search for package 1 name
+    :expectedresults:
+        1. after step3: package 1 is listed in installed packages
+        2. after step5: installed packages list is empty
+    :BZ: 1463809
+    :CaseLevel: System
+    """
+    client = katello_host_tools_client['client']
+    host_info = katello_host_tools_client['host_info']
+    client.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    installed_packages = Host.package_list(
+        {'host-id': host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
+    )
+    assert len(installed_packages) == 1
+    assert installed_packages[0]['nvra'] == FAKE_0_CUSTOM_PACKAGE
+    result = client.run(f'yum remove -y {FAKE_0_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    installed_packages = Host.package_list(
+        {'host-id': host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
+    )
+    assert len(installed_packages) == 0
+
+
+@pytest.mark.katello_host_tools
+@pytest.mark.tier3
+def test_positive_package_applicability(katello_host_tools_client):
+    """Ensure packages applicability is functioning properly
+    :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
+    :customerscenario: true
+    :steps:
+        1. register a host to activation key with content view that contain
+           a minimum of 2 packages, package 1 and package 2,
+           where package 2 is an upgrade/update of package 1
+        2. install the package 1
+        3. list the host applicable packages for package 1 name
+        4. install the package 2
+        5. list the host applicable packages for package 1 name
+    :expectedresults:
+        1. after step 3: package 2 is listed in applicable packages
+        2. after step 5: applicable packages list is empty
+    :BZ: 1463809
+    :CaseLevel: System
+    """
+    client = katello_host_tools_client['client']
+    host_info = katello_host_tools_client['host_info']
+    client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    applicable_packages = Package.list(
+        {
+            'host-id': host_info['id'],
+            'packages-restrict-applicable': 'true',
+            'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 1
+    assert FAKE_2_CUSTOM_PACKAGE in applicable_packages[0]['filename']
+    # install package update
+    client.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    applicable_packages = Package.list(
+        {
+            'host-id': host_info['id'],
+            'packages-restrict-applicable': 'true',
+            'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+
+
+@pytest.mark.katello_host_tools
+@pytest.mark.skip_if_open("BZ:1740790")
+@pytest.mark.tier3
+def test_positive_erratum_applicability(katello_host_tools_client):
+    """Ensure erratum applicability is functioning properly
+    :id: 139de508-916e-4c91-88ad-b4973a6fa104
+    :customerscenario: true
+    :steps:
+        1. register a host to activation key with content view that contain
+           a package with errata
+        2. install the package
+        3. list the host applicable errata
+        4. install the errata
+        5. list the host applicable errata
+    :expectedresults:
+        1. after step 3: errata of package is in applicable errata list
+        2. after step 5: errata of package is not in applicable errata list
+    :BZ: 1463809,1740790
+    :CaseLevel: System
+    """
+    client = katello_host_tools_client['client']
+    host_info = katello_host_tools_client['host_info']
+    before_install = int(time.time())
+    client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+    result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.return_code == 0
+    wait_for_errata_applicability_task(int(host_info['id']), before_install)
+    applicable_erratum = Host.errata_list({'host-id': host_info['id']})
+    applicable_erratum_ids = [
+        errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
+    ]
+    assert FAKE_2_ERRATA_ID in applicable_erratum_ids
+    before_upgrade = int(time.time())
+    # apply errata
+    result = client.run(f'yum update -y --advisory {FAKE_2_ERRATA_ID}')
+    assert result.return_code == 0
+    wait_for_errata_applicability_task(int(host_info['id']), before_upgrade)
+    applicable_erratum = Host.errata_list({'host-id': host_info['id']})
+    applicable_erratum_ids = [
+        errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
+    ]
+    assert FAKE_2_ERRATA_ID not in applicable_erratum_ids
+
+
+@pytest.mark.katello_host_tools
+@pytest.mark.tier3
+def test_negative_install_package(katello_host_tools_client):
+    """Attempt to install a package to a host remotely
+    :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
+    :expectedresults: Package was not installed
+    :CaseLevel: System
+    """
+    host_info = katello_host_tools_client['host_info']
+    with pytest.raises(CLIReturnCodeError) as context:
+        Host.package_install({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
+    assert (
+        'The task has been cancelled. Is katello-agent installed and '
+        'goferd running on the Host?'
+    ) in str(context.value.message)
 
 
 # ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
