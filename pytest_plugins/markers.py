@@ -26,5 +26,6 @@ def module_markers():
         "host_create: Marks host creation CLI tests",
         "host_update: Marks host update CLI tests",
         "host_parameter: Marks host parameter CLI tests",
+        "katello_host_tools: Marks host CLI tests where katello host tools is installed on client",
         "host_subscription: Marks host subscription CLI tests",
     ]
