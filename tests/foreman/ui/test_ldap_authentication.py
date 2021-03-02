@@ -47,8 +47,6 @@ from robottelo.rhsso_utils import run_command
 from robottelo.rhsso_utils import update_rhsso_user
 from robottelo.utils.issue_handlers import is_open
 
-# from robottelo.constants import LDAP_SERVER_TYPE
-# from robottelo.decorators import skip_if_not_set
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
