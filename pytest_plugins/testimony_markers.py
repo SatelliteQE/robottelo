@@ -17,7 +17,11 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         '--component',
-        help="Comma separated list of component names to include in test collection",
+        help='Comma separated list of component names to include in test collection',
+    )
+    parser.addoption(
+        '--assignee',
+        help='Comma separated list of assignees to include in test collection',
     )
 
 
@@ -26,19 +30,26 @@ def pytest_configure(config):
     for marker in [
         'importance: CaseImportance testimony token, use --importance to filter',
         'component: Component testimony token, use --component to filter',
+        'assignee: Assignee testimony token, use --assignee to filter',
     ]:
         config.addinivalue_line("markers", marker)
 
 
 component_regex = re.compile(
     # To match :CaseComponent: FooBar
-    r"\s*:CaseComponent:\s*(?P<component>\S*)",
+    r'\s*:CaseComponent:\s*(?P<component>\S*)',
     re.IGNORECASE,
 )
 
 importance_regex = re.compile(
     # To match :CaseImportance: Critical
-    r"\s*:CaseImportance:\s*(?P<importance>\S*)",
+    r'\s*:CaseImportance:\s*(?P<importance>\S*)',
+    re.IGNORECASE,
+)
+
+assignee_regex = re.compile(
+    # To match :Assignee: jsmith
+    r'\s*:Assignee:\s*(?P<assignee>\S*)',
     re.IGNORECASE,
 )
 
@@ -50,6 +61,7 @@ def pytest_collection_modifyitems(session, items, config):
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
     component = [c for c in (config.getoption('component') or '').split(',') if c != '']
+    assignee = [a for a in (config.getoption('assignee') or '').split(',') if a != '']
 
     selected = []
     deselected = []
@@ -58,7 +70,7 @@ def pytest_collection_modifyitems(session, items, config):
             # Unit test, no testimony markers
             continue
 
-        # apply the marks for component and importance
+        # apply the marks for importance, component, and assignee
         # Find matches from docstrings starting at smallest scope
         item_docstrings = [
             d
@@ -75,13 +87,16 @@ def pytest_collection_modifyitems(session, items, config):
             doc_importance = importance_regex.findall(docstring)
             if doc_importance and 'importance' not in item_mark_names:
                 item.add_marker(pytest.mark.importance(doc_importance[0]))
+            doc_assignee = assignee_regex.findall(docstring)
+            if doc_assignee and 'assignee' not in item_mark_names:
+                item.add_marker(pytest.mark.assignee(doc_assignee[0]))
 
         # exit early if no filters were passed
-        if importance or component:
+        if importance or component or assignee:
             # Filter test collection based on CLI options for filtering
             # filters should be applied together
-            # such that --component Repository --importance Critical
-            # only collects tests which have both of these marks
+            # such that --component Repository --importance Critical --assignee jsmith
+            # only collects tests which have all three of these marks
 
             # https://github.com/pytest-dev/pytest/issues/1373  Will make this way easier
             # testimony requires both importance and component, this will blow up if its forgotten
@@ -98,6 +113,14 @@ def pytest_collection_modifyitems(session, items, config):
                 LOGGER.debug(
                     f'Deselected test {item.nodeid} due to "--component {component}",'
                     f'test has component mark: {component_marker}'
+                )
+                deselected.append(item)
+                continue
+            assignee_marker = item.get_closest_marker('assignee').args[0]
+            if assignee and assignee_marker not in assignee:
+                LOGGER.debug(
+                    f'Deselected test {item.nodeid} due to "--assignee {assignee}",'
+                    f'test has assignee mark: {assignee_marker}'
                 )
                 deselected.append(item)
                 continue
