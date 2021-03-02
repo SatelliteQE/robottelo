@@ -12,6 +12,8 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 
 :CaseComponent: Candlepin
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High

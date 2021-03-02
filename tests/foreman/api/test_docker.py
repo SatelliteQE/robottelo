@@ -61,6 +61,8 @@ class DockerRepositoryTestCase(APITestCase):
     repositories.
 
     :CaseComponent: Repositories
+
+    :Assignee: tpapaioa
     """
 
     @classmethod
@@ -289,6 +291,8 @@ class DockerContentViewTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views.
 
     :CaseComponent: ContentViews
+
+    :Assignee: ltran
 
     :CaseLevel: Integration
     """
@@ -883,6 +887,8 @@ class DockerActivationKeyTestCase(APITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys.
 
     :CaseComponent: ActivationKeys
+
+    :Assignee: chiggins
 
     :CaseLevel: Integration
     """

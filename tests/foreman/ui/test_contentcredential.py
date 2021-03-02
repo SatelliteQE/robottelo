@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentCredentials
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High

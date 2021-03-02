@@ -8,6 +8,8 @@
 
 :CaseComponent: UsersRoles
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

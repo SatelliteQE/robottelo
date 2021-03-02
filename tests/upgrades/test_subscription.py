@@ -6,7 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: SubscriptionManagement
+
+:Assignee: chiggins
 
 :TestType: Functional
 

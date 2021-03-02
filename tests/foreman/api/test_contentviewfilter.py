@@ -12,6 +12,8 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 :CaseComponent: ContentViews
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

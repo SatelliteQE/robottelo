@@ -8,6 +8,8 @@
 
 :CaseComponent: ComputeResources-Azure
 
+:Assignee: jyejare
+
 :TestType: Functional
 
 :CaseImportance: High

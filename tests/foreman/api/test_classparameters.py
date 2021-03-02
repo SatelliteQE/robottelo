@@ -8,6 +8,8 @@
 
 :CaseComponent: Puppet
 
+:Assignee: vsedmik
+
 :TestType: Functional
 
 :Upstream: No

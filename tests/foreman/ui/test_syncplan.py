@@ -8,6 +8,8 @@
 
 :CaseComponent: SyncPlans
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High

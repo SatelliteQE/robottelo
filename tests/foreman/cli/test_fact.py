@@ -8,6 +8,8 @@
 
 :CaseComponent: Fact
 
+:Assignee: rdrazny
+
 :TestType: Functional
 
 :CaseImportance: High

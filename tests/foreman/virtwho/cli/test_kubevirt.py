@@ -8,6 +8,8 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
+:Assignee: kuhuang
+
 :TestType: Functional
 
 :CaseImportance: High

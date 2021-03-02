@@ -8,6 +8,8 @@
 
 :CaseComponent: Puppet
 
+:Assignee: vsedmik
+
 :TestType: Functional
 
 :CaseImportance: High

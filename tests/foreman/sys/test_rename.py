@@ -8,6 +8,8 @@
 
 :CaseComponent: satellite-change-hostname
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

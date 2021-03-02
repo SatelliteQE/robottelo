@@ -6,6 +6,8 @@
 
 :CaseComponent: DiscoveryPlugin
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :CaseLevel: Acceptance

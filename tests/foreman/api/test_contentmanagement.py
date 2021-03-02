@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentManagement
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -148,6 +150,8 @@ class TestSatelliteContentManagement:
 
         :CaseComponent: Pulp
 
+        :Assignee: ltran
+
         :BZ: 1687801
         """
         org = entities.Organization().create()
@@ -191,6 +195,8 @@ class TestCapsuleContentManagement:
         :id: a31b0e21-aa5d-44e2-a408-5e01b79db3a1
 
         :CaseComponent: RHCloud-Insights
+
+        :Assignee: jpathan
 
         :customerscenario: true
 

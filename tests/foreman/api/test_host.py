@@ -12,6 +12,8 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 :CaseComponent: Hosts
 
+:Assignee: tstrych
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -1234,6 +1236,8 @@ def test_positive_verify_files_with_pxegrub_uefi_secureboot():
 
     :CaseComponent: TFTP
 
+    :Assignee: rdrazny
+
     :CaseLevel: Integration
     """
 
@@ -1267,6 +1271,8 @@ def test_positive_verify_files_with_pxegrub2_uefi():
     :CaseAutomation: NotAutomated
 
     :CaseComponent: TFTP
+
+    :Assignee: rdrazny
 
     :CaseLevel: Integration
     """
@@ -1303,6 +1309,8 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
     :CaseLevel: Integration
 
     :CaseComponent: TFTP
+
+    :Assignee: rdrazny
     """
 
 

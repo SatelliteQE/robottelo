@@ -8,6 +8,8 @@
 
 :CaseComponent: TemplatesPlugin
 
+:Assignee: ogajduse
+
 :TestType: Functional
 
 :Upstream: No

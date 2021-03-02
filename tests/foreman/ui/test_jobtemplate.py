@@ -8,6 +8,8 @@
 
 :CaseComponent: RemoteExecution
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -8,6 +8,8 @@
 
 :CaseComponent: RHCloud-Insights
 
+:Assignee: jpathan
+
 :TestType: Functional
 
 :CaseImportance: High

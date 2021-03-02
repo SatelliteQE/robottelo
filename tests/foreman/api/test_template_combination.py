@@ -8,6 +8,8 @@
 
 :CaseComponent: ProvisioningTemplates
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :Upstream: No

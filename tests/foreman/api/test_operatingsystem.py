@@ -14,6 +14,8 @@ References for the relevant paths can be found on your Satellite:
 
 :CaseComponent: ContentManagement
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -1,3 +1,5 @@
+Assignee:
+    required: true
 BZ: {}
 CaseAutomation:
     casesensitive: true

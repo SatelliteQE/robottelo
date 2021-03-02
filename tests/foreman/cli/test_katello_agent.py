@@ -8,6 +8,8 @@
 
 :CaseComponent: Katello-agent
 
+:Assignee: gtalreja
+
 :TestType: Functional
 
 :CaseImportance: High

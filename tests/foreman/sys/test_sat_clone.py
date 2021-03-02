@@ -8,6 +8,8 @@
 
 :CaseComponent: SatelliteClone
 
+:Assignee: vsedmik
+
 :TestType: functional
 
 :CaseImportance: High

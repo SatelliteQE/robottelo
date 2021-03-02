@@ -7,6 +7,8 @@
 
 :CaseComponent: ComputeResources-RHEV
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

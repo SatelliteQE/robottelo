@@ -8,6 +8,8 @@
 
 :CaseComponent: Bootstrap
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High

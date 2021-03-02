@@ -8,6 +8,8 @@
 
 :CaseComponent: Settings
 
+:Assignee: desingh
+
 :TestType: Functional
 
 :CaseImportance: High

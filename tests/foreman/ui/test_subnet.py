@@ -8,6 +8,8 @@
 
 :CaseComponent: Networking
 
+:Assignee: rdrazny
+
 :TestType: Functional
 
 :CaseImportance: High

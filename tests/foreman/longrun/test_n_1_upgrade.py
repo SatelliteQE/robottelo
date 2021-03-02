@@ -8,6 +8,8 @@
 
 :CaseComponent: Capsule
 
+:Assignee: vsedmik
+
 :TestType: Functional
 
 :CaseImportance: Critical

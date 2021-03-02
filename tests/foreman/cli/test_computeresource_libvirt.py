@@ -25,6 +25,8 @@ Subcommands::
 
 :CaseComponent: ComputeResources-libvirt
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

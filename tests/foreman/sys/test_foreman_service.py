@@ -28,6 +28,8 @@ def test_positive_foreman_service_auto_restart(foreman_service_teardown):
 
     :CaseComponent: Infrastructure
 
+    :Assignee: lpramuk
+
     :id: 766560b8-30bb-11eb-8dae-d46d6dd3b5b2
 
     :Steps:

@@ -8,6 +8,8 @@
 
 :CaseComponent: Hosts-Content
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -1401,6 +1403,8 @@ def test_content_access_after_stopped_foreman(session, vm, foreman_service_teard
     :CaseImportance: Medium
 
     :CaseComponent: Infrastructure
+
+    :Assignee: lpramuk
     """
     result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.return_code == 0

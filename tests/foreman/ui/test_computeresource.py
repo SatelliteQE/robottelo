@@ -8,6 +8,8 @@
 
 :CaseComponent: ComputeResources
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

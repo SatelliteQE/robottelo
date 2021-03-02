@@ -26,6 +26,8 @@ def test_positive_katello_reimport():
 
     :CaseComponent: ContentManagement
 
+    :Assignee: ltran
+
     :id: b4119265-1bf0-4b0b-8b96-43f68af39708
 
     :Steps: Have satellite up and run 'foreman-rake katello:reimport'

@@ -8,6 +8,8 @@
 
 :CaseComponent: Dashboard
 
+:Assignee: ogajduse
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -8,6 +8,8 @@
 
 :CaseComponent: ComputeResources-GCE
 
+:Assignee: lvrtelov
+
 :TestType: Functional
 
 :CaseImportance: High

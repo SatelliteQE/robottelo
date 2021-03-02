@@ -5,6 +5,8 @@
 
 :CaseComponent: ComputeResources-VMWare
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

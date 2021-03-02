@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentManagement
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

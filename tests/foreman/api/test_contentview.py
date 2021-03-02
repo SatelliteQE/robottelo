@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentViews
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -306,6 +308,8 @@ class TestContentView:
         :CaseLevel: Integration
 
         :CaseComponent: Pulp
+
+        :Assignee: ltran
 
         :CaseImportance: Medium
 
@@ -877,6 +881,8 @@ class TestContentViewPublishPromote:
         :CaseLevel: Integration
 
         :CaseComponent: Pulp
+
+        :Assignee: ltran
 
         :CaseImportance: Medium
 

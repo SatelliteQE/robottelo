@@ -8,6 +8,8 @@
 
 :CaseComponent: Realm
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

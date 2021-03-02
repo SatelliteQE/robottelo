@@ -8,6 +8,8 @@
 
 :CaseComponent: Authentication
 
+:Assignee: okhatavk
+
 :TestType: Functional
 
 :CaseImportance: Critical

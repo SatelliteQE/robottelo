@@ -12,6 +12,8 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 :CaseComponent: UsersRoles
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

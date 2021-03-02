@@ -8,6 +8,8 @@
 
 :CaseComponent: Certificates
 
+:Assignee: okhatavk
+
 :TestType: Functional
 
 :CaseImportance: High

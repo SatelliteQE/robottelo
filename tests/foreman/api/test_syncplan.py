@@ -12,6 +12,8 @@ API reference for sync plans can be found on your Satellite:
 
 :CaseComponent: SyncPlans
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High

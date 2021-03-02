@@ -8,6 +8,8 @@
 
 :CaseComponent: SubscriptionManagement
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High

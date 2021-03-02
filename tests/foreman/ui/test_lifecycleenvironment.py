@@ -8,6 +8,8 @@
 
 :CaseComponent: LifecycleEnvironments
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

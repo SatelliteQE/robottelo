@@ -8,6 +8,8 @@
 
 :CaseComponent: Provisioning
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :CaseImportance: Critical

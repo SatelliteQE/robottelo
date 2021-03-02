@@ -8,6 +8,8 @@
 
 :CaseComponent: OrganizationsLocations
 
+:Assignee: lvrtelov
+
 :TestType: Functional
 
 :CaseImportance: High

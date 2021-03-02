@@ -8,6 +8,8 @@
 
 :CaseComponent: RemoteExecution
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -468,6 +470,8 @@ class TestRemoteExecution:
         """Run Receptor installer ("Configure Cloud Connector")
 
         :CaseComponent: RHCloud-CloudConnector
+
+        :Assignee: lhellebr
 
         :id: 811c7747-bec6-1a2d-8e5c-b5045d3fbc0d
 

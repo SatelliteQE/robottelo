@@ -8,6 +8,8 @@
 
 :CaseComponent: InterSatelliteSync
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -224,6 +226,8 @@ class ContentViewSync(CLITestCase):
     """Implements Content View Export Import tests in CLI
 
     :CaseComponent: ContentViews
+
+    :Assignee: ltran
     """
 
     export_base = '/var/lib/pulp/katello-export'
@@ -418,6 +422,8 @@ class ContentViewSync(CLITestCase):
 
         :CaseComponent: ContentViews
 
+        :Assignee: ltran
+
         :CaseImportance: High
 
         :CaseLevel: System
@@ -554,6 +560,8 @@ class ContentViewSync(CLITestCase):
 
         :CaseComponent: ContentViews
 
+        :Assignee: ltran
+
         :CaseImportance: High
 
         :CaseLevel: System
@@ -606,6 +614,8 @@ class ContentViewSync(CLITestCase):
         :CaseAutomation: Automated
 
         :CaseComponent: ContentViews
+
+        :Assignee: ltran
 
         :CaseImportance: High
 
@@ -670,6 +680,8 @@ class ContentViewSync(CLITestCase):
         :CaseAutomation: Automated
 
         :CaseComponent: ContentViews
+
+        :Assignee: ltran
 
         :CaseImportance: Critical
 

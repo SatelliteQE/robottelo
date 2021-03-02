@@ -5,6 +5,8 @@
 
 :CaseComponent: ComputeResources-EC2
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

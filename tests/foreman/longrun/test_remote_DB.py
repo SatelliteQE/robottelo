@@ -8,6 +8,8 @@
 
 :CaseComponent: ForemanMaintain
 
+:Assignee: gtalreja
+
 :TestType: Functional
 
 :CaseImportance: Medium
@@ -34,6 +36,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: Integration
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed
@@ -50,6 +54,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: Integration
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed
@@ -66,6 +72,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: Integration
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed
@@ -82,6 +90,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: System
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed
@@ -104,6 +114,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: System
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed
@@ -205,6 +217,8 @@ class RemoteDBTestCase(TestCase):
         :CaseLevel: Integration
 
         :CaseComponent: Installer
+
+        :Assignee: desingh
         """
 
     @pytest.mark.stubbed

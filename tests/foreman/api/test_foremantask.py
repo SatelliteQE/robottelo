@@ -8,6 +8,8 @@
 
 :CaseComponent: TasksPlugin
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

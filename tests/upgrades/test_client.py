@@ -6,7 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Hosts-Content
+
+:Assignee: swadeley
 
 :TestType: Functional
 

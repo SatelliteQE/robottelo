@@ -8,6 +8,8 @@
 
 :CaseComponent: Performance
 
+:Assignee: psuriset
+
 :TestType: Functional
 
 :CaseImportance: High

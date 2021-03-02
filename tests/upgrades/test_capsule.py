@@ -6,7 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: Capsule
+
+:Assignee: vsedmik
 
 :TestType: Functional
 

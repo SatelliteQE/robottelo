@@ -8,6 +8,8 @@
 
 :CaseComponent: ActivationKeys
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High

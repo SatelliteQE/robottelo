@@ -8,6 +8,8 @@
 
 :CaseComponent: TemplatesPlugin
 
+:Assignee: ogajduse
+
 :TestType: Functional
 
 :Upstream: No
@@ -29,8 +31,6 @@ from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
 
 class TestTemplateSyncTestCase:
     """Implements TemplateSync tests from API
-
-    :CaseComponent: TemplatesPlugin
 
     :CaseLevel: Acceptance
     """

@@ -8,6 +8,8 @@
 
 :CaseComponent: Logging
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: Medium

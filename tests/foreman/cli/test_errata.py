@@ -8,6 +8,8 @@
 
 :CaseComponent: ErrataManagement
 
+:Assignee: tpapaioa
+
 :TestType: Functional
 
 :CaseImportance: High

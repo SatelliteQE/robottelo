@@ -11,6 +11,8 @@ http://<sat6>/apidoc/v2/products.html
 
 :CaseComponent: ContentManagement
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High
