@@ -11,6 +11,8 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 :CaseComponent: UsersRoles
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -11,6 +11,8 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 :CaseComponent: ContentViews
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

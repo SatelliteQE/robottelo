@@ -8,6 +8,8 @@
 
 :CaseComponent: ContainerManagement-Content
 
+:Assignee: mzalewsk
+
 :TestType: Functional
 
 :CaseImportance: High

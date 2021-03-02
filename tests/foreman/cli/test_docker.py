@@ -76,7 +76,9 @@ def _make_docker_repo(product_id, name=None, upstream_name=None, url=None):
 class DockerManifestTestCase(CLITestCase):
     """Tests related to docker manifest command
 
-    :CaseComponent: Hammer-Content
+    :CaseComponent: Repositories
+
+    :Assignee: tpapaioa
     """
 
     @pytest.mark.tier2
@@ -124,6 +126,8 @@ class DockerRepositoryTestCase(CLITestCase):
     repositories.
 
     :CaseComponent: Repositories
+
+    :Assignee: tpapaioa
     """
 
     @classmethod
@@ -391,6 +395,8 @@ class DockerContentViewTestCase(CLITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views.
 
     :CaseComponent: ContentViews
+
+    :Assignee: ltran
 
     :CaseLevel: Integration
     """
@@ -999,6 +1005,8 @@ class DockerActivationKeyTestCase(CLITestCase):
 
     :CaseComponent: ActivationKeys
 
+    :Assignee: chiggins
+
     :CaseLevel: Integration
     """
 
@@ -1198,6 +1206,8 @@ class DockerClientTestCase(CLITestCase):
     from a Satellite 6 instance.
 
     :CaseComponent: ContentManagement
+
+    :Assignee: ltran
 
     :CaseLevel: System
 

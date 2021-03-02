@@ -8,6 +8,8 @@
 
 :CaseComponent: HostGroup
 
+:Assignee: tpapaioa
+
 :TestType: Functional
 
 :CaseImportance: High

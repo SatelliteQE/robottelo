@@ -8,6 +8,8 @@
 
 :CaseComponent: LDAP
 
+:Assignee: okhatavk
+
 :TestType: Functional
 
 :CaseImportance: High

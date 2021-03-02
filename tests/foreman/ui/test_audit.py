@@ -8,6 +8,8 @@
 
 :CaseComponent: AuditLog
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :Upstream: No

@@ -6,6 +6,8 @@
 
 :CaseComponent: SCAPPlugin
 
+:Assignee: jpathan
+
 :TestType: Functional
 
 :CaseImportance: High

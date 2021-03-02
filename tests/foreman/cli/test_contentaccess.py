@@ -6,6 +6,8 @@
 
 :CaseComponent: Hosts-Content
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :Upstream: No

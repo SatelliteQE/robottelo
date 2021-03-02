@@ -8,6 +8,8 @@
 
 :CaseComponent: API
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -37,6 +39,8 @@ def test_positive_create_by_type():
     :CaseImportance: Medium
 
     :CaseComponent: AuditLog
+
+    :Assignee: rplevka
     """
     for entity_item in [
         {'entity': entities.Architecture()},
@@ -118,6 +122,8 @@ def test_positive_update_by_type():
     :CaseImportance: Medium
 
     :CaseComponent: AuditLog
+
+    :Assignee: rplevka
     """
     for entity in [
         entities.Architecture(),
@@ -158,6 +164,8 @@ def test_positive_delete_by_type():
     :CaseImportance: Medium
 
     :CaseComponent: AuditLog
+
+    :Assignee: rplevka
     """
     for entity in [
         entities.Architecture(),

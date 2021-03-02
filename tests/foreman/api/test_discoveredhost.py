@@ -4,6 +4,8 @@
 
 :CaseComponent: DiscoveryPlugin
 
+:Assignee: rplevka
+
 :CaseAutomation: Automated
 
 :CaseLevel: System

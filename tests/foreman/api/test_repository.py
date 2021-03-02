@@ -8,6 +8,8 @@
 
 :CaseComponent: Repositories
 
+:Assignee: tpapaioa
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -2269,6 +2271,8 @@ class TestSRPMRepositoryIgnoreContent:
 
     :CaseComponent: Pulp
 
+    :Assignee: ltran
+
     :BZ: 1673215
     """
 
@@ -2485,6 +2489,8 @@ class TestTokenAuthContainerRepository:
     container_repo section of robottelo.yaml
 
     :CaseComponent: ContainerManagement-Content
+
+    :Assignee: mzalewsk
     """
 
     @pytest.mark.skipif(

@@ -8,6 +8,8 @@
 
 :CaseComponent: Hosts
 
+:Assignee: tstrych
+
 :TestType: Functional
 
 :CaseImportance: High

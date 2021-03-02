@@ -9,6 +9,8 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :CaseComponent: ProvisioningTemplates
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :CaseLevel: Integration
@@ -143,8 +145,6 @@ def tftpboot(module_org):
 
 class TestProvisioningTemplate:
     """Tests for provisioning templates
-
-    :CaseComponent: ProvisioningTemplates
 
     :CaseLevel: Acceptance
     """

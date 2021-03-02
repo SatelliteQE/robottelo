@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentViews
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

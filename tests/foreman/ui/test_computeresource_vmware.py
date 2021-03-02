@@ -6,6 +6,8 @@
 
 :CaseComponent: ComputeResources-VMWare
 
+:Assignee: lhellebr
+
 :CaseLevel: Acceptance
 
 :TestType: Functional

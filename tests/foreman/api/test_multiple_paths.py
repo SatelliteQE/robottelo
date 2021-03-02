@@ -8,6 +8,8 @@
 
 :CaseComponent: API
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

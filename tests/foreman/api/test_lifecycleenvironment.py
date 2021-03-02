@@ -12,6 +12,8 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 :CaseComponent: LifecycleEnvironments
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -8,6 +8,8 @@
 
 :CaseComponent: Hammer
 
+:Assignee: gtalreja
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -6,6 +6,8 @@
 
 :CaseComponent: Dynflow
 
+:Assignee: lhellebr
+
 :Requirement: Dynflow
 
 :TestType: Functional

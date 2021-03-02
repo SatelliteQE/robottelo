@@ -8,6 +8,8 @@
 
 :CaseComponent: Parameters
 
+:Assignee: pondrejk
+
 :TestType: Functional
 
 :CaseImportance: High

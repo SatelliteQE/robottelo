@@ -8,6 +8,8 @@
 
 :CaseComponent: Reporting
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

@@ -8,6 +8,8 @@
 
 :CaseComponent: DiscoveryPlugin
 
+:Assignee: rplevka
+
 :TestType: Functional
 
 :CaseImportance: High

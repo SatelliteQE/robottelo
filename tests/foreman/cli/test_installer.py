@@ -8,6 +8,8 @@
 
 :CaseComponent: Installer
 
+:Assignee: desingh
+
 :TestType: Functional
 
 :CaseImportance: High

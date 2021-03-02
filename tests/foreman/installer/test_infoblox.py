@@ -6,6 +6,8 @@
 
 :CaseComponent: Infobloxintegration
 
+:Assignee: rdrazny
+
 :TestType: Functional
 
 :CaseImportance: High

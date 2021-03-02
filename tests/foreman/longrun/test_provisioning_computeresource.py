@@ -3,6 +3,8 @@
 
 :CaseComponent: ComputeResources
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: Critical
@@ -135,6 +137,8 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
 
     :CaseComponent: ComputeResources-RHEV
 
+    :Assignee: lhellebr
+
     :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
 
     :setup: Hostgroup and provisioning setup like domain, subnet etc.
@@ -209,6 +213,8 @@ def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_do
     :Requirement: Computeresource Vmware
 
     :CaseComponent: ComputeResources-VMWare
+
+    :Assignee: lhellebr
 
     :id: ae4d5949-f0e6-44ca-93b6-c5241a02b64b
 

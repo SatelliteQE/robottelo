@@ -26,6 +26,8 @@ def test_positive_ansible_modules_installation():
 
     :CaseComponent: Ansible
 
+    :Assignee: lpramuk
+
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
 
     :expectedresults: ansible-collection-redhat-satellite package is

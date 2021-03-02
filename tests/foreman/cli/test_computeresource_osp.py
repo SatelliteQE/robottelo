@@ -7,6 +7,8 @@
 
 :CaseComponent: ComputeResources-OpenStack
 
+:Assignee: lvrtelov
+
 :TestType: Functional
 
 :CaseImportance: High

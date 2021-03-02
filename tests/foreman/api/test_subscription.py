@@ -12,6 +12,8 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High

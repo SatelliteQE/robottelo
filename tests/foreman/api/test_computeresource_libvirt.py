@@ -12,6 +12,8 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseComponent: API
 
+:Assignee: lhellebr
+
 :TestType: Functional
 
 :CaseImportance: High

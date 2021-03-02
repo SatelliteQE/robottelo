@@ -8,6 +8,8 @@
 
 :CaseComponent: Infrastructure
 
+:Assignee: lpramuk
+
 :TestType: Functional
 
 :CaseImportance: High

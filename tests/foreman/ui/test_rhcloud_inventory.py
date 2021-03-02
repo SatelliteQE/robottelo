@@ -8,6 +8,8 @@
 
 :CaseComponent: RHCloud-Inventory
 
+:Assignee: jpathan
+
 :TestType: Functional
 
 :CaseImportance: High

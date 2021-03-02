@@ -8,6 +8,8 @@
 
 :CaseComponent: HooksPlugin
 
+:Assignee: rdrazny
+
 :TestType: Functional
 
 :CaseImportance: High

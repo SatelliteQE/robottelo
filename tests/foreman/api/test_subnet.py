@@ -13,6 +13,8 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :CaseComponent: Networking
 
+:Assignee: rdrazny
+
 :TestType: Functional
 
 :CaseImportance: High

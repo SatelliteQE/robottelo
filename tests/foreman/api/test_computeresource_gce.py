@@ -9,7 +9,9 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent:  ComputeResources-GCE
+:CaseComponent: ComputeResources-GCE
+
+:Assignee: lvrtelov
 
 :TestType: Functional
 

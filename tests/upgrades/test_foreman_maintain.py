@@ -6,7 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: CLI
+:CaseComponent: ForemanMaintain
+
+:Assignee: gtalreja
 
 :TestType: Functional
 

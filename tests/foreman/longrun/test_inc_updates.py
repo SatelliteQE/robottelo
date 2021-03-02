@@ -8,6 +8,8 @@
 
 :CaseComponent: Hosts-Content
 
+:Assignee: swadeley
+
 :TestType: Functional
 
 :CaseImportance: High

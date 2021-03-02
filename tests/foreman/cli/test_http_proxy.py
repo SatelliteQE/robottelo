@@ -6,6 +6,8 @@
 
 :CaseComponent: Repositories
 
+:Assignee: tpapaioa
+
 :TestType: Functional
 
 :CaseImportance: High

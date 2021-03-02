@@ -12,6 +12,8 @@ http://www.katello.org/docs/api/apidoc/repository_sets.html
 
 :CaseComponent: Repositories
 
+:Assignee: tpapaioa
+
 :TestType: Functional
 
 :CaseImportance: High

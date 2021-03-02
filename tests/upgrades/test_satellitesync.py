@@ -8,6 +8,8 @@
 
 :CaseComponent: InterSatelliteSync
 
+:Assignee: ltran
+
 :TestType: Functional
 
 :CaseImportance: High
