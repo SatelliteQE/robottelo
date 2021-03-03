@@ -80,6 +80,11 @@ def module_host():
 
 
 @pytest.fixture(scope='module')
+def module_hostgroup():
+    return entities.HostGroup().create()
+
+
+@pytest.fixture(scope='module')
 def module_model():
     return entities.Model().create()
 
@@ -497,6 +502,11 @@ def module_cv_with_puppet_module(module_org):
 def default_pxetemplate():
     pxe_template = entities.ProvisioningTemplate().search(query={'search': DEFAULT_PXE_TEMPLATE})
     return pxe_template[0].read()
+
+
+@pytest.fixture(scope='module')
+def module_env():
+    return entities.Environment().create()
 
 
 @pytest.fixture(scope='module')
