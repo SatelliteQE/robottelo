@@ -1497,8 +1497,11 @@ def test_positive_report_package_installed_removed(
     katello_host_tools_client,
 ):
     """Ensure installed/removed package is reported to satellite
+
     :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
+
     :customerscenario: true
+
     :steps:
         1. register a host to activation key with content view that contain
            packages
@@ -1506,10 +1509,13 @@ def test_positive_report_package_installed_removed(
         3. list the host installed packages with search for package 1 name
         4. remove the package 1
         5. list the host installed packages with search for package 1 name
+
     :expectedresults:
         1. after step3: package 1 is listed in installed packages
         2. after step5: installed packages list is empty
+
     :BZ: 1463809
+
     :CaseLevel: System
     """
     client = katello_host_tools_client['client']
@@ -1534,8 +1540,11 @@ def test_positive_report_package_installed_removed(
 @pytest.mark.tier3
 def test_positive_package_applicability(katello_host_tools_client):
     """Ensure packages applicability is functioning properly
+
     :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
+
     :customerscenario: true
+
     :steps:
         1. register a host to activation key with content view that contain
            a minimum of 2 packages, package 1 and package 2,
@@ -1544,10 +1553,13 @@ def test_positive_package_applicability(katello_host_tools_client):
         3. list the host applicable packages for package 1 name
         4. install the package 2
         5. list the host applicable packages for package 1 name
+
     :expectedresults:
         1. after step 3: package 2 is listed in applicable packages
         2. after step 5: applicable packages list is empty
+
     :BZ: 1463809
+
     :CaseLevel: System
     """
     client = katello_host_tools_client['client']
@@ -1583,8 +1595,11 @@ def test_positive_package_applicability(katello_host_tools_client):
 @pytest.mark.tier3
 def test_positive_erratum_applicability(katello_host_tools_client):
     """Ensure erratum applicability is functioning properly
+
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
+
     :customerscenario: true
+
     :steps:
         1. register a host to activation key with content view that contain
            a package with errata
@@ -1592,10 +1607,13 @@ def test_positive_erratum_applicability(katello_host_tools_client):
         3. list the host applicable errata
         4. install the errata
         5. list the host applicable errata
+
     :expectedresults:
         1. after step 3: errata of package is in applicable errata list
         2. after step 5: errata of package is not in applicable errata list
+
     :BZ: 1463809,1740790
+
     :CaseLevel: System
     """
     client = katello_host_tools_client['client']
@@ -1626,8 +1644,11 @@ def test_positive_erratum_applicability(katello_host_tools_client):
 @pytest.mark.tier3
 def test_negative_install_package(katello_host_tools_client):
     """Attempt to install a package to a host remotely
+
     :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
+
     :expectedresults: Package was not installed
+
     :CaseLevel: System
     """
     host_info = katello_host_tools_client['host_info']
