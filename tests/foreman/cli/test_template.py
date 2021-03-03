@@ -161,8 +161,8 @@ def test_positive_add_os_by_id(module_os_with_minor):
         {'id': new_template['id'], 'operatingsystem-id': module_os_with_minor.id}
     )
     new_template = Template.info({'id': new_template['id']})
-    os_string = '{} {}.{}'.format(
-        module_os_with_minor.name, module_os_with_minor.major, module_os_with_minor.minor
+    os_string = (
+        f'{module_os_with_minor.name} {module_os_with_minor.major}.{module_os_with_minor.minor}'
     )
     assert os_string in new_template['operating-systems']
 
@@ -186,8 +186,8 @@ def test_positive_remove_os_by_id(module_os_with_minor):
         {'id': template['id'], 'operatingsystem-id': module_os_with_minor.id}
     )
     template = Template.info({'id': template['id']})
-    os_string = '{} {}.{}'.format(
-        module_os_with_minor.name, module_os_with_minor.major, module_os_with_minor.minor
+    os_string = (
+        f'{module_os_with_minor.name} {module_os_with_minor.major}.{module_os_with_minor.minor}'
     )
     assert os_string in template['operating-systems']
     Template.remove_operatingsystem(
