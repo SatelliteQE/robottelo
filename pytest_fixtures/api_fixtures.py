@@ -10,6 +10,7 @@ from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
@@ -27,6 +28,9 @@ from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
 from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import ENVIRONMENT
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
@@ -69,6 +73,16 @@ def module_manifest_org():
     org = entities.Organization().create()
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
+    return org
+
+
+@pytest.fixture(scope='module')
+def module_gt_manifest_org():
+    """Creates a new org and loads GT manifest in the new org"""
+    org = entities.Organization().create()
+    manifest = manifests.clone(org_environment_access=True, name='golden_ticket')
+    manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
+    org.manifest_filename = manifest.filename
     return org
 
 
@@ -588,6 +602,24 @@ def module_puppet_classes(module_env_search):
     return entities.PuppetClass().search(
         query={'search': f'name ~ {"generic_1"} and environment = {module_env_search.name}'}
     )
+
+
+@pytest.fixture(scope='module')
+def rh_repo_gt_manifest(module_gt_manifest_org):
+    """Use GT manifest org, creates RH tools repo, syncs and returns RH repo."""
+    # enable rhel repo and return its ID
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_gt_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    # Sync step because repo is not synced by default
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    return rh_repo
 
 
 # function scoped
