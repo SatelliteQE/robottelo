@@ -6,6 +6,8 @@
 
 :CaseComponent: Hosts-Content
 
+:CaseAutomation: Automated
+
 :Assignee: swadeley
 
 :TestType: Functional
@@ -15,252 +17,185 @@
 import time
 
 import pytest
+from nailgun import entities
 
 from robottelo import manifests
 from robottelo import ssh
-from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import setup_cdn_and_custom_repositories
-from robottelo.cli.factory import setup_virtual_machine
+from robottelo.api.utils import promote
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import PRDS
-from robottelo.constants import REAL_RHEL7_0_0_PACKAGE
-from robottelo.constants import REAL_RHEL7_0_0_PACKAGE_NAME
-from robottelo.constants import REAL_RHEL7_0_1_PACKAGE_FILENAME
-from robottelo.constants import REAL_RHEL7_0_ERRATA_ID
+from robottelo.config import settings
+from robottelo.constants import REAL_0_ERRATA_ID
+from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_FILENAME
+from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.decorators import skip_if_not_set
-from robottelo.test import CLITestCase
-from robottelo.vm import VirtualMachine
+
+pytestmark = [
+    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
+    pytest.mark.run_in_one_thread,
+]
 
 
-@pytest.mark.libvirt_content_host
-@pytest.mark.run_in_one_thread
-class ContentAccessTestCase(CLITestCase):
-    """Content Access CLI tests."""
-
-    @classmethod
-    @skip_if_not_set('clients', 'fake_manifest')
-    def setUpClass(cls):
-        """Setup must ensure there is an Org with Golden Ticket enabled.
+@pytest.fixture(scope='module')
+def module_lce(module_gt_manifest_org):
+    return entities.LifecycleEnvironment(organization=module_gt_manifest_org).create()
 
 
-        Option 1) SQL::
+@pytest.fixture(scope="module")
+def rh_repo_cv(module_gt_manifest_org, rh_repo_gt_manifest, module_lce):
+    rh_repo_cv = entities.ContentView(organization=module_gt_manifest_org).create()
+    # Add CV to AK
+    rh_repo_cv.repository = [rh_repo_gt_manifest]
+    rh_repo_cv.update(['repository'])
+    rh_repo_cv.publish()
+    rh_repo_cv = rh_repo_cv.read()
+    # promote the last version published into the module lce
+    promote(rh_repo_cv.version[-1], environment_id=module_lce.id)
+    return rh_repo_cv
 
-            UPDATE
-                 cp_owner
-            SET
-                 content_access_mode = 'org_environment',
-                 content_access_mode_list='entitlement,org_environment'
-            WHERE account='{org.label}';
 
-        Option 2) manifest::
+@pytest.fixture(scope="module")
+def module_ak(rh_repo_cv, module_gt_manifest_org, module_lce):
+    module_ak = entities.ActivationKey(
+        content_view=rh_repo_cv,
+        environment=module_lce,
+        organization=module_gt_manifest_org,
+    ).create()
+    # Ensure tools repo is enabled in the activation key
+    module_ak.content_override(
+        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+    )
+    return module_ak
 
-            Change manifest file as it looks like:
 
-                Consumer:
-                    Name: ExampleCorp
-                    UUID: c319a1d8-4b30-44cd-b2cf-2ccba4b9a8db
-                    Content Access Mode: org_environment
-                    Type: satellite
+@pytest.fixture(scope="module")
+def vm(
+    rh_repo_gt_manifest,
+    module_gt_manifest_org,
+    module_ak,
+    rhel77_contenthost_module,
+):
+    rhel77_contenthost_module.install_katello_ca()
+    rhel77_contenthost_module.register_contenthost(module_gt_manifest_org.label, module_ak.name)
+    host = entities.Host().search(query={'search': f'name={rhel77_contenthost_module.hostname}'})
+    host_id = host[0].id
+    host_content = entities.Host(id=host_id).read_json()
+    assert host_content["subscription_status"] == 5
+    rhel77_contenthost_module.install_katello_host_tools()
+    return rhel77_contenthost_module
 
-        :steps:
 
-            1. Create a new organization.
-            2. Use either option 1 or option 2 (described above) to activate
-               the Golden Ticket.
-            3. Create a Product and CV for org.
-            4. Add a repository pointing to a real repo which requires a
-               RedHat subscription to access.
-            5. Create Content Host and assign that gated repos to it.
-            6. Sync the gated repository.
-        """
-        super().setUpClass()
-        # Create Organization
-        cls.org = make_org()
-        # upload organization manifest with org environment access enabled
-        cls.manifest = manifests.clone(org_environment_access=True)
-        manifests.upload_manifest_locked(
-            cls.org['id'], cls.manifest, interface=manifests.INTERFACE_CLI
-        )
-        # Create repositories
-        cls.repos = [
-            # Red Hat Satellite Tools from CDN
+@pytest.mark.tier2
+def test_positive_list_installable_updates(vm):
+    """Ensure packages applicability is functioning properly.
+
+    :id: 4feb692c-165b-4f96-bb97-c8447bd2cf6e
+
+    :steps:
+
+        1. Setup a content host with registration to unrestricted org
+        2. Install a package that has updates
+        3. Run `hammer package list` specifying option
+            packages-restrict-applicable="true".
+
+
+    :expectedresults:
+        1. Update package is available independent of subscription because
+            Golden Ticket is enabled.
+
+    :BZ: 1344049, 1498158
+
+    :CaseImportance: Critical
+    """
+    for _ in range(30):
+        applicable_packages = Package.list(
             {
-                'product': PRDS['rhel'],
-                'repository-set': REPOSET['rhst7'],
-                'repository': REPOS['rhst7']['name'],
-                'repository-id': REPOS['rhst7']['id'],
-                'releasever': REPOS['rhel7']['releasever'],
-                'arch': REPOS['rhel7']['arch'],
-                'cdn': True,
-            },
-        ]
-        cls.repos_info = setup_cdn_and_custom_repositories(cls.org['id'], cls.repos)
-        # Create a content view
-        content_view = make_content_view({'organization-id': cls.org['id']})
-        # Add repositories to content view
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': cls.org['id'],
-                'repository-id': cls.repos_info[1][0]['id'],
+                'host': vm.hostname,
+                'packages-restrict-applicable': 'true',
+                'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
             }
         )
-        # Publish the content view
-        ContentView.publish({'id': content_view['id']})
-        cls.content_view = ContentView.info({'id': content_view['id']})
+        if applicable_packages:
+            break
+        time.sleep(10)
+    assert len(applicable_packages) > 0
+    assert REAL_RHEL7_0_2_PACKAGE_FILENAME in [
+        package['filename'] for package in applicable_packages
+    ]
 
-    def _setup_virtual_machine(self, vm):
-        """Make the initial virtual machine setup
 
-        :param VirtualMachine vm: The virtual machine setup
-        """
-        setup_virtual_machine(
-            vm,
-            self.org['label'],
-            rh_repos_id=[repo['repository-id'] for repo in self.repos if repo['cdn']],
-            repos_label=self.repos_info[1][0]['label'],
-            lce=ENVIRONMENT,
-            patch_os_release_distro=DISTRO_RHEL7,
-            install_katello_agent=True,
-        )
+@pytest.mark.tier2
+@pytest.mark.upgrade
+def test_positive_erratum_installable(vm):
+    """Ensure erratum applicability is showing properly, without attaching
+    any subscription.
 
-    @pytest.mark.tier2
-    def test_positive_list_installable_updates(self):
-        """Ensure packages applicability is functioning properly.
+    :id: e8dc52b9-884b-40d7-9244-680b5a736cf7
 
-        :id: 4feb692c-165b-4f96-bb97-c8447bd2cf6e
+    :steps:
+        1. register a host to unrestricted org with Library
+        2. install a package, that will need errata to be applied
+        3. list the host applicable errata with searching the required
+            errata id
 
-        :steps:
+    :expectedresults: errata listed successfuly and is installable
 
-            1. Setup a content host with registration to unrestricted org
-            2. Install a packages that has updates
-            3. Run `hammer package list` specifying option
-               packages-restrict-applicable="true".
+    :BZ: 1344049, 1498158
 
-        :CaseAutomation: Automated
+    :CaseImportance: Critical
+    """
+    # check that package errata is applicable
+    for _ in range(30):
+        erratum = Host.errata_list({'host': vm.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+        if erratum:
+            break
+        time.sleep(10)
+    assert len(erratum) == 1
+    assert erratum[0]['installable'] == 'true'
 
-        :expectedresults:
-            1. Update package is available independent of subscription because
-               Golden Ticket is enabled.
 
-        :BZ: 1344049, 1498158
+@pytest.mark.tier2
+def test_negative_rct_not_shows_golden_ticket_enabled():
+    """Assert restricted manifest has no Golden Ticket enabled .
 
-        :CaseImportance: Critical
-        """
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            self._setup_virtual_machine(vm)
-            # install the packages that require updates
-            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
-            self.assertEqual(result.return_code, 0)
-            result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
-            self.assertEqual(result.return_code, 0)
-            for _ in range(30):
-                applicable_packages = Package.list(
-                    {
-                        'host': vm.hostname,
-                        'packages-restrict-applicable': 'true',
-                        'search': f'name={REAL_RHEL7_0_0_PACKAGE_NAME}',
-                    }
-                )
-                if applicable_packages:
-                    break
-                time.sleep(10)
-            self.assertGreater(len(applicable_packages), 0)
-            self.assertIn(
-                REAL_RHEL7_0_1_PACKAGE_FILENAME,
-                [package['filename'] for package in applicable_packages],
-            )
+    :id: 754c1be7-468e-4795-bcf9-258a38f3418b
 
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_erratum_installable(self):
-        """Ensure erratum applicability is showing properly, without attaching
-        any subscription.
+    :steps:
 
-        :id: e8dc52b9-884b-40d7-9244-680b5a736cf7
+        1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
 
-        :CaseAutomation: Automated
 
-        :steps:
-            1. register a host to unrestricted org with Library
-            2. install a package, that will need errata to be applied
-            3. list the host applicable errata with searching the required
-               errata id
+    :expectedresults:
+        1. Assert `Content Access Mode: Simple Content Access` is not present.
 
-        :expectedresults: errata listed successfuly and is installable
+    :CaseImportance: High
+    """
+    # need a clean org for a new manifest
+    org = entities.Organization().create()
+    # upload organization manifest with org environment access disabled
+    manifest = manifests.clone()
+    manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
+    result = ssh.command(f'rct cat-manifest {manifest.filename}')
+    assert result.return_code == 0
+    assert 'Content Access Mode: Simple Content Access' not in ''.join(result.stdout)
 
-        :BZ: 1344049, 1498158
 
-        :CaseImportance: Critical
-        """
-        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            self._setup_virtual_machine(vm)
-            # install the packages that require updates
-            result = vm.run(f'yum install -y {REAL_RHEL7_0_0_PACKAGE}')
-            self.assertEqual(result.return_code, 0)
-            result = vm.run(f'rpm -q {REAL_RHEL7_0_0_PACKAGE}')
-            self.assertEqual(result.return_code, 0)
-            # check that package errata is applicable
-            for _ in range(30):
-                erratum = Host.errata_list(
-                    {'host': vm.hostname, 'search': f'id = {REAL_RHEL7_0_ERRATA_ID}'}
-                )
-                if erratum:
-                    break
-                time.sleep(10)
-            self.assertEqual(len(erratum), 1)
-            self.assertEqual(erratum[0]['installable'], 'true')
+@pytest.mark.tier2
+@pytest.mark.upgrade
+def test_positive_rct_shows_golden_ticket_enabled(module_gt_manifest_org):
+    """Assert unrestricted manifest has Golden Ticket enabled .
 
-    @pytest.mark.tier2
-    def test_negative_rct_not_shows_golden_ticket_enabled(self):
-        """Assert restricted manifest has no Golden Ticket enabled .
+    :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
 
-        :id: 754c1be7-468e-4795-bcf9-258a38f3418b
+    :steps:
 
-        :steps:
+        1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
 
-            1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
+    :expectedresults:
+        1. Assert `Content Access Mode: Simple Content Access` is present.
 
-        :CaseAutomation: Automated
-
-        :expectedresults:
-            1. Assert `Content Access Mode: org_environment` is not present.
-
-        :CaseImportance: High
-        """
-        org = make_org()
-        # upload organization manifest with org environment access enabled
-        manifest = manifests.clone()
-        manifests.upload_manifest_locked(org['id'], manifest, interface=manifests.INTERFACE_CLI)
-        result = ssh.command(f'rct cat-manifest {manifest.filename}')
-        self.assertEqual(result.return_code, 0)
-        self.assertNotIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_rct_shows_golden_ticket_enabled(self):
-        """Assert unrestricted manifest has Golden Ticket enabled .
-
-        :id: 0c6e2f88-1a86-4417-9248-d7bd20584197
-
-        :steps:
-
-            1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
-
-        :CaseAutomation: Automated
-
-        :expectedresults:
-            1. Assert `Content Access Mode: org_environment` is present.
-
-        :CaseImportance: Medium
-        """
-        result = ssh.command(f'rct cat-manifest {self.manifest.filename}')
-        self.assertEqual(result.return_code, 0)
-        self.assertIn('Content Access Mode: org_environment', '\n'.join(result.stdout))
+    :CaseImportance: Medium
+    """
+    result = ssh.command(f'rct cat-manifest {module_gt_manifest_org.manifest_filename}')
+    assert result.return_code == 0
+    assert 'Content Access Mode: Simple Content Access' in ''.join(result.stdout)

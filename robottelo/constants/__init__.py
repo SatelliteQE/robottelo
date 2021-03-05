@@ -706,6 +706,8 @@ REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
 REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
 REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
+REAL_RHEL7_0_2_PACKAGE_NAME = 'python-psutil'
+REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python-psutil-5.0.1-3.el7sat.x86_64.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
