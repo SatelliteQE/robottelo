@@ -418,7 +418,7 @@ def test_positive_provision_pxe_host_dhcp_change(discovery_settings, provisionin
             subnet.from_ = old_sub_from
             subnet.update(['from_'])
             ssh_client.exec_command(
-                f'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
+                'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
             )
 
 

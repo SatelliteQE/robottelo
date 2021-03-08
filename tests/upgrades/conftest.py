@@ -327,9 +327,8 @@ def pytest_collection_modifyitems(items, config):
                 for depend_on_node_id in depend_on_node_ids:
                     if depend_on_node_id in pre_upgrade_failed_tests:
                         log(
-                            'Deselected (because of dependant test failed): {}'.format(
-                                item.nodeid, 'INFO'
-                            )
+                            f'Deselected (because of dependant test failed): {item.nodeid}',
+                            'INFO',
                         )
                         deselected_items.append(item)
 

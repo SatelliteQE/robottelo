@@ -282,7 +282,7 @@ def rhsso_setting_setup(request):
 @pytest.fixture()
 def rhsso_setting_setup_with_timeout(rhsso_setting_setup, request):
     """Update the RHSSO setting with timeout setting and revert it in cleanup"""
-    setting_entity = entities.Setting().search(query={'search': f'name=idle_timeout'})[0]
+    setting_entity = entities.Setting().search(query={'search': 'name=idle_timeout'})[0]
     setting_entity.value = 1
     setting_entity.update({'value'})
     yield

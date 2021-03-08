@@ -83,7 +83,7 @@ class TestVirtualMachine:
         with patch('robottelo.ssh.command') as ssh_mock:
             ssh_mock.side_effect = exception_type({('127.0.0.1', 22): None})
             with pytest.raises(
-                VirtualMachineError, match=f'Exception connecting via ssh to get host os version'
+                VirtualMachineError, match='Exception connecting via ssh to get host os version'
             ):
                 VirtualMachine()
 
