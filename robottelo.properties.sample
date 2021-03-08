@@ -238,12 +238,6 @@ ssh_key=
 # private_registry_password=
 
 
-# For testing Red Hat Access Insights
-# [rhai]
-# Provide link to el6/el7 repo to fetch the redhat-access-insights client rpm
-# insights_client_el6repo=https://www.example.com/insights-client/repo/insights-client-6.repo
-# insights_client_el7repo=https://www.example.com/insights-client/repo/insights-client-7.repo
-
 # VLAN Networking details
 # These settings are required for compute resources testing, for example
 # host provisioning on CR's, discovery e.t.c.
