@@ -127,5 +127,5 @@ def pytest_collection_modifyitems(session, items, config):
             selected.append(item)
 
     # selected will be empty if no filter option was passed, defaulting to full items list
-    items[:] = selected or items
+    items[:] = selected if deselected else items
     config.hook.pytest_deselected(items=deselected)
