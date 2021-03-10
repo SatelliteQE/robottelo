@@ -16,15 +16,16 @@
 
 :Upstream: No
 """
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from operator import itemgetter
 
 import pytest
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -35,7 +36,6 @@ from robottelo.cli.factory import make_content_view_filter
 from robottelo.cli.factory import make_content_view_filter_rule
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_host_collection
-from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
@@ -52,21 +52,21 @@ from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
-from robottelo.constants import FAKE_0_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_ERRATA_ID
+from robottelo.constants import FAKE_2_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_ERRATA_ID
-from robottelo.constants import FAKE_6_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_9_YUM_ERRATUM
+from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
@@ -75,29 +75,96 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.vm import VirtualMachine
+from robottelo.hosts import ContentHost
 
-
-ERRATUM_MAX_IDS_INFO = 10
-
-CUSTOM_REPO_URL = FAKE_9_YUM_REPO
-CUSTOM_PACKAGE = FAKE_1_CUSTOM_PACKAGE
-CUSTOM_ERRATA_ID = FAKE_2_ERRATA_ID
-CUSTOM_PACKAGE_ERRATA_APPLIED = FAKE_2_CUSTOM_PACKAGE
-
+PER_PAGE = 10
+PER_PAGE_LARGE = 1000
+ERRATA = [
+    {
+        'id': FAKE_2_ERRATA_ID,  # security advisory
+        'old_package': FAKE_1_CUSTOM_PACKAGE,
+        'new_package': FAKE_2_CUSTOM_PACKAGE,
+        'package_name': FAKE_2_CUSTOM_PACKAGE_NAME,
+    },
+    {
+        'id': FAKE_5_ERRATA_ID,  # bugfix advisory
+        'old_package': FAKE_4_CUSTOM_PACKAGE,
+        'new_package': FAKE_5_CUSTOM_PACKAGE,
+        'package_name': FAKE_4_CUSTOM_PACKAGE_NAME,
+    },
+]
+REPO_WITH_ERRATA = {
+    'url': FAKE_9_YUM_REPO,
+    'errata': ERRATA,
+    'errata_ids': FAKE_9_YUM_ERRATUM,
+}
+REPOS_WITH_ERRATA = (
+    {
+        'url': FAKE_9_YUM_REPO,
+        'errata_count': FAKE_9_YUM_ERRATUM_COUNT,
+        'org_errata_count': FAKE_9_YUM_ERRATUM_COUNT,
+        'errata_id': FAKE_2_ERRATA_ID,
+    },
+    {
+        'url': FAKE_1_YUM_REPO,
+        'errata_count': FAKE_1_YUM_ERRATUM_COUNT,
+        'org_errata_count': FAKE_1_YUM_ERRATUM_COUNT,
+        'errata_id': FAKE_1_ERRATA_ID,
+    },
+    {
+        'url': FAKE_2_YUM_REPO,
+        'errata_count': FAKE_2_YUM_ERRATUM_COUNT,
+        'org_errata_count': FAKE_2_YUM_ERRATUM_COUNT + FAKE_3_YUM_ERRATUM_COUNT,
+        'errata_id': FAKE_0_ERRATA_ID,
+    },
+    {
+        'url': FAKE_3_YUM_REPO,
+        'errata_count': FAKE_3_YUM_ERRATUM_COUNT,
+        'org_errata_count': FAKE_2_YUM_ERRATUM_COUNT + FAKE_3_YUM_ERRATUM_COUNT,
+        'errata_id': FAKE_3_ERRATA_ID,
+    },
+)
 
 pytestmark = [
     pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
     pytest.mark.run_in_one_thread,
 ]
-# CLI Tests for the errata management feature
+
+
+@pytest.fixture(scope='module')
+def orgs():
+    """Create and return a list of three orgs."""
+    return [entities.Organization().create() for _ in range(3)]
+
+
+@pytest.fixture(scope='module')
+def products_with_repos(orgs):
+    """Create and return a list of products. For each product, create and sync a single repo."""
+    products = []
+    # Create one product for each org, and a second product for the last org.
+    for org, params in zip(orgs + orgs[-1:], REPOS_WITH_ERRATA):
+        product = entities.Product(organization=org).create()
+        # Replace the organization entity returned by create(), which contains only the id,
+        # with the one we already have.
+        product.organization = org
+        products.append(product)
+        repo = make_repository(
+            {
+                'download-policy': 'immediate',
+                'organization-id': product.organization.id,
+                'product-id': product.id,
+                'url': params['url'],
+            }
+        )
+        Repository.synchronize({'id': repo['id']})
+
+    return products
 
 
 @pytest.fixture(scope='module')
 def rh_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
-    # add a subscription for the Satellite Tools repo to activation key
+    """Add a subscription for the Satellite Tools repo to activation key."""
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
@@ -114,10 +181,10 @@ def rh_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
 
 @pytest.fixture(scope='module')
 def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
-    # create custom repository and add a subscription to activation key
+    """Create custom repo and add a subscription to activation key."""
     setup_org_for_a_custom_repo(
         {
-            'url': FAKE_9_YUM_REPO,
+            'url': REPO_WITH_ERRATA['url'],
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -126,258 +193,251 @@ def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
     )
 
 
-@pytest.fixture(scope='module', params=[2])
-def virtual_machines(module_org, module_ak_cv_lce, rh_repo, custom_repo, request):
-    """Create and setup hosts and virtual machines."""
-    virtual_machines = []
-    for _ in range(request.param):
-        # create VM
-        virtual_machine = VirtualMachine(distro=DISTRO_RHEL7)
-        virtual_machine.create()
-        virtual_machines.append(virtual_machine)
-        virtual_machine.install_katello_ca()
-        # register content host
-        virtual_machine.register_contenthost(module_org.name, module_ak_cv_lce.name)
-        # enable red hat satellite repository
-        virtual_machine.enable_repo(REPOS['rhst7']['id'])
-        # install katello-agent
-        virtual_machine.install_katello_agent()
-    return virtual_machines
-
-
-@pytest.fixture(scope='function')
-def errata_machines(virtual_machines):
-    """ Ensure VMs are in predictable state for each test"""
-    for virtual_machine in virtual_machines:
-        result = virtual_machine.run(f'yum erase -y {CUSTOM_PACKAGE_ERRATA_APPLIED}')
-        assert result.return_code == 0
-    # install the custom package on each host
-    for virtual_machine in virtual_machines:
-        result = virtual_machine.run(f'yum install -y {CUSTOM_PACKAGE}')
-        assert result.return_code == 0
-    return virtual_machines
+@pytest.fixture(scope='module')
+def hosts(request):
+    """Deploy hosts via broker."""
+    num_hosts = getattr(request, 'param', 2)
+    with VMBroker(
+        nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts
+    ) as hosts:
+        if type(hosts) is not list or len(hosts) != num_hosts:
+            pytest.fail('Failed to provision the expected number of hosts.')
+        yield hosts
 
 
 @pytest.fixture(scope='module')
-def host_collection(module_org, module_ak_cv_lce, virtual_machines):
+def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo):
+    """Register hosts to Satellite and install katello-agent rpm."""
+    for host in hosts:
+        host.install_katello_ca()
+        host.register_contenthost(module_org.name, module_ak_cv_lce.name)
+        host.enable_repo(REPOS['rhst7']['id'])
+        host.install_katello_agent()
+    return hosts
+
+
+@pytest.fixture
+def errata_hosts(register_hosts):
+    """Ensure that rpm is installed on host."""
+    for host in register_hosts:
+        # Remove all packages.
+        for errata in REPO_WITH_ERRATA['errata']:
+            # Remove package if present, old or new.
+            package_name = errata['package_name']
+            result = host.execute(f'yum erase -y {package_name}')
+            if result.status != 0:
+                pytest.fail(f'Failed to remove {package_name}: {result.stdout} {result.stderr}')
+
+            # Install old package, so that errata apply.
+            old_package = errata['old_package']
+            result = host.execute(f'yum install -y {old_package}')
+            if result.status != 0:
+                pytest.fail(f'Failed to install {old_package}: {result.stdout} {result.stderr}')
+    return register_hosts
+
+
+@pytest.fixture(scope='module')
+def host_collection(module_org, module_ak_cv_lce, register_hosts):
     """Create and setup host collection."""
     host_collection = make_host_collection({'organization-id': module_org.id})
-    for virtual_machine in virtual_machines:
-        host = Host.info({'name': virtual_machine.hostname})
-        HostCollection.add_host(
-            {
-                'id': host_collection['id'],
-                'organization-id': module_org.id,
-                'host-ids': host['id'],
-            }
-        )
-        ActivationKey.add_host_collection(
-            {
-                'id': module_ak_cv_lce.id,
-                'host-collection-id': host_collection['id'],
-                'organization-id': module_org.id,
-            }
-        )
+    host_ids = [Host.info({'name': host.hostname})['id'] for host in register_hosts]
+    HostCollection.add_host(
+        {
+            'id': host_collection['id'],
+            'organization-id': module_org.id,
+            'host-ids': host_ids,
+        }
+    )
+    ActivationKey.add_host_collection(
+        {
+            'id': module_ak_cv_lce.id,
+            'host-collection-id': host_collection['id'],
+            'organization-id': module_org.id,
+        }
+    )
     return host_collection
 
 
-def _is_errata_package_installed(virtual_machine):
-    """Check whether errata package is installed.
+def is_rpm_installed(host, rpm=None):
+    """Return whether the specified rpm is installed.
 
-    :type virtual_machine: robottelo.vm.VirtualMachine
+    :type host: robottelo.hosts.ContentHost instance
+    :type rpm: str
     :rtype: bool
     """
-    result = virtual_machine.run(f'rpm -q {CUSTOM_PACKAGE_ERRATA_APPLIED}')
-    return True if result.return_code == 0 else False
+    rpm = rpm or REPO_WITH_ERRATA['errata'][0]['new_package']
+    return not host.execute(f'rpm -q {rpm}').status
 
 
-@pytest.mark.tier3
-def test_positive_install_by_hc_id_and_org_id(module_org, host_collection, errata_machines):
-    """Using hc-id and org id to install an erratum in a hc
+def get_sorted_errata_info_by_id(errata_ids, sort_by='issued', sort_reversed=False):
+    """Query hammer for erratum ids info
 
-    :id: 8b22eb9d-1321-4374-8127-6d7bfdb89ad5
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --id <id>
-        --organization-id <orgid>
-
-    :expectedresults: Erratum is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
+    :param errata_ids: a list of errata id
+    :param sort_by: the field to sort by the results (issued or updated)
+    :param sort_reversed: whether the sort should be reversed
+            (not ascending)
+    :return: a list of errata info dict for each errata id in errata_ids
+    :type errata_ids: list[str]
+    :type sort_by: str
+    :type sort_reversed: bool
+    :rtype: list[dict]
     """
-    install_task = HostCollection.erratum_install(
+    if len(errata_ids) > PER_PAGE:
+        raise Exception('Errata ids length exceeded')
+    errata_info = [
+        Erratum.info(options={'id': errata_id}, output_format='json') for errata_id in errata_ids
+    ]
+    return sorted(errata_info, key=itemgetter(sort_by), reverse=sort_reversed)
+
+
+def get_errata_ids(*params):
+    """Return list of sets of errata ids corresponding to the provided params."""
+    errata_ids = [{errata['errata-id'] for errata in Erratum.list(param)} for param in params]
+    return errata_ids[0] if len(errata_ids) == 1 else errata_ids
+
+
+def check_errata(errata_ids, by_org=False):
+    """Verify that each list of errata ids matches the expected values
+
+    :param errata_ids: a list containing a list of errata ids for each repo
+    :type errata_ids: list[list]
+    """
+    for ids, repo_with_errata in zip(errata_ids, REPOS_WITH_ERRATA):
+        assert len(ids) == repo_with_errata['org_errata_count' if by_org else 'errata_count']
+        assert repo_with_errata['errata_id'] in ids
+
+
+def filter_sort_errata(org, sort_by_date='issued', filter_by_org=None):
+    """Compare the list of errata returned by `hammer erratum {list|info}` to the expected
+    values, subject to the date sort and organization filter options.
+
+    :param org: organization instance
+    :type org: entities.Organization
+    :param sort_by_date: date sort method
+    :type sort_by_date: str ('issued', 'updated'). Default: 'issued'
+    :param filter_by_org: organization selection method
+    :type filter_by_org str ('id', 'name', 'label') or None. Default: None
+    """
+    for sort_order in ('ASC', 'DESC'):
+        list_param = {'order': f'{sort_by_date} {sort_order}', 'per-page': PER_PAGE}
+
+        if filter_by_org == 'id':
+            list_param['organization-id'] = org.id
+        elif filter_by_org == 'name':
+            list_param['organization'] = org.name
+        elif filter_by_org == 'label':
+            list_param['organization-label'] = org.label
+
+        sort_reversed = True if sort_order == 'DESC' else False
+
+        errata_list = Erratum.list(list_param)
+        assert len(errata_list) > 0
+
+        # Build a sorted errata info list, which also contains the sort field.
+        errata_internal_ids = [errata['id'] for errata in errata_list]
+        sorted_errata_info = get_sorted_errata_info_by_id(
+            errata_internal_ids, sort_by=sort_by_date, sort_reversed=sort_reversed
+        )
+
+        sort_field_values = [errata[sort_by_date] for errata in sorted_errata_info]
+        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
+
+        errata_ids = [errata['errata-id'] for errata in errata_list]
+        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info]
+        assert errata_ids == sorted_errata_ids
+
+
+def cv_publish_promote(cv, org, lce):
+    """Publish and promote a new version into the given lifecycle environment.
+
+    :param cv: content view
+    :type cv: entities.ContentView
+    :param org: organization
+    :type org: entities.Organization
+    :param lce: lifecycle environment
+    :type lce: entities.LifecycleEnvironment
+    """
+    ContentView.publish({'id': cv.id})
+    cvv = ContentView.info({'id': cv.id})['versions'][-1]
+    ContentView.version_promote(
         {
-            'id': host_collection['id'],
-            'organization-id': module_org.id,
-            'errata': [CUSTOM_ERRATA_ID],
+            'id': cvv['id'],
+            'organization-id': org.id,
+            'to-lifecycle-environment-id': lce.id,
         }
     )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
 
 
-@pytest.mark.tier3
-def test_positive_install_by_hc_id_and_org_name(module_org, host_collection, errata_machines):
-    """Using hc-id and org name to install an erratum in a hc
-
-    :id: 7e5b87d7-f4d2-47b7-96aa-f86bcb64c742
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --id <id>
-        --organization <org name>
-
-    :expectedresults: Erratum is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
-    """
-    install_task = HostCollection.erratum_install(
+def cv_filter_cleanup(filter_id, cv, org, lce):
+    """Delete the cv filter, then publish and promote an unfiltered version."""
+    ContentViewFilter.delete(
         {
-            'id': host_collection['id'],
-            'organization': module_org.name,
-            'errata': [CUSTOM_ERRATA_ID],
+            'content-view-id': cv.id,
+            'id': filter_id,
+            'organization-id': org.id,
         }
     )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
+    cv_publish_promote(cv, org, lce)
 
 
 @pytest.mark.tier3
-def test_positive_install_by_hc_id_and_org_label(module_org, host_collection, errata_machines):
-    """Use hc-id and org label to install an erratum in a hc
-
-    :id: bde80181-6526-43dc-bfc2-511bb5c00676
-
-    :Setup: errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --id <id>
-        --organization-label <org label>
-
-    :expectedresults: Errata is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
-    """
-    install_task = HostCollection.erratum_install(
-        {
-            'id': host_collection['id'],
-            'organization-label': module_org.label,
-            'errata': [CUSTOM_ERRATA_ID],
-        }
-    )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
-
-
-@pytest.mark.tier3
-def test_positive_install_by_hc_name_and_org_id(module_org, host_collection, errata_machines):
-    """Use hc-name and org id to install an erratum in a hc
-
-    :id: c4a38806-cbec-47cc-bbd6-228897b3b16d
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --name <name>
-        --organization-id <orgid>
-
-    :expectedresults: Erratum is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
-    """
-    install_task = HostCollection.erratum_install(
-        {
-            'name': host_collection['name'],
-            'organization-id': module_org.id,
-            'errata': [CUSTOM_ERRATA_ID],
-        }
-    )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
-
-
-@pytest.mark.tier3
-def test_positive_install_by_hc_name_and_org_name(module_org, host_collection, errata_machines):
-    """Use hc name and org name to install an erratum in a hc
-
-    :id: 501319ea-9d3c-4329-9405-4366ce6ee797
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --name <name>
-        --organization <org name>
-
-    :expectedresults: Erratum is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
-    """
-    install_task = HostCollection.erratum_install(
-        {
-            'name': host_collection['name'],
-            'organization': module_org.name,
-            'errata': [CUSTOM_ERRATA_ID],
-        }
-    )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
-
-
-@pytest.mark.tier3
-def test_positive_install_by_hc_name_and_org_label(module_org, host_collection, errata_machines):
-    """Use hc-name and org label to install an erratum in a hc
-
-    :id: 12287827-44df-4dda-872a-ac7e416e8bd7
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps: host-collection erratum install --errata <errata> --name <name>
-        --organization-label <org label>
-
-    :expectedresults: Erratum is installed.
-
-    :CaseLevel: System
-
-    :BZ: 1457977
-    """
-    install_task = HostCollection.erratum_install(
-        {
-            'name': host_collection['name'],
-            'organization-label': module_org.label,
-            'errata': [CUSTOM_ERRATA_ID],
-        }
-    )
-    Task.progress({'id': install_task[0]['id']})
-    for virtual_machine in errata_machines:
-        assert _is_errata_package_installed(virtual_machine)
-
-
-@pytest.mark.tier3
-def test_negative_install_by_hc_id_without_errata_info(
-    module_org, host_collection, errata_machines
+@pytest.mark.parametrize('filter_by_hc', ('id', 'name'), ids=('hc_id', 'hc_name'))
+@pytest.mark.parametrize(
+    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+)
+def test_positive_install_by_host_collection_and_org(
+    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org
 ):
-    """Attempt to install an erratum in a hc using hc-id and not
-    specifying the erratum info
+    """Use host collection id or name and org id, name, or label to install an update on the host
+    collection.
+
+    :id: 1b063f76-c85f-42fb-a919-5de319b09b99
+
+    :parametrized: yes
+
+    :Setup: Errata synced on satellite server.
+
+    :Steps: host-collection erratum install --errata <errata>
+        (--id <hc_id>|--name <hc_name>)
+        (--organization-id <org_id>|--organization <org_name>|--organization-label <org_label>)
+
+    :expectedresults: Erratum is installed.
+
+    :CaseLevel: System
+
+    :BZ: 1457977
+    """
+    param = {'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
+
+    if filter_by_hc == 'id':
+        param['id'] = host_collection['id']
+    elif filter_by_hc == 'name':
+        param['name'] = host_collection['name']
+
+    if filter_by_org == 'id':
+        param['organization-id'] = module_org.id
+    elif filter_by_org == 'name':
+        param['organization'] = module_org.name
+    elif filter_by_org == 'label':
+        param['organization-label'] = module_org.label
+
+    install_task = HostCollection.erratum_install(param)
+    Task.progress({'id': install_task[0]['id']})
+    for host in errata_hosts:
+        assert is_rpm_installed(host)
+
+
+@pytest.mark.tier3
+def test_negative_install_by_hc_id_without_errata_info(module_org, host_collection, errata_hosts):
+    """Attempt to install an erratum on a host collection by host collection id but no errata info
+    specified.
 
     :id: 3635698d-4f09-4a60-91ea-1957e5949750
 
     :Setup: Errata synced on satellite server.
 
     :Steps: host-collection erratum install --id <id> --organization-id
-        <orgid>
+        <org_id>
 
     :expectedresults: Error message thrown.
 
@@ -385,9 +445,6 @@ def test_negative_install_by_hc_id_without_errata_info(
 
     :CaseLevel: System
     """
-    for virtual_machine in errata_machines:
-        result = virtual_machine.run(f'yum install -y {CUSTOM_PACKAGE}')
-        assert result.return_code == 0
     with pytest.raises(CLIReturnCodeError, match="Error: Option '--errata' is required"):
         HostCollection.erratum_install(
             {'id': host_collection['id'], 'organization-id': module_org.id}
@@ -396,17 +453,17 @@ def test_negative_install_by_hc_id_without_errata_info(
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_name_without_errata_info(
-    module_org, host_collection, errata_machines
+    module_org, host_collection, errata_hosts
 ):
-    """Attempt to install an erratum in a hc using hc-name and not
-    specifying the erratum info
+    """Attempt to install an erratum on a host collection by host collection name but no errata
+    info specified.
 
     :id: 12d78bca-efd1-407a-9bd3-f989c2bda6a8
 
     :Setup: Errata synced on satellite server.
 
     :Steps: host-collection erratum install --name <name> --organization-id
-        <orgid>
+        <org_id>
 
     :expectedresults: Error message thrown.
 
@@ -422,8 +479,8 @@ def test_negative_install_by_hc_name_without_errata_info(
 
 @pytest.mark.tier3
 def test_negative_install_without_hc_info(module_org, host_collection):
-    """Attempt to install an erratum in a hc by not specifying hc
-    info. This test only works with two or more HC; see BZ#1928281.
+    """Attempt to install an erratum on a host collection without specifying host collection info.
+    This test only works with two or more host collections (BZ#1928281).
     We have the one from the fixture, just need to create one more at the start of the test.
 
     :id: 753d36f0-d19b-494d-a247-ce2d61c4cf74
@@ -431,9 +488,11 @@ def test_negative_install_without_hc_info(module_org, host_collection):
     :Setup: Errata synced on satellite server.
 
     :Steps: host-collection erratum install --errata <errata>
-        --organization-id <orgid>
+        --organization-id <org_id>
 
     :expectedresults: Error message thrown.
+
+    :BZ: 1928281
 
     :CaseImportance: Low
 
@@ -442,14 +501,14 @@ def test_negative_install_without_hc_info(module_org, host_collection):
     make_host_collection({'organization-id': module_org.id})
     with pytest.raises(CLIReturnCodeError):
         HostCollection.erratum_install(
-            {'organization-id': module_org.id, 'errata': [CUSTOM_ERRATA_ID]}
+            {'organization-id': module_org.id, 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
         )
 
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_id_without_org_info(module_org, host_collection):
-    """Attempt to install an erratum in a hc using hc-id and not
-    specifying org info
+    """Attempt to install an erratum on a host collection by host collection id but without
+    specifying any org info.
 
     :id: b7d32bb3-9c5f-452b-b421-f8e9976ca52c
 
@@ -464,13 +523,15 @@ def test_negative_install_by_hc_id_without_org_info(module_org, host_collection)
     :CaseLevel: System
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
-        HostCollection.erratum_install({'id': host_collection['id'], 'errata': [CUSTOM_ERRATA_ID]})
+        HostCollection.erratum_install(
+            {'id': host_collection['id'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
+        )
 
 
 @pytest.mark.tier3
 def test_negative_install_by_hc_name_without_org_info(module_org, host_collection):
-    """Attempt to install an erratum in a hc without specifying org
-    info
+    """Attempt to install an erratum on a host collection by host collection name but without
+    specifying any org info.
 
     :id: 991f5b61-a4d1-444c-8a21-8ffe48e83f76
 
@@ -486,20 +547,20 @@ def test_negative_install_by_hc_name_without_org_info(module_org, host_collectio
     """
     with pytest.raises(CLIReturnCodeError, match='Error: Could not find organization'):
         HostCollection.erratum_install(
-            {'name': host_collection['name'], 'errata': [CUSTOM_ERRATA_ID]}
+            {'name': host_collection['name'], 'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
         )
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_list_affected_chosts(module_org, errata_machines):
-    """View a list of affected content hosts for an erratum
+def test_positive_list_affected_chosts(module_org, errata_hosts):
+    """View a list of affected content hosts for an erratum.
 
     :id: 3b592253-52c0-4165-9a48-ba55287e9ee9
 
     :Setup: Errata synced on satellite server, custom package installed on errata hosts.
 
-    :Steps: host list --search "applicable_errata = <erratum_id>"
+    :Steps: host list --search 'applicable_errata = <erratum_id>'
         --organization-id=<org_id>
 
     :expectedresults: List of affected content hosts for an erratum is
@@ -509,20 +570,20 @@ def test_positive_list_affected_chosts(module_org, errata_machines):
     """
     result = Host.list(
         {
-            'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+            'search': f'applicable_errata = {REPO_WITH_ERRATA["errata"][0]["id"]}',
             'organization-id': module_org.id,
             'fields': 'Name',
         }
     )
-    result = [item['name'] for item in result]
-    for virtual_machine in errata_machines:
-        assert (
-            virtual_machine.hostname in result
-        ), "VM host name not found in list of applicable hosts"
+    reported_hostnames = {item['name'] for item in result}
+    hostnames = {host.hostname for host in errata_hosts}
+    assert hostnames.issubset(
+        reported_hostnames
+    ), 'One or more hostnames not found in list of applicable hosts'
 
 
 @pytest.mark.tier3
-def test_install_errata_to_one_host(module_org, errata_machines, host_collection):
+def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
     """Install an erratum to one of the hosts in a host collection.
 
     :id: bfcee2de-3448-497e-a696-fcd30cea9d33
@@ -530,43 +591,47 @@ def test_install_errata_to_one_host(module_org, errata_machines, host_collection
     :expectedresults: Errata was successfully installed in only one of the hosts in
         the host collection
 
-
     :Setup: Errata synced on satellite server, custom package installed on errata hosts.
 
     :Steps:
-        1. Remove FAKE_2_CUSTOM_PACKAGE_NAME packages from one host
+        1. Remove packages from one host.
         2. host-collection erratum install --errata <errata> --id <id>
-            --organization <org name>
-        3. Assert first host does not have any FAKE_2_CUSTOM_PACKAGE_NAME packages.
-        4. Assert second host does have FAKE_2_CUSTOM_PACKAGE
+            --organization <org_name>
+        3. Assert first host does not have the package.
+        4. Assert second host does have the new package.
+
 
     :expectedresults: Erratum is only installed on one host.
 
     :BZ: 1810774
     """
-    # Remove any walrus package on first VM to remove need for CUSTOM_ERRATA_ID
-    result = errata_machines[0].run(f'yum erase -y {FAKE_1_CUSTOM_PACKAGE_NAME}')
-    assert result.return_code == 0, "Failed to erase the RPM"
-    # Install CUSTOM_ERRATA_ID to the host collection
+    errata = REPO_WITH_ERRATA['errata'][0]
+
+    # Remove the package on first host to remove need for errata.
+    result = errata_hosts[0].execute(f'yum erase -y {errata["package_name"]}')
+    assert result.status == 0, f'Failed to erase the rpm: {result.stdout}'
+
+    # Apply errata to the host collection.
     install_task = HostCollection.erratum_install(
         {
             'id': host_collection['id'],
             'organization': module_org.name,
-            'errata': [CUSTOM_ERRATA_ID],
+            'errata': [errata['id']],
         }
     )
     Task.progress({'id': install_task[0]['id']})
-    # Assert first host does not have any FAKE_1_CUSTOM_PACKAGE_NAME packages
-    result = errata_machines[0].run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
-    assert result.return_code == 1, "Unwanted custom package found."
-    # Assert second host does have FAKE_2_CUSTOM_PACKAGE
-    result = errata_machines[1].run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
-    assert result.return_code == 0, "Expected custom package not found."
+
+    assert not is_rpm_installed(
+        errata_hosts[0], rpm=errata['package_name']
+    ), 'Package should not be installed on host.'
+    assert is_rpm_installed(
+        errata_hosts[1], rpm=errata['new_package']
+    ), 'Package should be installed on host.'
 
 
 @pytest.mark.tier3
 def test_positive_list_affected_chosts_by_erratum_restrict_flag(
-    module_org, module_cv, module_lce, errata_machines
+    request, module_org, module_cv, module_lce, errata_hosts
 ):
     """View a list of affected content hosts for an erratum filtered
     with restrict flags. Applicability is calculated using the Library,
@@ -598,50 +663,61 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
 
     :CaseAutomation: Automated
     """
-    # Create list of uninstallable errata by removing FAKE_2_ERRATA_ID a.k.a CUSTOM_ERRATA_ID
-    UNINSTALLABLE = [erratum for erratum in FAKE_9_YUM_ERRATUM if erratum != FAKE_2_ERRATA_ID]
+
+    # Uninstall package so that only the first errata applies.
+    for host in errata_hosts:
+        host.execute(f'yum erase -y {REPO_WITH_ERRATA["errata"][1]["package_name"]}')
+
+    # Create list of uninstallable errata.
+    errata = REPO_WITH_ERRATA['errata'][0]
+    uninstallable = REPO_WITH_ERRATA['errata_ids'].copy()
+    uninstallable.remove(errata['id'])
+
     # Check search for only installable errata
-    erratum_list = Erratum.list(
-        {
-            'errata-restrict-installable': 1,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'organization-id': module_org.id,
-            'per-page': 1000,
-        }
-    )
-    # Assert the expected installable errata is in the list
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    assert CUSTOM_ERRATA_ID in erratum_id_list, "Errata not found in list of installable errata"
-    # Assert the uninstallable errata are not in the list
-    for erratum in UNINSTALLABLE:
-        assert erratum not in erratum_id_list, "Unexpected errata found"
+    param = {
+        'errata-restrict-installable': 1,
+        'content-view-id': module_cv.id,
+        'lifecycle-environment-id': module_lce.id,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert errata['id'] in errata_ids, 'Errata not found in list of installable errata'
+    assert not set(uninstallable) & set(errata_ids), 'Unexpected errata found'
+
     # Check search of errata is not affected by installable=0 restrict flag
-    erratum_list = Erratum.list(
-        {
-            'errata-restrict-installable': 0,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'organization-id': module_org.id,
-            'per-page': 1000,
-        }
-    )
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    for erratum in FAKE_9_YUM_ERRATUM:
-        assert erratum in erratum_id_list, "Errata not found in list of installable errata"
+    param = {
+        'errata-restrict-installable': 0,
+        'content-view-id': module_cv.id,
+        'lifecycle-environment-id': module_lce.id,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
+        errata_ids
+    ), 'Errata not found in list of installable errata'
+
     # Check list of applicable errata
-    erratum_list = Erratum.list(
-        {'errata-restrict-applicable': 1, 'organization-id': module_org.id, 'per-page': 1000}
-    )
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    assert CUSTOM_ERRATA_ID in erratum_id_list, "Errata not found in list of applicable errata"
+    param = {
+        'errata-restrict-applicable': 1,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
+
     # Check search of errata is not affected by applicable=0 restrict flag
-    erratum_list = Erratum.list(
-        {'errata-restrict-applicable': 0, 'organization-id': module_org.id, 'per-page': 1000}
-    )
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    for erratum in FAKE_9_YUM_ERRATUM:
-        assert erratum in erratum_id_list, "Errata not found in list of applicable errata"
+    param = {
+        'errata-restrict-applicable': 0,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert set(REPO_WITH_ERRATA['errata_ids']).issubset(
+        errata_ids
+    ), 'Errata not found in list of applicable errata'
+
     # Apply a filter and rule to the CV to hide the RPM, thus making erratum not installable
     # Make RPM exclude filter
     cv_filter = make_content_view_filter(
@@ -654,60 +730,47 @@ def test_positive_list_affected_chosts_by_erratum_restrict_flag(
             'inclusion': 'false',
         }
     )
+
+    @request.addfinalizer
+    def cleanup():
+        cv_filter_cleanup(cv_filter['filter-id'], module_cv, module_org, module_lce)
+
     # Make rule to hide the RPM that creates the need for the installable erratum
     make_content_view_filter_rule(
         {
             'content-view-id': module_cv.id,
-            'content-view-filter': 'erratum_restrict_test',
-            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+            'content-view-filter-id': cv_filter['filter-id'],
+            'name': errata['package_name'],
         }
     )
-    # Publish the version with the filter
-    ContentView.publish({'id': module_cv.id})
-    # Need to promote the last version published
-    content_view_version = ContentView.info({'id': module_cv.id})['versions'][-1]
-    ContentView.version_promote(
-        {
-            'id': content_view_version['id'],
-            'organization-id': module_org.id,
-            'to-lifecycle-environment-id': module_lce.id,
-        }
-    )
+
+    # Publish and promote a new version with the filter
+    cv_publish_promote(module_cv, module_org, module_lce)
+
     # Check that the installable erratum is no longer present in the list
-    erratum_list = Erratum.list(
-        {
-            'errata-restrict-installable': 0,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'organization-id': module_org.id,
-            'per-page': 1000,
-        }
-    )
-    # Assert the expected erratum is no longer in the list
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    assert (
-        CUSTOM_ERRATA_ID not in erratum_id_list
-    ), "Errata not found in list of installable errata"
-    # Check CUSTOM_ERRATA_ID still applicable
-    erratum_list = Erratum.list(
-        {'errata-restrict-applicable': 1, 'organization-id': module_org.id, 'per-page': 1000}
-    )
-    # Assert the expected erratum is in the list
-    erratum_id_list = [erratum['errata-id'] for erratum in erratum_list]
-    assert CUSTOM_ERRATA_ID in erratum_id_list, "Errata not found in list of applicable errata"
-    # Clean up by removing the CV filter
-    ContentViewFilter.delete(
-        {
-            'content-view-id': module_cv.id,
-            'name': cv_filter['name'],
-            'organization-id': module_org.id,
-        }
-    )
+    param = {
+        'errata-restrict-installable': 0,
+        'content-view-id': module_cv.id,
+        'lifecycle-environment-id': module_lce.id,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert errata['id'] not in errata_ids, 'Errata not found in list of installable errata'
+
+    # Check errata still applicable
+    param = {
+        'errata-restrict-applicable': 1,
+        'organization-id': module_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert errata['id'] in errata_ids, 'Errata not found in list of applicable errata'
 
 
 @pytest.mark.tier3
 def test_host_errata_search_commands(
-    module_org, module_cv, module_lce, host_collection, errata_machines
+    request, module_org, module_cv, module_lce, host_collection, errata_hosts
 ):
     """View a list of affected hosts for security (RHSA) and bugfix (RHBA) errata,
     filtered with errata status and applicable flags. Applicability is calculated using the
@@ -719,103 +782,115 @@ def test_host_errata_search_commands(
     :Setup: Errata synced on satellite server, custom package installed on errata hosts.
 
     :Steps:
-        1.  host list --search "errata_status = errata_needed"
-        2.  host list --search "errata_status = security_needed"
-        3.  host list --search "applicable_errata = RHBA-2012:1030"
-        4.  host list --search "applicable_errata = RHSA-2012:0055"
-        5.  host list --search "applicable_rpms = kangaroo-0.3-1.noarch"
-        6.  host list --search "applicable_rpms = walrus-5.21-1.noarch"
+        1.  host list --search 'errata_status = errata_needed'
+        2.  host list --search 'errata_status = security_needed'
+        3.  host list --search 'applicable_errata = <bugfix_advisory>'
+        4.  host list --search 'applicable_errata = <security_advisory>'
+        5.  host list --search 'applicable_rpms = <bugfix_package>'
+        6.  host list --search 'applicable_rpms = <security_package>'
         7.  Create filter & rule to hide RPM (applicable vs. installable test)
         8.  Repeat steps 3 and 5, but 5 expects host name not found.
 
-    :expectedresults: The hosts are correctly listed for RHSA and RHBA errata.
 
+    :expectedresults: The hosts are correctly listed for security and bugfix advisories.
     """
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M")
-    # Install kangaroo-0.2 on first VM to create a need for RHBA-2012:1030
-    # Update walrus on first VM to remove its need for RHSA-2012:0055
-    result = ssh.command(
-        f'yum install -y {FAKE_4_CUSTOM_PACKAGE} {FAKE_2_CUSTOM_PACKAGE}',
-        errata_machines[0].ip_addr,
-    )
-    assert result.return_code == 0, "Failed to install RPM"
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+
+    errata = REPO_WITH_ERRATA['errata']
+
+    # Update package on first host so that the security advisory doesn't apply.
+    result = errata_hosts[0].execute(f'yum update -y {errata[0]["new_package"]}')
+    assert result.status == 0, 'Failed to install rpm'
+
+    # Update package on second host so that the bugfix advisory doesn't apply.
+    result = errata_hosts[1].execute(f'yum update -y {errata[1]["new_package"]}')
+    assert result.status == 0, 'Failed to install rpm'
+
     # Wait for upload profile event (in case Satellite system slow)
-    host = entities.Host().search(query={'search': f'name={errata_machines[0].hostname}'})
+    host = entities.Host().search(query={'search': f'name={errata_hosts[0].hostname}'})
     wait_for_tasks(
-        search_query='label = Actions::Katello::Host::UploadProfiles'
-        ' and resource_id = {}'
-        ' and started_at >= "{}"'.format(host[0].id, timestamp),
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {host[0].id}'
+            f' and started_at >= "{timestamp}"'
+        ),
         search_rate=15,
         max_tries=10,
     )
-    assert result.return_code == 0, "Failed to install RPM"
-    # Step 1: Search for hosts that require RHBA errata
+
+    # Step 1: Search for hosts that require bugfix advisories
     result = Host.list(
         {
             'search': 'errata_status = errata_needed',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname in result
-    assert errata_machines[1].hostname not in result
-    # Step 2: Search for hosts that require RHSA errata
+    assert errata_hosts[0].hostname in result
+    assert errata_hosts[1].hostname not in result
+
+    # Step 2: Search for hosts that require security advisories
     result = Host.list(
         {
             'search': 'errata_status = security_needed',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname not in result
-    assert errata_machines[1].hostname in result
-    # Step 3: Search for hosts that have RHBA-2012:1030 applicable
+    assert errata_hosts[0].hostname not in result
+    assert errata_hosts[1].hostname in result
+
+    # Step 3: Search for hosts that require the specified bugfix advisory
     result = Host.list(
         {
-            'search': f'applicable_errata = {FAKE_5_ERRATA_ID}',
+            'search': f'applicable_errata = {errata[1]["id"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname in result
-    assert errata_machines[1].hostname not in result
-    # Step 4: Search for hosts that have RHSA-2012:0055 applicable
+    assert errata_hosts[0].hostname in result
+    assert errata_hosts[1].hostname not in result
+
+    # Step 4: Search for hosts that require the specified security advisory
     result = Host.list(
         {
-            'search': f'applicable_errata = {FAKE_2_ERRATA_ID}',
+            'search': f'applicable_errata = {errata[0]["id"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname not in result
-    assert errata_machines[1].hostname in result
-    # Step 5: Search for hosts that have RPM for RHBA-2012:1030 applicable
+    assert errata_hosts[0].hostname not in result
+    assert errata_hosts[1].hostname in result
+
+    # Step 5: Search for hosts that require the specified bugfix package
     result = Host.list(
         {
-            'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+            'search': f'applicable_rpms = {errata[1]["new_package"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname in result
-    assert errata_machines[1].hostname not in result
-    # Step 6: Search for hosts that have RPM for RHSA-2012:0055 applicable
+    assert errata_hosts[0].hostname in result
+    assert errata_hosts[1].hostname not in result
+
+    # Step 6: Search for hosts that require the specified security package
     result = Host.list(
         {
-            'search': f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}',
+            'search': f'applicable_rpms = {errata[0]["new_package"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname not in result
-    assert errata_machines[1].hostname in result
+    assert errata_hosts[0].hostname not in result
+    assert errata_hosts[1].hostname in result
+
     # Step 7: Apply filter and rule to CV to hide RPM, thus making erratum not installable
     # Make RPM exclude filter
     cv_filter = make_content_view_filter(
@@ -828,557 +903,80 @@ def test_host_errata_search_commands(
             'inclusion': 'false',
         }
     )
-    # Make rule to hide the RPM that indicates the erratum is installable
+
+    @request.addfinalizer
+    def cleanup():
+        cv_filter_cleanup(cv_filter['filter-id'], module_cv, module_org, module_lce)
+
+    # Make rule to exclude the specified bugfix package
     make_content_view_filter_rule(
         {
             'content-view-id': module_cv.id,
-            'content-view-filter': 'erratum_search_test',
-            'name': f'{FAKE_4_CUSTOM_PACKAGE_NAME}',
+            'content-view-filter-id': cv_filter['filter-id'],
+            'name': errata[1]['package_name'],
         }
     )
-    # Publish the version with the filter
-    ContentView.publish({'id': module_cv.id})
-    # Need to promote the last version published
-    content_view_version = ContentView.info({'id': module_cv.id})['versions'][-1]
-    ContentView.version_promote(
-        {
-            'id': content_view_version['id'],
-            'organization-id': module_org.id,
-            'to-lifecycle-environment-id': module_lce.id,
-        }
-    )
-    # Step 8: Run tests again. Applicable should still be true, installable should now be false
-    # Search for hosts that have RPM for RHBA-2012:1030 applicable
+
+    # Publish and promote a new version with the filter
+    cv_publish_promote(module_cv, module_org, module_lce)
+
+    # Step 8: Run tests again. Applicable should still be true, installable should now be false.
+    # Search for hosts that require the bugfix package.
     result = Host.list(
         {
-            'search': f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}',
+            'search': f'applicable_rpms = {errata[1]["new_package"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname in result
-    assert errata_machines[1].hostname not in result
-    # There is no installable_rpms flag, so its just the one test.
-    # Search for hosts that show RHBA-2012:1030 installable
+    assert errata_hosts[0].hostname in result
+    assert errata_hosts[1].hostname not in result
+
+    # Search for hosts that require the specified bugfix advisory.
     result = Host.list(
         {
-            'search': f'installable_errata = {FAKE_5_ERRATA_ID}',
+            'search': f'installable_errata = {errata[1]["id"]}',
             'organization-id': module_org.id,
-            'per-page': 1000,
+            'per-page': PER_PAGE_LARGE,
         }
     )
     result = [item['name'] for item in result]
-    assert errata_machines[0].hostname not in result
-    assert errata_machines[1].hostname not in result
-    # Clean up by removing the CV filter
-    ContentViewFilter.delete(
-        {
-            'content-view-id': module_cv.id,
-            'name': cv_filter['name'],
-            'organization-id': module_org.id,
-        }
-    )
-
-
-# Hammer CLI Tests for Erratum command
-
-
-ORG1_YUM_ERRATUM_COUNT = FAKE_6_YUM_ERRATUM_COUNT
-ORG1_ERRATA_ID = FAKE_2_ERRATA_ID
-
-ORG2_YUM_ERRATUM_COUNT = FAKE_1_YUM_ERRATUM_COUNT
-ORG2_ERRATA_ID = FAKE_1_ERRATA_ID
-
-ORG3_YUM_BIG_ERRATUM_COUNT = FAKE_3_YUM_ERRATUM_COUNT
-ORG3_BIG_ERRATA_ID = FAKE_3_ERRATA_ID
-
-ORG3_YUM_SMALL_ERRATUM_COUNT = FAKE_0_YUM_ERRATUM_COUNT
-ORG3_SMALL_ERRATA_ID = FAKE_0_ERRATA_ID
-
-ORG3_YUM_BIG_ERRATUM_COUNT = FAKE_3_YUM_ERRATUM_COUNT
-ORG3_BIG_ERRATA_ID = FAKE_3_ERRATA_ID
-
-
-@pytest.fixture(scope='class')
-def org1():
-    """an org with one custom product & repository"""
-    org1 = entities.Organization().create()
-    org1.product = entities.Product(organization=org1).create()
-    repo = make_repository(
-        {
-            'download-policy': 'immediate',
-            'organization-id': org1.id,
-            'product-id': org1.product.id,
-            'url': FAKE_6_YUM_REPO,
-        }
-    )
-    Repository.synchronize({'id': repo['id']})
-    return org1
-
-
-@pytest.fixture(scope='class')
-def org2():
-    """an org with one custom product & repository"""
-    org2 = entities.Organization().create()
-    org2.product = entities.Product(organization=org2).create()
-    repo = make_repository(
-        {
-            'download-policy': 'immediate',
-            'organization-id': org2.id,
-            'product-id': org2.product.id,
-            'url': FAKE_1_YUM_REPO,
-        }
-    )
-    Repository.synchronize({'id': repo['id']})
-    return org2
-
-
-@pytest.fixture(scope='class')
-def org3():
-    """an org with two repositories each with a custom product"""
-    # product small
-    org3 = entities.Organization().create()
-    org3.product_small = make_product(options={'organization-id': org3.id})
-    repo = make_repository(
-        {
-            'download-policy': 'immediate',
-            'organization-id': org3.id,
-            'product-id': org3.product_small['id'],
-            'url': FAKE_2_YUM_REPO,
-        }
-    )
-    Repository.synchronize({'id': repo['id']})
-    # product big
-    org3.product_big = make_product(options={'organization-id': org3.id})
-    repo = make_repository(
-        {
-            'download-policy': 'immediate',
-            'organization-id': org3.id,
-            'product-id': org3.product_big['id'],
-            'url': FAKE_3_YUM_REPO,
-        }
-    )
-    Repository.synchronize({'id': repo['id']})
-    return org3
-
-
-def _get_sorted_erratum_ids_info(erratum_ids, sort_by='issued', sort_reversed=False):
-    """Query hammer for erratum ids info
-
-    :param erratum_ids: a list of errata id
-    :param sort_by: the field to sort by the results (issued or updated)
-    :param sort_reversed: whether the sort should be reversed
-            (not ascending)
-    :return: a list of errata info dict for each errata id in erratum_ids
-    :type erratum_ids: list[str]
-    :type sort_by: str
-    :type sort_reversed: bool
-    :rtype: list[dict]
-    """
-    if len(erratum_ids) > ERRATUM_MAX_IDS_INFO:
-        raise Exception('Erratum ids length exceeded')
-    erratum_info_list = []
-    for errata_id in erratum_ids:
-        erratum_info_list.append(Erratum.info(options={'id': errata_id}, output_format='json'))
-    sorted_erratum_info_list = sorted(
-        erratum_info_list, key=itemgetter(sort_by), reverse=sort_reversed
-    )
-    return sorted_erratum_info_list
+    assert errata_hosts[0].hostname not in result
+    assert errata_hosts[1].hostname not in result
 
 
 @pytest.mark.tier3
-@pytest.mark.upgrade
-def test_positive_list_sort_by_issued_date(module_org):
-    """Sort errata by Issued date
-
-    :id: d838a969-d70a-43ae-9805-2e94dd985d6b
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --order 'issued ASC'
-        2. erratum list --order 'issued DESC'
-
-    :expectedresults: Errata is sorted by Issued date.
-    """
-    sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list({'order': sort_text, 'per-page': ERRATUM_MAX_IDS_INFO})
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_id_and_sort_by_updated_date(module_org):
-    """Filter errata by org id and sort by updated date
-
-    :id: 9b7f98ee-bbde-47b6-8727-b02550df13ae
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --organization-id=<orgid> --order 'updated ASC'
-        2. erratum list --organization-id=<orgid> --order 'updated DESC'
-
-    :expectedresults: Errata is filtered by org id and sorted by updated
-        date.
-    """
-    sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization-id': module_org.id,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_name_and_sort_by_updated_date(module_org):
-    """Filter errata by org name and sort by updated date
-
-    :id: f202616b-cd4f-4ab2-bf2a-2788579e355a
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --organization=<org name> --order 'updated ASC'
-        2. erratum list --organization=<org name> --order 'updated DESC'
-
-    :expectedresults: Errata is filtered by org name and sorted by updated
-        date.
-    """
-    sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization': module_org.name,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_label_and_sort_by_updated_date(module_org):
-    """Filter errata by org label and sort by updated date
-
-    :id: ce891bdf-cc2f-46e9-ab43-91527d40c3ed
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --organization-label=<org_label> --order 'updated
-            ASC'
-        2. erratum list --organization-label=<org_label> --order 'updated
-            DESC'
-
-    :expectedresults: Errata is filtered by org label and sorted by updated
-        date.
-    """
-    sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization-label': module_org.label,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_id_and_sort_by_issued_date(module_org, rh_repo, custom_repo):
-    """Filter errata by org id and sort by issued date
-
-    :id: 5d0f396c-f930-4fe7-8d1e-5039a4ed359a
-
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --organization-id=<org_id> --order 'issued ASC'
-        2. erratum list --organization-id=<org_id> --order 'issued DESC'
-
-    :expectedresults: Errata is filtered by org id and sorted by issued
-        date.
-    """
-    sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization-id': module_org.id,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_name_and_sort_by_issued_date(
-    module_org, rh_repo, custom_repo
+@pytest.mark.parametrize(
+    'sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date')
+)
+@pytest.mark.parametrize(
+    'filter_by_org',
+    ('id', 'name', 'label', None),
+    ids=('org_id', 'org_name', 'org_label', 'no_org_filter'),
+)
+def test_positive_list_filter_by_org_sort_by_date(
+    module_org, rh_repo, custom_repo, filter_by_org, sort_by_date
 ):
-    """Filter errata by org name and sort by issued date
+    """Filter by organization and sort by date.
 
-    :id: 22f05ac0-fefa-48c4-861d-eeed41d9b235
+    :id: 248af10f-917c-477d-a481-43f584692c69
 
-    :Setup: Errata synced on satellite server.
-
-    :Steps:
-
-        1. erratum list --organization=<org_name> --order 'issued ASC'
-        2. erratum list --organization=<org_name> --order 'issued DESC'
-
-    :expectedresults: Errata is filtered by org name and sorted by issued
-        date.
-    """
-    sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization': module_org.name,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field value in the same order as
-        # received from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
-
-
-@pytest.mark.tier3
-def test_positive_list_filter_by_org_label_and_sort_by_issued_date(
-    module_org, rh_repo, custom_repo
-):
-    """Filter errata by org label and sort by issued date
-
-    :id: 31acb734-8705-4d3c-b05e-edfd63d1ca3b
+    :parametrized: yes
 
     :Setup: Errata synced on satellite server.
 
-    :Steps:
+    :Steps: erratum list
+         (--organization-id=<org_id>|--organization=<org_name>|--organization-label=<org_label>)
+         --order ('updated ASC'|'updated DESC'|'issued ASC'|'issued DESC')
 
-        1. erratum list --organization-label=<org_label> --order 'issued
-            ASC'
-        2. erratum list --organization-label=<org_label> --order 'issued
-            DESC'
-
-    :expectedresults: Errata is filtered by org label and sorted by issued
-        date.
+    :expectedresults: Errata are filtered by org and sorted by date.
     """
-    sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
-    for sort_field, sort_order in sort_data:
-        sort_text = f'{sort_field} {sort_order}'
-        sort_reversed = True if sort_order == 'DESC' else False
-        erratum_list = Erratum.list(
-            {
-                'organization-label': module_org.label,
-                'order': sort_text,
-                'per-page': ERRATUM_MAX_IDS_INFO,
-            }
-        )
-        # note: the erratum_list, contain a list of restraint info
-        # (id, errata-id, type, title) about each errata
-        assert len(erratum_list) > 0
-        # build a list of erratum id received from Erratum.list
-        erratum_ids = [errata['id'] for errata in erratum_list]
-        # build a list of errata-id field in the same order as received
-        # from Erratum.list
-        errata_ids = [errata['errata-id'] for errata in erratum_list]
-        # build a sorted more detailed erratum info list, that also
-        # contain the sort field
-        sorted_errata_info_list = _get_sorted_erratum_ids_info(
-            erratum_ids, sort_by=sort_field, sort_reversed=sort_reversed
-        )
-        # build a list of sort field (issued/updated) values in the
-        # same order as received from the detailed sorted erratum info
-        # list
-        sort_field_values = [errata[sort_field] for errata in sorted_errata_info_list]
-        # ensure that the sort field (issued/updated) values are sorted
-        # as needed
-        assert sort_field_values == sorted(sort_field_values, reverse=sort_reversed)
-        # build a list of errata-id field value in the same order as
-        # received from the detailed sorted errata info list
-        sorted_errata_ids = [errata['errata-id'] for errata in sorted_errata_info_list]
-        # ensure that the errata ids received by Erratum.list is sorted
-        # as needed
-        assert errata_ids == sorted_errata_ids
+    filter_sort_errata(module_org, sort_by_date=sort_by_date, filter_by_org=filter_by_org)
 
 
 @pytest.mark.tier3
-def test_positive_list_filter_by_product_id(
-    org1,
-    org2,
-):
+def test_positive_list_filter_by_product_id(products_with_repos):
     """Filter errata by product id
 
     :id: 7d06950a-c058-48b3-a384-c3565cbd643f
@@ -1389,562 +987,291 @@ def test_positive_list_filter_by_product_id(
 
     :expectedresults: Errata is filtered by product id.
     """
-    org1.product_erratum_list = Erratum.list({'product-id': org1.product.id, 'per-page': 1000})
-    org1.product_errata_ids = {errata['errata-id'] for errata in org1.product_erratum_list}
-    org2.product_erratum_list = Erratum.list({'product-id': org2.product.id, 'per-page': 1000})
-    org2.product_errata_ids = {errata['errata-id'] for errata in org2.product_erratum_list}
-    assert len(org1.product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-    assert len(org2.product_errata_ids) == ORG2_YUM_ERRATUM_COUNT
-    assert ORG1_ERRATA_ID in org1.product_errata_ids
-    assert ORG2_ERRATA_ID in org2.product_errata_ids
-    assert org1.product_errata_ids.intersection(org2.product_errata_ids) == set()
+    params = [
+        {'product-id': product.id, 'per-page': PER_PAGE_LARGE} for product in products_with_repos
+    ]
+    errata_ids = get_errata_ids(*params)
+    check_errata(errata_ids)
 
 
 @pytest.mark.tier3
-def test_positive_list_filter_by_product_id_and_org_id(
-    org1,
-    org3,
+@pytest.mark.parametrize('filter_by_product', ('id', 'name'), ids=('product_id', 'product_name'))
+@pytest.mark.parametrize(
+    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+)
+def test_positive_list_filter_by_product_and_org(
+    products_with_repos, filter_by_product, filter_by_org
 ):
     """Filter errata by product id and Org id
 
-    :id: caf14671-d8b2-4a23-8c7e-6667bb78d4b7
+    :id: ca0e8210-aecb-424a-b39f-24db24461312
+
+    :parametrized: yes
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: erratum list --product-id=<product_id>
-        --organization-id=<org_id>
+    :Steps: erratum list (--product-id=<product_id>|--product=<product_name>)
+        (--organization-id=<org_id>|--organization=<org_name>|--organization-label=<org_label>)
 
-    :expectedresults: Errata is filtered by product id and Org id.
+    :expectedresults: Errata is filtered by product and org.
     """
-    product_erratum_list = Erratum.list(
-        {
-            'organization-id': org1.id,
-            'product-id': org1.product.id,
-            'per-page': 1000,
-        }
-    )
-    product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-    product_small_erratum_list = Erratum.list(
-        {
-            'organization-id': org3.id,
-            'product-id': org3.product_small['id'],
-            'per-page': 1000,
-        }
-    )
-    product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-    product_big_erratum_list = Erratum.list(
-        {
-            'organization-id': org3.id,
-            'product-id': org3.product_big['id'],
-            'per-page': 1000,
-        }
-    )
-    product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-    assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-    assert len(product_small_errata_ids) == ORG3_YUM_SMALL_ERRATUM_COUNT
-    assert len(product_big_errata_ids) == ORG3_YUM_BIG_ERRATUM_COUNT
-    assert ORG1_ERRATA_ID in product_errata_ids
-    assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-    assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-    assert product_errata_ids.intersection(product_small_errata_ids) == set()
-    assert product_errata_ids.intersection(product_big_errata_ids) == set()
-    assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
+    params = []
+    for product in products_with_repos:
+        param = {'per-page': PER_PAGE_LARGE}
+
+        if filter_by_org == 'id':
+            param['organization-id'] = product.organization.id
+        elif filter_by_org == 'name':
+            param['organization'] = product.organization.name
+        elif filter_by_org == 'label':
+            param['organization-label'] = product.organization.label
+
+        if filter_by_product == 'id':
+            param['product-id'] = product.id
+        elif filter_by_product == 'name':
+            param['product'] = product.name
+
+        params.append(param)
+
+    errata_ids = get_errata_ids(*params)
+    check_errata(errata_ids)
 
 
 @pytest.mark.tier3
-def test_positive_list_filter_by_product_id_and_org_name(
-    org1,
-    org3,
-):
-    """Filter errata by product id and Org name
+def test_negative_list_filter_by_product_name(products_with_repos):
+    """Attempt to Filter errata by product name
 
-    :id: 574a6f7e-a89e-482e-bf15-39cfd7730630
+    :id: c7a5988b-668f-4c48-bc1e-97cb968a2563
 
-    :Setup: errata synced on satellite server.
+    :BZ: 1400235
 
-    :Steps: erratum list --product-id=<product_id>
-        --organization=<org_name>
+    :Setup: Errata synced on satellite server.
 
-    :expectedresults: Errata is filtered by product id and Org name.
+    :Steps: erratum list --product=<product_name>
+
+    :expectedresults: Error must be returned.
+
+    :CaseImportance: Low
+
+    :CaseLevel: System
     """
-    product_erratum_list = Erratum.list(
+    with pytest.raises(CLIReturnCodeError):
+        Erratum.list({'product': products_with_repos[0].name, 'per-page': PER_PAGE_LARGE})
+
+
+@pytest.mark.tier3
+@pytest.mark.parametrize(
+    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+)
+def test_positive_list_filter_by_org(products_with_repos, filter_by_org):
+    """Filter errata by org id, name, or label.
+
+    :id: de7646be-7ac8-4dbe-8cc3-6959808d78fa
+
+    :parametrized: yes
+
+    :Setup: Errata synced on satellite server.
+
+    :Steps: erratum list
+        (--organization-id=<org_id>|--organization=<org_name>|--organization-label=<org_label>)
+
+    :expectedresults: Errata are filtered by org id, name, or label.
+    """
+    params = []
+    for product in products_with_repos:
+        param = {'per-page': PER_PAGE_LARGE}
+
+        if filter_by_org == 'id':
+            param['organization-id'] = product.organization.id
+        elif filter_by_org == 'name':
+            param['organization'] = product.organization.name
+        elif filter_by_org == 'label':
+            param['organization-label'] = product.organization.label
+
+        params.append(param)
+
+    errata_ids = get_errata_ids(*params)
+    check_errata(errata_ids, by_org=True)
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+def test_positive_list_filter_by_cve(module_org):
+    """Filter errata by CVE
+
+    :id: 7791137c-95a7-4518-a56b-766a5680c5fb
+
+    :Setup: Errata synced on satellite server.
+
+    :Steps: erratum list --cve <cve_id>
+
+    :expectedresults: Errata is filtered by CVE.
+
+    """
+    RepositorySet.enable(
         {
-            'organization': org1.name,
-            'product-id': org1.product.id,
-            'per-page': 1000,
+            'name': REPOSET['rhva6'],
+            'organization-id': module_org.id,
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
+            'basearch': 'x86_64',
         }
     )
-    product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-    product_small_erratum_list = Erratum.list(
+    Repository.synchronize(
         {
-            'organization': org3.name,
-            'product-id': org3.product_small['id'],
-            'per-page': 1000,
+            'name': REPOS['rhva6']['name'],
+            'organization-id': module_org.id,
+            'product': PRDS['rhel'],
         }
     )
-    product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-    product_big_erratum_list = Erratum.list(
+    repository_info = Repository.info(
         {
-            'organization': org3.name,
-            'product-id': org3.product_big['id'],
-            'per-page': 1000,
+            'name': REPOS['rhva6']['name'],
+            'organization-id': module_org.id,
+            'product': PRDS['rhel'],
         }
     )
-    product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-    assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-    assert len(product_small_errata_ids) == ORG3_YUM_SMALL_ERRATUM_COUNT
-    assert len(product_big_errata_ids) == ORG3_YUM_BIG_ERRATUM_COUNT
-    assert ORG1_ERRATA_ID in product_errata_ids
-    assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-    assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-    assert product_errata_ids.intersection(product_small_errata_ids) == set()
-    assert product_errata_ids.intersection(product_big_errata_ids) == set()
-    assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
 
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_product_id_and_org_label(org1, org3):
-        """Filter errata by product id and Org label
+    assert REAL_4_ERRATA_ID in {
+        errata['errata-id'] for errata in Erratum.list({'repository-id': repository_info['id']})
+    }
 
-        :id: 7b92ee32-2386-452c-9443-65b0c233a564
+    for errata_cve in REAL_4_ERRATA_CVES:
+        assert REAL_4_ERRATA_ID in {
+            errata['errata-id'] for errata in Erratum.list({'cve': errata_cve})
+        }
 
-        :Setup: errata synced on satellite server.
 
-        :Steps: erratum list --product-id=<product_id>
-            --organization-label=<org_label>
+@pytest.mark.tier3
+@pytest.mark.upgrade
+def test_positive_user_permission(products_with_repos):
+    """Show errata only if the User has permissions to view them
 
-        :expectedresults: Errata is filtered by product id and Org label
-        """
-        product_erratum_list = Erratum.list(
-            {
-                'organization-label': org1.label,
-                'product-id': org1.product.id,
-                'per-page': 1000,
-            }
-        )
-        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-        product_small_erratum_list = Erratum.list(
-            {
-                'organization-label': org3.label,
-                'product-id': org3.product_small['id'],
-                'per-page': 1000,
-            }
-        )
-        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-        product_big_erratum_list = Erratum.list(
-            {
-                'organization-label': org3.label,
-                'product-id': org3.product_big['id'],
-                'per-page': 1000,
-            }
-        )
-        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-        assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(product_small_errata_ids) == ORG3_YUM_SMALL_ERRATUM_COUNT
-        assert len(product_big_errata_ids) == ORG3_YUM_BIG_ERRATUM_COUNT
-        assert ORG1_ERRATA_ID in product_errata_ids
-        assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-        assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-        assert product_errata_ids.intersection(product_small_errata_ids) == set()
-        assert product_errata_ids.intersection(product_big_errata_ids) == set()
-        assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
+    :id: f350c13b-8cf9-4aa5-8c3a-1c48397ea514
 
-    @pytest.mark.tier3
-    def test_negative_list_filter_by_product_name(org1):
-        """Attempt to Filter errata by product name
+    :Setup:
 
-        :id: c7a5988b-668f-4c48-bc1e-97cb968a2563
+        1. Create two products with one repo each. Sync them.
+        2. Make sure that they both have errata.
+        3. Create a user with view access on one product and not on the
+           other.
 
-        :BZ: 1400235
+    :Steps: erratum list --organization-id=<orgid>
 
-        :Setup: Errata synced on satellite server.
+    :expectedresults: Check that the new user is able to see errata for one
+        product only.
 
-        :Steps: erratum list --product=<product_name>
+    :BZ: 1403947
+    """
+    user_password = gen_string('alphanumeric')
+    user_name = gen_string('alphanumeric')
 
-        :expectedresults: Error must be returned.
+    product = products_with_repos[3]
+    org = product.organization
 
-        :CaseImportance: Low
+    # get the available permissions
+    permissions = Filter.available_permissions()
+    user_required_permissions_names = ['view_products']
+    # get the user required permissions ids
+    user_required_permissions_ids = [
+        permission['id']
+        for permission in permissions
+        if permission['name'] in user_required_permissions_names
+    ]
+    assert len(user_required_permissions_ids) > 0
 
-        :CaseLevel: System
-        """
-        with pytest.raises(CLIReturnCodeError):
-            Erratum.list({'product': org1.product.name, 'per-page': 1000})
+    # create a role
+    role = make_role({'organization-ids': org.id})
 
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_product_name_and_org_id(org1, org3):
-        """Filter errata by product name and Org id
+    # create a filter with the required permissions for role with product
+    # one only
+    make_filter(
+        {
+            'permission-ids': user_required_permissions_ids,
+            'role-id': role['id'],
+            'search': f"name = {product.name}",
+        }
+    )
 
-        :id: 53f7afa2-285d-4d40-9fdd-5013b3f02462
+    # create a new user and assign him the created role permissions
+    user = make_user(
+        {
+            'admin': False,
+            'login': user_name,
+            'password': user_password,
+            'organization-ids': [org.id],
+            'default-organization-id': org.id,
+        }
+    )
+    User.add_role({'id': user['id'], 'role-id': role['id']})
 
-        :Setup: Errata synced on satellite server.
+    # make sure the user is not admin and has only the permissions assigned
+    user = User.info({'id': user['id']})
+    assert user['admin'] == 'no'
+    assert set(user['roles']) == {role['name']}
 
-        :Steps: erratum list --product=<product_name>
-            --organization-id=<org_id>
+    # try to get organization info
+    # get the info as admin user first
+    org_info = Org.info({'id': org.id})
+    assert str(org.id) == org_info['id']
+    assert org.name == org_info['name']
 
-        :expectedresults: Errata is filtered by product name and Org id.
-        """
-        product_erratum_list = Erratum.list(
-            {
-                'organization-id': org1.id,
-                'product': org1.name,
-                'per-page': 1000,
-            }
-        )
-        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-        product_small_erratum_list = Erratum.list(
-            {
-                'organization-id': org3.id,
-                'product': org3.product_small['name'],
-                'per-page': 1000,
-            }
-        )
-        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-        product_big_erratum_list = Erratum.list(
-            {
-                'organization-id': org3.id,
-                'product': org3.product_big['name'],
-                'per-page': 1000,
-            }
-        )
-        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-        assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(product_small_errata_ids) == org3.product_small_erratum_count
-        assert len(product_big_errata_ids) == org3.product_big_erratum_count
-        assert ORG1_ERRATA_ID in product_errata_ids
-        assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-        assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-        assert product_errata_ids.intersection(product_small_errata_ids) == set()
-        assert product_errata_ids.intersection(product_big_errata_ids) == set()
-        assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
+    # get the organization info as the created user
+    with pytest.raises(CLIReturnCodeError) as context:
+        Org.with_user(user_name, user_password).info({'id': org.id})
+    assert 'Missing one of the required permissions: view_organizations' in context.value.stderr
 
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_product_name_and_org_name(org1, org3):
-        """Filter errata by product name and Org name
+    # try to get the erratum products list by organization id only
+    # ensure that all products erratum are accessible by admin user
+    admin_org_errata_ids = [
+        errata['errata-id'] for errata in Erratum.list({'organization-id': org.id})
+    ]
+    assert REPOS_WITH_ERRATA[2]['errata_id'] in admin_org_errata_ids
+    assert REPOS_WITH_ERRATA[3]['errata_id'] in admin_org_errata_ids
 
-        :id: 8102d688-30d7-4ee5-a1aa-7e041d842a6f
+    assert len(admin_org_errata_ids) == (
+        REPOS_WITH_ERRATA[2]['errata_count'] + REPOS_WITH_ERRATA[3]['errata_count']
+    )
 
-        :Setup: Errata synced on satellite server.
+    # ensure that the created user see only the erratum product that was
+    # assigned in permissions
+    user_org_errata_ids = [
+        errata['errata-id']
+        for errata in Erratum.with_user(user_name, user_password).list({'organization-id': org.id})
+    ]
+    assert len(user_org_errata_ids) == REPOS_WITH_ERRATA[3]['errata_count']
+    assert REPOS_WITH_ERRATA[3]['errata_id'] in user_org_errata_ids
+    assert REPOS_WITH_ERRATA[2]['errata_id'] not in user_org_errata_ids
 
-        :Steps: erratum list --product=<product_name> --organization=<org_name>
 
-        :expectedresults: Errata is filtered by product name and Org name.
-        """
-        product_erratum_list = Erratum.list(
-            {
-                'organization': org1.name,
-                'product': org1.product['name'],
-                'per-page': 1000,
-            }
-        )
-        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-        product_small_erratum_list = Erratum.list(
-            {
-                'organization': org3.name,
-                'product': org3.product_small['name'],
-                'per-page': 1000,
-            }
-        )
-        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-        product_big_erratum_list = Erratum.list(
-            {
-                'organization': org3.name,
-                'product': org3.product_big['name'],
-                'per-page': 1000,
-            }
-        )
-        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-        assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(product_small_errata_ids) == org3.product_small_erratum_count
-        assert len(product_big_errata_ids) == org3.product_big_erratum_count
-        assert ORG1_ERRATA_ID in product_errata_ids
-        assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-        assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-        assert product_errata_ids.intersection(product_small_errata_ids) == set()
-        assert product_errata_ids.intersection(product_big_errata_ids) == set()
-        assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
+@pytest.mark.tier3
+def test_positive_check_errata_dates(module_org):
+    """Check for errata dates in `hammer erratum list`
 
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_product_name_and_org_label(org1, org3):
-        """Filter errata by product name and Org label
+    :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
 
-        :id: 64abb151-3f9d-4cad-b4a1-6bf0d73d8a3c
+    :expectedresults: Display errata date when using hammer erratum list
 
-        :Setup: Errata synced on satellite server.
+    :CaseImportance: High
 
-        :Steps: erratum list --product=<product_name>
-            --organization-label=<org_label>
+    :BZ: 1695163
+    """
+    product = entities.Product(organization=module_org).create()
+    repo = make_repository(
+        {'content-type': 'yum', 'product-id': product.id, 'url': REPO_WITH_ERRATA['url']}
+    )
+    # Synchronize custom repository
+    Repository.synchronize({'id': repo['id']})
+    result = Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
+    assert 'issued' in result[0]
 
-        :expectedresults: Errata is filtered by product name and Org label.
-        """
-        product_erratum_list = Erratum.list(
-            {
-                'organization-label': org1.label,
-                'product': org1.product['name'],
-                'per-page': 1000,
-            }
-        )
-        product_errata_ids = {errata['errata-id'] for errata in product_erratum_list}
-        product_small_erratum_list = Erratum.list(
-            {
-                'organization-label': org3.label,
-                'product': org3.product_small['name'],
-                'per-page': 1000,
-            }
-        )
-        product_small_errata_ids = {errata['errata-id'] for errata in product_small_erratum_list}
-        product_big_erratum_list = Erratum.list(
-            {
-                'organization-label': org3.label,
-                'product': org3.product_big['name'],
-                'per-page': 1000,
-            }
-        )
-        product_big_errata_ids = {errata['errata-id'] for errata in product_big_erratum_list}
-        assert len(product_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(product_small_errata_ids) == org3.product_small_erratum_count
-        assert len(product_big_errata_ids) == org3.product_big_erratum_count
-        assert ORG1_ERRATA_ID in product_errata_ids
-        assert ORG3_SMALL_ERRATA_ID in product_small_errata_ids
-        assert ORG3_BIG_ERRATA_ID in product_big_errata_ids
-        assert product_errata_ids.intersection(product_small_errata_ids) == set()
-        assert product_errata_ids.intersection(product_big_errata_ids) == set()
-        assert product_small_errata_ids.intersection(product_big_errata_ids) == set()
+    # Verify any errata ISSUED date from stdout
+    validate_issued_date = datetime.strptime(result[0]['issued'], '%Y-%m-%d').date()
+    assert isinstance(validate_issued_date, date)
 
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_org_id(
-        org1,
-        org2,
-    ):
-        """Filter errata by Org id
+    result = Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
+    assert 'updated' in result[0]
 
-        :id: eeb2b409-89dc-4576-9f89-520cf7152a5a
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: erratum list --organization-id=<orgid>
-
-        :expectedresults: Errata is filtered by Org id.
-        """
-        org1_erratum_list = Erratum.list({'organization-id': org1.id, 'per-page': 1000})
-        org1_errata_ids = {errata['errata-id'] for errata in org1_erratum_list}
-        org2_erratum_list = Erratum.list({'organization-id': org2.id, 'per-page': 1000})
-        org2_errata_ids = {errata['errata-id'] for errata in org2_erratum_list}
-        assert len(org1_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(org2_errata_ids) == ORG2_YUM_ERRATUM_COUNT
-        assert ORG1_ERRATA_ID in org1_errata_ids
-        assert ORG2_ERRATA_ID in org2_errata_ids
-        assert org1_errata_ids.intersection(org2_errata_ids) == set()
-
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_org_name(
-        org1,
-        org2,
-    ):
-        """Filter errata by Org name
-
-        :id: f2b20bb5-0938-4c7b-af95-d2b3e2b36581
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: erratum list --organization=<org name>
-
-        :expectedresults: Errata is filtered by Org name.
-        """
-        org1_erratum_list = Erratum.list({'organization': org1.name, 'per-page': 1000})
-        org1_errata_ids = {errata['errata-id'] for errata in org1_erratum_list}
-        org2_erratum_list = Erratum.list({'organization': org2.name, 'per-page': 1000})
-        org2_errata_ids = {errata['errata-id'] for errata in org2_erratum_list}
-        assert len(org1_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(org2_errata_ids) == ORG2_YUM_ERRATUM_COUNT
-        assert ORG1_ERRATA_ID in org1_errata_ids
-        assert ORG2_ERRATA_ID in org2_errata_ids
-        assert org1_errata_ids.intersection(org2_errata_ids) == set()
-
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_org_label(
-        org1,
-        org2,
-    ):
-        """Filter errata by Org label
-
-        :id: 398123f5-d3ad-4a16-ac5d-e157d6d67595
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: erratum list --organization-label=<org_label>
-
-        :expectedresults: Errata is filtered by Org label.
-        """
-        org1_erratum_list = Erratum.list({'organization-label': org1.label, 'per-page': 1000})
-        org1_errata_ids = {errata['errata-id'] for errata in org1_erratum_list}
-        org2_erratum_list = Erratum.list({'organization-label': org2.label, 'per-page': 1000})
-        org2_errata_ids = {errata['errata-id'] for errata in org2_erratum_list}
-        assert len(org1_errata_ids) == ORG1_YUM_ERRATUM_COUNT
-        assert len(org2_errata_ids) == ORG2_YUM_ERRATUM_COUNT
-        assert ORG1_ERRATA_ID in org1_errata_ids
-        assert ORG2_ERRATA_ID in org2_errata_ids
-        assert org1_errata_ids.intersection(org2_errata_ids) == set()
-
-    @pytest.mark.run_in_one_thread
-    @pytest.mark.tier3
-    def test_positive_list_filter_by_cve(module_org):
-        """Filter errata by CVE
-
-        :id: 7791137c-95a7-4518-a56b-766a5680c5fb
-
-        :Setup: Errata synced on satellite server.
-
-        :Steps: erratum list --cve <cve_id>
-
-        :expectedresults: Errata is filtered by CVE.
-
-        """
-        RepositorySet.enable(
-            {
-                'name': REPOSET['rhva6'],
-                'organization-id': module_org.id,
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-                'basearch': 'x86_64',
-            }
-        )
-        Repository.synchronize(
-            {
-                'name': REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        repository_info = Repository.info(
-            {
-                'name': REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
-                'product': PRDS['rhel'],
-            }
-        )
-        erratum = Erratum.list({'repository-id': repository_info['id']})
-        errata_ids = [errata['errata-id'] for errata in erratum]
-        assert REAL_4_ERRATA_ID in errata_ids
-        for errata_cve in REAL_4_ERRATA_CVES:
-            cve_erratum = Erratum.list({'cve': errata_cve})
-            cve_errata_ids = [cve_errata['errata-id'] for cve_errata in cve_erratum]
-            assert REAL_4_ERRATA_ID in cve_errata_ids
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_user_permission(module_org):
-        """Show errata only if the User has permissions to view them
-
-        :id: f350c13b-8cf9-4aa5-8c3a-1c48397ea514
-
-        :Setup:
-
-            1. Create two products with one repo each. Sync them.
-            2. Make sure that they both have errata.
-            3. Create a user with view access on one product and not on the
-               other.
-
-        :Steps: erratum list --organization-id=<orgid>
-
-        :expectedresults: Check that the new user is able to see errata for one
-            product only.
-
-        :BZ: 1403947
-        """
-        user_password = gen_string('alphanumeric')
-        user_name = gen_string('alphanumeric')
-        org = org3
-        product = org3.product_small
-        # get the available permissions
-        permissions = Filter.available_permissions()
-        user_required_permissions_names = ['view_products']
-        # get the user required permissions ids
-        user_required_permissions_ids = [
-            permission['id']
-            for permission in permissions
-            if permission['name'] in user_required_permissions_names
-        ]
-        assert len(user_required_permissions_ids) > 0
-        # create a role
-        role = make_role({'organization-ids': org['id']})
-        # create a filter with the required permissions for role with product
-        # one only
-        make_filter(
-            {
-                'permission-ids': user_required_permissions_ids,
-                'role-id': role['id'],
-                'search': f"name = {product['name']}",
-            }
-        )
-        # create a new user and assign him the created role permissions
-        user = make_user(
-            {
-                'admin': False,
-                'login': user_name,
-                'password': user_password,
-                'organization-ids': [org['id']],
-                'default-organization-id': org['id'],
-            }
-        )
-        User.add_role({'id': user['id'], 'role-id': role['id']})
-        # make sure the user is not admin and has only the permissions assigned
-        user = User.info({'id': user['id']})
-        assert user['admin'] == 'no'
-        assert set(user['roles']) == {role['name']}
-        # try to get organization info
-        # get the info as admin user first
-        org_info = Org.info({'id': org['id']})
-        assert org['id'] == org_info['id']
-        assert org['name'] == org_info['name']
-        # get the organization info as the created user
-        with pytest.raises(CLIReturnCodeError) as context:
-            Org.with_user(user_name, user_password).info({'id': org['id']})
-        assert (
-            'Missing one of the required permissions: view_organizations' in context.value.stderr
-        )
-        # try to get the erratum products list by organization id only
-        # ensure that all products erratum are accessible by admin user
-        admin_org_erratum_info_list = Erratum.list({'organization-id': org['id']})
-        admin_org_errata_ids = [errata['errata-id'] for errata in admin_org_erratum_info_list]
-        assert org3.product_small_errata_id in admin_org_errata_ids
-        assert org3.product_big_errata_id in admin_org_errata_ids
-        org_erratum_count = org3.product_small_erratum_count + org3.product_big_erratum_count
-        assert len(admin_org_errata_ids) == org_erratum_count
-        # ensure that the created user see only the erratum product that was
-        # assigned in permissions
-        user_org_erratum_info_list = Erratum.with_user(user_name, user_password).list(
-            {'organization-id': org['id']}
-        )
-        user_org_errata_ids = [errata['errata-id'] for errata in user_org_erratum_info_list]
-        assert len(user_org_errata_ids) == org3.product_small_erratum_count
-        assert org3.product_small_errata_id in user_org_errata_ids
-        assert org3.product_big_errata_id not in user_org_errata_ids
-
-    @pytest.mark.tier3
-    def test_positive_check_errata_dates(module_org):
-        """Check for errata dates in `hammer erratum list`
-
-        :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
-
-        :expectedresults: Display errata date when using hammer erratum list
-
-        :CaseImportance: High
-
-        :BZ: 1695163
-        """
-        custom_product = make_product({'organization-id': module_org.id})
-        custom_repo = make_repository(
-            {'content-type': 'yum', 'product-id': custom_product['id'], 'url': FAKE_1_YUM_REPO}
-        )
-        # Synchronize custom repository
-        Repository.synchronize({'id': custom_repo['id']})
-        result = Erratum.list(options={'per-page': '5', 'fields': 'Issued'})
-        assert 'issued' in result[0]
-        # Verify any errata ISSUED date from stdout
-        validate_issued_date = datetime.datetime.strptime(result[0]['issued'], '%Y-%m-%d').date()
-        assert isinstance(validate_issued_date, datetime.date)
-
-        result = Erratum.list(options={'per-page': '5', 'fields': 'Updated'})
-        assert 'updated' in result[0]
-        # Verify any errata UPDATED date from stdout
-        validate_updated_date = datetime.datetime.strptime(result[0]['updated'], '%Y-%m-%d').date()
-        assert isinstance(validate_updated_date, datetime.date)
+    # Verify any errata UPDATED date from stdout
+    validate_updated_date = datetime.strptime(result[0]['updated'], '%Y-%m-%d').date()
+    assert isinstance(validate_updated_date, date)
