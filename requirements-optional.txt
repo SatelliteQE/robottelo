@@ -4,7 +4,7 @@ flake8==3.8.4
 pytest-cov==2.11.1
 redis==3.5.3
 tox==3.23.0
-pre-commit==2.11.0
+pre-commit==2.11.1
 
 
 # For generating documentation.
