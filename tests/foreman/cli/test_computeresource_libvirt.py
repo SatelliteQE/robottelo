@@ -70,12 +70,13 @@ def valid_name_desc_data():
 
 def invalid_create_data():
     """Random data for invalid name and url"""
-    return (
+    items = [
         {'name': gen_string('alphanumeric', 256)},
         {'name': ''},
         {'url': 'invalid url'},
         {'url': ''},
-    )
+    ]
+    return {f'{list(item.keys())[0]}=>{list(item.values())[0][0:10]}': item for item in items}
 
 
 def valid_update_data():
@@ -93,12 +94,13 @@ def valid_update_data():
 
 def invalid_update_data():
     """Random data for invalid update"""
-    return (
+    items = [
         {'new-name': gen_string('utf8', 256)},
         {'new-name': ''},
         {'url': 'invalid url'},
         {'url': ''},
-    )
+    ]
+    return {f'{list(item.keys())[0]}=>{list(item.values())[0][0:10]}': item for item in items}
 
 
 @pytest.fixture(scope="module")
@@ -210,6 +212,8 @@ def test_positive_create_with_libvirt(libvirt_url, options):
     :CaseImportance: Critical
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     ComputeResource.create(
         {
@@ -266,7 +270,7 @@ def test_positive_create_with_locs(libvirt_url):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('options', invalid_create_data())
+@pytest.mark.parametrize('options', **parametrized(invalid_create_data()))
 def test_negative_create_with_name_url(libvirt_url, options):
     """Compute Resource negative create with invalid values
 
@@ -277,6 +281,8 @@ def test_negative_create_with_name_url(libvirt_url, options):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     with pytest.raises(CLIReturnCodeError):
         ComputeResource.create(
@@ -326,6 +332,8 @@ def test_positive_update_name(libvirt_url, options):
     :CaseImportance: Critical
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     comp_res = make_compute_resource()
     options.update({'name': comp_res['name']})
@@ -343,7 +351,7 @@ def test_positive_update_name(libvirt_url, options):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('options', invalid_update_data())
+@pytest.mark.parametrize('options', **parametrized(invalid_update_data()))
 def test_negative_update(libvirt_url, options):
     """Compute Resource negative update
 
@@ -354,6 +362,8 @@ def test_negative_update(libvirt_url, options):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     comp_res = make_compute_resource()
     with pytest.raises(CLIReturnCodeError):
@@ -375,11 +385,13 @@ def test_positive_create_with_console_password_and_name(libvirt_url, set_console
 
     :expectedresults: No error is returned.
 
-    Targets BZ 1100344.
+    :BZ: 1100344
 
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     ComputeResource.create(
         {
@@ -400,11 +412,13 @@ def test_positive_update_console_password(libvirt_url, set_console_password):
 
     :expectedresults: No error is returned.
 
-    Targets BZ 1100344.
+    :BZ: 1100344
 
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     cr_name = gen_string('utf8')
     ComputeResource.create({'name': cr_name, 'provider': 'Libvirt', 'url': gen_url()})
