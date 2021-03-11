@@ -25,6 +25,7 @@ import pytest
 import yaml
 from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
+from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
@@ -57,7 +58,6 @@ from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
@@ -69,8 +69,8 @@ from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import download_server_file
+from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
-from robottelo.vm import VirtualMachine
 
 
 def _get_set_from_list_of_dict(value):
@@ -1400,14 +1400,14 @@ def test_positive_global_registration_end_to_end(
     for pair in expected_pairs:
         assert pair in cmd
     # register host
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
         # rhel repo required for insights client installation,
         # syncing it to the satellite would take too long
         client.configure_rhel_repo(settings.rhel7_repo)
         # run curl
-        result = client.run(cmd)
+        result = client.execute(cmd)
         assert result.status == 0
-        result = client.run('subscription-manager identity')
+        result = client.execute('subscription-manager identity')
         assert result.status == 0
         # Connect to host via ip
         Host.set_parameter(
