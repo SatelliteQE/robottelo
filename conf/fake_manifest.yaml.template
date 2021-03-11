@@ -1,0 +1,11 @@
+fake_manifest:
+# URL of the base manifest
+  url:
+    default: http://manifest-file-path
+    golden_ticket: http://manifest-file-path
+
+  # URL of the key file
+  key_url: http://manifest-key-path
+
+  # URL of the certificate file
+  cert_url: http://manifest-cert-path
