@@ -70,13 +70,12 @@ def valid_name_desc_data():
 
 def invalid_create_data():
     """Random data for invalid name and url"""
-    items = [
+    return (
         {'name': gen_string('alphanumeric', 256)},
         {'name': ''},
         {'url': 'invalid url'},
         {'url': ''},
-    ]
-    return {f'{list(item.keys())[0]}=>{list(item.values())[0][0:10]}': item for item in items}
+    )
 
 
 def valid_update_data():
@@ -94,13 +93,12 @@ def valid_update_data():
 
 def invalid_update_data():
     """Random data for invalid update"""
-    items = [
+    return (
         {'new-name': gen_string('utf8', 256)},
         {'new-name': ''},
         {'url': 'invalid url'},
         {'url': ''},
-    ]
-    return {f'{list(item.keys())[0]}=>{list(item.values())[0][0:10]}': item for item in items}
+    )
 
 
 @pytest.fixture(scope="module")
