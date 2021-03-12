@@ -60,6 +60,8 @@ def test_positive_create_with_name(setup, name):
     :CaseImportance: Critical
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         location=[setup.loc],
@@ -83,6 +85,8 @@ def test_positive_create_with_description(setup, description):
     :CaseImportance: Critical
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         description=description,
@@ -107,6 +111,8 @@ def test_positive_create_libvirt_with_display_type(setup, display_type):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         display_type=display_type,
@@ -189,6 +195,8 @@ def test_positive_update_name(setup, new_name):
     :CaseImportance: Critical
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
@@ -211,6 +219,8 @@ def test_positive_update_description(setup, new_description):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         description=gen_string('alpha'),
@@ -237,6 +247,8 @@ def test_positive_update_libvirt_display_type(setup, display_type):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         display_type='VNC',
@@ -395,6 +407,8 @@ def test_negative_create_with_invalid_name(setup, name):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         entities.LibvirtComputeResource(
@@ -442,6 +456,8 @@ def test_negative_create_with_url(setup, url):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     with pytest.raises(HTTPError):
         entities.LibvirtComputeResource(
@@ -461,6 +477,8 @@ def test_negative_update_invalid_name(setup, new_name):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     name = gen_string('alphanumeric')
     compresource = entities.LibvirtComputeResource(
@@ -509,6 +527,8 @@ def test_negative_update_url(setup, url):
     :CaseImportance: High
 
     :CaseLevel: Component
+
+    :parametrized: yes
     """
     compresource = entities.LibvirtComputeResource(
         location=[setup.loc], organization=[setup.org], url=setup.current_libvirt_url
