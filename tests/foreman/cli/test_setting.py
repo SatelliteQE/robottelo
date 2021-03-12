@@ -296,10 +296,10 @@ def test_positive_update_email_subject_prefix(setting_update):
     assert email_subject_prefix_value == email_subject_prefix['value']
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_negative_update_email_subject_prefix():
-    """Check email subject prefix not
+@pytest.mark.parametrize('setting_update', ['email_subject_prefix'], indirect=True)
+def test_negative_update_email_subject_prefix(setting_update):
+    """Check email subject prefix is not updated
 
     :id: 8a638596-248f-4196-af36-ad2982196382
 
@@ -307,10 +307,16 @@ def test_negative_update_email_subject_prefix():
 
     :expectedresults: email_subject_prefix is not updated
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
 
     :CaseImportance: Low
     """
+    email_subject_prefix_original = Settings.list({'search': 'name=email_subject_prefix'})[0]
+    email_subject_prefix_value = gen_string('alpha', 256)
+    with pytest.raises(CLIReturnCodeError):
+        Settings.set({'name': "email_subject_prefix", 'value': email_subject_prefix_value})
+    email_subject_prefix = Settings.list({'search': 'name=email_subject_prefix'})[0]
+    assert email_subject_prefix == email_subject_prefix_original
 
 
 @pytest.mark.tier2
