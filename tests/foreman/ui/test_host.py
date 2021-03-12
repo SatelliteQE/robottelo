@@ -1377,7 +1377,7 @@ def test_positive_global_registration_end_to_end(
     GlobalParameter().set({'name': 'host_registration_insights', 'value': 1})
     GlobalParameter().set({'name': 'host_registration_remote_execution', 'value': 1})
     # rex interface
-    iface = 'eth0'
+    iface = 'ens3'
     # fill in the global registration form
     with session:
         cmd = session.host.get_register_command(
@@ -1406,9 +1406,9 @@ def test_positive_global_registration_end_to_end(
         client.configure_rhel_repo(settings.rhel7_repo)
         # run curl
         result = client.run(cmd)
-        assert result.status == 0
+        assert result.return_code == 0
         result = client.run('subscription-manager identity')
-        assert result.status == 0
+        assert result.return_code == 0
         # Connect to host via ip
         Host.set_parameter(
             {
