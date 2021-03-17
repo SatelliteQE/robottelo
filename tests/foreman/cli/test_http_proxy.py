@@ -21,80 +21,70 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 
-from robottelo.cleanup import location_cleanup
-from robottelo.cleanup import org_cleanup
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
 from robottelo.cli.http_proxy import HttpProxy
-from robottelo.test import CLITestCase
 
 
-class HttpProxyTestCase(CLITestCase):
-    """Tests for http-proxy via Hammer CLI"""
+@pytest.mark.tier1
+@pytest.mark.upgrade
+def test_positive_create_update_delete(module_org, module_location):
+    """Create new http-proxy with attributes, update and delete it.
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    def test_positive_create_update_delete(self):
-        """Create new http-proxy with attributes, update and delete it.
+    :id: 6045010f-b43b-46f0-b80f-21505fa021c8
 
-        :id: 6045010f-b43b-46f0-b80f-21505fa021c8
+    :BZ: 1774325
 
-        :BZ: 1774325
+    :steps:
 
-        :steps:
+        1. hammer http-proxy create <args>
+        2. hammer http-proxy update <args>
+        3. hammer http-proxy delete <args>
 
-            1. Create http-proxy.
-            2. Update http-proxy.
-            3. delete http-proxy.
+    :expectedresults: CRUD operations related to http-proxy hammer command are successful.
 
-        :expectedresults: CRUD operations related to http-proxy hammer command are successful.
+    :CaseImportance: Critical
+    """
+    name = gen_string('alpha', 15)
+    url = f'{gen_url(scheme="https")}:{gen_integer(min_value=10, max_value=9999)}'
+    password = gen_string('alpha', 15)
+    username = gen_string('alpha', 15)
 
-        :CaseImportance: Critical
-        """
-        loc = make_location()
-        org = make_org()
-        self.addCleanup(location_cleanup, loc['id'])
-        self.addCleanup(org_cleanup, org['id'])
-        # Create http proxy
-        name = gen_string('alpha', 15)
-        url = '{}:{}'.format(gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999))
-        password = gen_string('alpha', 15)
-        username = gen_string('alpha', 15)
-        updated_name = gen_string('alpha', 15)
-        updated_url = '{}:{}'.format(
-            gen_url(scheme='https'), gen_integer(min_value=10, max_value=9999)
-        )
-        updated_password = gen_string('alpha', 15)
-        updated_username = gen_string('alpha', 15)
-        http_proxy = HttpProxy.create(
-            {
-                'name': name,
-                'url': url,
-                'username': username,
-                'password': password,
-                'organization-id': org['id'],
-                'location-id': loc['id'],
-            }
-        )
-        assert http_proxy['name'] == name
-        assert http_proxy['url'] == url
-        assert http_proxy['username'] == username
-        # Update http-proxy
-        HttpProxy.update(
-            {
-                'name': name,
-                'new-name': updated_name,
-                'url': updated_url,
-                'username': updated_username,
-                'password': updated_password,
-            }
-        )
-        updated_http_proxy = HttpProxy.info({'id': http_proxy['id']})
-        assert updated_http_proxy['name'] == updated_name
-        assert updated_http_proxy['url'] == updated_url
-        assert updated_http_proxy['username'] == updated_username
-        # Delete http-proxy
-        HttpProxy.delete({'id': updated_http_proxy['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            HttpProxy.info({'id': updated_http_proxy['id']})
+    updated_name = gen_string('alpha', 15)
+    updated_url = f'{gen_url(scheme="https")}:{gen_integer(min_value=10, max_value=9999)}'
+    updated_password = gen_string('alpha', 15)
+    updated_username = gen_string('alpha', 15)
+
+    # Create
+    http_proxy = HttpProxy.create(
+        {
+            'name': name,
+            'url': url,
+            'username': username,
+            'password': password,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
+        }
+    )
+    assert http_proxy['name'] == name
+    assert http_proxy['url'] == url
+    assert http_proxy['username'] == username
+
+    # Update
+    HttpProxy.update(
+        {
+            'name': name,
+            'new-name': updated_name,
+            'url': updated_url,
+            'username': updated_username,
+            'password': updated_password,
+        }
+    )
+    updated_http_proxy = HttpProxy.info({'id': http_proxy['id']})
+    assert updated_http_proxy['name'] == updated_name
+    assert updated_http_proxy['url'] == updated_url
+    assert updated_http_proxy['username'] == updated_username
+
+    # Delete
+    HttpProxy.delete({'id': updated_http_proxy['id']})
+    with pytest.raises(CLIReturnCodeError):
+        HttpProxy.info({'id': updated_http_proxy['id']})
