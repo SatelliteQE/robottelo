@@ -17,7 +17,7 @@ def pytest_collection_modifyitems(session, config, items):
     opt_passed = config.getvalue('mark_manuals_passed')
     opt_skipped = config.getvalue('mark_manuals_skipped')
     # TODO turn this into a flag or a choice option, this logic is just silly.
-    mark_skipped = opt_skipped and (not opt_passed)
+    mark_skipped = opt_skipped and not opt_passed
     include_stubbed = config.getvalue('include_stubbed')
     selected = []
     deselected = []
