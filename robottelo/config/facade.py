@@ -84,6 +84,15 @@ WRAPPER_EXCEPTIONS = (
     'vlan_networking.netmask',
     'vlan_networking.subnet',
     'vmware.vcenter',
+    'azurerm.client_id',
+    'azurerm.client_secret',
+    'azurerm.subscription_id',
+    'azurerm.tenant_id',
+    'azurerm.azure_region',
+    'azurerm.ssh_pub_key',
+    'azurerm.username',
+    'azurerm.password',
+    'azurerm.azure_subnet',
 )
 
 
