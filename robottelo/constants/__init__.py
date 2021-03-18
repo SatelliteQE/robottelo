@@ -39,11 +39,9 @@ DISTROS_MAJOR_VERSION = {
 MAJOR_VERSION_DISTRO = {value: key for key, value in DISTROS_MAJOR_VERSION.items()}
 
 BROKER_DEPLOY_WORKFLOW = "deploy-base-rhel"
-BROKER_PROVISIONING_PROVIDER = "RHEV"
 BROKER_RHEL77 = {
     "workflow": BROKER_DEPLOY_WORKFLOW,
     "rhel_version": "7.7",
-    "provider": BROKER_PROVISIONING_PROVIDER,
 }
 
 INTERFACE_API = 'API'
