@@ -1332,8 +1332,8 @@ def test_positive_global_registration_form(
     with session:
         cmd = session.host.get_register_command(
             {
-                'setup_insights': 'Yes' if insights_value else 'No',
-                'remote_execution': 'Yes' if rex_value else 'No',
+                'setup_insights': 'Yes (enforce)' if insights_value else 'No (enforce)',
+                'remote_execution': 'Yes (enforce)' if rex_value else 'No (enforce)',
                 'insecure': True,
                 'hostgroup': hostgroup.name,
                 'operatingsystem': module_os.title,
