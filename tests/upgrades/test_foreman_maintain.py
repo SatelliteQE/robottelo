@@ -23,7 +23,7 @@ from upgrade_tests import pre_upgrade
 from robottelo import ssh
 
 
-class Test_scenarioForemanMaintain(TestCase):
+class TestScenarioForemanMaintain(TestCase):
     """The test class contains pre-upgrade and post-upgrade scenarios to test
     foreman-maintain utility
 

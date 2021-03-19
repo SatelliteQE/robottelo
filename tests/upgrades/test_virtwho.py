@@ -38,7 +38,7 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-class Test_scenario_positive_virt_who(APITestCase):
+class TestScenarioPositiveVirtWho(APITestCase):
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
     :steps:
 

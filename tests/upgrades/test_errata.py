@@ -44,7 +44,7 @@ from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd
 
 
-class Test_scenarioErrataAbstract:
+class TestScenarioErrataAbstract:
     """This is an Abstract Class whose methods are inherited by others errata
     scenarios"""
 
@@ -96,7 +96,7 @@ class Test_scenarioErrataAbstract:
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
 
-class Test_scenario_errata_count(APITestCase, Test_scenarioErrataAbstract):
+class TestScenarioErrataCount(APITestCase, TestScenarioErrataAbstract):
     """The test class contains pre and post upgrade scenarios to test if the
     errata count for satellite client/content host.
 
@@ -277,8 +277,8 @@ class Test_scenario_errata_count(APITestCase, Test_scenarioErrataAbstract):
             install_or_update_package(client_hostname=client_container_id, package=package)
 
 
-class Test_scenario_errata_count_with_previous_version_katello_agent(
-    APITestCase, Test_scenarioErrataAbstract
+class TestScenarioErrataCountWithPreviousVersionKatelloAgent(
+    APITestCase, TestScenarioErrataAbstract
 ):
     """The test class contains pre and post upgrade scenarios to test erratas count
     and remotely install using n-1 'katello-agent' on content host.
