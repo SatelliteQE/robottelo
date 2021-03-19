@@ -45,7 +45,7 @@ def _valid_sc_parameters_data():
     ]
 
 
-class scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
+class Test_scenario_positive_puppet_parameter_and_datatype_intact(APITestCase):
     """Puppet Class Parameters value and type is intact post upgrade
 
     :id: 08012f39-240b-40df-b893-2ee767129737
