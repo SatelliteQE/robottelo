@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: SyncPlans
 
-:Assignee: lhellebr
+:Assignee: swadeley
 
 :TestType: Functional
 

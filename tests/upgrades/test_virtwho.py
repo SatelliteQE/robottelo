@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Virt-whoConfigurePlugin
 
-:Assignee: lhellebr
+:Assignee: kuhuang
 
 :TestType: Functional
 

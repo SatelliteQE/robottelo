@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Repositories
 
-:Assignee: lhellebr
+:Assignee: tpapaioa
 
 :TestType: Functional
 
