@@ -296,7 +296,7 @@ class TestAzureRMComputeResourceTestCase:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRm_FinishTemplate_Provisioning:
+class TestAzureRMFinishTemplateProvisioning:
     """AzureRM Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
@@ -419,7 +419,7 @@ class TestAzureRm_FinishTemplate_Provisioning:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRm_UserData_Provisioning:
+class TestAzureRMUserDataProvisioning:
     """AzureRM Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
@@ -546,7 +546,7 @@ class TestAzureRm_UserData_Provisioning:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRm_BYOS_FinishTemplate_Provisioning:
+class TestAzureRMBYOSFinishTemplateProvisioning:
     """AzureRM Host Provisioning Test with BYOS Image"""
 
     @pytest.fixture(scope='class', autouse=True)

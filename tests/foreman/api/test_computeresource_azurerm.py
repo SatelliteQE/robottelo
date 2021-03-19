@@ -299,7 +299,7 @@ class TestAzureRMHostProvisioningTestCase:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRM_UserData_Provisioning:
+class TestAzureRMUserDataProvisioning:
     """AzureRM UserData Host Provisioning Tests"""
 
     @pytest.fixture(scope='class', autouse=True)
@@ -453,7 +453,7 @@ class TestAzureRM_UserData_Provisioning:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
+class TestAzureRMSharedGalleryFinishTemplateProvisioning:
     """AzureRM Host Provisioning Tests with Shared Image Gallery"""
 
     @pytest.fixture(scope='class', autouse=True)
@@ -579,7 +579,7 @@ class TestAzureRm_Shared_Gallery_FinishTemplate_Provisioning:
 
 
 @pytest.mark.run_in_one_thread
-class TestAzureRm_Custom_Image_FinishTemplate_Provisioning:
+class TestAzureRMCustomImageFinishTemplateProvisioning:
     """AzureRM Host Provisioning Tests with Custom Image"""
 
     @pytest.fixture(scope='class', autouse=True)
