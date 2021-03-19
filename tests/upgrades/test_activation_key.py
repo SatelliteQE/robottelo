@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: ActivationKeys
 
-:Assignee: lhellebr
+:Assignee: chiggins
 
 :TestType: Functional
 

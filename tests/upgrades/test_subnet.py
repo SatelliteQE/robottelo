@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: Networking
 
-:Assignee: lhellebr
+:Assignee: rdrazny
 
 :TestType: Functional
 

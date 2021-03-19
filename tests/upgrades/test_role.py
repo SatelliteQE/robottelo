@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: UsersRoles
 
-:Assignee: lhellebr
+:Assignee: pondrejk
 
 :TestType: Functional
 
