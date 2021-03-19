@@ -18,6 +18,7 @@
 """
 import json
 
+import pytest
 from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
@@ -27,7 +28,6 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.test import APITestCase
 
 
 def _valid_sc_parameters_data():
@@ -45,7 +45,7 @@ def _valid_sc_parameters_data():
     ]
 
 
-class TestScenarioPositivePuppetParameterAndDatatypeIntact(APITestCase):
+class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     """Puppet Class Parameters value and type is intact post upgrade
 
     :id: 08012f39-240b-40df-b893-2ee767129737
@@ -61,7 +61,8 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact(APITestCase):
         intact post upgrade
     """
 
-    def setupScenario(self):
+    @pytest.fixture(scope="class")
+    def _setup_scenario(self):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
@@ -86,6 +87,13 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact(APITestCase):
         scenario_ents = {self.__class__.__name__: {'puppet_class': self.puppet_class.name}}
         create_dict(scenario_ents)
 
+    @pytest.fixture(scope="class")
+    def _clean_scenario(self, request):
+        @request.addfinalizer
+        def _cleanup():
+            puppet_class = get_entity_data(self.__class__.__name__)['puppet_class']
+            delete_puppet_class(puppet_class)
+
     def _validate_value(self, data, sc_param):
         """The helper function to validate the parameter actual and expected
         value
@@ -94,22 +102,22 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact(APITestCase):
         :param sc_param: The Actual Value of parameter
         """
         if data['sc_type'] == 'boolean':
-            self.assertEqual(sc_param.default_value, True if data['value'] == '1' else False)
+            assert sc_param.default_value == (True if data['value'] == '1' else False)
         elif data['sc_type'] == 'array':
             string_list = [str(element) for element in sc_param.default_value]
-            self.assertEqual(str(string_list), data['value'])
+            assert str(string_list) == data['value']
         elif data['sc_type'] in ('json', 'hash'):
-            self.assertEqual(
-                sc_param.default_value,
-                # convert string to dict
-                json.loads(data['value']),
-            )
+            # convert string to dict
+            assert sc_param.default_value == json.loads(data['value'])
         else:
-            self.assertEqual(sc_param.default_value, data['value'])
+            assert sc_param.default_value == data['value']
 
     @pre_upgrade
-    def test_pre_puppet_class_parameter_data_and_type(self):
+    @pytest.mark.parametrize('count', list(range(1, 10)))
+    def test_pre_puppet_class_parameter_data_and_type(self, count, _setup_scenario):
         """Puppet Class parameters with different data type are created
+
+        :parametrized: yes
 
         :steps:
 
@@ -119,37 +127,34 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact(APITestCase):
 
         :expectedresults: The parameters are updated with different data types
         """
-        self.setupScenario()
-        for count in range(1, 10):
-            with self.subTest(count):
-                data = _valid_sc_parameters_data()[count - 1]
-                sc_param = entities.SmartClassParameters().search(
-                    query={'search': f'parameter="api_classparameters_scp_00{count}"'}
-                )[0]
-                sc_param.override = True
-                sc_param.parameter_type = data['sc_type']
-                sc_param.default_value = data['value']
-                sc_param.update(['override', 'parameter_type', 'default_value'])
-                sc_param = sc_param.read()
-                self.assertEqual(sc_param.parameter_type, data['sc_type'])
-                self._validate_value(data, sc_param)
+        data = _valid_sc_parameters_data()[count - 1]
+        sc_param = entities.SmartClassParameters().search(
+            query={'search': f'parameter="api_classparameters_scp_00{count}"'}
+        )[0]
+        sc_param.override = True
+        sc_param.parameter_type = data['sc_type']
+        sc_param.default_value = data['value']
+        sc_param.update(['override', 'parameter_type', 'default_value'])
+        sc_param = sc_param.read()
+        assert sc_param.parameter_type == data['sc_type']
+        self._validate_value(data, sc_param)
 
     @post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
-    def test_post_puppet_class_parameter_data_and_type(self):
+    @pytest.mark.parametrize('count', list(range(1, 10)))
+    def test_post_puppet_class_parameter_data_and_type(self, count, _clean_scenario):
         """Puppet Class Parameters value and type is intact post upgrade
+
+        :parametrized: yes
 
         :steps: Postupgrade, Verify the value and type of updated parameters
 
         :expectedresults: The puppet class parameters data and type should be
             intact post upgrade
         """
-        for count in range(1, 10):
-            with self.subTest(count):
-                data = _valid_sc_parameters_data()[count - 1]
-                sc_param = entities.SmartClassParameters().search(
-                    query={'search': f'parameter="api_classparameters_scp_00{count}"'}
-                )[0]
-                self.assertEqual(sc_param.parameter_type, data['sc_type'])
-                self._validate_value(data, sc_param)
-        puppet_class = get_entity_data(self.__class__.__name__)['puppet_class']
-        delete_puppet_class(puppet_class)
+
+        data = _valid_sc_parameters_data()[count - 1]
+        sc_param = entities.SmartClassParameters().search(
+            query={'search': f'parameter="api_classparameters_scp_00{count}"'}
+        )[0]
+        assert sc_param.parameter_type == data['sc_type']
+        self._validate_value(data, sc_param)
