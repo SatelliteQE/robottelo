@@ -396,7 +396,7 @@ def test_positive_delete(setup):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('name', invalid_values_list())
+@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
 def test_negative_create_with_invalid_name(setup, name):
     """Attempt to create compute resources with invalid names
 
@@ -445,7 +445,7 @@ def test_negative_create_with_same_name(setup):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('url', ['', gen_string('alpha')])
+@pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_create_with_url(setup, url):
     """Attempt to create compute resources with invalid url
 
@@ -466,7 +466,7 @@ def test_negative_create_with_url(setup, url):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('new_name', invalid_values_list())
+@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_invalid_name(setup, new_name):
     """Attempt to update compute resource with invalid names
 
@@ -516,7 +516,7 @@ def test_negative_update_same_name(setup):
 
 
 @pytest.mark.tier2
-@pytest.mark.parametrize('url', ['', gen_string('alpha')])
+@pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
 def test_negative_update_url(setup, url):
     """Attempt to update a compute resource with invalid url
 
