@@ -182,7 +182,7 @@ def update_product_subscription_in_ak(product, yum_repo, ak, org):
     ak.add_subscriptions(data={'subscription_id': subscription.id})
 
 
-class Scenario_upgrade_old_client_and_package_installation(APITestCase):
+class Test_scenario_upgrade_old_client_and_package_installation(APITestCase):
     """The test class contains pre and post upgrade scenarios to test if the
     package can be installed on preupgrade client remotely
 
@@ -299,7 +299,7 @@ class Scenario_upgrade_old_client_and_package_installation(APITestCase):
         self.assertIn(self.package_name, installed_package)
 
 
-class Scenario_upgrade_new_client_and_package_installation(APITestCase):
+class Test_scenario_upgrade_new_client_and_package_installation(APITestCase):
     """The test class contains post-upgrade scenarios to test if the package
     can be installed on postupgrade client remotely
 

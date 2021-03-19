@@ -32,7 +32,7 @@ from robottelo.test import settings
 from robottelo.vm import VirtualMachine
 
 
-class Scenario_remoteexecution_external_capsule(APITestCase):
+class Test_scenario_remoteexecution_external_capsule(APITestCase):
     """Test Remote Execution job created before migration runs successfully
     post migration on a client registered with external capsule.
 
@@ -154,7 +154,7 @@ class Scenario_remoteexecution_external_capsule(APITestCase):
         )
 
 
-class Scenario_remoteexecution_satellite(APITestCase):
+class Test_scenario_remoteexecution_satellite(APITestCase):
     """Test Remote Execution job created before migration runs successfully
     post migration on a client registered with Satellite.
 

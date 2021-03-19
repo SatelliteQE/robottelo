@@ -44,7 +44,7 @@ GCE_SETTINGS = dict(
 )
 
 
-class scenario_positive_gce_host_compute_resource(APITestCase):
+class Test_scenario_positive_gce_host_compute_resource(APITestCase):
     """The host can be provisioned on GCE CR created in previous version
 
     :steps:

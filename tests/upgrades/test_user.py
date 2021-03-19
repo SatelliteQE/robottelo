@@ -20,7 +20,7 @@ from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 
-class scenario_positive_create_sshkey_in_existing_users:
+class Test_scenario_positive_create_sshkey_in_existing_users:
     """SSH Key can be created in existing user post upgrade
 
     :id: e4338daa-272a-42e3-be45-77e1caea607f
@@ -57,7 +57,7 @@ class scenario_positive_create_sshkey_in_existing_users:
         """
 
 
-class scenario_positive_existing_user_passwordless_access_to_host:
+class Test_scenario_positive_existing_user_passwordless_access_to_host:
     """Existing user can password-less access to provisioned host
 
     :id: d2d94447-5fc7-49cc-840e-06568d8a5141

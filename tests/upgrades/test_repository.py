@@ -41,7 +41,7 @@ from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 
 
-class Scenario_repository_upstream_authorization_check(APITestCase):
+class Test_scenario_repository_upstream_authorization_check(APITestCase):
     """This test scenario is to verify the upstream username in post-upgrade for a custom
     repository which does have a upstream username but not password set on it in pre-upgrade.
 
@@ -107,7 +107,7 @@ class Scenario_repository_upstream_authorization_check(APITestCase):
         self.assertNotIn(self.upstream_username, result)
 
 
-class Scenario_custom_repo_check(APITestCase):
+class Test_scenario_custom_repo_check(APITestCase):
     """Scenario test to verify if we can create a custom repository and consume it
     via client then we alter the created custom repository and satellite will be able
     to sync back the repo.

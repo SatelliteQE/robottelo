@@ -39,7 +39,7 @@ from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd
 
 
-class Scenario_yum_plugins_count(APITestCase):
+class Test_scenario_yum_plugins_count(APITestCase):
     """The test class contains pre and post upgrade scenarios to test the
     loaded yum plugins count on content host.
 
