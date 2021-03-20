@@ -52,53 +52,59 @@ from robottelo.decorators import skip_if_not_set
 
 def valid_name_desc_data():
     """Random data for valid name and description"""
-    return (
-        {'name': gen_string('numeric'), 'description': gen_string('numeric')},
-        {'name': gen_string('alphanumeric', 255), 'description': gen_string('alphanumeric')},
-        {'name': gen_string('alphanumeric'), 'description': gen_string('alphanumeric', 255)},
-        {'name': gen_string('utf8'), 'description': gen_string('utf8')},
-        {
+    return {
+        'numeric': {'name': gen_string('numeric'), 'description': gen_string('numeric')},
+        'alpha_long_name': {
+            'name': gen_string('alphanumeric', 255),
+            'description': gen_string('alphanumeric'),
+        },
+        'alpha_long_descr': {
+            'name': gen_string('alphanumeric'),
+            'description': gen_string('alphanumeric', 255),
+        },
+        'utf8': {'name': gen_string('utf8'), 'description': gen_string('utf8')},
+        'html': {
             'name': '<html>{}</html>'.format(gen_string('alpha')),
             'description': '<html>{}</html>'.format(gen_string('alpha')),
         },
-        {
+        'non_letters': {
             'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
             'description': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('alpha')),
         },
-    )
+    }
 
 
 def invalid_create_data():
     """Random data for invalid name and url"""
-    return (
-        {'name': gen_string('alphanumeric', 256)},
-        {'name': ''},
-        {'url': 'invalid url'},
-        {'url': ''},
-    )
+    return {
+        'long_name': {'name': gen_string('alphanumeric', 256)},
+        'empty_name': {'name': ''},
+        'invalid_url': {'url': 'invalid url'},
+        'empty_url': {'url': ''},
+    }
 
 
 def valid_update_data():
     """Random data for valid update"""
-    return (
-        {'new-name': gen_string('utf8', 255)},
-        {'new-name': gen_string('alphanumeric')},
-        {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
-        {'description': gen_string('utf8', 255)},
-        {'description': gen_string('alphanumeric')},
-        {'url': gen_url()},
-        {'url': 'qemu+tcp://localhost:16509/system'},
-    )
+    return {
+        'utf8_name': {'new-name': gen_string('utf8', 255)},
+        'alpha_name': {'new-name': gen_string('alphanumeric')},
+        'white_space_name': {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
+        'utf8_descr': {'description': gen_string('utf8', 255)},
+        'alpha_descr': {'description': gen_string('alphanumeric')},
+        'gen_url': {'url': gen_url()},
+        'local_url': {'url': 'qemu+tcp://localhost:16509/system'},
+    }
 
 
 def invalid_update_data():
     """Random data for invalid update"""
-    return (
-        {'new-name': gen_string('utf8', 256)},
-        {'new-name': ''},
-        {'url': 'invalid url'},
-        {'url': ''},
-    )
+    return {
+        'long_name': {'new-name': gen_string('utf8', 256)},
+        'empty_name': {'new-name': ''},
+        'invalid_url': {'url': 'invalid url'},
+        'empty_url': {'url': ''},
+    }
 
 
 @pytest.fixture(scope="module")
