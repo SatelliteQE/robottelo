@@ -1,0 +1,3 @@
+BROKER:
+    # The path where your broker settings and inventory are located
+    BROKER_DIRECTORY: "."
