@@ -1,7 +1,11 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
+import logging
+
 import pytest
+from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 from nailgun import entities
+from requests.exceptions import HTTPError
 from wrapanapi import AzureSystem
 from wrapanapi import GoogleCloudSystem
 
@@ -35,6 +39,8 @@ from robottelo.test import settings
 if not settings.configured:
     settings.configure()
 
+logger = logging.getLogger('robottelo')
+
 
 @pytest.fixture(scope='session')
 def default_org():
@@ -51,6 +57,13 @@ def module_org():
     return entities.Organization().create()
 
 
+@pytest.fixture(scope='class')
+def class_org():
+    org = entities.Organization().create()
+    yield org
+    org.delete()
+
+
 @pytest.fixture(scope='module')
 def module_manifest_org():
     org = entities.Organization().create()
@@ -62,6 +75,13 @@ def module_manifest_org():
 @pytest.fixture(scope='module')
 def module_location(module_org):
     return entities.Location(organization=[module_org]).create()
+
+
+@pytest.fixture(scope='class')
+def class_location(class_org):
+    loc = entities.Location(organization=[class_org]).create()
+    yield loc
+    loc.delete()
 
 
 @pytest.fixture(scope='session')
@@ -82,6 +102,17 @@ def module_host():
 @pytest.fixture(scope='module')
 def module_hostgroup():
     return entities.HostGroup().create()
+
+
+@pytest.fixture(scope='class')
+def class_hostgroup(class_org, class_location):
+    """Create a hostgroup linked to specific org and location created at the class scope"""
+    hostgroup = entities.HostGroup(organization=[class_org], location=[class_location]).create()
+    yield hostgroup
+    try:
+        hostgroup.delete()
+    except HTTPError:
+        logger.exception('Exception while deleting class scope hostgroup entity in teardown')
 
 
 @pytest.fixture(scope='module')
@@ -254,6 +285,12 @@ def module_puppet_environment(module_org, module_location):
 @pytest.fixture(scope='module')
 def module_user(module_org, module_location):
     return entities.User(organization=[module_org], location=[module_location]).create()
+
+
+@pytest.fixture(scope='class')
+def class_user_password():
+    """Generate a random password for a user, and capture it so a test has access to it"""
+    return gen_alphanumeric()
 
 
 # Compute resource - Libvirt entities
