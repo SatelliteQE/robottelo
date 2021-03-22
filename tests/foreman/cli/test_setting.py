@@ -314,7 +314,7 @@ def test_negative_update_email_subject_prefix(setting_update):
     email_subject_prefix_original = Settings.list({'search': 'name=email_subject_prefix'})[0]
     email_subject_prefix_value = gen_string('alpha', 256)
     with pytest.raises(CLIReturnCodeError):
-        Settings.set({'name': "email_subject_prefix", 'value': email_subject_prefix_value})
+        Settings.set({'name': 'email_subject_prefix', 'value': email_subject_prefix_value})
     email_subject_prefix = Settings.list({'search': 'name=email_subject_prefix'})[0]
     assert email_subject_prefix == email_subject_prefix_original
 
