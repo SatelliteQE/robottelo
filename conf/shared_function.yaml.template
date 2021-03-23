@@ -1,0 +1,27 @@
+SHARED_FUNCTION:
+  # The default storage handler to use, available handlers: file, redis
+  # by default storage=file
+  STORAGE: file
+  # Namespace scope by default used the md5 of kattelo certificate of the server
+  # SCOPE:
+  # enabled, by default enabled=false, the shared decorator will
+  # immediately run the function and the function result data are not saved
+  # to enable the shared functionality set enabled=true
+  ENABLED: false
+  # The lock timeout, to be able to use the shared data, each caller have to lock
+  # the access to storage to have consistent values, by default 2 hours, to be
+  # able to handle long running functions, the value is in second
+  LOCK_TIMEOUT: 7200
+  # How much time the shared data is considered valid, the value is in second
+  # by default 24 hours
+  SHARE_TIMEOUT: 86400
+  # If redis is used as storage, by default redis_host=localhost
+  REDIS_HOST: localhost
+  # The port redis is accessible at that redis_host, by default 6379
+  REDIS_PORT: 6379
+  # The redis db index, by default 0
+  REDIS_DB: 0
+  # The redis password index, by default None
+  # REDIS_PASSWORD:
+  # How much time we retry if a function call fail, by default call_retries=2
+  CALL_RETRIES: 2

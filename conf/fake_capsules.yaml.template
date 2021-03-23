@@ -1,0 +1,6 @@
+FAKE_CAPSULES:
+  # a range of ports configured for capsule port mapping represented by a tuple:
+  # <int>, <int> (no brackets)
+  # for RHEL7 - the ports needs to have a correct selinux context set:
+  # 'semanage port -a -t websm_port_t -p tcp <port-range>'
+  PORT_RANGE: 9091, 14999

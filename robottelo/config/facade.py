@@ -93,6 +93,24 @@ WRAPPER_EXCEPTIONS = (
     'azurerm.username',
     'azurerm.password',
     'azurerm.azure_subnet',
+    'bugzilla.url',
+    'bugzilla.api_key',
+    'distro.image_el6',
+    'distro.image_el7',
+    'distro.image_el8',
+    'distro.image_sles11',
+    'distro.image_sles12',
+    'fake_capsules.port_range',
+    'shared_function.storage',
+    'shared_function.scope',
+    'shared_function.enabled',
+    'shared_function.lock_timeout',
+    'shared_function.share_timeout',
+    'shared_function.redis_host',
+    'shared_function.redis_port',
+    'shared_function.redis_db',
+    'shared_function.redis_password',
+    'shared_function.call_retries',
 )
 
 
@@ -368,6 +386,13 @@ class SettingsFacade:
             verbosity = cast_logging_level('debug')
         return verbosity
 
+    def _fake_capsules_port_range(self):
+        """Casts port ranges for fake capsules of type string into tuple"""
+        cast_port_range = casts.Tuple()
+        port_range = self._get_from_configs('fake_capsules.port_range')
+        port_range = cast_port_range(port_range)
+        return port_range
+
     def _dispatch_computed_value(self, key):
         if key == "configure":
             value = self._cached_function(lambda: None)
@@ -391,6 +416,8 @@ class SettingsFacade:
             value = self.__ssh_client_command_timeout()
         elif key == "ssh_client.connection_timeout":
             value = self.__ssh_client_connection_timeout()
+        elif key == "fake_capsules.port_range":
+            value = self._fake_capsules_port_range()
         elif key == "configured":
             value = True
         elif key == "all_features":
