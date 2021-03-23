@@ -33,7 +33,10 @@ validators = dict(
         Validator("azurerm.azure_region", is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
-    bugzilla=[Validator("bugzilla.url", default='https://bugzilla.redhat.com')],
+    bugzilla=[
+        Validator("bugzilla.url", default='https://bugzilla.redhat.com'),
+        Validator("bugzilla.api_key", must_exist=True),
+    ],
     capsule=[Validator("capsule.instance_name", must_exist=True)],
     certs=[
         Validator(
@@ -268,6 +271,7 @@ validators = dict(
         Validator("shared_function.redis_port", default=6379),
         Validator("shared_function.redis_db", default=0),
         Validator("shared_function.call_retries", default=2),
+        Validator("shared_function.redis_password", default=None),
     ],
     upgrade=[
         Validator("upgrade.rhev_cap_host", must_exist=False)
