@@ -23,153 +23,152 @@ from robottelo.cli.org import Org
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
-from robottelo.decorators import skip_if_not_set
-from robottelo.test import CLITestCase
 
 
-class VMWareComputeResourceTestCase(CLITestCase):
-    """VMware ComputeResource CLI tests."""
+@pytest.fixture(scope='module')
+def vmware():
+    vmware = type('rhev', (object,), {})()
+    vmware.org = make_org()
+    vmware.loc = make_location()
+    Org.add_location({'id': vmware.org['id'], 'location-id': vmware.loc['id']})
+    vmware.vmware_server = settings.vmware.vcenter
+    vmware.vmware_password = settings.vmware.password
+    vmware.vmware_username = settings.vmware.username
+    vmware.vmware_datacenter = settings.vmware.datacenter
+    vmware.vmware_img_name = settings.vmware.image_name
+    vmware.vmware_img_arch = settings.vmware.image_arch
+    vmware.vmware_img_os = settings.vmware.image_os
+    vmware.vmware_img_user = settings.vmware.image_username
+    vmware.vmware_img_pass = settings.vmware.image_password
+    vmware.vmware_vm_name = settings.vmware.vm_name
+    vmware.current_interface = (
+        VMWARE_CONSTANTS.get('network_interfaces') % settings.vlan_networking.bridge
+    )
+    return vmware
 
-    @classmethod
-    @skip_if_not_set('vmware')
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.org = make_org()
-        cls.loc = make_location()
-        Org.add_location({'id': cls.org['id'], 'location-id': cls.loc['id']})
-        cls.vmware_server = settings.vmware.vcenter
-        cls.vmware_password = settings.vmware.password
-        cls.vmware_username = settings.vmware.username
-        cls.vmware_datacenter = settings.vmware.datacenter
-        cls.vmware_img_name = settings.vmware.image_name
-        cls.vmware_img_arch = settings.vmware.image_arch
-        cls.vmware_img_os = settings.vmware.image_os
-        cls.vmware_img_user = settings.vmware.image_username
-        cls.vmware_img_pass = settings.vmware.image_password
-        cls.vmware_vm_name = settings.vmware.vm_name
-        cls.current_interface = (
-            VMWARE_CONSTANTS.get('network_interfaces') % settings.vlan_networking.bridge
-        )
 
-    @pytest.mark.tier1
-    def test_positive_create_with_server(self):
-        """Create VMware compute resource with server field
+@pytest.mark.tier1
+def test_positive_create_with_server(vmware):
+    """Create VMware compute resource with server field
 
-        :id: a06b02c4-fe6a-44ef-bf61-5a28c3905527
+    :id: a06b02c4-fe6a-44ef-bf61-5a28c3905527
 
-        :customerscenario: true
+    :customerscenario: true
 
-        :expectedresults: Compute resource is created, server field saved
-            correctly
+    :expectedresults: Compute resource is created, server field saved
+        correctly
 
-        :BZ: 1387917
+    :BZ: 1387917
 
-        :CaseAutomation: Automated
+    :CaseAutomation: Automated
 
-        :CaseImportance: Critical
-        """
-        cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource(
-            {
-                'name': cr_name,
-                'provider': FOREMAN_PROVIDERS['vmware'],
-                'server': self.vmware_server,
-                'user': self.vmware_username,
-                'password': self.vmware_password,
-                'datacenter': self.vmware_datacenter,
-            }
-        )
-        self.assertEquals(vmware_cr['name'], cr_name)
-        self.assertEquals(vmware_cr['server'], self.vmware_server)
+    :CaseImportance: Critical
+    """
+    cr_name = gen_string('alpha')
+    vmware_cr = make_compute_resource(
+        {
+            'name': cr_name,
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'server': vmware.vmware_server,
+            'user': vmware.vmware_username,
+            'password': vmware.vmware_password,
+            'datacenter': vmware.vmware_datacenter,
+        }
+    )
+    assert vmware_cr['name'] == cr_name
+    assert vmware_cr['server'] == vmware.vmware_server
 
-    @pytest.mark.tier1
-    def test_positive_create_with_org(self):
-        """Create VMware Compute Resource with organizations
 
-        :id: 807a1f70-4cc3-4925-b145-0c3b26c57559
+@pytest.mark.tier1
+def test_positive_create_with_org(vmware):
+    """Create VMware Compute Resource with organizations
 
-        :customerscenario: true
+    :id: 807a1f70-4cc3-4925-b145-0c3b26c57559
 
-        :expectedresults: VMware Compute resource is created
+    :customerscenario: true
 
-        :BZ: 1387917
+    :expectedresults: VMware Compute resource is created
 
-        :CaseAutomation: Automated
+    :BZ: 1387917
 
-        :CaseImportance: Critical
-        """
-        cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource(
-            {
-                'name': cr_name,
-                'organization-ids': self.org['id'],
-                'provider': FOREMAN_PROVIDERS['vmware'],
-                'server': self.vmware_server,
-                'user': self.vmware_username,
-                'password': self.vmware_password,
-                'datacenter': self.vmware_datacenter,
-            }
-        )
-        self.assertEquals(vmware_cr['name'], cr_name)
+    :CaseAutomation: Automated
 
-    @pytest.mark.tier1
-    def test_positive_create_with_loc(self):
-        """Create VMware Compute Resource with locations
+    :CaseImportance: Critical
+    """
+    cr_name = gen_string('alpha')
+    vmware_cr = make_compute_resource(
+        {
+            'name': cr_name,
+            'organization-ids': vmware.org['id'],
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'server': vmware.vmware_server,
+            'user': vmware.vmware_username,
+            'password': vmware.vmware_password,
+            'datacenter': vmware.vmware_datacenter,
+        }
+    )
+    assert vmware_cr['name'] == cr_name
 
-        :id: 214a0f54-6fc2-4e7b-91ab-a45760ffb2f2
 
-        :customerscenario: true
+@pytest.mark.tier1
+def test_positive_create_with_loc(vmware):
+    """Create VMware Compute Resource with locations
 
-        :expectedresults: VMware Compute resource is created
+    :id: 214a0f54-6fc2-4e7b-91ab-a45760ffb2f2
 
-        :BZ: 1387917
+    :customerscenario: true
 
-        :CaseAutomation: Automated
+    :expectedresults: VMware Compute resource is created
 
-        :CaseImportance: Critical
-        """
-        cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource(
-            {
-                'name': cr_name,
-                'location-ids': self.loc['id'],
-                'provider': FOREMAN_PROVIDERS['vmware'],
-                'server': self.vmware_server,
-                'user': self.vmware_username,
-                'password': self.vmware_password,
-                'datacenter': self.vmware_datacenter,
-            }
-        )
-        self.assertEquals(vmware_cr['name'], cr_name)
+    :BZ: 1387917
 
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    def test_positive_create_with_org_and_loc(self):
-        """Create VMware Compute Resource with organizations and locations
+    :CaseAutomation: Automated
 
-        :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
+    :CaseImportance: Critical
+    """
+    cr_name = gen_string('alpha')
+    vmware_cr = make_compute_resource(
+        {
+            'name': cr_name,
+            'location-ids': vmware.loc['id'],
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'server': vmware.vmware_server,
+            'user': vmware.vmware_username,
+            'password': vmware.vmware_password,
+            'datacenter': vmware.vmware_datacenter,
+        }
+    )
+    assert vmware_cr['name'] == cr_name
 
-        :customerscenario: true
 
-        :expectedresults: VMware Compute resource is created
+@pytest.mark.tier1
+@pytest.mark.upgrade
+def test_positive_create_with_org_and_loc(vmware):
+    """Create VMware Compute Resource with organizations and locations
 
-        :BZ: 1387917
+    :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
 
-        :CaseAutomation: Automated
+    :customerscenario: true
 
-        :CaseImportance: Critical
-        """
-        cr_name = gen_string('alpha')
-        vmware_cr = make_compute_resource(
-            {
-                'name': cr_name,
-                'organization-ids': self.org['id'],
-                'location-ids': self.loc['id'],
-                'provider': FOREMAN_PROVIDERS['vmware'],
-                'server': self.vmware_server,
-                'user': self.vmware_username,
-                'password': self.vmware_password,
-                'datacenter': self.vmware_datacenter,
-            }
-        )
-        self.assertEquals(vmware_cr['name'], cr_name)
+    :expectedresults: VMware Compute resource is created
+
+    :BZ: 1387917
+
+    :CaseAutomation: Automated
+
+    :CaseImportance: Critical
+    """
+    cr_name = gen_string('alpha')
+    vmware_cr = make_compute_resource(
+        {
+            'name': cr_name,
+            'organization-ids': vmware.org['id'],
+            'location-ids': vmware.loc['id'],
+            'provider': FOREMAN_PROVIDERS['vmware'],
+            'server': vmware.vmware_server,
+            'user': vmware.vmware_username,
+            'password': vmware.vmware_password,
+            'datacenter': vmware.vmware_datacenter,
+        }
+    )
+    assert vmware_cr['name'] == cr_name
