@@ -53,7 +53,7 @@ def test_positive_create_rhev_with_valid_name(rhev):
     """
     ComputeResource.create(
         {
-            'name': 'cr {}'.format(gen_string(str_type='alpha')),
+            'name': f'cr {gen_string(str_type="alpha")}',
             'provider': 'Ovirt',
             'user': rhev.username,
             'password': rhev.password,
@@ -271,7 +271,7 @@ def test_positive_add_image_rhev_with_name(rhev):
     ComputeResource.image_create(
         {
             'compute-resource': comp_res['name'],
-            'name': 'img {}'.format(gen_string(str_type='alpha')),
+            'name': f'img {gen_string(str_type="alpha")}',
             'uuid': rhev.image_uuid,
             'operatingsystem': rhev.os['title'],
             'architecture': rhev.image_arch,
@@ -316,8 +316,8 @@ def test_negative_add_image_rhev_with_invalid_uuid(rhev):
         ComputeResource.image_create(
             {
                 'compute-resource': comp_res['name'],
-                'name': 'img {}'.format(gen_string(str_type='alpha')),
-                'uuid': 'invalidimguuid {}'.format(gen_string(str_type='alpha')),
+                'name': f'img {gen_string(str_type="alpha")}',
+                'uuid': f'invalidimguuid {gen_string(str_type="alpha")}',
                 'operatingsystem': rhev.os['title'],
                 'architecture': rhev.image_arch,
                 'username': "root",
@@ -362,7 +362,7 @@ def test_negative_add_image_rhev_with_invalid_name(rhev):
             {
                 'compute-resource': comp_res['name'],
                 # too long string (>255 chars)
-                'name': 'img {}'.format(gen_string(str_type='alphanumeric', length=256)),
+                'name': f'img {gen_string(str_type="alphanumeric", length=256)}',
                 'uuid': rhev.image_uuid,
                 'operatingsystem': rhev.os['title'],
                 'architecture': rhev.image_arch,
