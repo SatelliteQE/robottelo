@@ -26,11 +26,11 @@ from robottelo.constants import VMWARE_CONSTANTS
 
 
 @pytest.fixture(scope='module')
-def vmware():
-    vmware = type('rhev', (object,), {})()
-    vmware.org = make_org()
-    vmware.loc = make_location()
-    Org.add_location({'id': vmware.org['id'], 'location-id': vmware.loc['id']})
+def vmware(module_org, module_location):
+    vmware = type('vmware', (object,), {})()
+    vmware.org = module_org
+    vmware.loc = module_location
+    Org.add_location({'id': vmware.org.id, 'location-id': vmware.loc.id})
     vmware.vmware_server = settings.vmware.vcenter
     vmware.vmware_password = settings.vmware.password
     vmware.vmware_username = settings.vmware.username
@@ -99,7 +99,7 @@ def test_positive_create_with_org(vmware):
     vmware_cr = make_compute_resource(
         {
             'name': cr_name,
-            'organization-ids': vmware.org['id'],
+            'organization-ids': vmware.org.id,
             'provider': FOREMAN_PROVIDERS['vmware'],
             'server': vmware.vmware_server,
             'user': vmware.vmware_username,
@@ -130,7 +130,7 @@ def test_positive_create_with_loc(vmware):
     vmware_cr = make_compute_resource(
         {
             'name': cr_name,
-            'location-ids': vmware.loc['id'],
+            'location-ids': vmware.loc.id,
             'provider': FOREMAN_PROVIDERS['vmware'],
             'server': vmware.vmware_server,
             'user': vmware.vmware_username,
@@ -162,8 +162,8 @@ def test_positive_create_with_org_and_loc(vmware):
     vmware_cr = make_compute_resource(
         {
             'name': cr_name,
-            'organization-ids': vmware.org['id'],
-            'location-ids': vmware.loc['id'],
+            'organization-ids': vmware.org.id,
+            'location-ids': vmware.loc.id,
             'provider': FOREMAN_PROVIDERS['vmware'],
             'server': vmware.vmware_server,
             'user': vmware.vmware_username,
