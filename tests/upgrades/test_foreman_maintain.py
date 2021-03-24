@@ -16,25 +16,21 @@
 
 :Upstream: No
 """
-from unittest2.case import TestCase
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 from robottelo import ssh
 
 
-class TestScenarioForemanMaintain(TestCase):
+class TestForemanMaintain:
     """The test class contains pre-upgrade and post-upgrade scenarios to test
     foreman-maintain utility
 
     Test Steps:
-
-    1. Before Satellite upgrade, Perform test for
-       foreman-maintain upgrade list-versions.
-    2. Upgrade satellite/capsule.
-    3. Perform tests for foreman-maintain upgrade list-versions, after upgrade.
-    4. Check if tests passed.
-
+        1. Before Satellite upgrade, Perform test for "foreman-maintain upgrade list-versions"
+        2. Upgrade satellite/capsule.
+        3. Perform tests for foreman-maintain upgrade list-versions, after upgrade.
+        4. Check if tests passed.
     """
 
     @staticmethod
@@ -130,7 +126,7 @@ class TestScenarioForemanMaintain(TestCase):
             )
         else:
             zstream_version = -1
-        self.assertIn(zstream_version, upgradable_version)
+        assert zstream_version in upgradable_version
 
     @post_upgrade
     def test_post_foreman_maintain_upgrade_list_versions(self):
@@ -157,4 +153,4 @@ class TestScenarioForemanMaintain(TestCase):
             )
         else:
             next_version = -1
-        self.assertIn(next_version, upgradable_version)
+        assert next_version in upgradable_version
