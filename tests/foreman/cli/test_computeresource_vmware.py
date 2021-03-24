@@ -17,8 +17,6 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo.cli.factory import make_compute_resource
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
 from robottelo.cli.org import Org
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
