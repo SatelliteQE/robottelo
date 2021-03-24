@@ -39,3 +39,21 @@ def test_positive_connection_option(rhel7_contenthost, module_org, activation_ke
         f'stdout: {result.stdout}\n'
         f'stderr: {result.stderr}'
     )
+
+
+@pytest.mark.stubbed
+def test_positive_connection_option_non_rhel7():
+    """Verify that 'insights-client --test-connection' successfully tests the proxy connection via
+    the Satellite.
+
+    :id: 0051b2af-eae1-488e-9ca6-768eb81efb03
+
+    :Steps:
+
+        0. Create a RHEL6 or RHEL8 VM and register to insights within org having manifest.
+
+        1. Run 'insights-client --test-connection'.
+
+    :expectedresults: 'insights-client --test-connection' should return 0.
+    """
+    pass
