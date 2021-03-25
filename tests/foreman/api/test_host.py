@@ -1438,3 +1438,47 @@ class TestHostInterface:
             host.read()
         except HTTPError:
             pytest.fail("HTTPError 404 raised unexpectedly!")
+
+
+class TestHostBulkAction:
+    """ Tests for host bulk actions. """
+
+    @pytest.mark.tier2
+    def test_positive_bulk_destroy(self, module_org):
+        """Destroy multiple hosts make sure that hosts were removed,
+        or were not removed when host is excluded from the list.
+
+        :id: 06d63376-8bf6-11eb-ab9f-98fa9b6ecd5a
+
+        :expectedresults: Included list of hosts,
+            that are not part of excluded list of host, are removed.
+
+        :CaseImportance: Medium
+        """
+
+        host_ids = []
+        for _ in range(3):
+            name = gen_choice(valid_hosts_list())
+            host = entities.Host(name=name, organization=module_org).create()
+            host_ids.append(host.id)
+
+        entities.Host().bulk_destroy(
+            data={
+                'organization_id': module_org.id,
+                'included': {'ids': host_ids},
+                'excluded': {'ids': host_ids[:-1]},
+            }
+        )
+        for host_id in host_ids[:-1]:
+            result = entities.Host(id=host_id).read()
+            assert result.id == host_id
+
+        with pytest.raises(HTTPError):
+            entities.Host(id=host_ids[-1]).read()
+
+        entities.Host().bulk_destroy(
+            data={'organization_id': module_org.id, 'included': {'ids': host_ids[:-1]}}
+        )
+        for host_id in host_ids[:-1]:
+            with pytest.raises(HTTPError):
+                entities.Host(id=host_id).read()
