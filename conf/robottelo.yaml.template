@@ -63,4 +63,3 @@ ROBOTTELO:
   # Satellite version supported by this branch
   # UNDR version is used for some URL composition
   SATELLITE_VERSION: "6.9"
-  SATELLITE_VERSION_UNDR: "@jinja {{this.robottelo.satellite_version | replace('.', '_')}}"
