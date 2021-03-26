@@ -38,6 +38,7 @@ from robottelo.cli.factory import make_user
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import LOCALES
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
@@ -258,6 +259,25 @@ class TestUser:
             result_after_login[0]['last-login'], "%Y/%m/%d %H:%M:%S"
         )
         assert after_login_time > before_login_time
+
+    @pytest.mark.tier1
+    def test_positive_update_all_locales(self):
+        """Update Language in My Account
+
+        :id: f0993495-5117-461d-a116-44867b820139
+
+        :Steps: Update current User with all different Language options
+
+        :expectedresults: Current User is updated
+
+        :CaseAutomation: Automated
+
+        :CaseImportance: Critical
+        """
+        user = make_user()
+        for locale in LOCALES:
+            User.update({'id': user['id'], 'locale': locale})
+            assert locale == User.info({'id': user['id']})['locale']
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
