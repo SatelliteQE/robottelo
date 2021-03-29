@@ -21,9 +21,9 @@ import pytest
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DISTROS_SUPPORTED
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_YUM_REPO
@@ -79,7 +79,7 @@ def test_vm_install_package(value, module_org, module_lce):
         repositories=[
             SatelliteToolsRepository(cdn=cdn),
             YumRepository(url=FAKE_0_YUM_REPO),
-            DockerRepository(url=DOCKER_REGISTRY_HUB, upstream_name=DOCKER_UPSTREAM_NAME),
+            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME),
             PuppetRepository(
                 url=CUSTOM_PUPPET_REPO, modules=[dict(name='generic_1', author='robottelo')]
             ),

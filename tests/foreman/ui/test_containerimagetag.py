@@ -19,8 +19,8 @@
 import pytest
 from nailgun import entities
 
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import REPO_TYPE
 
@@ -39,9 +39,9 @@ def module_product(module_org):
 def module_repository(module_product):
     repo = entities.Repository(
         content_type=REPO_TYPE['docker'],
-        docker_upstream_name=DOCKER_UPSTREAM_NAME,
+        docker_upstream_name=CONTAINER_UPSTREAM_NAME,
         product=module_product,
-        url=DOCKER_REGISTRY_HUB,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     repo.sync()
     return repo

@@ -39,13 +39,13 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_INC_UPD_ERRATA
 from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
@@ -417,7 +417,7 @@ def test_positive_add_docker_repo(session, module_org, module_prod):
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -442,7 +442,7 @@ def test_positive_add_docker_repos(session, module_org, module_prod):
     content_view = entities.ContentView(composite=False, organization=module_org).create()
     repos = [
         entities.Repository(
-            url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+            url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
         ).create()
         for _ in range(randint(2, 3))
     ]
@@ -470,7 +470,7 @@ def test_positive_add_synced_docker_repo(session, module_org, module_prod):
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         result = session.sync_status.synchronize([(module_prod.name, repo.name)])
@@ -497,7 +497,7 @@ def test_positive_add_docker_repo_to_ccv(session, module_org, module_prod):
     content_view = entities.ContentView(composite=False, organization=module_org).create()
     composite_cv = entities.ContentView(composite=True, organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -525,7 +525,7 @@ def test_positive_add_docker_repos_to_ccv(session, module_org, module_prod):
     cvs = []
     for _ in range(randint(2, 3)):
         repo = entities.Repository(
-            url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+            url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
         ).create()
         content_view = entities.ContentView(
             composite=False, organization=module_org, repository=[repo]
@@ -559,7 +559,7 @@ def test_positive_publish_with_docker_repo(session, module_org, module_prod):
     """
     content_view = entities.ContentView(composite=False, organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         session.contentview.add_docker_repo(content_view.name, repo.name)
@@ -584,7 +584,7 @@ def test_positive_publish_with_docker_repo_composite(session, module_org, module
     :CaseImportance: High
     """
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -613,7 +613,7 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
     :CaseImportance: Low
     """
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -638,7 +638,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
     :CaseImportance: Low
     """
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -668,7 +668,7 @@ def test_positive_promote_with_docker_repo(session, module_org, module_prod):
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -695,7 +695,7 @@ def test_positive_promote_multiple_with_docker_repo(session, module_org, module_
     :CaseImportance: Low
     """
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -725,7 +725,7 @@ def test_positive_promote_with_docker_repo_composite(session, module_org, module
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -758,7 +758,7 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
     :CaseImportance: Low
     """
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=module_prod, content_type=REPO_TYPE['docker']
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -1604,7 +1604,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(session, module
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
     repo = RepositoryCollection(
         repositories=[
-            DockerRepository(url=DOCKER_REGISTRY_HUB, upstream_name=DOCKER_UPSTREAM_NAME)
+            DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME)
         ]
     )
     repo.setup(module_org.id)

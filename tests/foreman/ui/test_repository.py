@@ -28,8 +28,8 @@ from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import INVALID_URL
 from robottelo.constants import REPO_TYPE
@@ -396,7 +396,7 @@ def test_positive_sync_custom_repo_docker(session, module_org):
     """
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        url=DOCKER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+        url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
     ).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
@@ -832,7 +832,7 @@ def test_positive_delete_random_docker_repo(session, module_org):
     products = [entities.Product(organization=module_org).create() for _ in range(randint(2, 5))]
     for product in products:
         repo = entities.Repository(
-            url=DOCKER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
+            url=CONTAINER_REGISTRY_HUB, product=product, content_type=REPO_TYPE['docker']
         ).create()
         entities_list.append((product.name, repo.name))
     with session:

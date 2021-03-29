@@ -25,8 +25,8 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
@@ -505,7 +505,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             content_type='docker',
             docker_upstream_name='busybox',
             product=product,
-            url=DOCKER_REGISTRY_HUB,
+            url=CONTAINER_REGISTRY_HUB,
         ).create()
         docker_repo.sync()
         # create a content view and add to it the docker repo
@@ -569,7 +569,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             content_type='docker',
             docker_upstream_name='busybox',
             product=product,
-            url=DOCKER_REGISTRY_HUB,
+            url=CONTAINER_REGISTRY_HUB,
         ).create()
         docker_repo.sync()
         puppet_repo = entities.Repository(

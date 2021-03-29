@@ -25,7 +25,7 @@ from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_repository
 from robottelo.cli.repository import Repository
-from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -411,7 +411,7 @@ class TestContentViewFilter:
                 'docker-upstream-name': 'busybox',
                 'organization-id': module_org.id,
                 'product-id': module_product.id,
-                'url': DOCKER_REGISTRY_HUB,
+                'url': CONTAINER_REGISTRY_HUB,
             },
         )
 
@@ -662,7 +662,7 @@ class TestContentViewFilter:
                 'docker-upstream-name': 'busybox',
                 'organization-id': module_org.id,
                 'product-id': module_product.id,
-                'url': DOCKER_REGISTRY_HUB,
+                'url': CONTAINER_REGISTRY_HUB,
             },
         )
         ContentView.add_repository({'id': content_view['id'], 'repository-id': docker_repo['id']})

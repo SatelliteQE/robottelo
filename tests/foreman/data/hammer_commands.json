@@ -42246,7 +42246,7 @@
               "help": "Name of the upstream docker repository",
               "name": "docker-upstream-name",
               "shortname": null,
-              "value": "DOCKER_UPSTREAM_NAME"
+              "value": "CONTAINER_UPSTREAM_NAME"
             },
             {
               "help": "Download policy for yum repos (either 'immediate', 'on_demand', or 'background (deprecated)') Possible value(s): 'immediate', 'on_demand', 'background'",
@@ -43081,7 +43081,7 @@
               "help": "Name of the upstream docker repository",
               "name": "docker-upstream-name",
               "shortname": null,
-              "value": "DOCKER_UPSTREAM_NAME"
+              "value": "CONTAINER_UPSTREAM_NAME"
             },
             {
               "help": "Download policy for yum repos (either 'immediate', 'on_demand', or 'background (deprecated)') Possible value(s): 'immediate', 'on_demand', 'background'",

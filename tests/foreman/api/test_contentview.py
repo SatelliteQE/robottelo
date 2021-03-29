@@ -31,9 +31,9 @@ from robottelo.api.utils import apply_package_filter
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_REPODATA_PATH
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
-from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
@@ -1493,7 +1493,7 @@ class TestOstreeContentView:
             content_type='docker',
             docker_upstream_name='busybox',
             product=module_product,
-            url=DOCKER_REGISTRY_HUB,
+            url=CONTAINER_REGISTRY_HUB,
         ).create()
         self.docker_repo.sync()
 
