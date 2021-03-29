@@ -49,6 +49,7 @@ from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_FILE_REPO_FILES_COUNT
 from robottelo.constants import CUSTOM_LOCAL_FOLDER
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
@@ -555,7 +556,7 @@ class RepositoryTestCase(CLITestCase):
         new_repo = self._make_repository(
             {
                 'content-type': content_type,
-                'docker-upstream-name': 'busybox',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'name': 'busybox',
                 'url': DOCKER_REGISTRY_HUB,
             }
@@ -582,7 +583,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = self._make_repository(
                     {
                         'content-type': content_type,
-                        'docker-upstream-name': 'busybox',
+                        'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                         'name': name,
                         'url': DOCKER_REGISTRY_HUB,
                     }
@@ -877,7 +878,7 @@ class RepositoryTestCase(CLITestCase):
         new_repo = self._make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'busybox',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'url': DOCKER_REGISTRY_HUB,
             }
         )
@@ -902,7 +903,7 @@ class RepositoryTestCase(CLITestCase):
         repo = self._make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'alpine',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'url': DOCKER_REGISTRY_HUB,
                 'docker-tags-whitelist': tags,
             }
@@ -926,7 +927,7 @@ class RepositoryTestCase(CLITestCase):
         repo = self._make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'hello-world',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'url': DOCKER_REGISTRY_HUB,
             }
         )
@@ -953,7 +954,7 @@ class RepositoryTestCase(CLITestCase):
         repo = self._make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'alpine',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'url': DOCKER_REGISTRY_HUB,
                 'docker-tags-whitelist': ",".join(tags),
             }
@@ -976,7 +977,7 @@ class RepositoryTestCase(CLITestCase):
         repo = self._make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'alpine',
+                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
                 'url': DOCKER_REGISTRY_HUB,
                 'docker-tags-whitelist': ",".join(tags),
             }
