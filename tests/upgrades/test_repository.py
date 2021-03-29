@@ -1,4 +1,4 @@
-"""Test for Repository related Upgrade Scenario's
+"""Test for Repository related Upgrade Scenarios
 
 :Requirement: Upgraded Satellite
 
@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import logging
 import os
 
 from fabric.api import execute
@@ -33,7 +34,6 @@ from upgrade_tests.helpers.scenarios import rpm2
 from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import promote
-from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.upgrade_utility import create_repo
 from robottelo.upgrade_utility import host_location_update
@@ -41,7 +41,16 @@ from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 
 
-class TestScenarioRepositoryUpstreamAuthorizationCheck(APITestCase):
+LOGGER = logging.getLogger('robottelo')
+UPSTREAM_USERNAME = 'rTtest123'
+DOCKER_VM = settings.upgrade.docker_vm
+FILE_PATH = '/var/www/html/pub/custom_repo/'
+CUSTOM_REPO = f'https://{settings.server.hostname}/pub/custom_repo'
+_, RPM1_NAME = os.path.split(rpm1)
+_, RPM2_NAME = os.path.split(rpm2)
+
+
+class TestScenarioRepositoryUpstreamAuthorizationCheck:
     """This test scenario is to verify the upstream username in post-upgrade for a custom
     repository which does have a upstream username but not password set on it in pre-upgrade.
 
@@ -52,10 +61,6 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck(APITestCase):
         3. Upgrade Satellite.
         4. Check if the upstream username value is removed for same repository.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.upstream_username = 'rTtest123'
 
     @pre_upgrade
     def test_pre_repository_scenario_upstream_authorization(self):
@@ -76,10 +81,10 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck(APITestCase):
         org = entities.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
-        rake_username = f'; repo.root.upstream_username = "{self.upstream_username}"'
+        rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
         rake_repo_save = '; repo.save!(validate: false)'
         result = run(f"echo '{rake_repo}{rake_username}{rake_repo_save}'|foreman-rake console")
-        self.assertIn('true', result)
+        assert 'true' in result
 
         global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
         create_dict(global_dict)
@@ -104,10 +109,10 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck(APITestCase):
         rake_repo = f'repo = Katello::RootRepository.find_by_id({repo_id})'
         rake_username = '; repo.root.upstream_username'
         result = run(f"echo '{rake_repo}{rake_username}'|foreman-rake console")
-        self.assertNotIn(self.upstream_username, result)
+        assert UPSTREAM_USERNAME not in result
 
 
-class TestScenarioCustomRepoCheck(APITestCase):
+class TestScenarioCustomRepoCheck:
     """Scenario test to verify if we can create a custom repository and consume it
     via client then we alter the created custom repository and satellite will be able
     to sync back the repo.
@@ -126,15 +131,6 @@ class TestScenarioCustomRepoCheck(APITestCase):
 
     BZ: 1429201,1698549
     """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.sat_host = settings.server.hostname
-        cls.docker_vm = settings.upgrade.docker_vm
-        cls.file_path = '/var/www/html/pub/custom_repo/'
-        cls.custom_repo = 'https://{}{}'.format(cls.sat_host, '/pub/custom_repo/')
-        _, cls.rpm1_name = os.path.split(rpm1)
-        _, cls.rpm2_name = os.path.split(rpm2)
 
     @pre_upgrade
     def test_pre_scenario_custom_repo_check(self):
@@ -161,8 +157,8 @@ class TestScenarioCustomRepoCheck(APITestCase):
         lce = entities.LifecycleEnvironment(organization=org).create()
 
         product = entities.Product(organization=org).create()
-        create_repo(rpm1, self.file_path)
-        repo = entities.Repository(product=product.id, url=self.custom_repo).create()
+        create_repo(rpm1, FILE_PATH)
+        repo = entities.Repository(product=product.id, url=CUSTOM_REPO).create()
         repo.sync()
 
         content_view = publish_content_view(org=org, repolist=repo)
@@ -171,12 +167,12 @@ class TestScenarioCustomRepoCheck(APITestCase):
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             'Packages/b/|grep {}'.format(
-                org.label, lce.name, content_view.label, product.label, repo.label, self.rpm1_name
+                org.label, lce.name, content_view.label, product.label, repo.label, RPM1_NAME
             )
         )
 
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
+        assert result.return_code == 0
+        assert len(result.stdout) >= 1
 
         subscription = entities.Subscription(organization=org).search(
             query={'search': f'name={product.name}'}
@@ -191,16 +187,16 @@ class TestScenarioCustomRepoCheck(APITestCase):
         client_container_name = [key for key in rhel7_client.keys()][0]
 
         host_location_update(
-            client_container_name=client_container_name, logger_obj=self.logger, loc=loc
+            client_container_name=client_container_name, logger_obj=LOGGER, loc=loc
         )
         status = execute(
             docker_execute_command,
             client_container_id,
             'subscription-manager identity',
-            host=self.docker_vm,
-        )[self.docker_vm]
-        self.assertIn(org.name, status)
-        install_or_update_package(client_hostname=client_container_id, package=self.rpm1_name)
+            host=DOCKER_VM,
+        )[DOCKER_VM]
+        assert org.name in status
+        install_or_update_package(client_hostname=client_container_id, package=RPM1_NAME)
 
         scenario_dict = {
             self.__class__.__name__: {
@@ -242,7 +238,7 @@ class TestScenarioCustomRepoCheck(APITestCase):
         prod_label = entity_data.get('prod_label')
         repo_name = entity_data.get('repo_name')
 
-        create_repo(rpm2, self.file_path, post_upgrade=True, other_rpm=rpm1)
+        create_repo(rpm2, FILE_PATH, post_upgrade=True, other_rpm=rpm1)
         repo = entities.Repository(name=repo_name).search()[0]
         repo.sync()
 
@@ -255,9 +251,9 @@ class TestScenarioCustomRepoCheck(APITestCase):
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             'Packages/c/| grep {}'.format(
-                org_label, lce_name, content_view.label, prod_label, repo.label, self.rpm2_name
+                org_label, lce_name, content_view.label, prod_label, repo.label, RPM2_NAME
             )
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertGreaterEqual(len(result.stdout), 1)
-        install_or_update_package(client_hostname=client_container_id, package=self.rpm2_name)
+        assert result.return_code == 0
+        assert len(result.stdout) >= 1
+        install_or_update_package(client_hostname=client_container_id, package=RPM2_NAME)
