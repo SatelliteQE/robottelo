@@ -650,8 +650,8 @@ REP_TEM_APPLIED_ERRATA_INPUT = {
     },
     'Include Last Reboot': {'yes': 'yes', 'no': 'no'},
 }
-DOCKER_REGISTRY_HUB = 'https://registry-1.docker.io'
-DOCKER_UPSTREAM_NAME = 'busybox'
+DOCKER_REGISTRY_HUB = 'https://mirror.gcr.io'
+DOCKER_UPSTREAM_NAME = 'library/busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = 'openshift3/ose-metrics-hawkular-openshift-agent'
 CUSTOM_LOCAL_FOLDER = '/var/www/html/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/www/html/myrepo/test.txt'
