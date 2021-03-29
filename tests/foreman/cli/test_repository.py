@@ -533,11 +533,6 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_create_with_gpg_key_by_id(self, repo_options, gpg_key):
         """Check if repository can be created with gpg key ID
 
@@ -555,11 +550,6 @@ class TestRepository:
         assert repo['gpg-key']['name'] == gpg_key['name']
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_create_with_gpg_key_by_name(
         self, repo_options, module_org, module_product, gpg_key
     ):
@@ -1415,11 +1405,6 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
-    @pytest.mark.parametrize(
         'new_repo_options',
         **parametrized(
             [
@@ -1450,11 +1435,6 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
-    @pytest.mark.parametrize(
         'new_repo_options',
         **parametrized(
             [
@@ -1482,11 +1462,6 @@ class TestRepository:
         assert result['url'] == repo['url']
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_update_gpg_key(self, repo_options, module_org, repo, gpg_key):
         """Update the original gpg key
 
@@ -1813,11 +1788,6 @@ class TestRepository:
         assert repo['content-counts']['puppet-modules'] == '0'
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_upload_content(self, repo):
         """Create repository and upload content
 
@@ -2045,11 +2015,6 @@ class TestRepository:
         assert len(repos) == 0
 
     @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_upload_remove_srpm_content(self, repo):
         """Create repository, upload and remove an SRPM content
 
@@ -2091,11 +2056,6 @@ class TestRepository:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'name': list(valid_data_list().values())[0]}]),
-        indirect=True,
-    )
     def test_positive_srpm_list_end_to_end(self, repo):
         """Create repository,  upload, list and remove an SRPM content
 
