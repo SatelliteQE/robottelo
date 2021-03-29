@@ -23,10 +23,10 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
@@ -196,8 +196,8 @@ def test_positive_sync_docker_via_sync_status(session, module_org):
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': DOCKER_REGISTRY_HUB,
-                'repo_content.upstream_repo_name': DOCKER_UPSTREAM_NAME,
+                'repo_content.upstream_url': CONTAINER_REGISTRY_HUB,
+                'repo_content.upstream_repo_name': CONTAINER_UPSTREAM_NAME,
             },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name

@@ -35,9 +35,9 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_RH_REGISTRY_UPSTREAM_NAME
-from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_RH_REGISTRY_UPSTREAM_NAME
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import REPO_TYPE
 from robottelo.datafactory import invalid_docker_upstream_names
 from robottelo.datafactory import parametrized
@@ -55,18 +55,18 @@ def _repo(product_id, name=None, upstream_name=None, url=None):
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
-        If ``None`` then defaults to DOCKER_UPSTREAM_NAME constant.
+        If ``None`` then defaults to CONTAINER_UPSTREAM_NAME constant.
     :param str url: URL of repository. If ``None`` then defaults to
-        DOCKER_REGISTRY_HUB constant.
+        CONTAINER_REGISTRY_HUB constant.
     :return: A ``Repository`` object.
     """
     return make_repository(
         {
             'content-type': REPO_TYPE['docker'],
-            'docker-upstream-name': upstream_name or DOCKER_UPSTREAM_NAME,
+            'docker-upstream-name': upstream_name or CONTAINER_UPSTREAM_NAME,
             'name': name or gen_string('alpha', 5),
             'product-id': product_id,
-            'url': url or DOCKER_REGISTRY_HUB,
+            'url': url or CONTAINER_REGISTRY_HUB,
         }
     )
 
@@ -185,7 +185,7 @@ class TestDockerRepository:
         """
         repo = _repo(module_product.id, name)
         assert repo['name'] == name
-        assert repo['upstream-repository-name'] == DOCKER_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == CONTAINER_UPSTREAM_NAME
         assert repo['content-type'] == REPO_TYPE['docker']
 
     @pytest.mark.tier2
@@ -328,10 +328,10 @@ class TestDockerRepository:
         """
         repo = _repo(
             module_product.id,
-            upstream_name=DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+            upstream_name=CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
             url=settings.docker.external_registry_1,
         )
-        assert repo['upstream-repository-name'] == DOCKER_RH_REGISTRY_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == CONTAINER_RH_REGISTRY_UPSTREAM_NAME
 
     @skip_if_not_set('docker')
     @pytest.mark.tier1
@@ -349,13 +349,13 @@ class TestDockerRepository:
         """
         Repository.update(
             {
-                'docker-upstream-name': DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+                'docker-upstream-name': CONTAINER_RH_REGISTRY_UPSTREAM_NAME,
                 'id': repo['id'],
                 'url': settings.docker.external_registry_1,
             }
         )
         repo = Repository.info({'id': repo['id']})
-        assert repo['upstream-repository-name'] == DOCKER_RH_REGISTRY_UPSTREAM_NAME
+        assert repo['upstream-repository-name'] == CONTAINER_RH_REGISTRY_UPSTREAM_NAME
 
     @pytest.mark.tier2
     def test_positive_update_url(self, repo):
@@ -1326,7 +1326,7 @@ class TestDockerClient:
         # create lifecycle environment and promote content view to it
         lce = make_lifecycle_environment({'organization-id': module_org.id})
         product = make_product_wait({'organization-id': module_org.id})
-        repo = _repo(product['id'], upstream_name=DOCKER_UPSTREAM_NAME)
+        repo = _repo(product['id'], upstream_name=CONTAINER_UPSTREAM_NAME)
         Repository.synchronize({'id': repo['id']})
         content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
         ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
@@ -1345,11 +1345,13 @@ class TestDockerClient:
         )
         docker_repo_uri = (
             f' {settings.server.hostname}/{pattern_prefix}-{content_view["label"]}/'
-            f'{DOCKER_UPSTREAM_NAME} '
+            f'{CONTAINER_UPSTREAM_NAME} '
         ).lower()
 
         # 3. Try to search for docker images on Satellite
-        remote_search_command = f'docker search {settings.server.hostname}/{DOCKER_UPSTREAM_NAME}'
+        remote_search_command = (
+            f'docker search {settings.server.hostname}/{CONTAINER_UPSTREAM_NAME}'
+        )
         result = docker_host.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri not in result.stdout
@@ -1415,7 +1417,7 @@ class TestDockerClient:
             on Satellite instance
         """
         pattern_prefix = gen_string('alpha', 5)
-        docker_upstream_name = DOCKER_UPSTREAM_NAME
+        docker_upstream_name = CONTAINER_UPSTREAM_NAME
         registry_name_pattern = (
             f'{pattern_prefix}-<%= content_view.label %>/<%= repository.docker_upstream_name %>'
         )
@@ -1538,7 +1540,7 @@ class TestDockerClient:
             repo_name = gen_string('alphanumeric').lower()
 
             # Commit a new docker image and verify image was created
-            image_name = f'{repo_name}/{DOCKER_UPSTREAM_NAME}'
+            image_name = f'{repo_name}/{CONTAINER_UPSTREAM_NAME}'
             result = docker_host.execute(
                 f'docker commit {container["uuid"]} {image_name}:latest && '
                 f'docker images --all | grep {image_name}'

@@ -35,8 +35,8 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS
 from robottelo.constants import PRDS
@@ -1604,9 +1604,9 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': name,
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
                 for name in valid_docker_repository_names()
             ]
@@ -1634,9 +1634,9 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             ]
         ),
@@ -1849,9 +1849,9 @@ class TestDockerRepository:
                 {
                     'content_type': 'docker',
                     'docker_tags_whitelist': ['latest'],
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             ]
         ),
@@ -1878,9 +1878,9 @@ class TestDockerRepository:
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             ]
         ),
@@ -1920,9 +1920,9 @@ class TestDockerRepository:
                 {
                     'content_type': 'docker',
                     'docker_tags_whitelist': ['latest', gen_string('alpha')],
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             ]
         ),
@@ -1953,9 +1953,9 @@ class TestDockerRepository:
                 {
                     'content_type': 'docker',
                     'docker_tags_whitelist': [gen_string('alpha') for _ in range(3)],
-                    'docker_upstream_name': DOCKER_UPSTREAM_NAME,
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             ]
         ),

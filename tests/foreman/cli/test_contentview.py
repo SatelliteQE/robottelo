@@ -54,11 +54,11 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.constants import DOCKER_UPSTREAM_NAME
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_INC_UPD_ERRATA
 from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
@@ -155,7 +155,7 @@ def all_content_type(module_org):
             'content-type': 'docker',
             'docker-upstream-name': 'busybox',
             'product-id': product['id'],
-            'url': DOCKER_REGISTRY_HUB,
+            'url': CONTAINER_REGISTRY_HUB,
         }
     )
     Repository.synchronize({'id': docker_repo['id']})
@@ -2085,7 +2085,7 @@ class TestContentView:
                 'content-type': 'docker',
                 'docker-upstream-name': 'quay/busybox',
                 'product-id': module_product.id,
-                'url': DOCKER_REGISTRY_HUB,
+                'url': CONTAINER_REGISTRY_HUB,
             }
         )
         # Sync all three repos
@@ -3341,10 +3341,10 @@ class TestContentView:
         docker_repository = make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': DOCKER_REGISTRY_HUB,
+                'url': CONTAINER_REGISTRY_HUB,
             }
         )
         Repository.synchronize({'id': docker_repository['id']})
@@ -3444,10 +3444,10 @@ class TestContentView:
         docker_repository = make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+                'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': DOCKER_REGISTRY_HUB,
+                'url': CONTAINER_REGISTRY_HUB,
             }
         )
         Repository.synchronize({'id': docker_repository['id']})
@@ -4004,7 +4004,7 @@ class TestContentView:
                     'docker-upstream-name': 'busybox',
                     'name': gen_string('alpha', 20),
                     'product-id': docker_product['id'],
-                    'url': DOCKER_REGISTRY_HUB,
+                    'url': CONTAINER_REGISTRY_HUB,
                 }
             )
             Repository.synchronize({'id': docker_repository['id']})

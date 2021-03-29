@@ -33,6 +33,7 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
@@ -40,7 +41,6 @@ from robottelo.constants import DEFAULT_RELEASE_VERSION
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
@@ -803,7 +803,7 @@ def test_positive_add_docker_repo_cv(session, module_org):
     repo = entities.Repository(
         content_type=REPO_TYPE['docker'],
         product=entities.Product(organization=module_org).create(),
-        url=DOCKER_REGISTRY_HUB,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -839,7 +839,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
     repo = entities.Repository(
         content_type=REPO_TYPE['docker'],
         product=entities.Product(organization=module_org).create(),
-        url=DOCKER_REGISTRY_HUB,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
