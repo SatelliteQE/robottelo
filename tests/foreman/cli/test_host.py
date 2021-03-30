@@ -1004,6 +1004,42 @@ def test_hammer_host_info_output():
     assert int(result_info['additional-info']['owner-id']) == user.id
 
 
+@pytest.mark.host_create
+@pytest.mark.tier2
+def test_positive_update_host_owner_and_verify_puppet_class_name(
+    module_env_search, module_org, module_location, module_puppet_classes, module_user
+):
+    """Update host owner and check puppet clases associated to the host
+
+    :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
+
+    :expectedresults: Host is updated with new owner
+        and has puppet class is still assigned and shown
+
+    :CaseImportance: Medium
+
+    :BZ: 1851149
+    """
+    host = make_fake_host(
+        {
+            'puppet-classes': module_puppet_classes[0].name,
+            'environment': module_env_search.name,
+            'organization-id': module_org.id,
+            'location-id': module_location.id,
+        }
+    )
+    host_classes = Host.puppetclasses({'host': host['name']})
+    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
+
+    Host.update({'id': host['id'], 'owner': module_user.login, 'owner-type': 'User'})
+    host = Host.info({'id': host['id']})
+    assert int(host['additional-info']['owner-id']) == module_user.id
+    assert host['additional-info']['owner-type'] == 'User'
+
+    host_classes = Host.puppetclasses({'host': host['name']})
+    assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
+
+
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
 @pytest.mark.host_parameter
 @pytest.mark.tier1
