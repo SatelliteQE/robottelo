@@ -12,8 +12,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
-:Assignee: chiggins
-
 :TestType: Functional
 
 :CaseImportance: High
@@ -21,7 +19,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
@@ -36,7 +33,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.decorators import skip_if_not_set
-from robottelo.hosts import ContentHost
 from robottelo.test import APITestCase
 from robottelo.test import settings
 
@@ -220,7 +216,6 @@ class SubscriptionsTestCase(APITestCase):
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @pytest.mark.tier2
-    @pytest.mark.libvirt_content_host
     @pytest.mark.usefixtures("golden_ticket_host_setup")
     @pytest.mark.usefixtures("rhel77_contenthost_class")
     def test_positive_subscription_status_disabled(self):
@@ -235,14 +230,18 @@ class SubscriptionsTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-
+        # with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         self.rhel77_contenthost_class.install_katello_ca()
-        self.rhel77_contenthost_class.register_contenthost(self.org_setup.label, self.ak_setup.name)
+        self.rhel77_contenthost_class.register_contenthost(
+            self.org_setup.label, self.ak_setup.name
+        )
         assert self.rhel77_contenthost_class.subscribed
-        host = entities.Host().search(query={'search': f'name={self.rhel77_contenthost_class.hostname}'})
+        host = entities.Host().search(
+            query={'search': f'name={self.rhel77_contenthost_class.hostname}'}
+        )
         host_id = host[0].id
         host_content = entities.Host(id=host_id).read_raw().content
-        assert "Simple Content Access" in str(host_content)
+        assert 'Simple Content Access' in str(host_content)
 
 
 @pytest.mark.tier2
