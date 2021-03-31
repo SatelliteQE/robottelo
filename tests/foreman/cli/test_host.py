@@ -1010,7 +1010,7 @@ def test_hammer_host_info_output():
     assert int(result_info['additional-info']['owner-id']) == user.id
 
 
-@pytest.mark.host_create
+@pytest.mark.host_update
 @pytest.mark.tier2
 def test_positive_update_host_owner_and_verify_puppet_class_name(
     module_env_search, module_org, module_location, module_puppet_classes, module_user
@@ -1020,11 +1020,11 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     :id: 2b7dd148-914b-11eb-8a3a-98fa9b6ecd5a
 
     :expectedresults: Host is updated with new owner
-        and has puppet class is still assigned and shown
+        and puppet class is still assigned and shown
 
     :CaseImportance: Medium
 
-    :BZ: 1851149
+    :BZ: 1851149, 1809952
     """
     host = make_fake_host(
         {
