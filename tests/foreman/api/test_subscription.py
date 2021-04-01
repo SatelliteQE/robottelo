@@ -231,14 +231,10 @@ class SubscriptionsTestCase(APITestCase):
         :CaseImportance: Medium
         """
         # with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
-        self.rhel77_contenthost_class.install_katello_ca()
-        self.rhel77_contenthost_class.register_contenthost(
-            self.org_setup.label, self.ak_setup.name
-        )
-        assert self.rhel77_contenthost_class.subscribed
-        host = entities.Host().search(
-            query={'search': f'name={self.rhel77_contenthost_class.hostname}'}
-        )
+        self.content_host.install_katello_ca()
+        self.content_host.register_contenthost(self.org_setup.label, self.ak_setup.name)
+        assert self.content_host.subscribed
+        host = entities.Host().search(query={'search': f'name={self.content_host.hostname}'})
         host_id = host[0].id
         host_content = entities.Host(id=host_id).read_raw().content
         assert 'Simple Content Access' in str(host_content)

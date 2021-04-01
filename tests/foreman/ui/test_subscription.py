@@ -19,7 +19,6 @@ from tempfile import mkstemp
 
 import pytest
 from airgun.session import Session
-from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -40,7 +39,6 @@ from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.decorators import setting_is_set
 from robottelo.decorators import skip_if_not_set
-from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
@@ -452,7 +450,9 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
 
 
 @pytest.mark.tier3
-def test_positive_subscription_status_disabled_golden_ticket(session, golden_ticket_host_setup):
+def test_positive_subscription_status_disabled_golden_ticket(
+    session, golden_ticket_host_setup, rhel7_contenthost
+):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -464,17 +464,16 @@ def test_positive_subscription_status_disabled_golden_ticket(session, golden_tic
 
     :CaseImportance: Medium
     """
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
-        vm.install_katello_ca()
-        org, ak = golden_ticket_host_setup
-        vm.register_contenthost(org.label, ak.name)
-        assert vm.subscribed
-        with session:
-            session.organization.select(org_name=org.name)
-            host = session.contenthost.read(vm.hostname, widget_names='details')['details'][
-                'subscription_status'
-            ]
-            assert 'Simple Content Access' in host
+    rhel7_contenthost.install_katello_ca()
+    org, ak = golden_ticket_host_setup
+    rhel7_contenthost.register_contenthost(org.label, ak.name)
+    assert rhel7_contenthost.subscribed
+    with session:
+        session.organization.select(org_name=org.name)
+        host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[
+            'details'
+        ]['subscription_status']
+        assert 'Simple Content Access' in host
 
 
 @pytest.mark.tier2
