@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 from broker.hosts import Host
+from wait_for import TimedOutError
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6
@@ -117,6 +119,20 @@ class ContentHost(Host):
         for name, url in kwargs.items():
             content = f'[{name}]\n' f'name={name}\n' f'baseurl={url}\n' 'enabled=1\n' 'gpgcheck=0'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
+
+    def install_katello_agent(self):
+        """Install katello-agent on the virtual machine.
+
+        :return: None.
+        :raises ContentHostError: if katello-agent is not installed.
+        """
+        result = self.execute('yum install -y katello-agent')
+        if result.status != 0:
+            raise ContentHostError(f'Failed to install katello-agent: {result.stdout}')
+        try:
+            wait_for(lambda: self.execute('systemctl status goferd').status == 0)
+        except TimedOutError:
+            raise ContentHostError('katello-agent is not running')
 
     def install_katello_host_tools(self):
         """Installs Katello host tools on the broker virtual machine
