@@ -19,7 +19,6 @@
 import csv
 
 import pytest
-from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -37,7 +36,6 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.hosts import ContentHost
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -299,6 +297,7 @@ class SubscriptionTestCase(CLITestCase):
     @pytest.mark.tier2
     @pytest.mark.libvirt_content_host
     @pytest.mark.usefixtures("golden_ticket_host_setup")
+    @pytest.mark.usefixtures("rhel77_contenthost_class")
     def test_positive_auto_attach_disabled_golden_ticket(self):
         """Verify that Auto-Attach is disabled or "Not Applicable"
         when a host organization is in Simple Content Access mode (Golden Ticket)
@@ -312,14 +311,11 @@ class SubscriptionTestCase(CLITestCase):
 
         :CaseImportance: Medium
         """
-        with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
-            assert vm.subscribed
-            host = Host.list({'search': vm.hostname})
-            host_id = host[0]['id']
-            with pytest.raises(CLIReturnCodeError) as context:
-                Host.subscription_auto_attach({'host-id': host_id})
-            assert "This host's organization is in Simple Content Access mode" in str(
-                context.value
-            )
+        self.content_host.install_katello_ca()
+        self.content_host.register_contenthost(self.org_setup['label'], self.ak_setup['name'])
+        assert self.content_host.subscribed
+        host = Host.list({'search': self.content_host.hostname})
+        host_id = host[0]['id']
+        with pytest.raises(CLIReturnCodeError) as context:
+            Host.subscription_auto_attach({'host-id': host_id})
+        assert "This host's organization is in Simple Content Access mode" in str(context.value)
