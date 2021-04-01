@@ -12,6 +12,8 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 :CaseComponent: SubscriptionManagement
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -230,7 +232,6 @@ class SubscriptionsTestCase(APITestCase):
 
         :CaseImportance: Medium
         """
-        # with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         self.content_host.install_katello_ca()
         self.content_host.register_contenthost(self.org_setup.label, self.ak_setup.name)
         assert self.content_host.subscribed

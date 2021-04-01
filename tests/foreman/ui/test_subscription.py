@@ -8,6 +8,8 @@
 
 :CaseComponent: SubscriptionManagement
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -211,7 +213,6 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
         )
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
 def test_positive_access_manifest_as_another_admin_user(test_name):
     """Other admin users should be able to access and manage a manifest
@@ -252,6 +253,7 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
         assert not session.subscription.has_manifest
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_view_vdc_subscription_products(session):
     """Ensure that Virtual Datacenters subscription provided products is
