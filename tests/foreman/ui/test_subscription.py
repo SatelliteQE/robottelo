@@ -211,6 +211,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
         )
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
 def test_positive_access_manifest_as_another_admin_user(test_name):
     """Other admin users should be able to access and manage a manifest
@@ -313,6 +314,7 @@ def test_positive_view_vdc_subscription_products(session):
 
 
 @skip_if_not_set('compute_resources')
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(session):
     """Ensure that Virtual Data Centers guest subscription Provided
@@ -449,6 +451,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         assert set(col[1:]) == set(checkbox_dict)
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_subscription_status_disabled_golden_ticket(
     session, golden_ticket_host_setup, rhel7_contenthost
@@ -476,6 +479,7 @@ def test_positive_subscription_status_disabled_golden_ticket(
         assert 'Simple Content Access' in host
 
 
+@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
 def test_positive_candlepin_events_processed_by_STOMP(session):
     """Verify that Candlepin events are being read and processed by
