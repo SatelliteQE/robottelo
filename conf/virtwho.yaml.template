@@ -1,0 +1,23 @@
+VIRTWHO:
+# The hypervisor type, one of the values: esx, xen, hyperv, rhevm, libvirt, kubevirt
+  HYPERVISOR_TYPE:
+  # The hostname or ip or other values for hypervisor server, depends on the type
+  HYPERVISOR_SERVER:
+  # Admin username to access hypervisor server
+  HYPERVISOR_USERNAME:
+  # Admin password to access hypervisor server
+  HYPERVISOR_PASSWORD:
+  # The config file to connect hypervisor, only for kubevirt
+  #hypervisor_config_file=
+  # The guest ip or hostname in the hypervisor
+  GUEST:
+  # The guest port for ssh connection, by default guest_port=22
+  GUEST_PORT:
+  # ssh username to access guest
+  GUEST_USERNAME:
+  # ssh password to access guest
+  GUEST_PASSWORD:
+  # The SKU ID for physical vdc
+  SKU_VDC_PHYSICAL:
+  # The SKU ID for virtual vdc
+  SKU_VDC_VIRTUAL:
