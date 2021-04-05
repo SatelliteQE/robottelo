@@ -31,6 +31,7 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
+from robottelo.utils.issue_handlers import is_open
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 LOGEDOFF_MSG = "Using sessions, you are currently not logged in"
@@ -272,7 +273,7 @@ def test_positive_session_preceeds_saved_credentials(
 
     :id: e4277298-1c24-494b-84a6-22f45f96e144
 
-    :BZ: 1471099
+    :BZ: 1471099, 1903693
 
     :Steps:
 
@@ -296,10 +297,11 @@ def test_positive_session_preceeds_saved_credentials(
         assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
         # list organizations without supplying credentials
         sleep(70)
+        if not is_open('BZ:1903693'):
+            result = Auth.with_user().status()
+            assert LOGEDOFF_MSG.format(admin_user['login']) in result[0]['message']
         with pytest.raises(CLIReturnCodeError):
             Org.with_user().list()
-        result = Auth.with_user().status()
-        assert LOGEDOFF_MSG.format(admin_user['login']) in result[0]['message']
     finally:
         # reset timeout to default
         Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
