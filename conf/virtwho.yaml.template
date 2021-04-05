@@ -8,7 +8,7 @@ VIRTWHO:
   # Admin password to access hypervisor server
   HYPERVISOR_PASSWORD:
   # The config file to connect hypervisor, only for kubevirt
-  #hypervisor_config_file=
+  #HYPERVISOR_CONFIG_FILE=
   # The guest ip or hostname in the hypervisor
   GUEST:
   # The guest port for ssh connection, by default guest_port=22
