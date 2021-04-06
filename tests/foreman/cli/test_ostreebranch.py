@@ -19,138 +19,149 @@
 import random
 
 import pytest
+from nailgun import entities
 
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_org_with_credentials
 from robottelo.cli.factory import make_product_with_credentials
 from robottelo.cli.factory import make_repository_with_credentials
-from robottelo.cli.factory import make_user
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import OSTREE_REPO
 from robottelo.decorators.host import skip_if_os
-from robottelo.test import CLITestCase
+
+pytestmark = [
+    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
+    pytest.mark.tier3,
+]
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
+@pytest.fixture(scope='module')
+def ostree_user_credentials():
+    password = 'password'
+    user = entities.User(admin=True, password=password).create()
+    return user.login, password
+
+
+@pytest.fixture(scope='module')
+def ostree_repo_with_user(ostree_user_credentials):
+    """Create an user, organization, product and ostree repo,
+    sync ostree repo for particular user,
+    create content view and publish it for particular user
+    """
+    org = make_org_with_credentials(credentials=ostree_user_credentials)
+    product = make_product_with_credentials(
+        {'organization-id': org['id']}, ostree_user_credentials
+    )
+    # Create new custom ostree repo
+    ostree_repo = make_repository_with_credentials(
+        {
+            'product-id': product['id'],
+            'content-type': 'ostree',
+            'publish-via-http': 'false',
+            'url': OSTREE_REPO,
+        },
+        ostree_user_credentials,
+    )
+    Repository.with_user(*ostree_user_credentials).synchronize({'id': ostree_repo['id']})
+    cv = make_content_view(
+        {'organization-id': org['id'], 'repository-ids': [ostree_repo['id']]},
+        ostree_user_credentials,
+    )
+    ContentView.with_user(*ostree_user_credentials).publish({'id': cv['id']})
+    cv = ContentView.with_user(*ostree_user_credentials).info({'id': cv['id']})
+    return {'cv': cv, 'org': org, 'ostree_repo': ostree_repo, 'product': product}
+
+
 @skip_if_os('RHEL6')
-class OstreeBranchTestCase(CLITestCase):
-    """Test class for Ostree Branch CLI. """
+@pytest.mark.skip_if_open("BZ:1625783")
+def test_positive_list(ostree_user_credentials, ostree_repo_with_user):
+    """List Ostree Branches
 
-    @classmethod
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def setUpClass(cls):
-        """Create an organization, product and ostree repo."""
-        super().setUpClass()
-        password = 'password'
-        cls.user = make_user({'admin': 'true', 'password': password})
-        cls.user['password'] = password
-        credentials = cls.get_user_credentials()
-        cls.org = make_org_with_credentials(credentials=credentials)
-        cls.product = make_product_with_credentials(
-            {'organization-id': cls.org['id']}, credentials
-        )
-        # Create new custom ostree repo
-        cls.ostree_repo = make_repository_with_credentials(
-            {
-                'product-id': cls.product['id'],
-                'content-type': 'ostree',
-                'publish-via-http': 'false',
-                'url': FEDORA27_OSTREE_REPO,
-            },
-            credentials,
-        )
-        Repository.with_user(*credentials).synchronize({'id': cls.ostree_repo['id']})
-        cls.cv = make_content_view(
-            {'organization-id': cls.org['id'], 'repository-ids': [cls.ostree_repo['id']]},
-            credentials,
-        )
-        ContentView.with_user(*credentials).publish({'id': cls.cv['id']})
-        cls.cv = ContentView.with_user(*credentials).info({'id': cls.cv['id']})
+    :id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
 
-    @classmethod
-    def get_user_credentials(cls):
-        return cls.user['login'], cls.user['password']
+    :expectedresults: Ostree Branch List is displayed
+    """
+    result = OstreeBranch.with_user(*ostree_user_credentials).list()
+    assert len(result) > 0
 
-    @pytest.mark.tier3
-    def test_positive_list(self):
-        """List Ostree Branches
 
-        :id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
+@skip_if_os('RHEL6')
+@pytest.mark.upgrade
+def test_positive_list_by_repo_id(ostree_repo_with_user, ostree_user_credentials):
+    """List Ostree branches by repo id
 
-        :expectedresults: Ostree Branch List is displayed
-        """
-        result = OstreeBranch.with_user(*self.get_user_credentials()).list()
-        self.assertGreater(len(result), 0)
+    :id: 8cf1a973-031c-4c02-af14-0faba22ab60b
 
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_list_by_repo_id(self):
-        """List Ostree branches by repo id
+    :expectedresults: Ostree Branch List is displayed
 
-        :id: 8cf1a973-031c-4c02-af14-0faba22ab60b
+    """
 
-        :expectedresults: Ostree Branch List is displayed
+    branch = OstreeBranch.with_user(*ostree_user_credentials)
+    result = branch.list({'repository-id': ostree_repo_with_user['ostree_repo']['id']})
+    assert len(result) > 0
 
-        """
 
-        branch = OstreeBranch.with_user(*self.get_user_credentials())
-        result = branch.list({'repository-id': self.ostree_repo['id']})
-        self.assertGreater(len(result), 0)
+@skip_if_os('RHEL6')
+@pytest.mark.skip_if_open("BZ:1625783")
+def test_positive_list_by_product_id(ostree_repo_with_user, ostree_user_credentials):
+    """List Ostree branches by product id
 
-    @pytest.mark.tier3
-    def test_positive_list_by_product_id(self):
-        """List Ostree branches by product id
+    :id: e7b9d04d-cace-4271-b166-214017200c53
 
-        :id: e7b9d04d-cace-4271-b166-214017200c53
+    :expectedresults: Ostree Branch List is displayed
+    """
+    result = OstreeBranch.with_user(*ostree_user_credentials).list(
+        {'product-id': ostree_repo_with_user['product']['id']}
+    )
+    assert len(result) > 0
 
-        :expectedresults: Ostree Branch List is displayed
-        """
-        result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'product-id': self.product['id']}
-        )
-        self.assertGreater(len(result), 0)
 
-    @pytest.mark.tier3
-    def test_positive_list_by_org_id(self):
-        """List Ostree branches by org id
+@skip_if_os('RHEL6')
+@pytest.mark.skip_if_open("BZ:1625783")
+def test_positive_list_by_org_id(ostree_repo_with_user, ostree_user_credentials):
+    """List Ostree branches by org id
 
-        :id: 5b169619-305f-4934-b363-068193330701
+    :id: 5b169619-305f-4934-b363-068193330701
 
-        :expectedresults: Ostree Branch List is displayed
-        """
-        result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'organization-id': self.org['id']}
-        )
-        self.assertGreater(len(result), 0)
+    :expectedresults: Ostree Branch List is displayed
+    """
+    result = OstreeBranch.with_user(*ostree_user_credentials).list(
+        {'organization-id': ostree_repo_with_user['org']['id']}
+    )
+    assert len(result) > 0
 
-    @pytest.mark.tier3
-    def test_positive_list_by_cv_id(self):
-        """List Ostree branches by cv id
 
-        :id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
+@skip_if_os('RHEL6')
+@pytest.mark.skip_if_open("BZ:1625783")
+def test_positive_list_by_cv_id(ostree_repo_with_user, ostree_user_credentials):
+    """List Ostree branches by cv id
 
-        :expectedresults: Ostree Branch List is displayed
+    :id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
 
-        """
-        result = OstreeBranch.with_user(*self.get_user_credentials()).list(
-            {'content-view-id': self.cv['id']}
-        )
-        self.assertGreater(len(result), 0)
+    :expectedresults: Ostree Branch List is displayed
 
-    @pytest.mark.tier3
-    def test_positive_info_by_id(self):
-        """Get info for Ostree branch by id
+    """
+    result = OstreeBranch.with_user(*ostree_user_credentials).list(
+        {'content-view-id': ostree_repo_with_user['cv']['id']}
+    )
+    assert len(result) > 0
 
-        :id: 7838c9a8-56da-44de-883c-28571ecfa75c
 
-        :expectedresults: Ostree Branch Info is displayed
-        """
-        result = OstreeBranch.with_user(*self.get_user_credentials()).list()
-        self.assertGreater(len(result), 0)
-        # Grab a random branch
-        branch = random.choice(result)
-        result = OstreeBranch.with_user(*self.get_user_credentials()).info({'id': branch['id']})
-        self.assertEqual(branch['id'], result['id'])
+@skip_if_os('RHEL6')
+@pytest.mark.skip_if_open("BZ:1625783")
+def test_positive_info_by_id(ostree_user_credentials, ostree_repo_with_user):
+    """Get info for Ostree branch by id
+
+    :id: 7838c9a8-56da-44de-883c-28571ecfa75c
+
+    :expectedresults: Ostree Branch Info is displayed
+    """
+    result = OstreeBranch.with_user(*ostree_user_credentials).list()
+    assert len(result) > 0
+    # Grab a random branch
+    branch = random.choice(result)
+    result = OstreeBranch.with_user(*ostree_user_credentials).info({'id': branch['id']})
+    assert branch['id'] == result['id']
