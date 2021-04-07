@@ -41,7 +41,7 @@ def compute_resource_setup(self, default_org):
     self.netmask = settings.vlan_networking.netmask
     self.vm_domain_name = settings.upgrade.vm_domain
     self.vm_domain = entities.Domain().search(query={'search': f'name="{self.vm_domain_name}"'})
-    self.proxy_name = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+    self.proxy_name = settings.upgrade.capsule_hostname
 
 
 # TODO Mark with infra markers from #8391
