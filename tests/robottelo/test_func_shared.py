@@ -196,15 +196,21 @@ class FunctionSharedTestCase(TestCase):
             '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name, 'shared_counter']),
         )
         self.assertFalse(os.path.exists(expected_shared_file_path))
+
         value = gen_integer(min_value=1, max_value=10000)
         increment_by = gen_integer(min_value=1, max_value=10000)
         counter_value = shared_counter(value=value, increment_by=increment_by)
         self.assertEqual(counter_value, value + increment_by)
-        counter_value_shared = shared_counter(
-            value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000),
-        )
+
+        value_2 = gen_integer(min_value=1, max_value=10000)
+        while value_2 == value:
+            value_2 = gen_integer(min_value=1, max_value=10000)
+        increment_by_2 = gen_integer(min_value=1, max_value=10000)
+        while increment_by_2 == increment_by:
+            increment_by_2 = gen_integer(min_value=1, max_value=10000)
+        counter_value_shared = shared_counter(value=value_2, increment_by=increment_by_2)
         self.assertEqual(counter_value_shared, counter_value)
+
         self.assertTrue(os.path.exists(expected_shared_file_path))
 
     def test_shared_counter_file_path_with_scope_context(self):
@@ -228,11 +234,18 @@ class FunctionSharedTestCase(TestCase):
         increment_by = gen_integer(min_value=1, max_value=10000)
         counter_value = shared_counter_with_scope_context(value=value, increment_by=increment_by)
         self.assertEqual(counter_value, value + increment_by)
+
+        value_2 = gen_integer(min_value=1, max_value=10000)
+        while value_2 == value:
+            value_2 = gen_integer(min_value=1, max_value=10000)
+        increment_by_2 = gen_integer(min_value=1, max_value=10000)
+        while increment_by_2 == increment_by:
+            increment_by_2 = gen_integer(min_value=1, max_value=10000)
         counter_value_shared = shared_counter_with_scope_context(
-            value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000),
+            value=value_2, increment_by=increment_by_2
         )
         self.assertEqual(counter_value_shared, counter_value)
+
         self.assertTrue(os.path.exists(expected_shared_file_path))
 
     def test_shared_main_counter_class_file_path(self):
@@ -255,11 +268,18 @@ class FunctionSharedTestCase(TestCase):
         increment_by = gen_integer(min_value=1, max_value=10000)
         counter_value = MainCounter.shared_counter(value=value, increment_by=increment_by)
         self.assertEqual(counter_value, value + increment_by)
+
+        value_2 = gen_integer(min_value=1, max_value=10000)
+        while value_2 == value:
+            value_2 = gen_integer(min_value=1, max_value=10000)
+        increment_by_2 = gen_integer(min_value=1, max_value=10000)
+        while increment_by_2 == increment_by:
+            increment_by_2 = gen_integer(min_value=1, max_value=10000)
         counter_value_shared = MainCounter.shared_counter(
-            value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000),
+            value=value_2, increment_by=increment_by_2
         )
         self.assertEqual(counter_value_shared, counter_value)
+
         self.assertTrue(os.path.exists(expected_shared_file_path))
 
     def test_shared_sub_main_counter_class_file_path(self):
@@ -284,11 +304,18 @@ class FunctionSharedTestCase(TestCase):
             value=value, increment_by=increment_by
         )
         self.assertEqual(counter_value, value + increment_by)
+
+        value_2 = gen_integer(min_value=1, max_value=10000)
+        while value_2 == value:
+            value_2 = gen_integer(min_value=1, max_value=10000)
+        increment_by_2 = gen_integer(min_value=1, max_value=10000)
+        while increment_by_2 == increment_by:
+            increment_by_2 = gen_integer(min_value=1, max_value=10000)
         counter_value_shared = MainCounter.SubCounter.shared_counter(
-            value=gen_integer(min_value=1, max_value=10000),
-            increment_by=gen_integer(min_value=1, max_value=10000),
+            value=value_2, increment_by=increment_by_2
         )
         self.assertEqual(counter_value_shared, counter_value)
+
         self.assertTrue(os.path.exists(expected_shared_file_path))
 
     def test_simple_shared_counter(self):
@@ -304,9 +331,11 @@ class FunctionSharedTestCase(TestCase):
         self.assertEqual(result['index'], index_expected_value)
 
         index_value_2 = gen_integer(min_value=1, max_value=10000)
-        self.assertNotEqual(index_value, index_value_2)
+        while index_value_2 == index_value:
+            index_value_2 = gen_integer(min_value=1, max_value=10000)
         index_increment_by_2 = gen_integer(min_value=1, max_value=100)
-        self.assertNotEqual(index_increment_by, index_increment_by_2)
+        while index_increment_by_2 == index_increment_by:
+            index_increment_by_2 = gen_integer(min_value=1, max_value=100)
         # call the counter function a second time
         result = simple_shared_counter_increment(
             index=index_value_2, increment_by=index_increment_by_2
@@ -344,8 +373,8 @@ class FunctionSharedTestCase(TestCase):
         self.assertEqual(result_value, counter_value + 1)
 
         second_counter_value = gen_integer(min_value=1, max_value=10000)
-        # be sure they are diffrent
-        self.assertNotEqual(counter_value, second_counter_value)
+        while counter_value == second_counter_value:
+            second_counter_value = gen_integer(min_value=1, max_value=10000)
         result = simple_shared_counter_increment_timeout(second_counter_value)
         self.assertIsInstance(result, dict)
         self.assertIn('index', result)
@@ -359,8 +388,8 @@ class FunctionSharedTestCase(TestCase):
         time.sleep(SIMPLE_TIMEOUT_VALUE + 1)
 
         timeout_counter_value = gen_integer(min_value=1, max_value=10000)
-        # be sure they are diffrent
-        self.assertNotEqual(counter_value, timeout_counter_value)
+        while timeout_counter_value == counter_value:
+            timeout_counter_value = gen_integer(min_value=1, max_value=10000)
         timeout_result = simple_shared_counter_increment_timeout(timeout_counter_value)
         self.assertIsInstance(timeout_result, dict)
         self.assertIn('index', timeout_result)
@@ -389,8 +418,9 @@ class FunctionSharedTestCase(TestCase):
         second_counter_values = [
             gen_integer(min_value=1, max_value=10000) for _ in range(pool_size)
         ]
-        # assert that counter values are diffrent
-        self.assertEqual(set(counter_values).intersection(second_counter_values), set())
+        for i in range(pool_size):
+            while second_counter_values[i] in counter_values:
+                second_counter_values[i] = gen_integer(min_value=1, max_value=10000)
         expected_values = [val + 1 for val in second_counter_values]
         results = self.pool.map(
             simple_shared_counter_increment_process_timeout, second_counter_values
@@ -513,7 +543,9 @@ class FunctionSharedTestCase(TestCase):
             self.assertTrue(inc_string.startswith(prefix))
             self.assertTrue(inc_string.endswith(suffix))
             # call the shared function a second time with an other value
-            counter_value = gen_integer(min_value=2, max_value=10000)
+            counter_value_2 = gen_integer(min_value=2, max_value=10000)
+            while counter_value_2 == counter_value:
+                counter_value_2 = gen_integer(min_value=2, max_value=10000)
             # note inverted order of kwargs
             inc_string_2 = basic_shared_counter_string(
                 suffix=suffix, prefix=prefix, counter=counter_value
