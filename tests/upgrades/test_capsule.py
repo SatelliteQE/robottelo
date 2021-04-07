@@ -74,7 +74,10 @@ class TestCapsuleSync:
         pre_test_name = request.node.name
         repo_name = f"{pre_test_name}_repo"
         repo_path = f'/var/www/html/pub/{repo_name}/'
-        activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
+        activation_key = (
+            settings.upgrade.capsule_ak[settings.upgrade.os]
+            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
+        )
         prod_name = f"{pre_test_name}_prod"
         cv_name = f"{pre_test_name}_cv"
         repo_url = f'http://{settings.server.hostname}/pub/{repo_name}'
@@ -117,8 +120,11 @@ class TestCapsuleSync:
         org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
         pre_test_name = dependent_scenario_name
         rpm_name = rpm1.split('/')[-1]
-        cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
-        activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
+        cap_host = settings.upgrade.capsule_hostname
+        activation_key = (
+            settings.upgrade.capsule_ak[settings.upgrade.os]
+            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
+        )
         ak = entities.ActivationKey(organization=org.id).search(
             query={'search': f'name={activation_key}'}
         )[0]
@@ -176,8 +182,11 @@ class TestCapsuleSyncNewRepo:
         repo_name = gen_string('alpha')
         rpm_name = rpm2.split('/')[-1]
         org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-        activation_key = settings.upgrade.rhev_capsule_ak or settings.upgrade.capsule_ak
-        cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+        activation_key = (
+            settings.upgrade.capsule_ak[settings.upgrade.os]
+            or settings.upgrade.custom_capsule_ak[settings.upgrade.os]
+        )
+        cap_host = settings.upgrade.capsule_hostname
         ak = entities.ActivationKey(organization=org.id).search(
             query={'search': f'name={activation_key}'}
         )[0]
@@ -224,7 +233,7 @@ class TestCapsuleSyncNewRepo:
 
         """
         request.addfinalizer(lambda: cleanup(content_view, repo, product))
-        cap_host = settings.upgrade.rhev_cap_host or settings.upgrade.capsule_hostname
+        cap_host = settings.upgrade.capsule_hostname
         org = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
         lc_env = entities.LifecycleEnvironment(organization=org).search(
             query={'search': 'name="{}"'.format('Dev')}
