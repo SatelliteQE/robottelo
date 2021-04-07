@@ -1501,11 +1501,10 @@ OSCAP_DEFAULT_CONTENT = {
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
     'dsrhel6': 'DISA STIG for Red Hat Enterprise Linux 6',
-    'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 6',
-    'dsrhel8': 'DISA STIG for Red Hat Enterprise Linux 6',
+    'dsrhel7': 'DISA STIG for Red Hat Enterprise Linux 7',
+    'dsrhel8': '[DRAFT] DISA STIG for Red Hat Enterprise Linux 8',
     'esp': 'Example Server Profile',
     'rhccp': 'Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)',
-    'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'firefox': 'Upstream Firefox STIG',
     'tailoring_rhel7': (
         'Standard System Security Profile for Red Hat Enterprise Linux 7 [CUSTOMIZED]'
@@ -1517,6 +1516,12 @@ OSCAP_PROFILE = {
     'cbrhel8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
     'ppgpo': 'Protection Profile for General Purpose Operating Systems',
     'acscee': 'Australian Cyber Security Centre (ACSC) Essential Eight',
+    'ospp7': 'OSPP - Protection Profile for General Purpose Operating Systems v4.2.1',
+    'ospp8': 'Protection Profile for General Purpose Operating Systems',
+    'usgcb': 'United States Government Configuration Baseline (USGCB)',
+    'pcidss6': 'PCI-DSS v3 Control Baseline for Red Hat Enterprise Linux 6',
+    'pcidss7': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7',
+    'pcidss8': 'PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 8',
 }
 
 ROLES = [
