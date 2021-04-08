@@ -117,15 +117,15 @@ class TestRepositoryExport:
         )
         backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
         repo_export_dir = (
-            f"/mnt/{class_export_directory}/{backend_identifier}/{module_org.label}/{ENVIRONMENT}"
-            f"/custom/{product['label']}/{repo['label']}"
+            f'/mnt/{class_export_directory}/{backend_identifier}/{module_org.label}/{ENVIRONMENT}'
+            f'/custom/{product["label"]}/{repo["label"]}'
         )
 
         # Export the repository
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
+        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
         assert len(result.stdout) == 0
 
         # Synchronize the repository
@@ -135,7 +135,7 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
+        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
         assert result.return_code == 0
         assert len(result.stdout) >= 1
 
@@ -175,7 +175,7 @@ class TestRepositoryExport:
         backend_identifier = entities.Repository(id=repo['id']).read().backend_identifier
         repo_export_dir = (
             f'/mnt/{class_export_directory}/{backend_identifier}/{module_org.label}/{ENVIRONMENT}'
-            f'/content/dist/rhel/server/6/6Server/x86_64/rhev-agent/3/os'
+            '/content/dist/rhel/server/6/6Server/x86_64/rhev-agent/3/os'
         )
 
         # Update the download policy to 'immediate'
@@ -185,7 +185,7 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
+        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
         assert len(result.stdout) == 0
 
         # Synchronize the repository
@@ -195,7 +195,7 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command(f"find {repo_export_dir} -name '*.rpm'")
+        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
         assert result.return_code == 0
         assert len(result.stdout) >= 1
 
@@ -234,7 +234,7 @@ def class_export_entities():
 @pytest.fixture(scope='function')
 def function_export_cv_directory():
     """Create directory for CV export and at the end remove it"""
-    export_dir = f"{get_export_base()}/{gen_string('alpha')}"
+    export_dir = f'{get_export_base()}/{gen_string("alpha")}'
     ssh.command(f'mkdir {export_dir}')
     yield export_dir
     # Deletes directory created for CV export Test
@@ -333,7 +333,7 @@ def _assert_exported_cvv_exists(export_dir, content_view_name, content_view_vers
     :return: The path to the tar (if it exists).
     """
     exported_tar = f'{export_dir}/export-{content_view_name}-{content_view_version}.tar'
-    result = ssh.command(f"[ -f {exported_tar} ]")
+    result = ssh.command(f'[ -f {exported_tar} ]')
     assert result.return_code == 0
     return exported_tar
 
@@ -431,7 +431,7 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{cview_label}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list({'content-view-version-id': default_cvv_id})
         assert len(exported_packages) > 0
@@ -530,7 +530,7 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-'
             f'{exporting_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) == 1
@@ -589,10 +589,10 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list(
             {'content-view-version-id': class_export_entities['exporting_cvv_id']}
@@ -668,7 +668,7 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{rhva_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) > 0
@@ -738,7 +738,7 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{rhel_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) > 0
@@ -788,24 +788,24 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
-        result = ssh.command(f"tar -t -f {exported_tar}")
+        result = ssh.command(f'tar -t -f {exported_tar}')
         contents_tar = (
-            f"export-{class_export_entities['exporting_cv_name']}-{exporting_cvv_version}/export-"
-            f"{class_export_entities['exporting_cv_name']}-{exporting_cvv_version}-repos.tar"
+            f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}/export-'
+            f'{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}-repos.tar'
         )
         assert contents_tar in result.stdout
         cvv_packages = Package.list(
             {'content-view-version-id': class_export_entities['exporting_cvv_id']}
         )
         assert len(cvv_packages) > 0
-        ssh.command(f"tar -xf {exported_tar} -C {function_export_cv_directory}")
+        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         exported_packages = ssh.command(
-            f"tar -tf {function_export_cv_directory}/{contents_tar} | grep .rpm | wc -l"
+            f'tar -tf {function_export_cv_directory}/{contents_tar} | grep .rpm | wc -l'
         )
         assert len(cvv_packages) == int(exported_packages.stdout[0])
 
@@ -852,10 +852,10 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         imported_entities = _import_entities(
@@ -906,8 +906,8 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
@@ -961,10 +961,10 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
@@ -985,8 +985,8 @@ class TestContentViewSync:
                 }
             )
         assert (
-            f"the Content View '{class_export_entities['exporting_cv_name']}' "
-            f"is greater or equal to the version you are trying to import"
+            f'''the Content View '{class_export_entities["exporting_cv_name"]}' '''
+            'is greater or equal to the version you are trying to import'
         ) in error.value.message
 
     @pytest.mark.tier2
@@ -1019,8 +1019,8 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
         importing_org = make_org()
         with pytest.raises(CLIReturnCodeError) as error:
@@ -1028,8 +1028,8 @@ class TestContentViewSync:
                 {'export-tar': exported_tar, 'organization-id': importing_org['id']}
             )
         assert (
-            f"Error: The Content View {class_export_entities['exporting_cv_name']} is not present "
-            f"on this server, please create the Content View and try the import again"
+            f'Error: The Content View {class_export_entities["exporting_cv_name"]} is not present '
+            'on this server, please create the Content View and try the import again'
         ) in error.value.message
 
     @pytest.mark.tier1
@@ -1062,8 +1062,8 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
         importing_org = make_org()
         make_content_view(
@@ -1114,9 +1114,9 @@ class TestContentViewSync:
                 {'export-dir': f'{function_export_cv_directory}', 'id': exporting_cvv_id}
             )
         assert (
-            f"Could not export the content view:\n  "
-            f"Error: Ensure the content view version '{cv_name} {cv_version}' "
-            f"has at least one repository."
+            'Could not export the content view:\n  '
+            f'''Error: Ensure the content view version '{cv_name} {cv_version}' '''
+            'has at least one repository.'
         ) in error.value.message
 
     @pytest.mark.tier2
@@ -1157,9 +1157,9 @@ class TestContentViewSync:
                 {'export-dir': f'{function_export_cv_directory}', 'id': exporting_cvv_id}
             )
         assert (
-            f"Could not export the content view:\n  "
-            f"Error: Ensure the content view version '{cv_name} {cv_version}' "
-            f"has at least one repository.\n"
+            'Could not export the content view:\n  '
+            f'''Error: Ensure the content view version '{cv_name} {cv_version}' '''
+            'has at least one repository.\n'
         ) in error.value.message
 
     @pytest.mark.tier2
@@ -1224,8 +1224,8 @@ class TestContentViewSync:
                 }
             )
         assert (
-            f"The Repository '{exporting_repo_name}' is set with Mirror-on-Sync to YES. "
-            f"Please change Mirror-on-Sync to NO and try the import again"
+            f'''The Repository '{exporting_repo_name}' is set with Mirror-on-Sync to YES. '''
+            f'Please change Mirror-on-Sync to NO and try the import again'
         ) in error.value.message
 
     @pytest.mark.tier2
@@ -1290,7 +1290,7 @@ class TestContentViewSync:
         )
         Repository.synchronize({'id': repo['id']})
         puppet_module = PuppetModule.list(
-            {'search': f"name={module['name']} and version={module['version']}"}
+            {'search': f'name={module["name"]} and version={module["version"]}'}
         )[0]
         content_view = make_content_view({'organization-id': exporting_org['id']})
         ContentView.puppet_module_add(
@@ -1310,9 +1310,9 @@ class TestContentViewSync:
                 }
             )
         assert (
-            f"Could not export the content view:\n  "
-            f"Error: Ensure the content view version '{content_view['name']} {cv_version}'"
-            f" has at least one repository.\n"
+            'Could not export the content view:\n  '
+            f'''Error: Ensure the content view version '{content_view['name']} {cv_version}' '''
+            'has at least one repository.\n'
         ) in error.value.message
 
     @pytest.mark.tier3
@@ -1359,7 +1359,7 @@ class TestContentViewSync:
         )
         Repository.synchronize({'id': yum_repo['id']})
         puppet_module = PuppetModule.list(
-            {'search': f"name={module['name']} and version={module['version']}"}
+            {'search': f'name={module["name"]} and version={module["version"]}'}
         )[0]
         content_view = make_content_view(
             {'organization-id': class_export_entities['exporting_org']['id']}
@@ -1419,10 +1419,10 @@ class TestContentViewSync:
         )
         exporting_cvv_version = class_export_entities['exporting_cv']['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}-"
-            f"{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
+            f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
@@ -1430,9 +1430,9 @@ class TestContentViewSync:
             class_export_entities['exporting_cv_name'],
         )
         # Updating the json in exported tar
-        ssh.command(f"tar -xf {exported_tar} -C {function_export_cv_directory}")
+        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         extracted_directory_name = (
-            f"export-{class_export_entities['exporting_cv_name']}-{exporting_cvv_version}"
+            f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}'
         )
         json_path = (
             f'{function_export_cv_directory}/{extracted_directory_name}/'
@@ -1441,7 +1441,7 @@ class TestContentViewSync:
         new_major, new_minor = _update_json(json_path)
         custom_cvv_tar = f'{function_export_cv_directory}/{extracted_directory_name}.tar'
         ssh.command(
-            f"tar -cvf {custom_cvv_tar} {function_export_cv_directory}/{extracted_directory_name}"
+            f'tar -cvf {custom_cvv_tar} {function_export_cv_directory}/{extracted_directory_name}'
         )
         # Importing the updated tar
         ContentView.version_import(
@@ -1501,15 +1501,15 @@ class TestContentViewSync:
         )
         exporting_cvv_version = exporting_cv['versions'][0]['version']
         exported_tar = (
-            f"{function_export_cv_directory}/export-{class_export_entities['exporting_cv_name']}"
-            f"-{exporting_cvv_version}.tar"
+            f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}'
+            f'-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f"[ -f {exported_tar} ]")
+        result = ssh.command(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         # Updating the json in exported tar
-        ssh.command(f"tar -xf {exported_tar} -C {function_export_cv_directory}")
+        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         extracted_directory_name = (
-            f"export-{class_export_entities['exporting_cv_name']}-{exporting_cvv_version}"
+            f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}'
         )
         json_path_server = (
             f'{function_export_cv_directory}/{extracted_directory_name}/'
