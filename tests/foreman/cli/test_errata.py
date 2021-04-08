@@ -1096,7 +1096,7 @@ def test_positive_list_filter_by_org(products_with_repos, filter_by_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_list_filter_by_cve(module_org):
+def test_positive_list_filter_by_cve(module_org, rh_repo):
     """Filter errata by CVE
 
     :id: 7791137c-95a7-4518-a56b-766a5680c5fb
