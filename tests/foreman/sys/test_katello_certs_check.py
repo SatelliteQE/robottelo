@@ -130,7 +130,7 @@ class TestKatelloCertsCheck:
             result = connection.run(f"rm -rf {files}")
             assert result.return_code == 0
 
-    @pytest.fixture(scope="module")
+    @pytest.fixture()
     def generate_certs(self):
         upload_file(
             local_file=get_data_file('certs.sh'),
