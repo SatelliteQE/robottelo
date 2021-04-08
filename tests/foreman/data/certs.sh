@@ -5,11 +5,12 @@ CERTS_DIR=certs
 function generate_certs(){
    CERT_NAME=$1
    SUBJ=$2
+   extensions=$3
    if [[ ! -f "$CERTS_DIR/${CERT_NAME}.key" || ! -f "$CERTS_DIR/$CERT_NAME.crt" ]]; then
         echo "Generating server certificate"
         openssl genrsa -out $CERTS_DIR/$CERT_NAME.key 2048
         openssl req -new -key $CERTS_DIR/$CERT_NAME.key -out $CERTS_DIR/$CERT_NAME.csr -subj $SUBJ
-        openssl x509 -req -in $CERTS_DIR/$CERT_NAME.csr -CA $CERTS_DIR/$CA_CERT_NAME.crt -CAkey $CERTS_DIR/$CA_CERT_NAME.key -CAcreateserial -out $CERTS_DIR/$CERT_NAME.crt -days 3650 -sha256 -extfile extensions.txt -extensions extensions
+        openssl x509 -req -in $CERTS_DIR/$CERT_NAME.csr -CA $CERTS_DIR/$CA_CERT_NAME.crt -CAkey $CERTS_DIR/$CA_CERT_NAME.key -CAcreateserial -out $CERTS_DIR/$CERT_NAME.crt -days 3650 -sha256 -extfile extensions.txt -extensions $extensions
     else
         echo "Server certificate exists. Skipping."
    fi
@@ -42,13 +43,13 @@ else
 fi
 
 # generate certs with hostname 'foreman.example.com'
-generate_certs "foreman.example.com" "/CN=foreman.example.com"
+generate_certs "foreman.example.com" "/CN=foreman.example.com" "extensions"
 
 # generate invalid certs with hostname as 'foreman.example.com'
-generate_certs "invalid" "/CN=foreman.example.com"
+generate_certs "invalid" "/CN=foreman.example.com" "client_extensions"
 
 # generate certs with wildcard
-generate_certs "wildcard" "/CN=*.example.com"
+generate_certs "wildcard" "/CN=*.example.com" "wildcard_extensions"
 
 # generate certs with short hostname
-generate_certs "shortname" "/CN=foreman"
+generate_certs "shortname" "/CN=foreman" "shortname_extensions"
