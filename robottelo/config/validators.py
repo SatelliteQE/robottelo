@@ -187,19 +187,7 @@ validators = dict(
             must_exist=True,
         )
     ],
-    performance=[
-        Validator(
-            "performance.cdn_address",
-            "performance.virtual_machines",
-            "performance.fresh_install_savepoint",
-            "performance.enabled_repos_savepoint",
-            must_exist=True,
-        ),
-        Validator("performance.time_hammer", default=False),
-        Validator("performance.csv_buckets_count", default=10),
-        Validator("performance.sync_count", default=3),
-        Validator("performance.sync_type", default='sync'),
-    ],
+    performance=[Validator("performance.time_hammer", default=False)],
     report_portal=[
         Validator(
             "report_portal.portal_url",

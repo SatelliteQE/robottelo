@@ -1,0 +1,5 @@
+PERFORMANCE:
+  # Control whether or not to time on hammer commands in robottelo/cli/base.py
+  # Default set to be 0, i.e. no timing of performance is measured and thus no
+  # interference to original robottelo tests.
+  TIME_HAMMER: false
