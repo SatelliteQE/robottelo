@@ -740,7 +740,7 @@ def test_positive_generate_ansible_template():
     )
 
     report_data = ReportTemplate.with_user(username=user['login'], password=password).report_data(
-        {'id': template_name, 'job-id': schedule[0].split('Job ID: ', 1)[1]}
+        {'name': template_name, 'job-id': schedule[0].split('Job ID: ', 1)[1]}
     )
 
     assert host['name'] in [item.split(',')[1] for item in report_data if len(item) > 0]
