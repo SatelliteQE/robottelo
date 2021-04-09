@@ -1,6 +1,31 @@
 SERVER:
-  # Server hostname
-  # HOSTNAME: replace-with-satellite-hostname
+  # Server hostnames, a list of one or more dns-resolvable hostnames
+  HOSTNAMES:
+    - null
+  #  - replace.with.satellite.hostname
+  #  - replace.with.satellite.hostname
+  VERSION:
+    # The full release version (6.9.2)
+    # RELEASE: populate with satellite version
+    # The snap version currently testing (if applicable)
+    # SNAP:
+    # The source of Satellite packages. Can be one of:
+    # internal, ga, beta
+    SOURCE: "internal"
+  # run-on-one - All xdist runners default to the first satellite
+  # balance - xdist runners will be split between available satellites
+  # on-demand - any xdist runner without a satellite will have a new one provisioned.
+  # if a new satellite is required, test execution will wait until one is received.
+  XDIST_BEHAVIOR: "run-on-one"
+  # Before attempting a new broker checkout, check the local inventory
+  FROM_INVENTORY: False
+  # A broker filter specifying which hosts can be used
+  INVENTORY_FILTER: "name<sat"
+  # If one or more Satellites are provisioned,
+  # this setting determines if they will be automatically checked in
+  AUTO_CHECKIN: False
+  # The Ansible Tower workflow used to deploy a satellite
+  DEPLOY_WORKFLOW: "deploy-sat-jenkins"
   # HTTP scheme when building the server URL
   # Suggested values for "scheme" are "http" and "https".
   SCHEME: https

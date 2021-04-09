@@ -25,6 +25,7 @@ logs/**
 /.tox
 /.coverage
 /htmlcov/
+/robottelo_collection.log
 
 # Varies per-deployment.
 /robottelo.properties
@@ -59,7 +60,6 @@ tests/foreman/pytest.ini
 
 # For pytest --bz-cache generated file
 **/bz_cache.json
-
 
 # For `coverage xml` generated file.
 **/coverage.xml
