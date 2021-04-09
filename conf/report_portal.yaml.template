@@ -1,0 +1,9 @@
+REPORT_PORTAL:
+  # URL of the Report portal instance
+  # PORTAL_URL: https://reportportal.example.com
+  # PROJECT: Satellite6
+  # API key
+  # API_KEY: rp-user-api-token
+  # To skip the rerun, if the failed tests in last run more than fail_threshold
+  # if its not set, 20% by default will be considered
+  # FAIL_THRESHOLD: 0
