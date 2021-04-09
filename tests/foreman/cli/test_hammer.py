@@ -176,13 +176,16 @@ class HammerTestCase(CLITestCase):
 
         :CaseImportance: Critical
 
-        :BZ: 1640644
+        :BZ: 1640644, 1368173
         """
         default_org = make_org()
         default_product_name = gen_string('alpha')
         make_product({'name': default_product_name, 'organization-id': default_org['id']})
         try:
             Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
+            # list templates for BZ#1368173
+            result = ssh.command('hammer job-template list')
+            assert result.return_code == 0
             # Verify --organization-id is not required to pass if defaults are set
             result = ssh.command('hammer product list')
             assert result.return_code == 0
