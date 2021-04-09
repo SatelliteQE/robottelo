@@ -74,6 +74,7 @@ from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_7_PUPPET_REPO
 from robottelo.constants.repos import FAKE_PULP_REMOTE_FILEREPO
 from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
+from robottelo.constants.repos import FAKE_YUM_MD5_REPO
 from robottelo.constants.repos import FAKE_YUM_MIXED_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
@@ -2552,6 +2553,42 @@ class TestSRPMRepository:
             f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
             f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/t"
             " | grep .src.rpm"
+        )
+        assert result.return_code == 0
+        assert len(result.stdout) >= 1
+
+
+class TestMD5Repository:
+    """Tests specific to using MD5 signed repositories containing RPMs."""
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options', **parametrized([{'url': FAKE_YUM_MD5_REPO}]), indirect=True
+    )
+    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product):
+        """Synchronize MD5 signed repository with add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        :id: 81cf2606-739f-44ed-8954-41b9d824a69f
+
+        :parametrized: yes
+
+        :expectedresults: rpms can be listed in content view in proper
+            lifecycle environment
+        """
+        lce = make_lifecycle_environment({'organization-id': module_org.id})
+        Repository.synchronize({'id': repo['id']})
+        cv = make_content_view({'organization-id': module_org.id})
+        ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
+        ContentView.publish({'id': cv['id']})
+        content_view = ContentView.info({'id': cv['id']})
+        cvv = content_view['versions'][0]
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
+        result = ssh.command(
+            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
+            f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/b"
+            " | grep bear-4.1-1.noarch.rpm"
         )
         assert result.return_code == 0
         assert len(result.stdout) >= 1
