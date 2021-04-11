@@ -97,6 +97,8 @@ from robottelo.decorators.func_locker import lock_function
 from robottelo.logging import logger
 
 
+pytest_plugins = 'tests.upgrades.scenario_workers'
+
 pre_upgrade_failed_tests = []
 
 
