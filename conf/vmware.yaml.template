@@ -1,0 +1,24 @@
+VMWARE:
+  # Vmware to be added as a compute resource
+  # vmware vcenter URL, e.g. example.com
+  # VCENTER: 
+  # Login for vmware
+  # USERNAME: 
+  # Password for vmware
+  # PASSWORD: 
+  # vmware datacenter
+  # DATACENTER: 
+  # Name of VM that should be used
+  # VM_NAME: 
+
+  # Vmware Compute resource image data
+  # Operating system of the image
+  # IMAGE_OS: 
+  # Architecture of the image
+  # IMAGE_ARCH: 
+  # Login to the image
+  # IMAGE_USERNAME: 
+  # Password of that user
+  # IMAGE_PASSWORD: 
+  # Image name on the external provider
+  # IMAGE_NAME: 
