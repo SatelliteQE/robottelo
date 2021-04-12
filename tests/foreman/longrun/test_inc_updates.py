@@ -16,279 +16,239 @@
 
 :Upstream: No
 """
-from datetime import date
-from datetime import datetime
-from datetime import timedelta
-
 import pytest
-from fauxfactory import gen_alpha
+from broker.broker import VMBroker
 from nailgun import entities
-from nailgun import entity_mixins
 
-from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
-from robottelo.api.utils import wait_for_tasks
-from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_RELEASE_VERSION
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL6
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
-from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import skip_if_not_set
-from robottelo.test import TestCase
-from robottelo.vm import VirtualMachine
+from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.hosts import ContentHost
+
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
-@pytest.mark.libvirt_content_host
-@pytest.mark.run_in_one_thread
-class IncrementalUpdateTestCase(TestCase):
-    """Tests for the Incremental Update feature"""
+@pytest.fixture(scope='module')
+def module_lce_library(module_manifest_org):
+    """ Returns the Library lifecycle environment from chosen organization """
+    return (
+        entities.LifecycleEnvironment()
+        .search(
+            query={'search': f'name={ENVIRONMENT} and organization_id={module_manifest_org.id}'}
+        )[0]
+        .read()
+    )
 
-    @classmethod
-    @skip_if_not_set('clients')
-    def setUpClass(cls):
-        """Creates the pre-requisites for the Incremental updates that used in
-        all test"""
-        super().setUpClass()
-        # Create a new Organization
-        cls.org = entities.Organization(name=gen_alpha()).create()
 
-        # Create two lifecycle environments - DEV, QE
-        cls.dev_lce = entities.LifecycleEnvironment(name='DEV', organization=cls.org).create()
-        cls.qe_lce = entities.LifecycleEnvironment(
-            name='QE', prior=cls.dev_lce, organization=cls.org
-        ).create()
+@pytest.fixture(scope='module')
+def dev_lce(module_manifest_org):
+    return entities.LifecycleEnvironment(name='DEV', organization=module_manifest_org).create()
 
-        # Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(cls.org.id, manifest.content)
 
-        # Enable repositories - RHE Virtualization Agents and rhel6 sat6tools
-        rhva_6_repo_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=cls.org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever=DEFAULT_RELEASE_VERSION,
-        )
-        rhel6_sat6tools_repo_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=cls.org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhst6']['name'],
-            reposet=REPOSET['rhst6'],
-            releasever=None,
-        )
+@pytest.fixture(scope='module')
+def qe_lce(module_manifest_org, dev_lce):
+    qe_lce = entities.LifecycleEnvironment(
+        name='QE', prior=dev_lce, organization=module_manifest_org
+    ).create()
+    return qe_lce
 
-        # Read the repositories
-        cls.rhva_6_repo = entities.Repository(id=rhva_6_repo_id).read()
-        cls.rhel6_sat6tools_repo = entities.Repository(id=rhel6_sat6tools_repo_id).read()
 
-        # Sync the enabled repositories
-        try:
-            cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
-            # Update timeout to 15 minutes to finish sync
-            entity_mixins.TASK_TIMEOUT = 900
-            for repo in [cls.rhva_6_repo, cls.rhel6_sat6tools_repo]:
-                assert repo.sync()['result'] == 'success'
-        finally:
-            entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
+@pytest.fixture(scope='module')
+def rhel7_sat6tools_repo(module_manifest_org):
+    """Enable Sat tools repository"""
+    rhel7_sat6tools_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rhel7_sat6tools_repo = entities.Repository(id=rhel7_sat6tools_repo_id).read()
+    assert rhel7_sat6tools_repo.sync()['result'] == 'success'
+    return rhel7_sat6tools_repo
 
-    def setUp(self):
-        """Creates the pre-requisites for the Incremental updates that used per
-        each test"""
-        super().setUp()
-        # Create content view that will be used filtered erratas
-        self.rhel_6_partial_cv = entities.ContentView(
-            organization=self.org,
-            name=gen_alpha(),
-            repository=[self.rhva_6_repo, self.rhel6_sat6tools_repo],
-        ).create()
 
-        # Create a content view filter to filter out errata
-        rhel_6_partial_cvf = entities.ErratumContentViewFilter(
-            content_view=self.rhel_6_partial_cv,
-            type='erratum',
-            name='rhel_6_partial_cv_filter',
-            repository=[self.rhva_6_repo],
-        ).create()
+@pytest.fixture(scope='module')
+def custom_repo(module_manifest_org):
+    """Enable custom errata repository"""
+    custom_repo = entities.Repository(
+        url=FAKE_9_YUM_REPO, product=entities.Product(organization=module_manifest_org).create()
+    ).create()
+    assert custom_repo.sync()['result'] == 'success'
+    return custom_repo
 
-        # Create a content view filter rule - filtering out errata in the last
-        # 365 days
-        start_date = (date.today() - timedelta(days=365)).strftime('%Y-%m-%d')
-        entities.ContentViewFilterRule(
-            content_view_filter=rhel_6_partial_cvf,
-            types=['security', 'enhancement', 'bugfix'],
-            start_date=start_date,
-            end_date=date.today().strftime('%Y-%m-%d'),
-        ).create()
 
-        # Publish content view and re-read it
+@pytest.fixture(scope='module')
+def module_cv(module_manifest_org, rhel7_sat6tools_repo, custom_repo):
+    """Publish both repos into module CV"""
+    module_cv = entities.ContentView(
+        organization=module_manifest_org, repository=[rhel7_sat6tools_repo.id, custom_repo.id]
+    ).create()
+    module_cv.publish()
+    module_cv = module_cv.read()
+    return module_cv
 
-        self.rhel_6_partial_cv.publish()
-        self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
 
-        # Promote content view to 'DEV' and 'QE'
-        assert len(self.rhel_6_partial_cv.version) == 1
-        for env in (self.dev_lce, self.qe_lce):
-            promote(self.rhel_6_partial_cv.version[0], env.id)
+@pytest.fixture(scope='module')
+def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
+    """Create a module AK in Library LCE"""
+    ak = entities.ActivationKey(
+        content_view=module_cv,
+        environment=module_lce_library,
+        organization=module_manifest_org,
+    ).create()
+    # Fetch available subscriptions
+    subs = entities.Subscription(organization=module_manifest_org).search()
+    assert len(subs) > 0
+    # Add default subscription to activation key
+    sub_found = False
+    for sub in subs:
+        if sub.name == DEFAULT_SUBSCRIPTION_NAME:
+            ak.add_subscriptions(data={'subscription_id': sub.id})
+            sub_found = True
+    assert sub_found
+    # Enable RHEL product content in activation key
+    ak.content_override(
+        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+    )
+    # Add custom subscription to activation key
+    prod = custom_repo.product.read()
+    custom_sub = entities.Subscription().search(query={'search': f'name={prod.name}'})
+    ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
+    return ak
 
-        # Create host collection
-        self.rhel_6_partial_hc = entities.HostCollection(
-            organization=self.org, name=gen_alpha(), max_hosts=5
-        ).create()
 
-        # Create activation key for content view
-        kwargs = {'organization': self.org, 'environment': self.qe_lce.id}
-        rhel_6_partial_ak = entities.ActivationKey(
-            name=gen_alpha(),
-            content_view=self.rhel_6_partial_cv,
-            host_collection=[self.rhel_6_partial_hc],
-            **kwargs,
-        ).create()
-
-        # Fetch available subscriptions
-        subs = entities.Subscription(organization=self.org).search()
-        assert len(subs) > 0
-
-        # Add default subscription to activation key
-        sub_found = False
-        for sub in subs:
-            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
-                rhel_6_partial_ak.add_subscriptions(data={'subscription_id': sub.id})
-                sub_found = True
-        assert sub_found
-
-        # Enable product content in activation key
-        rhel_6_partial_ak.content_override(
-            data={'content_overrides': [{'content_label': REPOS['rhst6']['id'], 'value': '1'}]}
-        )
-
-        # Create client machine and register it to satellite with
-        # rhel_6_partial_ak
-        self.vm = VirtualMachine(distro=DISTRO_RHEL6, tag='incupdate')
-        self.addCleanup(vm_cleanup, self.vm)
-        self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
-        self.vm.enable_repo(REPOS['rhva6']['id'])
-        timestamp = datetime.utcnow()
-        self.vm.run(f'yum install -y {REAL_0_RH_PACKAGE}')
-
-        # Find the content host and ensure that tasks started by package
-        # installation has finished
-        host = entities.Host().search(query={'search': f'name={self.vm.hostname}'})
-        wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadPackageProfile'
-            ' and resource_id = {}'
-            ' and started_at >= "{}"'.format(host[0].id, timestamp)
-        )
+@pytest.fixture(scope='module')
+def host(
+    module_manifest_org,
+    dev_lce,
+    qe_lce,
+    custom_repo,
+    module_ak,
+    module_cv,
+):
+    # Create client machine and register it to satellite with rhel_7_partial_ak
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+        vm.install_katello_ca()
+        # Register, enable tools repo and install katello-host-tools.
+        vm.register_contenthost(module_manifest_org.label, module_ak.name)
+        vm.enable_repo(REPOS['rhst7']['id'])
+        vm.install_katello_host_tools()
+        # AK added custom repo for errata package, just install it.
+        vm.run(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
+        vm.run('katello-package-upload')
+        host = entities.Host().search(query={'search': f'name={vm.hostname}'})
         # Force host to generate or refresh errata applicability
         call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
+        # Add filter of type include but do not include anything.
+        # this will hide all RPMs from selected erratum before publishing.
+        entities.RPMContentViewFilter(
+            content_view=module_cv, inclusion=True, name='Include Nothing'
+        ).create()
+        module_cv.publish()
+        module_cv = module_cv.read()
+        yield
 
-    @staticmethod
-    def setup_vm(client, act_key, org_name):
-        """Creates the vm and registers it to the satellite"""
-        client.create()
-        client.install_katello_ca()
 
-        # Register content host, install katello-agent
-        client.register_contenthost(org_name, act_key, releasever=DEFAULT_RELEASE_VERSION)
-        assert client.subscribed
-        client.install_katello_agent()
-        client.run('katello-package-upload')
+def get_applicable_errata(repo):
+    """Retrieves applicable errata for the given repo"""
+    return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
 
-    @staticmethod
-    def get_applicable_errata(repo):
-        """Retrieves applicable errata for the given repo"""
-        return entities.Errata(repository=repo).search(query={'errata_restrict_applicable': True})
 
-    @pytest.mark.tier4
-    @pytest.mark.upgrade
-    def test_positive_noapply_api(self):
-        """Check if api incremental update can be done without
-        actually applying it
+@pytest.mark.tier4
+@pytest.mark.upgrade
+def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host, dev_lce):
+    """Check if api incremental update can be done without
+    actually applying it
 
-        :id: 481c5ff2-801f-4eff-b1e0-95ea5bb37f95
+    :id: 481c5ff2-801f-4eff-b1e0-95ea5bb37f95
 
-        :Setup:  The prerequisites are already covered in the setUpClass() but
-            for easy debug, get the content view id, Repository id and
-            Lifecycle environment id using hammer and plug these statements on
-            the top of the test. For example::
+    :Setup:  get the content view id, Repository id and
+        Lifecycle environment id
 
-                self.rhel_6_partial_cv = ContentView(id=38).read()
-                self.rhva_6_repo = Repository(id=164).read()
-                self.qe_lce = LifecycleEnvironment(id=46).read()
+    :expectedresults: Incremental update completed with no errors and
+        Content view has a newer version
 
-        :expectedresults: Incremental update completed with no errors and
-            Content view has a newer version
+    :CaseLevel: System
+    """
+    # Promote CV to new LCE
+    versions = sorted(module_cv.read().version, key=lambda ver: ver.id)
+    cvv = versions[-1].read()
+    promote(cvv, dev_lce.id)
+    # Read CV to pick up LCE ID and next_version
+    module_cv = module_cv.read()
 
-        :CaseLevel: System
-        """
-        # Get the content view versions and use the recent one.  API always
-        # returns the versions in ascending order so it is safe to assume the
-        # last one in the list is the recent
-        cv_versions = self.rhel_6_partial_cv.version
+    # Get the content view versions and use the recent one. API always
+    # returns the versions in ascending order (last in the list is most recent)
+    cv_versions = module_cv.version
+    # Get the applicable errata
+    errata_list = get_applicable_errata(custom_repo)
+    assert len(errata_list) > 0
 
-        # Get the applicable errata
-        errata_list = self.get_applicable_errata(self.rhva_6_repo)
-        self.assertGreater(len(errata_list), 0)
+    # Apply incremental update using the first applicable errata
+    entities.ContentViewVersion().incremental_update(
+        data={
+            'content_view_version_environments': [
+                {
+                    'content_view_version_id': cv_versions[-1].id,
+                    'environment_ids': [dev_lce.id],
+                }
+            ],
+            'add_content': {'errata_ids': [errata_list[0].id]},
+        }
+    )
+    # Re-read the content view to get the latest versions
+    module_cv = module_cv.read()
+    assert len(module_cv.version) > len(cv_versions)
 
-        # Apply incremental update using the first applicable errata
-        entities.ContentViewVersion().incremental_update(
-            data={
-                'content_view_version_environments': [
-                    {
-                        'content_view_version_id': cv_versions[-1].id,
-                        'environment_ids': [self.qe_lce.id],
-                    }
-                ],
-                'add_content': {'errata_ids': [errata_list[0].id]},
-            }
-        )
 
-        # Re-read the content view to get the latest versions
-        self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
-        self.assertGreater(len(self.rhel_6_partial_cv.version), len(cv_versions))
+@pytest.mark.tier4
+@pytest.mark.upgrade
+def test_positive_noapply_cli(module_manifest_org, module_cv, custom_repo, host, qe_lce):
+    """Check if cli incremental update can be done without
+    actually applying it
 
-    @pytest.mark.tier4
-    @pytest.mark.upgrade
-    def test_positive_noapply_cli(self):
-        """Check if cli incremental update can be done without
-        actually applying it
+    :id: f25b0919-74cb-4e2c-829e-482558990b3c
 
-        :id: f25b0919-74cb-4e2c-829e-482558990b3c
+    :expectedresults: Incremental update completed with no errors and
+        Content view has a newer version
 
-        :expectedresults: Incremental update completed with no errors and
-            Content view has a newer version
+    :CaseLevel: System
+    """
+    # Promote CV to new LCE
+    versions = sorted(module_cv.read().version, key=lambda ver: ver.id)
+    cvv = versions[-1].read()
+    promote(cvv, qe_lce.id)
+    # Read CV to pick up LCE ID and next_version
+    module_cv = module_cv.read()
 
-        :CaseLevel: System
-        """
-        # Get the content view versions and use the recent one.  API always
-        # returns the versions in ascending order so it is safe to assume the
-        # last one in the list is the recent
+    # Get the content view versions and use the recent one. API should
+    # return the versions in ascending order so assume the
+    # last one in the list is the most recent
+    cv_versions = module_cv.version
 
-        cv_versions = self.rhel_6_partial_cv.version
+    # Get the applicable errata
+    errata_list = get_applicable_errata(custom_repo)
+    assert len(errata_list) > 0
 
-        # Get the applicable errata
-        errata_list = self.get_applicable_errata(self.rhva_6_repo)
-        self.assertGreater(len(errata_list), 0)
-
-        # Apply incremental update using the first applicable errata
-        ContentViewCLI.version_incremental_update(
-            {
-                'content-view-version-id': cv_versions[-1].id,
-                'lifecycle-environment-ids': self.qe_lce.id,
-                'errata-ids': errata_list[0].id,
-            }
-        )
-
-        # Re-read the content view to get the latest versions
-        self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
-        self.assertGreater(len(self.rhel_6_partial_cv.version), len(cv_versions))
+    # Apply incremental update using the first applicable errata
+    ContentViewCLI.version_incremental_update(
+        {
+            'content-view-version-id': cv_versions[-1].id,
+            'lifecycle-environment-ids': qe_lce.id,
+            'errata-ids': errata_list[0].id,
+        }
+    )
+    # Re-read the content view to get the latest versions
+    module_cv = module_cv.read()
+    assert len(module_cv.version) > len(cv_versions)
