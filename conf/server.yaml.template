@@ -17,9 +17,10 @@ SERVER:
   # on-demand - any xdist runner without a satellite will have a new one provisioned.
   # if a new satellite is required, test execution will wait until one is received.
   XDIST_BEHAVIOR: "run-on-one"
-  # Before attempting a new broker checkout, check the local inventory
-  FROM_INVENTORY: False
-  # A broker filter specifying which hosts can be used
+  # If an inventory filter is set and the xdist-behavior is on-demand
+  # then broker will attempt to find hosts matching the filter defined
+  # before checking out a new host
+  # Filter format follows Broker's specification: "hostname<sat"
   INVENTORY_FILTER: "name<sat"
   # If one or more Satellites are provisioned,
   # this setting determines if they will be automatically checked in
