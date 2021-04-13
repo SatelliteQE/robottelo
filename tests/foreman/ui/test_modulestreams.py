@@ -45,6 +45,7 @@ def module_yum_repo(module_product):
     return yum_repo
 
 
+@pytest.mark.skip_if_open("BZ:1948758")
 @pytest.mark.tier2
 def test_positive_module_stream_details_search_in_repo(session, module_org, module_yum_repo):
     """Create product with yum repository assigned to it. Search for
@@ -56,6 +57,8 @@ def test_positive_module_stream_details_search_in_repo(session, module_org, modu
         expected module_streams are present inside of repository
 
     :CaseLevel: Integration
+
+    :BZ: 1948758
     """
     with session:
         session.organization.select(org_name=module_org.name)
