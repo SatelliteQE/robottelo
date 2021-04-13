@@ -37,9 +37,9 @@ class ReportPortal:
         """Configure the settings and initiate report portal properties"""
         if not settings.configured:
             settings.configure()
-        self.rp_url = settings.report_portal.rp_url
-        self.rp_project = settings.report_portal.rp_project
-        self.rp_api_key = settings.report_portal.rp_key
+        self.rp_url = settings.report_portal.portal_url
+        self.rp_project = settings.report_portal.project
+        self.rp_api_key = settings.report_portal.api_key
 
     @property
     def api_url(self):
