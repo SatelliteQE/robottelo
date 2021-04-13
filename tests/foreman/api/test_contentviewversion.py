@@ -23,8 +23,8 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
@@ -41,12 +41,8 @@ def module_lce_cv(module_org):
     lce1 = entities.LifecycleEnvironment(organization=module_org).create()
     lce2 = entities.LifecycleEnvironment(organization=module_org, prior=lce1).create()
     default_cv = entities.ContentView(organization=module_org, name=DEFAULT_CV).search()
-    # There should be only 1 record returned
-    assert len(default_cv) == 1
-    # There should be only 1 version
-    assert len(default_cv[0].version) == 1
-    default_cv = default_cv[0].version[0]
-    return lce1, lce2, default_cv
+    default_cvv = default_cv[0].version[0]
+    return lce1, lce2, default_cvv
 
 
 # Tests for content view version creation.
@@ -101,8 +97,7 @@ def test_negative_create(module_org):
 
 @pytest.mark.tier2
 def test_positive_promote_valid_environment(module_lce_cv, module_org):
-    """Promote a content view version to 'next in sequence'
-    lifecycle environment.
+    """Promote a content view version to 'next in sequence lifecycle environment.
 
     :id: f205ca06-8ab5-4546-83bd-deac4363d487
 
@@ -113,7 +108,6 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org):
     :CaseImportance: Critical
     """
     # Create a new content view...
-    lce1, _, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and promote it.
     cv.publish()
@@ -126,7 +120,7 @@ def test_positive_promote_valid_environment(module_lce_cv, module_org):
     # environments (i.e. 'Library')
     assert len(version.environment) == 1
     # Promote it to the next 'in sequence' lifecycle environment
-    promote(version, lce1.id)
+    promote(version, module_lce_cv[0].id)
     # Assert that content view version is found in 2 lifecycle
     # environments.
     version = version.read()
@@ -145,7 +139,6 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv)
     :CaseLevel: Integration
     """
     # Create a new content view...
-    _, lce2, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
@@ -155,7 +148,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv)
     assert len(cv.version) == 1
     version = cv.version[0].read()
     # The immediate lifecycle is lce1, not lce2
-    promote(version, lce2.id, force=True)
+    promote(version, module_lce_cv[1].id, force=True)
     # Assert that content view version is found in 2 lifecycle
     # environments.
     version = version.read()
@@ -174,9 +167,9 @@ def test_negative_promote_valid_environment(module_lce_cv):
 
     :CaseImportance: Low
     """
-    lce1, _, default_cv = module_lce_cv
+    lce1, _, default_cvv = module_lce_cv
     with pytest.raises(HTTPError):
-        promote(default_cv, lce1.id)
+        promote(default_cvv, lce1.id)
 
 
 @pytest.mark.tier2
@@ -191,7 +184,6 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
     :CaseLevel: Integration
     """
     # Create a new content view...
-    _, lce2, _ = module_lce_cv
     cv = entities.ContentView(organization=module_org).create()
     # ... and publish it.
     cv.publish()
@@ -202,7 +194,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
     version = cv.version[0].read()
     # The immediate lifecycle is lce1, not lce2
     with pytest.raises(HTTPError):
-        promote(version, lce2.id)
+        promote(version, module_lce_cv[1].id)
 
 
 # Tests for content view version promotion.
@@ -210,7 +202,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete(module_org):
+def test_positive_delete(module_org, module_product):
     """Create content view and publish it. After that try to
     disassociate content view from 'Library' environment through
     'delete_from_environment' command and delete content view version from
@@ -227,10 +219,10 @@ def test_positive_delete(module_org):
     """
     key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
-    # Creates new product without selecting GPGkey
-    product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(gpg_key=gpgkey, product=product, url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(
+        gpg_key=gpgkey, product=module_product, url=FAKE_1_YUM_REPO
+    ).create()
     # sync repository
     repo.sync()
     # Create content view
@@ -333,7 +325,7 @@ def test_positive_delete_composite_version(module_org):
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_delete_with_puppet_content(module_org):
+def test_positive_delete_with_puppet_content(module_org, module_lce_library):
     """Delete content view version with puppet module content
 
     :id: cae1164c-6608-4e19-923c-936e75ed807b
@@ -351,10 +343,7 @@ def test_positive_delete_with_puppet_content(module_org):
 
     :CaseLevel: Integration
     """
-    lce_library = (
-        entities.LifecycleEnvironment(organization=module_org, name=ENVIRONMENT).search()[0].read()
-    )
-    lce = entities.LifecycleEnvironment(organization=module_org, prior=lce_library).create()
+    lce = entities.LifecycleEnvironment(organization=module_org, prior=module_lce_library).create()
     product = entities.Product(organization=module_org).create()
     puppet_repo = entities.Repository(
         url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
@@ -492,7 +481,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
-        url=DOCKER_REGISTRY_HUB,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     docker_repo.sync()
     # create a content view and add to it the docker repo
@@ -504,7 +493,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     content_view = content_view.read()
     assert len(content_view.version) == 1
     content_view_version = content_view.version[0].read()
-    assert content_view_version.environment == 1
+    assert len(content_view_version.environment) == 1
     lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
     assert lce_library.name == ENVIRONMENT
     # promote content view version to DEV QE lifecycle environments
@@ -551,7 +540,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
         content_type='docker',
         docker_upstream_name='busybox',
         product=product,
-        url=DOCKER_REGISTRY_HUB,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     docker_repo.sync()
     puppet_repo = entities.Repository(
