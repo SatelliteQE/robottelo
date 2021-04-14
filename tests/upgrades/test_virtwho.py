@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from upgrade_tests import post_upgrade
@@ -28,7 +29,6 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.constants import DEFAULT_LOC
-from robottelo.test import APITestCase
 from robottelo.test import settings
 from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
@@ -38,7 +38,30 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-class TestScenarioPositiveVirtWho(APITestCase):
+@pytest.fixture()
+def form_data():
+    form = {
+        'debug': 1,
+        'interval': '60',
+        'hypervisor_id': 'hostname',
+        'hypervisor_type': virtwho.esx.hypervisor_type,
+        'hypervisor_server': virtwho.esx.hypervisor_server,
+        'filtering_mode': 'none',
+        'satellite_url': settings.server.hostname,
+        'hypervisor_username': virtwho.esx.hypervisor_username,
+        'hypervisor_password': virtwho.esx.hypervisor_password,
+        'name': 'preupgrade_virt_who',
+    }
+    return form
+
+
+@pytest.fixture()
+def org_data():
+    data = {'name': 'virtwho_upgrade_org_name'}
+    return data
+
+
+class TestScenarioPositiveVirtWho:
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
     :steps:
 
@@ -49,35 +72,8 @@ class TestScenarioPositiveVirtWho(APITestCase):
     :expectedresults: Virtwho config should be created, updated and deleted successfully.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.org_name = 'virtwho_upgrade_org_name'
-        cls.satellite_url = settings.server.hostname
-        cls.hypervisor_type = virtwho.esx.hypervisor_type
-        cls.hypervisor_server = virtwho.esx.hypervisor_server
-        cls.hypervisor_username = virtwho.esx.hypervisor_username
-        cls.hypervisor_password = virtwho.esx.hypervisor_password
-        cls.vdc_physical = virtwho.sku.vdc_physical
-        cls.vdc_virtual = virtwho.sku.vdc_virtual
-
-        cls.name = 'preupgrade_virt_who'
-
-    def _make_virtwho_configure(self):
-        args = {
-            'debug': 1,
-            'interval': '60',
-            'hypervisor_id': 'hostname',
-            'hypervisor_type': self.hypervisor_type,
-            'hypervisor_server': self.hypervisor_server,
-            'filtering_mode': 'none',
-            'satellite_url': self.satellite_url,
-            'hypervisor_username': self.hypervisor_username,
-            'hypervisor_password': self.hypervisor_password,
-        }
-        return args
-
     @pre_upgrade
-    def test_pre_create_virt_who_configuration(self):
+    def test_pre_create_virt_who_configuration(self, form_data, org_data):
         """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
@@ -94,28 +90,27 @@ class TestScenarioPositiveVirtWho(APITestCase):
             entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
         default_loc = entities.Location(id=default_loc_id).read()
-        org = entities.Organization(name=self.org_name).create()
+        org = entities.Organization(name=org_data['name']).create()
         default_loc.organization.append(entities.Organization(id=org.id))
         default_loc.update(['organization'])
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        args = self._make_virtwho_configure()
-        args.update({'name': self.name, 'organization_id': org.id})
-        vhd = entities.VirtWhoConfig(**args).create()
-        self.assertEqual(vhd.status, 'unknown')
+        form_data.update({'organization_id': org.id})
+        vhd = entities.VirtWhoConfig(**form_data).create()
+        assert vhd.status == 'unknown'
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, args['hypervisor_type'], debug=True, org=org.name
+            command, form_data['hypervisor_type'], debug=True, org=org.name
         )
-        self.assertEqual(
+        virt_who_instance = (
             entities.VirtWhoConfig(organization_id=org.id)
-            .search(query={'search': f'name={self.name}'})[0]
-            .status,
-            'ok',
+            .search(query={'search': f"name={form_data['name']}"})[0]
+            .status
         )
+        assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={self.vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={self.vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:
@@ -143,7 +138,7 @@ class TestScenarioPositiveVirtWho(APITestCase):
                 .search(query={'search': hostname})[0]
                 .read_json()
             )
-            self.assertEqual(result['subscription_status_label'], 'Fully entitled')
+            assert result['subscription_status_label'] == 'Fully entitled'
 
         scenario_dict = {
             self.__class__.__name__: {
@@ -154,7 +149,7 @@ class TestScenarioPositiveVirtWho(APITestCase):
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
-    def test_post_crud_virt_who_configuration(self):
+    def test_post_crud_virt_who_configuration(self, form_data, org_data):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
@@ -171,19 +166,17 @@ class TestScenarioPositiveVirtWho(APITestCase):
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = entities.Organization().search(query={'search': f'name={self.org_name}'})[0]
+        org = entities.Organization().search(query={'search': f"name={org_data['name']}"})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': f'name={self.name}'}
+            query={'search': f"name={form_data['name']}"}
         )[0]
         if not is_open('BZ:1802395'):
-            self.assertEqual(vhd.status, 'ok')
+            assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = VirtWhoConfig.exists(search=('name', self.name))
-        self.assertEqual(
-            VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'], 'OK'
-        )
+        vhd_cli = VirtWhoConfig.exists(search=('name', form_data['name']))
+        assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'ok'
 
         # Vefify the connection of the guest on Content host
         entity_data = get_entity_data(self.__class__.__name__)
@@ -196,7 +189,7 @@ class TestScenarioPositiveVirtWho(APITestCase):
                 .search(query={'search': hostname})[0]
                 .read_json()
             )
-            self.assertEqual(result['subscription_status_label'], 'Fully entitled')
+            assert result['subscription_status_label'] == 'Fully entitled'
 
         # Verify the virt-who config-file exists.
         config_file = get_configure_file(vhd.id)
@@ -209,8 +202,6 @@ class TestScenarioPositiveVirtWho(APITestCase):
 
         # Delete virt-who config
         vhd.delete()
-        self.assertFalse(
-            entities.VirtWhoConfig(organization_id=org.id).search(
-                query={'search': f'name={modify_name}'}
-            )
+        assert not entities.VirtWhoConfig(organization_id=org.id).search(
+            query={'search': f'name={modify_name}'}
         )
