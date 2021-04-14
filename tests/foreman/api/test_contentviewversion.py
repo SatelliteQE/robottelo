@@ -8,6 +8,8 @@
 
 :CaseComponent: ContentViews
 
+:Assignee: chiggins
+
 :TestType: Functional
 
 :CaseImportance: High
@@ -821,7 +823,7 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
            content-host
         5. At content-host some package from cv1 is installable
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -863,7 +865,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
            content-host
         6. At content-host some package from cv2 is installable
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
@@ -900,7 +902,7 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
     :expectedresults: content view version in capsule is removed from
         Library and DEV and exists only in QE and PROD
 
-    :CaseAutomation: notautomated
+    :CaseAutomation: NotAutomated
 
     :CaseLevel: System
     """
