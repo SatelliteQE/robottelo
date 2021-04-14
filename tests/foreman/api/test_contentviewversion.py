@@ -76,7 +76,7 @@ def test_positive_create(module_cv):
 
 @pytest.mark.tier2
 def test_negative_create(module_org):
-    """Create content view version using the 'Default Content View'.
+    """Attempt to create content view version using the 'Default Content View'.
 
     :id: 0afd49c6-f3a4-403e-9929-849f51ffa922
 
@@ -159,7 +159,7 @@ def test_positive_promote_out_of_sequence_environment(module_org, module_lce_cv)
 
 @pytest.mark.tier2
 def test_negative_promote_valid_environment(module_lce_cv):
-    """Promote the default content view version.
+    """Attempt to promote the default content view version.
 
     :id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
 
@@ -176,7 +176,7 @@ def test_negative_promote_valid_environment(module_lce_cv):
 
 @pytest.mark.tier2
 def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org):
-    """Promote a content view version to a lifecycle environment
+    """Attempt to promote a content view version to a Lifecycle environment
     that is 'out of sequence'.
 
     :id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
@@ -252,7 +252,7 @@ def test_positive_delete(module_org, module_product):
 def test_positive_delete_non_default(module_org):
     """Create content view and publish and promote it to new
     environment. After that try to disassociate content view from 'Library'
-    and one more non-default environments through 'delete_from_environment'
+    and one more non-default environment through 'delete_from_environment'
     command and delete content view version from that content view.
 
     :id: 95bb973c-ebec-4a72-a1b6-ad28b66bd11b
@@ -299,7 +299,7 @@ def test_positive_delete_composite_version(module_org):
 
     :BZ: 1276479
     """
-    # Create and publish product/repository
+    # Create product with repository and publish it
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
     repo.sync()
@@ -431,7 +431,7 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
-    # create a content view and add to it the yum repo
+    # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
@@ -498,7 +498,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
     assert len(content_view_version.environment) == 1
     lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
     assert lce_library.name == ENVIRONMENT
-    # promote content view version to DEV QE lifecycle environments
+    # promote content view version to DEV and QE lifecycle environments
     for lce in [lce_dev, lce_qe]:
         promote(content_view_version, lce.id)
     assert {lce_library.id, lce_dev.id, lce_qe.id} == {
@@ -616,7 +616,7 @@ def test_positive_remove_cv_version_from_env(module_org):
         url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
-    # create a content view and add to it the yum repo
+    # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
@@ -657,7 +657,7 @@ def test_positive_remove_cv_version_from_env(module_org):
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_remove_cv_version_from_multi_env(module_org):
-    """Remove promoted content view version from multiple environment
+    """Remove promoted content view version from multiple environments
 
     :id: 18b86a68-8e6a-43ea-b95e-188fba125a26
 
@@ -687,7 +687,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
         url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
-    # create a content view and add to it the yum repo
+    # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
@@ -757,7 +757,7 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
         url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
-    # create a content view and add to it the yum repo
+    # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
@@ -808,8 +808,8 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
            -> QE
         5. Create an Activation key with the QE environment
         6. Register a content-host using the Activation key
-        7. Remove the content view cv1 version from QE environment.  Note -
-           prior removing replace the current QE environment of cv1 by DEV
+        7. Remove the content view cv1 version from QE environment.  Note:
+           prior to removing, replace the current QE environment of cv1 by DEV
            and content view cv1 for Content-host and for Activation key.
         8. Refresh content-host subscription
 
@@ -841,7 +841,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
 
     :Steps:
 
-        1. Create two content view cv1 and cv2
+        1. Create two content views, cv1 and cv2
         2. Add a yum repo and a puppet module to both content views
         3. Publish the content views
         4. Promote the content views to multiple environment Library -> DEV
@@ -849,7 +849,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
         5. Create an Activation key with the QE environment and cv1
         6. Register a content-host using the Activation key
         7. Delete the content view cv1.
-           Note - prior deleting replace the current QE environment of cv1
+           Note: prior to deleting, replace the current QE environment of cv1
            by DEV and content view cv2 for Content-host and for Activation
            key.
         8. Refresh content-host subscription
@@ -874,7 +874,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
 @pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
-    """Remove promoted content view version from multiple environment,
+    """Remove promoted content view version from multiple environments,
     with satellite module_lce_cv to use capsule
 
     :id: 1e8a8e64-eec8-49e0-b121-919c53f416d2
@@ -889,14 +889,14 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
         4. Publish the content view
         5. Promote the content view to multiple environment Library -> DEV
            -> QE -> PROD
-        6. Make sure the capsule is updated (content synchronization may be
+        6. Make sure the capsule is updated (content synchronization can be
            applied)
         7. Disconnect the capsule
         8. Remove the content view version from Library and DEV
            environments and assert successful completion
         9. Bring the capsule back online and assert that the task is
            completed in capsule
-        10. Make sure the capsule is updated (content synchronization may
+        10. Make sure the capsule is updated (content synchronization can
             be applied)
 
     :expectedresults: content view version in capsule is removed from
@@ -941,7 +941,7 @@ def test_positive_incremental_update_puppet():
     # Extract all the available puppet modules.
     puppet_modules = content_view.available_puppet_modules()['results']
     # Make sure that we have results. Uploading content does not
-    # seem to create a task so we cannot pool it for status. We
+    # seem to create a task so we cannot poll it for status. We
     # should then check that we have some results back before
     # proceeding.
     assert len(puppet_modules) > 0
