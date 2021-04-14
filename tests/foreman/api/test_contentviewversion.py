@@ -8,7 +8,7 @@
 
 :CaseComponent: ContentViews
 
-:Assignee: chiggins
+:Assignee: ltran
 
 :TestType: Functional
 
