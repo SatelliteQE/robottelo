@@ -1,4 +1,3 @@
-import logging
 import re
 
 import requests
@@ -7,8 +6,9 @@ from tenacity import stop_after_attempt
 from tenacity import wait_fixed
 
 from robottelo.config import settings
+from robottelo.logging import logger
 
-LOGGER = logging.getLogger('robottelo')
+
 launch_types = ['satellite6', 'upgrades']
 
 
@@ -169,7 +169,7 @@ class Launch:
         """Sets satellite and snap version attributes of a launch"""
         version_compiler = re.compile(r'([\d\.]+)[\.-](\d+\.\d|[A-Z]+)')
         if not self.info['attributes']:
-            LOGGER.debug(
+            logger.debug(
                 'Launch with no launch_attributes is detected. '
                 'This will be removed from launch collection.'
             )
@@ -180,7 +180,7 @@ class Launch:
         try:
             launch_name = next(filter(version_compiler.search, launch_attrs))
         except StopIteration:
-            LOGGER.debug(
+            logger.debug(
                 'Launch with no build name in launch_attributes is detected. '
                 f'The launch has tags {launch_attrs}'
             )

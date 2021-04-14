@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import logging
 import os
 
 from fabric.api import execute
@@ -35,13 +34,13 @@ from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import promote
 from robottelo.config import settings
+from robottelo.logging import logger
 from robottelo.upgrade_utility import create_repo
 from robottelo.upgrade_utility import host_location_update
 from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 
 
-LOGGER = logging.getLogger('robottelo')
 UPSTREAM_USERNAME = 'rTtest123'
 DOCKER_VM = settings.upgrade.docker_vm
 FILE_PATH = '/var/www/html/pub/custom_repo/'
@@ -187,7 +186,7 @@ class TestScenarioCustomRepoCheck:
         client_container_name = [key for key in rhel7_client.keys()][0]
 
         host_location_update(
-            client_container_name=client_container_name, logger_obj=LOGGER, loc=loc
+            client_container_name=client_container_name, logger_obj=logger, loc=loc
         )
         status = execute(
             docker_execute_command,

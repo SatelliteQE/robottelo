@@ -3,9 +3,9 @@ from unittest import mock
 
 import pytest
 
-from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import INIReader
 from robottelo.config.base import Settings
+from robottelo.errors import ImproperlyConfigured
 
 builtin_open = 'builtins.open'
 

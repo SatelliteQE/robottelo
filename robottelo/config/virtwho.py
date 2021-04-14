@@ -1,13 +1,12 @@
 """Define and instantiate the configuration class for virtwho hypervisors."""
-import logging.config
 import os
 
+from robottelo.config import robottelo_root_dir
 from robottelo.config.base import FeatureSettings
-from robottelo.config.base import get_project_root
-from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import INIReader
+from robottelo.errors import ImproperlyConfigured
 
-LOGGER = logging.getLogger('robottelo')
+
 SETTINGS_FILE_NAME = 'virtwho.properties'
 
 
@@ -345,7 +344,7 @@ class VirtwhoSettings:
 
         if not settings_path:
             # Expect the settings file to be on the robottelo project root.
-            settings_path = os.path.join(get_project_root(), SETTINGS_FILE_NAME)
+            settings_path = os.path.join(robottelo_root_dir, SETTINGS_FILE_NAME)
 
         if not os.path.isfile(settings_path):
             raise ImproperlyConfigured(f'Not able to find settings file at {settings_path}')

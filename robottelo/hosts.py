@@ -1,4 +1,3 @@
-import logging
 from functools import cached_property
 from pathlib import Path
 from urllib.parse import urljoin
@@ -18,8 +17,6 @@ from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import remove_katello_ca
-
-logger = logging.getLogger('robottelo')
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
@@ -62,7 +59,6 @@ class SatelliteHostError(Exception):
 
 class ContentHost(Host):
     run = Host.execute
-    subscribed = False
 
     @property
     def nailgun_host(self):

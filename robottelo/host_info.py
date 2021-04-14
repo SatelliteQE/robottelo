@@ -1,6 +1,5 @@
 """Module that gather several informations about host"""
 import functools
-import logging
 import re
 
 from packaging.version import Version
@@ -8,8 +7,7 @@ from packaging.version import Version
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 @functools.lru_cache(maxsize=1)
@@ -24,10 +22,10 @@ def get_host_os_version():
         result = re.search(version_re, version_description)
         if result:
             host_os_version = f'RHEL{result.group("version")}'
-            LOGGER.debug(f'Host version: {host_os_version}')
+            logger.debug(f'Host version: {host_os_version}')
             return host_os_version
 
-    LOGGER.warning(f'Host version not available: {cmd!r}')
+    logger.warning(f'Host version not available: {cmd!r}')
     return 'Not Available'
 
 
@@ -47,10 +45,10 @@ def get_host_sat_version():
     )
     for version, ssh_result in commands:
         if version != 'Not Available':
-            LOGGER.debug(f'Host Satellite version: {version}')
+            logger.debug(f'Host Satellite version: {version}')
             return version
 
-    LOGGER.warning(f'Host Satellite version not available: {ssh_result!r}')
+    logger.warning(f'Host Satellite version not available: {ssh_result!r}')
     return version
 
 

@@ -11,7 +11,6 @@ from nailgun.client import request
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.config.base import ImproperlyConfigured
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
@@ -20,6 +19,7 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import FAKE_1_YUM_REPO
+from robottelo.errors import ImproperlyConfigured
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):

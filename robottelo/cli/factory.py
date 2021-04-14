@@ -2,7 +2,6 @@
 Factory object creation for all CLI methods
 """
 import datetime
-import logging
 import os
 import pprint
 import random
@@ -94,10 +93,10 @@ from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import update_dictionary
+from robottelo.logging import logger
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
 
-logger = logging.getLogger('robottelo')
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']

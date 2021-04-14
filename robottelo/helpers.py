@@ -1,6 +1,5 @@
 """Several helper methods and functions."""
 import contextlib
-import logging
 import os
 import random
 import re
@@ -18,8 +17,7 @@ from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.errors import GCECertNotFoundError
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 class DataFileError(Exception):
@@ -392,7 +390,6 @@ def default_url_on_new_port(oldport, newport):
     :rtype: str
 
     """
-    logger = logging.getLogger('robottelo')
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:

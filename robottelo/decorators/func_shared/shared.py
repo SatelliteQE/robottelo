@@ -88,7 +88,6 @@ import datetime
 import functools
 import hashlib
 import inspect
-import logging
 import os
 import sys
 import traceback
@@ -103,8 +102,8 @@ from robottelo.decorators.func_shared import file_storage
 from robottelo.decorators.func_shared import redis_storage
 from robottelo.decorators.func_shared.file_storage import FileStorageHandler
 from robottelo.decorators.func_shared.redis_storage import RedisStorageHandler
+from robottelo.logging import logger
 
-logger = logging.getLogger('robottelo')
 
 _storage_handlers = {'file': FileStorageHandler, 'redis': RedisStorageHandler}
 

@@ -1,11 +1,8 @@
-import logging
-
 import pytest
 
 from robottelo.config import settings
+from robottelo.logging import logger
 from robottelo.report_portal.portal import ReportPortal
-
-LOGGER = logging.getLogger('robottelo')
 
 
 class LaunchError(Exception):
@@ -51,7 +48,7 @@ def _get_tests(launch, **kwargs):
 def _get_test_collection(selectable_tests, items):
     """Returns the selected and deselected items"""
     # Select test item if its in failed tests else deselect
-    LOGGER.debug('Selecting/Deselecting tests based on latest launch test results..')
+    logger.debug('Selecting/Deselecting tests based on latest launch test results.')
     selected = []
     deselected = []
     for item in items:
@@ -125,7 +122,7 @@ def pytest_collection_modifyitems(items, config):
     rp = ReportPortal()
     version = settings.server.version
     sat_version = f'{version.base_version}.{version.epoch}'
-    LOGGER.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
+    logger.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
     launch = next(
         iter(
             rp.launches(
@@ -153,7 +150,7 @@ def pytest_collection_modifyitems(items, config):
         test_args['user'] = user_arg
     rp_tests = _get_tests(launch, **test_args)
     selected, deselected = _get_test_collection(rp_tests, items)
-    LOGGER.debug(
+    logger.debug(
         f'Selected {len(selected)} and deselected {len(deselected)} tests based on latest '
         'launch test results.'
     )

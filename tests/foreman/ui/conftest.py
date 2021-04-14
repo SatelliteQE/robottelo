@@ -1,5 +1,3 @@
-import logging
-
 import nailgun.entities
 import pytest
 from airgun.session import Session
@@ -8,8 +6,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 @pytest.fixture(scope='module')
@@ -50,7 +47,7 @@ def module_user(request, module_org, module_loc):
     test_module_name = request.module.__name__.split('.')[-1].split('_', 1)[-1]
     login = '{}_{}'.format(test_module_name, gen_string('alphanumeric'))
     password = gen_string('alphanumeric')
-    LOGGER.debug('Creating session user %r', login)
+    logger.debug('Creating session user %r', login)
     user = nailgun.entities.User(
         admin=True,
         default_organization=module_org,
@@ -62,10 +59,10 @@ def module_user(request, module_org, module_loc):
     user.password = password
     yield user
     try:
-        LOGGER.debug('Deleting session user %r', user.login)
+        logger.debug('Deleting session user %r', user.login)
         user.delete(synchronous=False)
     except HTTPError as err:
-        LOGGER.warning('Unable to delete session user: %s', str(err))
+        logger.warning('Unable to delete session user: %s', str(err))
 
 
 @pytest.fixture()

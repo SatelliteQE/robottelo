@@ -10,7 +10,6 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 
 """
 import json
-import logging
 import os
 import sys
 from time import sleep
@@ -32,8 +31,7 @@ from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import remove_katello_ca
 from robottelo.host_info import get_host_os_version
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 class VirtualMachineError(Exception):

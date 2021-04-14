@@ -20,7 +20,6 @@ API reference for sync plans can be found on your Satellite:
 
 :Upstream: No
 """
-import logging
 from datetime import datetime
 from datetime import timedelta
 from time import sleep
@@ -46,9 +45,8 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
+from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
-
-logger = logging.getLogger('robottelo')
 
 
 @filtered_datapoint

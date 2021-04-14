@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import logging
 from datetime import datetime
 from datetime import timedelta
 from time import sleep
@@ -45,6 +44,7 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+from robottelo.logging import logger
 from robottelo.ssh import upload_file
 
 
@@ -96,9 +96,6 @@ def valid_name_interval_update_tests():
         {'name': gen_string('utf8', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
         {'name': gen_string('html', 15), 'interval': 'hourly', 'new-interval': 'weekly'},
     ]
-
-
-logger = logging.getLogger('robottelo')
 
 
 def validate_task_status(repo_id, max_tries=6, repo_name=None):
