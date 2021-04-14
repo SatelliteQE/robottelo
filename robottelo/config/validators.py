@@ -45,7 +45,12 @@ validators = dict(
         Validator("bugzilla.url", default='https://bugzilla.redhat.com'),
         Validator("bugzilla.api_key", must_exist=True),
     ],
-    capsule=[Validator("capsule.instance_name", must_exist=True)],
+    capsule=[
+        Validator("capsule.instance_name", must_exist=True),
+        Validator("capsule.version.release", must_exist=True),
+        Validator("capsule.version.source", must_exist=True),
+        Validator("capsule.deploy_workflow", must_exist=True),
+    ],
     certs=[
         Validator(
             "certs.cert_file",
