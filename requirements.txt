@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 attrdict==2.0.1
-broker==0.1.11
+broker==0.1.12
 cryptography==3.4.7
 deepdiff==5.2.3
 dynaconf==3.1.4
