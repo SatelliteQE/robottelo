@@ -151,22 +151,22 @@ class NotRestorableException(Exception):
 @shared
 def simple_shared_counter_with_exception_not_restored(index=0):
     """Raise exception that should not be restorable"""
-    raise NotRestorableException('error', "I'am not restorable")
+    raise NotRestorableException('error', 'I am not restorable')
 
 
 class TestFuncShared:
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope='class')
     def scope(self):
         # generate a new namespace
         scope = gen_string('alpha', 10)
         set_default_scope(scope)
         yield scope
 
-    @pytest.fixture(scope="function", autouse=True)
+    @pytest.fixture(scope='function', autouse=True)
     def enable(self):
         enable_shared_function(True)
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture(scope='function')
     def pool(self):
         pool = multiprocessing.Pool(DEFAULT_POOL_SIZE)
         yield pool
