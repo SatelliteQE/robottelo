@@ -121,8 +121,7 @@ def test_positive_delete(new_name):
 
     :parametrized: yes
     """
-    for new_name in valid_data_list():
-        profile = entities.ComputeProfile(name=new_name).create()
-        profile.delete()
-        with pytest.raises(HTTPError):
-            entities.ComputeProfile(id=profile.id).read()
+    profile = entities.ComputeProfile(name=new_name).create()
+    profile.delete()
+    with pytest.raises(HTTPError):
+        entities.ComputeProfile(id=profile.id).read()
