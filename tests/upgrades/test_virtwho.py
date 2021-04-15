@@ -96,7 +96,7 @@ class TestScenarioPositiveVirtWho:
         )
         virt_who_instance = (
             entities.VirtWhoConfig(organization_id=org.id)
-            .search(query={'search': f"name={FORM_DATA['name']}"})[0]
+            .search(query={'search': f'name={FORM_DATA["name"]}'})[0]
             .status
         )
         assert virt_who_instance == 'ok'
@@ -158,11 +158,11 @@ class TestScenarioPositiveVirtWho:
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = entities.Organization().search(query={'search': f"name={ORG_DATA['name']}"})[0]
+        org = entities.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': f"name={FORM_DATA['name']}"}
+            query={'search': f'name={FORM_DATA["name"]}'}
         )[0]
         if not is_open('BZ:1802395'):
             assert vhd.status == 'ok'
