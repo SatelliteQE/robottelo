@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from upgrade_tests import post_upgrade
@@ -38,27 +37,20 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import virtwho
 
 
-@pytest.fixture()
-def form_data():
-    form = {
-        'debug': 1,
-        'interval': '60',
-        'hypervisor_id': 'hostname',
-        'hypervisor_type': virtwho.esx.hypervisor_type,
-        'hypervisor_server': virtwho.esx.hypervisor_server,
-        'filtering_mode': 'none',
-        'satellite_url': settings.server.hostname,
-        'hypervisor_username': virtwho.esx.hypervisor_username,
-        'hypervisor_password': virtwho.esx.hypervisor_password,
-        'name': 'preupgrade_virt_who',
-    }
-    return form
+FORM_DATA = {
+    'debug': 1,
+    'interval': '60',
+    'hypervisor_id': 'hostname',
+    'hypervisor_type': virtwho.esx.hypervisor_type,
+    'hypervisor_server': virtwho.esx.hypervisor_server,
+    'filtering_mode': 'none',
+    'satellite_url': settings.server.hostname,
+    'hypervisor_username': virtwho.esx.hypervisor_username,
+    'hypervisor_password': virtwho.esx.hypervisor_password,
+    'name': 'preupgrade_virt_who',
+}
 
-
-@pytest.fixture()
-def org_data():
-    data = {'name': 'virtwho_upgrade_org_name'}
-    return data
+ORG_DATA = {'name': 'virtwho_upgrade_org_name'}
 
 
 class TestScenarioPositiveVirtWho:
@@ -73,7 +65,7 @@ class TestScenarioPositiveVirtWho:
     """
 
     @pre_upgrade
-    def test_pre_create_virt_who_configuration(self, form_data, org_data):
+    def test_pre_create_virt_who_configuration(self):
         """Create and deploy virt-who configuration.
 
         :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
@@ -90,21 +82,21 @@ class TestScenarioPositiveVirtWho:
             entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         )
         default_loc = entities.Location(id=default_loc_id).read()
-        org = entities.Organization(name=org_data['name']).create()
+        org = entities.Organization(name=ORG_DATA['name']).create()
         default_loc.organization.append(entities.Organization(id=org.id))
         default_loc.update(['organization'])
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        form_data.update({'organization_id': org.id})
-        vhd = entities.VirtWhoConfig(**form_data).create()
+        FORM_DATA.update({'organization_id': org.id})
+        vhd = entities.VirtWhoConfig(**FORM_DATA).create()
         assert vhd.status == 'unknown'
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=org.name
+            command, FORM_DATA['hypervisor_type'], debug=True, org=org.name
         )
         virt_who_instance = (
             entities.VirtWhoConfig(organization_id=org.id)
-            .search(query={'search': f"name={form_data['name']}"})[0]
+            .search(query={'search': f"name={FORM_DATA['name']}"})[0]
             .status
         )
         assert virt_who_instance == 'ok'
@@ -149,7 +141,7 @@ class TestScenarioPositiveVirtWho:
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
-    def test_post_crud_virt_who_configuration(self, form_data, org_data):
+    def test_post_crud_virt_who_configuration(self):
         """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 
         :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
@@ -166,16 +158,16 @@ class TestScenarioPositiveVirtWho:
             2. the config and guest connection have the same status.
             3. virt-who config should update and delete successfully.
         """
-        org = entities.Organization().search(query={'search': f"name={org_data['name']}"})[0]
+        org = entities.Organization().search(query={'search': f"name={ORG_DATA['name']}"})[0]
 
         # Post upgrade, Verify virt-who exists and has same status.
         vhd = entities.VirtWhoConfig(organization_id=org.id).search(
-            query={'search': f"name={form_data['name']}"}
+            query={'search': f"name={FORM_DATA['name']}"}
         )[0]
         if not is_open('BZ:1802395'):
             assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = VirtWhoConfig.exists(search=('name', form_data['name']))
+        vhd_cli = VirtWhoConfig.exists(search=('name', FORM_DATA['name']))
         assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'ok'
 
         # Vefify the connection of the guest on Content host
