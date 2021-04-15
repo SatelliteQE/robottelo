@@ -92,7 +92,7 @@ class TestScenarioPositiveVirtWho:
         assert vhd.status == 'unknown'
         command = get_configure_command(vhd.id, org=org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, FORM_DATA['hypervisor_type'], debug=True, org=org.name
+            command, FORM_DATA['hypervisor_type'], debug=True, org=org.label
         )
         virt_who_instance = (
             entities.VirtWhoConfig(organization_id=org.id)
@@ -168,7 +168,7 @@ class TestScenarioPositiveVirtWho:
             assert vhd.status == 'ok'
         # Verify virt-who status via CLI as we cannot check it via API now
         vhd_cli = VirtWhoConfig.exists(search=('name', FORM_DATA['name']))
-        assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'ok'
+        assert VirtWhoConfig.info({'id': vhd_cli['id']})['general-information']['status'] == 'OK'
 
         # Vefify the connection of the guest on Content host
         entity_data = get_entity_data(self.__class__.__name__)
