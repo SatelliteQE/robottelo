@@ -8,6 +8,7 @@ from broker.hosts import Host
 from wait_for import TimedOutError
 from wait_for import wait_for
 
+from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
@@ -278,6 +279,45 @@ class ContentHost(Host):
 
         """
         self.execute(f'curl -o /etc/yum.repos.d/rhel.repo {rhel_repo}')
+
+    def configure_puppet(self, rhel_repo=None, proxy_hostname=None):
+        """Configures puppet on the virtual machine/Host.
+        :param proxy_hostname: external capsule hostname
+        :param rhel_repo: Red Hat repository link from properties file.
+        :return: None.
+        """
+        if proxy_hostname is None:
+            proxy_hostname = settings.server.hostname
+
+        self.configure_rhel_repo(rhel_repo)
+        puppet_conf = (
+            '[main]\n'
+            'vardir = /opt/puppetlabs/puppet/cache\n'
+            'logdir = /var/log/puppetlabs/puppet\n'
+            'rundir = /var/run/puppetlabs\n'
+            'ssldir = /etc/puppetlabs/puppet/ssl\n'
+            '[agent]\n'
+            'pluginsync      = true\n'
+            'report          = true\n'
+            'ignoreschedules = true\n'
+            f'ca_server       = {proxy_hostname}\n'
+            f'certname        = {self.hostname}\n'
+            'environment     = production\n'
+            f'server          = {proxy_hostname}\n'
+        )
+        result = self.execute('yum install puppet -y')
+        if result.status != 0:
+            raise ContentHostError('Failed to install the puppet rpm')
+        self.execute(f'echo "{puppet_conf}" >> /etc/puppetlabs/puppet/puppet.conf')
+        # This particular puppet run on client would populate a cert on
+        # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
+        # ca list", so that we sign it.
+        self.execute('puppet agent -t')
+        ssh.command(cmd='puppetserver ca sign --all', hostname=proxy_hostname)
+        # This particular puppet run would create the host entity under
+        # 'All Hosts' and let's redirect stderr to /dev/null as errors at
+        #  this stage can be ignored.
+        self.execute('puppet agent -t 2> /dev/null')
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.

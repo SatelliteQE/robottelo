@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import pytest
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -45,6 +46,7 @@ from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
 from robottelo.helpers import ProxyError
+from robottelo.hosts import ContentHost
 from robottelo.vm import VirtualMachine
 
 
@@ -313,7 +315,6 @@ def test_positive_upload_to_satellite(
 
 
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
 def test_positive_oscap_run_with_tailoring_file_and_capsule(
     module_org, default_proxy, content_view, lifecycle_env, puppet_env
@@ -389,7 +390,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca()
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
@@ -407,7 +408,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         )
         vm.configure_puppet(settings.rhel7_repo)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
-        assert result.return_code == 0
+        assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
         vm.execute_foreman_scap_client()
@@ -419,7 +420,6 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 
 
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
 @pytest.mark.parametrize(
     'rhel_repo, content, profile, distro',
@@ -493,7 +493,7 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with VirtualMachine(distro=distro) as vm:
+    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca()
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -530,7 +530,120 @@ def test_positive_oscap_run_via_ansible(
             result = f'host output: {output}'
             raise AssertionError(result)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
-        assert result.return_code == 0
+        assert result.status == 0
+        # Runs the actual oscap scan on the vm/clients and
+        # uploads report to Internal Capsule.
+        vm.execute_foreman_scap_client()
+        # Assert whether oscap reports are uploaded to
+        # Satellite6.
+        result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
+        assert result is not None
+
+
+@pytest.mark.tier4
+def test_positive_oscap_run_via_ansible_bz_1814988(
+    module_org, default_proxy, content_view, lifecycle_env
+):
+    """End-to-End Oscap run via ansible
+
+    :id: 375f8f08-9299-4d16-91f9-9426eeecb9c5
+
+    :parametrized: yes
+
+    :setup: scap content, scap policy, host group
+
+    :steps:
+
+        1. Create a valid scap content
+        2. Import Ansible role theforeman.foreman_scap_client
+        3. Import Ansible Variables needed for the role
+        4. Create a scap policy with anisble as deploy option
+        5. Associate the policy with a hostgroup
+        6. Provision a host using the hostgroup
+        7. Harden the host by remediating it with DISA STIG security policy
+        8. Configure REX and associate the Ansible role to created host
+        9. Play roles for the host
+
+    :expectedresults: REX job should be success and ARF report should be sent to satellite
+
+    :BZ: 1814988
+
+    :CaseImportance: Critical
+    """
+    hgrp_name = gen_string('alpha')
+    policy_name = gen_string('alpha')
+    # Creates host_group for rhel7
+    make_hostgroup(
+        {
+            'content-source-id': default_proxy,
+            'name': hgrp_name,
+            'organizations': module_org.name,
+        }
+    )
+    # Creates oscap_policy.
+    scap_id, scap_profile_id = fetch_scap_and_profile_id(
+        OSCAP_DEFAULT_CONTENT['rhel7_content'], OSCAP_PROFILE['dsrhel7']
+    )
+    Ansible.roles_import({'proxy-id': default_proxy})
+    Ansible.variables_import({'proxy-id': default_proxy})
+    role_id = Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
+    make_scap_policy(
+        {
+            'scap-content-id': scap_id,
+            'hostgroups': hgrp_name,
+            'deploy-by': 'ansible',
+            'name': policy_name,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'scap-content-profile-id': scap_profile_id,
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'organizations': module_org.name,
+        }
+    )
+    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
+        host_name, _, host_domain = vm.hostname.partition('.')
+        vm.install_katello_ca()
+        vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
+        assert vm.subscribed
+        Host.set_parameter(
+            {
+                'host': vm.hostname.lower(),
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        vm.configure_rhel_repo(settings.rhel7_repo)
+        # Harden the rhel7 client with DISA STIG security policy
+        vm.run('yum install -y scap-security-guide')
+        vm.run(
+            'oscap xccdf eval --remediate --profile xccdf_org.ssgproject.content_profile_stig '
+            '--fetch-remote-resources --results-arf results.xml '
+            '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
+        )
+        add_remote_execution_ssh_key(vm.ip_addr)
+        Host.update(
+            {
+                'name': vm.hostname.lower(),
+                'lifecycle-environment': lifecycle_env.name,
+                'content-view': content_view.name,
+                'hostgroup': hgrp_name,
+                'openscap-proxy-id': default_proxy,
+                'organization': module_org.name,
+                'ansible-role-ids': role_id,
+            }
+        )
+        job_id = Host.ansible_roles_play({'name': vm.hostname.lower()})[0].get('id')
+        wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
+        )
+        try:
+            result = JobInvocation.info({'id': job_id})['success']
+            assert result == '1'
+        except AssertionError:
+            output = ' '.join(JobInvocation.get_output({'id': job_id, 'host': vm.hostname}))
+            result = f'host output: {output}'
+            raise AssertionError(result)
+        result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
+        assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
         vm.execute_foreman_scap_client()
