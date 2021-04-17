@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import pytest
-from broker.broker import VMBroker
 from nailgun import entities
 
 from robottelo.api.utils import call_entity_method_with_timeout
@@ -32,7 +31,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.hosts import ContentHost
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -130,6 +128,7 @@ def module_ak(module_manifest_org, module_cv, custom_repo, module_lce_library):
 
 @pytest.fixture(scope='module')
 def host(
+    rhel7_contenthost_module,
     module_manifest_org,
     dev_lce,
     qe_lce,
@@ -138,26 +137,25 @@ def host(
     module_cv,
 ):
     # Create client machine and register it to satellite with rhel_7_partial_ak
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
-        vm.install_katello_ca()
-        # Register, enable tools repo and install katello-host-tools.
-        vm.register_contenthost(module_manifest_org.label, module_ak.name)
-        vm.enable_repo(REPOS['rhst7']['id'])
-        vm.install_katello_host_tools()
-        # AK added custom repo for errata package, just install it.
-        vm.run(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
-        vm.run('katello-package-upload')
-        host = entities.Host().search(query={'search': f'name={vm.hostname}'})
-        # Force host to generate or refresh errata applicability
-        call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
-        # Add filter of type include but do not include anything.
-        # this will hide all RPMs from selected erratum before publishing.
-        entities.RPMContentViewFilter(
-            content_view=module_cv, inclusion=True, name='Include Nothing'
-        ).create()
-        module_cv.publish()
-        module_cv = module_cv.read()
-        yield
+    rhel7_contenthost_module.install_katello_ca()
+    # Register, enable tools repo and install katello-host-tools.
+    rhel7_contenthost_module.register_contenthost(module_manifest_org.label, module_ak.name)
+    rhel7_contenthost_module.enable_repo(REPOS['rhst7']['id'])
+    rhel7_contenthost_module.install_katello_host_tools()
+    # AK added custom repo for errata package, just install it.
+    rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
+    rhel7_contenthost_module.execute('katello-package-upload')
+    host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
+    # Force host to generate or refresh errata applicability
+    call_entity_method_with_timeout(host[0].errata_applicability, timeout=600)
+    # Add filter of type include but do not include anything.
+    # this will hide all RPMs from selected erratum before publishing.
+    entities.RPMContentViewFilter(
+        content_view=module_cv, inclusion=True, name='Include Nothing'
+    ).create()
+    module_cv.publish()
+    module_cv = module_cv.read()
+    return rhel7_contenthost_module
 
 
 def get_applicable_errata(repo):
