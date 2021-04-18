@@ -185,11 +185,10 @@ class ContentHost(Host):
         password=None,
         auto_attach=False,
     ):
-        """Registers content host on foreman server using activation-key. This
-        can be done in two ways: either by specifying organization name and
-        activation key name or by specifying organization name and lifecycle
-        environment name (administrator credentials for authentication will be
-        passed automatically)
+        """Registers content host on foreman server either by specifying
+        organization name and activation key name or by specifying organization
+        name and lifecycle environment name (administrator credentials for
+        authentication will be passed automatically).
 
         :param activation_key: Activation key name to register content host
             with.
