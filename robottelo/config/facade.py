@@ -27,6 +27,7 @@ WRAPPER_EXCEPTIONS = (
     'server.scheme',
     'server.admin_username',
     'server.admin_password',
+    'server.deploy_workflow',
     'azurerm.azure_region',
     'azurerm.client_id',
     'azurerm.client_secret',

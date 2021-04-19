@@ -20,14 +20,14 @@ from random import choice
 from random import randint
 
 import pytest
+from broker import VMBroker
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.vm import VirtualMachine
+from robottelo.hosts import ContentHost
 
 
 @pytest.fixture(scope='module')
@@ -396,10 +396,7 @@ def test_negative_create_with_invalid_name(module_org, name):
 
 
 @pytest.mark.tier1
-@pytest.mark.libvirt_content_host
-def test_positive_add_remove_subscription(
-    module_org, module_lce, module_promoted_cv, module_ak_cv_lce
-):
+def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, module_puppet_classes):
     """Try to bulk add and remove a subscription to members of a host collection.
 
     :id: c4ec5727-eb25-452e-a91f-87cafb16666b
@@ -429,10 +426,8 @@ def test_positive_add_remove_subscription(
     prod_name = product.name
     product_subscription = entities.Subscription().search(query={'search': f'name={prod_name}'})[0]
     # Create and register VMs as members of Host Collection
-    with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
-        distro=DISTRO_RHEL7
-    ) as client2:
-        for client in [client1, client2]:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        for client in hosts:
             client.install_katello_ca()
             client.register_contenthost(module_org.label, module_ak_cv_lce.name)
         # Read host_collection back from Satellite to get host_ids
