@@ -18,6 +18,7 @@
 """
 import time
 
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
@@ -27,373 +28,321 @@ from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
 
-from robottelo.api.utils import attach_custom_product_subscription
-from robottelo.api.utils import call_entity_method_with_timeout
-from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
-from robottelo.test import APITestCase
+from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import ENVIRONMENT
+from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
+from robottelo.constants import PRDS
+from robottelo.constants import REPOS
+from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.test import settings
 
 
-def create_activation_key_for_client_registration(ak_name, client_os, org, environment, sat_state):
-    """Creates Activation key for client registration
-
-    :param str ak_name: Activation key name
-    :param str client_os: rhel6/rhel7
-    :param nailgun.entities.Organization org: Organization
-    :param nailgun.entities.Environment environment: Environment
-    :param str sat_state: pre or post
-
-    :return nailgun.entities.ActivationKey: Activation key
-    """
-    client_os = client_os.upper()
-    from_ver = settings.upgrade.from_version
-    rhel_prod_name = 'scenarios_rhel{}_prod'.format(client_os[-1])
-    rhel_repo_name = f'{rhel_prod_name}_repo'
-    rhel_url = settings.rhel7_os
-    if rhel_url is None:
-        raise ValueError(
-            'The RHEL Repo URL environment variable for OS {} '
-            'is not provided!'.format(client_os)
-        )
-    rhel_prod = entities.Product(name=rhel_prod_name, organization=org.id).create()
-    if sat_state.lower() == 'pre' and from_ver in ['6.1', '6.2']:
-        rhel_repo = entities.Repository(
-            name=rhel_repo_name, product=rhel_prod, url=rhel_url, content_type='yum'
-        ).create()
-    else:
-        rhel_repo = entities.Repository(
-            name=rhel_repo_name,
-            product=rhel_prod,
-            url=rhel_url,
-            content_type='yum',
-            verify_ssl_on_sync=False,
-        ).create()
-    call_entity_method_with_timeout(rhel_repo.sync, timeout=1400)
-    if sat_state.lower() == 'pre':
-        product_name = 'Red Hat Enterprise Linux Server'
-        repo_name = 'Red Hat Satellite Tools {} for RHEL {} Server RPMs x86_64'.format(
-            from_ver, client_os[-1]
-        )
-        tools_prod = entities.Product(organization=org.id).search(
-            query={'per_page': 1000, 'search': f'name="{product_name}"'}
-        )[0]
-        tools_repo = entities.Repository(organization=org.id, product=tools_prod).search(
-            query={'per_page': 1000, 'search': f'name="{repo_name}"'}
-        )[0]
-    elif sat_state.lower() == 'post':
-        product_name = 'scenarios_tools_product'
-        tools_repo_url = settings.sattools_repo[client_os.lower()]
-        if tools_repo_url is None:
-            raise ValueError(
-                'The Tools Repo URL environment variable for '
-                'OS {} is not provided!'.format(client_os.lower())
-            )
-        repo_name = f'{product_name}_repo'
-        tools_prod = entities.Product(organization=org.id).search(
-            query={'search': f'name={product_name}'}
-        )
-        if not tools_prod:
-            tools_prod = entities.Product(name=product_name, organization=org.id).create()
-            tools_repo = entities.Repository(
-                name=repo_name, product=tools_prod, url=tools_repo_url, content_type='yum'
-            ).create()
-            tools_repo.sync()
-        else:
-            tools_repo = entities.Repository(organization=org.id, product=tools_prod).search(
-                query={'search': f'name={repo_name}'}
-            )
-    tools_cv = entities.ContentView(
-        name=ak_name + '_cv', label=ak_name + '_cv', organization=org.id
-    ).create()
-    tools_cv.repository = [tools_repo, rhel_repo]
-    tools_cv = tools_cv.update(['repository'])
-    tools_cv.publish()
-    tools_cv = tools_cv.read()  # Published CV with new version
-    # Promote CV
-    cvv = entities.ContentViewVersion(id=max([cvv.id for cvv in tools_cv.version])).read()
-    cvv.promote(data={'environment_id': environment.id, 'force': False})
-    tools_ak = entities.ActivationKey(
-        name=ak_name, content_view=tools_cv, organization=org.id, environment=environment
-    ).create()
-    if sat_state == 'pre':
-        tools_sub = 'Red Hat Satellite Employee Subscription'
-        tools_content = 'rhel-{}-server-satellite-tools-{}-rpms'.format(client_os[-1], from_ver)
-    else:
-        tools_sub = tools_prod.name
-    tools_subscription = entities.Subscription(organization=org.id).search(
-        query={'search': f'name="{tools_sub}"', 'per_page': 1000}
-    )[0]
-    rhel_subscription = entities.Subscription(organization=org.id).search(
-        query={'search': f'name={rhel_prod.name}', 'per_page': 1000}
-    )[0]
-    tools_ak.add_subscriptions(data={'subscription_id': tools_subscription.id})
-    if sat_state == 'pre':
-        tools_ak.content_override(
-            data={'content_override': {'content_label': tools_content, 'value': '1'}}
-        )
-    tools_ak.add_subscriptions(data={'subscription_id': rhel_subscription.id})
-    return tools_ak
+# host machine for containers
+docker_vm = settings.upgrade.docker_vm
+# script in container /tmp requires SATHOST
+SATHOST = settings.server.hostname
 
 
-def create_yum_test_repo(product_name, repo_url, org):
-    """Creates yum repo from given url and syncs
-
-    :param str product_name: Product name to be created
-    :param str repo_url: The repo url for repo
-    :param nailgun.entities.Organization org: Organization
-
-    :return tuple(nailgun entities): Returns product and yum_repo
-    """
-    product = entities.Product(name=product_name, organization=org).create()
-    yum_repo = entities.Repository(
-        name=f'{product_name}_repo', product=product, url=repo_url, content_type='yum'
-    ).create()
-    yum_repo.sync()
-    return product, yum_repo
-
-
-def update_product_subscription_in_ak(product, yum_repo, ak, org):
-    """Updates given products subscription in given AK
-
-    :param nailgun.entities.Product product: products name to calculate
-        subscription id
-    :param nailgun.entities.Repository yum_repo: yum repository
-    :param nailgun.entities.ActivationKey ak: Ak
-    :param nailgun.entities.Organization org: Organization
-    """
-    cv_from_ak = ak.content_view
-    cv = cv_from_ak.read()
-    cv.repository.append(yum_repo)
-    cv = cv.update(['repository'])
-    cv.publish()
-    cv = cv.read()  # Published CV with new version
-    # Promote CV
-    environment = (
-        entities.ActivationKey(organization=org)
-        .search(query={'search': f'name={ak.name}'})[0]
-        .environment
+@pytest.fixture(scope='module')
+def module_lce_library(default_org):
+    """ Returns the Library lifecycle environment from chosen organization """
+    return (
+        entities.LifecycleEnvironment()
+        .search(query={'search': f'name={ENVIRONMENT} and organization_id={default_org.id}'})[0]
+        .read()
     )
-    cvv = entities.ContentViewVersion(id=max([cvv.id for cvv in cv.version])).read()
-    cvv.promote(data={'environment_id': environment.id, 'force': False})
-    subscription = entities.Subscription(organization=org).search(
+
+
+@pytest.fixture(scope='module')
+def sat6tools_repo(default_org):
+    """Enable Sat tools repository"""
+    sat6tools_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=default_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    sat6tools_repo = entities.Repository(id=sat6tools_repo_id).read()
+    assert sat6tools_repo.sync()['result'] == 'success'
+    return sat6tools_repo
+
+
+@pytest.fixture(scope='module')
+def pre_upgrade_repo(default_org):
+    """Enable custom errata repository"""
+    pre_upgrade_repo = entities.Repository(
+        url=FAKE_0_YUM_REPO, product=entities.Product(organization=default_org).create()
+    ).create()
+    assert pre_upgrade_repo.sync()['result'] == 'success'
+    return pre_upgrade_repo
+
+
+@pytest.fixture(scope='module')
+def post_upgrade_repo(default_org):
+    """Enable custom errata repository"""
+    post_upgrade_repo = entities.Repository(
+        url=FAKE_9_YUM_REPO, product=entities.Product(organization=default_org).create()
+    ).create()
+    assert post_upgrade_repo.sync()['result'] == 'success'
+    return post_upgrade_repo
+
+
+@pytest.fixture(scope='module')
+def pre_upgrade_cv(default_org, pre_upgrade_repo):
+    """Create and publish repo"""
+    pre_upgrade_cv = entities.ContentView(
+        organization=default_org, repository=[pre_upgrade_repo.id]
+    ).create()
+    pre_upgrade_cv.publish()
+    pre_upgrade_cv = pre_upgrade_cv.read()
+    return pre_upgrade_cv
+
+
+@pytest.fixture(scope='module')
+def post_upgrade_cv(default_org, post_upgrade_repo):
+    """Create and publish repo"""
+    post_upgrade_cv = entities.ContentView(
+        organization=default_org, repository=[post_upgrade_repo.id]
+    ).create()
+    post_upgrade_cv.publish()
+    post_upgrade_cv = post_upgrade_cv.read()
+    return post_upgrade_cv
+
+
+@pytest.fixture(scope='module')
+def module_ak(default_org, module_lce_library, pre_upgrade_repo):
+    """Create a module AK in Library LCE"""
+    ak = entities.ActivationKey(
+        content_view=DEFAULT_CV,
+        environment=module_lce_library,
+        organization=default_org,
+    ).create()
+    # Fetch available subscriptions
+    subs = entities.Subscription(organization=default_org).search()
+    assert len(subs) > 0
+    # Add default subscription to activation key
+    sub_found = False
+    for sub in subs:
+        if sub.name == DEFAULT_SUBSCRIPTION_NAME:
+            ak.add_subscriptions(data={'subscription_id': sub.id})
+            sub_found = True
+    assert sub_found
+    # Enable RHEL tools repo in activation key
+    ak.content_override(
+        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+    )
+    # Add custom subscription to activation key
+    prod = pre_upgrade_repo.product.read()
+    custom_sub = entities.Subscription().search(query={'search': f'name={prod.name}'})
+    ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
+    return ak
+
+
+@pytest.fixture(scope='module')
+def update_ak(module_ak, default_org, post_upgrade_repo):
+    product = post_upgrade_repo.product.read()
+    subscription = entities.Subscription(organization=default_org).search(
         query={'search': f'name={product.name}'}
     )[0]
-    ak.add_subscriptions(data={'subscription_id': subscription.id})
+    module_ak.add_subscriptions(data={'subscription_id': subscription.id})
+    # Enable upgraded Satelite's version of RHEL tools repo in activation key
+    module_ak.content_override(
+        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+    )
 
 
-class TestScenarioUpgradeOldClientAndPackageInstallation(APITestCase):
-    """The test class contains pre and post upgrade scenarios to test if the
-    package can be installed on preupgrade client remotely
+class TestScenarioUpgradeOldClientAndPackageInstallation:
+    """This section contains pre and post upgrade scenarios to test if the
+    package can be installed on the preupgrade client remotely.
 
     Test Steps::
 
-        1. Before Satellite upgrade, Create a content host and register it with
-            satellite
-        2. Upgrade Satellite and Client
-        3. Install package post upgrade on a pre-upgrade client from satellite
+        1. Before Satellite upgrade, create a content host and register it with
+            Satellite
+        2. Upgrade Satellite and client
+        3. Install package post upgrade on a pre-upgrade client from Satellite
         4. Check if the package is installed on the pre-upgrade client
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.docker_vm = settings.upgrade.docker_vm
-        cls.default_org_id = (
-            entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
-        )
-        cls.org = entities.Organization(id=cls.default_org_id).read()
-        cls.ak_name = 'scenario_old_client_package_install'
-        cls.package_name = 'shark'
-        cls.prod_name = 'preclient_scenario_product'
-        cls.le_lable = cls.le_name = f'{cls.prod_name}_le'
 
-    @pre_upgrade
-    def test_pre_scenario_preclient_package_installation(self):
-        """Create product and repo from which the package will be installed
-        post upgrade
+@pre_upgrade
+def test_pre_scenario_preclient_package_installation(
+    default_org, pre_upgrade_cv, pre_upgrade_repo, module_ak
+):
+    """Create product and repo, from which a package will be installed
+    post upgrade. Create a content host and register it.
 
-        :id: preupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
+    :id: preupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
 
-        :steps:
+    :setup:
 
-            1. Create a content host with existing client ak
-            2. Create and sync repo from which the package will be
-                installed on content host
-            3. Add repo to CV and then in Activation key
-
-        :expectedresults:
-
-            1. The content host is created
-            2. The new repo and its product has been added to ak using which
-                the content host is created
-
-        """
-        prior_env = entities.LifecycleEnvironment(organization=self.org).search(
-            query={'search': 'name=Library'}
-        )[0]
-        environment = entities.LifecycleEnvironment(
-            organization=self.org, prior=prior_env.id, label=self.le_lable, name=self.le_name
-        ).create()
-        ak = create_activation_key_for_client_registration(
-            ak_name=self.ak_name,
-            client_os='rhel7',
-            org=self.org,
-            environment=environment,
-            sat_state='pre',
-        )
-        rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=self.org.label)
-        client_container_id = list(rhel7_client.values())[0]
-        product, yum_repo = create_yum_test_repo(
-            product_name=self.prod_name, repo_url=settings.repos.fake_repo_zoo3, org=self.org
-        )
-        update_product_subscription_in_ak(product=product, yum_repo=yum_repo, ak=ak, org=self.org)
-        attach_custom_product_subscription(
-            prod_name=product.name, host_name=str(list(rhel7_client.keys())[0]).lower()
-        )
-        # Refresh subscriptions on client
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'subscription-manager refresh',
-            host=self.docker_vm,
-        )
-        # Run goferd on client as its docker container
-        kwargs = {'async': True, 'host': self.docker_vm}
-        execute(docker_execute_command, client_container_id, 'goferd -f', **kwargs)
-        status = execute(
-            docker_execute_command, client_container_id, 'ps -aux', host=self.docker_vm
-        )[self.docker_vm]
-        self.assertIn('goferd', status)
-
-        create_dict({self.__class__.__name__: rhel7_client})
-
-    @post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
-    def test_post_scenario_preclient_package_installation(self):
-        """Post-upgrade scenario that installs the package on pre-upgrade
-        client remotely and then verifies if the package installed
-
-        :id: postupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
-
-        :steps: Install package on a pre-upgrade client
-
-        :expectedresults: The package is installed in client
-        """
-        client = get_entity_data(self.__class__.__name__)
-        client_name = str(list(client.keys())[0]).lower()
-        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
-        entities.Host().install_content(
-            data={
-                'organization_id': self.org.id,
-                'included': {'ids': [client_id]},
-                'content_type': 'package',
-                'content': [self.package_name],
-            }
-        )
-        # Validate if that package is really installed
-        installed_package = execute(
-            docker_execute_command,
-            list(client.values())[0],
-            f'rpm -q {self.package_name}',
-            host=self.docker_vm,
-        )[self.docker_vm]
-        self.assertIn(self.package_name, installed_package)
+        1. Create and sync repo from which a package can be
+            installed on content host
+        2. Add repo to CV and then to Activation key
 
 
-class TestScenarioUpgradeNewClientAndPackageInstallation(APITestCase):
-    """The test class contains post-upgrade scenarios to test if the package
-    can be installed on postupgrade client remotely
+    :steps:
+
+        1. Create a container as content host and register with Activation key
+
+    :expectedresults:
+
+        1. The "pre-upgrade" content host is created and registered.
+        2. The new repo is enabled on the content host.
+
+    """
+    rhel7_client = dockerize(ak_name=module_ak.name, distro='rhel7', org_label=default_org.label)
+    client_container_id = list(rhel7_client.values())[0]
+    # Wait 60 seconds as script in /tmp takes up to 2 min inc the repo sync time
+    time.sleep(60)
+    # Use yum install again in case script was not yet finished
+    installed_package = execute(
+        docker_execute_command,
+        client_container_id,
+        'yum -y install katello-agent',
+        host=docker_vm,
+    )[docker_vm]
+    # Assert gofer was installed after yum completes
+    installed_package = execute(
+        docker_execute_command,
+        client_container_id,
+        'rpm -q gofer',
+        host=docker_vm,
+    )[docker_vm]
+    assert 'package gofer is not installed' not in installed_package
+    # Run goferd on client as its docker container
+    kwargs = {'async': True, 'host': docker_vm}
+    execute(docker_execute_command, client_container_id, 'goferd -f', **kwargs)
+    # Holding on for 30 seconds while goferd starts
+    time.sleep(30)
+    status = execute(docker_execute_command, client_container_id, 'ps -aux', host=docker_vm)[
+        docker_vm
+    ]
+    assert 'goferd' in status
+    # Save client info to disk for post-upgrade test
+    create_dict({__name__: rhel7_client})
+
+
+@post_upgrade(depend_on=test_pre_scenario_preclient_package_installation)
+def test_post_scenario_preclient_package_installation(default_org):
+    """Post-upgrade install of a package on a client created and registered pre-upgrade.
+
+    :id: postupgrade-eedab638-fdc9-41fa-bc81-75dd2790f7be
+
+    :steps: Install package on the pre-upgrade registered client
+
+    :expectedresults: The package is installed on client
+    """
+    client = get_entity_data(__name__)
+    client_name = str(list(client.keys())[0]).lower()
+    client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
+    entities.Host().install_content(
+        data={
+            'organization_id': default_org.id,
+            'included': {'ids': [client_id]},
+            'content_type': 'package',
+            'content': [FAKE_0_CUSTOM_PACKAGE],
+        }
+    )
+    # Verifies that package is really installed
+    installed_package = execute(
+        docker_execute_command,
+        list(client.values())[0],
+        f'rpm -q {FAKE_0_CUSTOM_PACKAGE}',
+        host=docker_vm,
+    )[docker_vm]
+    assert FAKE_0_CUSTOM_PACKAGE in installed_package
+
+
+class TestScenarioUpgradeNewClientAndPackageInstallation:
+    """This section contains post-upgrade scenarios to test if a package
+    can be installed on a client created postupgrade, remotely.
 
     Test Steps:
 
         1. Upgrade Satellite
-        2. After Satellite upgrade, Create a content host and register it with
-            satellite
-        3. Install package a client from satellite
+        2. After Satellite upgrade, create a content host and register it with
+            Satellite
+        3. Install package to the client from Satellite
         4. Check if the package is installed on the post-upgrade client
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.docker_vm = settings.upgrade.docker_vm
-        cls.org_name = 'new_client_package_install'
-        cls.ak_name = 'scenario_new_client_package_install'
-        cls.le_name = cls.ak_name + '_env'
-        cls.package_name = 'shark'
-        cls.prod_name = 'postclient_scenario_product'
 
-    @post_upgrade
-    def test_post_scenario_postclient_package_installation(self):
-        """Post-upgrade scenario that creates and installs the package on
-        post-upgrade client remotely and then verifies if the package installed
+@post_upgrade
+def test_post_scenario_postclient_package_installation(
+    default_org, post_upgrade_repo, module_ak, update_ak, module_lce
+):
+    """Post-upgrade test that creates a client, installs a package on
+    the post-upgrade created client and then verifies the package is installed.
 
-        :id: postupgrade-1a881c07-595f-425f-aca9-df2337824a8e
+    :id: postupgrade-1a881c07-595f-425f-aca9-df2337824a8e
 
-        :steps:
+    :steps:
 
-            1. Create a content host with existing client ak
-            2. Create and sync repo from which the package will be
-                installed on content host
-            3. Add repo to CV and then in Activation key
-            4. Install package on a pre-upgrade client
+        1. Create a content host with existing client ak
+        2. Create and sync new post-upgrade repo from which a package will be
+            installed on content host
+        3. Add repo to CV and then in Activation key
+        4. Install package on the pre-upgrade client
 
-        :expectedresults:
+    :expectedresults:
 
-            1. The content host is created
-            2. The new repo and its product has been added to ak using which
-                the content host is created
-            3. The package is installed on post-upgrade client
-        """
-        org = entities.Organization(name=self.org_name).create()
-        prior_env = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': 'name=Library'}
-        )[0]
-        environment = entities.LifecycleEnvironment(
-            organization=org, prior=prior_env.id, label=self.le_name, name=self.le_name
-        ).create()
-        ak = create_activation_key_for_client_registration(
-            ak_name=self.ak_name,
-            client_os='rhel7',
-            org=org,
-            environment=environment,
-            sat_state='post',
-        )
-        rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=org.label)
-        client_container_id = list(rhel7_client.values())[0]
-        client_name = list(rhel7_client.keys())[0].lower()
-        product, yum_repo = create_yum_test_repo(
-            product_name=self.prod_name, repo_url=settings.repos.fake_repo_zoo3, org=org
-        )
-        update_product_subscription_in_ak(product=product, yum_repo=yum_repo, ak=ak, org=org)
-        attach_custom_product_subscription(prod_name=product.name, host_name=client_name)
-        # Refresh subscriptions on client
-        execute(
-            docker_execute_command,
-            client_container_id,
-            'subscription-manager refresh',
-            host=self.docker_vm,
-        )
-        # Run goferd on client as its docker container
-        kwargs = {'async': True, 'host': self.docker_vm}
-        execute(docker_execute_command, client_container_id, 'goferd -f', **kwargs)
-        status = execute(
-            docker_execute_command, client_container_id, 'ps -aux', host=self.docker_vm
-        )[self.docker_vm]
-        self.assertIn('goferd', status)
-        # Holding on for 30 seconds wihle goferd starts
-        time.sleep(30)
-        client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
-        entities.Host().install_content(
-            data={
-                'organization_id': org.id,
-                'included': {'ids': [client_id]},
-                'content_type': 'package',
-                'content': [self.package_name],
-            }
-        )
-        # Validate if that package is really installed
-        installed_package = execute(
-            docker_execute_command,
-            client_container_id,
-            f'rpm -q {self.package_name}',
-            host=self.docker_vm,
-        )[self.docker_vm]
-        self.assertIn(self.package_name, installed_package)
+        1. The content host is created
+        2. The new repo and its product has been added to ak using which
+            the content host is created
+        3. The package is installed on post-upgrade client
+    """
+    rhel7_client = dockerize(ak_name=module_ak.name, distro='rhel7', org_label=default_org.label)
+    client_container_id = list(rhel7_client.values())[0]
+    client_name = list(rhel7_client.keys())[0].lower()
+    # Wait 60 seconds as script in /tmp takes up to 2 min inc the repo sync time
+    time.sleep(60)
+    # Use yum install again in case script was not yet finished
+    installed_package = execute(
+        docker_execute_command,
+        client_container_id,
+        'yum -y install katello-agent',
+        host=docker_vm,
+    )[docker_vm]
+    # Assert gofer was installed after yum completes
+    installed_package = execute(
+        docker_execute_command,
+        client_container_id,
+        'rpm -q gofer',
+        host=docker_vm,
+    )[docker_vm]
+    assert 'package gofer is not installed' not in installed_package
+    # Run goferd on client as its docker container
+    kwargs = {'async': True, 'host': docker_vm}
+    execute(docker_execute_command, client_container_id, 'goferd -f', **kwargs)
+    # Holding on for 30 seconds while goferd starts
+    time.sleep(30)
+    status = execute(docker_execute_command, client_container_id, 'ps -aux', host=docker_vm)[
+        docker_vm
+    ]
+    assert 'goferd' in status
+    client_id = entities.Host().search(query={'search': f'name={client_name}'})[0].id
+    entities.Host().install_content(
+        data={
+            'organization_id': default_org.id,
+            'included': {'ids': [client_id]},
+            'content_type': 'package',
+            'content': [FAKE_4_CUSTOM_PACKAGE],
+        }
+    )
+    # Validate if that package is really installed
+    installed_package = execute(
+        docker_execute_command,
+        client_container_id,
+        f'rpm -q {FAKE_4_CUSTOM_PACKAGE}',
+        host=docker_vm,
+    )[docker_vm]
+    assert FAKE_4_CUSTOM_PACKAGE in installed_package
