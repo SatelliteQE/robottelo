@@ -268,6 +268,7 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
 
 
+@pytest.mark.upgrade
 @pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
 @pytest.mark.destructive
 def test_positive_create_with_https(session, test_name, ldap_auth_source, ldap_tear_down):
