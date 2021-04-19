@@ -75,7 +75,7 @@ def activation_key(module_org, module_lce):
 
 @pytest.fixture(scope='module')
 def rh_repo(module_org, module_lce, module_cv, activation_key):
-    setup_org_for_a_rh_repo(
+    return setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
@@ -87,12 +87,11 @@ def rh_repo(module_org, module_lce, module_cv, activation_key):
         },
         force_manifest_upload=True,
     )
-    return rh_repo
 
 
 @pytest.fixture(scope='module')
 def custom_repo(module_org, module_lce, module_cv, activation_key):
-    custom_entities = setup_org_for_a_custom_repo(
+    return setup_org_for_a_custom_repo(
         {
             'url': FAKE_9_YUM_REPO,
             'organization-id': module_org.id,
@@ -101,7 +100,6 @@ def custom_repo(module_org, module_lce, module_cv, activation_key):
             'activationkey-id': activation_key.id,
         }
     )
-    return custom_entities
 
 
 def _install_package(
@@ -463,15 +461,20 @@ def test_positive_sort_by_issued_date(module_org):
     if repo:
         repo = repo[0]
     else:
-        repo_with_cves_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever=DEFAULT_RELEASE_VERSION,
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhva6'],
+                'repository': REPOS['rhva6']['name'],
+                'organization-id': module_org.id,
+                'releasever': DEFAULT_RELEASE_VERSION,
+                'basearch': DEFAULT_ARCHITECTURE,
+                # 'content-view-id': content_view.id,
+                # 'lifecycle-environment-id': env.id,
+                # 'activationkey-id': activation_key.id,
+            }
         )
-        repo = entities.Repository(id=repo_with_cves_id)
+        repo = entities.Repository(id=result['repository-id'])
     assert repo.sync()['result'] == 'success'
     erratum_list = entities.Errata(repository=repo).search(
         query={'order': 'issued ASC', 'per_page': '1000'}
