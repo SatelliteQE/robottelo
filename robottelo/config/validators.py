@@ -25,6 +25,11 @@ validators = dict(
         Validator("server.scheme", default="https"),
         Validator("server.ssh_username", default="root"),
     ],
+    subscription=[
+        Validator('subscription.rhn_username', must_exist=True),
+        Validator('subscription.rhn_password', must_exist=True),
+        Validator('subscription.rhn_poolid', must_exist=True),
+    ],
     azurerm=[
         Validator(
             "azurerm.client_id",
@@ -163,6 +168,7 @@ validators = dict(
             "ldap.password",
             "ldap.realm",
             "ldap.username",
+            "ldap.workgroup",
             must_exist=True,
         )
     ],
