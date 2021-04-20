@@ -41,35 +41,7 @@ autoapi_dirs = ['../robottelo']
 source_suffix = '.rst'
 master_doc = 'index'
 exclude_patterns = ['_build', 'pytest/*']
-nitpicky = True
-nitpick_ignore = [
-    ('py:class', 'bool'),
-    ('py:class', 'callable'),
-    ('py:class', 'dict'),
-    ('py:class', 'Exception'),
-    ('py:class', 'int'),
-    ('py:class', 'list'),
-    ('py:class', 'object'),
-    ('py:class', 'set'),
-    ('py:class', 'str'),
-    ('py:class', 'tuple'),
-    ('py:class', 'broker.hosts.Host'),
-    ('py:class', 'json.JSONEncoder'),
-    ('py:class', 'nailgun.entities.ActivationKey'),
-    ('py:class', 'nailgun.entities.Organization'),
-    ('py:class', 'nailgun.entities.Environment'),
-    ('py:class', 'nailgun.entities.Product'),
-    ('py:class', 'nailgun.entities.Role'),
-    ('py:class', 'nailgun.entities.Repository'),
-    ('py:class', 'paramiko.SSHClient'),
-    ('py:mod', 'robottelo.cli.template_sync'),
-    ('py:class', 'unittest2.case.TestCase'),
-    ('py:class', 'unittest2.TestCase'),
-    ('py:class', 'wrapt.CallableObjectProxy'),
-    ('py:mod', 'tests'),
-    ('py:mod', 'tests.foreman'),
-    ('py:mod', 'tests.foreman.cli'),
-]
+nitpicky = False
 autodoc_default_options = {'members': None, 'undoc-members': None}
 
 # Format-Specific Options -----------------------------------------------------
