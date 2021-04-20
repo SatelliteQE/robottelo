@@ -25,6 +25,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
+from requests.exceptions import HTTPError
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -239,6 +240,43 @@ class SubscriptionsTestCase(APITestCase):
         host_id = host[0].id
         host_content = entities.Host(id=host_id).read_raw().content
         assert 'Simple Content Access' in str(host_content)
+
+    @pytest.mark.tier2
+    @pytest.mark.usefixtures("golden_ticket_host_setup")
+    @pytest.mark.usefixtures("rhel77_contenthost_class")
+    def test_sca_end_to_end(self):
+        """Perform end to end testing for Simple Content Access Mode
+
+        :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
+
+        :expectedresults:
+
+        :BZ:
+
+        :CaseImportance: Medium
+        """
+        self.content_host.install_katello_ca()
+        self.content_host.register_contenthost(self.org_setup.label, self.ak_setup.name)
+        assert self.content_host.subscribed
+        # Check to see if Organization is in SCA Mode
+        assert entities.Organization(id=self.org_setup.id).read().simple_content_access is True
+        # Verify that you cannot attach a subscription to an activation key in SCA Mode
+        subscription = entities.Subscription(organization=self.org_setup).search(
+            query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        )[0]
+        with pytest.raises(HTTPError) as ak_context:
+            self.ak_setup.add_subscriptions(
+                data={'quantity': 1, 'subscription_id': subscription.id}
+            )
+        assert "Simple Content Access" in ak_context.value.response.text
+        # Verify that you cannot attach a subscription to an Host in SCA Mode
+        host_id = entities.Host().search(query={'search': self.content_host.hostname})[0].id
+        with pytest.raises(HTTPError) as host_context:
+            entities.HostSubscription(host=host_id).add_subscriptions(
+                data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
+            )
+        assert "Simple Content Access" in host_context.value.response.text
+        # host repo check
 
 
 @pytest.mark.tier2
