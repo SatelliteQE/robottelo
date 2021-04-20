@@ -35,6 +35,7 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
+from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
 from robottelo.helpers import file_downloader
 from robottelo.rhsso_utils import create_group
@@ -52,7 +53,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
 
-def set_certificate_in_satellite(server_type):
+def set_certificate_in_satellite(server_type, hostname=None):
     """update the cert settings in satellite based on type of ldap server"""
     if server_type == 'IPA':
         idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
@@ -65,7 +66,7 @@ def set_certificate_in_satellite(server_type):
     elif server_type == 'AD':
         ssh.command('yum -y --disableplugin=foreman-protector install cifs-utils')
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
-        ssh.command(command.format(settings.ldap.password, settings.ldap.hostname))
+        ssh.command(command.format(settings.ldap.password, hostname))
         result = ssh.command(
             f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
         )
@@ -77,6 +78,55 @@ def set_certificate_in_satellite(server_type):
     result = ssh.command('systemctl restart httpd')
     if result.return_code != 0:
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
+
+
+def unsubscribe():
+    """unregisters a machine from cdn"""
+    run_command('subscription-manager unregister')
+    run_command('subscription-manager clean')
+
+
+@pytest.fixture(scope='module')
+def clean_rhsm():
+    """removes pre-existing candlepin certs and resets RHSM."""
+    # removing the katello-ca-consumer
+    run_command('rpm -qa | grep katello-ca-consumer | xargs -r rpm -e')
+
+    # resetting rhsm.conf to point to cdn.
+    run_command(
+        "sed -i -e 's/^hostname.*/hostname=subscription.rhsm.redhat.com/' " "/etc/rhsm/rhsm.conf"
+    )
+    run_command("sed -i -e 's|^prefix.*|prefix=/subscription|' /etc/rhsm/rhsm.conf")
+    run_command("sed -i -e 's|^baseurl.*|baseurl=https://cdn.redhat.com|' " "/etc/rhsm/rhsm.conf")
+    run_command(
+        "sed -i -e "
+        "'s/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/' "
+        "/etc/rhsm/rhsm.conf"
+    )
+
+
+@pytest.fixture(scope='module')
+def subscribe_satellite(clean_rhsm):
+    """subscribe satellite to cdn"""
+    run_command(
+        'subscription-manager register --force --user={} --password={} {}'.format(
+            settings.subscription.rhn_username,
+            settings.subscription.rhn_password,
+            # set release to "7Server" currently with this scope
+            f'--release="{RHEL_7_MAJOR_VERSION}Server"',
+        )
+    )
+    has_success_msg = 'Successfully attached a subscription'
+    attach_cmd = f'subscription-manager attach --pool={settings.subscription.rhn_poolid}'
+    result = run_command(attach_cmd)
+    if has_success_msg in ''.join(result):
+        run_command(
+            f'subscription-manager repos --enable "rhel-{RHEL_7_MAJOR_VERSION}-server-extras-rpms"'
+        )
+        yield
+    else:
+        pytest.fail("Failed to attach system to pool. Aborting Test!.")
+    unsubscribe()
 
 
 @pytest.fixture()
@@ -131,11 +181,11 @@ def rhsso_groups_teardown():
 
 @pytest.fixture()
 def multigroup_setting_cleanup():
-    "Adding and removing the user to/from ipa group"
+    """Adding and removing the user to/from ipa group"""
     sat_users = settings.ipa.groups
     idm_users = settings.ipa.group_users
     ssh.command(
-        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
     )
     cmd = f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}'
     ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
@@ -146,31 +196,31 @@ def multigroup_setting_cleanup():
 
 @pytest.fixture()
 def ipa_add_user():
-    """Create an IPA user and delete it """
+    """Create an IPA user and delete it"""
     result = ssh.command(
-        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
     )
     assert result.return_code == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
-        f"echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first"
-        f"={test_user} --last={test_user} --password"
+        f'echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first'
+        f'={test_user} --last={test_user} --password'
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
     assert result.return_code == 0
     yield test_user
 
-    result = ssh.command(cmd=f"ipa user-del {test_user}", hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname_ipa)
     assert result.return_code == 0
 
 
 def generate_otp(secret):
-    """Return the time_based_otp """
+    """Return the time_based_otp"""
     time_otp = pyotp.TOTP(secret)
     return time_otp.now()
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_end_to_end(session, ldap_tear_down, ldap_auth_source):
     """Perform end to end testing for LDAP authentication component
@@ -210,7 +260,7 @@ def test_positive_end_to_end(session, ldap_tear_down, ldap_auth_source):
         assert not session.ldapauthentication.read_table_row(ldap_auth_name)
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
@@ -269,9 +319,11 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
 @pytest.mark.destructive
-def test_positive_create_with_https(session, test_name, ldap_auth_source, ldap_tear_down):
+def test_positive_create_with_https(
+    session, subscribe_satellite, test_name, ldap_auth_source, ldap_tear_down
+):
     """Create LDAP auth_source for IDM with HTTPS.
 
     :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
@@ -293,7 +345,7 @@ def test_positive_create_with_https(session, test_name, ldap_auth_source, ldap_t
         set_certificate_in_satellite(server_type='IPA')
         username = settings.ipa.user_ipa
     else:
-        set_certificate_in_satellite(server_type='AD')
+        set_certificate_in_satellite(server_type='AD', hostname=ldap_auth_source['ldap_hostname'])
         username = settings.ldap.username
     org = entities.Organization().create()
     loc = entities.Location().create()
@@ -335,7 +387,7 @@ def test_positive_create_with_https(session, test_name, ldap_auth_source, ldap_t
     assert users[0].login == ldap_auth_source['ldap_user_name']
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPEN_LDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_katello_role(
     test_name,
@@ -391,8 +443,8 @@ def test_positive_add_katello_role(
         assert ldap_auth_source['ldap_user_name'] in current_user
 
 
-@pytest.mark.skip_if_open("BZ:1851905")
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.skip_if_open('BZ:1851905')
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_update_external_roles(
@@ -444,7 +496,7 @@ def test_positive_update_external_roles(
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
+                ldapsession.browser.execute_script('window.history.go(-1)')
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ldap_auth_source['ldap_user_name'] in current_user
@@ -461,8 +513,8 @@ def test_positive_update_external_roles(
         assert ldap_auth_source['ldap_user_name'] in current_user
 
 
-@pytest.mark.skip_if_open("BZ:1851905")
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.skip_if_open('BZ:1851905')
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_external_roles(
@@ -510,7 +562,7 @@ def test_positive_delete_external_roles(
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
+                ldapsession.browser.execute_script('window.history.go(-1)')
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ldap_auth_source['ldap_user_name'] in current_user
@@ -524,8 +576,8 @@ def test_positive_delete_external_roles(
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
-@pytest.mark.skip_if_open("BZ:1851905")
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.skip_if_open('BZ:1851905')
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_update_external_user_roles(
     test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
@@ -596,7 +648,7 @@ def test_positive_update_external_user_roles(
         assert ldap_auth_source['ldap_user_name'] in current_user
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_admin_role_with_org_loc(
     test_name,
@@ -646,7 +698,7 @@ def test_positive_add_admin_role_with_org_loc(
     ) as session:
         session.location.create({'name': location_name})
         if is_open('BZ:1851905'):
-            session.browser.execute_script("window.history.go(-1)")
+            session.browser.execute_script('window.history.go(-1)')
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
         assert ldap_auth_source['ldap_user_name'] in location['current_user']
@@ -658,7 +710,7 @@ def test_positive_add_admin_role_with_org_loc(
         assert ak['details']['name'] == ak_name
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_foreman_role_with_org_loc(
     test_name,
@@ -725,7 +777,7 @@ def test_positive_add_foreman_role_with_org_loc(
         assert module_loc.name in hostgroup['locations']['resources']['assigned']
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_katello_role_with_org(
     test_name,
@@ -795,7 +847,7 @@ def test_positive_add_katello_role_with_org(
     assert ak.organization.id == module_org.id
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_create_user_in_ldap_mode(
@@ -816,7 +868,7 @@ def test_positive_create_user_in_ldap_mode(
         assert user_values['user']['auth'] == auth_source_name
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_login_user_no_roles(
     auth_source, auth_source_ipa, test_name, ldap_tear_down, ldap_auth_source
@@ -840,7 +892,7 @@ def test_positive_login_user_no_roles(
         ldapsession.task.read_all()
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_login_user_basic_roles(
@@ -920,11 +972,13 @@ def test_negative_login_user_with_invalid_password_otp(
     with Session(test_name, ipa_data['ipa_otp_username'], password_with_otp) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.destructive
-def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, ldap_tear_down):
+def test_single_sign_on_ldap_ipa_server(
+    subscribe_satellite, enroll_idm_and_configure_external_auth, ldap_tear_down
+):
     """Verify the single sign-on functionality with external authentication
 
     :id: 9813a4da-4639-11ea-9780-d46d6dd3b5b2
@@ -938,15 +992,18 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
     """
     # register the satellite with IPA for single sign-on and update external auth
     try:
-        run_command(cmd="subscription-manager repos --enable rhel-7-server-optional-rpms")
+        run_command(cmd='subscription-manager repos --enable rhel-7-server-optional-rpms')
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
         run_command('foreman-maintain service restart', timeout=300)
-        result = run_command(
-            cmd="curl -k -u : --negotiate https://{}/users/extlogin/".format(
-                settings.server.hostname
-            ),
-            hostname=settings.ipa.hostname_ipa,
-        )
+        if is_open('BZ:1941997'):
+            curl_command = (
+                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin'
+            )
+        else:
+            curl_command = (
+                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin/'
+            )
+        result = run_command(curl_command)
         result = ''.join(result)
         assert 'redirected' in result
         assert f'https://{settings.server.hostname}/hosts' in result
@@ -965,8 +1022,11 @@ def test_single_sign_on_ldap_ipa_server(enroll_idm_and_configure_external_auth, 
         )
 
 
+@pytest.mark.parametrize(
+    'enroll_ad_and_configure_external_auth', ['AD_2016', 'AD_2019'], indirect=True
+)
 @pytest.mark.destructive
-def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
+def test_single_sign_on_ldap_ad_server(subscribe_satellite, enroll_ad_and_configure_external_auth):
     """Verify the single sign-on functionality with external authentication
 
     :id: 3c233aa4-c817-11ea-b105-d46d6dd3b5b2
@@ -995,13 +1055,18 @@ def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
 
         # create the kerberos ticket for authentication
         run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
-        result = run_command(
-            f"curl -k -u : --negotiate " f"https://{settings.server.hostname}/users/extlogin/"
-        )
+        if is_open('BZ:1941997'):
+            curl_command = (
+                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin'
+            )
+        else:
+            curl_command = (
+                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin/'
+            )
+        result = run_command(curl_command)
         result = ''.join(result)
         assert 'redirected' in result
-        assert f"https://{settings.server.hostname}/users" in result
-        assert f"-{settings.ldap.username}" in result
+        assert f'https://{settings.server.hostname}/hosts' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
@@ -1009,7 +1074,7 @@ def test_single_sign_on_ldap_ad_server(enroll_ad_and_configure_external_auth):
 
 
 @pytest.mark.destructive
-def test_single_sign_on_using_rhsso(rhsso_setting_setup, session):
+def test_single_sign_on_using_rhsso(subscribe_satellite, rhsso_setting_setup, session):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
     :id: 18a77de8-570f-11ea-a202-d46d6dd3b5b2
@@ -1056,9 +1121,9 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, 
         }
         session.rhsso_login.login(login_details)
         view = session.rhsso_login.logout()
-        assert view['login_again'] == "Click to log in again"
+        assert view['login_again'] == 'Click to log in again'
         session.rhsso_login.login(login_details, external_login=True)
-        actual_user = session.task.read_all(widget_names="current_user")['current_user']
+        actual_user = session.task.read_all(widget_names='current_user')['current_user']
         assert settings.rhsso.rhsso_user in actual_user
 
 
@@ -1084,8 +1149,8 @@ def test_session_expire_rhsso_idle_timeout(
         )
         sleep(360)
         with pytest.raises(NavigationTriesExceeded) as error:
-            session.task.read_all(widget_names="current_user")['current_user']
-        assert error.typename == "NavigationTriesExceeded"
+            session.task.read_all(widget_names='current_user')['current_user']
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.external_auth
@@ -1116,7 +1181,7 @@ def test_external_new_user_login_and_check_count_rhsso(
     }
     with Session(login=False) as rhsso_session:
         rhsso_session.rhsso_login.login(login_details)
-        actual_user = rhsso_session.task.read_all(widget_names="current_user")['current_user']
+        actual_user = rhsso_session.task.read_all(widget_names='current_user')['current_user']
         assert user_details['firstName'] in actual_user
     users = entities.User().search()
     updated_count = len([user for user in users if user.auth_source_name == 'External'])
@@ -1127,7 +1192,7 @@ def test_external_new_user_login_and_check_count_rhsso(
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
             rhsso_session.task.read_all()
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.external_auth
@@ -1170,7 +1235,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.rhsso_login.login(login_details)
             rhsso_session.task.read_all()
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.external_auth
@@ -1235,7 +1300,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
         rhsso_session.rhsso_login.login(login_details)
         with pytest.raises(NavigationTriesExceeded) as error:
             rhsso_session.location.create({'name': location_name})
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.external_auth
@@ -1305,7 +1370,7 @@ def test_user_permissions_rhsso_user_multiple_group(
 
 
 @pytest.mark.destructive
-def test_totp_user_login(rhsso_setting_setup, session, ad_data):
+def test_totp_user_login(session, ad_data):
     """Verify the TOTP authentication of LDAP user interlinked with RH-SSO
 
     :id: cf8dfa00-4f48-11eb-b7d5-d46d6dd3b5b2
@@ -1319,6 +1384,7 @@ def test_totp_user_login(rhsso_setting_setup, session, ad_data):
     :expectedresults: After entering the login details in RHSSO page user should
         logged into Satellite
     """
+    ad_data = ad_data()
     login_details = {
         'username': ad_data['ldap_user_name'],
         'password': ad_data['ldap_user_passwd'],
@@ -1348,6 +1414,7 @@ def test_permissions_external_ldap_mapped_rhsso_group(
         based on the user group level
 
     """
+    ad_data = ad_data()
     login_details = {
         'username': ad_data['ldap_user_name'],
         'password': ad_data['ldap_user_passwd'],
@@ -1387,7 +1454,7 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
         )
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
     """Attempt to login in Satellite an user with the wrong password
@@ -1408,7 +1475,7 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.tier2
@@ -1426,7 +1493,7 @@ def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.tier2
@@ -1444,7 +1511,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
     :expectedresults: Email is copied to Satellite:
     """
     run_command(
-        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
     )
     result = run_command(
         cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
@@ -1484,8 +1551,8 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
     assert result.return_code == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
-        f"echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first"
-        f"={test_user} --last={test_user} --password"
+        f'echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first'
+        f'={test_user} --last={test_user} --password'
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
     assert result.return_code == 0
@@ -1495,21 +1562,21 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
             _, group = line.split('=')
             break
     result = ssh.command(
-        cmd=f"ipa group-add-member {group} --user={test_user}",
+        cmd=f'ipa group-add-member {group} --user={test_user}',
         hostname=settings.ipa.hostname_ipa,
     )
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
         ldapsession.task.read_all()
-    result = ssh.command(cmd=f"ipa user-del {test_user}", hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname_ipa)
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down):
     """User will not be created automatically in Satellite if onthefly is
@@ -1548,7 +1615,7 @@ def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down):
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
 
 
 @pytest.mark.stubbed
@@ -1591,9 +1658,9 @@ def test_timeout_and_cac_card_ejection():
     """
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
-@pytest.mark.skip_if_open("BZ:1670397")
+@pytest.mark.skip_if_open('BZ:1670397')
 def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_tear_down):
     """Verify if attributes of LDAP user are updated upon first login when
         onthefly is disabled
@@ -1642,7 +1709,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'
     with session:
         user_values = session.user.read(ldap_auth_source['ldap_user_name'])
         assert ldap_auth_source['ldap_user_name'] == user_values['user']['login']
@@ -1651,7 +1718,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
         assert ldap_auth_source['ldap_user_name'] in user_values['user']['mail']
 
 
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA", "OPENLDAP"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_login_failure_if_internal_user_exist(
     session, test_name, ldap_auth_source, module_org, module_loc
@@ -1687,7 +1754,7 @@ def test_login_failure_if_internal_user_exist(
         ) as ldapsession:
             with pytest.raises(NavigationTriesExceeded) as error:
                 ldapsession.user.search('')
-            assert error.typename == "NavigationTriesExceeded"
+            assert error.typename == 'NavigationTriesExceeded'
     finally:
         entities.User(id=user.id).delete()
 
@@ -1754,7 +1821,7 @@ def test_userlist_with_external_admin(session, auth_source_ipa, ldap_tear_down, 
             assert remote_admin_session.user.search(idm_user)[0]['Username'] == idm_user
 
 
-@pytest.mark.skip_if_open("BZ:1883209")
+@pytest.mark.skip_if_open('BZ:1883209')
 @pytest.mark.tier2
 def test_positive_group_sync_open_ldap_authsource(
     test_name, session, auth_source_open_ldap, ldap_usergroup_name, ldap_tear_down, open_ldap_data
@@ -1799,7 +1866,7 @@ def test_positive_group_sync_open_ldap_authsource(
         assert user_name.capitalize() in current_user
 
 
-@pytest.mark.skip_if_open("BZ:1851905")
+@pytest.mark.skip_if_open('BZ:1851905')
 @pytest.mark.tier2
 def test_verify_group_permissions(
     session, auth_source_ipa, multigroup_setting_cleanup, groups_teardown, ldap_tear_down
@@ -1843,7 +1910,7 @@ def test_verify_group_permissions(
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
         if is_open('BZ:1851905'):
-            ldapsession.browser.execute_script("window.history.go(-1)")
+            ldapsession.browser.execute_script('window.history.go(-1)')
         assert ldapsession.location.search(location_name)[0]['Name'] == location_name
 
 
@@ -1874,4 +1941,4 @@ def test_verify_ldap_filters_ipa(session, ipa_add_user, auth_source_ipa, ipa_dat
     with Session(user=test_user, password=ipa_data['ldap_user_passwd']) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
-        assert error.typename == "NavigationTriesExceeded"
+        assert error.typename == 'NavigationTriesExceeded'

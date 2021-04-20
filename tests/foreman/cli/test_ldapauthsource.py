@@ -83,6 +83,7 @@ class TestADAuthSource:
 
         :CaseImportance: Critical
         """
+        ad_data = ad_data()
         auth = make_ldap_auth_source(
             {
                 'name': server_name,
@@ -128,7 +129,8 @@ class TestADAuthSource:
         :expectedresults: external user-group sync works as expected automatically
             based on user-sync
         """
-        group_base_dn = ",".join(ad_data['group_base_dn'].split(',')[1:])
+        ad_data = ad_data()
+        group_base_dn = ','.join(ad_data['group_base_dn'].split(',')[1:])
         LOGEDIN_MSG = "Using configured credentials for user '{0}'."
         auth_source = make_ldap_auth_source(
             {
@@ -448,7 +450,7 @@ class TestRHSSOAuthSource:
 
     def configure_hammer_session(self, enable=True):
         """take backup of the hammer config file and enable use_sessions"""
-        run_command(f"cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup")
+        run_command(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
         run_command(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
         run_command(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
 
@@ -456,13 +458,13 @@ class TestRHSSOAuthSource:
     def rh_sso_hammer_auth_setup(self, request):
         """rh_sso hammer setup before running the auth login tests"""
         self.configure_hammer_session()
-        client_config = {"publicClient": "true"}
+        client_config = {'publicClient': 'true'}
         update_client_configuration(client_config)
 
         def rh_sso_hammer_auth_cleanup():
             """restore the hammer config backup file and rhsso client settings"""
-            run_command(f"mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}")
-            client_config = {"publicClient": "false"}
+            run_command(f'mv {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+            client_config = {'publicClient': 'false'}
             update_client_configuration(client_config)
 
         request.addfinalizer(rh_sso_hammer_auth_cleanup)
@@ -558,11 +560,11 @@ class TestRHSSOAuthSource:
             with open_pxssh_session() as ssh_session:
                 ssh_session.sendline(
                     f"echo '{two_factor_code['code']}' | hammer auth login oauth "
-                    f"--oidc-token-endpoint {get_oidc_token_endpoint()} "
-                    f"--oidc-authorization-endpoint {get_oidc_authorization_endpoint()} "
-                    f"--oidc-client-id {get_oidc_client_id()} "
+                    f'--oidc-token-endpoint {get_oidc_token_endpoint()} '
+                    f'--oidc-authorization-endpoint {get_oidc_authorization_endpoint()} '
+                    f'--oidc-client-id {get_oidc_client_id()} '
                     f"--oidc-redirect-uri 'urn:ietf:wg:oauth:2.0:oob' "
-                    f"--two-factor "
+                    f'--two-factor '
                 )
                 ssh_session.prompt()  # match the prompt
                 result = ssh_session.before.decode()
