@@ -55,11 +55,12 @@ help:
 	@echo "  clean-all                  to clean cache, pyc, logs and docs"
 
 docs:
-	@cd docs; $(MAKE) html
+	$(info "Copying broker_config.yaml to avoid warnings")
+	@cp ./broker_settings.yaml docs/; $(MAKE) -C docs html
 
 docs-clean:
 	$(info "Cleaning docs...")
-	@cd docs; $(MAKE) clean
+	$(MAKE) -C docs clean
 
 test-docstrings: uuid-check
 	$(info "Checking for errors in docstrings and testimony tags...")
