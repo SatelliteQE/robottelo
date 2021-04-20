@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import time
+from datetime import datetime
 from random import choice
 
 import pytest
@@ -31,10 +32,8 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.api.utils import wait_for_errata_applicability_task
-from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
@@ -46,15 +45,11 @@ from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
-from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -71,8 +66,7 @@ from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
-from robottelo.vm import VirtualMachine
-from robottelo.vm import VirtualMachineError
+from robottelo.hosts import ContentHostError
 
 
 @pytest.fixture(scope="module")
@@ -465,9 +459,10 @@ def test_positive_katello_and_openscap_loaded():
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
-def test_positive_register_with_no_ak(module_lce, module_org, module_promoted_cv):
+def test_positive_register_with_no_ak(
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost
+):
     """Register host to satellite without activation key
 
     :id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
@@ -476,19 +471,17 @@ def test_positive_register_with_no_ak(module_lce, module_org, module_promoted_cv
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(
-            module_org.label,
-            lce=f'{module_lce.label}/{module_promoted_cv.label}',
-        )
-        assert client.subscribed
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(
+        module_org.label,
+        lce=f'{module_lce.label}/{module_promoted_cv.label}',
+    )
+    assert rhel7_contenthost.subscribed
 
 
 @pytest.mark.host_create
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_negative_register_twice(module_ak_with_cv, module_org):
+def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthost):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
@@ -497,16 +490,17 @@ def test_negative_register_twice(module_ak_with_cv, module_org):
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_ak_with_cv.name)
-        assert client.subscribed
-        result = client.register_contenthost(module_org.label, module_ak_with_cv.name, force=False)
-        # Depending on distro version, successful return_code may be 0 or
-        # 1, so we can't verify host wasn't registered by return_code != 0
-        # check. Verifying return_code == 64 here, which stands for content
-        # host being already registered.
-        assert result.return_code == 64
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel7_contenthost.subscribed
+    result = rhel7_contenthost.register_contenthost(
+        module_org.label, module_ak_with_cv.name, force=False
+    )
+    # Depending on distro version, successful status may be 0 or
+    # 1, so we can't verify host wasn't registered by status != 0
+    # check. Verifying status == 64 here, which stands for content
+    # host being already registered.
+    assert result.status == 64
 
 
 @pytest.mark.host_create
@@ -545,9 +539,8 @@ def test_positive_list_scparams(module_env_search, module_org, module_puppet_cla
 
 
 @pytest.mark.host_create
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_list(module_ak_with_cv, module_lce, module_org):
+def test_positive_list(module_ak_with_cv, module_lce, module_org, rhel7_contenthost):
     """List hosts for a given org
 
     :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
@@ -556,19 +549,19 @@ def test_positive_list(module_ak_with_cv, module_lce, module_org):
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_ak_with_cv.name)
-        assert client.subscribed
-        hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-        assert len(hosts) >= 1
-        assert client.hostname in [host['name'] for host in hosts]
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel7_contenthost.subscribed
+    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
+    assert len(hosts) >= 1
+    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.host_create
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_list_by_last_checkin(module_lce, module_org, module_promoted_cv):
+def test_positive_list_by_last_checkin(
+    module_lce, module_org, module_promoted_cv, rhel7_contenthost
+):
     """List all content hosts using last checkin criteria
 
     :id: e7d86b44-28c3-4525-afac-61a20e62daf8
@@ -581,23 +574,21 @@ def test_positive_list_by_last_checkin(module_lce, module_org, module_promoted_c
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(
-            module_org.label,
-            lce=f'{module_lce.label}/{module_promoted_cv.label}',
-        )
-        assert client.subscribed
-        hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
-        assert len(hosts) >= 1
-        assert client.hostname in [host['name'] for host in hosts]
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(
+        module_org.label,
+        lce=f'{module_lce.label}/{module_promoted_cv.label}',
+    )
+    assert rhel7_contenthost.subscribed
+    hosts = Host.list({'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'})
+    assert len(hosts) >= 1
+    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.host_create
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
-def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
+def test_positive_unregister(module_ak_with_cv, module_lce, module_org, rhel7_contenthost):
     """Unregister a host
 
     :id: c5ce988d-d0ea-4958-9956-5a4b039b285c
@@ -608,17 +599,16 @@ def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as client:
-        client.install_katello_ca()
-        client.register_contenthost(module_org.label, module_ak_with_cv.name)
-        assert client.subscribed
-        hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-        assert len(hosts) >= 1
-        assert client.hostname in [host['name'] for host in hosts]
-        result = client.run('subscription-manager unregister')
-        assert result.return_code == 0
-        hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
-        assert client.hostname in [host['name'] for host in hosts]
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(module_org.label, module_ak_with_cv.name)
+    assert rhel7_contenthost.subscribed
+    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
+    assert len(hosts) >= 1
+    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    result = rhel7_contenthost.run('subscription-manager unregister')
+    assert result.status == 0
+    hosts = Host.list({'organization-id': module_org.id, 'environment-id': module_lce.id})
+    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
 @pytest.mark.skip_if_not_set('compute_resources')
@@ -1484,42 +1474,48 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.fixture(scope="module")
-def katello_host_tools_repos(module_ak, module_cv, module_lce, module_org):
+def katello_host_tools_repos():
     """Create Org, Lifecycle Environment, Content View, Activation key"""
+    org = entities.Organization().create()
+    cv = entities.ContentView(organization=org).create()
+    lce = entities.LifecycleEnvironment(organization=org).create()
+    ak = entities.ActivationKey(
+        environment=lce,
+        organization=org,
+    ).create()
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': module_org.id,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': module_ak.id,
+            'organization-id': org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': lce.id,
+            'activationkey-id': ak.id,
         }
     )
     # Create custom repository content
     setup_org_for_a_custom_repo(
         {
             'url': FAKE_6_YUM_REPO,
-            'organization-id': module_org.id,
-            'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
-            'activationkey-id': module_ak.id,
+            'organization-id': org.id,
+            'content-view-id': cv.id,
+            'lifecycle-environment-id': lce.id,
+            'activationkey-id': ak.id,
         }
     )
     return {
-        'ak': module_ak,
-        'cv': module_cv,
-        'lce': module_lce,
-        'org': module_org,
+        'ak': ak,
+        'cv': cv,
+        'lce': lce,
+        'org': org,
     }
 
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def katello_host_tools_client(katello_host_tools_repos):
-    client = VirtualMachine(distro=DISTRO_RHEL7)
-    client.create()
+def katello_host_tools_client(katello_host_tools_repos, rhel7_contenthost):
+    client = rhel7_contenthost
     client.install_katello_ca()
     # Register content host and install katello-host-tools
     client.register_contenthost(
@@ -1531,7 +1527,6 @@ def katello_host_tools_client(katello_host_tools_repos):
     client.enable_repo(REPOS['rhst7']['id'])
     client.install_katello_host_tools()
     yield {'client': client, 'host_info': host_info}
-    vm_cleanup(client)
 
 
 @pytest.mark.katello_host_tools
@@ -1565,14 +1560,14 @@ def test_positive_report_package_installed_removed(
     host_info = katello_host_tools_client['host_info']
     client.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
     installed_packages = Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
     )
     assert len(installed_packages) == 1
     assert installed_packages[0]['nvra'] == FAKE_0_CUSTOM_PACKAGE
     result = client.run(f'yum remove -y {FAKE_0_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
     installed_packages = Host.package_list(
         {'host-id': host_info['id'], 'search': f'name={FAKE_0_CUSTOM_PACKAGE_NAME}'}
     )
@@ -1609,7 +1604,7 @@ def test_positive_package_applicability(katello_host_tools_client):
     host_info = katello_host_tools_client['host_info']
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
     applicable_packages = Package.list(
         {
             'host-id': host_info['id'],
@@ -1622,7 +1617,7 @@ def test_positive_package_applicability(katello_host_tools_client):
     # install package update
     client.run(f'yum install -y {FAKE_2_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
     applicable_packages = Package.list(
         {
             'host-id': host_info['id'],
@@ -1664,7 +1659,7 @@ def test_positive_erratum_applicability(katello_host_tools_client):
     before_install = int(time.time())
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
     wait_for_errata_applicability_task(int(host_info['id']), before_install)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
@@ -1674,7 +1669,7 @@ def test_positive_erratum_applicability(katello_host_tools_client):
     before_upgrade = int(time.time())
     # apply errata
     result = client.run(f'yum update -y --advisory {FAKE_2_ERRATA_ID}')
-    assert result.return_code == 0
+    assert result.status == 0
     wait_for_errata_applicability_task(int(host_info['id']), before_upgrade)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
@@ -1749,12 +1744,9 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
-def host_subscription_client():
-    client = VirtualMachine(distro=DISTRO_RHEL7)
-    client.create()
-    client.install_katello_ca()
-    yield client
-    vm_cleanup(client)
+def host_subscription_client(rhel7_contenthost):
+    rhel7_contenthost.install_katello_ca()
+    yield rhel7_contenthost
 
 
 @pytest.fixture(scope="module")
@@ -1801,7 +1793,6 @@ class HostSubscription:
             command is launched
         :return: the registration result
         """
-
         if activation_key is None:
             activation_key = self.ak
 
@@ -1847,8 +1838,20 @@ class HostSubscription:
             )
         return activation_key
 
-    def _host_subscription_register(self):
+    def _host_subscription_register(self, request):
         """Register the subscription of client as a content host consumer"""
+
+        @request.addfinalizer
+        def _cleanup():
+            # check whether the client was not unregistered in _register_client method
+            if (
+                datetime.utcnow().strftime("%Y-%m-%d")
+                in Host.info({'name': self.client.hostname})['subscription-information'][
+                    'registered-at'
+                ]
+            ):
+                Host.subscription_unregister({'host': self.client.hostname})
+
         Host.subscription_register(
             {
                 'organization-id': self.org.id,
@@ -1861,9 +1864,8 @@ class HostSubscription:
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.host_subscription
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_register(module_host_subscription, host_subscription_client):
+def test_positive_register(request, module_host_subscription, host_subscription_client):
     """Attempt to register a host
 
     :id: b1c601ee-4def-42ce-b353-fc2657237533
@@ -1881,7 +1883,7 @@ def test_positive_register(module_host_subscription, host_subscription_client):
         }
     )
     assert len(hosts) == 0
-    module_host_subscription._host_subscription_register()
+    module_host_subscription._host_subscription_register(request)
     hosts = Host.list(
         {
             'organization-id': module_host_subscription.org.id,
@@ -1906,7 +1908,7 @@ def test_positive_register(module_host_subscription, host_subscription_client):
 
 @pytest.mark.host_subscription
 @pytest.mark.tier3
-def test_positive_attach(module_host_subscription, host_subscription_client):
+def test_positive_attach(request, module_host_subscription, host_subscription_client):
     """Attempt to attach a subscription to host
 
     :id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
@@ -1922,7 +1924,7 @@ def test_positive_attach(module_host_subscription, host_subscription_client):
     # create an activation key without subscriptions
     activation_key = module_host_subscription._make_activation_key(add_subscription=False)
     # register the client host
-    module_host_subscription._host_subscription_register()
+    module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription._register_client(activation_key=activation_key)
     assert module_host_subscription.client.subscribed
@@ -1934,12 +1936,12 @@ def test_positive_attach(module_host_subscription, host_subscription_client):
         }
     )
     result = module_host_subscription._client_enable_repo()
-    assert result.return_code == 0
+    assert result.status == 0
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
-    except VirtualMachineError:
-        pytest.fail("VirtualMachineError raised unexpectedly!")
+    except ContentHostError:
+        pytest.fail("ContentHostError raised unexpectedly!")
 
 
 @pytest.mark.host_subscription
@@ -1967,17 +1969,17 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
         }
     )
     result = module_host_subscription._client_enable_repo()
-    assert result.return_code == 0
+    assert result.status == 0
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
-    except VirtualMachineError:
-        pytest.fail("VirtualMachineError raised unexpectedly!")
+    except ContentHostError:
+        pytest.fail("ContentHostError raised unexpectedly!")
 
 
 @pytest.mark.host_subscription
 @pytest.mark.tier3
-def test_negative_without_attach(module_host_subscription, host_subscription_client):
+def test_negative_without_attach(request, module_host_subscription, host_subscription_client):
     """Register content host from satellite, register client to uuid
     of that content host, as there was no attach on the client,
     Test if the list of the repository subscriptions is empty
@@ -1989,7 +1991,7 @@ def test_negative_without_attach(module_host_subscription, host_subscription_cli
     :CaseLevel: System
     """
     module_host_subscription.set_client(host_subscription_client)
-    module_host_subscription._host_subscription_register()
+    module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription.client.register_contenthost(
         module_host_subscription.org.name,
@@ -2052,35 +2054,6 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
         auto_attach=False,
     )
 
-    default_content_view = entities.ContentView().search(
-        query={'search': f'name="{DEFAULT_CV}"', 'organization_id': f'{org.id}'}
-    )[0]
-    default_lce = entities.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}"'}
-    )[0]
-
-    # disable repository set to
-    ContentView.remove(
-        {
-            'id': content_view.id,
-            'lifecycle-environments': ",".join([ENVIRONMENT, lce.name, host_lce.name]),
-            'organization-id': org.id,
-            'system-content-view-id': default_content_view.id,
-            'system-environment-id': default_lce.id,
-            'key-content-view-id': default_content_view.id,
-            'key-environment-id': default_lce.id,
-        }
-    )
-    ContentView.delete({'id': content_view.id})
-    RepositorySet.disable(
-        {
-            'basearch': 'x86_64',
-            'name': REPOSET['rhst7'],
-            'organization-id': org.id,
-            'product': PRDS['rhel'],
-        }
-    )
-
     # get list of available subscriptions which are matched with default subscription
     subscriptions = module_host_subscription.client.run(
         'subscription-manager list --available --matches "%s" --pool-only'
@@ -2091,13 +2064,13 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     module_host_subscription.client.run('subscription-manager attach --pool "%s"' % pool_id)
     assert module_host_subscription.client.subscribed
     result = module_host_subscription._client_enable_repo()
-    assert result.return_code != 0
+    assert result.status != 0
 
 
 @pytest.mark.host_subscription
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_remove(module_host_subscription, host_subscription_client):
+def test_positive_remove(request, module_host_subscription, host_subscription_client):
     """Attempt to remove a subscription from content host
 
     :id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
@@ -2108,7 +2081,7 @@ def test_positive_remove(module_host_subscription, host_subscription_client):
     """
     module_host_subscription.set_client(host_subscription_client)
     activation_key = module_host_subscription._make_activation_key(add_subscription=True)
-    module_host_subscription._host_subscription_register()
+    module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
     host_subscriptions = ActivationKey.subscriptions(
         {
@@ -2160,7 +2133,7 @@ def test_positive_remove(module_host_subscription, host_subscription_client):
 
 @pytest.mark.host_subscription
 @pytest.mark.tier3
-def test_positive_auto_attach(module_host_subscription, host_subscription_client):
+def test_positive_auto_attach(request, module_host_subscription, host_subscription_client):
     """Attempt to auto attach a subscription to content host
 
     :id: e3eebf72-d512-4892-828b-70165ea4b129
@@ -2172,17 +2145,17 @@ def test_positive_auto_attach(module_host_subscription, host_subscription_client
     """
     module_host_subscription.set_client(host_subscription_client)
     activation_key = module_host_subscription._make_activation_key(add_subscription=True)
-    module_host_subscription._host_subscription_register()
+    module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription._register_client(activation_key=activation_key)
     Host.subscription_auto_attach({'host-id': host['id']})
     result = module_host_subscription._client_enable_repo()
-    assert result.return_code == 0
+    assert result.status == 0
     # ensure that katello agent can be installed
     try:
         module_host_subscription.client.install_katello_agent()
-    except VirtualMachineError:
-        pytest.fail("VirtualMachineError raised unexpectedly!")
+    except ContentHostError:
+        pytest.fail("ContentHostError raised unexpectedly!")
 
 
 @pytest.mark.host_subscription

@@ -210,7 +210,7 @@ class ContentHost(Host):
         self,
         org='Default_Organization',
         activation_key=None,
-        lce='Library',
+        lce=None,
         consumerid=None,
         force=True,
         releasever=None,
