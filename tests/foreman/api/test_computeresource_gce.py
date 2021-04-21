@@ -266,7 +266,7 @@ class TestGCEHostProvisioningTestCase:
         request.cls.mtype = 'g1-small'
         request.cls.network = 'default'
         request.cls.volsize = '13'
-        request.cls.hostname = gen_string('alpha')
+        request.cls.hostname = f'test{gen_string("alpha")}'
 
         request.cls.fullhostname = f'{self.hostname}.{gce_domain.name}'.lower()
 
@@ -338,7 +338,7 @@ class TestGCEHostProvisioningTestCase:
             3. The host should show Installed status for provisioned host
         """
         assert class_host.name == self.fullhostname
-        assert class_host.build_status_label == "Installed"
+        assert class_host.build_status_label == 'Installed clear'
 
     @pytest.mark.tier3
     def test_positive_gce_host_ip(self, class_host, google_host):
