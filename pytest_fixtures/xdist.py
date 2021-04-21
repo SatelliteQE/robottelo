@@ -27,6 +27,8 @@ def align_to_satellite(worker_id, satellite_factory):
     if settings.server.inventory_filter:
         settings.server.hostnames  # need to prime the cache
         hosts = VMBroker().from_inventory(filter=settings.server.inventory_filter)
+        # update the cache_proxy for server.hostnames in case its empty
+        cache_proxy['server.hostnames'] = cache_proxy['server.hostnames'] or []
         cache_proxy['server.hostnames'].extend([host.hostname for host in hosts])
 
     # attempt to align a worker to a satellite
