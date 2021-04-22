@@ -126,7 +126,7 @@ def module_repos_col(module_org, module_lce):
             YumRepository(url=CUSTOM_REPO_URL),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id)
+    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
 
 
