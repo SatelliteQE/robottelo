@@ -66,6 +66,8 @@ def golden_ticket_host_setup(request):
         environment=entities.LifecycleEnvironment(id=org.library.id),
         auto_attach=True,
     ).create()
+    request.cls.custom_repo_setup = custom_repo
+    request.cls.rh_repo_setup = rh_repo
     request.cls.org_setup = org
     request.cls.ak_setup = ak
 
@@ -277,6 +279,23 @@ class SubscriptionsTestCase(APITestCase):
             )
         assert "Simple Content Access" in host_context.value.response.text
         # host repo check
+        # ContentView.add_repository(
+        #    {
+        #        'id': content_view['id'],
+        #        'organization-id': module_org.id,
+        #        'repository-id': repo['id'],
+        #    }
+        # )
+        content_view = entities.ContentView(organization=self.org_setup).create()
+        # content_view.publish()
+        content_view.repository = [self.rh_repo_setup, self.custom_repo_setup]
+        content_view.update(['repository'])
+        content_view.publish()
+        host = entities.Host().search(query={'search': self.content_host.hostname})[0]
+        host.content_facet_attributes = {'content_view_id': content_view.id}
+        host.update(['content_facet_attributes'])
+        self.content_host.run('subscription-manager repos --enable *')
+        self.content_host.run('subscription-manager refresh && yum repolist')
 
 
 @pytest.mark.tier2
