@@ -383,15 +383,17 @@ def test_positive_list_updated(module_org):
     if repo:
         repo = repo[0]
     else:
-        repo_with_cves_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever=DEFAULT_RELEASE_VERSION,
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhva6'],
+                'repository': REPOS['rhva6']['name'],
+                'organization-id': module_org.id,
+                'releasever': DEFAULT_RELEASE_VERSION,
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
         )
-        repo = entities.Repository(id=repo_with_cves_id)
+        repo = entities.Repository(id=result['repository-id'])
     assert repo.sync()['result'] == 'success'
     erratum_list = entities.Errata(repository=repo).search(
         query={'order': 'updated ASC', 'per_page': '1000'}
@@ -420,15 +422,17 @@ def test_positive_filter_by_cve(module_org):
     if repo:
         repo = repo[0]
     else:
-        repo_with_cves_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever=DEFAULT_RELEASE_VERSION,
+        result = setup_org_for_a_rh_repo(
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhva6'],
+                'repository': REPOS['rhva6']['name'],
+                'organization-id': module_org.id,
+                'releasever': DEFAULT_RELEASE_VERSION,
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
         )
-        repo = entities.Repository(id=repo_with_cves_id)
+        repo = entities.Repository(id=result['repository-id'])
     assert repo.sync()['result'] == 'success'
     erratum_list = entities.Errata(repository=repo).search(
         query={'order': 'cve DESC', 'per_page': '1000'}
