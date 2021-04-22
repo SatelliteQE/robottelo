@@ -1615,53 +1615,6 @@ class TestContentView:
                     }
                 )
 
-    @pytest.mark.tier2
-    def test_negative_add_non_composite_cv_to_composite(self, module_org):
-        """Attempt to associate both published and unpublished
-        non-composite content views with composite content view.
-
-        :id: 4f6d3308-8083-4fc3-bb4f-5d5e1b886a96
-
-        :steps:
-
-            1. Create an empty non-composite content view. Do not publish it
-            2. Create a second non-composite content view. Publish it.
-            3. Create a new composite content view.
-            4. Add the published non-composite content view to the composite
-               content view.
-
-        :expectedresults:
-
-            1. Unpublished non-composite content view cannot be added to
-               composite content view
-            2. Published non-composite content view is successfully added to
-               composite content view.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-
-        :BZ: 1367123
-        """
-        # Create published component CV
-        published_cv = make_content_view({'organization-id': module_org.id})
-        ContentView.publish({'id': published_cv['id']})
-        # Create unpublished component CV
-        unpublished_cv = make_content_view({'organization-id': module_org.id})
-        # Create composite CV
-        composite_cv = make_content_view({'organization-id': module_org.id, 'composite': True})
-        # Add published CV
-        ContentView.add_version({'id': composite_cv['id'], 'content-view-id': published_cv['id']})
-        published_cv = ContentView.info({'id': published_cv['id']})
-        composite_cv = ContentView.info({'id': composite_cv['id']})
-        assert composite_cv['components'][0]['id'] == published_cv['versions'][0]['id']
-        # Add unpublished CV
-        with pytest.raises(CLIReturnCodeError) as context:
-            ContentView.add_version(
-                {'id': composite_cv['id'], 'content-view-id': unpublished_cv['id']}
-            )
-        assert 'Error: content_view_version not found' in str(context)
-
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
     def test_positive_promote_rh_content(self, module_manifest_org, module_rhel_content):
