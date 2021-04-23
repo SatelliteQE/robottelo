@@ -1,4 +1,6 @@
 import logging
+import os
+from pathlib import Path
 
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
@@ -10,6 +12,10 @@ from robottelo.config.facade import SettingsFacade
 from robottelo.config.facade import SettingsNodeWrapper
 
 logger = logging.getLogger('robottelo.config')
+
+if not os.getenv('ROBOTTELO_DIR'):
+    # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
+    os.environ['ROBOTTELO_DIR'] = str(Path(__file__).resolve().parent.parent)
 
 legacy_settings = LegacySettings()
 
