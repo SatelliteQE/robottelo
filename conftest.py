@@ -10,10 +10,10 @@ pytest_plugins = [
     'pytest_plugins.testimony_markers',
     'pytest_plugins.manual_skipped',
     'pytest_plugins.disable_rp_params',
+    'pytest_plugins.xdist',
     # Fixtures
     'pytest_fixtures.api_fixtures',
     'pytest_fixtures.broker',
-    'pytest_fixtures.xdist',
     'pytest_fixtures.reporting_fixtures',
     # Component Fixtures
     'pytest_fixtures.ansible_fixtures',

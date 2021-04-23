@@ -9,36 +9,34 @@ from robottelo.hosts import ContentHost
 from robottelo.hosts import Satellite
 
 
+def satellite_factory(retry_limit=3, delay=300, **broker_args):
+    vmb = VMBroker(
+        host_classes={'host': Satellite}, workflow=settings.server.deploy_workflow, **broker_args
+    )
+    timeout = (1200 + delay) * retry_limit
+    sat = wait_for(
+        vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
+    )
+    return sat.out
+
+
+def capsule_factory(retry_limit=3, delay=300, **broker_args):
+    vmb = VMBroker(host_classes={'host': Satellite}, workflow='deploy-sat-capsule', **broker_args)
+    timeout = (1200 + delay) * retry_limit
+    cap = wait_for(
+        vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
+    )
+    return cap.out
+
+
 @pytest.fixture(scope='session')
-def satellite_factory():
-    def factory(retry_limit=3, delay=300, **broker_args):
-        vmb = VMBroker(
-            host_classes={'host': Satellite},
-            workflow=settings.server.deploy_workflow,
-            **broker_args
-        )
-        timeout = (1200 + delay) * retry_limit
-        sat = wait_for(
-            vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
-        )
-        return sat.out
-
-    return factory
+def session_satellite():
+    return satellite_factory()
 
 
 @pytest.fixture(scope='session')
-def capsule_factory():
-    def factory(retry_limit=3, delay=300, **broker_args):
-        vmb = VMBroker(
-            host_classes={'host': Satellite}, workflow='deploy-sat-capsule', **broker_args
-        )
-        timeout = (1200 + delay) * retry_limit
-        cap = wait_for(
-            vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
-        )
-        return cap.out
-
-    return factory
+def session_capsule():
+    return session_capsule()
 
 
 @pytest.fixture
