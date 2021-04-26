@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import tempfile
 import time
+from pathlib import Path
 
 import pytest
 
@@ -25,9 +26,8 @@ func_locker.set_default_scope(NAMESPACE_SCOPE)
 
 class TmpCountFile:
     def __init__(self):
-        tmp_root_path = os.path.join(func_locker.get_temp_dir(), func_locker.TEMP_ROOT_DIR)
-        if not os.path.exists(tmp_root_path):
-            os.mkdir(tmp_root_path)
+        tmp_root_path = Path(func_locker.get_temp_dir()).joinpath(func_locker.TEMP_ROOT_DIR)
+        tmp_root_path.mkdir(parents=True, exist_ok=True)
         self.file = tempfile.NamedTemporaryFile(delete=False, suffix='.counter', dir=tmp_root_path)
         self.file_name = self.file.name
         self.file.write(b'0')
