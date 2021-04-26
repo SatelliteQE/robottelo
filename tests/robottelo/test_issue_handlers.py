@@ -4,6 +4,7 @@ import sys
 from collections import defaultdict
 
 import pytest
+from packaging.version import Version
 
 from pytest_plugins.issue_handlers import DEFAULT_BZ_CACHE_FILE
 from robottelo.constants import CLOSED_STATUSES
@@ -15,12 +16,10 @@ from robottelo.utils.issue_handlers import should_deselect
 
 
 class TestBugzillaIssueHandler:
-    @pytest.fixture(scope='class', autouse=True)
-    def set_env_version(self):
-        """Set SATELLITE_VERSION to avoid ssh calls"""
-        os.environ['SATELLITE_VERSION'] = '6.6'
-        yield
-        os.environ.pop('SATELLITE_VERSION', None)
+    @pytest.fixture(autouse=True)
+    def set_env_version(self, mocker):
+        """Mock the return of get_sat_version to avoid ssh attempts"""
+        mocker.patch('robottelo.host_info.get_sat_version', return_value=Version('6.6'))
 
     def test_bz_is_open_pre_processed(self):
         """Assert a pre-processed BZ is considered open"""
@@ -140,7 +139,6 @@ class TestBugzillaIssueHandler:
         """Assert that if BZ has a dupe, the dupe data is considered.
         The dupe is CLOSED/ERRATA but on a future version, no clones for
         backport the solution."""
-
         assert is_open(
             "BZ:123456",
             {
