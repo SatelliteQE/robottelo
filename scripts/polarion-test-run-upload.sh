@@ -65,7 +65,6 @@ fi
 
 TOKEN_PREFIX=""
 POLARION_SELECTOR="name=Satellite 6"
-SANITIZED_ITERATION_ID="${TEST_RUN_ID//[. ]/_}"
 TEST_RUN_GROUP_ID="$(echo ${TEST_RUN_ID} | cut -d' ' -f2)"
 
 set -x
@@ -73,7 +72,6 @@ betelgeuse ${TOKEN_PREFIX} test-run \
     --custom-fields "isautomated=true" \
     --custom-fields "arch=x8664" \
     --custom-fields "variant=server" \
-    --custom-fields "plannedin=${SANITIZED_ITERATION_ID}" \
     --response-property "${POLARION_SELECTOR}" \
     --test-run-title "${TEST_RUN_ID}" \
     --test-run-id "${TEST_RUN_ID}" \
