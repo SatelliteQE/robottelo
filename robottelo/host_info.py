@@ -1,13 +1,13 @@
 """Module that gather several informations about host"""
 import functools
 import logging
-import os
 import re
 
 from packaging.version import Version
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.config import settings
 
 LOGGER = logging.getLogger('robottelo')
 
@@ -154,5 +154,5 @@ class SatVersionDependentValues:
 def get_sat_version():
     """Try to read sat_version from envvar SATELLITE_VERSION
     if not available fallback to ssh connection to get it."""
-    sat_ver = os.environ.get('SATELLITE_VERSION') or get_host_sat_version()
+    sat_ver = str(settings.robottelo.satellite_version) or get_host_sat_version()
     return Version('9999' if 'nightly' in sat_ver else sat_ver)

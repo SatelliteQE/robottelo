@@ -16,8 +16,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.9]
-    env:
-      SATELLITE_VERSION: 6.9
     steps:
       - name: Checkout Robottelo
         uses: actions/checkout@v2
