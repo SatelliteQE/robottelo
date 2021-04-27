@@ -23,30 +23,28 @@ from nailgun import entities
 from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.vm import VirtualMachine
 
 
-def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
-    """Setup a VM host for remote execution.
+def _setup_host_client(client, org_label, subnet_id=None, by_ip=True):
+    """Setup a broker host for remote execution.
 
-    :param VirtualMachine vm_client: where vm_client is VirtualMachine instance.
+    :param Broker rhel client: where client is broker instance.
     :param str org_label: The organization label.
-    :param int subnet: (Optional) Nailgun subnet entity id, to be used by the vm_client host.
+    :param int subnet: (Optional) Nailgun subnet entity id, to be used by the host client.
     :param bool by_ip: Whether remote execution will use ip or host name to access server.
     """
-    vm_client.install_katello_ca()
-    vm_client.register_contenthost(org_label, lce='Library')
-    assert vm_client.subscribed
-    add_remote_execution_ssh_key(vm_client.ip_addr)
+    client.install_katello_ca()
+    client.register_contenthost(org_label, lce='Library')
+    assert client.subscribed
+    add_remote_execution_ssh_key(client.ip_addr)
     if subnet_id is not None:
-        Host.update({'name': vm_client.hostname, 'subnet-id': subnet_id})
+        Host.update({'name': client.hostname, 'subnet-id': subnet_id})
     if by_ip:
         # connect to host by ip
         Host.set_parameter(
-            {'host': vm_client.hostname, 'name': 'remote_execution_connect_by_ip', 'value': 'True'}
+            {'host': client.hostname, 'name': 'remote_execution_connect_by_ip', 'value': 'True'}
         )
 
 
@@ -69,17 +67,15 @@ def module_loc(module_org):
 
 
 @pytest.fixture
-def module_vm_client_by_ip(module_org, module_loc):
-    """Setup a VM client to be used in remote execution by ip"""
-    with VirtualMachine(distro=DISTRO_DEFAULT) as vm_client:
-        _setup_vm_client_host(vm_client, module_org.label)
-        update_vm_host_location(vm_client, location_id=module_loc.id)
-        yield vm_client
+def module_rhel_client_by_ip(module_org, module_loc, rhel7_contenthost):
+    """Setup a broker rhel client to be used in remote execution by ip"""
+    _setup_host_client(rhel7_contenthost, module_org.label)
+    update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
+    yield rhel7_contenthost
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
-def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_client_by_ip):
+def test_positive_run_default_job_template_by_ip(session, module_org, module_rhel_client_by_ip):
     """Run a job template on a host connected by ip
 
     :id: 9a90aa9a-00b4-460e-b7e6-250360ee8e4d
@@ -97,7 +93,7 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_
 
     :CaseLevel: System
     """
-    hostname = module_vm_client_by_ip.hostname
+    hostname = module_rhel_client_by_ip.hostname
     with session:
         session.organization.select(module_org.name)
         assert session.host.search(hostname)[0]['Name'] == hostname
@@ -114,9 +110,8 @@ def test_positive_run_default_job_template_by_ip(session, module_org, module_vm_
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier4
-def test_positive_run_custom_job_template_by_ip(session, module_org, module_vm_client_by_ip):
+def test_positive_run_custom_job_template_by_ip(session, module_org, module_rhel_client_by_ip):
     """Run a job template on a host connected by ip
 
     :id: e283ae09-8b14-4ce1-9a76-c1bbd511d58c
@@ -134,7 +129,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, module_vm_c
 
     :CaseLevel: System
     """
-    hostname = module_vm_client_by_ip.hostname
+    hostname = module_rhel_client_by_ip.hostname
     job_template_name = gen_string('alpha')
     with session:
         session.organization.select(module_org.name)
