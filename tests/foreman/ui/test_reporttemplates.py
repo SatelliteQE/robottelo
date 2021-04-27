@@ -32,13 +32,11 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='module')
@@ -490,9 +488,10 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     """
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_gen_entitlements_reports_multiple_formats(session, setup_content, module_org):
+def test_positive_gen_entitlements_reports_multiple_formats(
+    session, setup_content, rhel7_contenthost
+):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
     :id: b268663d-c213-4e59-8f81-61bec0838b1e
@@ -512,52 +511,49 @@ def test_positive_gen_entitlements_reports_multiple_formats(session, setup_conte
 
     :CaseImportance: High
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.install_katello_ca()
-        module_org, ak = setup_content
-        vm.register_contenthost(module_org.label, ak.name)
-        assert vm.subscribed
-        with session:
-            session.location.select('Default Location')
-            result_json = session.reporttemplate.generate(
-                "Subscription - Entitlement Report", values={'output_format': 'JSON'}
-            )
-            with open(result_json) as json_file:
-                data_json = json.load(json_file)
-            assert any(entitlement['Host Name'] == vm.hostname for entitlement in data_json)
-            assert any(
-                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-                for entitlement in data_json
-            )
-            result_yaml = session.reporttemplate.generate(
-                "Subscription - Entitlement Report", values={'output_format': 'YAML'}
-            )
-            with open(result_yaml) as yaml_file:
-                data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
-            assert any(entitlement['Host Name'] == vm.hostname for entitlement in data_yaml)
-            assert any(
-                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-                for entitlement in data_yaml
-            )
-            result_csv = session.reporttemplate.generate(
-                "Subscription - Entitlement Report", values={'output_format': 'CSV'}
-            )
-            with open(result_csv) as csv_file:
-                data_csv = csv.DictReader(csv_file)
-                items = list(data_csv)
-            assert any(entitlement['Host Name'] == vm.hostname for entitlement in items)
-            assert any(
-                entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
-                for entitlement in items
-            )
-            result_html = session.reporttemplate.generate(
-                "Subscription - Entitlement Report", values={'output_format': 'HTML'}
-            )
-            with open(result_html) as html_file:
-                parser = etree.HTMLParser()
-                tree = etree.parse(html_file, parser)
-                tree_result = etree.tostring(
-                    tree.getroot(), pretty_print=True, method='html'
-                ).decode()
-            assert vm.hostname in tree_result
-            assert DEFAULT_SUBSCRIPTION_NAME in tree_result
+    client = rhel7_contenthost
+    client.install_katello_ca()
+    module_org, ak = setup_content
+    client.register_contenthost(module_org.label, ak.name)
+    assert client.subscribed
+    with session:
+        session.location.select('Default Location')
+        result_json = session.reporttemplate.generate(
+            "Subscription - Entitlement Report", values={'output_format': 'JSON'}
+        )
+        with open(result_json) as json_file:
+            data_json = json.load(json_file)
+        assert any(entitlement['Host Name'] == client.hostname for entitlement in data_json)
+        assert any(
+            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+            for entitlement in data_json
+        )
+        result_yaml = session.reporttemplate.generate(
+            "Subscription - Entitlement Report", values={'output_format': 'YAML'}
+        )
+        with open(result_yaml) as yaml_file:
+            data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
+        assert any(entitlement['Host Name'] == client.hostname for entitlement in data_yaml)
+        assert any(
+            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME
+            for entitlement in data_yaml
+        )
+        result_csv = session.reporttemplate.generate(
+            "Subscription - Entitlement Report", values={'output_format': 'CSV'}
+        )
+        with open(result_csv) as csv_file:
+            data_csv = csv.DictReader(csv_file)
+            items = list(data_csv)
+        assert any(entitlement['Host Name'] == client.hostname for entitlement in items)
+        assert any(
+            entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME for entitlement in items
+        )
+        result_html = session.reporttemplate.generate(
+            "Subscription - Entitlement Report", values={'output_format': 'HTML'}
+        )
+        with open(result_html) as html_file:
+            parser = etree.HTMLParser()
+            tree = etree.parse(html_file, parser)
+            tree_result = etree.tostring(tree.getroot(), pretty_print=True, method='html').decode()
+        assert client.hostname in tree_result
+        assert DEFAULT_SUBSCRIPTION_NAME in tree_result
