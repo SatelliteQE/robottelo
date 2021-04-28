@@ -17,62 +17,9 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_remote_report_checksum
-from robottelo.vm import VirtualMachine
-
-
-@pytest.fixture(scope="module")
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope="module")
-def organization_ak_setup(module_org):
-    with manifests.clone() as manifest:
-        upload_manifest(module_org.id, manifest.content)
-    ak = entities.ActivationKey(
-        content_view=module_org.default_content_view,
-        organization=module_org,
-        environment=entities.LifecycleEnvironment(id=module_org.library.id),
-        auto_attach=True,
-    ).create()
-    subscription = entities.Subscription(organization=module_org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
-    )[0]
-    ak.add_subscriptions(data={"quantity": 10, "subscription_id": subscription.id})
-    return module_org, ak
-
-
-@pytest.mark.libvirt_content_host
-@pytest.fixture(scope="module")
-def virtual_host():
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        yield vm
-
-
-@pytest.mark.libvirt_content_host
-@pytest.fixture(scope="module")
-def baremetal_host():
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.set_infrastructure_type("physical")
-        yield vm
-
-
-@pytest.fixture(scope="module")
-def registered_hosts(organization_ak_setup, virtual_host, baremetal_host):
-    org, ak = organization_ak_setup
-    for vm in (virtual_host, baremetal_host):
-        vm.install_katello_ca()
-        vm.register_contenthost(org.label, ak.name)
-        assert vm.subscribed
-    return virtual_host, baremetal_host
 
 
 @pytest.mark.tier3
@@ -101,13 +48,13 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
 
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
-        f"Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.gz"
+        f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
     )
-    upload_error_messages = ["NSS error", "Permission denied"]
+    upload_error_messages = ['NSS error', 'Permission denied']
 
-    assert "Successfully generated" in inventory_data['generating']['terminal']
+    assert 'Successfully generated' in inventory_data['generating']['terminal']
     assert upload_success_msg in inventory_data['uploading']['terminal']
-    assert "x-rh-insights-request-id" in inventory_data['uploading']['terminal'].lower()
+    assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
     for error_msg in upload_error_messages:
         assert error_msg not in inventory_data['uploading']['terminal']
 

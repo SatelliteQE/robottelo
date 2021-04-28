@@ -116,3 +116,22 @@ def capsule_latest():
         host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow
     ) as cap:
         yield cap
+
+
+@pytest.fixture(scope='module')
+def content_hosts():
+    """A module-level fixture that provides two content hosts object based on the rhel7 nick"""
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        hosts[0].set_infrastructure_type('physical')
+        yield hosts
+
+
+@pytest.fixture(scope='module')
+def registered_hosts(organization_ak_setup, content_hosts):
+    """Fixture that registers content hosts to Satellite."""
+    org, ak = organization_ak_setup
+    for vm in content_hosts:
+        vm.install_katello_ca()
+        vm.register_contenthost(org.label, ak.name)
+        assert vm.subscribed
+    return content_hosts
