@@ -16,84 +16,16 @@
 
 :Upstream: No
 """
-import hashlib
-import json
-import os
-import tarfile
-
 import pytest
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
+from robottelo.rh_cloud_utils import get_local_file_data
+from robottelo.rh_cloud_utils import get_remote_report_checksum
 from robottelo.vm import VirtualMachine
-
-
-def get_host_counts(tarobj):
-    metadata_counts = {}
-    slices_counts = {}
-    for file_ in tarobj.getmembers():
-        file_name = os.path.basename(file_.name)
-        if not file_name.endswith(".json"):
-            continue
-        json_data = json.load(tarobj.extractfile(file_))
-        if file_name == "metadata.json":
-            metadata_counts = {
-                f"{key}.json": value['number_hosts']
-                for key, value in json_data['report_slices'].items()
-            }
-        else:
-            slices_counts[file_name] = len(json_data['hosts'])
-
-    return {
-        "metadata_counts": metadata_counts,
-        "slices_counts": slices_counts,
-    }
-
-
-def get_local_file_data(path):
-    size = os.path.getsize(path)
-
-    with open(path, 'rb') as fh:
-        file_content = fh.read()
-    checksum = hashlib.sha256(file_content).hexdigest()
-
-    try:
-        tarobj = tarfile.open(path, mode='r')
-        host_counts = get_host_counts(tarobj)
-        tarobj.close()
-        extractable = True
-        json_files_parsable = True
-    except (tarfile.TarError, json.JSONDecodeError):
-        host_counts = {}
-        extractable = False
-        json_files_parsable = False
-
-    return {
-        "size": size,
-        "checksum": checksum,
-        "extractable": extractable,
-        "json_files_parsable": json_files_parsable,
-        **host_counts,
-    }
-
-
-def get_remote_report_checksum(org_id):
-    remote_paths = [
-        f"/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org_id}.tar.gz",
-        f"/var/lib/foreman/red_hat_inventory/uploads/report_for_{org_id}.tar.gz",
-    ]
-
-    for path in remote_paths:
-        result = ssh.command(f"sha256sum {path}", output_format='plain')
-        if result.return_code != 0:
-            continue
-        checksum, _ = result.stdout.split(maxsplit=1)
-        return checksum
-    return ""
 
 
 @pytest.fixture(scope="module")
