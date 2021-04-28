@@ -18,6 +18,7 @@ pytest_plugins = [
     # Component Fixtures
     'pytest_fixtures.ansible_fixtures',
     'pytest_fixtures.oscap_fixtures',
+    'pytest_fixtures.rh_cloud',
     'pytest_fixtures.satellite_auth',
     'pytest_fixtures.sys_fixtures',
     'pytest_fixtures.smartproxy_fixtures',

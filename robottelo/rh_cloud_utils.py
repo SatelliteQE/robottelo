@@ -9,35 +9,35 @@ from robottelo import ssh
 
 def get_host_counts(tarobj):
     """
-    Returns hosts count from tarfile.
+    Returns hosts count from tar file.
     Args:
-        tarobj: tarfile to get host count from
+        tarobj: tar file to get host count from
     """
     metadata_counts = {}
     slices_counts = {}
     for file_ in tarobj.getmembers():
         file_name = os.path.basename(file_.name)
-        if not file_name.endswith(".json"):
+        if not file_name.endswith('.json'):
             continue
         json_data = json.load(tarobj.extractfile(file_))
-        if file_name == "metadata.json":
+        if file_name == 'metadata.json':
             metadata_counts = {
-                f"{key}.json": value['number_hosts']
+                f'{key}.json': value['number_hosts']
                 for key, value in json_data['report_slices'].items()
             }
         else:
             slices_counts[file_name] = len(json_data['hosts'])
 
     return {
-        "metadata_counts": metadata_counts,
-        "slices_counts": slices_counts,
+        'metadata_counts': metadata_counts,
+        'slices_counts': slices_counts,
     }
 
 
 def get_local_file_data(path):
-    """Returs information about tarfile.
+    """Returns information about tar file.
     Args:
-        path: path to tarfile
+        path: path to tar file
     """
     size = os.path.getsize(path)
 
@@ -57,10 +57,10 @@ def get_local_file_data(path):
         json_files_parsable = False
 
     return {
-        "size": size,
-        "checksum": checksum,
-        "extractable": extractable,
-        "json_files_parsable": json_files_parsable,
+        'size': size,
+        'checksum': checksum,
+        'extractable': extractable,
+        'json_files_parsable': json_files_parsable,
         **host_counts,
     }
 
@@ -72,14 +72,13 @@ def get_remote_report_checksum(org_id):
         org_id: organization-id
     """
     remote_paths = [
-        f"/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org_id}.tar.gz",
-        f"/var/lib/foreman/red_hat_inventory/uploads/report_for_{org_id}.tar.gz",
+        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
+        f'/var/lib/foreman/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',
     ]
 
     for path in remote_paths:
-        result = ssh.command(f"sha256sum {path}", output_format='plain')
+        result = ssh.command(f'sha256sum {path}', output_format='plain')
         if result.return_code != 0:
             continue
         checksum, _ = result.stdout.split(maxsplit=1)
         return checksum
-    return ""
