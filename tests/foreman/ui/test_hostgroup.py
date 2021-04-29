@@ -6,6 +6,8 @@
 
 :CaseComponent: HostGroup
 
+:CaseLevel: Integration
+
 :Assignee: tpapaioa
 
 :TestType: Functional
@@ -42,8 +44,6 @@ def test_positive_end_to_end(session, module_org, module_loc):
     :id: 537d95f2-fe32-4e06-a2cb-21c80fe8e2e2
 
     :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
 
     :CaseImportance: Critical
     """
@@ -96,8 +96,6 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
         was shown
 
     :CaseImportance: High
-
-    :CaseLevel: Integration
     """
     hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
     entities.DiscoveryRule(
@@ -119,8 +117,6 @@ def test_create_with_config_group(session, module_org, module_loc):
     :id: 05a64d6b-113b-4652-86bf-19bc65b70131
 
     :expectedresults: Host group created and contains proper config group
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     environment = entities.Environment(organization=[module_org], location=[module_loc]).create()
@@ -149,8 +145,6 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
 
     :expectedresults: Host group created and contains proper puppet class
-
-    :CaseLevel: Integration
     """
     name = gen_string('alpha')
     pc_name = 'generic_1'
@@ -179,3 +173,25 @@ def test_create_with_puppet_class(session, module_org, module_loc):
         hostgroup_values = session.hostgroup.read(name, widget_names='puppet_classes')
         assert len(hostgroup_values['puppet_classes']['classes']['assigned']) == 1
         assert hostgroup_values['puppet_classes']['classes']['assigned'][0] == pc_name
+
+
+@pytest.mark.stubbed
+def test_positive_create_new_host():
+    """Verify that content source field automatically populates when creating new host from host
+    group.
+
+    :id: 49704437-5ca1-46cb-b74e-de58396add37
+
+    :Steps:
+
+        1. Create hostgroup with the Content Source field populated.
+        2. Create host from Hosts > Create Host, selecting the hostgroup in the Host Group field.
+
+    :expectedresults: The host's Content source field is automatically populated from the selected
+        hostgroup.
+
+    :BZ: 1866746
+
+    :customerscenario: true
+    """
+    pass
