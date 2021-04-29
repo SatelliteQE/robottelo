@@ -62,7 +62,7 @@ class ContentHost(Host):
         :raises robottelo.hosts.ContentHostError: If package wasn't installed.
 
         """
-        self.execute(f'wget -nd -r -l1 --no-parent -A \'{package_name}.rpm\' {repo_url}')
+        self.execute(f'curl -O {repo_url}/{package_name}.rpm')
         result = self.execute(f'rpm -i {package_name}.rpm')
         if result.status != 0:
             raise ContentHostError(f'Failed to install {package_name} rpm.')
