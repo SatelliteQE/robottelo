@@ -19,9 +19,9 @@
 import time
 
 import pytest
+from broker import VMBroker
 
 from robottelo.api.utils import wait_for_errata_applicability_task
-from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.factory import make_activation_key
 from robottelo.cli.factory import make_host_collection
@@ -29,7 +29,6 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
@@ -43,11 +42,11 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.decorators import skip_if_not_set
-from robottelo.vm import VirtualMachine
+from robottelo.hosts import ContentHost
 
 
 @skip_if_not_set('clients', 'fake_manifest')
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
     """Create Org, Lifecycle Environment, Content View, Activation key"""
     setup_org_for_a_rh_repo(
@@ -80,22 +79,19 @@ def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
 
 
 @skip_if_not_set('clients')
-@pytest.fixture(scope="function")
-def katello_agent_client(katello_agent_repos):
-    client = VirtualMachine(distro=DISTRO_RHEL7)
-    client.create()
-    client.install_katello_ca()
+@pytest.fixture
+def katello_agent_client(katello_agent_repos, rhel7_contenthost):
+    rhel7_contenthost.install_katello_ca()
     # Register content host and install katello-agent
-    client.register_contenthost(
+    rhel7_contenthost.register_contenthost(
         katello_agent_repos['org'].label,
         katello_agent_repos['ak'].name,
     )
-    assert client.subscribed
-    host_info = Host.info({'name': client.hostname})
-    client.enable_repo(REPOS['rhst7']['id'])
-    client.install_katello_agent()
-    yield {'client': client, 'host_info': host_info}
-    vm_cleanup(client)
+    assert rhel7_contenthost.subscribed
+    host_info = Host.info({'name': rhel7_contenthost.hostname})
+    rhel7_contenthost.enable_repo(REPOS['rhst7']['id'])
+    rhel7_contenthost.install_katello_agent()
+    yield {'client': rhel7_contenthost, 'host_info': host_info}
 
 
 @pytest.mark.tier3
@@ -151,7 +147,7 @@ def test_positive_apply_security_erratum(katello_agent_client):
     client.download_install_rpm(FAKE_1_YUM_REPO, FAKE_2_CUSTOM_PACKAGE)
     # Check the system is up to date
     result = client.run('yum update --security | grep "No packages needed for security"')
-    assert result.return_code == 0
+    assert result.status == 0
     before_downgrade = int(time.time())
     # Downgrade walrus package
     client.run(f'yum downgrade -y {FAKE_2_CUSTOM_PACKAGE_NAME}')
@@ -165,7 +161,7 @@ def test_positive_apply_security_erratum(katello_agent_client):
     result = client.run(
         'yum update --assumeno --security | grep "No packages needed for security"'
     )
-    assert result.return_code == 1
+    assert result.status == 1
 
 
 @pytest.mark.tier3
@@ -183,7 +179,7 @@ def test_positive_install_package(katello_agent_client):
     host_info = katello_agent_client['host_info']
     Host.package_install({'host-id': host_info['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
     result = client.run(f'rpm -q {FAKE_0_CUSTOM_PACKAGE_NAME}')
-    assert result.return_code == 0
+    assert result.status == 0
 
 
 @pytest.mark.tier3
@@ -201,7 +197,7 @@ def test_positive_remove_package(katello_agent_client):
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     Host.package_remove({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE_NAME}')
-    assert result.return_code != 0
+    assert result.status != 0
 
 
 @pytest.mark.tier3
@@ -219,7 +215,7 @@ def test_positive_upgrade_package(katello_agent_client):
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     Host.package_upgrade({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE_NAME})
     result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
 
 
 @pytest.mark.tier3
@@ -238,7 +234,7 @@ def test_positive_upgrade_packages_all(katello_agent_client):
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     Host.package_upgrade_all({'host-id': host_info['id']})
     result = client.run(f'rpm -q {FAKE_2_CUSTOM_PACKAGE}')
-    assert result.return_code == 0
+    assert result.status == 0
 
 
 @pytest.mark.tier3
@@ -259,11 +255,11 @@ def test_positive_install_and_remove_package_group(katello_agent_client):
     Host.package_group_install(hammer_args)
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
         result = client.run(f'rpm -q {package}')
-        assert result.return_code == 0
+        assert result.status == 0
     Host.package_group_remove(hammer_args)
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
         result = client.run(f'rpm -q {package}')
-        assert result.return_code != 0
+        assert result.status != 0
 
 
 @pytest.mark.tier3
@@ -278,14 +274,16 @@ def test_negative_unregister_and_pull_content(katello_agent_client):
     """
     client = katello_agent_client['client']
     result = client.run('subscription-manager unregister')
-    assert result.return_code == 0
+    assert result.status == 0
     result = client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    assert result.return_code != 0
+    assert result.status != 0
 
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_register_host_ak_with_host_collection(katello_agent_client, module_cv, module_lce, module_org):
+def test_positive_register_host_ak_with_host_collection(
+    katello_agent_client, module_cv, module_lce, module_org, rhel7_contenthost
+):
     """Attempt to register a host using activation key with host collection
 
     :id: 7daf4e40-3fa6-42af-b3f7-1ca1a5c9bfeb
@@ -297,7 +295,7 @@ def test_positive_register_host_ak_with_host_collection(katello_agent_client, mo
 
     :CaseLevel: System
     """
-    client = katello_agent_client['client']
+    # client = katello_agent_client['client']
     host_info = katello_agent_client['host_info']
     # create a new activation key
     activation_key = make_activation_key(
@@ -319,15 +317,14 @@ def test_positive_register_host_ak_with_host_collection(katello_agent_client, mo
     HostCollection.add_host(
         {'id': hc['id'], 'organization-id': module_org.id, 'host-ids': host_info['id']}
     )
-    with VirtualMachine() as client:
-        client.create()
-        client.install_katello_ca()
+
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
+        vm.install_katello_ca()
         # register the client host with the current activation key
-        client.register_contenthost(module_org.name, activation_key=activation_key['name'])
-        assert client.subscribed
-        # note: when registering the host, it should be automatically added
-        # to the host collection
-        client_host = Host.info({'name': client.hostname})
+        vm.register_contenthost(module_org.name, activation_key=activation_key['name'])
+        assert vm.subscribed
+        # note: when registering the host, it should be automatically added to the host-collection
+        client_host = Host.info({'name': vm.hostname})
         hosts = HostCollection.hosts({'id': hc['id'], 'organization-id': module_org.id})
         assert len(hosts) == 2
         expected_hosts_ids = {host_info['id'], client_host['id']}
