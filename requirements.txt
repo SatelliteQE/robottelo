@@ -4,7 +4,7 @@
 attrdict==2.0.1
 broker==0.1.13
 cryptography==3.4.7
-deepdiff==5.3.0
+deepdiff==5.5.0
 dynaconf==3.1.4
 fauxfactory==3.1.0
 Inflector==3.0.1
