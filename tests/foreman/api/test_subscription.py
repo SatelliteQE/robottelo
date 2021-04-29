@@ -220,15 +220,15 @@ class SubscriptionsTestCase(APITestCase):
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @pytest.mark.tier2
-    @pytest.mark.usefixtures("golden_ticket_host_setup")
-    @pytest.mark.usefixtures("rhel77_contenthost_class")
-    def test_positive_subscription_status_disabled(self):
-        """Verify that Content host Subscription status is set to 'Disabled'
+    @pytest.mark.usefixtures('golden_ticket_host_setup')
+    @pytest.mark.usefixtures('rhel77_contenthost_class')
+    def test_positive_subscription_status_sca(self):
+        """Verify that Content host Subscription status is set to 'Simple Content Access'
          for a golden ticket manifest
 
         :id: d7d7e20a-e386-43d5-9619-da933aa06694
 
-        :expectedresults: subscription status is 'Disabled'
+        :expectedresults: subscription status is 'Simple Content Access'
 
         :BZ: 1789924
 
@@ -243,16 +243,15 @@ class SubscriptionsTestCase(APITestCase):
         assert 'Simple Content Access' in str(host_content)
 
     @pytest.mark.tier2
-    @pytest.mark.usefixtures("golden_ticket_host_setup")
-    @pytest.mark.usefixtures("rhel77_contenthost_class")
+    @pytest.mark.usefixtures('golden_ticket_host_setup')
+    @pytest.mark.usefixtures('rhel77_contenthost_class')
     def test_sca_end_to_end(self):
         """Perform end to end testing for Simple Content Access Mode
 
         :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
 
-        :expectedresults:
-
-        :BZ:
+        :expectedresults: All end to end tests pass and clients have access
+        to repos without needing to add subscriptions
 
         :CaseImportance: Medium
         """
@@ -277,16 +276,8 @@ class SubscriptionsTestCase(APITestCase):
                 data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
             )
         assert "Simple Content Access" in host_context.value.response.text
-        # host repo check
-        # ContentView.add_repository(
-        #    {
-        #        'id': content_view['id'],
-        #        'organization-id': module_org.id,
-        #        'repository-id': repo['id'],
-        #    }
-        # )
+        # Create a content view with repos and check to see that the client has access
         content_view = entities.ContentView(organization=self.org_setup).create()
-        # content_view.publish()
         content_view.repository = [self.rh_repo_setup, self.custom_repo_setup]
         content_view.update(['repository'])
         content_view.publish()
@@ -294,7 +285,9 @@ class SubscriptionsTestCase(APITestCase):
         host.content_facet_attributes = {'content_view_id': content_view.id}
         host.update(['content_facet_attributes'])
         self.content_host.run('subscription-manager repos --enable *')
-        self.content_host.run('subscription-manager refresh && yum repolist')
+        repos = self.content_host.run('subscription-manager refresh && yum repolist')
+        assert content_view.repository[1].name in repos.stdout
+        assert "Red Hat Satellite Tools" in repos.stdout
 
 
 @pytest.mark.tier2
