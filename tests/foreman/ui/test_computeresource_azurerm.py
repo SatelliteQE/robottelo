@@ -118,7 +118,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
     :BZ: 1850934
     """
 
-    hostname = gen_string('alpha')
+    hostname = f'test_{gen_string("alpha")}'
     fqdn = f'{hostname}.{module_domain.name}'.lower()
 
     with session:
@@ -197,7 +197,7 @@ def test_positive_azurerm_host_provision_ud(
     :BZ: 1850934
     """
 
-    hostname = gen_string('alpha')
+    hostname = f'test_{gen_string("alpha")}'
     fqdn = f'{hostname}.{module_domain.name}'.lower()
 
     with session:
