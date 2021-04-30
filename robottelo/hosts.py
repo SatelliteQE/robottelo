@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 from broker.hosts import Host
+from nailgun import entities
 from wait_for import TimedOutError
 from wait_for import wait_for
 
@@ -52,6 +53,23 @@ class ContentHostError(Exception):
 
 class ContentHost(Host):
     run = Host.execute
+    subscribed = False
+
+    @property
+    def nailgun_host(self):
+        """If this host is subscribed, provide access ot its nailgun object"""
+        if self.subscribed:
+            return entities.Host().search(query={'search': self.hostname})[0]
+
+    @property
+    def subscribed(self):
+        """Boolean representation of a content host's subscription status"""
+        return 'Status: Unknown' not in self.execute('subscription-manager status').stdout
+
+    @property
+    def ip_addr(self):
+        ipv4, ipv6 = self.execute('hostname -I').stdout.split()
+        return ipv4
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
@@ -235,10 +253,7 @@ class ContentHost(Host):
             cmd += f' --release {releasever}'
         if force:
             cmd += ' --force'
-        result = self.execute(cmd)
-        if 'The system has been registered with ID' in ''.join(result.stdout):
-            self.subscribed = True
-        return result
+        return self.execute(cmd)
 
     def remove_katello_ca(self, capsule=None):
         """Removes katello-ca rpm from the broker virtual machine.
@@ -413,11 +428,6 @@ class ContentHost(Host):
             raise ContentHostError('No distro package available to retrieve release version')
         return self.execute(f"echo '{rh_product_os_releasever}' > /etc/yum/vars/releasever")
 
-    @property
-    def ip_addr(self):
-        ipv4, ipv6 = self.execute("hostname -I").stdout.split()
-        return ipv4
-
 
 class Capsule(ContentHost):
     def restart_services(self):
@@ -456,7 +466,6 @@ class Satellite(Capsule):
         """Import all nailgun entities and wrap them under self.api"""
         from nailgun.config import ServerConfig
         from nailgun.entity_mixins import Entity
-        from nailgun import entities
 
         def inject_config(cls, server_config):
             """inject a nailgun server config into the init of nailgun entity classes"""
