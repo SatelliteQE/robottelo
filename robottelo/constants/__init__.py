@@ -988,6 +988,7 @@ PERMISSIONS = {
         'destroy_http_proxies',
     ],
     'Image': ['view_images', 'create_images', 'edit_images', 'destroy_images'],
+    'InsightsHit': ['view_insights_hits'],
     'KeyPair': ["view_keypairs", "destroy_keypairs"],
     'Location': [
         'view_locations',
