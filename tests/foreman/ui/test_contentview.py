@@ -2584,10 +2584,10 @@ def test_positive_update_filter_affected_repos(session, module_org):
     filter_name = gen_string('alpha')
     repo1_name = gen_string('alpha')
     repo2_name = gen_string('alpha')
-    repo1_package_name = 'walrus'
-    repo2_package_name = 'Walrus'
-    create_sync_custom_repo(module_org.id, repo_name=repo1_name)
-    create_sync_custom_repo(module_org.id, repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
+    repo1_package_name = 'dolphin'
+    repo2_package_name = 'dolphin'
+    create_sync_custom_repo(module_org.id, repo_name=repo1_name, repo_url=FAKE_3_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo2_name)
     repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[
         0
     ]
@@ -2596,6 +2596,7 @@ def test_positive_update_filter_affected_repos(session, module_org):
     ]
     cv = entities.ContentView(organization=module_org, repository=[repo1, repo2]).create()
     with session:
+        # create a filter that affects a subset of repos in the cv
         session.contentviewfilter.create(
             cv.name,
             {
@@ -2605,27 +2606,29 @@ def test_positive_update_filter_affected_repos(session, module_org):
             },
         )
         session.contentviewfilter.add_package_rule(
-            cv.name, filter_name, repo1_package_name, None, ('Equal To', '0.71-1')
+            cv.name, filter_name, repo1_package_name, None, ('Equal To', '4.2.8')
         )
         session.contentviewfilter.update_repositories(cv.name, filter_name, [repo1_name])
         cv.publish()
         # Verify filter affected repo1
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '0.71')
+            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '4.2.8')
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == repo1_package_name and packages[0]['Version'] == '0.71'
+        assert packages[0]['Name'] == repo1_package_name and packages[0]['Version'] == '4.2.8'
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '5.21')
+            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo1_package_name, '4.2.9')
         )
         # checking search showing empty result
         assert not packages[0]['Name']
         # Verify repo2 was not affected and repo2 packages are present
         packages = session.contentview.search_version_package(
-            cv.name, VERSION, 'name = "{}" and version = "{}"'.format(repo2_package_name, '5.6.6')
+            cv.name,
+            VERSION,
+            'name = "{}" and version = "{}"'.format(repo2_package_name, '3.10.232'),
         )
         assert len(packages) == 1
-        assert packages[0]['Name'] == repo2_package_name and packages[0]['Version'] == '5.6.6'
+        assert packages[0]['Name'] == repo2_package_name and packages[0]['Version'] == '3.10.232'
 
 
 @pytest.mark.tier3
