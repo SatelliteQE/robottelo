@@ -11,7 +11,7 @@ EC2:
   # Compute resource profile availability zone
   AVAILABILITY_ZONE: us-west-2a
   # Compute resource profile subnet <IP>/<bitmask>
-  # SUBNET: 
+  # SUBNET:
   # Compute resource profile security groups list
   # SECURITY_GROUPS: secgrp
   # Compute resource profile security managed ip, available values Private, Public

@@ -1,30 +1,30 @@
 RHEV:
   # RHEV to be added as a compute resource.
   # RHEV API URL, e.g. https://ovirt.example.com/ovirt-engine/api
-  # HOSTNAME: 
+  # HOSTNAME:
   # Login for RHEVM, e.g. admin@internal
-  # USERNAME: 
+  # USERNAME:
   # Password for RHEVM
-  # PASSWORD: 
+  # PASSWORD:
   # RHEVM datacenter, e.g. Default
-  # DATACENTER: 
+  # DATACENTER:
   # Name of VM that should be used
-  # VM_NAME: 
+  # VM_NAME:
   # VM storage domain name
-  # STORAGE_DOMAIN: 
+  # STORAGE_DOMAIN:
 
   # RHEV Compute resource image data
   # Operating system of the image
-  # IMAGE_OS: 
+  # IMAGE_OS:
   # Architecture of the image
-  # IMAGE_ARCH: 
+  # IMAGE_ARCH:
   # Login to the image
   # IMAGE_USERNAME: root
   # Password of that user
-  # IMAGE_PASSWORD: 
+  # IMAGE_PASSWORD:
   # Image name on the external provider
-  # IMAGE_NAME: 
+  # IMAGE_NAME:
   # Image UUID
-  # IMAGE_UUID: 
+  # IMAGE_UUID:
   # RHV CA cert url for adding RHV as compute resource, e.g. http://example.com/pub/rhev-ca.pem
-  # CA_CERT: 
+  # CA_CERT:
