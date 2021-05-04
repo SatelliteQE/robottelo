@@ -1,7 +1,7 @@
 """Unit tests for the ``users`` paths.
 
-Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
-tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
+Each class tests a single URL. A full list of URLs to be tested can be found on your satellite:
+http://<satellite-host>/apidoc/v2/users.html
 
 
 :Requirement: User
@@ -44,13 +44,14 @@ from robottelo.datafactory import valid_usernames_list
 from robottelo.helpers import read_data_file
 
 
+@pytest.fixture(scope='module')
+def create_user():
+    """Create a user"""
+    return entities.User().create()
+
+
 class TestUser:
     """Tests for the ``users`` path."""
-
-    @pytest.fixture(scope='module')
-    def create_user(self):
-        """Create an user"""
-        return entities.User().create()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
@@ -406,11 +407,6 @@ class TestUserRole:
     def make_roles(self):
         """Create two roles."""
         return [entities.Role().create() for _ in range(2)]
-
-    @pytest.fixture(scope='module')
-    def create_user(self):
-        """Create an user"""
-        return entities.User().create()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('number_of_roles', range(1, 3))

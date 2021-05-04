@@ -27,8 +27,8 @@ from wait_for import wait_for
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.virt_who_config import VirtWhoConfig
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
-from robottelo.test import settings
 from robottelo.utils.issue_handlers import is_open
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import get_configure_command

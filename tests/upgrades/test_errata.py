@@ -29,6 +29,7 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_9_YUM_ERRATUM
@@ -36,7 +37,6 @@ from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.constants import REPOS
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.test import settings
 from robottelo.upgrade_utility import host_location_update
 from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view

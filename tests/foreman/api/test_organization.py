@@ -1,9 +1,7 @@
 """Unit tests for the ``organizations`` paths.
 
-Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
-tested can be found here:
-http://theforeman.org/api/apidoc/v2/organizations.html
-
+Each class tests a single URL. A full list of URLs to be tested can be found on your satellite:
+http://<satellite-host>/apidoc/v2/organizations.html
 
 :Requirement: Organization
 

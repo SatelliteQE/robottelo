@@ -20,8 +20,8 @@ import pytest
 from broker.broker import VMBroker
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.test import settings
 
 
 @pytest.mark.tier1
