@@ -27,6 +27,12 @@ ensure that Paramiko's dependencies build correctly:
 
 On Fedora, you can install these with the following command:
 
+Recommendation: Create virtual python environment for the following setup.
+Create virtual environment for python 3.x::
+$ python3 -m venv /path/to/new/virtual/environment
+To activate virtual environment:
+$ source /path/to/new/virtual/environment/bin/activate
+
 For python2.x::
 
     dnf install -y gcc git libffi-devel openssl-devel python2-devel \
@@ -39,7 +45,7 @@ For python3.x::
 
 On Red Hat Enterprise Linux 7, you can install these with the following command::
 
-    yum install -y gcc git libffi-devel openssl-devel python-devel \
+    yum install -y gcc git libffi-devel openssl-devel python38-devel \
         redhat-rpm-config libcurl-devel libxml2-devel
 
 For more information, see `Paramiko: Installing
@@ -89,7 +95,7 @@ and any new tests you have written.::
 
 **Notes:**
 
-- CLI tests run easiest if you include the root credentials in robottelo.properties
+- CLI tests run easiest if you include the root credentials in server.yaml
 - UI tests should be configured to run through your SauceLabs account.
 
 Running the Tests
@@ -97,8 +103,14 @@ Running the Tests
 
 Before running any tests, you must create a configuration file::
 
-    $ cp robottelo.properties.sample robottelo.properties
-    $ vi robottelo.properties
+    $ cp broker/path/broker_settings.yaml ./broker_settings.yaml
+    $ vi broker_settings.yaml
+    $ cp robottelo.yaml.sample ./robottelo.yaml
+    $ vi robottelo.yaml
+    $ cp conf/server.yaml.template conf/server.yaml
+    $ vi server.yaml
+    $ cp virtwho.properties.sample ./virtwho.properties
+    $ vi virtwho.properties
 
 That done, you can run tests using ``make``::
 
@@ -131,16 +143,17 @@ and run tests directly.
 Initial Configuration
 ---------------------
 
-To configure Robottelo, create a file named ``robottelo.properties``. You can
-use the ``robottelo.properties.sample`` file as a starting point. Then, edit the
-configuration file so that at least the following attributes are set::
+To configure Robottelo, multiple template yaml files are present to execute different test cases in Robottelo.
+1. server.yaml : Populate server.yaml with ssh credentials and ssh key path. Then, edit the configuration file so that
+at least the following attributes are set::
 
-    [server]
-    hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
-    ssh_key=[PATH TO YOUR SSH KEY]
+    HOSTNAME=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
+    SSH_USERNAME=[SSH USERNAME]
+    SSH_KEY=[PATH TO YOUR SSH KEY]
 
-    [bugzilla]
-    api_key=sdfsdg654g8df4gdf6g4df8g468dfg
+
+
+
 
 Note that you only need to configure the SSH key if you want to run CLI tests.
 There are other settings to configure what web browser to use for UI tests and
