@@ -17,7 +17,9 @@
 :Upstream: No
 """
 import random
+from collections import namedtuple
 
+import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
@@ -28,12 +30,11 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.api.utils import skip_yum_update_during_provisioning
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LATEST_RHEL7_GCE_IMG_UUID
 from robottelo.constants import VALID_GCE_ZONES
 from robottelo.helpers import download_gce_cert
-from robottelo.test import APITestCase
-from robottelo.test import settings
 
 GCE_SETTINGS = dict(
     project_id=settings.gce.project_id,
@@ -44,7 +45,7 @@ GCE_SETTINGS = dict(
 )
 
 
-class TestScenarioPositiveGCEHostComputeResource(APITestCase):
+class TestScenarioPositiveGCEHostComputeResource:
     """The host can be provisioned on GCE CR created in previous version
 
     :steps:
@@ -60,28 +61,30 @@ class TestScenarioPositiveGCEHostComputeResource(APITestCase):
         2. The GCE CR attributes should be manipulated
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.fullhost = None
-        cls.arch = entities.Architecture().search(query={'search': 'name=x86_64'})[0]
-        cls.os = entities.OperatingSystem().search(query={'search': 'family=Redhat and major=7'})[
-            0
-        ]
+    @pytest.fixture(scope='class', autouse=True)
+    def get_gce_cert(self):
         download_gce_cert()
-        cls.domain_name = settings.server.hostname.split('.', 1)[1]
 
-    @classmethod
-    def tearDownClass(cls):
-        if cls.fullhost:
-            hst = entities.Host().search(query={'search': f'name={cls.fullhost}'})
-            if hst:
-                entities.Host(id=hst[0].id).delete()
+    @pytest.fixture(scope='class')
+    def arch_os_domain(self):
+        arch = entities.Architecture().search(query={'search': 'name=x86_64'})[0]
+        os = entities.OperatingSystem().search(query={'search': 'family=Redhat and major=7'})[0]
+
+        domain_name = settings.server.hostname.split('.', 1)[1]
+        return namedtuple('ArchOsDomain', ['arch', 'os', 'domain'])(arch, os, domain_name)
+
+    @pytest.fixture(scope='class')
+    def delete_host(self):
+        if self.fullhost:
+            host = entities.Host().search(query={'search': f'name={self.fullhost}'})
+            if host:
+                entities.Host(id=host[0].id).delete()
 
     @pre_upgrade
-    def test_pre_create_gce_cr_and_host(self):
+    def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org):
         """"""
+        arch, os, domain_name = arch_os_domain
         cr_name = gen_string('alpha')
-        org = entities.Organization().create()
         loc = entities.Location().create()
         with Session('gce_upgrade_tests') as session:
             # Compute Resource Create and Assertions
@@ -93,38 +96,43 @@ class TestScenarioPositiveGCEHostComputeResource(APITestCase):
                     'provider_content.client_email': GCE_SETTINGS['client_email'],
                     'provider_content.certificate_path': GCE_SETTINGS['cert_path'],
                     'provider_content.zone.value': GCE_SETTINGS['zone'],
-                    'organizations.resources.assigned': [org.name],
+                    'organizations.resources.assigned': [function_org.name],
                     'locations.resources.assigned': [loc.name],
                 }
             )
         gce_cr = entities.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
         gce_img = entities.Image(
-            architecture=self.arch,
+            architecture=arch,
             compute_resource=gce_cr,
             name='autoupgrade_gce_img',
-            operatingsystem=self.os,
+            operatingsystem=os,
             username='gceautou',
             uuid=LATEST_RHEL7_GCE_IMG_UUID,
         ).create()
         create_dict(
-            {self.__class__.__name__: {'org': org.name, 'loc': loc.name, 'cr_name': cr_name}}
+            {
+                self.__class__.__name__: {
+                    'org': function_org.name,
+                    'loc': loc.name,
+                    'cr_name': cr_name,
+                }
+            }
         )
         assert gce_cr.name == cr_name
         assert gce_img.name == 'autoupgrade_gce_img'
 
     @post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
-    def test_post_create_gce_cr_and_host(self):
+    def test_post_create_gce_cr_and_host(self, arch_os_domain, delete_host):
         """"""
+        arch, os, domain_name = arch_os_domain
         hostname = gen_string('alpha')
-        self.__class__.fullhost = f'{hostname}.{self.domain_name}'.lower()
+        self.__class__.fullhost = f'{hostname}.{domain_name}'.lower()
         preentities = get_entity_data(self.__class__.__name__)
         gce_cr = entities.GCEComputeResource().search(
-            query={'search': 'name={}'.format(preentities['cr_name'])}
+            query={'search': f'name={preentities["cr_name"]}'}
         )[0]
-        org = entities.Organization().search(
-            query={'search': 'name={}'.format(preentities['org'])}
-        )[0]
-        loc = entities.Location().search(query={'search': 'name={}'.format(preentities['loc'])})[0]
+        org = entities.Organization().search(query={'search': f'name={preentities["org"]}'})[0]
+        loc = entities.Location().search(query={'search': f'name={preentities["loc"]}'})[0]
         compute_attrs = {
             'machine_type': 'g1-small',
             'network': 'default',
@@ -140,11 +148,11 @@ class TestScenarioPositiveGCEHostComputeResource(APITestCase):
                 organization=org,
                 location=loc,
                 root_pass=gen_string('alphanumeric'),
-                architecture=self.arch,
+                architecture=arch,
                 compute_resource=gce_cr,
-                domain=entities.Domain().search(query={'search': f'name={self.domain_name}'})[0],
+                domain=entities.Domain().search(query={'search': f'name={domain_name}'})[0],
                 compute_attributes=compute_attrs,
-                operatingsystem=self.os,
+                operatingsystem=os,
                 provision_method='image',
             ).create()
         finally:
