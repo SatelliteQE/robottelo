@@ -8,7 +8,7 @@
 
 :CaseComponent: Capsule
 
-:Assignee: vsedmik
+:Assignee: akjha
 
 :TestType: Functional
 
