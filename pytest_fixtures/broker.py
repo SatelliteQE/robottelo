@@ -97,7 +97,7 @@ def rhel77_contenthost_class(request):
     """A fixture for use with unittest classes. Provides a Content Host object"""
     with VMBroker(host_classes={'host': ContentHost}, **BROKER_RHEL77) as host:
         request.cls.content_host = host
-        yield
+        yield host
 
 
 @pytest.fixture
