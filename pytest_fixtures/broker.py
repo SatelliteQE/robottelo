@@ -57,6 +57,13 @@ def rhel7_contenthost():
         yield host
 
 
+@pytest.fixture
+def rhel7_contenthost_fips():
+    """A function-level fixture that provides a content host object based on the rhel7_fips nick"""
+    with VMBroker(nick='rhel7_fips', host_classes={'host': ContentHost}) as host:
+        yield host
+
+
 @pytest.fixture(scope="module")
 def rhel7_contenthost_module():
     """A module-level fixture that provides a content host object based on the rhel7 nick"""
