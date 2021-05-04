@@ -36,7 +36,6 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_nailgun_config
 
 
@@ -439,7 +438,7 @@ def test_positive_remove_user():
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_fetch_product_content(module_org):
     """Associate RH & custom product with AK and fetch AK's product content
@@ -491,7 +490,6 @@ def test_positive_fetch_product_content(module_org):
 
 
 @pytest.mark.upgrade
-@skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.stubbed
 def test_positive_add_future_subscription():

@@ -67,7 +67,6 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import download_server_file
 from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
@@ -665,7 +664,7 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
         assert values['properties']['properties_table']['Location'] == new_host_location.name
 
 
-@skip_if_not_set('oscap')
+@pytest.mark.skip_if_not_set('oscap')
 @pytest.mark.tier2
 def test_positive_assign_compliance_policy(session, scap_policy):
     """Ensure host compliance Policy can be assigned.
@@ -1878,6 +1877,7 @@ def gce_hostgroup(
 
 
 @pytest.mark.tier4
+@pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):
@@ -1960,6 +1960,7 @@ def test_positive_gce_provision_end_to_end(
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
+@pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):

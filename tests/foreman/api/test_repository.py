@@ -68,7 +68,6 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 
@@ -1529,7 +1528,7 @@ class TestRepositorySync:
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
     @pytest.mark.tier2
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     def test_positive_sync_rh(self, module_org):
         """Sync RedHat Repository.
 
@@ -1580,7 +1579,7 @@ class TestRepositorySync:
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     def test_positive_sync_rh_app_stream(self):
         """Sync RedHat Appstream Repository.
 
@@ -2080,7 +2079,7 @@ class TestOstreeRepository:
     @pytest.mark.tier2
     @pytest.mark.skip_if_open("BZ:1625783")
     @pytest.mark.run_in_one_thread
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.upgrade
     def test_positive_sync_rh_atomic(self, module_org):
         """Sync RH Atomic Ostree Repository.

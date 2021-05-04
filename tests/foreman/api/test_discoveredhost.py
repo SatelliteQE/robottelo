@@ -32,7 +32,6 @@ from wait_for import wait_for
 from robottelo import ssh
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.utils.issue_handlers import is_open
@@ -369,7 +368,7 @@ class TestLibvirtHostDiscovery:
         """
 
     @pytest.mark.run_in_one_thread
-    @skip_if_not_set('vlan_networking')
+    @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_provision_pxe_host(self, _module_user, discovery_settings, provisioning_env):
         """Provision a pxe-based discovered hosts
@@ -427,7 +426,7 @@ class TestLibvirtHostDiscovery:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    @skip_if_not_set('vlan_networking')
+    @pytest.mark.skip_if_not_set('vlan_networking')
     def test_positive_auto_provision_pxe_host(
         self, _module_user, module_org, module_location, discovery_settings, provisioning_env
     ):
@@ -541,7 +540,7 @@ class TestLibvirtHostDiscovery:
         """
 
     @pytest.mark.run_in_one_thread
-    @skip_if_not_set('vlan_networking')
+    @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_reboot_pxe_host(self, _module_user, discovery_settings, provisioning_env):
         """Rebooting a pxe based discovered host
@@ -589,7 +588,7 @@ class TestLibvirtHostDiscovery:
                         raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
 
     @pytest.mark.run_in_one_thread
-    @skip_if_not_set('vlan_networking')
+    @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_reboot_all_pxe_hosts(
         self, _module_user, discovered_host_cleanup, discovery_settings, provisioning_env
@@ -651,7 +650,7 @@ class TestLibvirtHostDiscovery:
                             )
 
     @pytest.mark.destructive
-    @skip_if_not_set('vlan_networking')
+    @pytest.mark.skip_if_not_set('vlan_networking')
     def test_positive_provision_pxe_host_dhcp_change(self, discovery_settings, provisioning_env):
         """Discovered host is provisioned in dhcp range defined in subnet entity
 

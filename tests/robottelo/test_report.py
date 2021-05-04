@@ -1,12 +1,7 @@
 import datetime
-import glob
-import os
-from pathlib import Path
-from tempfile import NamedTemporaryFile
 
 import pytest
 import xmltodict
-from fauxfactory import gen_string
 
 XUNIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 dummy_test_count = 2
@@ -30,34 +25,9 @@ property_paths = [
 ]
 
 
-@pytest.fixture(scope='function')
-def exec_test(request):
-    xdist_arg = request.param
-    test_dir = str(Path(__file__).parent)
-    report_file = f'report_{gen_string("alphanumeric")}.xml'
-    with NamedTemporaryFile(dir=test_dir, mode='w', prefix='test_', suffix='.py') as f:
-        f.seek(0)
-        f.write(dummy_test)
-        f.flush()
-        pytest.main(
-            [
-                xdist_arg,
-                f'--junit-xml={report_file}',
-                f'{f.name}::test_dummy',
-            ]
-        )
-    yield report_file
-    for logfile in glob.glob('robottelo*.log'):
-        os.remove(logfile)
-    try:
-        os.remove(report_file)
-    except OSError:
-        # the file might not exist if the test fails prematurely
-        pass
-
-
 @pytest.mark.parametrize('property_level', property_paths, ids=['testsuite', 'testcase'])
 @pytest.mark.parametrize('exec_test', ['-n2', '-n0'], ids=['xdist', 'non_xdist'], indirect=True)
+@pytest.mark.parametrize('dummy_test', [dummy_test], ids=['dummy_test'], indirect=True)
 def test_junit_timestamps(exec_test, property_level):
     """Asserts the 'start_time' property nodes existence in the junit-xml test report"""
     with open(exec_test, 'rb') as f:

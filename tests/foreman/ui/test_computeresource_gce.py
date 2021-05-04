@@ -25,12 +25,10 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import GCE_EXTERNAL_IP_DEFAULT
 from robottelo.constants import GCE_MACHINE_TYPE_DEFAULT
 from robottelo.constants import GCE_NETWORK_DEFAULT
-from robottelo.decorators import setting_is_set
 from robottelo.helpers import download_gce_cert
 from robottelo.test import settings
 
-if not setting_is_set('gce'):
-    pytest.skip('skipping tests due to missing gce settings', allow_module_level=True)
+pytestmark = [pytest.mark.skip_if_not_set('gce')]
 
 
 @pytest.fixture(scope='module')
@@ -56,6 +54,7 @@ def module_loc():
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
+@pytest.mark.skip_if_not_set('http_proxy')
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_loc, module_gce_settings
 ):
@@ -77,8 +76,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :CaseImportance: Critical
     """
-    if not setting_is_set('http_proxy'):
-        pytest.skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')

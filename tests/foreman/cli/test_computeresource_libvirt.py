@@ -47,7 +47,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import parametrized
-from robottelo.decorators import skip_if_not_set
 
 pytestmark = pytest.mark.libvirt_content_host
 
@@ -110,7 +109,7 @@ def invalid_update_data():
 
 
 @pytest.fixture(scope="module")
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 def libvirt_url():
     return LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
 

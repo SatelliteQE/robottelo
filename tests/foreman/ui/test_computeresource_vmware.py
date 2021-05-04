@@ -29,10 +29,8 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.datafactory import gen_string
-from robottelo.decorators import setting_is_set
 
-if not setting_is_set('vmware'):
-    pytest.skip('skipping tests due to missing vmware settings', allow_module_level=True)
+pytestmark = [pytest.mark.skip_if_not_set('vmware')]
 
 
 def _get_normalized_size(size):

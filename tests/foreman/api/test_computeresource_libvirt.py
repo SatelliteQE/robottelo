@@ -32,13 +32,14 @@ from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 
-pytestmark = pytest.mark.on_premises_provisioning
+pytestmark = [
+    pytest.mark.on_premises_provisioning,
+    pytest.mark.skip_if_not_set('compute_resources'),
+]
 
 
 @pytest.fixture(scope="module")
-@skip_if_not_set('compute_resources')
 def setup():
     """Set up organization and location for tests."""
     setupEntities = type("", (), {})()

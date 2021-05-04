@@ -31,6 +31,7 @@ from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.cli.factory import virt_who_hypervisor_config
+from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
 from robottelo.constants import DISTRO_RHEL7
@@ -50,8 +51,6 @@ from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
-from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
@@ -685,7 +684,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         assert session.operatingsystem.search(expected_os)[0]['Title'] == expected_os
 
 
-@skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
@@ -1156,7 +1155,7 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_attributes_empty(session, vm_module_streams):
     """
@@ -1182,7 +1181,7 @@ def test_syspurpose_attributes_empty(session, vm_module_streams):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_set_syspurpose_attributes_cli(session, vm_module_streams):
     """
@@ -1211,7 +1210,7 @@ def test_set_syspurpose_attributes_cli(session, vm_module_streams):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
     """
@@ -1246,7 +1245,7 @@ def test_unset_syspurpose_attributes_cli(session, vm_module_streams):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_matched(session, vm_module_streams):
     """
@@ -1272,7 +1271,7 @@ def test_syspurpose_matched(session, vm_module_streams):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_bulk_action(session, vm):
     """
@@ -1303,7 +1302,7 @@ def test_syspurpose_bulk_action(session, vm):
 
 
 @pytest.mark.libvirt_content_host
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 def test_syspurpose_mismatched(session, vm_module_streams):
     """

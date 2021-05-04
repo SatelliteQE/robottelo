@@ -28,7 +28,6 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import skip_if_not_set
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
@@ -189,7 +188,7 @@ def test_positive_task_status(session):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')

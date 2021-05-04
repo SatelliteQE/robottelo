@@ -26,7 +26,6 @@ from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 
@@ -61,7 +60,7 @@ def _create_smart_proxy(request, **kwargs):
     return proxy
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_negative_create_with_url():
     """Proxy creation with random URL
@@ -79,7 +78,7 @@ def test_negative_create_with_url():
     assert 'Unable to communicate' in context.value.response.text
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name(request, name):
@@ -100,7 +99,7 @@ def test_positive_create_with_name(request, name):
         assert proxy.name == name
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.upgrade
 def test_positive_delete():
@@ -122,7 +121,7 @@ def test_positive_delete():
         proxy.read()
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_update_name(request):
     """Proxy name update
@@ -143,7 +142,7 @@ def test_positive_update_name(request):
             assert proxy.name == new_name
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_update_url(request):
     """Proxy url update
@@ -167,7 +166,7 @@ def test_positive_update_url(request):
         assert proxy.url == url
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_update_organization(request):
     """Proxy name update with the home proxy
@@ -188,7 +187,7 @@ def test_positive_update_organization(request):
         assert {org.id for org in proxy.organization} == {org.id for org in organizations}
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_update_location(request):
     """Proxy name update with the home proxy
@@ -209,7 +208,7 @@ def test_positive_update_location(request):
         assert {loc.id for loc in proxy.location} == {loc.id for loc in locations}
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_refresh_features(request):
@@ -233,7 +232,7 @@ def test_positive_refresh_features(request):
         proxy.refresh()
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
 def test_positive_import_puppet_classes(request):
     """Import puppet classes from proxy

@@ -26,10 +26,8 @@ from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.decorators import setting_is_set
 
-if not setting_is_set('ec2'):
-    pytest.skip('skipping tests due to missing ec2 settings', allow_module_level=True)
+pytestmark = [pytest.mark.skip_if_not_set('ec2')]
 
 
 @pytest.fixture(scope='module')
@@ -58,6 +56,7 @@ def module_ec2_settings():
 
 
 @pytest.mark.tier2
+@pytest.mark.skip_if_not_set('http_proxy')
 def test_positive_default_end_to_end_with_custom_profile(
     session, module_org, module_loc, module_ec2_settings
 ):
@@ -81,8 +80,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 
     :CaseImportance: High
     """
-    if not setting_is_set('http_proxy'):
-        pytest.skip('skipping tests due to missing http_proxy settings', allow_module_level=True)
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     cr_description = gen_string('alpha')

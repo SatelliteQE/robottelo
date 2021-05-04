@@ -24,7 +24,6 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_not_set
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
 
@@ -206,7 +205,7 @@ def test_positive_create_with_all_users(session):
         assert org.name in user_values['organizations']['resources']['assigned']
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):
@@ -236,7 +235,7 @@ def test_positive_update_compresource(session):
         assert resource_name in org_values['compute_resources']['resources']['unassigned']
 
 
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_with_manifest_lces(session):
@@ -264,7 +263,7 @@ def test_positive_delete_with_manifest_lces(session):
         assert not session.organization.search(org.name)
 
 
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_download_debug_cert_after_refresh(session):

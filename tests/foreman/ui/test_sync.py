@@ -33,7 +33,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.decorators import skip_if_not_set
 from robottelo.decorators.host import skip_if_os
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELCloudFormsTools
@@ -76,7 +75,7 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, module_org_with_manifest):
@@ -143,7 +142,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_open("BZ:1625783")
 @skip_if_os('RHEL6')
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):

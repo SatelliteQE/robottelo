@@ -43,7 +43,6 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_org_names_list
-from robottelo.decorators import skip_if_not_set
 
 
 @filtered_datapoint
@@ -282,7 +281,7 @@ def test_positive_add_and_remove_hostgroups(module_org):
     assert hostgroups[1]['name'] not in org_info['hostgroups'], "Failed to remove hostgroup by id"
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.tier2
 @pytest.mark.libvirt_content_host
 @pytest.mark.upgrade

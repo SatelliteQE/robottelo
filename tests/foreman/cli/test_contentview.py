@@ -82,7 +82,6 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_names_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
@@ -1089,7 +1088,7 @@ class TestContentView:
             comp_cv = ContentView.info({'id': comp_cv['id']})
             assert comp_cv['components'][0]['id'] == component_ids
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier1
     def test_positive_add_rh_repo_by_id(self, module_manifest_org, module_rhel_content):
