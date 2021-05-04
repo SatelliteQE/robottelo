@@ -56,6 +56,11 @@ def default_location():
     return entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
+@pytest.fixture(scope='function')
+def function_org():
+    return entities.Organization().create()
+
+
 @pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()

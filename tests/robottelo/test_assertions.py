@@ -6,7 +6,6 @@ from requests import HTTPError
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.test import APITestCase
-from robottelo.test import CLITestCase
 
 
 def fake_128_return_code():
@@ -189,68 +188,6 @@ class APIAssertNotRaisesTestCase(APITestCase):
         with pytest.raises(HTTPError):
             with self.assertNotRaises(ZeroDivisionError, expected_value=404):
                 fake_404_response()
-
-
-class CLIAssertNotRaisesTestCase(CLITestCase):
-    """CLI specific tests for :meth:`robottelo.test.TestCase.assertNotRaises`."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Do not inherit and stub :meth:`setUpClass`."""
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        """Do not inherit and stub :meth:`tearDownClass`."""
-        pass
-
-    def setUp(self):
-        """Do not inherit and stub :meth:`setUp`."""
-        pass
-
-    def tearDown(self):
-        """Do not inherit and stub :meth:`tearDown`."""
-        pass
-
-    def _set_worker_logger(self, worker_id):
-        """Do not inherit and stub ``_get_worker_logger`` not to have to deal
-        with worker ids and logger.
-        """
-        pass
-
-    def test_positive_raised_callable_with_status_code(self):
-        """Assert that the test will fail (not marked as errored) in case
-        expected exception with expected cli_return_code code was risen inside
-        :meth:`robottelo.test.TestCase.assertNotRaises` call.
-        """
-        with pytest.raises(AssertionError):
-            self.assertNotRaises(CLIReturnCodeError, fake_128_return_code, expected_value=128)
-
-    def test_positive_raised_context_manager_with_status_code(self):
-        """Assert that the test will fail (not marked as errored) in case
-        expected exception with expected cli_return_code was risen inside
-        :meth:`robottelo.test.TestCase.assertNotRaises` block.
-        """
-        with pytest.raises(AssertionError):
-            with self.assertNotRaises(CLIReturnCodeError, expected_value=128):
-                fake_128_return_code()
-
-    def test_negative_wrong_status_code_callable(self):
-        """Assert that expected exception with unexpected cli_return_code
-        won't be handled and passed through to the test from
-        :meth:`robottelo.test.TestCase.assertNotRaises` call.
-        """
-        with pytest.raises(CLIReturnCodeError):
-            self.assertNotRaises(CLIReturnCodeError, fake_128_return_code, expected_value=129)
-
-    def test_negative_wrong_status_code_context_manager(self):
-        """Assert that expected exception with unexpected cli_return_code
-        status code won't be handled and passed through to the test from
-        :meth:`robottelo.test.TestCase.assertNotRaises` block.
-        """
-        with pytest.raises(CLIReturnCodeError):
-            with self.assertNotRaises(CLIReturnCodeError, expected_value=129):
-                fake_128_return_code()
 
 
 class APIAssertNotRaisesRegexTestCase(APITestCase):
@@ -463,75 +400,3 @@ class APIAssertNotRaisesRegexTestCase(APITestCase):
         with pytest.raises(HTTPError):
             with self.assertNotRaisesRegex(ZeroDivisionError, 'foo', expected_value=404):
                 fake_404_response()
-
-
-class CLIAssertNotRaisesRegexTestCase(CLITestCase):
-    """CLI specific tests for
-    :meth:`robottelo.test.TestCase.assertNotRaisesRegex`.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        """Do not inherit and stub :meth:`setUpClass`."""
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        """Do not inherit and stub :meth:`tearDownClass`."""
-        pass
-
-    def setUp(self):
-        """Do not inherit and stub :meth:`setUp`."""
-        pass
-
-    def tearDown(self):
-        """Do not inherit and stub :meth:`tearDown`."""
-        pass
-
-    def _set_worker_logger(self, worker_id):
-        """Do not inherit and stub ``_get_worker_logger`` not to have to deal
-        with worker ids and logger.
-        """
-        pass
-
-    pattern = '404 Resource Not Found'
-
-    def test_positive_raised_callable_with_status_code(self):
-        """Assert that the test will fail (not marked as errored) in case
-        expected exception was risen inside
-        :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call and
-        cli_return_code altogether with regex pattern match expected ones.
-        """
-        with pytest.raises(AssertionError):
-            self.assertNotRaisesRegex(
-                CLIReturnCodeError, self.pattern, fake_128_return_code, expected_value=128
-            )
-
-    def test_positive_raised_context_manager_with_status_code(self):
-        """Assert that the test will fail (not marked as errored) in case
-        expected exception was risen inside
-        :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block and
-        cli_return_code altogether with regex pattern match expected ones.
-        """
-        with pytest.raises(AssertionError):
-            with self.assertNotRaisesRegex(CLIReturnCodeError, self.pattern, expected_value=128):
-                fake_128_return_code()
-
-    def test_negative_wrong_status_code_callable(self):
-        """Assert that expected exception with valid pattern but unexpected
-        cli_return_code won't be handled and passed through to the test from
-        :meth:`robottelo.test.TestCase.assertNotRaisesRegex` call.
-        """
-        with pytest.raises(CLIReturnCodeError):
-            self.assertNotRaisesRegex(
-                CLIReturnCodeError, self.pattern, fake_128_return_code, expected_value=129
-            )
-
-    def test_negative_wrong_status_code_context_manager(self):
-        """Assert that expected exception with valid pattern but unexpected
-        cli_return_code won't be handled and passed through to the test from
-        :meth:`robottelo.test.TestCase.assertNotRaisesRegex` block.
-        """
-        with pytest.raises(CLIReturnCodeError):
-            with self.assertNotRaisesRegex(CLIReturnCodeError, self.pattern, expected_value=129):
-                fake_128_return_code()
