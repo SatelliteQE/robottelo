@@ -23,16 +23,15 @@ from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
-from upgrade_tests.helpers.constants import FAKE_REPO_ZOO3
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import attach_custom_product_subscription
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.test import APITestCase
-from robottelo.test import settings
 
 
 def create_activation_key_for_client_registration(ak_name, client_os, org, environment, sat_state):
@@ -244,7 +243,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation(APITestCase):
         rhel7_client = dockerize(ak_name=ak.name, distro='rhel7', org_label=self.org.label)
         client_container_id = list(rhel7_client.values())[0]
         product, yum_repo = create_yum_test_repo(
-            product_name=self.prod_name, repo_url=FAKE_REPO_ZOO3, org=self.org
+            product_name=self.prod_name, repo_url=settings.repos.fake_repo_zoo3, org=self.org
         )
         update_product_subscription_in_ak(product=product, yum_repo=yum_repo, ak=ak, org=self.org)
         attach_custom_product_subscription(
@@ -361,7 +360,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation(APITestCase):
         client_container_id = list(rhel7_client.values())[0]
         client_name = list(rhel7_client.keys())[0].lower()
         product, yum_repo = create_yum_test_repo(
-            product_name=self.prod_name, repo_url=FAKE_REPO_ZOO3, org=org
+            product_name=self.prod_name, repo_url=settings.repos.fake_repo_zoo3, org=org
         )
         update_product_subscription_in_ak(product=product, yum_repo=yum_repo, ak=ak, org=org)
         attach_custom_product_subscription(prod_name=product.name, host_name=client_name)
