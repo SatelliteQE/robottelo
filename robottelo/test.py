@@ -12,7 +12,6 @@ import unittest2
 from robottelo import manifests
 from robottelo.config import settings
 from robottelo.constants import INTERFACE_API
-from robottelo.constants import INTERFACE_CLI
 
 LOGGER = logging.getLogger('robottelo')
 
@@ -303,23 +302,3 @@ class APITestCase(TestCase):
     _default_interface = INTERFACE_API
     _default_notraises_value_handler = APINotRaisesValueHandler
     _multiprocess_can_split_ = True
-
-
-class CLITestCase(TestCase):
-    """Test case for CLI tests."""
-
-    _default_interface = INTERFACE_CLI
-    _default_notraises_value_handler = CLINotRaisesValueHandler
-    _multiprocess_can_split_ = True
-
-    def assert_error_msg(self, raise_ctx, *contents):
-        """Checking error msg present on Raise Context Exception
-        Raise assertion error if any of contents are not present on error msg
-
-        :param raise_ctx: Raise Context
-        :param contents: contents which must be present on message
-        """
-        exception = raise_ctx.exception
-        error_msg = getattr(exception, 'stderr', str(exception))
-        for content in contents:
-            self.assertIn(content, error_msg)
