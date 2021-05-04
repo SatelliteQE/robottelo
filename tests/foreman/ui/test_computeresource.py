@@ -22,13 +22,12 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.api.utils import check_create_os_with_title
+from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_LARGE
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.datafactory import gen_string
-from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if_not_set
 
 
 # TODO mark this on the module with a lambda for skip condition
@@ -514,7 +513,7 @@ def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cer
 
 
 @pytest.mark.on_premises_provisioning
-@skip_if_not_set('vlan_networking')
+@pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.mark.tier2
 def test_positive_associate_with_custom_profile(session, rhev_data, module_ca_cert):
     """ "Associate custom default (3-Large) compute profile to RHV compute resource.

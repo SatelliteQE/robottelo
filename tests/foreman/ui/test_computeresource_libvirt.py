@@ -26,12 +26,8 @@ from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.decorators import setting_is_set
 
-if not setting_is_set('compute_resources'):
-    pytest.skip(
-        'skipping tests due to missing compute_resources settings', allow_module_level=True
-    )
+pytestmark = [pytest.mark.skip_if_not_set('compute_resources')]
 
 
 @pytest.fixture(scope='module')

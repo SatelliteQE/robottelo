@@ -71,7 +71,6 @@ from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.vm import VirtualMachine
 from robottelo.vm import VirtualMachineError
 
@@ -622,7 +621,7 @@ def test_positive_unregister(module_ak_with_cv, module_lce, module_org):
         assert client.hostname in [host['name'] for host in hosts]
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.host_create
 @pytest.mark.libvirt_content_host
 @pytest.mark.tier1
@@ -1483,7 +1482,7 @@ def test_positive_provision_baremetal_with_uefi_secureboot():
     """
 
 
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.fixture(scope="module")
 def katello_host_tools_repos(module_ak, module_cv, module_lce, module_org):
     """Create Org, Lifecycle Environment, Content View, Activation key"""
@@ -1516,7 +1515,7 @@ def katello_host_tools_repos(module_ak, module_cv, module_lce, module_org):
     }
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
 def katello_host_tools_client(katello_host_tools_repos):
     client = VirtualMachine(distro=DISTRO_RHEL7)
@@ -1705,7 +1704,7 @@ def test_negative_install_package(katello_host_tools_client):
 
 
 # ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.fixture(scope="module")
 def host_subscription(module_ak, module_cv, module_lce, module_org):
 
@@ -1748,7 +1747,7 @@ def host_subscription(module_ak, module_cv, module_lce, module_org):
     }
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
 def host_subscription_client():
     client = VirtualMachine(distro=DISTRO_RHEL7)
@@ -1763,7 +1762,7 @@ def module_host_subscription(host_subscription):
     yield HostSubscription(host_subscription)
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.run_in_one_thread
 class HostSubscription:
     def __init__(self, host_subscription):

@@ -79,7 +79,6 @@ from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators import skip_if_not_set
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
@@ -306,7 +305,7 @@ def test_positive_add_puppet_module(session, module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_create_composite(session):
@@ -365,7 +364,7 @@ def test_positive_create_composite(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_rh_content(session):
     """Add Red Hat content to a content view
@@ -1046,7 +1045,7 @@ def test_positive_publish_with_custom_content(session, module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_publish_with_rh_content(session):
     """Attempt to publish a content view containing RH content
@@ -1085,7 +1084,7 @@ def test_positive_publish_with_rh_content(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_publish_composite_with_custom_content(session):
@@ -1274,7 +1273,7 @@ def test_positive_promote_with_custom_content(session, module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_promote_with_rh_content(session):
     """Attempt to promote a content view containing RH content
@@ -1314,7 +1313,7 @@ def test_positive_promote_with_rh_content(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_promote_composite_with_custom_content(session):
@@ -2302,7 +2301,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 def test_positive_edit_rh_custom_spin(session):
     """Edit content views for a custom rh spin.  For example, modify a filter
@@ -2362,7 +2361,7 @@ def test_positive_edit_rh_custom_spin(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_promote_with_rh_custom_spin(session):

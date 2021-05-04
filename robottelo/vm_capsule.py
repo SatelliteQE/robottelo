@@ -10,9 +10,9 @@ from robottelo import ssh
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
+from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
-from robottelo.decorators import setting_is_set
 from robottelo.helpers import extract_capsule_satellite_installer_command
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file

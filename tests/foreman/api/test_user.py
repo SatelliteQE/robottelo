@@ -41,7 +41,6 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import read_data_file
 
 
@@ -631,10 +630,10 @@ class TestSshKeyInUser:
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.skip_if_not_set('ldap')
 class TestActiveDirectoryUser:
     """Implements the LDAP auth User Tests with Active Directory"""
 
-    @skip_if_not_set('ldap')
     @pytest.fixture(scope='module')
     def create_ldap(self):
         """Fetch necessary properties from settings and Create ldap auth source"""
@@ -690,7 +689,6 @@ class TestActiveDirectoryUser:
         assert user.login == username
 
     @pytest.mark.tier3
-    @skip_if_not_set('ldap')
     def test_positive_ad_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- AD for user with no roles/rights
 
@@ -714,7 +712,6 @@ class TestActiveDirectoryUser:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @skip_if_not_set('ldap')
     def test_positive_access_entities_from_ldap_org_admin(self, create_ldap):
         """LDAP User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
@@ -772,10 +769,10 @@ class TestActiveDirectoryUser:
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.skip_if_not_set('ipa')
 class TestFreeIPAUser:
     """Implements the LDAP auth User Tests with FreeIPA"""
 
-    @skip_if_not_set('ipa')
     @pytest.fixture(scope='class')
     def create_ldap(self):
         """Fetch necessary properties from settings and Create ldap auth source"""
@@ -814,7 +811,6 @@ class TestFreeIPAUser:
             user.delete()
 
     @pytest.mark.tier3
-    @skip_if_not_set('ipa')
     def test_positive_ipa_basic_no_roles(self, create_ldap):
         """Login with LDAP Auth- FreeIPA for user with no roles/rights
 
@@ -838,7 +834,6 @@ class TestFreeIPAUser:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @skip_if_not_set('ipa')
     def test_positive_access_entities_from_ipa_org_admin(self, create_ldap):
         """LDAP FreeIPA User can access resources within its taxonomies if assigned
         role has permission for same taxonomies

@@ -34,7 +34,6 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase
 from robottelo.test import settings
 
@@ -73,7 +72,7 @@ def golden_ticket_host_setup(request):
 class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_create(self):
         """Upload a manifest.
@@ -88,7 +87,7 @@ class SubscriptionsTestCase(APITestCase):
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_refresh(self):
         """Upload a manifest and refresh it afterwards.
@@ -109,7 +108,7 @@ class SubscriptionsTestCase(APITestCase):
         finally:
             sub.delete_manifest(data={'organization_id': org.id})
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_create_after_refresh(self):
         """Upload a manifest,refresh it and upload a new manifest to an other
@@ -138,7 +137,7 @@ class SubscriptionsTestCase(APITestCase):
         finally:
             org_sub.delete_manifest(data={'organization_id': org.id})
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
@@ -157,7 +156,7 @@ class SubscriptionsTestCase(APITestCase):
         sub.delete_manifest(data={'organization_id': org.id})
         assert len(sub.search()) == 0
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier2
     def test_negative_upload(self):
         """Upload the same manifest to two organizations.

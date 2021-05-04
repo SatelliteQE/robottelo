@@ -27,10 +27,8 @@ from robottelo.constants import AZURERM_PLATFORM_DEFAULT
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
 from robottelo.constants import COMPUTE_PROFILE_SMALL
-from robottelo.decorators import setting_is_set
 
-if not setting_is_set('azurerm'):
-    pytest.skip('skipping tests due to missing azurerm settings', allow_module_level=True)
+pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 
 
 @pytest.fixture(scope='module')

@@ -51,3 +51,15 @@ settings.configure_nailgun()
 settings.configure_airgun()
 settings.configure_logging()
 settings.configure_third_party_logging()
+
+
+def setting_is_set(option):
+    """Return either ``True`` or ``False`` if a Robottelo section setting is
+    set or not respectively.
+    """
+    if not settings.configured:
+        settings.configure()
+    # Example: `settings.clients`
+    if getattr(settings, option).validate():
+        return False
+    return True

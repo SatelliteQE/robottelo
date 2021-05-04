@@ -41,11 +41,12 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.decorators import skip_if_not_set
 from robottelo.hosts import ContentHost
 
 
-@skip_if_not_set('clients', 'fake_manifest')
+pytestmark = [pytest.mark.skip_if_not_set('clients', 'fake_manifest')]
+
+
 @pytest.fixture(scope='module')
 def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
     """Create Org, Lifecycle Environment, Content View, Activation key"""
@@ -78,7 +79,6 @@ def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
     }
 
 
-@skip_if_not_set('clients')
 @pytest.fixture
 def katello_agent_client(katello_agent_repos, rhel7_contenthost):
     rhel7_contenthost.install_katello_ca()
