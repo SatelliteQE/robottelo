@@ -24,9 +24,9 @@ from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.cleanup import cleanup_of_provisioned_server
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.test import settings
 from robottelo.vm import VirtualMachine
 
 

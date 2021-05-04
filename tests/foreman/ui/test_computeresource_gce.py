@@ -20,13 +20,13 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import GCE_EXTERNAL_IP_DEFAULT
 from robottelo.constants import GCE_MACHINE_TYPE_DEFAULT
 from robottelo.constants import GCE_NETWORK_DEFAULT
 from robottelo.helpers import download_gce_cert
-from robottelo.test import settings
 
 
 @pytest.mark.tier2

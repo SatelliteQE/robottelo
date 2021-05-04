@@ -27,10 +27,10 @@ from upgrade_tests.helpers.scenarios import rpm2
 
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
-from robottelo.test import settings
 from robottelo.upgrade_utility import create_repo
 
 

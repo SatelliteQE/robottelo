@@ -14,6 +14,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
@@ -35,7 +36,6 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.helpers import download_gce_cert
-from robottelo.test import settings
 
 
 # Global Satellite Entities

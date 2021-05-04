@@ -30,9 +30,9 @@ from wait_for import wait_for
 
 from robottelo.api.utils import attach_custom_product_subscription
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import REPOS
-from robottelo.test import settings
 from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd

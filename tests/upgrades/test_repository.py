@@ -34,7 +34,7 @@ from upgrade_tests.helpers.scenarios import rpm2
 from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import promote
-from robottelo.test import settings
+from robottelo.config import settings
 from robottelo.upgrade_utility import create_repo
 from robottelo.upgrade_utility import host_location_update
 from robottelo.upgrade_utility import install_or_update_package

@@ -90,7 +90,10 @@ import logging
 import os
 
 import pytest
+from automation_tools.satellite6.hammer import set_hammer_config
+from fabric.api import env
 
+from robottelo.config import settings
 from robottelo.decorators.func_locker import lock_function
 
 LOGGER = logging.getLogger('robottelo')
@@ -225,6 +228,15 @@ def pre_upgrade_data(request):
     if len(data) == 1:
         data = data[0]
     return data
+
+
+def pytest_sessionstart(session):
+    """Do some setup for automation-tools and satellite6-upgrade"""
+    # Fabric Config setup
+    env.host_string = settings.server.hostname
+    env.user = settings.server.ssh_username
+    # Hammer Config Setup
+    set_hammer_config(user=settings.server.admin_username, password=settings.server.admin_password)
 
 
 def pytest_addoption(parser):
