@@ -189,9 +189,8 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
     :CaseLevel: System
     """
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
-        vm_clients = [hosts[0], hosts[1]]
-        host_names = [client.hostname for client in vm_clients]
-        for client in vm_clients:
+        host_names = [client.hostname for client in hosts]
+        for client in hosts:
             _setup_vm_client_host(client, module_org.label)
             update_vm_host_location(client, location_id=module_loc.id)
         with session:
