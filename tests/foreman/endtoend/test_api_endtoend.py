@@ -232,6 +232,20 @@ API_PATHS = {
         '/katello/api/content_credentials/:id/content',
         '/katello/api/content_credentials/:id/content',
     ),
+    'content_export_incrementals': (
+        '/katello/api/content_export_incrementals/version',
+        '/katello/api/content_export_incrementals/library',
+    ),
+    'content_exports': (
+        '/katello/api/content_exports',
+        '/katello/api/content_exports/api_status',
+        '/katello/api/content_exports/version',
+        '/katello/api/content_exports/library',
+    ),
+    'content_imports': (
+        '/katello/api/content_imports/version',
+        '/katello/api/content_imports/library',
+    ),
     'content_uploads': (
         '/katello/api/repositories/:repository_id/content_uploads',
         '/katello/api/repositories/:repository_id/content_uploads/:id',
@@ -287,8 +301,6 @@ API_PATHS = {
         '/katello/api/content_view_versions/:id/export',
         '/katello/api/content_view_versions/:id/promote',
         '/katello/api/content_view_versions/:id/republish_repositories',
-        '/katello/api/content_view_versions/export_histories',
-        '/katello/api/content_view_versions/export_api_status',
         '/katello/api/content_view_versions/import',
         '/katello/api/content_view_versions/incremental_update',
     ),
@@ -529,6 +541,7 @@ API_PATHS = {
         '/api/job_invocations/:id/hosts/:host_id',
         '/api/job_invocations/:id/hosts/:host_id/raw',
         '/api/job_invocations/:id/rerun',
+        '/api/job_invocations/:id/outputs',
     ),
     'job_templates': (
         '/api/job_templates',
@@ -674,6 +687,7 @@ API_PATHS = {
         '/api/provisioning_templates/build_pxe_default',
         '/api/provisioning_templates/import',
     ),
+    'puppet_hosts': ('/api/hosts/:id/puppetrun',),
     'ptables': (
         '/api/ptables',
         '/api/ptables',
@@ -802,6 +816,7 @@ API_PATHS = {
         '/api/users/:user_id/ssh_keys/:id',
         '/api/users/:user_id/ssh_keys/:id',
     ),
+    'statistics': ('/api/statistics',),
     'subnet_disks': ('/bootdisk/api', '/bootdisk/api/subnets/:subnet_id'),
     'subnets': (
         '/api/subnets',
@@ -864,6 +879,7 @@ API_PATHS = {
     ),
     'template_invocations': ('/api/job_invocations/:job_invocation_id/template_invocations',),
     'template_kinds': ('/api/template_kinds',),
+    'trends': ('/api/trends', '/api/trends/:id', '/api/trends', '/api/trends/:id'),
     'upstream_subscriptions': (
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
