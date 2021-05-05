@@ -114,16 +114,16 @@ def test_positive_search_in_multiple_repos(session, module_org, module_yum_repo,
     with session:
         session.organization.select(org_name=module_org.name)
         assert session.package.search('name = tiger')[0]['RPM'].startswith('tiger')
-        assert session.package.search('name = Lizard')[0]['RPM'].startswith('Lizard')
+        assert session.package.search('name = ant')[0]['RPM'].startswith('ant')
         # First repository
         assert session.package.search('name = tiger', repository=module_yum_repo.name)[0][
             'RPM'
         ].startswith('tiger')
-        assert not session.package.search('name = Lizard', repository=module_yum_repo.name)
+        assert not session.package.search('name = ant', repository=module_yum_repo.name)
         # Second repository
-        assert session.package.search('name = Lizard', repository=module_yum_repo2.name)[0][
+        assert session.package.search('name = ant', repository=module_yum_repo2.name)[0][
             'RPM'
-        ].startswith('Lizard')
+        ].startswith('ant')
         assert not session.package.search('name = tiger', repository=module_yum_repo2.name)
 
 
