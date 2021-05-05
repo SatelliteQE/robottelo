@@ -250,10 +250,12 @@ class SubscriptionsTestCase(APITestCase):
 
         :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
 
-        :expectedresults: All end to end tests pass and clients have access
+        :BZ: 1890643, 1890661, 1890664
+
+        :expectedresults: All tests pass and clients have access
         to repos without needing to add subscriptions
 
-        :CaseImportance: Medium
+        :CaseImportance: Critical
         """
         self.content_host.install_katello_ca()
         self.content_host.register_contenthost(self.org_setup.label, self.ak_setup.name)
@@ -268,14 +270,14 @@ class SubscriptionsTestCase(APITestCase):
             self.ak_setup.add_subscriptions(
                 data={'quantity': 1, 'subscription_id': subscription.id}
             )
-        assert "Simple Content Access" in ak_context.value.response.text
+        assert 'Simple Content Access' in ak_context.value.response.text
         # Verify that you cannot attach a subscription to an Host in SCA Mode
         host_id = entities.Host().search(query={'search': self.content_host.hostname})[0].id
         with pytest.raises(HTTPError) as host_context:
             entities.HostSubscription(host=host_id).add_subscriptions(
                 data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
             )
-        assert "Simple Content Access" in host_context.value.response.text
+        assert 'Simple Content Access' in host_context.value.response.text
         # Create a content view with repos and check to see that the client has access
         content_view = entities.ContentView(organization=self.org_setup).create()
         content_view.repository = [self.rh_repo_setup, self.custom_repo_setup]
@@ -287,7 +289,10 @@ class SubscriptionsTestCase(APITestCase):
         self.content_host.run('subscription-manager repos --enable *')
         repos = self.content_host.run('subscription-manager refresh && yum repolist')
         assert content_view.repository[1].name in repos.stdout
-        assert "Red Hat Satellite Tools" in repos.stdout
+        assert 'Red Hat Satellite Tools' in repos.stdout
+        # install package and verify it succeeds
+        package = self.content_host.run('yum install -y python-pulp-manifest')
+        assert 'Complete!' in package.stdout
 
 
 @pytest.mark.tier2
