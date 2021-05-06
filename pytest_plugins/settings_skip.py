@@ -7,7 +7,7 @@ from robottelo.config import settings
 def pytest_configure(config):
     """Register markers related to testimony tokens"""
     config.addinivalue_line(
-        "markers",
+        'markers',
         'skip_if_not_set: List settings sections that must be set for the test to run. '
         'If settings are missing, the test is skipped in setup.',
     )
