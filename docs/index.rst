@@ -33,14 +33,10 @@ $ python3 -m venv /path/to/new/virtual/environment
 To activate virtual environment:
 $ source /path/to/new/virtual/environment/bin/activate
 
-For python2.x::
-
-    dnf install -y gcc git libffi-devel openssl-devel python2-devel \
-        redhat-rpm-config libcurl-devel libxml2-devel
 
 For python3.x::
 
-    dnf install -y gcc git libffi-devel openssl-devel python3-devel \
+    dnf install -y gcc git libffi-devel openssl-devel python38-devel \
         redhat-rpm-config libcurl-devel libxml2-devel
 
 On Red Hat Enterprise Linux 7, you can install these with the following command::
@@ -58,7 +54,6 @@ Get the source code and install dependencies::
     $ pip install -r requirements.txt
 
 **Notes:**
-    * For python 2.7, run ``pip install configparser`` for Satellite 6.2
     * To determine ssl library, check http://pycurl.io/docs/latest/install.html#ssl
 
 That's it! You can now go ahead and start testing The Foreman. However, there
@@ -147,9 +142,9 @@ To configure Robottelo, multiple template yaml files are present to execute diff
 1. server.yaml : Populate server.yaml with ssh credentials and ssh key path. Then, edit the configuration file so that
 at least the following attributes are set::
 
-    HOSTNAME=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
+    HOSTNAMES=[LIST OF FULLY QUALIFIED DOMAIN NAMES OR IP ADDRESSES]
     SSH_USERNAME=[SSH USERNAME]
-    SSH_KEY=[PATH TO YOUR SSH KEY]
+    SSH_PASSWORD=[SSH PASSWORD] / SSH_KEY=[PATH TO YOUR SSH KEY] / SSH_KEY_STRING = [SSH KEY AS STRING]
 
 
 

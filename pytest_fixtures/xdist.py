@@ -3,7 +3,7 @@ import logging
 import random
 
 import pytest
-from broker.broker import VMBroker
+from broker import VMBroker
 
 import robottelo
 from robottelo.config import settings

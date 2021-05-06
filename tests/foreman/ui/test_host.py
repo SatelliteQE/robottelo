@@ -1878,7 +1878,6 @@ def gce_hostgroup(
 
 
 @pytest.mark.tier4
-@skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):
@@ -1890,7 +1889,7 @@ def test_positive_gce_provision_end_to_end(
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
+    name = f'test{gen_string("alpha").lower()}'
     hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
@@ -1928,7 +1927,7 @@ def test_positive_gce_provision_end_to_end(
             # 1.1 UI based Assertions
             host_info = session.host.get_details(hostname)
             assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['properties']['properties_table']['Build'] == 'Installed'
+            assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
             # 1.2 GCE Backend Assertions
             gceapi_vm = gce_client.get_vm(gceapi_vmname)
             assert gceapi_vm.is_running
@@ -1961,7 +1960,6 @@ def test_positive_gce_provision_end_to_end(
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-@skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
     session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
 ):
@@ -1973,7 +1971,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
     :CaseLevel: System
     """
-    name = gen_string('alpha').lower()
+    name = f'test{gen_string("alpha").lower()}'
     hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     storage = [{'size': 20}]
@@ -2001,7 +1999,10 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             # 1.1 UI based Assertions
             host_info = session.host.get_details(hostname)
             assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['properties']['properties_table']['Build'] == 'Pending installation'
+            assert (
+                host_info['properties']['properties_table']['Build']
+                == 'Pending installation clear'
+            )
             # 1.2 GCE Backend Assertions
             gceapi_vm = gce_client.get_vm(gceapi_vmname)
             assert gceapi_vm

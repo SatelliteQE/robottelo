@@ -20,22 +20,22 @@ import datetime
 import time
 
 import pytest
+from broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DISTRO_DEFAULT
 from robottelo.datafactory import gen_string
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.vm import VirtualMachine
+from robottelo.hosts import ContentHost
 
 
 def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
     """Setup a VM host for remote execution.
 
-    :param VirtualMachine vm_client: where vm_client is VirtualMachine instance.
+    :param VMBroker vm_client: where vm_client is VMBroker instance.
     :param str org_label: The organization label.
     :param int subnet: (Optional) Nailgun subnet entity id, to be used by the vm_client host.
     :param bool by_ip: Whether remote execution will use ip or host name to access server.
@@ -72,12 +72,11 @@ def module_loc(module_org):
 
 
 @pytest.fixture
-def module_vm_client_by_ip(module_org, module_loc):
+def module_vm_client_by_ip(rhel7_host, module_org, module_loc):
     """Setup a VM client to be used in remote execution by ip"""
-    with VirtualMachine(distro=DISTRO_DEFAULT) as vm_client:
-        _setup_vm_client_host(vm_client, module_org.label)
-        update_vm_host_location(vm_client, location_id=module_loc.id)
-        yield vm_client
+    _setup_vm_client_host(rhel7_host.host, module_org.label)
+    update_vm_host_location(rhel7_host.host, location_id=module_loc.id)
+    yield rhel7_host.host
 
 
 @pytest.mark.libvirt_content_host
@@ -189,12 +188,9 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=DISTRO_DEFAULT) as client_1, VirtualMachine(
-        distro=DISTRO_DEFAULT
-    ) as client_2:
-        vm_clients = [client_1, client_2]
-        host_names = [client.hostname for client in vm_clients]
-        for client in vm_clients:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        host_names = [client.hostname for client in hosts]
+        for client in hosts:
             _setup_vm_client_host(client, module_org.label)
             update_vm_host_location(client, location_id=module_loc.id)
         with session:

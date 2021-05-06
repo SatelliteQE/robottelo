@@ -57,6 +57,13 @@ def rhel7_contenthost():
         yield host
 
 
+@pytest.fixture
+def rhel7_contenthost_fips():
+    """A function-level fixture that provides a content host object based on the rhel7_fips nick"""
+    with VMBroker(nick='rhel7_fips', host_classes={'host': ContentHost}) as host:
+        yield host
+
+
 @pytest.fixture(scope="module")
 def rhel7_contenthost_module():
     """A module-level fixture that provides a content host object based on the rhel7 nick"""
@@ -68,6 +75,13 @@ def rhel7_contenthost_module():
 def rhel8_contenthost():
     """A fixture that provides a content host object based on the rhel8 nick"""
     with VMBroker(nick='rhel8', host_classes={'host': ContentHost}) as host:
+        yield host
+
+
+@pytest.fixture
+def rhel6_contenthost():
+    """A function-level fixture that provides a content host object based on the rhel6 nick"""
+    with VMBroker(nick='rhel6', host_classes={'host': ContentHost}) as host:
         yield host
 
 
@@ -90,7 +104,7 @@ def rhel77_contenthost_class(request):
     """A fixture for use with unittest classes. Provides a Content Host object"""
     with VMBroker(host_classes={'host': ContentHost}, **BROKER_RHEL77) as host:
         request.cls.content_host = host
-        yield
+        yield host
 
 
 @pytest.fixture
@@ -109,3 +123,22 @@ def capsule_latest():
         host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow
     ) as cap:
         yield cap
+
+
+@pytest.fixture(scope='module')
+def content_hosts():
+    """A module-level fixture that provides two content hosts object based on the rhel7 nick"""
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        hosts[0].set_infrastructure_type('physical')
+        yield hosts
+
+
+@pytest.fixture(scope='module')
+def registered_hosts(organization_ak_setup, content_hosts):
+    """Fixture that registers content hosts to Satellite."""
+    org, ak = organization_ak_setup
+    for vm in content_hosts:
+        vm.install_katello_ca()
+        vm.register_contenthost(org.label, ak.name)
+        assert vm.subscribed
+    return content_hosts

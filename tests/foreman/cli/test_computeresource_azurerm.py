@@ -310,7 +310,7 @@ class TestAzureRMFinishTemplateProvisioning:
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
-        request.cls.hostname = gen_string('alpha')
+        request.cls.hostname = f'test_{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
@@ -433,7 +433,7 @@ class TestAzureRMUserDataProvisioning:
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
-        request.cls.hostname = gen_string('alpha')
+        request.cls.hostname = f'test_{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
@@ -557,7 +557,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
         request.cls.region = settings.azurerm.azure_region
-        request.cls.hostname = gen_string('alpha')
+        request.cls.hostname = f'test_{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (

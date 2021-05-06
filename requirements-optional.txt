@@ -3,7 +3,7 @@ codecov==2.1.11
 flake8==3.9.1
 pytest-cov==2.11.1
 redis==3.5.3
-tox==3.23.0
+tox==3.23.1
 pre-commit==2.12.1
 
 

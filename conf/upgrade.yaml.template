@@ -1,23 +1,24 @@
 UPGRADE:
   # Base version of the Satellite, Capsule.
-  # FROM_VERSION: "6.8"
+  FROM_VERSION: "6.8"
   # Target version of the Satellite, Capsule.
-  # TO_VERSION: "6.9"
+  TO_VERSION: "6.9"
   # Satellite, Capsule hosts RHEL operating system version.
-  # OS: "rhel7"
+  OS: "rhel7"
   # Capsule's activation key will only be available when we spawn the VM using upgrade template.
-  # CAPSULE_AK:
-  #  RHEL6:
-  #  RHEL7:
-  #  RHEL8:
+  CAPSULE_AK:
+    RHEL6:
+    RHEL7:
+    RHEL8:
   # Custom capsule activation key
-  # CUSTOM_CAPSULE_AK:
-  #  RHEL6:
-  #  RHEL7:
-  #  RHEL8:
+  CUSTOM_CAPSULE_AK:
+    RHEL6:
+    RHEL7:
+    RHEL8:
   # capsule hostname
-  # CAPSULE_HOSTNAME:
+  CAPSULE_HOSTNAME:
   # The docker host for container spawn
-  # DOCKER_VM:
+  DOCKER_VM:
   # The upgrade VLAN vm_domain
-  # VM_DOMAIN:
+  VM_DOMAIN:
+  DISTRIBUTION:
