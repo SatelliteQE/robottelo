@@ -155,6 +155,10 @@ def test_positive_provision_rhev_with_host_group(rhev, provisioning, tear_down):
 
     :expectedresults: The host should be provisioned with host group
 
+    :BZ: 1777992
+
+    :customerscenario: true
+
     :CaseAutomation: Automated
     """
     name = gen_string('alpha')
