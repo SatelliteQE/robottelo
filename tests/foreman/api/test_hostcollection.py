@@ -221,7 +221,7 @@ def test_positive_add_hosts(module_org, fake_hosts):
     :BZ: 1325989
     """
     host_collection = entities.HostCollection(organization=module_org).create()
-    host_ids = {str(host.id) for host in fake_hosts}
+    host_ids = [str(host.id) for host in fake_hosts]
     host_collection.host_ids = host_ids
     host_collection = host_collection.update(['host_ids'])
     assert len(host_collection.host) == len(fake_hosts)
