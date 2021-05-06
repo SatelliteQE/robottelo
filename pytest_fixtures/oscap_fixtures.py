@@ -61,6 +61,6 @@ def tailoring_file(module_org, module_location, tailoring_file_path):
     ).create()
     return {
         "name": tailoring_file_name,
-        "tailoring_file_id": tf_info['id'],
+        "tailoring_file_id": tf_info.id,
         "tailoring_file_profile_id": tf_info.tailoring_file_profiles[0]['id'],
     }
