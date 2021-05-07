@@ -27,7 +27,8 @@ ensure that Paramiko's dependencies build correctly:
 
 On Fedora, you can install these with the following command:
 
-Recommendation: Create virtual python environment for the following setup.
+Recommendation: Create a virtual python environment for the following setup.
++ Create directory where you want to install Robottelo
 Create virtual environment for python 3.x::
 $ python3 -m venv /path/to/new/virtual/environment
 To activate virtual environment:
