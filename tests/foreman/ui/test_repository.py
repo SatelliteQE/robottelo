@@ -1,4 +1,4 @@
-"""Test class for Repository UI
+"""Test module for Repository UI
 
 :Requirement: Repository
 
@@ -324,15 +324,22 @@ def test_positive_discover_repo_via_new_product(session, module_org):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_discover_module_stream_repo_via_existing_product(session, module_org):
-    """Create repository with having module streams via repo-discovery under existing product
+    """Create repository with module streams via repo-discovery under an existing product.
 
     :id: e7b9e2c4-7ecd-4cde-8f74-961fbac8919c
-
-    :expectedresults: Repository is discovered and created
 
     :CaseLevel: Integration
 
     :BZ: 1676642
+
+    :Steps:
+        1. Create a product.
+        2. From Content > Products, click on the Repo Discovery button.
+        3. Enter a url containing a yum repository with module streams, e.g.,
+           CUSTOM_MODULE_STREAM_REPO_1.
+        4. Click the Discover button.
+
+    :expectedresults: Repositories are discovered.
     """
 
 
@@ -877,3 +884,51 @@ def test_positive_recommended_repos(session, module_org):
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
         assert REPOSET['rhae2'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
+
+
+@pytest.mark.stubbed
+def test_positive_upload_resigned_rpm():
+    """Re-sign and re-upload an rpm that already exists in a repository.
+
+    :id: 75416e72-701a-471c-a0ba-846cf881a1e4
+
+    :expectedresults: New rpm is displayed, old rpm is not displayed in web UI.
+
+    :BZ: 1883722
+
+    :customerscenario: true
+
+    :Steps:
+        1. Buld or prepare an unsigned rpm.
+        2. Create a gpg key.
+        3. Use the gpg key to sign the rpm with sha1.
+        4. Create an rpm repository in the Satellite.
+        5. Upload the sha1 signed rpm to the repository.
+        6. Use the gpg key to re-sign the rpm with sha2 again.
+        7. Upload the sha2 signed rpm to the repository.
+
+    :expectedresults: New rpm is displayed, old rpm is not displayed in web UI.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+def test_positive_remove_srpm_change_checksum():
+    """Re-sync a repository that has had an srpm removed and repodata checksum type changed from
+    sha1 to sha256.
+
+    :id: 8bd50cd6-34ac-452d-8654-2792a2613921
+
+    :customerscenario: true
+
+    :BZ: 1850914
+
+    :Steps:
+        1. Sync a repository that contains rpms and srpms and uses sha1 repodata.
+        2. Re-sync the repository after an srpm has been removed and its repodata regenerated
+           using sha256.
+
+    :expectedresults: Repository re-syncs successfully, and the removed srpm is no longer visible
+        in the UI.
+    """
+    pass

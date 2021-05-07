@@ -316,3 +316,51 @@ def test_negative_delete_by_id():
     entity_id = invalid_id_list()[0]
     with pytest.raises(CLIReturnCodeError):
         HostGroup.delete({'id': entity_id})
+
+
+@pytest.mark.stubbed
+def test_positive_nested_hostgroup_info():
+    """`hammer hostgroup info` for a nested host group shows the assigned puppet classes.
+
+    :id: b49bad08-d93c-4b30-b7f0-504dbf4d9ba2
+
+    :BZ: 1859712
+
+    :customerscenario: true
+
+    :Steps:
+
+        1. Create parent hostgroup and nested hostgroup, with puppet environment, classes, and
+           parameters on each.
+        2. Use hammer to get the parent hostgroup info, and verify that its puppet environment,
+           classes, and parameters are visible.
+           # hammer hostgroup info --id 1
+           Id:                    1
+           Name:                  parent_hostgroup
+           [...]
+           Puppet Environment:    common
+           [...]
+           Puppetclasses:
+           .  my_class_1
+           .  my_class_2
+           Parameters:
+           [...]
+        3. Use hammer to get the nested hostgroup info, and verify that the puppet environment,
+           classes, and parameters are visible.
+           # hammer hostgroup info --id 2
+           Id:                    2
+           Name:                  nested_hostgroup
+           [...]
+           Parent:                parent_hostgroup
+           [...]
+           Puppetclasses:
+           .  my_class_1
+           .  my_class_2
+           .  my_class_3
+           [...]
+
+    expectedresults: Puppet environment, classes, and parameters visible for both parent and
+        nested hostgroups.
+
+    """
+    pass
