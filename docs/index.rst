@@ -147,9 +147,6 @@ at least the following attributes are set::
     SSH_PASSWORD=[SSH PASSWORD] / SSH_KEY=[PATH TO YOUR SSH KEY] / SSH_KEY_STRING = [SSH KEY AS STRING]
 
 
-
-
-
 Note that you only need to configure the SSH key if you want to run CLI tests.
 There are other settings to configure what web browser to use for UI tests and
 even configuration to run the automation using `SauceLabs`_. For more
