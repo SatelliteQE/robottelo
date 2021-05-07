@@ -254,7 +254,7 @@ class SubscriptionsTestCase(APITestCase):
         :BZ: 1890643, 1890661, 1890664
 
         :expectedresults: All tests pass and clients have access
-        to repos without needing to add subscriptions
+        to repos withojsonut needing to add subscriptions
 
         :CaseImportance: Critical
         """
@@ -284,6 +284,7 @@ class SubscriptionsTestCase(APITestCase):
         content_view.repository = [self.rh_repo_setup, self.custom_repo_setup]
         content_view.update(['repository'])
         content_view.publish()
+        assert content_view.repository.__len__() == 2
         host = entities.Host().search(query={'search': self.content_host.hostname})[0]
         host.content_facet_attributes = {'content_view_id': content_view.id}
         host.update(['content_facet_attributes'])
@@ -291,9 +292,9 @@ class SubscriptionsTestCase(APITestCase):
         repos = self.content_host.run('subscription-manager refresh && yum repolist')
         assert content_view.repository[1].name in repos.stdout
         assert 'Red Hat Satellite Tools' in repos.stdout
-        # install package and verify it succeeds
+        # install package and verify it succeeds or is already installed
         package = self.content_host.run('yum install -y python-pulp-manifest')
-        assert 'Complete!' in package.stdout
+        assert 'Complete!' or 'already installed' in package.stoudt
 
 
 @pytest.mark.tier2
