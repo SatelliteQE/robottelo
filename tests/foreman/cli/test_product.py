@@ -234,6 +234,8 @@ def test_positive_assign_http_proxy_to_products(module_org):
     :expectedresults: HTTP Proxy is assigned to all repos present
         in Products and sync operation performed successfully.
 
+    :Assignee: jpathan
+
     :CaseImportance: Critical
     """
     # create HTTP proxies

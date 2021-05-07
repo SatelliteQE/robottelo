@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: tpapaioa
+:Assignee: jpathan
 
 :TestType: Functional
 

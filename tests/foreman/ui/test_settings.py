@@ -131,6 +131,8 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
 
     :BZ: 1677282
 
+    :Assignee: jpathan
+
     :CaseImportance: Medium
 
     """

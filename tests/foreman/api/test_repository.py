@@ -141,6 +141,8 @@ class TestRepository:
         :expectedresults: HTTP Proxy can be assigned to repository and sync operation performed
             successfully.
 
+        :Assignee: jpathan
+
         :CaseImportance: Critical
         """
         repo_options = {
