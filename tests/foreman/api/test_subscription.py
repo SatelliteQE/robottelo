@@ -294,7 +294,7 @@ class SubscriptionsTestCase(APITestCase):
         assert 'Red Hat Satellite Tools' in repos.stdout
         # install package and verify it succeeds or is already installed
         package = self.content_host.run('yum install -y python-pulp-manifest')
-        assert 'Complete!' or 'already installed' in package.stoudt
+        assert 'Complete!' in package.stoudt or 'already installed' in package.stoudt
 
 
 @pytest.mark.tier2
