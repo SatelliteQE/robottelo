@@ -76,14 +76,14 @@ class TestOscapPolicy:
         assert policy.deploy_by == 'puppet'
         assert policy.name == name
         assert policy.description == description
-        assert policy.scap_content_id == scap_content["scap_id"]
-        assert policy.scap_content_profile_id == scap_content["scap_profile_id"]
-        assert policy.tailoring_file_id == tailoring_file["tailoring_file_id"]
+        assert str(policy.scap_content_id) == str(scap_content["scap_id"])
+        assert str(policy.scap_content_profile_id) == str(scap_content["scap_profile_id"])
+        assert str(policy.tailoring_file_id) == str(tailoring_file["tailoring_file_id"])
         assert policy.period == "monthly"
-        assert policy.day_of_month == 5
-        assert policy.hostgroup[0].id == hostgroup.id
-        assert policy.organization[0].id == module_org.id
-        assert policy.location[0].id == module_location.id
+        assert int(policy.day_of_month) == 5
+        assert str(policy.hostgroup[0].id) == str(hostgroup.id)
+        assert str(policy.organization[0].id) == str(module_org.id)
+        assert str(policy.location[0].id) == str(module_location.id)
         # Update oscap policy with new name
         policy = entities.CompliancePolicies(id=policy.id, name=new_name).update()
         assert policy.name == new_name
