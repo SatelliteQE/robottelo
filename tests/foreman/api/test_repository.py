@@ -1756,8 +1756,8 @@ class TestDockerRepository:
         :CaseLevel: Integration
         """
         msg = (
-            f'DKR1007: Could not fetch repository {repo_options["docker_upstream_name"]} from'
-            f' registry {repo_options["url"]} - Unauthorized or Not Found'
+            rf'DKR1007: Could not fetch repository {repo_options["docker_upstream_name"]} from'
+            rf' registry {repo_options["url"]}.*Unauthorized or Not Found'
         )
         with pytest.raises(TaskFailedError, match=msg):
             repo.sync()
