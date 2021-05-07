@@ -254,7 +254,7 @@ class SubscriptionsTestCase(APITestCase):
         :BZ: 1890643, 1890661, 1890664
 
         :expectedresults: All tests pass and clients have access
-        to repos withojsonut needing to add subscriptions
+            to repos without needing to add subscriptions
 
         :CaseImportance: Critical
         """
