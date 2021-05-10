@@ -50,6 +50,11 @@ SATHOST = settings.server.hostname
 
 
 @pytest.fixture(scope='module')
+def module_product(default_org):
+    return entities.Product(organization=default_org).create()
+
+
+@pytest.fixture(scope='module')
 def module_lce_library(default_org):
     """ Returns the Library lifecycle environment from chosen organization """
     return (
@@ -76,21 +81,17 @@ def sat6tools_repo(default_org):
 
 
 @pytest.fixture(scope='module')
-def pre_upgrade_repo(default_org):
+def pre_upgrade_repo(default_org, module_product):
     """Enable custom errata repository"""
-    pre_upgrade_repo = entities.Repository(
-        url=FAKE_0_YUM_REPO, product=entities.Product(organization=default_org).create()
-    ).create()
+    pre_upgrade_repo = entities.Repository(url=FAKE_0_YUM_REPO, product=module_product).create()
     assert pre_upgrade_repo.sync()['result'] == 'success'
     return pre_upgrade_repo
 
 
 @pytest.fixture(scope='module')
-def post_upgrade_repo(default_org):
+def post_upgrade_repo(default_org, module_product):
     """Enable custom errata repository"""
-    post_upgrade_repo = entities.Repository(
-        url=FAKE_9_YUM_REPO, product=entities.Product(organization=default_org).create()
-    ).create()
+    post_upgrade_repo = entities.Repository(url=FAKE_9_YUM_REPO, product=module_product).create()
     assert post_upgrade_repo.sync()['result'] == 'success'
     return post_upgrade_repo
 
@@ -118,7 +119,7 @@ def post_upgrade_cv(default_org, post_upgrade_repo):
 
 
 @pytest.fixture(scope='module')
-def module_ak(default_org, module_lce_library, pre_upgrade_repo):
+def module_ak(default_org, module_lce_library, pre_upgrade_repo, module_product):
     """Create a module AK in Library LCE"""
     ak = entities.ActivationKey(
         content_view=DEFAULT_CV,
@@ -140,23 +141,9 @@ def module_ak(default_org, module_lce_library, pre_upgrade_repo):
         data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
     )
     # Add custom subscription to activation key
-    prod = pre_upgrade_repo.product.read()
-    custom_sub = entities.Subscription().search(query={'search': f'name={prod.name}'})
+    custom_sub = entities.Subscription().search(query={'search': f'name={module_product.name}'})
     ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
     return ak
-
-
-@pytest.fixture(scope='module')
-def update_ak(module_ak, default_org, post_upgrade_repo):
-    product = post_upgrade_repo.product.read()
-    subscription = entities.Subscription(organization=default_org).search(
-        query={'search': f'name={product.name}'}
-    )[0]
-    module_ak.add_subscriptions(data={'subscription_id': subscription.id})
-    # Enable upgraded Satelite's version of RHEL tools repo in activation key
-    module_ak.content_override(
-        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
-    )
 
 
 class TestScenarioUpgradeOldClientAndPackageInstallation:
@@ -278,7 +265,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
 
 @post_upgrade
 def test_post_scenario_postclient_package_installation(
-    default_org, post_upgrade_repo, module_ak, update_ak, module_lce
+    default_org, post_upgrade_repo, module_ak, module_lce
 ):
     """Post-upgrade test that creates a client, installs a package on
     the post-upgrade created client and then verifies the package is installed.
