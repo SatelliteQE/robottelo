@@ -641,7 +641,9 @@ def setting_update(request):
     restore their default value
     """
     setting_object = entities.Setting().search(query={'search': f'name={request.param}'})[0]
-    default_setting_value = setting_object.value or ''
+    default_setting_value = setting_object.value
+    if default_setting_value is None:
+        default_setting_value = ''
     yield setting_object
     setting_object.value = default_setting_value
     setting_object.update({'value'})
