@@ -276,7 +276,7 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
         host_names = [create_fake_host(session, host_template) for host_template in host_templates]
         host_name = host_names[1]  # pick some that is not first and is not last
         file_path = session.reporttemplate.generate(
-            "Host - Registered Content Hosts", values={'hosts_filter': host_name}
+            'Host - Registered Content Hosts', values={'hosts_filter': host_name}
         )
         with open(file_path) as csvfile:
             dreader = csv.DictReader(csvfile)
@@ -314,7 +314,7 @@ def test_positive_generate_subscriptions_report_json(
     # generate Subscriptions report
     with session:
         file_path = session.reporttemplate.generate(
-            "Subscription - General Report", values={'output_format': 'JSON'}
+            'Subscription - General Report', values={'output_format': 'JSON'}
         )
     with open(file_path) as json_file:
         data = json.load(json_file)
@@ -414,7 +414,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
     # generate Subscriptions report
     with session:
         session.reporttemplate.schedule(
-            "Subscription - General Report",
+            'Subscription - General Report',
             values={
                 'output_format': 'JSON',
                 'generate_at': '1970-01-01 17:10:00',
@@ -519,7 +519,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     with session:
         session.location.select('Default Location')
         result_json = session.reporttemplate.generate(
-            "Subscription - Entitlement Report", values={'output_format': 'JSON'}
+            'Subscription - Entitlement Report', values={'output_format': 'JSON'}
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
@@ -529,7 +529,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
             for entitlement in data_json
         )
         result_yaml = session.reporttemplate.generate(
-            "Subscription - Entitlement Report", values={'output_format': 'YAML'}
+            'Subscription - Entitlement Report', values={'output_format': 'YAML'}
         )
         with open(result_yaml) as yaml_file:
             data_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
@@ -539,7 +539,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
             for entitlement in data_yaml
         )
         result_csv = session.reporttemplate.generate(
-            "Subscription - Entitlement Report", values={'output_format': 'CSV'}
+            'Subscription - Entitlement Report', values={'output_format': 'CSV'}
         )
         with open(result_csv) as csv_file:
             data_csv = csv.DictReader(csv_file)
@@ -549,7 +549,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
             entitlement['Subscription Name'] == DEFAULT_SUBSCRIPTION_NAME for entitlement in items
         )
         result_html = session.reporttemplate.generate(
-            "Subscription - Entitlement Report", values={'output_format': 'HTML'}
+            'Subscription - Entitlement Report', values={'output_format': 'HTML'}
         )
         with open(result_html) as html_file:
             parser = etree.HTMLParser()
