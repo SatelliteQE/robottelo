@@ -27,6 +27,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo apt-get update -y
           sudo apt-get install -y libgnutls28-dev libcurl4-openssl-dev libssl-dev
           wget https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_settings.yaml.example
           # link vs compile time ssl implementations can break the environment when installing requirements
