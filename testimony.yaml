@@ -15,6 +15,7 @@ CaseComponent:
     # No spaces allowed
     - ActivationKeys
     - Ansible
+    - AnsibleCollection
     - API
     - AuditLog
     - Authentication

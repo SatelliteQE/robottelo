@@ -8,7 +8,11 @@
 
 :TestType: Functional
 
-:CaseImportance: Medium
+:CaseImportance: High
+
+:CaseComponent: AnsibleCollection
+
+:Assignee: pondrejk
 
 :Upstream: No
 """
@@ -23,10 +27,6 @@ from robottelo.constants import FOREMAN_ANSIBLE_MODULES
 @pytest.mark.run_in_one_thread
 def test_positive_ansible_modules_installation():
     """Foreman ansible modules installation test
-
-    :CaseComponent: Ansible
-
-    :Assignee: lpramuk
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
 
