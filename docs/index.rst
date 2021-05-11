@@ -26,7 +26,8 @@ ensure that Paramiko's dependencies build correctly:
 * libffi
 
 
-Recommendation: Create virtual python environment for the following setup.
+Recommendation: Create a virtual python environment for the following setup.
++ Create directory where you want to install Robottelo
 Create virtual environment for python 3.x::
 $ python3 -m venv <virtual_env_path>
 To activate virtual environment:
