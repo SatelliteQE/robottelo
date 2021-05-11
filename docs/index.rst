@@ -29,9 +29,9 @@ ensure that Paramiko's dependencies build correctly:
 Recommendation: Create a virtual python environment for the following setup.
 
 Create virtual environment for python 3.x::
-$ python3 -m venv <virtual_env_path>
+$ python3 -m venv <venv_name>
 To activate virtual environment:
-$ source <virtual_env_path>/bin/activate
+$ source <venv_name>/bin/activate
 To end the session:
 $ deactivate
 
