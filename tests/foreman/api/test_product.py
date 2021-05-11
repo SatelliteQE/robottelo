@@ -409,6 +409,8 @@ def test_positive_assign_http_proxy_to_products():
     :expectedresults: HTTP Proxy is assigned to all repos present
         in Products and sync operation uses assigned http-proxy.
 
+    :Assignee: jpathan
+
     :CaseImportance: Critical
     """
     org = entities.Organization().create()

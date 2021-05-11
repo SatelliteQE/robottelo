@@ -10,6 +10,7 @@ pytest_plugins = [
     'pytest_plugins.testimony_markers',
     'pytest_plugins.manual_skipped',
     'pytest_plugins.disable_rp_params',
+    'pytest_plugins.settings_skip',
     # Fixtures
     'pytest_fixtures.api_fixtures',
     'pytest_fixtures.broker',

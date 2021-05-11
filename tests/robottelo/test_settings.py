@@ -1,4 +1,4 @@
-"""Module for testing settings"""
+"""Module for testing settings and settings hooks"""
 from robottelo.config.base import SharedFunctionSettings
 
 

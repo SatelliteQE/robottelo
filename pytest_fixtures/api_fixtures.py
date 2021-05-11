@@ -56,6 +56,11 @@ def default_location():
     return entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
 
 
+@pytest.fixture(scope='function')
+def function_org():
+    return entities.Organization().create()
+
+
 @pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
@@ -637,6 +642,8 @@ def setting_update(request):
     """
     setting_object = entities.Setting().search(query={'search': f'name={request.param}'})[0]
     default_setting_value = setting_object.value
+    if default_setting_value is None:
+        default_setting_value = ''
     yield setting_object
     setting_object.value = default_setting_value
     setting_object.update({'value'})

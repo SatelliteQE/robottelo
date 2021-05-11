@@ -18,12 +18,10 @@
 """
 import pytest
 
-from robottelo.decorators import skip_if_not_set
-
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 def test_positive_puppet_scenario(self):
     """Tests extensive all-in-one puppet scenario
 
@@ -60,7 +58,7 @@ def test_positive_puppet_scenario(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 def test_positive_puppet_capsule_scenario(self):
     """Tests extensive all-in-one puppet scenario via Capsule
 

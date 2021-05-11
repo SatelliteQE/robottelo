@@ -18,6 +18,7 @@
 """
 import pytest
 from airgun.session import Session
+from broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -49,13 +50,13 @@ from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.hosts import ContentHost
 from robottelo.manifests import upload_manifest_locked
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
-from robottelo.vm import VirtualMachine
 
 
 CUSTOM_REPO_URL = FAKE_6_YUM_REPO
@@ -68,9 +69,9 @@ RHVA_ERRATA_CVES = REAL_4_ERRATA_CVES
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-def _generate_errata_applicability(host_name):
+def _generate_errata_applicability(hostname):
     """Force host to generate errata applicability"""
-    host = entities.Host().search(query={'search': f'name={host_name}'})[0].read()
+    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.errata_applicability()
 
 
@@ -80,12 +81,12 @@ def _install_client_package(client, package, errata_applicability=False):
     :param client: The Virtual machine client.
     :param package: the package to install in virtual machine client.
     :param errata_applicability: If True, force host to generate errata applicability.
-    :returns: whether package installed successfully
+    :returns: True if package installed successfully, False otherwise.
     """
-    result = client.run(f'yum install -y {package}')
+    result = client.execute(f'yum install -y {package}')
     if errata_applicability:
         _generate_errata_applicability(client.hostname)
-    return not result.return_code
+    return result.status == 0
 
 
 def _set_setting_value(setting_entity, value):
@@ -98,8 +99,7 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-@pytest.fixture(scope='module')
-def module_org():
+def _org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
@@ -110,8 +110,23 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
+def module_org():
+    return _org()
+
+
+@pytest.fixture
+def org():
+    return _org()
+
+
+@pytest.fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
+
+
+@pytest.fixture
+def lce(org):
+    return entities.LifecycleEnvironment(organization=org).create()
 
 
 @pytest.fixture(scope='module')
@@ -133,7 +148,7 @@ def module_repos_col(module_org, module_lce):
 @pytest.fixture
 def vm(module_repos_col):
     """Virtual machine client using module_repos_col for subscription"""
-    with VirtualMachine(distro=module_repos_col.distro) as client:
+    with VMBroker(nick=module_repos_col.distro, host_classes={'host': ContentHost}) as client:
         module_repos_col.setup_virtual_machine(client)
         yield client
 
@@ -150,14 +165,6 @@ def module_rhva_repos_col(module_org, module_lce):
     )
     repos_collection.setup_content(module_org.id, module_lce.id)
     return repos_collection
-
-
-@pytest.fixture
-def rhva_vm(module_rhva_repos_col):
-    """Virtual machine client using module_rhva_repos_col for subscription"""
-    with VirtualMachine(distro=module_rhva_repos_col.distro) as client:
-        module_rhva_repos_col.setup_virtual_machine(client)
-        yield client
 
 
 @pytest.fixture(scope='module')
@@ -180,7 +187,9 @@ def module_erratatype_repos_col(module_org, module_lce):
 @pytest.fixture
 def erratatype_vm(module_erratatype_repos_col):
     """Virtual machine client using module_erratatype_repos_col for subscription"""
-    with VirtualMachine(distro=module_erratatype_repos_col.distro) as client:
+    with VMBroker(
+        nick=module_erratatype_repos_col.distro, host_classes={'host': ContentHost}
+    ) as client:
         module_erratatype_repos_col.setup_virtual_machine(client)
         yield client
 
@@ -196,7 +205,6 @@ def errata_status_installable():
     _set_setting_value(errata_status_installable, original_value)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_end_to_end(session, module_repos_col, vm):
     """Create all entities required for errata, set up applicable host,
@@ -259,7 +267,7 @@ def test_end_to_end(session, module_repos_col, vm):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_content_host_errata_page_pagination(session, module_org, module_lce):
+def test_content_host_errata_page_pagination(session, org, lce):
     """
     # Test per-page pagination for BZ#1662254
     # Test apply by REX using Select All for BZ#1846670
@@ -290,9 +298,7 @@ def test_content_host_errata_page_pagination(session, module_org, module_lce):
 
     :CaseLevel: System
     """
-    org = module_org
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    pkgs = " ".join(FAKE_3_YUM_OUTDATED_PACKAGES)
+    pkgs = ' '.join(FAKE_3_YUM_OUTDATED_PACKAGES)
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
@@ -301,25 +307,26 @@ def test_content_host_errata_page_pagination(session, module_org, module_lce):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VirtualMachine(distro=repos_collection.distro) as client:
+    with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         # add_remote_execution_ssh_key for REX
         add_remote_execution_ssh_key(client.ip_addr)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, pkgs)
         with session:
-            # Go to CHost's Errata page and read the page's pagination widgets
+            # Go to content host's Errata tab and read the page's pagination widgets
+            session.organization.select(org_name=org.name)
             page_values = session.contenthost.read(
                 client.hostname, widget_names=['errata.pagination']
             )
             assert int(page_values['errata']['pagination']['per_page']) == 20
             # assert total_pages > 1 with default page settings
             assert int(page_values['errata']['pagination']['pages']) > 1
-            # assert per-page setting is 20
-            ch = session.contenthost
-            view = ch.navigate_to(ch, 'Edit', entity_name=client.hostname)
+
+            view = session.contenthost.navigate_to(
+                session.contenthost, 'Edit', entity_name=client.hostname
+            )
             per_page_value = view.errata.pagination.per_page
-            assert int(per_page_value.read()) == 20
             # Change per-page setting to 100 and assert there is now only one page
             assert per_page_value.fill('100')
             page_values = session.contenthost.read(
@@ -329,6 +336,7 @@ def test_content_host_errata_page_pagination(session, module_org, module_lce):
             assert int(page_values['errata']['pagination']['pages']) == 1
             # assert at least the 28 errata from fake repo are present
             assert int(page_values['errata']['pagination']['total_items']) >= 28
+
             # install all errata using REX
             status = session.contenthost.install_errata(client.hostname, 'All', install_via='rex')
             # Assert errata are listed on job invocation page
@@ -343,7 +351,8 @@ def test_content_host_errata_page_pagination(session, module_org, module_lce):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_list(session, module_repos_col, module_lce):
+@pytest.mark.usefixtures('module_repos_col')
+def test_positive_list(session, org, lce):
     """View all errata in an Org
 
     :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
@@ -358,10 +367,8 @@ def test_positive_list(session, module_repos_col, module_lce):
 
     :CaseLevel: Integration
     """
-    org = entities.Organization().create()
-    org_env = entities.LifecycleEnvironment(organization=org).create()
-    org_repos_col = RepositoryCollection(repositories=[YumRepository(FAKE_3_YUM_REPO)])
-    org_repos_col.setup_content(org.id, org_env.id)
+    rc = RepositoryCollection(repositories=[YumRepository(FAKE_3_YUM_REPO)])
+    rc.setup_content(org.id, lce.id)
     with session:
         assert (
             session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
@@ -440,10 +447,9 @@ def test_positive_apply_for_all_hosts(session, module_org, module_repos_col):
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=module_repos_col.distro) as client1, VirtualMachine(
-        distro=module_repos_col.distro
-    ) as client2:
-        clients = [client1, client2]
+    with VMBroker(
+        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+    ) as clients:
         for client in clients:
             module_repos_col.setup_virtual_machine(client)
             assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE)
@@ -505,10 +511,10 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
 
     :CaseLevel: System
     """
-    with VirtualMachine(distro=module_repos_col.distro) as client1, VirtualMachine(
-        distro=module_repos_col.distro
-    ) as client2:
-        for client in client1, client2:
+    with VMBroker(
+        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+    ) as clients:
+        for client in clients:
             module_repos_col.setup_virtual_machine(client)
             assert _install_client_package(
                 client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True
@@ -521,7 +527,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
         lce = content_view_version.environment[-1].read()
         new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
         promote(content_view_version, new_lce.id)
-        host = entities.Host().search(query={'search': f'name={client1.hostname}'})[0].read()
+        host = entities.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
         host.content_facet_attributes = {
             'content_view_id': content_view.id,
             'lifecycle_environment_id': new_lce.id,
@@ -530,23 +536,22 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
         with session:
             # search in new_lce
             values = session.errata.search_content_hosts(
-                CUSTOM_REPO_ERRATA_ID, client1.hostname, environment=new_lce.name
+                CUSTOM_REPO_ERRATA_ID, clients[0].hostname, environment=new_lce.name
             )
-            assert values[0]['Name'] == client1.hostname
+            assert values[0]['Name'] == clients[0].hostname
             assert not session.errata.search_content_hosts(
-                CUSTOM_REPO_ERRATA_ID, client2.hostname, environment=new_lce.name
+                CUSTOM_REPO_ERRATA_ID, clients[1].hostname, environment=new_lce.name
             )
             # search in lce
             values = session.errata.search_content_hosts(
-                CUSTOM_REPO_ERRATA_ID, client2.hostname, environment=lce.name
+                CUSTOM_REPO_ERRATA_ID, clients[1].hostname, environment=lce.name
             )
-            assert values[0]['Name'] == client2.hostname
+            assert values[0]['Name'] == clients[1].hostname
             assert not session.errata.search_content_hosts(
-                CUSTOM_REPO_ERRATA_ID, client1.hostname, environment=lce.name
+                CUSTOM_REPO_ERRATA_ID, clients[0].hostname, environment=lce.name
             )
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_content_host_previous_env(session, module_org, module_repos_col, vm):
@@ -567,7 +572,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
 
     :CaseLevel: System
     """
-    host_name = vm.hostname
+    hostname = vm.hostname
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
     # Promote the latest content view version to a new lifecycle environment
     content_view = entities.ContentView(
@@ -577,7 +582,7 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
     lce = content_view_version.environment[-1].read()
     new_lce = entities.LifecycleEnvironment(organization=module_org, prior=lce).create()
     promote(content_view_version, new_lce.id)
-    host = entities.Host().search(query={'search': f'name={host_name}'})[0].read()
+    host = entities.Host().search(query={'search': f'name={hostname}'})[0].read()
     host.content_facet_attributes = {
         'content_view_id': content_view.id,
         'lifecycle_environment_id': new_lce.id,
@@ -586,12 +591,11 @@ def test_positive_content_host_previous_env(session, module_org, module_repos_co
     with session:
         environment = f'Previous Lifecycle Environment ({lce.name}/{content_view.name})'
         content_host_erratum = session.contenthost.search_errata(
-            host_name, CUSTOM_REPO_ERRATA_ID, environment=environment
+            hostname, CUSTOM_REPO_ERRATA_ID, environment=environment
         )
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_content_host_library(session, module_org, vm):
     """Check if the applicable errata are available from the content
@@ -610,16 +614,15 @@ def test_positive_content_host_library(session, module_org, vm):
 
     :CaseLevel: System
     """
-    host_name = vm.hostname
+    hostname = vm.hostname
     assert _install_client_package(vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
     with session:
         content_host_erratum = session.contenthost.search_errata(
-            host_name, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
+            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
         )
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_content_host_search_type(session, erratatype_vm):
     """Search for errata on a content host's errata tab by type.
@@ -638,7 +641,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
     :CaseLevel: Integration
     """
 
-    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
     assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
 
     with session:
@@ -677,7 +680,6 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.skip_if_open("BZ:1655130")
 @pytest.mark.tier3
 def test_positive_content_host_errata_details(session, erratatype_vm, module_org, test_name):
@@ -711,7 +713,7 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
         organization=[module_org],
     ).create()
 
-    pkgs = " ".join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
     assert _install_client_package(erratatype_vm, pkgs, errata_applicability=True)
 
     with Session(test_name, login, password) as session:
@@ -723,9 +725,8 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
         assert erratum_details['type'] == 'security'
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
+def test_positive_show_count_on_content_host_page(session, module_org, erratatype_vm):
     """Available errata count displayed in Content hosts page
 
     :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
@@ -743,28 +744,30 @@ def test_positive_show_count_on_content_host_page(session, module_org, rhva_vm):
 
     :CaseLevel: System
     """
-    host_name = rhva_vm.hostname
+    vm = erratatype_vm
+    hostname = vm.hostname
     with session:
-        content_host_values = session.contenthost.search(host_name)
-        assert content_host_values[0]['Name'] == host_name
+        content_host_values = session.contenthost.search(hostname)
+        assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
+
         for errata_type in ('security', 'bug_fix', 'enhancement'):
             assert int(installable_errata[errata_type]) == 0
-        assert _install_client_package(rhva_vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
-        content_host_values = session.contenthost.search(host_name)
-        assert content_host_values[0]['Name'] == host_name
-        assert int(content_host_values[0]['Installable Updates']['errata']['security']) == 1
-        assert _install_client_package(rhva_vm, RHVA_PACKAGE, errata_applicability=True)
-        content_host_values = session.contenthost.search(host_name)
-        assert content_host_values[0]['Name'] == host_name
+
+        pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+        assert _install_client_package(vm, pkgs, errata_applicability=True)
+
+        content_host_values = session.contenthost.search(hostname)
+        assert content_host_values[0]['Name'] == hostname
         installable_errata = content_host_values[0]['Installable Updates']['errata']
+
+        assert int(installable_errata['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
         for errata_type in ('bug_fix', 'enhancement'):
             assert int(installable_errata[errata_type]) == 1
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_show_count_on_content_host_details_page(session, module_org, rhva_vm):
+def test_positive_show_count_on_content_host_details_page(session, module_org, erratatype_vm):
     """Errata count on Content host Details page
 
     :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
@@ -782,25 +785,25 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, r
 
     :CaseLevel: System
     """
-    host_name = rhva_vm.hostname
+    vm = erratatype_vm
+    hostname = vm.hostname
     with session:
-        content_host_values = session.contenthost.read(host_name, 'details')
+        content_host_values = session.contenthost.read(hostname, 'details')
         for errata_type in ('security', 'bug_fix', 'enhancement'):
             assert int(content_host_values['details'][errata_type]) == 0
-        assert _install_client_package(rhva_vm, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
+
+        pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+        assert _install_client_package(vm, pkgs, errata_applicability=True)
+
         # navigate to content host main page by making a search, to refresh the details page
-        session.contenthost.search(host_name)
-        content_host_values = session.contenthost.read(host_name, 'details')
-        assert int(content_host_values['details']['security']) == 1
-        assert _install_client_package(rhva_vm, RHVA_PACKAGE, errata_applicability=True)
-        # navigate to content host main page by making a search, to refresh the details page
-        session.contenthost.search(host_name)
-        content_host_values = session.contenthost.read(host_name, 'details')
+        session.contenthost.search(hostname)
+        content_host_values = session.contenthost.read(hostname, 'details')
+        assert int(content_host_values['details']['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
+
         for errata_type in ('bug_fix', 'enhancement'):
             assert int(content_host_values['details'][errata_type]) == 1
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -842,7 +845,7 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VirtualMachine(distro=repos_collection.distro) as client:
+    with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         repos_collection.setup_virtual_machine(client)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Adding content view filter and content view filter rule to exclude errata for the
@@ -895,7 +898,6 @@ def test_positive_filtered_errata_status_installable_param(session, errata_statu
                 assert expected_values[key] in actual_values[key], 'Expected text not found'
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_content_host_errata_search_commands(session, module_org, module_repos_col):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
@@ -921,46 +923,49 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
 
     :BZ: 1707335
     """
-
-    with VirtualMachine(distro=module_repos_col.distro) as client1, VirtualMachine(
-        distro=module_repos_col.distro
-    ) as client2:
-        for client in client1, client2:
+    with VMBroker(
+        nick=module_repos_col.distro, host_classes={'host': ContentHost}, _count=2
+    ) as clients:
+        for client in clients:
             module_repos_col.setup_virtual_machine(client)
         # Install pkg walrus-0.71-1.noarch to create need for RHSA on client 1
-        assert _install_client_package(client1, FAKE_1_CUSTOM_PACKAGE, errata_applicability=False)
+        assert _install_client_package(
+            clients[0], FAKE_1_CUSTOM_PACKAGE, errata_applicability=False
+        )
         # Install pkg kangaroo-0.1-1.noarch to create need for RHBA on client 2
-        assert _install_client_package(client2, FAKE_4_CUSTOM_PACKAGE, errata_applicability=False)
+        assert _install_client_package(
+            clients[1], FAKE_4_CUSTOM_PACKAGE, errata_applicability=False
+        )
         with session:
             # Search for hosts needing RHSA security errata
             result = session.contenthost.search('errata_status = security_needed')
             result = [item['Name'] for item in result]
-            assert client1.hostname in result, 'Needs-RHSA host not found'
+            assert clients[0].hostname in result, 'Needs-RHSA host not found'
             # Search for hosts needing RHBA bugfix errata
             result = session.contenthost.search('errata_status = errata_needed')
             result = [item['Name'] for item in result]
-            assert client2.hostname in result, 'Needs-RHBA host not found'
+            assert clients[1].hostname in result, 'Needs-RHBA host not found'
             # Search for applicable RHSA errata by Errata ID
             result = session.contenthost.search(f'applicable_errata = {FAKE_2_ERRATA_ID}')
             result = [item['Name'] for item in result]
-            assert client1.hostname in result
+            assert clients[0].hostname in result
             # Search for applicable RHBA errata by Errata ID
             result = session.contenthost.search(f'applicable_errata = {FAKE_5_ERRATA_ID}')
             result = [item['Name'] for item in result]
-            assert client2.hostname in result
+            assert clients[1].hostname in result
             # Search for RHSA applicable RPMs
             result = session.contenthost.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
-            assert client1.hostname in result
+            assert clients[0].hostname in result
             # Search for RHBA applicable RPMs
             result = session.contenthost.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
-            assert client2.hostname in result
+            assert clients[1].hostname in result
             # Search for installable RHSA errata by Errata ID
             result = session.contenthost.search(f'installable_errata = {FAKE_2_ERRATA_ID}')
             result = [item['Name'] for item in result]
-            assert client1.hostname in result
+            assert clients[0].hostname in result
             # Search for installable RHBA errata by Errata ID
             result = session.contenthost.search(f'installable_errata = {FAKE_5_ERRATA_ID}')
             result = [item['Name'] for item in result]
-            assert client2.hostname in result
+            assert clients[1].hostname in result

@@ -65,6 +65,8 @@ class TestRenameHost:
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
 
+        :CaseImportance: Critical
+
         :CaseAutomation: Automated
         """
         username = settings.server.admin_username

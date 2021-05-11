@@ -51,7 +51,6 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.vm import VirtualMachine
@@ -440,7 +439,7 @@ def test_positive_update_cv(session, module_org, cv2_name):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_update_rh_product(session):
     """Update Content View in an Activation key
@@ -499,7 +498,7 @@ def test_positive_update_rh_product(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_rh_product(session):
     """Test that RH product can be associated to Activation Keys
@@ -570,7 +569,7 @@ def test_positive_add_custom_product(session, module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_add_rh_and_custom_products(session):
@@ -630,7 +629,7 @@ def test_positive_add_rh_and_custom_products(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_fetch_product_content(session):
@@ -863,7 +862,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
         assert ak['details']['lce'][lce.name][lce.name]
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 def test_positive_add_host(session, module_org):
@@ -897,7 +896,7 @@ def test_positive_add_host(session, module_org):
             assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_delete_with_system(session):
@@ -937,7 +936,7 @@ def test_positive_delete_with_system(session):
             assert session.activationkey.search(name)[0]['Name'] != name
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_negative_usage_limit(session, module_org):
@@ -976,7 +975,7 @@ def test_negative_usage_limit(session, module_org):
             assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stderr
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
@@ -1033,7 +1032,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
                 assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
@@ -1076,7 +1075,7 @@ def test_positive_host_associations(session):
             assert ak2['content_hosts']['table'][0]['Name'] == vm2.hostname
 
 
-@skip_if_not_set('clients', 'fake_manifest')
+@pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -1143,7 +1142,7 @@ def test_positive_service_level_subscription_with_custom_product(session):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_delete_manifest(session):
     """Check if deleting a manifest removes it from Activation key

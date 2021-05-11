@@ -50,7 +50,6 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_7_YUM_REPO
 from robottelo.constants.repos import FAKE_8_YUM_REPO
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
 from robottelo.helpers import get_data_file
@@ -186,7 +185,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_insights_puppet_package_availability(self, capsule_vm):
         """Check `redhat-access-insights-puppet` package availability for
         capsule
@@ -219,7 +218,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_uploaded_content_library_sync(self, capsule_vm):
         """Ensure custom repo with no upstream url and manually uploaded
         content after publishing to Library is synchronized to capsule
@@ -297,7 +296,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_checksum_sync(self, capsule_vm):
         """Synchronize repository to capsule, update repository's checksum
         type, trigger capsule sync and make sure checksum type was updated on
@@ -425,7 +424,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_sync(self, capsule_vm):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
@@ -623,7 +622,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_iso_library_sync(self, capsule_vm):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
@@ -695,7 +694,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_on_demand_sync(self, capsule_vm):
         """Create a repository with 'on_demand' sync, add it to lifecycle
         environment with a capsule, sync repository, examine existing packages
@@ -824,7 +823,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_mirror_on_sync(self, capsule_vm):
         """Create 2 repositories with 'on_demand' download policy and mirror on
         sync option, associate them with capsule, sync first repo, move package
@@ -966,7 +965,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_update_with_immediate_sync(self, request, capsule_vm):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
@@ -1123,7 +1122,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_sync_puppet_module_with_versions(self, capsule_vm):
         """Ensure it's possible to sync multiple versions of the same puppet
         module to the capsule
@@ -1244,7 +1243,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
-    @skip_if_not_set('capsule', 'clients', 'fake_manifest')
+    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_capsule_pub_url_accessible(self, capsule_vm):
         """Ensure capsule pub url is accessible
 

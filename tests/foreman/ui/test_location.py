@@ -25,7 +25,6 @@ from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.decorators import skip_if_not_set
 
 
 @pytest.mark.tier2
@@ -202,7 +201,7 @@ def test_positive_add_org_hostgroup_template(session):
         assert template.name in loc_values['provisioning_templates']['resources']['assigned']
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):

@@ -43,7 +43,7 @@ from robottelo.datafactory import invalid_docker_upstream_names
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_docker_upstream_names
-from robottelo.decorators import skip_if_not_set
+
 
 logger = logging.getLogger('robottelo')
 
@@ -310,7 +310,7 @@ class TestDockerRepository:
                 }
             )
 
-    @skip_if_not_set('docker')
+    @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier1
     def test_positive_create_with_long_upstream_name(self, module_product):
         """Create a docker repository with upstream name longer than 30
@@ -333,7 +333,7 @@ class TestDockerRepository:
         )
         assert repo['upstream-repository-name'] == CONTAINER_RH_REGISTRY_UPSTREAM_NAME
 
-    @skip_if_not_set('docker')
+    @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier1
     def test_positive_update_with_long_upstream_name(self, repo):
         """Create a docker repository and update its upstream name with longer
@@ -1291,7 +1291,7 @@ class TestDockerClient:
             # Remove docker image
             docker_host.execute(f'docker rmi {repo["published-at"]}')
 
-    @skip_if_not_set('docker')
+    @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
     def test_positive_container_admin_end_to_end_search(self, module_org, docker_host):
         """Verify that docker command line can be used against
@@ -1391,7 +1391,7 @@ class TestDockerClient:
         assert result.status == 0
         assert docker_repo_uri in result.stdout
 
-    @skip_if_not_set('docker')
+    @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
     def test_positive_container_admin_end_to_end_pull(self, module_org, docker_host):
         """Verify that docker command line can be used against
@@ -1494,7 +1494,7 @@ class TestDockerClient:
         assert result.status == 0
 
     @pytest.mark.stubbed
-    @skip_if_not_set('docker')
+    @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_upload_image(self, module_org):

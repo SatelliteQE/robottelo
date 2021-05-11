@@ -27,7 +27,6 @@ from robottelo.cli.factory import make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 
@@ -46,7 +45,7 @@ def _make_proxy(request, options=None):
     return proxy
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_negative_create_with_url():
     """Proxy creation with random URL
@@ -65,7 +64,7 @@ def test_negative_create_with_url():
         )
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name(request, name):
@@ -85,7 +84,7 @@ def test_positive_create_with_name(request, name):
     assert proxy['name'] == name
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_delete_by_id(name):
@@ -107,7 +106,7 @@ def test_positive_delete_by_id(name):
         Proxy.info({'id': proxy['id']})
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_update_name(request):
     """Proxy name update with the home proxy
@@ -129,7 +128,7 @@ def test_positive_update_name(request):
             assert proxy['name'] == new_name
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
 def test_positive_refresh_features_by_id(request):
     """Refresh smart proxy features, search for proxy by id
@@ -154,7 +153,7 @@ def test_positive_refresh_features_by_id(request):
         Proxy.refresh_features({'id': proxy['id']})
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier2
 def test_positive_refresh_features_by_name(request):
     """Refresh smart proxy features, search for proxy by name
@@ -179,7 +178,7 @@ def test_positive_refresh_features_by_name(request):
         Proxy.refresh_features({'id': proxy['name']})
 
 
-@skip_if_not_set('fake_capsules')
+@pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.tier1
 def test_positive_import_puppet_classes(request):
     """Import puppet classes from proxy

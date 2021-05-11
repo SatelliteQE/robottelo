@@ -46,7 +46,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.decorators import skip_if_not_set
 
 
 @pytest.fixture(scope='class')
@@ -139,7 +138,7 @@ class TestRepositoryExport:
         assert result.return_code == 0
         assert len(result.stdout) >= 1
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_rh_product(self, class_export_directory, module_org):

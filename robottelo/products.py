@@ -597,15 +597,22 @@ class GenericRHRepository(BaseRepository):
             raise ValueError('Can not handle Custom repository with url not supplied')
         if self.cdn:
             data = self.data
-            RepositorySet.enable(
+            if not Repository.list(
                 {
                     'organization-id': organization_id,
+                    'name': data['repository'],
                     'product': data['product'],
-                    'name': data['repository-set'],
-                    'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
-                    'releasever': data.get('releasever'),
                 }
-            )
+            ):
+                RepositorySet.enable(
+                    {
+                        'organization-id': organization_id,
+                        'product': data['product'],
+                        'name': data['repository-set'],
+                        'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
+                        'releasever': data.get('releasever'),
+                    }
+                )
             repo_info = Repository.info(
                 {
                     'organization-id': organization_id,

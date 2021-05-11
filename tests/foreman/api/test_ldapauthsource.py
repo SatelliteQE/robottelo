@@ -27,7 +27,7 @@ from robottelo.datafactory import generate_strings_list
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.parametrize("ldap_auth_source", ["AD", "IPA"], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 def test_positive_endtoend(ldap_auth_source, module_org, module_location):
     """Create/update/delete LDAP authentication with AD using names of different types
 

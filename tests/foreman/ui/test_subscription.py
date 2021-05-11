@@ -39,16 +39,11 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if_not_set
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.vm import VirtualMachine
 
-pytestmark = [pytest.mark.run_in_one_thread]
-
-if not setting_is_set('fake_manifest'):
-    pytest.skip('skipping tests due to missing fake_manifest settings', allow_module_level=True)
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 
 
 @pytest.fixture(scope='module')
@@ -315,7 +310,7 @@ def test_positive_view_vdc_subscription_products(session):
             assert content_products and product_name in content_products
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(session):

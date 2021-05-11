@@ -28,7 +28,6 @@ from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
-from robottelo.decorators import skip_if_not_set
 from robottelo.libvirt_discovery import LibvirtGuest
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -50,7 +49,7 @@ def _assertdiscoveredhost(self, hostname):
         return discovered_host
 
 
-@skip_if_not_set('vlan_networking')
+@pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.fixture(scope='class')
 def foreman_discovery(self):
     """Steps to Configure foreman discovery

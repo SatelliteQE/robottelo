@@ -43,6 +43,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
@@ -52,8 +53,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if_not_set
 
 
 @pytest.fixture(scope='module')
@@ -101,7 +100,7 @@ def test_positive_cli_find_admin_user():
     assert result['admin'] == 'yes'
 
 
-@skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.tier4
 @pytest.mark.on_premises_provisioning
 @pytest.mark.upgrade

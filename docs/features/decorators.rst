@@ -13,27 +13,6 @@ Robottelo decorators are located under
 control if a test must be skipped or executed accordingly with specific
 configurations.
 
-stubbed
--------
-
-``stubbed`` skips any test it decorates. A reason can be provided as parameter
-and its default is "Not Implemented". Most of times it is used to define all
-manual (not automated) tests related to a feature. Example::
-
-    from robottelo.decorators import stubbed
-
-    @stubbed()
-    def test_negative_create_matcher_attribute_priority(self):
-        """Test will be implemented later"""
-
-    @stubbed('Some other reason than not implemented')
-    def test_positive_create_matcher_attribute_priority(self):
-        """Test will be implemented later"""
-
-Please note that ''stubbed'' is a decorator generator, and cannot be used as a
-"classic" Python decorator - it must be ''\@stubbed()'', not ''\@stubbed''
-(note the parenthesis).
-
 skip_if_os
 ----------
 
@@ -62,16 +41,6 @@ This decorator is used to avoid false failures when an feature is supported
 only on one os version. For example, ostree repository is available
 in RHEL7 but not in RHEL6.
 
-skip_if_not_set
----------------
-
-``skip_if_not_set`` skips test if one or more specified configuration options is not set in ``robottelo.properties``. It is used to define tests specific to a selected (optional) feature. Without the decorator, such tests would fail if the tested feature is not enabled. Example::
-
-    from robottelo.decorators import skip_if_not_set
-
-    @skip_if_not_set('ldap')
-    def test_positive_ldap_auth_usergroup_user_add(self):
-        """New user added to UserGroup inherits roles"""
 
 cacheable
 ---------
@@ -83,14 +52,3 @@ cacheable
     @cacheable
     def make_role(options=None):
         """create a role using ``hammer role create``"""
-
-run_in_one_thread
------------------
-
-``run_in_one_thread`` defines test that cannot be run in parallel with other tests. This is useful for preventing conflicts between tests that interact with the same component. Example::
-
-    import pytest
-
-    @pytest.mark.run_in_one_thread
-    def test_positive_delete_manifest(self):
-        """Check if deleting a manifest removes it from Activation key"""

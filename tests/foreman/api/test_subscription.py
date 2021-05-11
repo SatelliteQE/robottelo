@@ -25,6 +25,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
+from requests.exceptions import HTTPError
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -34,7 +35,6 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.decorators import skip_if_not_set
 from robottelo.test import APITestCase
 from robottelo.test import settings
 
@@ -65,6 +65,8 @@ def golden_ticket_host_setup(request):
         environment=entities.LifecycleEnvironment(id=org.library.id),
         auto_attach=True,
     ).create()
+    request.cls.custom_repo_setup = custom_repo
+    request.cls.rh_repo_setup = rh_repo
     request.cls.org_setup = org
     request.cls.ak_setup = ak
 
@@ -73,7 +75,7 @@ def golden_ticket_host_setup(request):
 class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_create(self):
         """Upload a manifest.
@@ -88,7 +90,7 @@ class SubscriptionsTestCase(APITestCase):
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_refresh(self):
         """Upload a manifest and refresh it afterwards.
@@ -109,7 +111,7 @@ class SubscriptionsTestCase(APITestCase):
         finally:
             sub.delete_manifest(data={'organization_id': org.id})
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_create_after_refresh(self):
         """Upload a manifest,refresh it and upload a new manifest to an other
@@ -138,7 +140,7 @@ class SubscriptionsTestCase(APITestCase):
         finally:
             org_sub.delete_manifest(data={'organization_id': org.id})
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier1
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
@@ -157,7 +159,7 @@ class SubscriptionsTestCase(APITestCase):
         sub.delete_manifest(data={'organization_id': org.id})
         assert len(sub.search()) == 0
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier2
     def test_negative_upload(self):
         """Upload the same manifest to two organizations.
@@ -218,15 +220,15 @@ class SubscriptionsTestCase(APITestCase):
         assert len(Subscription.list({'organization-id': org.id})) == 0
 
     @pytest.mark.tier2
-    @pytest.mark.usefixtures("golden_ticket_host_setup")
-    @pytest.mark.usefixtures("rhel77_contenthost_class")
-    def test_positive_subscription_status_disabled(self):
-        """Verify that Content host Subscription status is set to 'Disabled'
+    @pytest.mark.usefixtures('golden_ticket_host_setup')
+    @pytest.mark.usefixtures('rhel77_contenthost_class')
+    def test_positive_subscription_status_sca(self):
+        """Verify that Content host Subscription status is set to 'Simple Content Access'
          for a golden ticket manifest
 
         :id: d7d7e20a-e386-43d5-9619-da933aa06694
 
-        :expectedresults: subscription status is 'Disabled'
+        :expectedresults: subscription status is 'Simple Content Access'
 
         :BZ: 1789924
 
@@ -239,6 +241,59 @@ class SubscriptionsTestCase(APITestCase):
         host_id = host[0].id
         host_content = entities.Host(id=host_id).read_raw().content
         assert 'Simple Content Access' in str(host_content)
+
+    @pytest.mark.tier2
+    @pytest.mark.usefixtures('golden_ticket_host_setup')
+    @pytest.mark.usefixtures('rhel77_contenthost_class')
+    def test_sca_end_to_end(self):
+        """Perform end to end testing for Simple Content Access Mode
+
+        :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
+
+        :BZ: 1890643, 1890661, 1890664
+
+        :expectedresults: All tests pass and clients have access
+            to repos without needing to add subscriptions
+
+        :CaseImportance: Critical
+        """
+        self.content_host.install_katello_ca()
+        self.content_host.register_contenthost(self.org_setup.label, self.ak_setup.name)
+        assert self.content_host.subscribed
+        # Check to see if Organization is in SCA Mode
+        assert entities.Organization(id=self.org_setup.id).read().simple_content_access is True
+        # Verify that you cannot attach a subscription to an activation key in SCA Mode
+        subscription = entities.Subscription(organization=self.org_setup).search(
+            query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        )[0]
+        with pytest.raises(HTTPError) as ak_context:
+            self.ak_setup.add_subscriptions(
+                data={'quantity': 1, 'subscription_id': subscription.id}
+            )
+        assert 'Simple Content Access' in ak_context.value.response.text
+        # Verify that you cannot attach a subscription to an Host in SCA Mode
+        host_id = entities.Host().search(query={'search': self.content_host.hostname})[0].id
+        with pytest.raises(HTTPError) as host_context:
+            entities.HostSubscription(host=host_id).add_subscriptions(
+                data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
+            )
+        assert 'Simple Content Access' in host_context.value.response.text
+        # Create a content view with repos and check to see that the client has access
+        content_view = entities.ContentView(organization=self.org_setup).create()
+        content_view.repository = [self.rh_repo_setup, self.custom_repo_setup]
+        content_view.update(['repository'])
+        content_view.publish()
+        assert content_view.repository.__len__() == 2
+        host = entities.Host().search(query={'search': self.content_host.hostname})[0]
+        host.content_facet_attributes = {'content_view_id': content_view.id}
+        host.update(['content_facet_attributes'])
+        self.content_host.run('subscription-manager repos --enable *')
+        repos = self.content_host.run('subscription-manager refresh && yum repolist')
+        assert content_view.repository[1].name in repos.stdout
+        assert 'Red Hat Satellite Tools' in repos.stdout
+        # install package and verify it succeeds or is already installed
+        package = self.content_host.run('yum install -y python-pulp-manifest')
+        assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
 @pytest.mark.tier2

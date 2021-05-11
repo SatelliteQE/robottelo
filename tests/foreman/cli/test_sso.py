@@ -18,60 +18,53 @@
 """
 import pytest
 
-from robottelo.test import CLITestCase
+pytestmark = [pytest.mark.stubbed, pytest.mark.upgrade]
+
+# Notes for SSO testing:
+# Of interest... In some testcases I've placed a few comments prefaced with
+# "devnote:" These are -- obviously -- notes from developers that might
+# help reiterate something important or a reminder of way(s) to test
+# something.
+
+# There may well be more cases that I have missed for this feature, and
+# possibly other LDAP types. These (in particular, the LDAP variations)
+# can be easily added later.
 
 
-class SingleSignOnTestCase(CLITestCase):
-    """Test Class for SSO CLI"""
+def test_positive_login_kerberos_user():
+    """kerberos user can login to CLI
 
-    # Notes for SSO testing:
-    # Of interest... In some testcases I've placed a few comments prefaced with
-    # "devnote:" These are -- obviously -- notes from developers that might
-    # help reiterate something important or a reminder of way(s) to test
-    # something.
+    :id: 59a1b463-67b3-4f18-b851-afaa3c65ccb6
 
-    # There may well be more cases that I have missed for this feature, and
-    # possibly other LDAP types. These (in particular, the LDAP variations)
-    # can be easily added later.
+    :setup: kerberos configured against foreman.
 
-    @pytest.mark.stubbed
-    @pytest.mark.upgrade
-    def test_positive_login_kerberos_user(self):
-        """kerberos user can login to CLI
+    :expectedresults: Log in to hammer cli successfully
 
-        :id: 59a1b463-67b3-4f18-b851-afaa3c65ccb6
+    :CaseAutomation: NotAutomated
+    """
 
-        :setup: kerberos configured against foreman.
 
-        :expectedresults: Log in to hammer cli successfully
+def test_positive_login_ipa_user():
+    """IPA user can login to CLI
 
-        :CaseAutomation: NotAutomated
-        """
+    :id: cbd0df84-6a4d-4c82-bf30-cecd51f40c03
 
-    @pytest.mark.stubbed
-    @pytest.mark.upgrade
-    def test_positive_login_ipa_user(self):
-        """IPA user can login to CLI
+    :setup: IPA configured against foreman.
 
-        :id: cbd0df84-6a4d-4c82-bf30-cecd51f40c03
+    :expectedresults: Log in to hammer cli successfully
 
-        :setup: IPA configured against foreman.
+    :CaseAutomation: NotAutomated
+    """
 
-        :expectedresults: Log in to hammer cli successfully
 
-        :CaseAutomation: NotAutomated
-        """
+def test_positive_login_openldap_user():
+    """OpenLDAP user can login to CLI
 
-    @pytest.mark.stubbed
-    @pytest.mark.upgrade
-    def test_positive_login_openldap_user(self):
-        """OpenLDAP user can login to CLI
+    :id: de31d5eb-4e0d-495e-bf31-bc49f9d50d68
 
-        :id: de31d5eb-4e0d-495e-bf31-bc49f9d50d68
+    :setup: OpenLDAP configured against foreman.
 
-        :setup: OpenLDAP configured against foreman.
+    :expectedresults: Log in to hammer cli successfully
 
-        :expectedresults: Log in to hammer cli successfully
-
-        :CaseAutomation: NotAutomated
-        """
+    :CaseAutomation: NotAutomated
+    """

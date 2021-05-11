@@ -1,6 +1,6 @@
 """Module that aggregates common bits of the end to end tests."""
+from robottelo.config import setting_is_set
 from robottelo.constants import DISTRO_RHEL6
-from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
 AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'

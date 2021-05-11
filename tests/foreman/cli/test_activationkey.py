@@ -53,7 +53,6 @@ from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
@@ -588,7 +587,7 @@ def test_negative_update_usage_limit(module_org):
     assert 'Validation failed: Max hosts must be less than 2147483648' in raise_ctx.value.message
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.libvirt_content_host
@@ -698,7 +697,7 @@ def test_positive_update_host_collection_with_default_org(module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 def test_positive_add_redhat_product(module_org):
     """Test that RH product can be associated to Activation Keys
@@ -753,7 +752,7 @@ def test_positive_add_custom_product(module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -825,7 +824,7 @@ def test_positive_delete_manifest(module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_delete_subscription(module_manifest_org):
     """Check if deleting a subscription removes it from Activation key
@@ -859,7 +858,7 @@ def test_positive_delete_subscription(module_manifest_org):
     assert len(ak_subs_info) == 4
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.libvirt_content_host
@@ -896,7 +895,7 @@ def test_positive_update_aks_to_chost(module_org):
             assert vm.subscribed
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.stubbed
 @pytest.mark.tier3
 def test_positive_update_aks_to_chost_in_one_command(module_org):
@@ -1196,7 +1195,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 def test_positive_add_subscription_by_id(module_org):
     """Test that subscription can be added to activation key
@@ -1292,7 +1291,7 @@ def test_negative_copy_with_same_name(module_org):
 
 
 @pytest.mark.run_in_one_thread
-@skip_if_not_set('fake_manifest')
+@pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_copy_subscription(module_manifest_org):
@@ -1571,7 +1570,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
     assert subscriptions[0]['id'] == subscription_id
 
 
-@skip_if_not_set('clients')
+@pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')

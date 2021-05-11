@@ -4,8 +4,8 @@ import pytest
 from _pytest.junitxml import xml_key
 from xdist import get_xdist_worker_id
 
+from robottelo.config import setting_is_set
 from robottelo.config import settings
-from robottelo.decorators import setting_is_set
 
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'

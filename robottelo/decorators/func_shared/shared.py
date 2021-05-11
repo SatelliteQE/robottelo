@@ -97,8 +97,8 @@ from importlib import import_module
 
 from nailgun.entities import Entity
 
+from robottelo.config import setting_is_set
 from robottelo.config import settings
-from robottelo.decorators import setting_is_set
 from robottelo.decorators.func_shared import file_storage
 from robottelo.decorators.func_shared import redis_storage
 from robottelo.decorators.func_shared.file_storage import FileStorageHandler

@@ -22,7 +22,6 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.api.utils import configure_provisioning
 from robottelo.api.utils import create_discovered_host
-from robottelo.decorators import skip_if_not_set
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.products import RHELRepository
 
@@ -110,7 +109,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
         return bool(result.return_code)
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
+@pytest.mark.skip_if_not_set('compute_resources', 'vlan_networking')
 @pytest.mark.tier3
 @pytest.mark.vlan_networking
 @pytest.mark.libvirt_discovery
@@ -138,7 +137,7 @@ def test_positive_pxe_based_discovery(session, provisioning_env):
             assert discovered_host_values['Name'] == host_name
 
 
-@skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
+@pytest.mark.skip_if_not_set('compute_resources', 'discovery', 'vlan_networking')
 @pytest.mark.tier3
 @pytest.mark.vlan_networking
 @pytest.mark.libvirt_discovery
@@ -342,7 +341,7 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
         assert len(values['hosts']) == 2
 
 
-@skip_if_not_set('compute_resources', 'vlan_networking')
+@pytest.mark.skip_if_not_set('compute_resources', 'vlan_networking')
 @pytest.mark.libvirt_discovery
 @pytest.mark.vlan_networking
 @pytest.mark.tier3

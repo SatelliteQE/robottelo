@@ -33,6 +33,7 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
@@ -42,8 +43,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.decorators import setting_is_set
-from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
@@ -1062,7 +1061,7 @@ class TestEndToEnd(ClientProvisioningMixin):
             [service['status'] == 'ok' for service in services.values()]
         ), 'Not all services seem to be up and running!'
 
-    @skip_if_not_set('compute_resources')
+    @pytest.mark.skip_if_not_set('compute_resources')
     @pytest.mark.tier4
     @pytest.mark.on_premises_provisioning
     @pytest.mark.upgrade

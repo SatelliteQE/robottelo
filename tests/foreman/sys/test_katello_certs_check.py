@@ -495,45 +495,6 @@ class TestKatelloCertsCheck:
         :CaseAutomation: NotAutomated
         """
 
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_negative_check_for_non_ascii_characters(self):
-        """Validate non ascii character in certs.
-
-        :id: c6a5e60d-e6d6-420c-b153-c6edb4ad7c99
-
-        :steps:
-
-            1. Create certs with ascii characters
-            2. Run katello-certs-check with the required arguments
-
-        :expectedresults: Check for non ascii character should fail gracefully
-                          e.g. no traces.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_positive_validate_without_req_file_output(self):
-        """Check katello-certs-check without -r REQ_FILE generates correct command.
-
-        :id: b7d782eb-28ea-47e9-8661-1b5e5201c82f
-
-        :steps:
-
-            1. Generate custom certs
-            2. Run katello-certs-check with the required valid arguments and
-               without -r REQ_FILE option
-               katello-certs-check -c CERT_FILE -k KEY_FILE -b CA_BUNDLE_FILE
-            3. Assert the output has correct commands with options
-
-        :expectedresults: Katello-certs-check should generate correct commands
-            with options.
-
-        :CaseAutomation: NotAutomated
-        """
-
 
 class TestCapsuleCertsCheckTestCase:
     """Implements Capsule certs checks on Satellite Server.

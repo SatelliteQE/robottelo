@@ -25,14 +25,16 @@ ensure that Paramiko's dependencies build correctly:
 * Python development headers
 * libffi
 
-On Fedora, you can install these with the following command:
 
 Recommendation: Create virtual python environment for the following setup.
 Create virtual environment for python 3.x::
-$ python3 -m venv /path/to/new/virtual/environment
+$ python3 -m venv <virtual_env_path>
 To activate virtual environment:
-$ source /path/to/new/virtual/environment/bin/activate
+$ source <virtual_env_path>/bin/activate
+To end the session:
+$ deactivate
 
+On Fedora, you can install these with the following command:
 
 For python3.x::
 
@@ -98,14 +100,16 @@ Running the Tests
 
 Before running any tests, you must create a configuration file::
 
-    $ cp broker/path/broker_settings.yaml ./broker_settings.yaml
-    $ vi broker_settings.yaml
-    $ cp robottelo.yaml.sample ./robottelo.yaml
-    $ vi robottelo.yaml
-    $ cp conf/server.yaml.template conf/server.yaml
-    $ vi server.yaml
     $ cp virtwho.properties.sample ./virtwho.properties
     $ vi virtwho.properties
+    $ cd conf
+    $ cp broker.yaml.template ./broker.yaml
+    $ vi broker.yaml
+    $ cp robottelo.yaml.template ./robottelo.yaml
+    $ vi robottelo.yaml
+    $ cp server.yaml.template ./server.yaml
+    $ vi server.yaml
+    
 
 That done, you can run tests using ``make``::
 

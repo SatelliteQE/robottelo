@@ -49,7 +49,6 @@ from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import skip_if_not_set
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.helpers import get_nailgun_config
@@ -1043,7 +1042,7 @@ class TestContentViewDelete:
 class TestContentViewRedHatContent:
     """Tests for publishing and promoting content views."""
 
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_org, module_cv):
         """Set up organization, product and repositories for tests."""
@@ -1587,7 +1586,7 @@ class TestContentViewRedHatOstreeContent:
 
     @pytest.mark.run_in_one_thread
     @skip_if_os('RHEL6')
-    @skip_if_not_set('fake_manifest')
+    @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_org):
         """Set up organization, product and repositories for tests."""

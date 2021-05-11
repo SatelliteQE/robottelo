@@ -1,0 +1,7 @@
+SUBSCRIPTION:
+  # subscription username
+  RHN_USERNAME:
+  # subscription password
+  RHN_PASSWORD:
+  # subscription pool id
+  RHN_POOLID:
