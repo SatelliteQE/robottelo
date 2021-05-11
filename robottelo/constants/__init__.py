@@ -333,6 +333,7 @@ PRDS = {
     'rhdt': 'Red Hat Developer Tools for RHEL Server',
     'rhscl': 'Red Hat Software Collections (for RHEL Server)',
     'rhae': 'Red Hat Ansible Engine',
+    'rhel8': 'Red Hat Enterprise Linux for x86_64',
 }
 
 REPOSET = {
@@ -355,6 +356,7 @@ REPOSET = {
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
+    'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -543,6 +545,15 @@ REPOS = {
         'product': PRDS['rhae'],
         'distro': DISTRO_RHEL7,
         'key': 'rhae2',
+    },
+    'rhst8': {
+        'id': 'satellite-tools-6.9-for-rhel-8-x86_64-rpms',
+        'name': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 RPMs',
+        'version': '6.9',
+        'reposet': REPOSET['rhst8'],
+        'product': PRDS['rhel8'],
+        'distro': DISTRO_RHEL8,
+        'key': 'rhst',
     },
 }
 

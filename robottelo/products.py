@@ -474,7 +474,6 @@ class GenericRHRepository(BaseRepository):
         """Set a new distro value, we have to reinitialise the repo data also,
         if not found raise exception
         """
-
         if distro is not None and distro not in DISTROS_SUPPORTED:
             raise DistroNotSupportedError(f'distro "{distro}" not supported')
         if distro is None:
@@ -982,7 +981,9 @@ class RepositoryCollection:
             rh_repos_id = [getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
         custom_repos_label = []  # type: List[str]
         if enable_custom_repos:
-            custom_repos_label = [repo['label'] for repo in self.custom_repos_info]
+            custom_repos_label = [
+                repo['label'] for repo in self.custom_repos_info if repo['content-type'] == 'yum'
+            ]
 
         setup_virtual_machine(
             vm,
