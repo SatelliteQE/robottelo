@@ -2276,11 +2276,11 @@ def setup_virtual_machine(
             result = vm.run(
                 f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
             )
-            if result.return_code != 0:
+            # Check for either status or return_code attribute, depending on ssh implementation
+            status = getattr(result, 'status', getattr(result, 'return_code', None))
+            if status != 0:
                 raise CLIFactoryError(
-                    'Failed to enable custom repository "{}"\n{}'.format(
-                        repos_label, result.stderr
-                    )
+                    f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
                 )
     if install_katello_agent:
         vm.install_katello_agent()
