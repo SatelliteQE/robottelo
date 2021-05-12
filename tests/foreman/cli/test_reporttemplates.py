@@ -16,10 +16,10 @@
 :Upstream: No
 """
 import pytest
+from broker import VMBroker
 from fauxfactory import gen_alpha
 
 from robottelo import manifests
-from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import Base
 from robottelo.cli.base import CLIReturnCodeError
@@ -41,6 +41,7 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_template_input
 from robottelo.cli.factory import make_user
+from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
@@ -53,7 +54,6 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
@@ -62,8 +62,9 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import FAKE_6_YUM_REPO
+from robottelo.hosts import ContentHost
 from robottelo.ssh import upload_file
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='module')
@@ -747,9 +748,8 @@ def test_positive_generate_ansible_template():
 
 
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 def test_positive_generate_entitlements_report_multiple_formats(
-    local_org, local_ak, local_subscription
+    local_org, local_ak, local_subscription, rhel7_contenthost
 ):
     """Generate an report using the Subscription - Entitlement Report template
     in html, yaml, and csv format.
@@ -767,50 +767,51 @@ def test_positive_generate_entitlements_report_multiple_formats(
 
     :BZ: 1830289
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(local_org['label'], local_ak['name'])
-        assert vm.subscribed
-        result_html = ReportTemplate.generate(
-            {
-                'organization': local_org['name'],
-                'name': 'Subscription - Entitlement Report',
-                'report-format': 'html',
-                'inputs': 'Days from Now=no limit',
-            }
-        )
-        assert vm.hostname in result_html[2]
-        assert local_subscription['name'] in result_html[2]
-        result_yaml = ReportTemplate.generate(
-            {
-                'organization': local_org['name'],
-                'name': 'Subscription - Entitlement Report',
-                'report-format': 'yaml',
-                'inputs': 'Days from Now=no limit',
-            }
-        )
-        for entry in result_yaml:
-            if '-Name:' in entry:
-                assert vm.hostname in entry
-            elif 'Subscription Name:' in entry:
-                assert local_subscription['name'] in entry
-        result_csv = ReportTemplate.generate(
-            {
-                'organization': local_org['name'],
-                'name': 'Subscription - Entitlement Report',
-                'report-format': 'csv',
-                'inputs': 'Days from Now=no limit',
-            }
-        )
-        assert vm.hostname in result_csv[1]
-        assert local_subscription['name'] in result_csv[1]
-        # BZ 1830289
-        assert 'Subscription Quantity' in result_csv[0]
+    client = rhel7_contenthost
+    client.install_katello_ca()
+    client.register_contenthost(local_org['label'], local_ak['name'])
+    assert client.subscribed
+    result_html = ReportTemplate.generate(
+        {
+            'organization': local_org['name'],
+            'name': 'Subscription - Entitlement Report',
+            'report-format': 'html',
+            'inputs': 'Days from Now=no limit',
+        }
+    )
+    assert client.hostname in result_html[2]
+    assert local_subscription['name'] in result_html[2]
+    result_yaml = ReportTemplate.generate(
+        {
+            'organization': local_org['name'],
+            'name': 'Subscription - Entitlement Report',
+            'report-format': 'yaml',
+            'inputs': 'Days from Now=no limit',
+        }
+    )
+    for entry in result_yaml:
+        if '-Name:' in entry:
+            assert client.hostname in entry
+        elif 'Subscription Name:' in entry:
+            assert local_subscription['name'] in entry
+    result_csv = ReportTemplate.generate(
+        {
+            'organization': local_org['name'],
+            'name': 'Subscription - Entitlement Report',
+            'report-format': 'csv',
+            'inputs': 'Days from Now=no limit',
+        }
+    )
+    assert client.hostname in result_csv[1]
+    assert local_subscription['name'] in result_csv[1]
+    # BZ 1830289
+    assert 'Subscription Quantity' in result_csv[0]
 
 
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
-def test_positive_schedule_entitlements_report(local_org, local_ak, local_subscription):
+def test_positive_schedule_entitlements_report(
+    local_org, local_ak, local_subscription, rhel7_contenthost
+):
     """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
     :id: 572fb387-86e0-40e2-b2df-e8ec26433610
@@ -826,32 +827,31 @@ def test_positive_schedule_entitlements_report(local_org, local_ak, local_subscr
     :expectedresults: report is scheduled and generated containing all the expected information
                       regarding entitlements.
     """
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(local_org['label'], local_ak['name'])
-        assert vm.subscribed
-        scheduled_csv = ReportTemplate.schedule(
-            {
-                'name': 'Subscription - Entitlement Report',
-                'organization': local_org['name'],
-                'report-format': 'csv',
-                'inputs': 'Days from Now=no limit',
-            }
-        )
-        data_csv = ReportTemplate.report_data(
-            {
-                'name': 'Subscription - Entitlement Report',
-                'job-id': scheduled_csv[0].split('Job ID: ', 1)[1],
-            }
-        )
-        assert any(vm.hostname in line for line in data_csv)
-        assert any(local_subscription['name'] in line for line in data_csv)
+    client = rhel7_contenthost
+    client.install_katello_ca()
+    client.register_contenthost(local_org['label'], local_ak['name'])
+    assert client.subscribed
+    scheduled_csv = ReportTemplate.schedule(
+        {
+            'name': 'Subscription - Entitlement Report',
+            'organization': local_org['name'],
+            'report-format': 'csv',
+            'inputs': 'Days from Now=no limit',
+        }
+    )
+    data_csv = ReportTemplate.report_data(
+        {
+            'name': 'Subscription - Entitlement Report',
+            'job-id': scheduled_csv[0].split('Job ID: ', 1)[1],
+        }
+    )
+    assert any(client.hostname in line for line in data_csv)
+    assert any(local_subscription['name'] in line for line in data_csv)
 
 
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 def test_positive_generate_hostpkgcompare(
-    request, local_org, local_ak, local_subscription, local_environment
+    local_org, local_ak, local_content_view, local_environment
 ):
     """Generate 'Host - compare content hosts packages' report
 
@@ -883,62 +883,72 @@ def test_positive_generate_hostpkgcompare(
             'activationkey-id': local_ak['id'],
         }
     )
-
-    hosts = []
-    for _ in [0, 1]:
-        # Create VM and register content host
-        client = VirtualMachine(distro=DISTRO_RHEL7)
-        client.create()
-        request.addfinalizer(lambda: vm_cleanup(client))
-        client.install_katello_ca()
-        # Register content host, install katello-agent
-        client.register_contenthost(local_org['label'], local_ak['name'])
-        assert client.subscribed
-        hosts.append(Host.info({'name': client.hostname}))
-        client.enable_repo(REPOS['rhst7']['id'])
-        client.install_katello_agent()
-    hosts.sort(key=lambda host: host['name'])
-
-    host1, host2 = hosts
-    Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
-    Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
-    Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
-
-    result = ReportTemplate.generate(
+    setup_org_for_a_custom_repo(
         {
-            'name': 'Host - compare content hosts packages',
-            'inputs': f'Host 1 = {host1["name"]}, ' f'Host 2 = {host2["name"]}',
+            'url': FAKE_6_YUM_REPO,
+            'organization-id': local_org['id'],
+            'content-view-id': local_content_view['id'],
+            'lifecycle-environment-id': local_environment['id'],
+            'activationkey-id': local_ak['id'],
         }
     )
-    result.remove('')
 
-    assert len(result) > 1
-    headers = f'Package,{host1["name"]},{host2["name"]},Architecture,Status'
-    assert headers == result[0]
-    items = [item.split(',') for item in result[1:]]
-    assert len(items)
-    for item in items:
-        assert len(item) == 5
-        name, host1version, host2version, arch, status = item
-        assert len(name)
-        assert (
-            (host1version == '-' and name in host2version)
-            or (name in host1version and host2version == '-')
-            or (name in host1version and name in host2version)
+    hosts_info = []
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        for client in hosts:
+            # Create RHEL hosts via broker and register content host
+            client.install_katello_ca()
+            # Register content host, install katello-agent
+            client.register_contenthost(local_org['label'], local_ak['name'])
+            assert client.subscribed
+            hosts_info.append(Host.info({'name': client.hostname}))
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+        hosts_info.sort(key=lambda host: host['name'])
+
+        host1, host2 = hosts_info
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_0_CUSTOM_PACKAGE_NAME})
+        Host.package_install({'host-id': host1['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
+        Host.package_install({'host-id': host2['id'], 'packages': FAKE_2_CUSTOM_PACKAGE})
+
+        result = ReportTemplate.generate(
+            {
+                'name': 'Host - compare content hosts packages',
+                'inputs': f'Host 1 = {host1["name"]}, ' f'Host 2 = {host2["name"]}',
+            }
         )
-        assert arch in ['x86_64', 'i686', 's390x', 'ppc64', 'ppc64le', 'noarch']
-        assert status in (
-            'same version',
-            f'{host1["name"]} only',
-            f'{host2["name"]} only',
-            f'lower in {host1["name"]}',
-            f'greater in {host1["name"]}',
-        )
-        # test for specific installed packages
-        if name == FAKE_0_CUSTOM_PACKAGE_NAME:
-            assert status == f'{host1["name"]} only'
-        if name == FAKE_1_CUSTOM_PACKAGE_NAME:
-            assert status == f'lower in {host1["name"]}' or status == f'greater in {host2["name"]}'
+        result.remove('')
+
+        assert len(result) > 1
+        headers = f'Package,{host1["name"]},{host2["name"]},Architecture,Status'
+        assert headers == result[0]
+        items = [item.split(',') for item in result[1:]]
+        assert len(items)
+        for item in items:
+            assert len(item) == 5
+            name, host1version, host2version, arch, status = item
+            assert len(name)
+            assert (
+                (host1version == '-' and name in host2version)
+                or (name in host1version and host2version == '-')
+                or (name in host1version and name in host2version)
+            )
+            assert arch in ['x86_64', 'i686', 's390x', 'ppc64', 'ppc64le', 'noarch']
+            assert status in (
+                'same version',
+                f'{host1["name"]} only',
+                f'{host2["name"]} only',
+                f'lower in {host1["name"]}',
+                f'greater in {host1["name"]}',
+            )
+            # test for specific installed packages
+            if name == FAKE_0_CUSTOM_PACKAGE_NAME:
+                assert status == f'{host1["name"]} only'
+            if name == FAKE_1_CUSTOM_PACKAGE_NAME:
+                assert (
+                    status == f'lower in {host1["name"]}'
+                    or status == f'greater in {host2["name"]}'
+                )
 
 
 @pytest.mark.tier3
