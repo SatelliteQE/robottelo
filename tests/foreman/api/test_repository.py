@@ -16,6 +16,7 @@
 
 :Upstream: No
 """
+import logging
 import tempfile
 from urllib.parse import urljoin
 
@@ -28,7 +29,6 @@ from requests.exceptions import HTTPError
 from requests.exceptions import SSLError
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
@@ -55,7 +55,6 @@ from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_7_PUPPET_REPO
-from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_DUPLICATE_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
 from robottelo.constants.repos import FEDORA26_OSTREE_REPO
@@ -70,6 +69,9 @@ from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
+
+
+logger = logging.getLogger('robottelo')
 
 
 @pytest.fixture
@@ -2169,99 +2171,6 @@ class TestSRPMRepository:
         assert len(entities.Srpms().search(query={'environment_id': env.id})) == 3
 
 
-@pytest.mark.skip_if_open('BZ:1682951')
-class TestDRPMRepository:
-    """Tests specific to using repositories containing delta RPMs."""
-
-    @pytest.mark.tier2
-    @pytest.mark.skip('Uses deprecated DRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync(self, module_org, module_product, repo):
-        """Synchronize repository with DRPMs
-
-        :id: 7816031c-b7df-49e0-bf42-7f6e2d9b0233
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in repository
-        """
-        repo.sync()
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
-            '/custom/{}/{}/drpms/ | grep .drpm'.format(
-                module_org.label, module_product.label, repo.label
-            )
-        )
-        assert result.return_code == 0
-        assert len(result.stdout) >= 1
-
-    @pytest.mark.tier2
-    @pytest.mark.skip('Uses deprecated DRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_cv(self, module_org, module_product, repo):
-        """Synchronize repository with DRPMs, add repository to content view
-        and publish content view
-
-        :id: dac4bd82-1433-4e5d-b82f-856056ca3924
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in content view
-        """
-        repo.sync()
-
-        cv = entities.ContentView(organization=module_org, repository=[repo]).create()
-        cv.publish()
-
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
-            '/1.0/custom/{}/{}/drpms/ | grep .drpm'.format(
-                module_org.label, cv.label, module_product.label, repo.label
-            )
-        )
-        assert result.return_code == 0
-        assert len(result.stdout) >= 1
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skip('Uses deprecated DRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_DRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, module_org, env, module_product, repo):
-        """Synchronize repository with DRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 44296354-8ca2-4ce0-aa16-398effc80d9c
-
-        :parametrized: yes
-
-        :expectedresults: drpms can be listed in content view in proper
-            lifecycle environment
-        """
-        repo.sync()
-        cv = entities.ContentView(organization=module_org, repository=repo).create()
-        cv.publish()
-        cv = cv.read()
-
-        promote(cv.version[0], env.id)
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
-            '/drpms/ | grep .drpm'.format(
-                module_org.label, env.name, cv.label, module_product.label, repo.label
-            )
-        )
-        assert result.return_code == 0
-        assert len(result.stdout) >= 1
-
-
 class TestSRPMRepositoryIgnoreContent:
     """Test whether SRPM content can be ignored during sync.
 
@@ -2482,46 +2391,19 @@ class TestFileRepository:
         pass
 
 
+@pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:
     """These test are similar to the ones in ``TestDockerRepository``,
     but test with more container registries and registries that use
     really long (>255 or >1024) tokens for passwords.
-    These test require container registry configs in the
-    container_repo section of robottelo.yaml
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: mzalewsk
+    :Assignee: mshriver
     """
 
-    @pytest.mark.skipif(
-        (not settings.container_repo.long_pass_registry), reason='long_pass_registry not set'
-    )
     @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content_type': 'docker',
-                    'docker_upstream_name': name,
-                    'name': gen_string('alpha'),
-                    'upstream_username': settings.container_repo.long_pass_registry[
-                        'registry_username'
-                    ],
-                    'upstream_password': settings.container_repo.long_pass_registry[
-                        'registry_password'
-                    ],
-                    'url': settings.container_repo.long_pass_registry['registry_url'],
-                }
-                for name in settings.container_repo.long_pass_registry['repos_to_sync']
-            ]
-            if settings.container_repo.long_pass_registry
-            else [None]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_with_long_token(self, repo_options, repo):
+    def test_positive_create_with_long_token(self, module_org, module_product, request):
         """Create and sync Docker-type repo from the Red Hat Container registry
         Using token based auth, with very long tokens (>255 characters).
 
@@ -2532,45 +2414,56 @@ class TestTokenAuthContainerRepository:
         :expectedresults: repo from registry with long password can be created
          and synced
         """
-        # First we want to confirm the provided token is > 255 charaters
-        assert (
-            len(repo_options['upstream_password']) > 255
-        ), 'Use a longer (>255) token for long_pass_test_registry'
+        # Make sure there is a long token repo to sync with
+        container_repos = [
+            repo
+            for _, repo in settings.container_repo.registries.items()
+            if getattr(repo, 'long_pass', False)
+        ]
+        try:
+            container_repo = container_repos[0]
+        except IndexError:
+            pytest.skip('No registries with "long_pass" set to true')
+        for docker_repo_name in container_repo.repos_to_sync:
+            repo_options = dict(
+                content_type='docker',
+                docker_upstream_name=docker_repo_name,
+                name=gen_string('alpha'),
+                upstream_username=container_repo.username,
+                upstream_password=container_repo.password,
+                url=container_repo.url,
+            )
+            repo_options['organization'] = module_org
+            repo_options['product'] = module_product
 
-        for k in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
-            assert getattr(repo, k) == repo_options[k]
-        repo.sync()
-        assert repo.read().content_counts['docker_manifest'] > 1
+            # First we want to confirm the provided token is > 255 characters
+            if not len(repo_options['upstream_password']) > 255:
+                pytest.skip('The "long_pass" registry does not meet length requirement')
 
-    @pytest.mark.skipif(
-        (not settings.container_repo.multi_registry_test_configs),
-        reason='multi_registry_test_config not set',
-    )
+            repo = entities.Repository(**repo_options).create()
+
+            @request.addfinalizer
+            def clean_repo():
+                try:
+                    repo.delete(synchronous=False)
+                except Exception:
+                    logger.exception('Exception cleaning up docker repo:')
+
+            repo = repo.read()
+            for field in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
+                assert getattr(repo, field) == repo_options[field]
+            repo.sync(timeout=600)
+            assert repo.read().content_counts['docker_manifest'] > 1
+
+    try:
+        container_repo_keys = settings.container_repo.registries.keys()
+    except AttributeError:
+        container_repo_keys = []
+
     @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options_multi',
-        **parametrized(
-            [
-                [
-                    {
-                        'content_type': 'docker',
-                        'docker_tags_whitelist': ['latest'],
-                        'docker_upstream_name': name,
-                        'name': gen_string('alpha'),
-                        'upstream_username': config['registry_username'],
-                        'upstream_password': config['registry_password'],
-                        'url': config['registry_url'],
-                    }
-                    for config in settings.container_repo.multi_registry_test_configs
-                    for name in config['repos_to_sync']
-                ]
-                if settings.container_repo.multi_registry_test_configs
-                else None
-            ]
-        ),
-    )
-    def test_positive_multi_registry(self, repo_options_multi, module_org, module_product):
-        """Create and sync Docker-type repos from multiple supported registries
+    @pytest.mark.parametrize('repo_key', container_repo_keys)
+    def test_positive_tag_whitelist(self, request, repo_key, module_org, module_product):
+        """Create and sync Docker-type repos from multiple supported registries with a tag whitelist
 
         :id: 4f8ea85b-4c69-4da6-a8ef-bd467ee35147
 
@@ -2578,9 +2471,33 @@ class TestTokenAuthContainerRepository:
 
         :expectedresults: multiple products and repos are created
         """
-        for options in repo_options_multi:
-            repo = entities.Repository(product=module_product, **options).create()
-            for k in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
-                assert getattr(repo, k) == options[k]
-            repo.sync()
-            assert repo.read().content_counts['docker_manifest'] >= 1
+        container_repo = getattr(settings.container_repo.registries, repo_key)
+        for docker_repo_name in container_repo.repos_to_sync:
+
+            repo_options = dict(
+                content_type='docker',
+                docker_upstream_name=docker_repo_name,
+                name=gen_string('alpha'),
+                upstream_username=container_repo.username,
+                upstream_password=container_repo.password,
+                url=container_repo.url,
+                docker_tags_whitelist=['latest'],
+            )
+            repo_options['organization'] = module_org
+            repo_options['product'] = module_product
+
+            repo = entities.Repository(**repo_options).create()
+
+            @request.addfinalizer
+            def clean_repo():
+                try:
+                    repo.delete(synchronous=False)
+                except Exception:
+                    logger.exception('Exception cleaning up docker repo:')
+
+            for field in 'name', 'docker_upstream_name', 'content_type', 'upstream_username':
+                assert getattr(repo, field) == repo_options[field]
+            repo.sync(timeout=600)
+            synced_repo = repo.read()
+            assert synced_repo.content_counts['docker_manifest'] >= 1
+            assert synced_repo.content_counts['docker_tag'] == 1

@@ -1,0 +1,19 @@
+# Container registry and repo set information to use for container repo syncing.
+CONTAINER_REPO:
+  registries:
+    redhat:
+      URL: https://registry.redhat.io
+      USERNAME:
+      PASSWORD:
+      REPOS_TO_SYNC:
+        - rhscl/mysql-57-rhel7
+        - rhscl/ruby-24-rhel7
+      # Boolean to control test collection for long-password based tests
+      LONG_PASS: True
+    quay:
+      URL: https://quay.io
+      USERNAME:
+      PASSWORD:
+      # I N C E P T I O N
+      REPOS_TO_SYNC:
+        - satelliteqe/robottelo
