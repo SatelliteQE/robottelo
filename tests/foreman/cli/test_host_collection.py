@@ -208,14 +208,15 @@ def test_positive_list_by_org_id(module_org):
     :CaseLevel: Integration
     """
     # Create two host collections within different organizations
+    make_host_collection({'organization-id': module_org.id})
     new_org = make_org()
-    host_col = make_host_collection({'organization-id': new_org['id']})
+    new_host_col = make_host_collection({'organization-id': new_org['id']})
     # List all host collections
     assert len(HostCollection.list()) >= 2
     # Filter list by org id
     result = HostCollection.list({'organization-id': new_org['id']})
     assert len(result) == 1
-    assert result[0]['id'] == host_col['id']
+    assert result[0]['id'] == new_host_col['id']
 
 
 @pytest.mark.tier2
