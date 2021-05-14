@@ -21,6 +21,7 @@ from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
+from wait_for import wait_for
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -548,6 +549,12 @@ def test_positive_schedule_entitlements_report(setup_content):
                 "input_values": {"Days from Now": "no limit"},
             }
         )
-        data_csv = rt.report_data(data={'id': rt.id, 'job_id': scheduled_csv['job_id']})
+        data_csv, _ = wait_for(
+            rt.report_data,
+            func_kwargs={'data': {'id': rt.id, 'job_id': scheduled_csv['job_id']}},
+            fail_condition=None,
+            timeout=300,
+            delay=10,
+        )
         assert vm.hostname in data_csv
         assert DEFAULT_SUBSCRIPTION_NAME in data_csv
