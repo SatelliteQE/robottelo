@@ -267,6 +267,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_discover_repo_via_existing_product(session, module_org):
     """Create repository via repo-discovery under existing product
 
@@ -294,6 +295,7 @@ def test_positive_discover_repo_via_existing_product(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_discover_repo_via_new_product(session, module_org):
     """Create repository via repo discovery under new product
 
