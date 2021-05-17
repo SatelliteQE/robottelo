@@ -12,6 +12,14 @@ def foreman_service_teardown():
     run_command('foreman-maintain service start --only=foreman')
 
 
+@pytest.fixture
+def allow_repo_discovery():
+    """Set SELinux boolean to allow Rails to connect to non-standard ports."""
+    ssh_command('setsebool foreman_rails_can_connect_all on')
+    yield
+    ssh_command('setsebool foreman_rails_can_connect_all off')
+
+
 @pytest.fixture(autouse=True, scope="session")
 def relax_bfa():
     """Relax BFA protection against failed login attempts
