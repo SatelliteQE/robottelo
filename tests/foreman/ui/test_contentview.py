@@ -78,6 +78,7 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
+from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
@@ -3600,7 +3601,11 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
         3. add a custom repository to content view
 
     :expectedresults: User with read only role for content view cannot
-        Modify, Delete, Publish, Promote the content views
+        Modify, Delete, Publish, Promote the content views.  Additionally,
+        users cannot create content view, create product, create host collection,
+        create activation key, or see repo discovery
+
+    :BZ: 1922134
 
     :CaseLevel: Integration
 
@@ -3635,6 +3640,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
     ).create()
     repo_id = create_sync_custom_repo(module_org.id)
     yum_repo = entities.Repository(id=repo_id).read()
+    repo_name = 'fakerepo01'
     cv = entities.ContentView(organization=module_org, repository=[yum_repo]).create()
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as custom_session:
@@ -3643,8 +3649,10 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
                 {'name': gen_string('alpha'), 'label': gen_string('alpha')}
             )
         assert custom_session.contentview.search(cv.name)[0]['Name'] == cv.name
+        # Cannot update content view
         with pytest.raises(InvalidElementStateException):
             custom_session.contentview.update(cv.name, {'details.name': gen_string('alpha')})
+        # Cannot publish content view
         with pytest.raises(NavigationTriesExceeded) as context:
             custom_session.contentview.publish(cv.name)
         assert 'failed to reach [Publish]' in str(context.value)
@@ -3652,9 +3660,39 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
         result = session.contentview.publish(cv.name)
         assert result['Version'] == VERSION
     with Session(test_name, user=user_login, password=user_password) as session:
+        # Cannot create content view
+        with pytest.raises(NoSuchElementException) as context:
+            session.contentview.create({'name': gen_string('alpha')})
+        assert 'Could not find an element' in str(context.value)
+        # Cannot create activation key
+        with pytest.raises(NavigationTriesExceeded) as context:
+            session.activationkey.create({'name': gen_string('alpha')})
+        assert 'failed to reach [All]' in str(context.value)
+        # Cannot create product
+        with pytest.raises(NavigationTriesExceeded) as context:
+            session.product.create({'name': gen_string('alpha')})
+        assert 'failed to reach [All]' in str(context.value)
+        # Cannot create host collection
+        with pytest.raises(NavigationTriesExceeded) as context:
+            session.hostcollection.create({'name': gen_string('alpha')})
+        assert 'failed to reach [All]' in str(context.value)
+        # Cannot create discovery repo
+        with pytest.raises(NavigationTriesExceeded) as context:
+            session.product.discover_repo(
+                {
+                    'repo_type': 'Yum Repositories',
+                    'url': REPO_DISCOVERY_URL,
+                    'discovered_repos.repos': repo_name,
+                    'create_repo.product_type': 'Existing Product',
+                    'create_repo.product_content.product_name': gen_string('alpha'),
+                }
+            )
+        assert 'failed to reach [All]' in str(context.value)
+        # Cannot promote content view
         with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.promote(cv.name, VERSION, lce.name)
         assert 'failed to reach [Promote]' in str(context.value)
+        # Cannot delete content view
         with pytest.raises(NavigationTriesExceeded) as context:
             session.contentview.delete(cv.name)
         assert 'failed to reach [Delete]' in str(context.value)

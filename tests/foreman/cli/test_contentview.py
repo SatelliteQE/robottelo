@@ -26,6 +26,7 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.contentview import ContentView
@@ -45,9 +46,11 @@ from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.location import Location
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.org import Org
+from robottelo.cli.product import Product
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -4094,7 +4097,10 @@ class TestContentView:
         :setup: create a user with the Content View read-only role
 
         :expectedresults: User with read-only role for content view can view
-            the content view but not Create / Modify / Promote / Publish
+            the content view but not Create / Modify / Promote / Publish /
+            create product / create host collection / create activation key
+
+        :BZ: 1922134
 
         :CaseLevel: Integration
 
@@ -4138,6 +4144,21 @@ class TestContentView:
                     'organization-id': module_org.id,
                     'to-lifecycle-environment-id': environment['id'],
                 }
+            )
+        # or create a product
+        with pytest.raises(CLIReturnCodeError):
+            Product.with_user(user['login'], password).create(
+                {'name': gen_string('alpha'), 'organization-id': module_org.id}
+            )
+        # cannot create activation key
+        with pytest.raises(CLIReturnCodeError):
+            ActivationKey.with_user(user['login'], password).create(
+                {'name': gen_string('alpha'), 'organization-id': module_org.id}
+            )
+        # cannot create host collection
+        with pytest.raises(CLIReturnCodeError):
+            HostCollection.with_user(user['login'], password).create(
+                {'organization-id': module_org.id}
             )
 
     @pytest.mark.tier2
