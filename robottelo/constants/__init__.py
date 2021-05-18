@@ -727,8 +727,8 @@ REAL_RHEL7_0_0_PACKAGE = 'python-pulp-common-2.21.0-1.el7sat.noarch'
 REAL_RHEL7_0_0_PACKAGE_NAME = 'python-pulp-common'
 REAL_RHEL7_0_1_PACKAGE = 'python-pulp-common-2.21.0.2-1.el7sat.noarch '
 REAL_RHEL7_0_1_PACKAGE_FILENAME = 'python-pulp-common-2.21.0.2-1.el7sat.noarch.rpm'
-REAL_RHEL7_0_2_PACKAGE_NAME = 'python-psutil'
-REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python-psutil-5.0.1-3.el7sat.x86_64.rpm'
+REAL_RHEL7_0_2_PACKAGE_NAME = 'python2-psutil'  # for RHBA-2021:1314
+REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
@@ -781,7 +781,7 @@ FAKE_2_ERRATA_ID = 'RHSA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:3733'  # for FAKE_3_YUM_REPO
 FAKE_4_ERRATA_ID = 'WALRUS-2013:0002'
 FAKE_5_ERRATA_ID = 'RHBA-2012:1030'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
-REAL_0_ERRATA_ID = 'RHBA-2020:4367'  # for rhst7 (update every GA day)
+REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
