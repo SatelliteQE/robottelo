@@ -18,17 +18,11 @@
 
 """
 import re
-from pathlib import Path
 
 import pytest
-from fauxfactory import gen_string
 
-from robottelo import ssh
-from robottelo.config import settings
-from robottelo.helpers import get_data_file
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
-from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -64,98 +58,6 @@ class TestKatelloCertsCheck:
         ),
     ]
 
-    @pytest.fixture(scope="module")
-    def cert_data(self):
-        """Get host name, scripts, and create working directory."""
-        sat6_hostname = settings.server.hostname
-        capsule_hostname = 'capsule.example.com'
-        key_file_name = '{0}/{0}.key'.format(sat6_hostname)
-        cert_file_name = '{0}/{0}.crt'.format(sat6_hostname)
-        ca_bundle_file_name = 'cacert.crt'
-        success_message = "Validation succeeded"
-        cert_data = {
-            'sat6_hostname': sat6_hostname,
-            'capsule_hostname': capsule_hostname,
-            'key_file_name': key_file_name,
-            'cert_file_name': cert_file_name,
-            'ca_bundle_file_name': ca_bundle_file_name,
-            'success_message': success_message,
-        }
-        return cert_data
-
-    @pytest.fixture()
-    def cert_setup(self, cert_data):
-        """copy all configuration files to satellite host for generating custom certs"""
-        # Need a subdirectory under ssl-build with same name as Capsule name
-        with get_connection(timeout=100) as connection:
-            connection.run('mkdir ssl-build/{}'.format(cert_data['capsule_hostname']))
-            # Ignore creation error, but assert directory exists
-            assert connection.run('test -e ssl-build/{}'.format(cert_data['capsule_hostname']))
-        upload_file(
-            local_file=get_data_file('generate-ca.sh'),
-            remote_file="generate-ca.sh",
-        )
-        upload_file(
-            local_file=get_data_file('generate-crt.sh'),
-            remote_file="generate-crt.sh",
-        )
-        upload_file(local_file=get_data_file('openssl.cnf'), remote_file="openssl.cnf")
-        # create the CA cert.
-        with get_connection(timeout=300) as connection:
-            result = connection.run('echo 100001 > serial')
-            result = connection.run("bash generate-ca.sh")
-            assert result.return_code == 0
-        # create the Satellite's cert
-        with get_connection(timeout=300) as connection:
-            result = connection.run(
-                "yes | bash {} {}".format('generate-crt.sh', cert_data['sat6_hostname'])
-            )
-            assert result.return_code == 0
-
-    @pytest.fixture()
-    def certs_cleanup(self):
-        """cleanup all cert configuration files"""
-        yield
-        files = [
-            'cacert.crt',
-            'cacert.crt',
-            'certindex*',
-            'generate-*.sh',
-            'capsule_cert' 'openssl.cnf',
-            'private',
-            'serial*',
-            'certs/*',
-            settings.server.hostname,
-        ]
-        with get_connection(timeout=300) as connection:
-            files = " ".join(files)
-            result = connection.run(f"rm -rf {files}")
-            assert result.return_code == 0
-
-    @pytest.fixture()
-    def generate_certs(self):
-        """generate custom certs in satellite host"""
-        upload_file(
-            local_file=get_data_file('certs.sh'),
-            remote_file="certs.sh",
-        )
-        upload_file(
-            local_file=get_data_file('extensions.txt'),
-            remote_file="extensions.txt",
-        )
-        with get_connection(timeout=300) as connection:
-            result = connection.run("bash certs.sh")
-            assert result.return_code == 0
-
-    @pytest.fixture()
-    def update_system_date(self):
-        """update the satellite date to verify cert expiration"""
-        result = ssh.command("date -s 'next year'")
-        assert result.return_code == 0
-        yield
-        result = ssh.command("date -s 'last year'")
-        assert result.return_code == 0, 'Failed to revert the date setting'
-
     def validate_output(self, result, cert_data):
         """Validate katello-certs-check output against a set.
 
@@ -188,7 +90,7 @@ class TestKatelloCertsCheck:
 
     @pytest.mark.tier1
     def test_positive_validate_katello_certs_check_output(
-        self, cert_setup, cert_data, certs_cleanup
+        self, custom_certs_factory, certs_cleanup
     ):
         """Validate that katello-certs-check generates correct output.
 
@@ -205,6 +107,7 @@ class TestKatelloCertsCheck:
         :expectedresults: Katello-certs-check should generate correct commands
          with options.
         """
+        cert_data = custom_certs_factory()
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c {} -k {} -b {}'.format(
@@ -235,6 +138,7 @@ class TestKatelloCertsCheck:
         :expectedresults: katello-certs-check should generate correct commands
          with options.
         """
+        cert_data = cert_data()
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c certs/wildcard.crt -k certs/wildcard.key -b certs/ca.crt',
@@ -280,7 +184,7 @@ class TestKatelloCertsCheck:
                 pytest.fail('Failed to receive the error for invalid katello-cert-check')
 
     @pytest.mark.destructive
-    def test_positive_update_katello_certs(self, cert_setup, cert_data, certs_cleanup):
+    def test_positive_update_katello_certs(self, custom_certs_factory, certs_cleanup):
         """Update certificates on a currently running satellite instance.
 
         :id: 0ddf6954-dc83-435e-b156-b567b877c2a5
@@ -298,6 +202,7 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: Automated
         """
+        cert_data = custom_certs_factory()
         try:
             with get_connection(timeout=600) as connection:
                 # Check for hammer ping SSL cert error
@@ -337,7 +242,7 @@ class TestKatelloCertsCheck:
 
     @pytest.mark.destructive
     def test_positive_generate_capsule_certs_using_absolute_path(
-        self, cert_setup, cert_data, certs_cleanup
+        self, custom_certs_factory, certs_cleanup
     ):
         """Create Capsule certs using absolute paths.
 
@@ -357,6 +262,7 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: Automated
         """
+        cert_data = custom_certs_factory()
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
@@ -390,7 +296,7 @@ class TestKatelloCertsCheck:
     @pytest.mark.destructive
     @pytest.mark.upgrade
     def test_positive_generate_capsule_certs_using_relative_path(
-        self, cert_setup, cert_data, certs_cleanup
+        self, custom_certs_factory, certs_cleanup
     ):
         """Create Capsule certs using relative paths.
 
@@ -409,6 +315,7 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: Automated
         """
+        cert_data = custom_certs_factory()
         with get_connection(timeout=300) as connection:
             connection.run('mkdir -p /root/capsule_cert')
             connection.run(
@@ -440,7 +347,7 @@ class TestKatelloCertsCheck:
 
     @pytest.mark.tier1
     def test_negative_check_expiration_of_certificate(
-        self, cert_setup, cert_data, update_system_date, certs_cleanup
+        self, custom_certs_factory, update_system_date, certs_cleanup
     ):
         """Check expiration of certificate.
 
@@ -456,6 +363,7 @@ class TestKatelloCertsCheck:
 
         :CaseAutomation: NotAutomated
         """
+        cert_data = custom_certs_factory()
         with get_connection() as connection:
             result = connection.run(
                 'katello-certs-check -c {} -k {} -b {}'.format(
@@ -520,30 +428,6 @@ class TestCapsuleCertsCheckTestCase:
     Creates a temporary subdirectory and file under /var/tmp/
     on both Satellite Server's base system and on local host.
     """
-
-    @pytest.fixture(scope="module")
-    def file_setup(self):
-        """Create working directory and file."""
-        capsule_hostname = 'capsule.example.com'
-        tmp_dir = '/var/tmp/{}'.format(gen_string('alpha', 6))
-        caps_cert_file = f'{tmp_dir}/ssl-build/capsule.example.com/cert-data'
-        # Use same path locally as on remote for storing files
-        Path(f'{tmp_dir}/ssl-build/capsule.example.com/').mkdir(parents=True, exist_ok=True)
-        with get_connection(timeout=200) as connection:
-            result = ssh.command(f'mkdir {tmp_dir}')
-            assert result.return_code == 0, 'Create working directory failed.'
-            # Generate a Capsule cert for capsule.example.com
-            result = connection.run(
-                'capsule-certs-generate '
-                '--foreman-proxy-fqdn capsule.example.com '
-                '--certs-tar {}/capsule_certs.tar '.format(tmp_dir),
-                timeout=100,
-            )
-        return {
-            'tmp_dir': tmp_dir,
-            'caps_cert_file': caps_cert_file,
-            'capsule_hostname': capsule_hostname,
-        }
 
     @pytest.mark.tier1
     def test_positive_validate_capsule_certificate(self, file_setup):
