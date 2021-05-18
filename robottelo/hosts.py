@@ -16,6 +16,7 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
+from robottelo.helpers import InstallerCommand
 from robottelo.helpers import remove_katello_ca
 
 logger = logging.getLogger('robottelo')
@@ -51,6 +52,14 @@ class ContentHostError(Exception):
     pass
 
 
+class CapsuleHostError(Exception):
+    pass
+
+
+class SatelliteHostError(Exception):
+    pass
+
+
 class ContentHost(Host):
     run = Host.execute
     subscribed = False
@@ -70,6 +79,13 @@ class ContentHost(Host):
     def ip_addr(self):
         ipv4, ipv6 = self.execute('hostname -I').stdout.split()
         return ipv4
+
+    def setup(self):
+        self.remove_katello_ca()
+        self.execute('subscription-manager clean')
+
+    def teardown(self):
+        self.unregister()
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
@@ -446,15 +462,57 @@ class Capsule(ContentHost):
             if error_msg in line:
                 return line.replace(error_msg, '').strip()
 
-    def install(self, **cmd_kwargs):
+    def install(self, installer_obj=None, cmd_args=None, cmd_kwargs=None):
         """General purpose installer"""
-        command_args = {'scenario': self.__class__.__name__.lower()}
-        command_args.update(cmd_kwargs)
-        command_args = ' '.join(
-            [f'--{key.replace("_", "-")} {value}' for key, value in command_args.items()]
+        if not installer_obj:
+            command_opts = {'scenario': self.__class__.__name__.lower()}
+            command_opts.update(cmd_kwargs)
+            installer_obj = InstallerCommand(*cmd_args, **command_opts)
+        return self.execute(installer_obj.get_command())
+
+    def capsule_setup(self, sat_host, **installer_kwargs):
+        """Prepare the host and run the capsule installer"""
+        self.satellite = sat_host
+        self.create_custom_repos(
+            capsule=settings.capsule_repo,
+            rhscl=settings.rhscl_repo,
+            ansible=settings.ansible_repo,
+            maint=settings.satmaintenance_repo,
         )
-        self.execute(f'echo "satellite-installer {command_args}" > /root/install.txt')
-        return self.execute(f'satellite-installer {command_args}')
+        self.configure_rhel_repo(settings.rhel7_repo)
+        # self.execute('yum repolist')
+        self.execute('yum -y update')
+        self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+        self.execute('firewall-cmd --runtime-to-permanent')
+        # self.execute('yum -y install satellite-capsule', timeout=1200)
+        result = self.execute('rpm -q satellite-capsule')
+        if result.status != 0:
+            raise CapsuleHostError(f'Failed to install satellite-capsule package\n{result.stderr}')
+        # update http proxy except list
+        result = self.satellite.cli.Settings.list({'search': 'http_proxy_except_list'})[0]
+        if result['value'] == '[]':
+            except_list = f'[{self.hostname}]'
+        else:
+            except_list = result['value'][:-1] + f', {self.hostname}]'
+        result = self.satellite.cli.Settings.set(
+            {'name': 'http_proxy_except_list', 'value': except_list}
+        )
+        # generate certificate
+        installer = self.satellite.capsule_certs_generate(self, **installer_kwargs)
+        # copy certs from satellite to capsule
+        self.satellite.session.remote_copy(installer.opts['certs-tar-file'], self)
+        installer.update(**installer_kwargs)
+        result = self.install(installer)
+        if result.status != 0:
+            # before exit download the capsule log file
+            self.session.sftp_read(
+                '/var/log/foreman-installer/capsule.log',
+                f'{settings.robottelo.tmp_dir}/capsule-{self.ip_addr}.log',
+            )
+            raise CapsuleHostError(f'foreman installer failed at capsule host: {result.stderr}')
+        result = self.execute('systemctl status pulp_celerybeat.service')
+        if 'inactive (dead)' in '\n'.join(result.stdout):
+            raise CapsuleHostError('pulp_celerybeat service not running')
 
 
 class Satellite(Capsule):
@@ -537,24 +595,13 @@ class Satellite(Capsule):
 
     def capsule_certs_generate(self, capsule, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""
-        command = (
-            f'capsule-certs-generate --foreman-proxy-fqdn {capsule.hostname} '
-            f'--certs-tar /root/{capsule.hostname}-certs.tar'
+        command = InstallerCommand(
+            command='capsule-certs-generate',
+            foreman_proxy_fqdn=capsule.hostname,
+            certs_tar=f'/root/{capsule.hostname}-certs.tar',
+            **extra_kwargs,
         )
-        extras = ' '.join(
-            [f'--{key.replace("_", "-")} {value}' for key, value in extra_kwargs.items()]
-        )
-        result = self.execute(f'{command} {extras}')
-        installer_command, listening = '', False
-        for line in result.stdout.splitlines():
-            if line.strip().startswith('satellite-installer'):
-                listening = True
-            if listening:
-                installer_command += ' ' + ' '.join(line.replace('\\', '').split())
-        installer_command = installer_command.replace('satellite-installer', '').strip()
-        cmd_args = {
-            k: v for k, v in [s.strip().split() for s in installer_command.split('--') if s]
-        }
-        # capsule-certs-generate color codes this field which causes path recognition issues
-        cmd_args['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
-        return f'/root/{capsule.hostname}-certs.tar', cmd_args
+        result = self.execute(command.get_command())
+        install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
+        install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
+        return install_cmd
