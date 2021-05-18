@@ -524,9 +524,7 @@ def module_promoted_cv(module_lce, module_published_cv):
 
 @pytest.fixture(scope='module')
 def default_contentview(module_org):
-    return entities.ContentView().search(
-        query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
-    )
+    return entities.ContentView(organization=module_org, name=DEFAULT_CV).search()
 
 
 @pytest.fixture(scope='module')
