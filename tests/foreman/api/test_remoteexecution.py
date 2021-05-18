@@ -24,15 +24,14 @@ from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.vm_capsule import CapsuleVirtualMachine
+from robottelo.hosts import Satellite
 
 
 CAPSULE_TARGET_VERSION = '6.9.z'
 
 
 @pytest.mark.tier4
-@pytest.mark.libvirt_content_host
-def test_positive_run_capsule_upgrade_playbook():
+def test_positive_run_capsule_upgrade_playbook(capsule_latest):
     """Run Capsule Upgrade playbook against an External Capsule
 
     :id: 9ec6903d-2bb7-46a5-8002-afc74f06d83b
@@ -45,40 +44,42 @@ def test_positive_run_capsule_upgrade_playbook():
 
     :CaseImportance: Medium
     """
-    with CapsuleVirtualMachine() as capsule_vm:
-        template_id = (
-            entities.JobTemplate()
-            .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
-            .id
-        )
+    curr_sat = Satellite(hostname=settings.server.hostname)
+    curr_sat.connect()
+    capsule_latest.install_katello_ca()
+    capsule_latest.register_contenthost()
+    capsule_latest.capsule_setup(curr_sat)
+    template_id = (
+        entities.JobTemplate().search(query={'search': 'name="Capsule Upgrade Playbook"'})[0].id
+    )
 
-        add_remote_execution_ssh_key(capsule_vm.ip_addr)
-        job = entities.JobInvocation().run(
-            synchronous=False,
-            data={
-                'job_template_id': template_id,
-                'inputs': {
-                    'target_version': CAPSULE_TARGET_VERSION,
-                    'whitelist_options': "repositories-validate,repositories-setup",
-                },
-                'targeting_type': "static_query",
-                'search_query': f"name = {capsule_vm.hostname}",
+    add_remote_execution_ssh_key(capsule_latest.ip_addr)
+    job = entities.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': {
+                'target_version': CAPSULE_TARGET_VERSION,
+                'whitelist_options': 'repositories-validate,repositories-setup',
             },
-        )
-        wait_for_tasks(f"resource_type = JobInvocation and resource_id = {job['id']}")
-        result = entities.JobInvocation(id=job['id']).read()
-        assert result.succeeded == 1
+            'targeting_type': 'static_query',
+            'search_query': f'name = {capsule_latest.hostname}',
+        },
+    )
+    wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
+    result = entities.JobInvocation(id=job['id']).read()
+    assert result.succeeded == 1
 
-        result = capsule_vm.run('foreman-maintain health check')
-        assert result.return_code == 0
-        for line in result.stdout:
-            assert 'FAIL' not in line
+    result = capsule_latest.run('foreman-maintain health check')
+    assert result.status == 0
+    for line in result.stdout:
+        assert 'FAIL' not in line
 
-        result = entities.SmartProxy(
-            id=entities.SmartProxy(name=capsule_vm.hostname).search()[0].id
-        ).refresh()
-        feature_list = [feat['name'] for feat in result['features']]
-        assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)
+    result = entities.SmartProxy(
+        id=entities.SmartProxy(name=capsule_latest.hostname).search()[0].id
+    ).refresh()
+    feature_list = [feat['name'] for feat in result['features']]
+    assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)
 
 
 @pytest.mark.destructive
