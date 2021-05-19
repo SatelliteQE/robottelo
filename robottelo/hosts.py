@@ -53,7 +53,6 @@ class ContentHostError(Exception):
 
 class ContentHost(Host):
     run = Host.execute
-    subscribed = False
 
     @property
     def nailgun_host(self):
