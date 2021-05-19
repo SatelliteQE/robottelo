@@ -43,6 +43,7 @@ try:
 except ValidationError:
     logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
 
+os.environ["BROKER_DIRECTORY"] = settings.broker.broker_directory    
 settings_proxy = SettingsFacade()
 settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 
