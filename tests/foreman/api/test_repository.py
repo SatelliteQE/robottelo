@@ -82,6 +82,15 @@ def repo_options(request, module_org, module_product):
 
 
 @pytest.fixture
+def repo_options_custom_product(request, module_org):
+    """Return the options that were passed as indirect parameters."""
+    options = getattr(request, 'param', {}).copy()
+    options['organization'] = module_org
+    options['product'] = entities.Product(organization=module_org).create()
+    return options
+
+
+@pytest.fixture
 def env(module_org):
     """Create a new puppet environment."""
     return entities.Environment(organization=[module_org]).create()
@@ -1658,6 +1667,38 @@ class TestDockerRepository:
         # TODO: add timeout support to sync(). This repo needs more than the default 300 seconds.
         repo.sync()
         assert repo.read().content_counts['docker_manifest'] >= 1
+
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content_type': 'docker',
+                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'name': gen_string('alphanumeric', 10),
+                    'url': CONTAINER_REGISTRY_HUB,
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_delete_product_with_synced_repo(self, repo, repo_options_custom_product):
+        """Create and sync a Docker-type repository, delete the product.
+
+        :id: c3d33836-54df-484d-97e1-f9fc9e22d23c
+
+        :parametrized: yes
+
+        :expectedresults: A product with a synced Docker repository can be deleted.
+
+        :CaseImportance: High
+
+        :BZ: 1867287
+        """
+        repo.sync()
+        assert repo.read().content_counts['docker_manifest'] >= 1
+        assert repo.product.delete()
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
