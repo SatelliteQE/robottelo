@@ -46,6 +46,7 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.org import Org
+from robottelo.cli.package import Package
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
@@ -75,6 +76,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
+from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_1_YUM_REPO
@@ -1383,3 +1385,55 @@ def test_apply_errata_using_default_content_view(chost):
     # Assert that the eratum is no longer applicable
     erratum = Host.errata_list({'host': chost.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
     assert len(erratum) == 0
+
+
+@pytest.mark.tier2
+def test_update_applicable_package_using_default_content_view(chost):
+    """Updating an applicable package on a host attached to the default content view causes the
+    package to not be applicable or installable.
+
+    :id: f761f39c-026c-4987-8c1e-deec895f09a8
+
+    :steps:
+        1. Register a host that already requires errata to org with Library
+        2. Ensure the expected package is applicable on the newly registered host
+        3. Update the applicable package on the host
+        4. Ensure the package is no longer applicable
+
+    :expectedresults: package listed successfully and is installable
+
+    :CaseImportance: High
+    """
+    # check that package is applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': chost.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 1
+    assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Update package from Library, i.e. Default CV
+    chost.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {chost.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Assert that the package is no longer applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': chost.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
