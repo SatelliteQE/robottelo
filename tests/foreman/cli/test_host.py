@@ -18,6 +18,7 @@
 """
 import time
 from datetime import datetime
+from datetime import timedelta
 from random import choice
 
 import pytest
@@ -1515,18 +1516,17 @@ def katello_host_tools_repos():
 @pytest.mark.skip_if_not_set('clients')
 @pytest.fixture(scope="function")
 def katello_host_tools_client(katello_host_tools_repos, rhel7_contenthost):
-    client = rhel7_contenthost
-    client.install_katello_ca()
+    rhel7_contenthost.install_katello_ca()
     # Register content host and install katello-host-tools
-    client.register_contenthost(
+    rhel7_contenthost.register_contenthost(
         katello_host_tools_repos['org'].label,
         katello_host_tools_repos['ak'].name,
     )
-    assert client.subscribed
-    host_info = Host.info({'name': client.hostname})
-    client.enable_repo(REPOS['rhst7']['id'])
-    client.install_katello_host_tools()
-    yield {'client': client, 'host_info': host_info}
+    assert rhel7_contenthost.subscribed
+    host_info = Host.info({'name': rhel7_contenthost.hostname})
+    rhel7_contenthost.enable_repo(REPOS['rhst7']['id'])
+    rhel7_contenthost.install_katello_host_tools()
+    yield {'client': rhel7_contenthost, 'host_info': host_info}
 
 
 @pytest.mark.katello_host_tools
@@ -1849,6 +1849,10 @@ class HostSubscription:
                 in Host.info({'name': self.client.hostname})['subscription-information'][
                     'registered-at'
                 ]
+                or (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+                in Host.info({'name': self.client.hostname})['subscription-information'][
+                    'registered-at'
+                ]
             ):
                 Host.subscription_unregister({'host': self.client.hostname})
 
@@ -1941,7 +1945,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
     try:
         module_host_subscription.client.install_katello_agent()
     except ContentHostError:
-        pytest.fail("ContentHostError raised unexpectedly!")
+        pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.host_subscription
@@ -1974,7 +1978,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
     try:
         module_host_subscription.client.install_katello_agent()
     except ContentHostError:
-        pytest.fail("ContentHostError raised unexpectedly!")
+        pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.host_subscription
@@ -2155,7 +2159,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
     try:
         module_host_subscription.client.install_katello_agent()
     except ContentHostError:
-        pytest.fail("ContentHostError raised unexpectedly!")
+        pytest.fail('ContentHostError raised unexpectedly!')
 
 
 @pytest.mark.host_subscription
