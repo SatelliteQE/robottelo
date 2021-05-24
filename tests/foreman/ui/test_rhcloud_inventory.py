@@ -23,7 +23,7 @@ from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 
 @pytest.mark.tier3
-def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session):
+def test_rhcloud_inventory_e2e(session, module_org):
     """Generate report and verify its basic properties
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
@@ -35,40 +35,15 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
         3. Report has non-zero size
         4. Report can be extracted
         5. JSON files inside report can be parsed
-        6. metadata.json lists all and only slice JSON files in tar
-        7. Host counts in metadata matches host counts in slices
+        6. metadata.json lists all and only slice JSON files in tar.
+        7. Host counts in metadata matches host counts in slices.
     """
-    org, ak = organization_ak_setup
-    virtual_host, baremetal_host = registered_hosts
+    org = module_org
     with session:
         session.organization.select(org_name=org.name)
         session.cloudinventory.generate_report(org.name)
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
-
-    local_file_data = get_local_file_data(report_path)
-    upload_success_msg = (
-        f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
-    )
-    upload_error_messages = ['NSS error', 'Permission denied']
-
-    assert 'Successfully generated' in inventory_data['generating']['terminal']
-    assert upload_success_msg in inventory_data['uploading']['terminal']
-    assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
-    for error_msg in upload_error_messages:
-        assert error_msg not in inventory_data['uploading']['terminal']
-
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
-    assert local_file_data['size'] > 0
-    assert local_file_data['extractable']
-    assert local_file_data['json_files_parsable']
-
-    slices_in_metadata = set(local_file_data['metadata_counts'].keys())
-    slices_in_tar = set(local_file_data['slices_counts'].keys())
-    assert slices_in_metadata == slices_in_tar
-    for slice_name, hosts_count in local_file_data['metadata_counts'].items():
-        assert hosts_count == local_file_data['slices_counts'][slice_name]
-
 
 @pytest.mark.stubbed
 def test_hits_synchronization():
