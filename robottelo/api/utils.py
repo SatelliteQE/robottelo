@@ -10,6 +10,7 @@ from nailgun import entity_mixins
 from nailgun.client import request
 
 from robottelo import ssh
+from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
@@ -649,7 +650,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         # Send request to pulp API to get the task info
         req = request(
             'POST',
-            f'{settings.server.get_url()}/pulp/api/v2/tasks/search/',
+            f'{get_url()}/pulp/api/v2/tasks/search/',
             verify=False,
             auth=('admin', f'{pulp_pass}'),
             headers={'content-type': 'application/json'},
