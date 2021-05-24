@@ -374,6 +374,8 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost):
     :expectedresults: the host is re-registered successfully and its SCA entitlement
                       certificate is refreshed
 
+    :CustomerScenario: true
+
     :Assignee: dsynk
 
     :BZ: 1949353
