@@ -626,41 +626,41 @@ class TestSshKeyInUser:
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skip_if_not_set('ldap')
 class TestActiveDirectoryUser:
     """Implements the LDAP auth User Tests with Active Directory"""
 
     @pytest.fixture(scope='module')
-    def create_ldap(self):
+    def create_ldap(self, ad_data):
         """Fetch necessary properties from settings and Create ldap auth source"""
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
+        ad_data = ad_data()
         yield dict(
             org=org,
             loc=loc,
             sat_url=f'https://{settings.server.hostname}',
-            ldap_user_name=settings.ldap.username,
-            ldap_user_passwd=settings.ldap.password,
+            ldap_user_name=ad_data['ldap_user_name'],
+            ldap_user_passwd=ad_data['ldap_user_passwd'],
             authsource=entities.AuthSourceLDAP(
                 onthefly_register=True,
-                account=settings.ldap.username,
-                account_password=settings.ldap.password,
-                base_dn=settings.ldap.basedn,
-                groups_base=settings.ldap.grpbasedn,
+                account=ad_data['ldap_user_name'],
+                account_password=ad_data['ldap_user_passwd'],
+                base_dn=ad_data['base_dn'],
+                groups_base=ad_data['group_base_dn'],
                 attr_firstname=LDAP_ATTR['firstname'],
                 attr_lastname=LDAP_ATTR['surname'],
                 attr_login=LDAP_ATTR['login_ad'],
                 server_type=LDAP_SERVER_TYPE['API']['ad'],
                 attr_mail=LDAP_ATTR['mail'],
                 name=gen_string('alpha'),
-                host=settings.ldap.hostname,
+                host=ad_data['ldap_hostname'],
                 tls=False,
                 port='389',
                 location=[loc],
                 organization=[org],
             ).create(),
         )
-        for user in entities.User().search(query={'search': f'login={settings.ldap.username}'}):
+        for user in entities.User().search(query={'search': f'login={ad_data["ldap_user_name"]}'}):
             user.delete()
         org.delete()
         loc.delete()
