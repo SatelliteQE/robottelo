@@ -1322,15 +1322,11 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
         data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
     )
     # Fetch available subscriptions
-    subs = entities.Subscription(organization=module_manifest_org).search()
-    assert len(subs) > 0
-    # Add default subscription to activation key
-    sub_found = False
-    for sub in subs:
-        if sub.name == DEFAULT_SUBSCRIPTION_NAME:
-            new_module_ak.add_subscriptions(data={'subscription_id': sub.id})
-            sub_found = True
-    assert sub_found
+    subs = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
+        )
+    assert subs
+    new_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
     return new_module_ak
 
 
@@ -1344,9 +1340,7 @@ def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     )
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
-    host_id = rhel77_contenthost_module.nailgun_host.id
-    host_content = entities.Host(id=host_id).read_json()
-    assert host_content['subscription_status'] == 0
+    assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel77_contenthost_module.install_katello_host_tools()
     return rhel77_contenthost_module
 
