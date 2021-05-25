@@ -20,7 +20,7 @@ def cert_data():
         key_file_name = '{0}/{0}.key'.format(sat6_hostname)
         cert_file_name = '{0}/{0}.crt'.format(sat6_hostname)
         ca_bundle_file_name = 'cacert.crt'
-        success_message = "Validation succeeded"
+        success_message = 'Validation succeeded'
         cert_data = {
             'sat6_hostname': sat6_hostname,
             'capsule_hostname': capsule_hostname,
@@ -48,26 +48,26 @@ def cert_setup(cert_data):
             assert connection.run('test -e ssl-build/{}'.format(_cert_data['capsule_hostname']))
         upload_file(
             local_file=get_data_file('generate-ca.sh'),
-            remote_file="generate-ca.sh",
+            remote_file='generate-ca.sh',
             hostname=hostname,
         )
         upload_file(
             local_file=get_data_file('generate-crt.sh'),
-            remote_file="generate-crt.sh",
+            remote_file='generate-crt.sh',
             hostname=hostname,
         )
         upload_file(
-            local_file=get_data_file('openssl.cnf'), remote_file="openssl.cnf", hostname=hostname
+            local_file=get_data_file('openssl.cnf'), remote_file='openssl.cnf', hostname=hostname
         )
         # create the CA cert.
         with get_connection(timeout=300, hostname=hostname) as connection:
             result = connection.run('echo 100001 > serial')
-            result = connection.run("bash generate-ca.sh")
+            result = connection.run('bash generate-ca.sh')
             assert result.return_code == 0
         # create the Satellite's cert
         with get_connection(timeout=300, hostname=hostname) as connection:
             result = connection.run(
-                "yes | bash {} {}".format('generate-crt.sh', _cert_data['sat6_hostname'])
+                'yes | bash {} {}'.format('generate-crt.sh', _cert_data['sat6_hostname'])
             )
             assert result.return_code == 0
 
@@ -89,8 +89,8 @@ def certs_cleanup():
         settings.server.hostname,
     ]
     with get_connection(timeout=300) as connection:
-        files = " ".join(files)
-        result = connection.run(f"rm -rf {files}")
+        files = ' '.join(files)
+        result = connection.run(f'rm -rf {files}')
         assert result.return_code == 0
 
 
@@ -99,28 +99,18 @@ def generate_certs():
     """generate custom certs in satellite host"""
     upload_file(
         local_file=get_data_file('certs.sh'),
-        remote_file="certs.sh",
+        remote_file='certs.sh',
     )
     upload_file(
         local_file=get_data_file('extensions.txt'),
-        remote_file="extensions.txt",
+        remote_file='extensions.txt',
     )
     with get_connection(timeout=300) as connection:
-        result = connection.run("bash certs.sh")
+        result = connection.run('bash certs.sh')
         assert result.return_code == 0
 
 
-@pytest.fixture()
-def update_system_date():
-    """update the satellite date to verify cert expiration"""
-    result = ssh.command("date -s 'next year'")
-    assert result.return_code == 0
-    yield
-    result = ssh.command("date -s 'last year'")
-    assert result.return_code == 0, 'Failed to revert the date setting'
-
-
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def file_setup():
     """Create working directory and file."""
     capsule_hostname = 'capsule.example.com'

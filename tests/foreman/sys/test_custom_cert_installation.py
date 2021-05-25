@@ -56,7 +56,7 @@ def test_custom_cert_update_satellite(satellite_latest, custom_certs_factory):
                           --certs-server-key "/root/{satellite}/{satellite}.key" \
                           --certs-server-ca-cert "/root/cacert.crt" \
                           --certs-update-server --certs-update-server-ca'
-        result = connection.run(command, output_format='plain', timeout=800)
+        result = connection.run(command, output_format='plain', timeout=1500)
         assert result.return_code == 0, 'Failed to update the satellite with custom certs'
         # assert no hammer ping SSL cert error
         result = connection.run('hammer ping')
@@ -67,8 +67,11 @@ def test_custom_cert_update_satellite(satellite_latest, custom_certs_factory):
         assert result.return_code == 0, 'Not all services are running'
 
 
+@pytest.mark.parametrize(
+    'param_host', [{'target_memory': '10GiB', 'nick': 'rhel7'}], ids=['rhel7'], indirect=True
+)
 @pytest.mark.tier1
-def test_custom_cert_install_satellite(rhel7_host, custom_certs_factory):
+def test_custom_cert_install_satellite(param_host, custom_certs_factory):
     """Install the satellite instance with new custom certs.
 
     :id: 1580564c-a714-4cd7-a80f-0e635dcec78e
@@ -81,9 +84,9 @@ def test_custom_cert_install_satellite(rhel7_host, custom_certs_factory):
 
     :expectedresults: Satellite should be updated with custom certs
     """
-    satellite = rhel7_host.hostname
-    custom_certs_factory(hostname=satellite)
-    with get_connection(hostname=satellite) as connection:
+    rhel_host = param_host.hostname
+    custom_certs_factory(hostname=rhel_host)
+    with get_connection(hostname=rhel_host) as connection:
         # subscribe satellite dog_food server
         dogfood_url = (
             f'{settings.repos.dogfood_repo_host}/pub/katello-ca-consumer-latest.noarch.rpm'
@@ -102,10 +105,10 @@ def test_custom_cert_install_satellite(rhel7_host, custom_certs_factory):
 
         # install the satellite using custom certs
         installer_command = f'satellite-installer --scenario satellite \
-                                          --certs-server-cert "/root/{satellite}/{satellite}.crt" \
-                                          --certs-server-key "/root/{satellite}/{satellite}.key" \
+                                          --certs-server-cert "/root/{rhel_host}/{rhel_host}.crt" \
+                                          --certs-server-key "/root/{rhel_host}/{rhel_host}.key" \
                                           --certs-server-ca-cert "/root/cacert.crt"'
-        result = connection.run(installer_command, output_format='plain', timeout=800)
+        result = connection.run(installer_command, output_format='plain', timeout=1500)
         assert result.return_code == 0, 'Failed to install the satellite with custom certs'
 
         # assert no hammer ping SSL cert error

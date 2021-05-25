@@ -39,22 +39,22 @@ class TestKatelloCertsCheck:
     invalid_inputs = [
         (
             {
-                'check': "Checking CA bundle against the certificate file",
-                'message': "error 26 at 0 depth lookup:unsupported certificate purpose",
+                'check': 'Checking CA bundle against the certificate file',
+                'message': 'error 26 at 0 depth lookup:unsupported certificate purpose',
             },
-            "certs/invalid.crt",
-            "certs/invalid.key",
-            "certs/ca.crt",
+            'certs/invalid.crt',
+            'certs/invalid.key',
+            'certs/ca.crt',
         ),
         (
             {
-                'check': "Checking for use of shortname as CN",
-                'message': "shortname.crt is using a shortname for "
-                "Common Name (CN) and cannot be used",
+                'check': 'Checking for use of shortname as CN',
+                'message': 'shortname.crt is using a shortname for '
+                'Common Name (CN) and cannot be used',
             },
-            "certs/shortname.crt",
-            "certs/shortname.key",
-            "certs/ca.crt",
+            'certs/shortname.crt',
+            'certs/shortname.key',
+            'certs/ca.crt',
         ),
     ]
 
@@ -63,8 +63,8 @@ class TestKatelloCertsCheck:
 
         If CN part of Subject in the server cert matches the FQDN of the machine running
         the script, it is assumed the certs are meant for the Satellite and just
-        "satellite-installer --scenario satellite" part of output should be printed.
-        If FQDN doesn't match CN of Subject, just "capsule-certs-generate" part should be printed.
+        'satellite-installer --scenario satellite' part of output should be printed.
+        If FQDN doesn't match CN of Subject, just 'capsule-certs-generate' part should be printed.
         """
         expected_result = {
             '--scenario',
@@ -146,7 +146,7 @@ class TestKatelloCertsCheck:
             )
         self.validate_output(result, cert_data)
 
-    @pytest.mark.parametrize("error, cert_file, key_file, ca_file", invalid_inputs)
+    @pytest.mark.parametrize('error, cert_file, key_file, ca_file', invalid_inputs)
     @pytest.mark.tier1
     def test_katello_certs_check_output_invalid_input(
         self, generate_certs, error, cert_file, key_file, ca_file, certs_cleanup
@@ -289,7 +289,7 @@ class TestKatelloCertsCheck:
                 'capsule.example.com-foreman-client.crt -text | '
                 'grep capsule.example1.com'
             )
-            assert 'DNS:capsule.example1.com' in " ".join(result.stdout)
+            assert 'DNS:capsule.example1.com' in ' '.join(result.stdout)
             # assert the certs.tar was built
             assert connection.run('test -e /root/capsule_cert/capsule_certs_Abs.tar')
 
@@ -346,9 +346,7 @@ class TestKatelloCertsCheck:
             assert connection.run('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
     @pytest.mark.tier1
-    def test_negative_check_expiration_of_certificate(
-        self, custom_certs_factory, update_system_date, certs_cleanup
-    ):
+    def test_negative_check_expiration_of_certificate(self, custom_certs_factory, certs_cleanup):
         """Check expiration of certificate.
 
         :id: 0acce44f-ebe5-42e1-a74b-3d4d20b97946
@@ -365,6 +363,8 @@ class TestKatelloCertsCheck:
         """
         cert_data = custom_certs_factory()
         with get_connection() as connection:
+            date_result = connection.run("date -s '2 year'")
+            assert date_result.return_code == 0
             result = connection.run(
                 'katello-certs-check -c {} -k {} -b {}'.format(
                     cert_data['cert_file_name'],
@@ -373,6 +373,8 @@ class TestKatelloCertsCheck:
                 ),
                 output_format='plain',
             )
+            date_result = connection.run("date -s '-2 year'")
+            assert date_result.return_code == 0, 'Failed to revert the date setting'
         messages = [
             'Checking expiration of certificate: \n[FAIL]',
             'Checking CA bundle against the certificate file: \n[FAIL]',

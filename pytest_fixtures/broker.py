@@ -44,6 +44,15 @@ def capsule_factory():
 
 
 @pytest.fixture
+def param_host(request):
+    """A function-level fixture that provides a host object based broker args"""
+    if isinstance(request.param, dict):
+        nick = request.param.pop('nick')
+        with VMBroker(nick=nick, **request.param) as host:
+            yield host
+
+
+@pytest.fixture
 def rhel7_host():
     """A function-level fixture that provides a host object based on the rhel7 nick"""
     with VMBroker(nick='rhel7') as host:
