@@ -422,19 +422,19 @@ class TestOpenLdapAuthSource:
             {
                 'name': server_name,
                 'onthefly-register': 'true',
-                'host': open_ldap_data.hostname,
+                'host': open_ldap_data['ldap_hostname'],
                 'server-type': LDAP_SERVER_TYPE['CLI']['posix'],
                 'attr-login': LDAP_ATTR['login_ad'],
                 'attr-firstname': LDAP_ATTR['firstname'],
                 'attr-lastname': LDAP_ATTR['surname'],
                 'attr-mail': LDAP_ATTR['mail'],
-                'account': open_ldap_data.username,
-                'account-password': open_ldap_data.password,
-                'base-dn': open_ldap_data.base_dn,
+                'account': open_ldap_data['ldap_user_name'],
+                'account-password': open_ldap_data['ldap_user_passwd'],
+                'base-dn': open_ldap_data['base_dn'],
             }
         )
         assert auth['server']['name'] == server_name
-        assert auth['server']['server'] == open_ldap_data.hostname
+        assert auth['server']['server'] == open_ldap_data['ldap_hostname']
         assert auth['server']['server-type'] == LDAP_SERVER_TYPE['CLI']['posix']
         new_name = gen_string('alpha')
         LDAPAuthSource.update({'name': server_name, 'new-name': new_name})
