@@ -8,7 +8,7 @@
 
 :CaseLevel: Integration
 
-:Assignee: tpapaioa
+:Assignee: okhatavk
 
 :TestType: Functional
 
