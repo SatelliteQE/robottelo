@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: tpapaioa
+:Assignee: akjha
 
 :TestType: Functional
 
