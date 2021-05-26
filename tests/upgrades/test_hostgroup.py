@@ -8,7 +8,7 @@
 
 :CaseComponent: HostGroup
 
-:Assignee: tpapaioa
+:Assignee: okhatavk
 
 :TestType: Functional
 
