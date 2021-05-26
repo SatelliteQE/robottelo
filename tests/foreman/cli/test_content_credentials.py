@@ -77,10 +77,10 @@ def test_verify_gpg_key_content_displayed(module_org):
     """
     # Setup a new key file
     content = gen_alphanumeric()
-    gpg_key = create_gpg_key_file(content=content)
-    assert gpg_key, 'GPG Key file must be created'
+    key_path = create_gpg_key_file(content=content)
+    assert key_path, 'GPG Key file must be created'
     gpg_key = make_content_credential(
-        {'key': gpg_key, 'name': gen_string('alpha'), 'organization-id': module_org.id}
+        {'path': key_path, 'name': gen_string('alpha'), 'organization-id': module_org.id}
     )
     assert gpg_key['content'] == content
 
@@ -292,7 +292,7 @@ def test_positive_update_key(name, module_org):
     key = '/tmp/%s' % gen_alphanumeric()
     ssh.upload_file(local_file=local_key, remote_file=key)
     ContentCredential.update(
-        {'key': key, 'name': gpg_key['name'], 'organization-id': module_org.id}
+        {'path': key, 'name': gpg_key['name'], 'organization-id': module_org.id}
     )
     gpg_key = ContentCredential.info({'name': gpg_key['name'], 'organization-id': module_org.id})
     assert gpg_key['content'] == content
@@ -355,7 +355,7 @@ def test_positive_add_product_with_repo(module_org):
     repo = make_repository({'product-id': product['id']})
     gpg_key = make_content_credential({'organization-id': module_org.id})
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
     repo = Repository.info({'id': repo['id']})
@@ -380,7 +380,7 @@ def test_positive_add_product_with_repos(module_org):
     repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
     gpg_key = make_content_credential({'organization-id': module_org.id})
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg']['gpg-key-id'] == gpg_key['id']
@@ -432,7 +432,7 @@ def test_positive_add_repo_from_product_with_repos(module_org):
     repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
     gpg_key = make_content_credential({'organization-id': module_org.id})
     Repository.update(
-        {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
     )
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
     assert product['gpg'].get('gpg-key-id') != gpg_key['id']
@@ -463,7 +463,7 @@ def test_positive_update_key_for_empty_product(module_org):
     gpg_key = make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a product
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
@@ -501,7 +501,7 @@ def test_positive_update_key_for_product_with_repo(module_org):
     repo = make_repository({'product-id': product['id']})
     # Associate gpg key with a product
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
@@ -544,7 +544,7 @@ def test_positive_update_key_for_product_with_repos(module_org):
     repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
     # Associate gpg key with a product
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
@@ -626,7 +626,7 @@ def test_positive_update_key_for_repo_from_product_with_repos(module_org):
     repos = [make_repository({'product-id': product['id']}) for _ in range(gen_integer(2, 5))]
     # Associate gpg key with a single repository
     Repository.update(
-        {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated
     repos[0] = Repository.info({'id': repos[0]['id']})
@@ -700,7 +700,7 @@ def test_positive_delete_key_for_product_with_repo(module_org):
     gpg_key = make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a product
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated both with product and its repository
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
@@ -739,7 +739,7 @@ def test_positive_delete_key_for_product_with_repos(module_org):
     gpg_key = make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a product
     Product.update(
-        {'gpg-key': gpg_key['name'], 'id': product['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': product['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated with product and its repositories
     product = Product.info({'id': product['id'], 'organization-id': module_org.id})
@@ -781,7 +781,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(module_org):
     gpg_key = make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a repository
     Repository.update(
-        {'gpg-key': gpg_key['name'], 'id': repo['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': repo['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated with the repository but not with the
     # product
@@ -821,7 +821,7 @@ def test_positive_delete_key_for_repo_from_product_with_repos(module_org):
     gpg_key = make_content_credential({'organization-id': module_org.id})
     # Associate gpg key with a repository
     Repository.update(
-        {'gpg-key': gpg_key['name'], 'id': repos[0]['id'], 'organization-id': module_org.id}
+        {'gpg-key-id': gpg_key['id'], 'id': repos[0]['id'], 'organization-id': module_org.id}
     )
     # Verify gpg key was associated with the repository
     repos[0] = Repository.info({'id': repos[0]['id']})
