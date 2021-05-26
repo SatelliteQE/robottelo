@@ -12,7 +12,7 @@ http://<satellite-host>/apidoc/v2/users.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: pondrejk
+:Assignee: dsynk
 
 :TestType: Functional
 

@@ -8,7 +8,7 @@
 
 :CaseComponent: UsersRoles
 
-:Assignee: pondrejk
+:Assignee: dsynk
 
 :TestType: Functional
 
