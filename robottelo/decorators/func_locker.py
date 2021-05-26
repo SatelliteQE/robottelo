@@ -41,7 +41,6 @@ Usage::
 """
 import functools
 import inspect
-import logging
 import os
 import tempfile
 from contextlib import contextmanager
@@ -49,8 +48,7 @@ from contextlib import contextmanager
 from pytest_services.locks import file_lock
 
 from robottelo.config import settings
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 TEMP_ROOT_DIR = 'robottelo'
 TEMP_FUNC_LOCK_DIR = 'lock_functions'

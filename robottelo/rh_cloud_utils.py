@@ -8,8 +8,8 @@ from robottelo import ssh
 
 
 def get_host_counts(tarobj):
-    """
-    Returns hosts count from tar file.
+    """Returns hosts count from tar file.
+
     Args:
         tarobj: tar file to get host count from
     """
@@ -36,6 +36,7 @@ def get_host_counts(tarobj):
 
 def get_local_file_data(path):
     """Returns information about tar file.
+
     Args:
         path: path to tar file
     """
@@ -66,8 +67,8 @@ def get_local_file_data(path):
 
 
 def get_remote_report_checksum(org_id):
-    """
-    Returns checksum of red_hat_inventory report present on satellite.
+    """Returns checksum of red_hat_inventory report present on satellite.
+
     Args:
         org_id: organization-id
     """

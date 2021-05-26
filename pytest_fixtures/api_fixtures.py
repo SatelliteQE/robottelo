@@ -1,6 +1,4 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
-import logging
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -36,14 +34,13 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.helpers import download_gce_cert
+from robottelo.logging import logger
 
 
 # Global Satellite Entities
 
 if not settings.configured:
     settings.configure()
-
-logger = logging.getLogger('robottelo')
 
 
 @pytest.fixture(scope='session')

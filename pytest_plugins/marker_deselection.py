@@ -1,9 +1,6 @@
-import logging
-
 import pytest
 
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import collection_logger as logger
 
 
 def pytest_addoption(parser):
@@ -54,7 +51,7 @@ def pytest_collection_modifyitems(items, config):
             continue
         # This Plugin does not applies to this test
         selected.append(item)
-    LOGGER.debug(
+    logger.debug(
         f'Selected {len(selected)} and deselected {len(deselected)} '
         'tests based on new infra markers.'
     )

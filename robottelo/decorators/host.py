@@ -1,13 +1,11 @@
 """Implements decorator regarding satellite host"""
-import logging
 from functools import wraps
 
 import unittest2
 
 from robottelo.config import settings
 from robottelo.host_info import get_host_os_version
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 def skip_if_os(*versions):
@@ -47,7 +45,7 @@ def skip_if_os(*versions):
             """
 
             def log_version_info(msg, template):
-                LOGGER.debug(template, func.__name__, func.__module__, msg)
+                logger.debug(template, func.__name__, func.__module__, msg)
 
             if not settings.configured:
                 settings.configure()

@@ -1,6 +1,5 @@
 import inspect
 import json
-import logging
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -9,14 +8,13 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.helpers import slugify_component
+from robottelo.logging import collection_logger as logger
 from robottelo.utils.issue_handlers import add_workaround
 from robottelo.utils.issue_handlers import bugzilla
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.issue_handlers import should_deselect
 from robottelo.utils.version import search_version_key
 from robottelo.utils.version import VersionEncoder
-
-LOGGER = logging.getLogger('robottelo.collection')
 
 DEFAULT_BZ_CACHE_FILE = 'bz_cache.json'
 
@@ -87,7 +85,7 @@ def pytest_collection_modifyitems(session, items, config):
             if bool(set(bz_filters) & item_bz_marks):
                 selected.append(item)
             else:
-                LOGGER.debug(
+                logger.debug(
                     f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters} '
                     f'and available marks {item_bz_marks}'
                 )
@@ -181,13 +179,13 @@ def generate_issue_collection(items, config):  # pragma: no cover
     if use_bz_cache:
         try:
             with open(DEFAULT_BZ_CACHE_FILE) as bz_cache_file:
-                LOGGER.info(f'Using BZ cache file for issue collection: {DEFAULT_BZ_CACHE_FILE}')
+                logger.info(f'Using BZ cache file for issue collection: {DEFAULT_BZ_CACHE_FILE}')
                 cached_data = {
                     k: search_version_key(k, v) for k, v in json.load(bz_cache_file).items()
                 }
         except FileNotFoundError:
             # no bz cache file exists
-            LOGGER.warning(
+            logger.warning(
                 f'--bz-cache option used, cache file [{DEFAULT_BZ_CACHE_FILE}] not found'
             )
 
@@ -313,6 +311,6 @@ def generate_issue_collection(items, config):  # pragma: no cover
         # bz_cache_filename could be None from the option not being passed, write the file anyway
         with open(DEFAULT_BZ_CACHE_FILE, 'w') as collect_file:
             json.dump(collected_data, collect_file, indent=4, cls=VersionEncoder)
-            LOGGER.info(f"Generated BZ cache file {DEFAULT_BZ_CACHE_FILE}")
+            logger.info(f"Generated BZ cache file {DEFAULT_BZ_CACHE_FILE}")
 
     return collected_data

@@ -1,10 +1,7 @@
-import logging
-
 import pytest
 
 from robottelo.constants import NOT_IMPLEMENTED
-
-LOGGER = logging.getLogger('robottelo')
+from robottelo.logging import collection_logger as logger
 
 
 def pytest_configure(config):
@@ -28,11 +25,16 @@ def pytest_collection_modifyitems(session, config, items):
             selected.append(item)
             # enforce skip/pass behavior by marking skip
             if mark_skipped:
+                logger.debug(f'Marking collected stubbed test "{item.nodeid}" to skip')
                 item.add_marker(marker=pytest.mark.skip(reason=NOT_IMPLEMENTED))
             continue
 
         # The test case is stubbed, but --include-stubbed was NOT passed, deselect the item
         if stub_marked and not include_stubbed:
+            logger.debug(
+                f'Deselecting stubbed test {item.nodeid}, '
+                'use --include-stubbed to include in collection'
+            )
             deselected.append(item)
             continue
 

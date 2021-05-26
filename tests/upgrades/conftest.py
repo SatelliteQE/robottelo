@@ -86,7 +86,6 @@ This module is intended to be used for upgrade tests, that have two run stages,
 import datetime
 import functools
 import json
-import logging
 import os
 
 import pytest
@@ -95,8 +94,8 @@ from fabric.api import env
 
 from robottelo.config import settings
 from robottelo.decorators.func_locker import lock_function
+from robottelo.logging import logger
 
-LOGGER = logging.getLogger('robottelo')
 
 pre_upgrade_failed_tests = []
 
@@ -307,7 +306,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
         for key in ['failed', 'error', 'skipped']:
             failed_test_reports.extend(terminalreporter.stats.get(key, []))
         failed_test_node_ids = [test_report.nodeid for test_report in failed_test_reports]
-        LOGGER.info('Save failed tests to file %s', PRE_UPGRADE_TESTS_FILE_PATH)
+        logger.info('Save failed tests to file %s', PRE_UPGRADE_TESTS_FILE_PATH)
         with open(PRE_UPGRADE_TESTS_FILE_PATH, 'w') as json_file:
             json.dump(failed_test_node_ids, json_file)
 

@@ -1,6 +1,5 @@
 """Define and instantiate the configuration class for Robottelo."""
 import importlib
-import logging.config
 import os
 from configparser import ConfigParser
 from configparser import NoOptionError
@@ -13,26 +12,10 @@ import yaml
 from robottelo.config import casts
 from robottelo.constants import AZURERM_VALID_REGIONS
 from robottelo.constants import VALID_GCE_ZONES
+from robottelo.errors import ImproperlyConfigured
 
-LOGGER = logging.getLogger('robottelo')
+
 SETTINGS_FILE_NAME = 'robottelo.properties'
-
-
-class ImproperlyConfigured(Exception):
-    """Indicates that Robottelo somehow is improperly configured.
-
-    For example, if settings file can not be found or some required
-    configuration is not defined.
-    """
-
-
-def get_project_root():
-    """Return the path to the Robottelo project root directory.
-
-    :return: A directory path.
-    :rtype: str
-    """
-    return os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
 
 class INIReader:
@@ -114,7 +97,7 @@ class FeatureSettings:
         raise NotImplementedError('Subclasses must implement read method.')
 
     def validate(self):
-        """Subclasses must implement this method in order to validade the
+        """Subclasses must implement this method in order to validate the
         settings and raise ``ImproperlyConfigured`` if any issue is found.
         """
         raise NotImplementedError('Subclasses must implement validate method.')
@@ -179,7 +162,9 @@ class ServerSettings(FeatureSettings):
         return (self.admin_username, self.admin_password)
 
     def get_hostname(self, key="hostname"):
-        reader = INIReader(os.path.join(get_project_root(), SETTINGS_FILE_NAME))
+        from robottelo.config import robottelo_root_dir
+
+        reader = INIReader(robottelo_root_dir.joinpath(SETTINGS_FILE_NAME))
         return reader.get('server', key, self.hostname)
 
     def get_url(self):
@@ -1416,8 +1401,10 @@ class Settings:
             return
 
         if not settings_path:
+            from robottelo.config import robottelo_root_dir
+
             # Expect the settings file to be on the robottelo project root.
-            settings_path = os.path.join(get_project_root(), SETTINGS_FILE_NAME)
+            settings_path = robottelo_root_dir.joinpath(SETTINGS_FILE_NAME)
 
         if not os.path.isfile(settings_path):
             raise ImproperlyConfigured(f'Not able to find settings file at {settings_path}')

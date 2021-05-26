@@ -1,5 +1,4 @@
 """Virtual machine client provisioning with satellite capsule product setup"""
-import logging
 import os
 import time
 from tempfile import mkstemp
@@ -14,12 +13,11 @@ from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_FIREWALL_SERVICE_NAME
 from robottelo.helpers import extract_capsule_satellite_installer_command
+from robottelo.logging import logger
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 from robottelo.vm import VirtualMachine
-
-logger = logging.getLogger('robottelo')
 
 
 class CapsuleVirtualMachineError(Exception):

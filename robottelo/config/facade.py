@@ -1,4 +1,3 @@
-import logging
 import os
 from functools import reduce
 from urllib.parse import urljoin
@@ -11,11 +10,9 @@ from nailgun.config import ServerConfig
 from wrapt import CallableObjectProxy
 
 from robottelo.config import casts
-from robottelo.config.base import get_project_root
 from robottelo.config.base import INIReader
 from robottelo.config.base import SETTINGS_FILE_NAME
-
-logger = logging.getLogger('robottelo.config.facade')
+from robottelo.logging import config_logger as logger
 
 WRAPPER_EXCEPTIONS = (
     'server.hostname',
@@ -185,14 +182,18 @@ class SettingsNodeWrapper(CallableObjectProxy):
         def patched_gpgkey_init(self, server_config=None, **kwargs):
             """Set a default value on the ``content`` field."""
             gpgkey_init(self, server_config, **kwargs)
+            from robottelo.config import robottelo_root_dir
+
             self._fields['content'].default = os.path.join(
-                get_project_root(), 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
+                robottelo_root_dir, 'tests', 'foreman', 'data', 'valid_gpg_key.txt'
             )
 
         entities.GPGKey.__init__ = patched_gpgkey_init
 
     def configure_airgun(self):
         """Pass required settings to AirGun"""
+        import logging
+
         airgun.settings.configure(
             {
                 'airgun': {
@@ -215,40 +216,6 @@ class SettingsNodeWrapper(CallableObjectProxy):
             }
         )
 
-    def configure_logging(self):
-        """Configure logging for the entire framework.
-
-        If a config named ``logging.conf`` exists in Robottelo's root
-        directory, the logger is configured using the options in that file.
-        Otherwise, a custom logging output format is set, and default values
-        are used for all other logging options.
-        """
-        # All output should be made by the logging module, including warnings
-        logging.captureWarnings(True)
-
-        # Set the logging level based on the Robottelo's verbosity
-        for name in ('nailgun', 'robottelo'):
-            logging.getLogger(name).setLevel(self.verbosity)
-
-        # Allow overriding logging config based on the presence of logging.conf
-        # file on Robottelo's project root
-        logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
-        if os.path.isfile(logging_conf_path):
-            logging.config.fileConfig(logging_conf_path)
-        else:
-            logging.basicConfig(format='%(levelname)s %(module)s:%(lineno)d: %(message)s')
-
-    def configure_third_party_logging(self):
-        """Increase the level of third party packages logging."""
-        loggers = (
-            'easyprocess',
-            'paramiko',
-            'requests.packages.urllib3.connectionpool',
-            'selenium.webdriver.remote.remote_connection',
-        )
-        for logger in loggers:
-            logging.getLogger(logger).setLevel(logging.WARNING)
-
 
 class SettingsFacade:
     _cache = {}
@@ -261,7 +228,6 @@ class SettingsFacade:
     @classmethod
     def _from_cache(cls, key):
         value = cls._cache[key]
-        logger.debug(f"returning '{key}' from cache")
         return value
 
     @classmethod
@@ -359,7 +325,9 @@ class SettingsFacade:
             return self._get_from_configs(f"server.{key}")
         except AttributeError:
             default = self._get_from_configs("server.hostname")
-            reader = INIReader(os.path.join(get_project_root(), SETTINGS_FILE_NAME))
+            from robottelo.config import robottelo_root_dir
+
+            reader = INIReader(os.path.join(robottelo_root_dir, SETTINGS_FILE_NAME))
             return reader.get('server', key, default)
 
     def __capsule_hostname(self):
@@ -494,7 +462,8 @@ class SettingsFacade:
             except AttributeError:
                 pass
         else:
-            logger.debug(f"failed to find '{key}' in configuration")
+            if not key.startswith('_'):
+                logger.debug(f"failed to find '{key}' in configuration")
             msg = f"None of configuration providers has attribute '{key}'"
             raise AttributeError(msg)
         self._add_to_cache(key, real_value)

@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import logging
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -86,6 +84,7 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.helpers import get_data_file
+from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -114,7 +113,7 @@ def _validated_image_tags_count(repo):
         > 0,
         timeout=30,
         delay=2,
-        logger=logging.getLogger('robottelo'),
+        logger=logger,
     )
     return _get_image_tags_count(repo=repo)
 
