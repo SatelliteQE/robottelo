@@ -1999,6 +1999,7 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription.client.register_contenthost(
         module_host_subscription.org.name,
+        lce=None,  # required, to jump into right branch in register_contenthost method
         consumerid=host['subscription-information']['uuid'],
         force=False,
     )
@@ -2031,8 +2032,6 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
         environment=lce,
         organization=org,
     ).create()
-    # entities.ContentView().search(
-    #     query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
     setup_org_for_a_rh_repo(
         {
             'product': PRDS['rhel'],
