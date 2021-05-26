@@ -11,7 +11,7 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: pondrejk
+:Assignee: dsynk
 
 :TestType: Functional
 

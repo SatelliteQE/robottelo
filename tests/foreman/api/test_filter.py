@@ -12,7 +12,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: pondrejk
+:Assignee: dsynk
 
 :TestType: Functional
 
