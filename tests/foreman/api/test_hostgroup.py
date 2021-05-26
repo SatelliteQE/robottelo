@@ -33,6 +33,7 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_hostgroups_list
 from robottelo.helpers import get_data_file
+from robottelo.helpers import settingsUtils
 
 
 @pytest.fixture
@@ -129,7 +130,7 @@ class TestHostGroup:
         # Get puppet class id for ntp module
         response = client.get(
             environment.path('self') + '/puppetclasses',
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             verify=False,
         )
         response.raise_for_status()
@@ -140,7 +141,7 @@ class TestHostGroup:
         client.post(
             hostgroup.path('self') + '/puppetclass_ids',
             data={'puppetclass_id': puppet_class_id},
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             verify=False,
         ).raise_for_status()
         hostgroup_attrs = hostgroup.read_json()

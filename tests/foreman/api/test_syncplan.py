@@ -35,7 +35,6 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_syncplan_tasks
 from robottelo.api.utils import wait_for_tasks
-from robottelo.config import settings
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -46,6 +45,7 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
 from robottelo.logging import logger
+from robottelo.helpers import settingsUtils
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -129,14 +129,14 @@ def test_positive_get_routes():
     org = entities.Organization().create()
     entities.SyncPlan(organization=org).create()
     response1 = client.get(
-        f'{settings.server.get_url()}/katello/api/v2/sync_plans',
-        auth=settings.server.get_credentials(),
+        f'{settingsUtils.server_url()}/katello/api/v2/sync_plans',
+        auth=settingsUtils.credentials(),
         data={'organization_id': org.id},
         verify=False,
     )
     response2 = client.get(
-        f'{settings.server.get_url()}/katello/api/v2/organizations/{org.id}/sync_plans',
-        auth=settings.server.get_credentials(),
+        f'{settingsUtils.server_url()}/katello/api/v2/organizations/{org.id}/sync_plans',
+        auth=settingsUtils.credentials(),
         verify=False,
     )
     for response in (response1, response2):

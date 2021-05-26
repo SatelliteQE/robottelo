@@ -40,6 +40,7 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
 from robottelo.datafactory import valid_interfaces_list
+from robottelo.helpers import settingsUtils
 
 
 @pytest.mark.tier1
@@ -55,7 +56,7 @@ def test_positive_get_search():
     query = gen_string('utf8', gen_integer(1, 100))
     response = client.get(
         entities.Host().path(),
-        auth=settings.server.get_credentials(),
+        auth=settingsUtils.credentials(),
         data={'search': query},
         verify=False,
     )
@@ -77,7 +78,7 @@ def test_positive_get_per_page():
     per_page = gen_integer(1, 1000)
     response = client.get(
         entities.Host().path(),
-        auth=settings.server.get_credentials(),
+        auth=settingsUtils.credentials(),
         data={'per_page': str(per_page)},
         verify=False,
     )

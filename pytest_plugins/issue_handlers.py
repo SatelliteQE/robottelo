@@ -7,6 +7,7 @@ from datetime import datetime
 import pytest
 
 from robottelo.config import settings
+from robottelo.helpers import settingsUtils
 from robottelo.helpers import slugify_component
 from robottelo.logging import collection_logger as logger
 from robottelo.utils.issue_handlers import add_workaround
@@ -303,7 +304,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     # --- if no cache file existed write a new cache file ---
     if cached_data is None and use_bz_cache:
         collected_data['_meta'] = {
-            "version": settings.server.version,
+            "version": settingsUtils.sat_version(),
             "hostname": settings.server.hostname,
             "created": datetime.now().isoformat(),
             "pytest": {"args": config.args, "pwd": str(config.invocation_dir)},

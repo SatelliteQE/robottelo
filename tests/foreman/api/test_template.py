@@ -33,6 +33,7 @@ from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
+from robottelo.helpers import settingsUtils
 
 
 @pytest.fixture(scope="module")
@@ -245,7 +246,7 @@ class TestProvisioningTemplate:
         """
         response = client.post(
             entities.ProvisioningTemplate().path('build_pxe_default'),
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             verify=False,
         )
         response.raise_for_status()

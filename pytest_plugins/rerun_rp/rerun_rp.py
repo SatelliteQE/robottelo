@@ -2,6 +2,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.helpers import settingsUtils
 from robottelo.report_portal.portal import ReportPortal
 
 
@@ -120,7 +121,7 @@ def pytest_collection_modifyitems(items, config):
     if not any([fail_args, skip_arg, user_arg, upgrades_rerun]):
         return
     rp = ReportPortal()
-    version = settings.server.version
+    version = settingsUtils.sat_version()
     sat_version = f'{version.base_version}.{version.epoch}'
     logger.info(f'Fetching Report Portal launches for target Satellite version: {sat_version}')
     launch = next(

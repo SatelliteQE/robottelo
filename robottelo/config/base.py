@@ -4,8 +4,6 @@ import os
 from configparser import ConfigParser
 from configparser import NoOptionError
 from configparser import NoSectionError
-from urllib.parse import urljoin
-from urllib.parse import urlunsplit
 
 import yaml
 
@@ -152,73 +150,11 @@ class ServerSettings(FeatureSettings):
             )
         return validation_errors
 
-    def get_credentials(self):
-        """Return credentials for interacting with a Foreman deployment API.
-
-        :return: A username-password pair.
-        :rtype: tuple
-
-        """
-        return (self.admin_username, self.admin_password)
-
     def get_hostname(self, key="hostname"):
         from robottelo.config import robottelo_root_dir
 
         reader = INIReader(robottelo_root_dir.joinpath(SETTINGS_FILE_NAME))
         return reader.get('server', key, self.hostname)
-
-    def get_url(self):
-        """Return the base URL of the Foreman deployment being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``[server] scheme`` (default: https)
-        * ``[server] hostname`` (required)
-        * ``[server] port`` (default: none)
-
-        Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
-        ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default
-        to 'https'.
-
-        :return: A URL.
-        :rtype: str
-
-        """
-        if not self.scheme:
-            scheme = 'https'
-        else:
-            scheme = self.scheme
-        # All anticipated error cases have been handled at this point.
-        if not self.port:
-            return urlunsplit((scheme, self.hostname, '', '', ''))
-        else:
-            return urlunsplit((scheme, f'{self.hostname}:{self.port}', '', '', ''))
-
-    def get_pub_url(self):
-        """Return the pub URL of the server being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``main.server.hostname`` (required)
-
-        :return: The pub directory URL.
-        :rtype: str
-
-        """
-        return urlunsplit(('http', self.hostname, 'pub/', '', ''))
-
-    def get_cert_rpm_url(self):
-        """Return the Katello cert RPM URL of the server being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``main.server.hostname`` (required)
-
-        :return: The Katello cert RPM URL.
-        :rtype: str
-
-        """
-        return urljoin(self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
 class BrokerSettings(FeatureSettings):

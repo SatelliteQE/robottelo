@@ -20,6 +20,7 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.errors import ImproperlyConfigured
+from robottelo.helpers import settingsUtils
 
 
 def call_entity_method_with_timeout(entity_callable, timeout=300, **kwargs):
@@ -653,7 +654,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         # Send request to pulp API to get the task info
         req = request(
             'POST',
-            f'{settings.server.get_url()}/pulp/api/v2/tasks/search/',
+            f'{settingsUtils.server_url()}/pulp/api/v2/tasks/search/',
             verify=False,
             auth=('admin', f'{pulp_pass}'),
             headers={'content-type': 'application/json'},

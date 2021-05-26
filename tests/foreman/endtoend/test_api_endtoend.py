@@ -933,8 +933,8 @@ class TestAvailableURLs:
 
     @pytest.fixture(scope='class')
     def api_url(self):
-        """We want to delay referencing server.get_url() until test execution"""
-        return f'{settings.server.get_url()}/api/v2'
+        """We want to delay referencing settingUtils.server_url() until test execution"""
+        return f'{settingsUtils.server_url()}/api/v2'
 
     @pytest.mark.build_sanity
     def test_positive_get_status_code(self, api_url):
@@ -946,7 +946,7 @@ class TestAvailableURLs:
             content-type
 
         """
-        response = client.get(api_url, auth=settings.server.get_credentials(), verify=False)
+        response = client.get(api_url, auth=settingsUtils.credentials(), verify=False)
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
@@ -959,7 +959,7 @@ class TestAvailableURLs:
 
         """
         # Did the server give us any paths at all?
-        response = client.get(api_url, auth=settings.server.get_credentials(), verify=False)
+        response = client.get(api_url, auth=settingsUtils.credentials(), verify=False)
         response.raise_for_status()
         # response.json()['links'] is a dict like this:
         #

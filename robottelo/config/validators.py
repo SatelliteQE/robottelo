@@ -8,8 +8,6 @@ validators = dict(
     server=[
         Validator("server.hostname", must_exist=False),
         Validator("server.hostnames", must_exist=True, is_type_of=list),
-        Validator("server.version.release", must_exist=True),
-        Validator("server.version.source", must_exist=True),
         Validator(
             "server.xdist_behavior", must_exist=True, is_in=['run-on-one', 'balance', 'on-demand']
         ),

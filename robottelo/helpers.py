@@ -5,6 +5,7 @@ import random
 import re
 from tempfile import mkstemp
 from urllib.parse import urljoin  # noqa
+from urllib.parse import urlunsplit
 
 import requests
 from nailgun.config import ServerConfig
@@ -18,6 +19,7 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.errors import GCECertNotFoundError
 from robottelo.logging import logger
+from robottelo.host_info import get_sat_version
 
 
 class DataFileError(Exception):
@@ -181,8 +183,8 @@ def get_nailgun_config(user=None):
         with values from ``robottelo.config.settings``
 
     """
-    creds = (user.login, user.passwd) if user else settings.server.get_credentials()
-    return ServerConfig(settings.server.get_url(), creds, verify=False)
+    creds = (user.login, user.passwd) if user else settingsUtils.credentials()
+    return ServerConfig(settingsUtils.server_url(), creds, verify=False)
 
 
 def escape_search(term):
@@ -243,7 +245,7 @@ def install_katello_ca(hostname=None, sat_hostname=None):
         cert_rpm_url = f'http://{sat_hostname}/pub/katello-ca-consumer-latest.noarch.rpm'
     else:
         sat_hostname = settings.server.hostname
-        cert_rpm_url = settings.server.get_cert_rpm_url()
+        cert_rpm_url = settingsUtils.cert_rpm_url()
     ssh.command(f'rpm -Uvh {cert_rpm_url}', hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
@@ -797,3 +799,78 @@ class InstallerCommand:
     def __repr__(self):
         """Custom repr will give the constructed command output"""
         return self.get_command()
+
+
+class settingsUtils:
+    @staticmethod
+    def credentials():
+        """Return credentials for interacting with a Foreman deployment API.
+
+        :return: A username-password pair.
+        :rtype: tuple
+        """
+        username = settings.server.get('admin_username', '')
+        password = settings.server.get('admin_password', '')
+        return (username, password)
+
+    @staticmethod
+    def server_url():
+        """Return the base URL of the Foreman deployment being tested.
+
+        The following values from the config file are used to build the URL:
+
+        * ``[server] scheme`` (default: https)
+        * ``[server] hostname`` (required)
+        * ``[server] port`` (default: none)
+
+        Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
+        ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default
+        to 'https'.
+
+        :return: A URL.
+        :rtype: str
+        """
+        scheme = settings.server.scheme
+        hostname = settings.server.hostname
+        port = settings.server.port
+        if port is not None:
+            hostname = f"{hostname}:{port}"
+        return urlunsplit((scheme, hostname, '', '', ''))
+
+    @staticmethod
+    def pub_url():
+        """Return the pub URL of the server being tested.
+
+        The following values from the config file are used to build the URL:
+
+        * ``main.server.hostname`` (required)
+
+        :return: The pub directory URL.
+        :rtype: str
+        """
+        hostname = settings.server.hostname
+        return urlunsplit(('http', hostname, 'pub/', '', ''))
+
+    @staticmethod
+    def cert_rpm_url():
+        """Return the Katello cert RPM URL of the server being tested.
+
+        The following values from the config file are used to build the URL:
+
+        * ``main.server.hostname`` (required)
+
+        :return: The Katello cert RPM URL.
+        :rtype: str
+        """
+        return urljoin(settingsUtils.pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
+
+    @staticmethod
+    def sat_version():
+        version = get_sat_version()
+        return version
+
+    @staticmethod
+    def capsule_hostname():
+        instance_name = settings.capsule.get('instance_name')
+        domain = settings.capsule.get('domain')
+        return f"{instance_name}.{domain}"

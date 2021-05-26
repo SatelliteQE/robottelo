@@ -1,7 +1,5 @@
 import os
 from functools import reduce
-from urllib.parse import urljoin
-from urllib.parse import urlunsplit
 
 import airgun.settings
 from nailgun import entities
@@ -172,9 +170,13 @@ class SettingsNodeWrapper(CallableObjectProxy):
             of this.
         * Set a default value for ``nailgun.entities.GPGKey.content``.
         """
+        # Calling here instead at top, to fix the circular dependency issue
+        # This function should be moved to helpers once we get rid of facade
+        from robottelo.helpers import settingsUtils
+
         entity_mixins.CREATE_MISSING = True
         entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
-            self.server.get_url(), self.server.get_credentials(), verify=False
+            settingsUtils.server_url(), settingsUtils.credentials(), verify=False
         )
 
         gpgkey_init = entities.GPGKey.__init__
@@ -246,80 +248,6 @@ class SettingsFacade:
     def __all_features(self):
         return [name for name in dir(self) if not name.startswith("_")]
 
-    def __server_get_credentials(self):
-        """Return credentials for interacting with a Foreman deployment API.
-
-        :return: A username-password pair.
-        :rtype: tuple
-
-        """
-        username = self.get('server.admin_username')
-        password = self.get('server.admin_password')
-        return (username, password)
-
-    def __server_get_url(self):
-        """Return the base URL of the Foreman deployment being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``[server] scheme`` (default: https)
-        * ``[server] hostname`` (required)
-        * ``[server] port`` (default: none)
-
-        Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
-        ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default
-        to 'https'.
-
-        :return: A URL.
-        :rtype: str
-
-        """
-        scheme = self.get('server.scheme')
-        hostname = self.get('server.hostname')
-        port = self.get('server.port')
-        if port is not None:
-            hostname = f"{hostname}:{port}"
-
-        return urlunsplit((scheme, hostname, '', '', ''))
-
-    def __server_get_pub_url(self):
-        """Return the pub URL of the server being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``main.server.hostname`` (required)
-
-        :return: The pub directory URL.
-        :rtype: str
-
-        """
-        hostname = self.get('server.hostname')
-        return urlunsplit(('http', hostname, 'pub/', '', ''))
-
-    def __server_get_cert_rpm_url(self):
-        """Return the Katello cert RPM URL of the server being tested.
-
-        The following values from the config file are used to build the URL:
-
-        * ``main.server.hostname`` (required)
-
-        :return: The Katello cert RPM URL.
-        :rtype: str
-
-        """
-        get_pub_url = self.get('server.get_pub_url')
-        return urljoin(get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
-
-    def __server_version(self):
-        try:
-            version = self._get_from_configs('server.version')
-        except AttributeError:
-            from robottelo.host_info import get_sat_version
-
-            version = get_sat_version()
-
-        return version
-
     def __server_get_hostname(self, key="hostname"):
         try:
             return self._get_from_configs(f"server.{key}")
@@ -329,14 +257,6 @@ class SettingsFacade:
 
             reader = INIReader(os.path.join(robottelo_root_dir, SETTINGS_FILE_NAME))
             return reader.get('server', key, default)
-
-    def __capsule_hostname(self):
-        try:
-            instance_name = self.get('capsule.instance_name')
-            domain = self.get('capsule.domain')
-            return f"{instance_name}.{domain}"
-        except KeyError:
-            return None
 
     def __ssh_client_command_timeout(self):
         try:
@@ -376,20 +296,8 @@ class SettingsFacade:
             value = self._cached_function(lambda: None)
         elif key == "verbosity":
             value = self._robottelo_verbosity()
-        elif key == "server.get_credentials":
-            value = self._cached_function(self.__server_get_credentials)
-        elif key == "server.get_url":
-            value = self.__server_get_url
-        elif key == "server.get_pub_url":
-            value = self.__server_get_pub_url
-        elif key == "server.get_cert_rpm_url":
-            value = self.__server_get_cert_rpm_url
         elif key == 'server.get_hostname':
             value = self.__server_get_hostname
-        elif key == "server.version":
-            value = self.__server_version()
-        elif key == "capsule.hostname":
-            value = self.__capsule_hostname()
         elif key == "ssh_client.command_timeout":
             value = self.__ssh_client_command_timeout()
         elif key == "ssh_client.connection_timeout":

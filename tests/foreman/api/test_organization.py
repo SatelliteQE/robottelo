@@ -36,6 +36,7 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
+from robottelo.helpers import settingsUtils
 
 
 @filtered_datapoint
@@ -75,7 +76,7 @@ class TestOrganization:
         response = client.post(
             organization.path(),
             organization.create_payload(),
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             headers={'content-type': 'text/plain'},
             verify=False,
         )

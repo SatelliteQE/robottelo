@@ -13,6 +13,7 @@ from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
 from robottelo.constants import WONTFIX_RESOLUTIONS
 from robottelo.logging import logger
+from robottelo.helpers import settingsUtils
 
 
 # match any version as in `sat-6.2.x` or `sat-6.2.0` or `6.2.9`
@@ -44,17 +45,18 @@ def is_open_bz(issue, data=None):
         return True
 
     # BZ is CLOSED with a resolution in (ERRATA, CURRENT_RELEASE, ...)
-    # server.version is higher or equal than BZ version
+    # settingsUtils.sat_version() is higher or equal than BZ version
     # Consider fixed,  BZ is not open
-    if hasattr(settings.server.version, 'release'):
-        if settings.server.version.release >= extract_min_version(bz).release:
+    version = settingsUtils.sat_version()
+    if hasattr(version, 'release'):
+        if version.release >= extract_min_version(bz).release:
             return False
-    elif settings.server.version >= extract_min_version(bz):
+    elif version >= extract_min_version(bz):
         return False
 
     # Not in OPEN_STATUSES
     # Not in Wontfix resolution
-    # server.version is lower than BZ min version
+    # settingsUtils.sat_version() is lower than BZ min version
     # fixed in next version, not backported
     # so BZ is open
     return True

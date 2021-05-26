@@ -41,6 +41,7 @@ from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+from robottelo.helpers import settingsUtils
 
 
 @pytest.fixture(scope='module')
@@ -89,7 +90,7 @@ class TestContentViewFilter:
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             verify=False,
         )
         assert response.status_code == http.client.OK
@@ -109,7 +110,7 @@ class TestContentViewFilter:
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
+            auth=settingsUtils.credentials(),
             verify=False,
             data={'foo': 'bar'},
         )
