@@ -13,7 +13,6 @@
 """
 import pytest
 from fauxfactory import gen_string
-from wrapanapi import RHEVMSystem
 from wrapanapi import VMWareSystem
 
 from robottelo.api.utils import configure_provisioning
@@ -25,43 +24,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.helpers import host_provisioning_check
-from robottelo.utils.issue_handlers import is_open
-
-
-@pytest.fixture(scope="function")
-def rhev():
-    bridge = settings.vlan_networking.bridge
-    rhev = type("", (), {})()
-    rhev.rhev_url = settings.rhev.hostname
-    rhev.rhev_password = settings.rhev.password
-    rhev.rhev_username = settings.rhev.username
-    rhev.rhev_datacenter = settings.rhev.datacenter
-    rhev.rhev_img_name = settings.rhev.image_name
-    rhev.rhev_img_arch = settings.rhev.image_arch
-    rhev.rhev_img_os = settings.rhev.image_os
-    rhev.rhev_img_user = settings.rhev.image_username
-    rhev.rhev_img_pass = settings.rhev.image_password
-    rhev.rhev_vm_name = settings.rhev.vm_name
-    rhev.rhev_storage_domain = settings.rhev.storage_domain
-    rhev.rhv_api = RHEVMSystem(
-        hostname=rhev.rhev_url.split('/')[2],
-        username=rhev.rhev_username,
-        password=rhev.rhev_password,
-        version='4.0',
-        verify=False,
-    )
-    rhev.cluster_id = rhev.rhv_api.get_cluster(rhev.rhev_datacenter).id
-    rhev.storage_id = rhev.rhv_api.get_storage_domain(rhev.rhev_storage_domain).id
-    rhev.network_id = (
-        rhev.rhv_api.api.system_service().networks_service().list(search=f'name={bridge}')[0].id
-    )
-    if is_open('BZ:1685949'):
-        dc = rhev.rhv_api._data_centers_service.list(search=f'name={rhev.rhev_datacenter}')[0]
-        dc = rhev.rhv_api._data_centers_service.data_center_service(dc.id)
-        rhev.quota = dc.quotas_service().list()[0].id
-    else:
-        rhev.quota = 'Default'
-    return rhev
 
 
 @pytest.fixture(scope="module")
