@@ -385,7 +385,7 @@ def make_content_credential(options=None):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     # Create a fake gpg key file if none was provided
-    if not options.get('key'):
+    if not options.get('path'):
         (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0o700)
         with open(key_filename, 'w') as gpg_key_file:
@@ -393,10 +393,10 @@ def make_content_credential(options=None):
     else:
         # If the key is provided get its local path and remove it from options
         # to not override the remote path
-        key_filename = options.pop('key')
+        key_filename = options.pop('path')
 
     args = {
-        'key': f'/tmp/{gen_alphanumeric()}',
+        'path': f'/tmp/{gen_alphanumeric()}',
         'content-type': 'gpg_key',
         'name': gen_alphanumeric(),
         'organization': None,
@@ -405,7 +405,7 @@ def make_content_credential(options=None):
     }
 
     # Upload file to server
-    ssh.upload_file(local_file=key_filename, remote_file=args['key'])
+    ssh.upload_file(local_file=key_filename, remote_file=args['path'])
 
     return create_object(ContentCredential, args, options)
 
