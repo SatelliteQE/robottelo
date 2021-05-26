@@ -1,6 +1,5 @@
 """Utility module to handle the shared ssh connection."""
 import base64
-import logging
 import os
 import re
 import time
@@ -12,8 +11,7 @@ import paramiko
 
 from robottelo.cli import hammer
 from robottelo.config import settings
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 class SSHCommandTimeoutError(Exception):

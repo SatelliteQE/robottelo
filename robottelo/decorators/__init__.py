@@ -1,8 +1,7 @@
 """Implements various decorators"""
-import logging
 from functools import wraps
 
-LOGGER = logging.getLogger('robottelo')
+
 OBJECT_CACHE = {}
 
 

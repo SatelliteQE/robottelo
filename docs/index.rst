@@ -38,13 +38,7 @@ $ deactivate
 On Fedora, you can install these with the following command:
 
 For python3.x::
-
 dnf install -y gcc git libffi-devel openssl-devel python38-devel \
-redhat-rpm-config libcurl-devel libxml2-devel
-
-On Red Hat Enterprise Linux 7, you can install these with the following command::
-
-yum install -y gcc git libffi-devel openssl-devel python38-devel \
 redhat-rpm-config libcurl-devel libxml2-devel
 
 For more information, see `Paramiko: Installing
@@ -146,7 +140,6 @@ Initial Configuration
 To configure Robottelo, multiple template yaml files are present to execute different test cases in Robottelo.
 1. server.yaml : Populate server.yaml with ssh credentials and ssh key path. Then, edit the configuration file so that
 at least the following attributes are set::
-
 HOSTNAMES=[LIST OF FULLY QUALIFIED DOMAIN NAMES OR IP ADDRESSES]
 SSH_USERNAME=[SSH USERNAME]
 SSH_PASSWORD=[SSH PASSWORD] / SSH_KEY=[PATH TO YOUR SSH KEY] / SSH_KEY_STRING = [SSH KEY AS STRING]
@@ -197,8 +190,7 @@ $ pytest test_case.py::TestClass::test_case_name
 To get more verbose output, or run multiple tests::
 
 $ pytest tests/ -v
-$ pytest tests/robottelo/test_decorators.py \
-tests/robottelo/test_cli.py
+$ pytest tests/robottelo/test_decorators.py tests/robottelo/test_cli.py
 
 To test The Foreman's API, CLI or UI, use the following commands respectively::
 
@@ -220,114 +212,44 @@ $ pytest tests/foreman/cli/test_host.py -n 4
 
 For more information about Python's `pytest`_ module, read the documentation.
 
-Testing With Unittest
----------------------
-
-To run all tests::
-
-$ python -m unittest discover \
---start-directory tests/ \
---top-level-directory .
-
-It is possible to run a specific subset of tests::
-
-$ python -m unittest tests.robottelo.test_decorators
-$ python -m unittest tests.robottelo.test_decorators.DataDecoratorTestCase
-$ python -m unittest tests.robottelo.test_decorators.DataDecoratorTestCase.test_data_decorator_smoke
-
-To get more verbose output, or run multiple tests::
-
-$ python -m unittest discover -s tests/ -t . -v
-$ python -m unittest \
-tests.robottelo.test_decorators \
-tests.robottelo.test_cli
-
-To test The Foreman's API, CLI or UI, use the following commands respectively::
-
-$ python -m unittest discover -s tests/foreman/api/
-$ python -m unittest discover -s tests/foreman/cli/
-$ python -m unittest discover -s tests/foreman/ui/
-
-For more information about Python's `unittest`_ module, read the documentation.
-
-Testing With Nose
------------------
-
-You must have `nose`_ installed to execute the ``nosetests`` command.
-
-To run all tests::
-
-$ nosetests
-
-It is possible to run a specific subset of tests::
-
-$ nosetests tests.robottelo.test_decorators
-$ nosetests tests.robottelo.test_decorators:DataDecoratorTestCase
-$ nosetests tests.robottelo.test_decorators:DataDecoratorTestCase.test_data_decorator_smoke
-
-To get more verbose output, or run multiple tests::
-
-$ nosetests -v
-$ nosetests tests.robottelo.test_decorators tests.robottelo.test_cli
-
-To test The Foreman's API, CLI or UI, use the following commands respectively::
-
-$ nosetests tests.foreman.api
-$ nosetests tests.foreman.cli
-$ nosetests tests.foreman.ui
-
-Many of the existing tests use `subTest`_ to allow for a more data-driven
-methodology.  In order to run a specific test you need to override the way
-``nosetests`` discovers test names. For instance, if you wanted to run only the
-``test_positive_create_1`` data-driven tests for the ``foreman.cli.test_org``
-module::
-
-$ nosetests -m test_positive_create_1 tests.foreman.cli.test_org
 
 Running UI Tests On a Docker Browser
 ------------------------------------
 
 It is possible to run UI tests within a docker container. To do this:
 
-* Install docker. It is provided by the ``docker`` package on Fedora and Red
-Hat. Be aware that the package may call ``docker-io`` on old OS releases.
-* Make sure that docker is up and running and the user that will run robottelo
-has permission to run docker commands. For more information check the docker
-installation guide https://docs.docker.com/engine/installation/.
+* Install docker. It is provided by the ``docker`` package on Fedora and Red Hat. Be aware that the package may call ``docker-io`` on old OS releases.
+* Make sure that docker is running and your user has permission to run docker. For more information, check https://docs.docker.com/engine/installation/.
 * Pull the ``selenium/standalone-firefox`` image
-* Set ``browser=docker`` at the ``[robottelo]`` section in the configuration
-file ``robottelo.properties``.
+* Set ``browser=docker`` in ``conf/robottelo.yaml``
+
 
 Once you've performed these steps, UI tests will no longer launch a web browser
 on your system. Instead, UI tests launch a web browser within a docker
 container.
+
 
 Running UI Tests On SauceLabs
 -----------------------------
 
 It is possible to run UI tests on SauceLabs. To do this:
 
-* Set ``browser=saucelabs`` at the ``[robottelo]`` section in the configuration
-file ``robottelo.properties``.
-* Select the browser type by setting ``webdriver`` at the ``[robottelo]``
-section in the configuration file. Valid values are ``firefox``, ``chrome``
-and ``ie``.
-* Fill ``saucelabs_user`` and ``saucelabs_key`` at the ``[robottelo]`` section
-in the configuration file with your Sauce OnDemand credentials.
-* If the machine where Satellite 6 is installed is on a VPN or behind a
-firewall make sure to have SauceConnect running.
+* Set ``browser=saucelabs`` in ``conf/robottelo.yaml``.
+* Select the browser type by setting ``webdriver`` in ``conf/robottelo.yaml`` section in the configuration file. Valid values are ``firefox``, ``chrome`` and ``ie``.
+* Fill ``saucelabs_user`` and ``saucelabs_key`` in ``conf/robottelo.yaml`` section in the configuration file with your Sauce OnDemand credentials.
+* If the machine where Satellite 6 is installed is on a VPN or behind a firewall make sure to have SauceConnect running.
 
 Miscellany
 ==========
 
 .. toctree::
-:hidden:
+    :hidden:
 
-committing
-code_standards
-reviewing_PRs
-features/index
-autoapi/index
+    committing
+    code_standards
+    reviewing_PRs
+    features/index
+    autoapi/index
 
 Want to contribute? Before submitting code, read through the :doc:`committing
 guide </committing>` and **Robottelo** :doc:`code standards </code_standards>`.

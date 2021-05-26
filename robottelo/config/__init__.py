@@ -1,21 +1,20 @@
-import logging
 import os
-from pathlib import Path
 
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
 
 from .validators import validators as dynaconf_validators
-from robottelo.config.base import ImproperlyConfigured
 from robottelo.config.base import Settings as LegacySettings
 from robottelo.config.facade import SettingsFacade
 from robottelo.config.facade import SettingsNodeWrapper
+from robottelo.errors import ImproperlyConfigured
+from robottelo.logging import config_logger as logger
+from robottelo.logging import robottelo_root_dir
 
-logger = logging.getLogger('robottelo.config')
 
 if not os.getenv('ROBOTTELO_DIR'):
     # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
-    os.environ['ROBOTTELO_DIR'] = str(Path(__file__).resolve().parent.parent)
+    os.environ['ROBOTTELO_DIR'] = str(robottelo_root_dir)
 
 legacy_settings = LegacySettings()
 
@@ -49,8 +48,6 @@ settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 settings = SettingsNodeWrapper(settings_proxy)
 settings.configure_nailgun()
 settings.configure_airgun()
-settings.configure_logging()
-settings.configure_third_party_logging()
 
 
 def setting_is_set(option):

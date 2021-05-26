@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import logging
 import re
 
 import pytest
@@ -26,9 +25,8 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.subscription import Subscription
+from robottelo.logging import logger
 from robottelo.ssh import upload_file
-
-logger = logging.getLogger('robottelo')
 
 
 def line_count(file, connection=None):

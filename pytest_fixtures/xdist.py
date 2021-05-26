@@ -1,5 +1,4 @@
 """Fixtures specific to or relating to pytest's xdist plugin"""
-import logging
 import random
 
 import pytest
@@ -7,8 +6,7 @@ from broker import VMBroker
 
 import robottelo
 from robottelo.config import settings
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 @pytest.fixture(scope="session", autouse=True)

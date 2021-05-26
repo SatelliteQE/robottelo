@@ -64,7 +64,7 @@ class TestGetHostOsVersion:
         # if called more than once cache didn't worked
         ssh_result.assert_called_once_with('cat /etc/redhat-release')
 
-    @mock.patch('robottelo.host_info.LOGGER')
+    @mock.patch('robottelo.host_info.logger')
     def test_command_error(self, logger, ssh_result):
         """Check returns 'Not Available' on error"""
         cmd = SSHCommandResult(
@@ -80,7 +80,7 @@ class TestGetHostOsVersion:
         ssh_result.assert_called_once_with('cat /etc/redhat-release')
         logger.warning.assert_called_once_with('Host version not available: %r' % cmd)
 
-    @mock.patch('robottelo.host_info.LOGGER')
+    @mock.patch('robottelo.host_info.logger')
     def test_command_parsing_error(self, logger, ssh_result):
         """Test return not available on Fedora machines
         It can be changed to handle other OS if needed
@@ -144,7 +144,7 @@ class TestGetHostSatVersion:
         # if called more than once cache didn't worked
         ssh_result.assert_called_once_with(host_info._SAT_6_2_VERSION_COMMAND)
 
-    @mock.patch('robottelo.host_info.LOGGER')
+    @mock.patch('robottelo.host_info.logger')
     def test_command_error(self, logger, ssh_result):
         """Check returns 'Not Available' on error"""
         ssh_result.return_value = self.SSH_RESULT_ERROR

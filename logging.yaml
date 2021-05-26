@@ -1,0 +1,30 @@
+# Not processed by dynaconf, used directly by robottelo.logging for logzero config
+robottelo:
+    level: WARNING
+    fileLevel: DEBUG
+collection:
+    level: INFO
+    fileLevel: INFO
+config:
+    level: ERROR
+    fileLevel: INFO
+nailgun:
+    level: ERROR
+    fileLevel: DEBUG
+airgun:
+    level: ERROR
+    fileLevel: DEBUG
+widgetastic_null:
+    level: ERROR
+    fileLevel: DEBUG
+navmazing_null:
+    level: ERROR
+    fileLevel: DEBUG
+robozilla:
+    level: ERROR
+    fileLevel: DEBUG
+broker:
+    level: WARNING
+    fileLevel: INFO
+other:
+    fileLevel: INFO

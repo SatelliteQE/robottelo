@@ -1,6 +1,4 @@
 """Tests for module ``robottelo.config.casts``."""
-import logging
-
 import pytest
 
 from robottelo.config import casts
@@ -60,6 +58,8 @@ class TestLoggingLevelCast:
         return casts.LoggingLevel()
 
     def test_cast_logging_level(self, cast_logging_level):
+        import logging
+
         assert [logging.CRITICAL, logging.DEBUG, logging.ERROR, logging.INFO, logging.WARNING] == [
             cast_logging_level(value)
             for value in ('critical', 'debug', 'error', 'info', 'warning')
