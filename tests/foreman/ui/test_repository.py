@@ -881,6 +881,7 @@ def test_positive_recommended_repos(session, module_org):
 
 
 @pytest.mark.stubbed
+@pytest.mark.tier2
 def test_positive_upload_resigned_rpm():
     """Re-sign and re-upload an rpm that already exists in a repository.
 
@@ -907,6 +908,7 @@ def test_positive_upload_resigned_rpm():
 
 
 @pytest.mark.stubbed
+@pytest.mark.tier2
 def test_positive_remove_srpm_change_checksum():
     """Re-sync a repository that has had an srpm removed and repodata checksum type changed from
     sha1 to sha256.
@@ -924,5 +926,125 @@ def test_positive_remove_srpm_change_checksum():
 
     :expectedresults: Repository re-syncs successfully, and the removed srpm is no longer visible
         in the UI.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier1
+def test_positive_repo_discovery_change_ssl():
+    """Verify that repository created via repo discovery has expected Verify SSL value.
+
+    :id: 4c3417c8-1aca-4091-bf56-1491e55e4498
+
+    :customerscenario: true
+
+    :BZ: 1789848
+
+    :Steps:
+        1. Navigate to Content > Products > click on 'Repo Discovery'.
+        2. Set the repository type to 'Yum Repositories'.
+        3. Enter an upstream URL to discover and click on 'Discover'.
+        4. Select the discovered repository and click on 'Create Selected'.
+        5. Select the product or create a product.
+        6. Un-check the box for 'Verify SSL'.
+        7. Enter a repo name and click on 'Run Repository Creation'.
+
+    :expectedresults: New repository has 'Verify SSL' set to False.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier1
+def test_positive_remove_credentials():
+    """User can remove the upstream_username and upstream_password from a repository in the UI.
+
+    :id: 1d4fc498-1e89-41ae-830f-d239ce389831
+
+    :BZ: 1802158
+
+    :customerscenario: true
+
+    :Steps:
+        1. Create a custom repository, with a repositority type of 'yum' and an upstream username
+        and password.
+        3. Remove the saved credentials by clicking the delete icon next to the 'Upstream
+        Authorization' field in the repository details page.
+
+    :expectedresults: 'Upstream Authorization' value is cleared.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_sync_status_repo_display():
+    """Red Hat repositories displayed correctly on Sync Status page.
+
+    :id: a9798f9d-ceab-4caf-ab2f-86aa0b7bad8e
+
+    :BZ: 1819794
+
+    :customerscenario: true
+
+    :Steps:
+        1. Import manifest and enable RHEL 8 repositories.
+        2. Navigate to Content > Sync Status.
+
+    :expectedresults: Repositories should be grouped correctly by arch on Sync Status page.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_search_enabled_kickstart_repos():
+    """Red Hat Repositories should show enabled repositories list with search criteria
+    'Enabled/Both' and type 'Kickstart'.
+
+    :id: e85a27c1-2600-4f60-af79-c56d49902588
+
+    :customerscenario: true
+
+    :BZ: 1724807, 1829817
+
+    :Steps:
+        1. Import a manifest
+        2. Navigate to Content > Red Hat Repositories, and enable some kickstart repositories.
+        3. In the search bar on the right side, select 'Enabled/Both'.
+        4. In the filter below the search button, change 'rpm' to 'kickstart'.
+        5. Click on 'Search'
+
+    :expectedresults: Enabled repositories should show the list of enabled kickstart repositories.
+    """
+    pass
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_rpm_metadata_display():
+    """RPM dependencies should display correctly in UI.
+
+    :id: 308f2f4e-4382-48c9-b606-2c827f91d280
+
+    :customerscenario: true
+
+    :BZ: 1904369
+
+    :Steps:
+        1. Enable and sync a repository, e.g.,
+           'Red Hat Satellite Tools 6.9 for RHEL 7 Server RPMs x86_64'.
+        2. Navigate to Content > Packages > click on a package in the repository (e.g.,
+           'tfm-rubygem-hammer_cli_foreman_tasks-0.0.15-1.el7sat.noarch') > Dependencies.
+        3. Verify that the displayed required and provided capabilities displayed match those of
+           the rpm, e.g.,
+           tfm-rubygem(hammer_cli_foreman) > 0.0.1.1
+           tfm-rubygem(hammer_cli_foreman) < 0.3.0.0
+           tfm-rubygem(powerbar) < 0.3.0
+           tfm-rubygem(powerbar) >= 0.1.0.11
+
+    :expectedresults: Comparison operators (less than, greater than, etc.) should display
+        correctly.
     """
     pass

@@ -2296,6 +2296,26 @@ class TestRepository:
             key: value for key, value in actual_result.items() if key in expected_result
         }
 
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_negative_update_red_hat_repo():
+        """Updates to Red Hat products fail.
+
+        :id: d3ac0ea2-faab-4df4-be66-733e1b7ae6b4
+
+        :customerscenario: true
+
+        :BZ: 1756951
+
+        :Steps:
+            1. Import manifest and enable a Red Hat repository.
+            2. Update the repository url:
+               # hammer repository update --id <id> --url http://example.com/repo
+
+        :expectedresults: hammer returns error code. The repository is not updated.
+        """
+        pass
+
 
 class TestOstreeRepository:
     """Ostree Repository CLI tests."""
