@@ -1324,7 +1324,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
     # Fetch available subscriptions
     subs = entities.Subscription(organization=module_manifest_org).search(
         query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
-        )
+    )
     assert subs
     new_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
     return new_module_ak
