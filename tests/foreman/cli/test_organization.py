@@ -8,7 +8,7 @@
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: lvrtelov
+:Assignee: shwsingh
 
 :TestType: Functional
 

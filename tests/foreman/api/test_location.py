@@ -11,7 +11,7 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: lvrtelov
+:Assignee: shwsingh
 
 :TestType: Functional
 
