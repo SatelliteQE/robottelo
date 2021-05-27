@@ -79,11 +79,11 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import EPEL_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.constants.repos import EPEL_REPO
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10
@@ -1337,9 +1337,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so install older python2-psutil for errata test
-    rhel77_contenthost_module.run(
-        f'rpm -Uvh {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm'
-    )
+    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
