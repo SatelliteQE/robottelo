@@ -2957,7 +2957,7 @@ class TestContentView:
         rhel7_contenthost.install_katello_ca()
         rhel7_contenthost.register_contenthost(
             org['label'],
-            lce='{}/{}'.format(env['name'], content_view['name']),
+            lce='/'.join([env['name'], content_view['name']]),
             username=user_name,
             password=user_password,
         )
