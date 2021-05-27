@@ -26,6 +26,7 @@ from broker.broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -50,6 +51,9 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ARCHITECTURE
+from robottelo.constants import DEFAULT_CV
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
@@ -68,6 +72,7 @@ from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import PRDS
+from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REPOS
@@ -1275,3 +1280,106 @@ def test_positive_check_errata_dates(module_org):
     # Verify any errata UPDATED date from stdout
     validate_updated_date = datetime.strptime(result[0]['updated'], '%Y-%m-%d').date()
     assert isinstance(validate_updated_date, date)
+
+
+@pytest.fixture(scope='module')
+def rh_repo_module_manifest(module_manifest_org):
+    """Use module manifest org, creates RH tools repo, syncs and returns RH repo."""
+    # enable rhel repo and return its ID
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    # Sync step because repo is not synced by default
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    return rh_repo
+
+
+"""Section for tests using RHEL7.7 Content Host.
+   The applicability tests using Default Content View are related to the introduction of Pulp3.
+   """
+
+
+@pytest.fixture(scope='module')
+def default_contentview(module_manifest_org):
+    return entities.ContentView(organization=module_manifest_org, name=DEFAULT_CV).search()
+
+
+@pytest.fixture(scope='module')
+def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
+    new_module_ak = entities.ActivationKey(
+        content_view=module_manifest_org.default_content_view,
+        environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
+        organization=module_manifest_org,
+    ).create()
+    # Ensure tools repo is enabled in the activation key
+    new_module_ak.content_override(
+        data={'content_overrides': [{'content_label': REPOS['rhst7']['id'], 'value': '1'}]}
+    )
+    # Fetch available subscriptions
+    subs = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
+    )
+    assert subs
+    new_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
+    return new_module_ak
+
+
+@pytest.fixture
+def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
+    """A RHEL77 Content Host that has applicable errata and registered to Library"""
+    # python-psutil is obsoleted by python2-psutil, so install older python2-psutil for errata test
+    rhel77_contenthost_module.run(
+        'rpm -Uvh https://download-ib01.fedoraproject.org/pub/epel/7/'
+        'x86_64/Packages/p/python2-psutil-5.6.7-1.el7.x86_64.rpm'
+    )
+    rhel77_contenthost_module.install_katello_ca()
+    rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
+    assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
+    rhel77_contenthost_module.install_katello_host_tools()
+    return rhel77_contenthost_module
+
+
+@pytest.mark.tier2
+def test_apply_errata_using_default_content_view(chost):
+    """Updating an applicable errata on a host attached to the default content view
+     causes the errata to not be applicable.
+
+    :id: 91428c25-932e-4ffe-95bb-b2f700201452
+
+    :steps:
+        1. Register a host that already requires errata to org with Library
+        2. Ensure at least one errata is applicable on the newly registered host
+        3. Update errata on the host
+        4. Ensure no errata are applicable
+
+    :expectedresults: errata listed successfully and is installable
+
+    :CaseImportance: High
+    """
+    # check that package errata is applicable
+    erratum = Host.errata_list({'host': chost.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    assert len(erratum) == 1
+    assert erratum[0]['installable'] == 'true'
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Update errata from Library, i.e. Default CV
+    chost.run(f'yum -y update --advisory {REAL_0_ERRATA_ID}')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {chost.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Assert that the eratum is no longer applicable
+    erratum = Host.errata_list({'host': chost.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    assert len(erratum) == 0
