@@ -58,7 +58,6 @@ from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_0_INC_UPD_ERRATA
 from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
@@ -86,7 +85,6 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
 from robottelo.helpers import repo_add_updateinfo
-from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
@@ -2659,9 +2657,10 @@ class TestContentView:
         assert content_view['content-host-count'] == '1'
 
     @pytest.mark.tier3
-    @pytest.mark.libvirt_content_host
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self, module_org):
+    def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
+        self, module_org, rhel7_contenthost
+    ):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
 
@@ -2800,23 +2799,23 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
-            host_client.install_katello_ca()
-            host_client.register_contenthost(
-                org['label'],
-                lce=f'{env["name"]}/{content_view["name"]}',
-                username=user_name,
-                password=user_password,
-            )
-            assert host_client.subscribed
-            # check that the client host exist in the system
-            org_hosts = Host.list({'organization-id': org['id']})
-            assert len(org_hosts) == 1
-            assert org_hosts[0]['name'] == host_client.hostname
+        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.register_contenthost(
+            org['label'],
+            lce=f'{env["name"]}/{content_view["name"]}',
+            username=user_name,
+            password=user_password,
+        )
+        assert rhel7_contenthost.subscribed
+        # check that the client host exist in the system
+        org_hosts = Host.list({'organization-id': org['id']})
+        assert len(org_hosts) == 1
+        assert org_hosts[0]['name'] == rhel7_contenthost.hostname
 
-    @pytest.mark.libvirt_content_host
     @pytest.mark.tier3
-    def test_positive_sub_host_with_restricted_user_perm_at_default_loc(self, module_org):
+    def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
+        self, module_org, rhel7_contenthost
+    ):
         """Attempt to subscribe a host with restricted user permissions and
         default location.
 
@@ -2953,19 +2952,18 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
-            host_client.install_katello_ca()
-            host_client.register_contenthost(
-                org['label'],
-                lce='{}/{}'.format(env['name'], content_view['name']),
-                username=user_name,
-                password=user_password,
-            )
-            assert host_client.subscribed
-            # check that the client host exist in the system
-            org_hosts = Host.list({'organization-id': org['id']})
-            assert len(org_hosts) == 1
-            assert org_hosts[0]['name'] == host_client.hostname
+        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.register_contenthost(
+            org['label'],
+            lce='/'.join([env['name'], content_view['name']]),
+            username=user_name,
+            password=user_password,
+        )
+        assert rhel7_contenthost.subscribed
+        # check that the client host exist in the system
+        org_hosts = Host.list({'organization-id': org['id']})
+        assert len(org_hosts) == 1
+        assert org_hosts[0]['name'] == rhel7_contenthost.hostname
 
     @pytest.mark.tier1
     def test_positive_clone_by_id(self, module_org):
