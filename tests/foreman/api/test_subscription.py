@@ -355,3 +355,61 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
     response = entities.Ping().search_json()['services']['candlepin_events']
     assert response['status'] == 'ok'
     assert '0 Failed' in response['message']
+
+
+def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost):
+    """Verify that a content host with an expired SCA cert can
+        re-register successfully
+
+    :id: 27bca6b8-dd9c-4977-81d2-319588ee59b3
+
+    :steps:
+
+        1. Import an SCA-enabled manifest
+        2. Register a content host to the Default Organization View using an activation key
+        3. Unregister the content host
+        4. Enable and synchronize a repository
+        5. Re-register the host using the same activation key as in step 3 above
+
+    :expectedresults: the host is re-registered successfully and its SCA entitlement
+                      certificate is refreshed
+
+    :CustomerScenario: true
+
+    :Assignee: dsynk
+
+    :BZ: 1949353
+
+    :CaseImportance: High
+    """
+    with manifests.clone(name='golden_ticket') as manifest:
+        upload_manifest(module_org.id, manifest.content)
+    ak = entities.ActivationKey(
+        content_view=module_org.default_content_view,
+        max_hosts=100,
+        organization=module_org,
+        environment=entities.LifecycleEnvironment(id=module_org.library.id),
+        auto_attach=True,
+    ).create()
+    # registering the content host with no content enabled/synced in the org
+    # should create a client SCA cert with no content
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(org=module_org.label, activation_key=ak.name)
+    assert rhel7_contenthost.subscribed
+    rhel7_contenthost.unregister()
+    # syncing content with the content host unregistered should invalidate
+    # the previous client SCA cert
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch='x86_64',
+        org_id=module_org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+        releasever=None,
+    )
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    # re-registering the host should test whether Candlepin gracefully handles
+    # registration of a host with an expired SCA cert
+    rhel7_contenthost.register_contenthost(module_org.label, ak.name)
+    assert rhel7_contenthost.subscribed
