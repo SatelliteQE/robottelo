@@ -170,3 +170,24 @@ def test_positive_product_create_with_create_sync_plan(session, module_org):
         # Delete product
         session.product.delete(product_name)
         assert session.product.search(product_name)[0]['Name'] != product_name
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_bulk_action_advanced_sync():
+    """Advanced sync is available as a bulk action in the product.
+
+    :id: 7e9bb306-452d-43b8-8725-604b4aebb222
+
+    :customerscenario: true
+
+    :BZ: 1759301
+
+    :Steps:
+        1. Enable or create a repository and sync it.
+        2. Navigate to Content > Product > click on the product.
+        3. Click Select Action > Advanced Sync.
+
+    :expectedresults: Advanced sync for repositories can be run as a bulk action from the product.
+    """
+    pass

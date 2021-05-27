@@ -315,3 +315,25 @@ def test_positive_assign_http_proxy_to_products(module_org):
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
         r = Repository.info({'id': repo['id']})
         assert r['http-proxy']['http-proxy-policy'] == 'none'
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_product_sync_state():
+    """hammer product info shows correct sync state.
+
+    :id: 58af6239-85d7-4b8b-bd2d-ab4cd4f29840
+
+    :BZ: 1803207
+
+    :customerscenario: true
+
+    :Steps:
+        1. Sync a custom repository that fails.
+        2. Run `hammer product info --product-id <id>`.
+        3. Successfully sync another repository under the same product.
+        4. Run `hammer product info --product-id <id>` again.
+
+    :expectedresults: hammer should show 'Sync Incomplete' in both cases.
+    """
+    pass
