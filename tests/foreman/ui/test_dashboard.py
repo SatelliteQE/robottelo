@@ -32,7 +32,6 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
 from robottelo.utils.issue_handlers import is_open
-from robottelo.vm import VirtualMachine
 
 
 @pytest.mark.tier2
@@ -189,10 +188,9 @@ def test_positive_task_status(session):
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('clients')
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_user_access_with_host_filter(test_name, module_loc):
+def test_positive_user_access_with_host_filter(test_name, module_loc, rhel7_contenthost):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
 
@@ -243,17 +241,16 @@ def test_positive_user_access_with_host_filter(test_name, module_loc):
             distro=DISTRO_RHEL7,
             repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_6_YUM_REPO)],
         )
-        repos_collection.setup_content(org.id, lce.id)
-        with VirtualMachine(distro=repos_collection.distro) as client:
-            repos_collection.setup_virtual_machine(client)
-            result = client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-            assert result.return_code == 0
-            hostname = client.hostname
-            # Check UI for values
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            hosts_values = session.dashboard.read('HostConfigurationStatus')
-            assert hosts_values['total_count'] == 1
-            errata_values = session.dashboard.read('LatestErrata')['erratas']
-            assert len(errata_values) == 1
-            assert errata_values[0]['Type'] == 'security'
-            assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
+        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+        repos_collection.setup_virtual_machine(rhel7_contenthost)
+        result = rhel7_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
+        assert result.status == 0
+        hostname = rhel7_contenthost.hostname
+        # Check UI for values
+        assert session.host.search(hostname)[0]['Name'] == hostname
+        hosts_values = session.dashboard.read('HostConfigurationStatus')
+        assert hosts_values['total_count'] == 1
+        errata_values = session.dashboard.read('LatestErrata')['erratas']
+        assert len(errata_values) == 1
+        assert errata_values[0]['Type'] == 'security'
+        assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
