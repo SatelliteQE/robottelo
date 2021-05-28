@@ -3334,7 +3334,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost):
     result = rhel7_contenthost.run(
         'yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm'))
     )
-    assert result.return_code == 0
+    assert result.status == 0
     create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
     result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}')
     assert result.return_code == 0
