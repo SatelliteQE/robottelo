@@ -188,7 +188,9 @@ class TestContentView:
         assert content_view.repository[0].read().name == yum_repo.name
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_add_custom_module_streams(self, content_view, module_product, module_org):
         """Associate custom content (module streams) in a view
 
@@ -213,7 +215,9 @@ class TestContentView:
         assert repo.content_counts['module_stream'] == 7
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_negative_add_puppet_content(self, module_product, module_org):
         """Attempt to associate puppet repos within a custom content
         view directly
@@ -261,7 +265,9 @@ class TestContentView:
         assert len(content_view.read().repository) == 0
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_negative_add_dupe_modules(self, content_view, module_product, module_org):
         """Attempt to associate duplicate puppet modules within a
         content view
@@ -296,7 +302,9 @@ class TestContentView:
         assert len(content_view.read().puppet_module) == 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_add_sha512_rpm(self, content_view, module_org):
         """Associate sha512 RPM content in a view
 
@@ -423,7 +431,9 @@ class TestContentViewCreate:
 class TestContentViewPublishPromote:
     """Tests for publishing and promoting content views."""
 
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.fixture(scope='class', autouse=True)
     def class_setup(self, request, module_product):
         """Set up organization, product and repositories for tests."""
@@ -899,7 +909,9 @@ class TestContentViewPublishPromote:
         assert len(content_view.read().version) == 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_composite_content_view_with_same_repos(self, module_org):
         """Create a Composite Content View with content views having same yum repo.
         Add filter on the content views and check the package count for composite content view
@@ -1475,7 +1487,9 @@ class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
     @skip_if_os('RHEL6')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_product):
         """Set up organization, product and repositories for tests."""

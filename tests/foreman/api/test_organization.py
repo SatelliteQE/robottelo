@@ -31,6 +31,7 @@ from requests.exceptions import HTTPError
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
@@ -75,7 +76,7 @@ class TestOrganization:
         response = client.post(
             organization.path(),
             organization.create_payload(),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             headers={'content-type': 'text/plain'},
             verify=False,
         )

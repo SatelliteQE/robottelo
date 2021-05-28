@@ -1,5 +1,5 @@
 HTTP_PROXY:
-  # UN_AUTH_PROXY_URL: http://proxy-01.example.com:3423
-  # AUTH_PROXY_URL: http://proxy-02.example.com:3423
-  # USERNAME: auth-proxy-user
-  # PASSWORD: auth-proxy-password
+  UN_AUTH_PROXY_URL:  # http://proxy-01.example.com:3423
+  AUTH_PROXY_URL:  # http://proxy-02.example.com:3423
+  USERNAME: auth-proxy-user
+  PASSWORD: auth-proxy-password

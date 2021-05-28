@@ -1,8 +1,8 @@
 # For Open Ldap Authentication
 OPEN_LDAP:
-  # HOSTNAME: replace with env openldap server
+  HOSTNAME:  # replace with env openldap server
   USERNAME: cn=ldapadmin,dc=example,dc=com
   OPEN_LDAP_USER: foreman
-  # PASSWORD: replace with actual password
+  PASSWORD:  # replace with actual password
   BASE_DN: dc=example,dc=com
   GROUP_BASE_DN: ou=foobargroup,ou=users,dc=example,dc=com

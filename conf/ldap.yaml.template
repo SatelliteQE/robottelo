@@ -1,16 +1,16 @@
 # For Active Directory LDAP Authentication.
 LDAP:
-  # HOSTNAME: replace with AD ldap server name
-      # 2016: <ad server 2016>
-      # 2019: <ad server 2019>
+  HOSTNAME:  # replace with AD ldap server name
+      2016:  # <ad server 2016>
+      2019:  # <ad server 2019>
   USERNAME: foobar
-  # PASSWORD: update with password
-  # BASEDN: update base dn
-  # GRPBASEDN: update with group base dn
-  # REALM: update with realm address
-  # NAMESERVER: update with the ip of the ad ldap server name
-      # 2016: <ip_address of 2016 ad server>
-      # 2019: <ip_address of 2019 ad server>
-  # WORKGROUP: udpate with ldap server's domain name
-      # 2016: <workgroup 2016 server>
-      # 2019: <workgroup 2019 server>
+  PASSWORD:  # update with password
+  BASEDN:  # update base dn
+  GRPBASEDN:  # update with group base dn
+  REALM:  # update with realm address
+  NAMESERVER:  # update with the ip of the ad ldap server name
+      2016:  # <ip_address of 2016 ad server>
+      2019:  # <ip_address of 2019 ad server>
+  WORKGROUP:  # udpate with ldap server's domain name
+      2016:  # <workgroup 2016 server>
+      2019:  # <workgroup 2019 server>

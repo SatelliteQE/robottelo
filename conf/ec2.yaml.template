@@ -1,18 +1,18 @@
 EC2:
   # AWS EC2 to be added as a compute resource.
   # Access key ID of the IAM user
-  # ACCESS_KEY: access_key
+  ACCESS_KEY: access_key
   # Secret access key of the IAM user
-  # SECRET_KEY: secret_key
+  SECRET_KEY: secret_key
   # AWS region for the compute resources
   REGION: us-west-2
   # Compute resource profile image
-  # IMAGE: ami-image
+  IMAGE: ami-image
   # Compute resource profile availability zone
   AVAILABILITY_ZONE: us-west-2a
   # Compute resource profile subnet <IP>/<bitmask>
-  # SUBNET:
+  SUBNET:
   # Compute resource profile security groups list
-  # SECURITY_GROUPS: secgrp
+  SECURITY_GROUPS: secgrp
   # Compute resource profile security managed ip, available values Private, Public
   MANAGED_IP: Private

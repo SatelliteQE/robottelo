@@ -1,6 +1,6 @@
 CERTS:
-  # CERT_FILE: "~/certs/server.crt"
-  # KEY_FILE: "~/certs/server.key"
-  # REQ_FILE: "~/certs/server.csr"
+  CERT_FILE: "~/certs/server.crt"
+  KEY_FILE: "~/certs/server.key"
+  REQ_FILE: "~/certs/server.csr"
   # CA cert (a.k.a cacert.crt or rootCA.pem) can be used as bundle file.
-  # CA_BUNDLE_FILE: "~/certs/rootCA.pem"
+  CA_BUNDLE_FILE: "~/certs/rootCA.pem"

@@ -64,7 +64,7 @@ def module_prod(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_in_different_orgs(session, module_org):
     """Create repository in two different orgs with same name
 
@@ -98,7 +98,7 @@ def test_positive_create_in_different_orgs(session, module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_as_non_admin_user(module_org, test_name):
     """Create a repository as a non admin user
 
@@ -153,7 +153,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_puppet_repo_same_url_different_orgs(session, module_prod):
     """Create two repos with the same URL in two different organizations.
 
@@ -190,7 +190,7 @@ def test_positive_create_puppet_repo_same_url_different_orgs(session, module_pro
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_name):
     """Create a repository as a non admin user in a product that already
     contain a repository that is used in a published content view.
@@ -264,7 +264,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_discover_repo_via_existing_product(session, module_org):
     """Create repository via repo-discovery under existing product
@@ -292,7 +292,7 @@ def test_positive_discover_repo_via_existing_product(session, module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_discover_repo_via_new_product(session, module_org):
     """Create repository via repo discovery under new product
@@ -345,7 +345,7 @@ def test_positive_discover_module_stream_repo_via_existing_product(session, modu
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_repo_yum(session, module_org):
     """Create Custom yum repos and sync it via the repos page.
 
@@ -369,7 +369,7 @@ def test_positive_sync_custom_repo_yum(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_repo_puppet(session, module_org):
     """Create Custom puppet repos and sync it via the repos page.
 
@@ -411,7 +411,7 @@ def test_positive_sync_custom_repo_docker(session, module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
     """Create Custom yum repo and sync it via the repos page. Then try to
     change repo url to invalid one and re-sync that repository
@@ -445,7 +445,7 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resynchronize_rpm_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -480,7 +480,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_resynchronize_puppet_repo(session, module_prod):
     """Check that repository content is resynced after packages were removed
     from repository
@@ -516,7 +516,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     """Perform end to end testing for custom yum repository
 
@@ -580,7 +580,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end_custom_module_streams_crud(session, module_org, module_prod):
     """Perform end to end testing for custom module streams yum repository
 
@@ -682,7 +682,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
     """Perform end to end testing for custom ostree repository
 

@@ -20,6 +20,9 @@ class TestBugzillaIssueHandler:
     def set_env_version(self, mocker):
         """Mock the return of get_sat_version to avoid ssh attempts"""
         mocker.patch('robottelo.host_info.get_sat_version', return_value=Version('6.6'))
+        mocker.patch(
+            'robottelo.utils.issue_handlers.bugzilla.get_sat_version', return_value=Version('6.6')
+        )
 
     def test_bz_is_open_pre_processed(self):
         """Assert a pre-processed BZ is considered open"""

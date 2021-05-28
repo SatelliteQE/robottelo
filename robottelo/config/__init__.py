@@ -1,12 +1,13 @@
 import logging
 import os
 from pathlib import Path
+from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
 
-from robottelo.config.validators import validators
+from robottelo.config.validators import VALIDATORS
 from robottelo.logging import logger
 from robottelo.logging import robottelo_root_dir
 
@@ -24,12 +25,17 @@ settings = LazySettings(
     envless_mode=True,
     lowercase_read=True,
 )
-settings.validators.register(**validators)
+settings.validators.register(**VALIDATORS)
 
 try:
     settings.validators.validate()
 except ValidationError:
     logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
+
+
+if not os.getenv('BROKER_DIRECTORY'):
+    # set the BROKER_DIRECTORY envar so broker knows where to operate from
+    os.environ['BROKER_DIRECTORY'] = settings.broker.get('broker_directory')
 
 
 def get_credentials():
@@ -39,8 +45,8 @@ def get_credentials():
     :rtype: tuple
 
     """
-    username = settings.get('server.admin_username')
-    password = settings.get('server.admin_password')
+    username = settings.server.admin_username
+    password = settings.server.admin_password
     return (username, password)
 
 
@@ -61,36 +67,30 @@ def get_url():
     :rtype: str
 
     """
-    scheme = settings.get('server.scheme')
-    hostname = settings.get('server.hostname')
-    port = settings.get('server.port')
+    hostname = settings.server.get('hostname')
+    scheme = settings.server.scheme
+    port = settings.server.port
     if port is not None:
         hostname = f"{hostname}:{port}"
 
     return urlunsplit((scheme, hostname, '', '', ''))
 
 
-def get_pub_url():
-    """Return the pub URL of the server being tested.
-
+def get_cert_rpm_url():
+    """Return the Katello cert RPM URL of the server being tested.
     The following values from the config file are used to build the URL:
-
     * ``main.server.hostname`` (required)
-
-    :return: The pub directory URL.
+    :return: The Katello cert RPM URL.
     :rtype: str
-
     """
-    hostname = settings.get('server.hostname')
-    return urlunsplit(('http', hostname, 'pub/', '', ''))
+    pub_url = urlunsplit(('http', settings.server.get('hostname'), 'pub/', '', ''))
+    return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
 
 def setting_is_set(option):
     """Return either ``True`` or ``False`` if a Robottelo section setting is
     set or not respectively.
     """
-    if not settings.configured:
-        settings.configure()
     # Example: `settings.clients`
     # TODO: Use dynaconf 3.2 selective validation
     # Within the split world of Legacy settings and dynaconf, there is a limitation on validating
@@ -104,7 +104,9 @@ def setting_is_set(option):
     opt_inst = getattr(settings, option, None)
     if opt_inst is None:
         raise ValueError(f'Setting {option} did not resolve in settings')
-    return opt_inst.validate() == [] or isinstance(opt_inst, DynaBox)
+    if hasattr(opt_inst, 'validate'):
+        return opt_inst.validate()
+    return isinstance(opt_inst, DynaBox)
 
 
 def configure_nailgun():
@@ -129,7 +131,7 @@ def configure_nailgun():
     entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=False)
     gpgkey_init = entities.GPGKey.__init__
 
-    def patched_gpgkey_init(server_config=None, **kwargs):
+    def patched_gpgkey_init(self, server_config=None, **kwargs):
         """Set a default value on the ``content`` field."""
         gpgkey_init(settings, server_config, **kwargs)
         settings._fields['content'].default = str(
@@ -164,7 +166,9 @@ def configure_airgun():
                 'webdriver_binary': settings.robottelo.webdriver_binary,
                 'command_executor': settings.robottelo.command_executor,
             },
-            'webdriver_desired_capabilities': (settings.robottelo.webdriver_desired_capabilities or {}),
+            'webdriver_desired_capabilities': (
+                settings.robottelo.webdriver_desired_capabilities or {}
+            ),
         }
     )
 

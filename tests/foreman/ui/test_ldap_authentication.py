@@ -56,7 +56,7 @@ EXTERNAL_GROUP_NAME = 'foobargroup'
 def set_certificate_in_satellite(server_type, hostname=None):
     """update the cert settings in satellite based on type of ldap server"""
     if server_type == 'IPA':
-        idm_cert_path_url = os.path.join(settings.ipa.hostname_ipa, 'ipa/config/ca.crt')
+        idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
         file_downloader(
             file_url=idm_cert_path_url,
             local_path=CERT_PATH,
@@ -184,33 +184,31 @@ def multigroup_setting_cleanup():
     """Adding and removing the user to/from ipa group"""
     sat_users = settings.ipa.groups
     idm_users = settings.ipa.group_users
-    ssh.command(
-        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
-    )
+    ssh.command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
     cmd = f'ipa group-add-member {sat_users[0]} --users={idm_users[1]}'
-    ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
+    ssh.command(cmd, hostname=settings.ipa.hostname)
     yield
     cmd = f'ipa group-remove-member {sat_users[0]} --users={idm_users[1]}'
-    ssh.command(cmd, hostname=settings.ipa.hostname_ipa)
+    ssh.command(cmd, hostname=settings.ipa.hostname)
 
 
 @pytest.fixture()
 def ipa_add_user():
     """Create an IPA user and delete it"""
     result = ssh.command(
-        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
+        cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname
     )
     assert result.return_code == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
-        f'echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first'
+        f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
-    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
     assert result.return_code == 0
     yield test_user
 
-    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
     assert result.return_code == 0
 
 
@@ -343,7 +341,7 @@ def test_positive_create_with_https(
     """
     if ldap_auth_source['auth_type'] == 'ipa':
         set_certificate_in_satellite(server_type='IPA')
-        username = settings.ipa.user_ipa
+        username = settings.ipa.user
     else:
         set_certificate_in_satellite(server_type='AD', hostname=ldap_auth_source['ldap_hostname'])
         username = settings.ldap.username
@@ -1014,11 +1012,11 @@ def test_single_sign_on_ldap_ipa_server(
         run_command('foreman-maintain service restart', timeout=300)
         run_command(
             cmd=f'ipa service-del HTTP/{settings.server.hostname}',
-            hostname=settings.ipa.hostname_ipa,
+            hostname=settings.ipa.hostname,
         )
         run_command(
             cmd=f'ipa host-del {settings.server.hostname}',
-            hostname=settings.ipa.hostname_ipa,
+            hostname=settings.ipa.hostname,
         )
 
 
@@ -1090,7 +1088,7 @@ def test_single_sign_on_using_rhsso(subscribe_satellite, rhsso_setting_setup, se
     """
     with session(login=False):
         session.rhsso_login.login(
-            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
         with pytest.raises(NavigationTriesExceeded):
             session.user.search('')
@@ -1117,7 +1115,7 @@ def test_external_logout_rhsso(enable_external_auth_rhsso, rhsso_setting_setup, 
     with session(login=False):
         login_details = {
             'username': settings.rhsso.rhsso_user,
-            'password': settings.rhsso.password,
+            'password': settings.rhsso.rhsso_password,
         }
         session.rhsso_login.login(login_details)
         view = session.rhsso_login.logout()
@@ -1145,7 +1143,7 @@ def test_session_expire_rhsso_idle_timeout(
     """
     with session(login=False):
         session.rhsso_login.login(
-            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password}
+            {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password}
         )
         sleep(360)
         with pytest.raises(NavigationTriesExceeded) as error:
@@ -1177,7 +1175,7 @@ def test_external_new_user_login_and_check_count_rhsso(
     user_details = create_new_rhsso_user(client_id)
     login_details = {
         'username': user_details['username'],
-        'password': settings.rhsso.password,
+        'password': settings.rhsso.rhsso_password,
     }
     with Session(login=False) as rhsso_session:
         rhsso_session.rhsso_login.login(login_details)
@@ -1224,12 +1222,12 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
         default_organization=module_org,
         default_location=module_loc,
         login=username,
-        password=settings.rhsso.password,
+        password=settings.rhsso.rhsso_password,
     ).create()
     external_rhsso_user = create_new_rhsso_user(client_id, username=username)
     login_details = {
         'username': external_rhsso_user['username'],
-        'password': settings.rhsso.password,
+        'password': settings.rhsso.rhsso_password,
     }
     with Session(login=False) as rhsso_session:
         with pytest.raises(NavigationTriesExceeded) as error:
@@ -1268,7 +1266,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
     location_name = gen_string('alpha')
     login_details = {
         'username': username,
-        'password': settings.rhsso.password,
+        'password': settings.rhsso.rhsso_password,
     }
 
     group_name = gen_string('alpha')
@@ -1335,7 +1333,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     location_name = gen_string('alpha')
     login_details = {
         'username': username,
-        'password': settings.rhsso.password,
+        'password': settings.rhsso.rhsso_password,
     }
     user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
     katello_role = entities.Role().create()
@@ -1510,12 +1508,10 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
 
     :expectedresults: Email is copied to Satellite:
     """
-    run_command(
-        cmd=f'echo {settings.ipa.password_ipa} | kinit admin', hostname=settings.ipa.hostname_ipa
-    )
+    run_command(cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname)
     result = run_command(
         cmd=f"ipa user-find --login {ipa_data['ldap_user_name']}",
-        hostname=settings.ipa.hostname_ipa,
+        hostname=settings.ipa.hostname,
     )
     for line in result:
         if 'Email' in line:
@@ -1546,15 +1542,15 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
     :expectedresults: User login fails
     """
     result = ssh.command(
-        cmd=f"echo {settings.ipa.password_ipa} | kinit admin", hostname=settings.ipa.hostname_ipa
+        cmd=f"echo {settings.ipa.password} | kinit admin", hostname=settings.ipa.hostname
     )
     assert result.return_code == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
-        f'echo {settings.ipa.password_ipa} | ipa user-add {test_user} --first'
+        f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
-    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
     assert result.return_code == 0
     group = settings.ldap.grpbasedn.split(',')
     for line in group:
@@ -1563,14 +1559,14 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
             break
     result = ssh.command(
         cmd=f'ipa group-add-member {group} --user={test_user}',
-        hostname=settings.ipa.hostname_ipa,
+        hostname=settings.ipa.hostname,
     )
     assert result.return_code == 0
-    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+    with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         ldapsession.task.read_all()
-    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname_ipa)
+    result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
     assert result.return_code == 0
-    with Session(user=test_user, password=settings.ipa.password_ipa) as ldapsession:
+    with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == 'NavigationTriesExceeded'

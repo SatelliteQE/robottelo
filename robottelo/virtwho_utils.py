@@ -14,12 +14,9 @@ from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.config.virtwho import VirtwhoSettings
 from robottelo.constants import DEFAULT_ORG
 
 VIRTWHO_SYSCONFIG = "/etc/sysconfig/virt-who"
-virtwho = VirtwhoSettings()
-virtwho.configure()
 
 
 class VirtWhoError(Exception):
@@ -43,10 +40,10 @@ def get_system(system_type):
     """
     if system_type in ['esx', 'xen', 'hyperv', 'rhevm', 'libvirt', 'kubevirt']:
         return {
-            'hostname': getattr(virtwho, system_type).guest,
-            'username': getattr(virtwho, system_type).guest_username,
-            'password': getattr(virtwho, system_type).guest_password,
-            'port': getattr(virtwho, system_type).guest_port,
+            'hostname': getattr(settings.virtwho, system_type).guest,
+            'username': getattr(settings.virtwho, system_type).guest_username,
+            'password': getattr(settings.virtwho, system_type).guest_password,
+            'port': getattr(settings.virtwho, system_type).guest_port,
         }
     elif system_type == 'satellite':
         return {

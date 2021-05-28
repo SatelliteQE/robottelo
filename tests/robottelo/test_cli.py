@@ -247,7 +247,7 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.settings')
     def test_execute_with_raw_response(self, settings, command):
         """Check executed build ssh method and returns raw response"""
-        settings.locale = 'en_US'
+        settings.robottelo.locale = 'en_US'
         settings.performance = False
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
@@ -255,7 +255,7 @@ class BaseCliTestCase(unittest2.TestCase):
         ssh_cmd = 'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
-            hostname=None,
+            hostname=mock.ANY,
             output_format=None,
             timeout=None,
             connection_timeout=None,
@@ -267,15 +267,15 @@ class BaseCliTestCase(unittest2.TestCase):
     @mock.patch('robottelo.cli.base.settings')
     def test_execute_with_performance(self, settings, command, handle_resp):
         """Check executed build ssh method and delegate response handling"""
-        settings.locale = 'en_US'
+        settings.robottelo.locale = 'en_US'
         settings.performance.timer_hammer = True
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
-        response = Base.execute('some_cmd', output_format='json')
+        response = Base.execute('some_cmd', hostname=None, output_format='json')
         ssh_cmd = 'LANG=en_US time -p hammer -v -u admin -p password --output=json some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
-            hostname=None,
+            hostname=mock.ANY,
             output_format='json',
             timeout=None,
             connection_timeout=None,

@@ -320,7 +320,7 @@ def test_positive_delete(name, module_org):
 
 
 @pytest.mark.tier1
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync(module_org):
     """Sync product (repository within a product)
 
@@ -339,7 +339,7 @@ def test_positive_sync(module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_several_repos(module_org):
     """Sync product (all repositories within a product)
 

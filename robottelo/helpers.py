@@ -12,6 +12,9 @@ from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
+from robottelo.config import get_cert_rpm_url
+from robottelo.config import get_credentials
+from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
 from robottelo.constants import RHEL_6_MAJOR_VERSION
@@ -181,8 +184,8 @@ def get_nailgun_config(user=None):
         with values from ``robottelo.config.settings``
 
     """
-    creds = (user.login, user.passwd) if user else settings.server.get_credentials()
-    return ServerConfig(settings.server.get_url(), creds, verify=False)
+    creds = (user.login, user.passwd) if user else get_credentials()
+    return ServerConfig(get_url(), creds, verify=False)
 
 
 def escape_search(term):
@@ -243,7 +246,7 @@ def install_katello_ca(hostname=None, sat_hostname=None):
         cert_rpm_url = f'http://{sat_hostname}/pub/katello-ca-consumer-latest.noarch.rpm'
     else:
         sat_hostname = settings.server.hostname
-        cert_rpm_url = settings.server.get_cert_rpm_url()
+        cert_rpm_url = get_cert_rpm_url()
     ssh.command(f'rpm -Uvh {cert_rpm_url}', hostname)
     # Not checking the return_code here, as rpm could be installed before
     # and installation may fail
@@ -345,6 +348,8 @@ def get_available_capsule_port(port_pool=None):
     """
     if port_pool is None:
         port_pool_range = settings.fake_capsules.port_range
+        if type(port_pool_range) is str:
+            port_pool_range = tuple(port_pool_range.split(', '))
         if type(port_pool_range) is tuple and len(port_pool_range) == 2:
             port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
         else:

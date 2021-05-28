@@ -45,7 +45,7 @@ from robottelo.datafactory import valid_labels_list
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_CRUD(module_org):
     """Check if product can be created, updated, synchronized and deleted
 
@@ -173,7 +173,7 @@ def test_negative_create_with_label(label, module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_product_list_with_default_settings(module_org):
     """Listing product of an organization apart from default organization using hammer
      does not return output if a defaults settings are applied on org.
@@ -225,7 +225,7 @@ def test_product_list_with_default_settings(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_assign_http_proxy_to_products(module_org):
     """Assign http_proxy to Products and perform product sync.
 

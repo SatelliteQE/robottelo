@@ -13,7 +13,7 @@ We know that sat tool key = 'rhst'
 Working with generic repos.
 
 Generic repos has no way to guess the custom repo url in case of
-settings.cdn = false , that why the GenericRHRepo without custom url always
+settings.robottelo.cdn = false , that why the GenericRHRepo without custom url always
 return cdn repo data::
 
     sat_repo = GenericRHRepository(key=PRODUCT_KEY_SAT_TOOLS)
@@ -51,7 +51,7 @@ return cdn repo data::
     sat_repo = GenericRHRepository(
         key=PRODUCT_KEY_SAT_TOOLS, url='http://sat-tools.example.com')
 
-    # because default settings.cdn=False and we have a custom url
+    # because default settings.robottelo.cdn=False and we have a custom url
     print(sat_repo.cdn) >> False
     print(sat_repo.distro) >> rhel7
     print(sat_repo.data) >>
@@ -443,7 +443,7 @@ class GenericRHRepository(BaseRepository):
 
     @property
     def cdn(self):
-        return bool(self._cdn or settings.cdn or not self.url)
+        return bool(self._cdn or settings.robottelo.cdn or not self.url)
 
     @property
     def key(self):
@@ -630,7 +630,7 @@ class SatelliteToolsRepository(GenericRHRepository):
 
     @property
     def url(self):
-        return settings.sattools_repo[f'{PRODUCT_KEY_RHEL}{self.distro_major_version}']
+        return settings.repos.sattools_repo[f'{PRODUCT_KEY_RHEL}{self.distro_major_version}']
 
 
 class SatelliteCapsuleRepository(GenericRHRepository):
@@ -641,7 +641,7 @@ class SatelliteCapsuleRepository(GenericRHRepository):
     @property
     def url(self):
         if self.distro == get_server_distro():
-            return settings.capsule_repo
+            return settings.repos.capsule_repo
         return None
 
 

@@ -79,7 +79,7 @@ class TestScenarioYumPluginsCount:
     def _create_custom_tools_repos(self, product):
         """Create custom tools repo and sync it"""
 
-        tools_repo_url = settings.sattools_repo[DISTRO_RHEL7]
+        tools_repo_url = settings.repos.sattools_repo[DISTRO_RHEL7]
         if None in [tools_repo_url]:
             raise ValueError(f'The Tools Repo URL {self.client_os} is not provided!')
 

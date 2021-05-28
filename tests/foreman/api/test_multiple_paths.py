@@ -23,7 +23,7 @@ from nailgun import client
 from nailgun import entities
 from nailgun import entity_fields
 
-from robottelo.config import settings
+from robottelo.config import get_credentials
 from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
 from robottelo.logging import logger
@@ -139,9 +139,7 @@ class TestEntity:
         :CaseImportance: Critical
         """
         logger.info('test_get_status_code arg: %s', entity_cls)
-        response = client.get(
-            entity_cls().path(), auth=settings.server.get_credentials(), verify=False
-        )
+        response = client.get(entity_cls().path(), auth=get_credentials(), verify=False)
         response.raise_for_status()
         assert http.client.OK == response.status_code
         assert 'application/json' in response.headers['content-type']
@@ -259,7 +257,7 @@ class TestEntityId:
         response = client.put(
             entity_cls(id=entity_id).path(),
             entity.update_payload(),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         )
         assert http.client.OK == response.status_code
@@ -329,7 +327,7 @@ class TestDoubleCheck:
         response = client.put(
             entity_cls(id=entity['id']).path(),
             new_entity.create_payload(),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         )
         response.raise_for_status()

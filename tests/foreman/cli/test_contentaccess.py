@@ -31,7 +31,9 @@ from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 
 pytestmark = [
-    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
+    pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    ),
     pytest.mark.run_in_one_thread,
 ]
 

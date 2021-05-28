@@ -1,12 +1,12 @@
 GCE:
   # Google Provider as Compute Resource
   # Project name in Google provider
-  # PROJECT_ID: example-project-id
+  PROJECT_ID:  # example-project-id
   # Service Account email id which has compute admin permission
-  # CLIENT_EMAIL: client@example.com
+  CLIENT_EMAIL: client@example.com
   # client json Certificate path which is local path on satellite
-  # CERT_PATH: /path/to/certificate.json
+  CERT_PATH: /path/to/certificate.json
   # Zones
-  # ZONE: example-zone
+  ZONE: example-zone
   # client certificate URL
-  # CERT_URL: /path/to/certificate/url
+  CERT_URL: /path/to/certificate/url

@@ -32,6 +32,7 @@ from requests.exceptions import HTTPError
 
 from robottelo import ssh
 from robottelo.api.utils import promote
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_REPODATA_PATH
@@ -89,7 +90,7 @@ class TestContentViewFilter:
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         )
         assert response.status_code == http.client.OK
@@ -109,7 +110,7 @@ class TestContentViewFilter:
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
             data={'foo': 'bar'},
         )
@@ -292,7 +293,9 @@ class TestContentViewFilter:
             assert repo.id in (sync_repo.id, docker_repository.id)
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_create_with_module_streams(
         self, module_product, sync_repo, sync_repo_module_stream, content_view
     ):
@@ -319,7 +322,9 @@ class TestContentViewFilter:
         assert cvf.type == 'modulemd'
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_publish_with_content_view_filter_and_swid_tags(
         self, module_org, module_product
     ):
@@ -779,7 +784,9 @@ class TestContentViewFilterSearch:
 class TestContentViewFilterRule:
     """Tests for content view filter rules."""
 
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.tier2
     def test_positive_promote_module_stream_filter(self, module_org, content_view_module_stream):
         """Verify Module Stream, Errata Count after Promote, Publish for Content View
@@ -824,7 +831,9 @@ class TestContentViewFilterRule:
         assert content_view_version_info.module_stream_count == 4
         assert content_view_version_info.errata_counts['total'] == 3
 
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.tier2
     def test_positive_include_exclude_module_stream_filter(self, content_view_module_stream):
         """Verify Include and Exclude Errata filter(modular errata) automatically force the copy
@@ -880,7 +889,9 @@ class TestContentViewFilterRule:
         assert content_view_version_info.module_stream_count == 5
         assert content_view_version_info.errata_counts['total'] == 5
 
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.tier2
     def test_positive_multi_level_filters(self, content_view_module_stream):
         """Verify promotion of Content View and Verify count after applying
@@ -921,7 +932,9 @@ class TestContentViewFilterRule:
         assert content_view_version_info.module_stream_count == 2
         assert content_view_version_info.errata_counts['total'] == 1
 
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.tier2
     def test_positive_dependency_solving_module_stream_filter(self, content_view_module_stream):
         """Verify Module Stream Content View Filter's with Dependency Solve 'Yes'.

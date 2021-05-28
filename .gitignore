@@ -27,11 +27,6 @@ logs/**
 /htmlcov/
 /robottelo_collection.log
 
-# Varies per-deployment.
-/robottelo.properties
-/robottelo.yaml
-/virtwho.properties
-
 # broker local files
 /broker_settings.yaml
 /inventory.yaml
@@ -51,6 +46,9 @@ logs/**
 
 # For Pycharm
 /.idea
+
+# For VS Code
+/.vscode/
 
 # For backup files.
 *~

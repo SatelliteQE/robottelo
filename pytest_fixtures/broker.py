@@ -10,6 +10,13 @@ from robottelo.hosts import Satellite
 
 
 @pytest.fixture(scope='session')
+def default_sat():
+    """Returns a Satellite object for settings.server.hostname"""
+    if settings.server.hostname:
+        return Satellite()
+
+
+@pytest.fixture(scope='session')
 def satellite_factory():
     def factory(retry_limit=3, delay=300, **broker_args):
         vmb = VMBroker(
@@ -106,10 +113,10 @@ def rhel77_contenthost_class(request):
 
 
 @pytest.fixture
-def satellite_latest():
+def satellite_latest(default_sat):
     """A fixture that provides a latest Satellite"""
     version_args = dict(
-        deploy_sat_version=settings.server.version.get('release', ''),
+        deploy_sat_version=default_sat.version or settings.server.version.get('release', ''),
         deploy_snap_version=settings.server.version.get('snap', ''),
     )
 
@@ -120,10 +127,10 @@ def satellite_latest():
 
 
 @pytest.fixture
-def capsule_latest():
+def capsule_latest(default_sat):
     """A fixture that provides an unconfigured latest Capsule"""
     version_args = dict(
-        deploy_sat_version=settings.server.version.get('release', ''),
+        deploy_sat_version=default_sat.version or settings.server.version.get('release', ''),
         deploy_snap_version=settings.server.version.get('snap', ''),
     )
 
@@ -138,11 +145,9 @@ def capsule_latest():
 @pytest.fixture
 def capsule_configured(capsule_latest):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    current_sat = Satellite(hostname=settings.server.hostname)
-    current_sat.connect()
     capsule_latest.install_katello_ca()
     capsule_latest.register_contenthost()
-    capsule_latest.capsule_setup(current_sat)
+    capsule_latest.capsule_setup()
     yield capsule_latest
 
 

@@ -10,7 +10,7 @@ ROBOTTELO:
   # Directory for temporary files
   TMP_DIR: /var/tmp
   # Web Server to provide various test artifacts
-  # ARTIFACTS_SERVER: replace-with-artifacts-server
+  ARTIFACTS_SERVER: replace-with-artifacts-server
   # Webdriver logging options
   # A list of commands to be logged
   LOG_DRIVER_COMMANDS:
@@ -24,7 +24,7 @@ ROBOTTELO:
   # - The URL of container hosting repos on SatLab
   # Example url - http://<container_hostname_or_ip>:<port>
   # Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
-  # REPOS_HOSTING_URL: replace-with-repo-hosting-url
+  REPOS_HOSTING_URL: replace-with-repo-hosting-url
   # browser tells robottelo which browser to use when testing UI. Valid values
   # are:
   # * selenium
@@ -38,24 +38,23 @@ ROBOTTELO:
   # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
   WEBDRIVER: chrome
   # Run browser for UI tests with semicolon delimeted options such as headless. Currently supported for only chrome.
-  # BROWSEROPTIONS: replace-with-browser-options
+  BROWSEROPTIONS: replace-with-browser-options
   # The base DesiredCapabilities dict will be get by the browser
   # specified by webdriver config. If you override browserName then that
   # browser will be used instead.
-  # WEBDRIVER_DESIRED_CAPABILITIES:
-    # PLATFORM:
-    # MAXDURATION:
-    # IDLETIMEOUT:
-    # START-MAXIMISED:
-    # SCREENRESOLUTION:
-    # TAGS:
+  WEBDRIVER_DESIRED_CAPABILITIES:
+    PLATFORM:
+    MAXDURATION:
+    IDLETIMEOUT:
+    START-MAXIMISED:
+    SCREENRESOLUTION:
+    TAGS:
   # Binary location for selected wedriver (not needed if using saucelabs)
-  # WEBDRIVER_BINARY: /usr/bin/firefox
   # webdriver_binary=/usr/bin/chromedriver
   # webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
   WEBDRIVER_BINARY: /usr/bin/chromedriver
   # Zalenium command_executor
-  # COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
+  COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
   # CDN sync
   CDN: true
   # Run one datapoint or multiple datapoints for tests

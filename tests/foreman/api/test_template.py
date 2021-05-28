@@ -29,6 +29,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo import ssh
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
@@ -243,7 +244,7 @@ class TestProvisioningTemplate:
         """
         response = client.post(
             entities.ProvisioningTemplate().path('build_pxe_default'),
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         )
         response.raise_for_status()

@@ -194,7 +194,7 @@ def test_negative_update_name(new_name):
 
 @pytest.mark.tier1
 @pytest.mark.skipif(
-    not settings.repos_hosting_url,
+    not settings.robottelo.REPOS_HOSTING_URL,
     reason="repos_hosting_url is not defined in robottelo.properties",
 )
 def test_positive_sc_params(module_puppet):

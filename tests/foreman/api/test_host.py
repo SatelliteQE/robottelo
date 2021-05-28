@@ -33,6 +33,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.datafactory import invalid_interfaces_list
 from robottelo.datafactory import invalid_values_list
@@ -55,7 +56,7 @@ def test_positive_get_search():
     query = gen_string('utf8', gen_integer(1, 100))
     response = client.get(
         entities.Host().path(),
-        auth=settings.server.get_credentials(),
+        auth=get_credentials(),
         data={'search': query},
         verify=False,
     )
@@ -77,7 +78,7 @@ def test_positive_get_per_page():
     per_page = gen_integer(1, 1000)
     response = client.get(
         entities.Host().path(),
-        auth=settings.server.get_credentials(),
+        auth=get_credentials(),
         data={'per_page': str(per_page)},
         verify=False,
     )

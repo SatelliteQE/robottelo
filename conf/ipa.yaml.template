@@ -1,13 +1,13 @@
 # For LDAP freeIPA Authentication.
 IPA:
-  # HOSTNAME_IPA: replace with hostname
-  # USERNAME_IPA: replace with username
-  # PASSWORD_IPA: update the password
-  # BASEDN_IPA: replace with basedn
-  # GROUPBASEDN_IPA: replace with group basedn
-  USER_IPA: foreman
+  HOSTNAME:  # replace with hostname
+  USERNAME:  # replace with username
+  PASSWORD:  # update the password
+  BASEDN:  # replace with basedn
+  GRPBASEDN:  # replace with group basedn
+  USER: foreman
   OTP_USER: otp_user
-  # TIME_BASED_SECRET: update the time based token secret
+  TIME_BASED_SECRET:  # update the time based token secret
   DISABLED_IPA_USER: disabled_user
   GROUP_USERS:
     - satadmin_01

@@ -3,7 +3,7 @@ SHARED_FUNCTION:
   # by default storage=file
   STORAGE: file
   # Namespace scope by default used the md5 of kattelo certificate of the server
-  # SCOPE:
+  SCOPE:
   # enabled, by default enabled=false, the shared decorator will
   # immediately run the function and the function result data are not saved
   # to enable the shared functionality set enabled=true
@@ -22,6 +22,6 @@ SHARED_FUNCTION:
   # The redis db index, by default 0
   REDIS_DB: 0
   # The redis password index, by default None
-  # REDIS_PASSWORD:
+  REDIS_PASSWORD:
   # How much time we retry if a function call fail, by default call_retries=2
   CALL_RETRIES: 2

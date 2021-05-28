@@ -48,15 +48,15 @@ def ad_data():
 @pytest.fixture(scope='session')
 def ipa_data():
     return {
-        'ldap_user_name': settings.ipa.user_ipa,
-        'ldap_user_cn': settings.ipa.username_ipa,
+        'ldap_user_name': settings.ipa.user,
+        'ldap_user_cn': settings.ipa.username,
         'ipa_otp_username': settings.ipa.otp_user,
-        'ldap_user_passwd': settings.ipa.password_ipa,
-        'base_dn': settings.ipa.basedn_ipa,
-        'group_base_dn': settings.ipa.grpbasedn_ipa,
-        'ldap_hostname': settings.ipa.hostname_ipa,
+        'ldap_user_passwd': settings.ipa.password,
+        'base_dn': settings.ipa.basedn,
+        'group_base_dn': settings.ipa.grpbasedn,
+        'ldap_hostname': settings.ipa.hostname,
         'time_based_secret': settings.ipa.time_based_secret,
-        'disabled_user_ipa': settings.ipa.disabled_user_ipa,
+        'disabled_user_ipa': settings.ipa.disabled_ipa_user,
         'group_users': settings.ipa.group_users,
         'groups': settings.ipa.groups,
     }
@@ -267,12 +267,12 @@ def enroll_idm_and_configure_external_auth():
     run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
 
     run_command(
-        cmd=f'echo {settings.ipa.password_ipa} | kinit admin',
-        hostname=settings.ipa.hostname_ipa,
+        cmd=f'echo {settings.ipa.password} | kinit admin',
+        hostname=settings.ipa.hostname,
     )
     result = run_command(
         cmd=f'ipa host-add --random {settings.server.hostname}',
-        hostname=settings.ipa.hostname_ipa,
+        hostname=settings.ipa.hostname,
     )
 
     for line in result:
@@ -281,13 +281,13 @@ def enroll_idm_and_configure_external_auth():
             break
     run_command(
         cmd=f'ipa service-add HTTP/{settings.server.hostname}',
-        hostname=settings.ipa.hostname_ipa,
+        hostname=settings.ipa.hostname,
     )
-    _, domain = settings.ipa.hostname_ipa.split('.', 1)
+    _, domain = settings.ipa.hostname.split('.', 1)
     run_command(
         cmd=f"ipa-client-install --password '{password}' "
         f'--domain {domain} '
-        f'--server {settings.ipa.hostname_ipa} '
+        f'--server {settings.ipa.hostname} '
         f'--realm {domain.upper()} -U'
     )
 

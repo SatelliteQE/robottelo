@@ -50,7 +50,9 @@ from robottelo.datafactory import valid_hostgroups_list
 
 
 pytestmark = [
-    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
 ]
 PUPPET_MODULES = [
     {'author': 'robottelo', 'name': 'generic_1'},

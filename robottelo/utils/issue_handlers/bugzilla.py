@@ -12,6 +12,7 @@ from robottelo.config import settings
 from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
 from robottelo.constants import WONTFIX_RESOLUTIONS
+from robottelo.host_info import get_sat_version
 from robottelo.logging import logger
 
 
@@ -36,28 +37,17 @@ def is_open_bz(issue, data=None):
     bz = follow_duplicates(bz)
 
     # BZ is explicitly in OPEN status
-    if bz['status'] in OPEN_STATUSES:
+    if bz.get('status') in OPEN_STATUSES:
         return True
 
     # BZ is CLOSED/WONTFIX so considered not fixed yet, BZ is open
-    if bz['status'] in CLOSED_STATUSES and bz['resolution'] in WONTFIX_RESOLUTIONS:
+    if bz.get('status') in CLOSED_STATUSES and bz.get('resolution') in WONTFIX_RESOLUTIONS:
         return True
 
     # BZ is CLOSED with a resolution in (ERRATA, CURRENT_RELEASE, ...)
     # server.version is higher or equal than BZ version
     # Consider fixed,  BZ is not open
-    if hasattr(settings.server.version, 'release'):
-        if settings.server.version.release >= extract_min_version(bz).release:
-            return False
-    elif settings.server.version >= extract_min_version(bz):
-        return False
-
-    # Not in OPEN_STATUSES
-    # Not in Wontfix resolution
-    # server.version is lower than BZ min version
-    # fixed in next version, not backported
-    # so BZ is open
-    return True
+    return get_sat_version() < extract_min_version(bz)
 
 
 def should_deselect_bz(issue, data=None):
@@ -76,7 +66,7 @@ def should_deselect_bz(issue, data=None):
 
     bz = follow_duplicates(bz)
 
-    return bz['status'] in CLOSED_STATUSES and bz['resolution'] in WONTFIX_RESOLUTIONS
+    return bz.get('status') in CLOSED_STATUSES and bz.get('resolution') in WONTFIX_RESOLUTIONS
 
 
 def follow_duplicates(bz):
@@ -89,12 +79,14 @@ def follow_duplicates(bz):
 def extract_min_version(bz):
     """return target_milestone or min(versions flags) or 0"""
     if bz.get('version') is None:
-        tmversion = VERSION_RE.search(bz['target_milestone'])
+        tmversion = VERSION_RE.search(bz.get('target_milestone', ''))
         if tmversion:
-            bz["version"] = Version(tmversion.group('version'))
+            bz['version'] = Version(tmversion.group('version'))
         else:
             flag_versions = [
-                VERSION_RE.search(flag['name']) for flag in bz['flags'] if flag['status'] == '+'
+                VERSION_RE.search(flag['name'])
+                for flag in bz.get('flags', {})
+                if flag['status'] == '+'
             ]
             versions = [
                 Version(flag_version.group('version'))
@@ -102,7 +94,7 @@ def extract_min_version(bz):
                 if flag_version is not None
             ]
             if versions:
-                bz["version"] = min(versions)
+                bz['version'] = min(versions)
     return bz.get('version') or Version('0')  # to allow comparisons
 
 
@@ -128,9 +120,12 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
         collected_data {dict} -- dict with BZs collected by pytest
         cached_data {dict} -- Cached data previous loaded from API
     """
-    bz_data = get_data_bz(
-        [item.partition(':')[-1] for item in collected_data if item.startswith('BZ:')],
-        cached_data=cached_data,
+    bz_data = (
+        get_data_bz(
+            [item.partition(':')[-1] for item in collected_data if item.startswith('BZ:')],
+            cached_data=cached_data,
+        )
+        or []
     )
     for data in bz_data:
         # If BZ is CLOSED/DUPLICATE collect the duplicate
@@ -147,15 +142,15 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
 def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
     """Recursivelly find for duplicates"""
     cached_data = cached_data or {}
-    if bz["resolution"] == "DUPLICATE":
+    if bz.get('resolution') == 'DUPLICATE':
         # Collect duplicates
-        bz["dupe_data"] = get_single_bz(bz["dupe_of"], cached_data=cached_data)
+        bz['dupe_data'] = get_single_bz(bz.get('dupe_of'), cached_data=cached_data)
         dupe_key = f"BZ:{bz['dupe_of']}"
         # Store Duplicate also in the main collection for caching
         if dupe_key not in collected_data:
-            collected_data[dupe_key]['data'] = bz["dupe_data"]
+            collected_data[dupe_key]['data'] = bz['dupe_data']
             collected_data[dupe_key]['is_dupe'] = True
-            collect_dupes(bz["dupe_data"], collected_data, cached_data)
+            collect_dupes(bz['dupe_data'], collected_data, cached_data)
 
 
 def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
@@ -164,17 +159,17 @@ def collect_clones(bz, collected_data, cached_data=None):  # pragma: no cover
     but the data is fetched here to feed nagger script later.
     """
     cached_data = cached_data or {}
-    clones = bz['clone_ids']
-    if bz['cf_clone_of']:
+    clones = bz.get('clone_ids')
+    if bz.get('cf_clone_of'):
         clones.append(bz['cf_clone_of'])
 
     if clones:
-        bz["clones"] = get_data_bz(
+        bz['clones'] = get_data_bz(
             [str(clone_num) for clone_num in clones], cached_data=cached_data
         )
-        for clone_data in bz["clones"]:
+        for clone_data in bz['clones']:
             # Store Clones also in the main collection for caching
-            clone_key = f"BZ:{clone_data['id']}"
+            clone_key = f'BZ:{clone_data["id"]}'
             if clone_key not in collected_data:
                 collected_data[clone_key]['data'] = clone_data
                 collected_data[clone_key]['is_clone'] = True

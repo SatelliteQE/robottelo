@@ -28,7 +28,7 @@ from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
-from robottelo.config import settings
+from robottelo.config import get_credentials
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
@@ -283,7 +283,7 @@ def test_positive_get_releases_status_code():
     """
     act_key = entities.ActivationKey().create()
     path = act_key.path('releases')
-    response = client.get(path, auth=settings.server.get_credentials(), verify=False)
+    response = client.get(path, auth=get_credentials(), verify=False)
     status_code = http.client.OK
     assert status_code == response.status_code
     assert 'application/json' in response.headers['content-type']
@@ -300,9 +300,7 @@ def test_positive_get_releases_content():
     :CaseLevel: Integration
     """
     act_key = entities.ActivationKey().create()
-    response = client.get(
-        act_key.path('releases'), auth=settings.server.get_credentials(), verify=False
-    ).json()
+    response = client.get(act_key.path('releases'), auth=get_credentials(), verify=False).json()
     assert 'results' in response.keys()
     assert type(response['results']) == list
 

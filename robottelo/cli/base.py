@@ -232,7 +232,7 @@ class Base:
 
         # add time to measure hammer performance
         cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
-            settings.locale,
+            settings.robottelo.locale,
             'time -p' if time_hammer else '',
             f'-u {user}' if user else "--interactive no",
             f'-p {password}' if password else "",

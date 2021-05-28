@@ -38,7 +38,9 @@ from robottelo.products import YumRepository
 
 pytestmark = [
     pytest.mark.run_in_one_thread,
-    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
+    pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    ),
 ]
 
 CUSTOM_REPO_URL = repos.FAKE_9_YUM_REPO
@@ -307,7 +309,7 @@ def test_positive_install_multiple_in_host(
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_list(module_org, custom_repo):
     """View all errata specific to repository
 
@@ -828,7 +830,7 @@ def _run_remote_command_on_content_host(module_org, command, vm, return_result=F
 
 def _set_prerequisites_for_swid_repos(module_org, vm):
     _run_remote_command_on_content_host(
-        module_org, f"wget --no-check-certificate {settings.swid_tools_repo}", vm
+        module_org, f'wget --no-check-certificate {settings.repos.swid_tools_repo}', vm
     )
     _run_remote_command_on_content_host(module_org, "mv *swid*.repo /etc/yum.repos.d", vm)
     _run_remote_command_on_content_host(module_org, "yum install -y swid-tools", vm)
@@ -877,7 +879,10 @@ def test_errata_installation_with_swidtags(
     version = '20180704111719'
     # setup rhel8 and sat_tools_repos
     rhel8_contenthost.create_custom_repos(
-        **{repo_name: settings.rhel8_os[repo_name] for repo_name in ('baseos', 'appstream')}
+        **{
+            'baseos': settings.repos.rhel8_os.baseos,
+            'appstream': settings.repos.rhel8_os.appstream,
+        }
     )
     repos_collection.setup_virtual_machine(rhel8_contenthost, install_katello_agent=False)
 

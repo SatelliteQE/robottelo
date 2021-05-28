@@ -27,6 +27,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.api.utils import one_to_one_names
 from robottelo.api.utils import promote
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list
@@ -127,7 +128,7 @@ class TestHostGroup:
         # Get puppet class id for ntp module
         response = client.get(
             environment.path('self') + '/puppetclasses',
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         )
         response.raise_for_status()
@@ -138,7 +139,7 @@ class TestHostGroup:
         client.post(
             hostgroup.path('self') + '/puppetclass_ids',
             data={'puppetclass_id': puppet_class_id},
-            auth=settings.server.get_credentials(),
+            auth=get_credentials(),
             verify=False,
         ).raise_for_status()
         hostgroup_attrs = hostgroup.read_json()

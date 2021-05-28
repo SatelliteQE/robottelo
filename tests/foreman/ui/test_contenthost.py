@@ -97,9 +97,9 @@ def repos_collection_for_module_streams(module_org):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL8,
         repositories=[
-            YumRepository(url=settings.rhel8_os['baseos']),
-            YumRepository(url=settings.rhel8_os['appstream']),
-            YumRepository(url=settings.sattools_repo[DISTRO_RHEL8]),
+            YumRepository(url=settings.repos.rhel8_os.baseos),
+            YumRepository(url=settings.repos.rhel8_os.appstream),
+            YumRepository(url=settings.repos.sattools_repo[DISTRO_RHEL8]),
             YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
         ],
     )
@@ -355,7 +355,7 @@ def test_negative_install_package(session, vm):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_package(session, vm):
     """Remove a package from a host remotely
 

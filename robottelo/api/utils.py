@@ -285,14 +285,14 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         org = entities.Organization().create()
     if loc is None:
         loc = entities.Location(organization=[org]).create()
-    if settings.rhel7_os is None:
+    if settings.repos.rhel7_os is None:
         raise ImproperlyConfigured('settings file is not configured for rhel os')
     # Create a new Life-Cycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product, Repository for custom RHEL7 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        product=product, url=settings.rhel7_os, download_policy='immediate'
+        product=product, url=settings.repos.rhel7_os, download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion

@@ -1,0 +1,69 @@
+VIRTWHO:
+    SKU:
+        # The SKU ID for physical vdc
+        VDC_PHYSICAL:
+        # The SKU ID for virtual vdc
+        VDC_VIRTUAL:
+    ESX:
+        # The hypervisor type, one of the values: esx, xen, hyperv, rhevm, libvirt, kubevirt
+        HYPERVISOR_TYPE: esx
+        # The hostname or ip or other values for hypervisor server, depends on the type
+        HYPERVISOR_SERVER:
+        # Admin username to access hypervisor server
+        HYPERVISOR_USERNAME:
+        # Admin password to access hypervisor server
+        HYPERVISOR_PASSWORD:
+        # The guest ip or hostname in the hypervisor
+        GUEST:
+        # The guest port for ssh connection, by default GUEST_PORT=22
+        GUEST_PORT:
+        # ssh username to access guest
+        GUEST_USERNAME:
+        # ssh password to access guest
+        GUEST_PASSWORD:
+    XEN:
+        HYPERVISOR_TYPE: xen
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
+    HYPERV:
+        HYPERVISOR_TYPE: hyperv
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
+    RHEVM:
+        HYPERVISOR_TYPE: rhevm
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
+    LIBVIRT:
+        HYPERVISOR_TYPE: libvirt
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
+    KUBEVIRT:
+        HYPERVISOR_TYPE: kubevirt
+        HYPERVISOR_SERVER:
+        HYPERVISOR_USERNAME:
+        HYPERVISOR_PASSWORD:
+        HYPERVISOR_CONFIG_FILE:
+        GUEST:
+        GUEST_PORT:
+        GUEST_USERNAME:
+        GUEST_PASSWORD:
