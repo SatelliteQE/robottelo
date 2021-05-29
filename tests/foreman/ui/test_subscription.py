@@ -512,7 +512,7 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
             'details'
         ]
         sub_status = host['subscription_status']
-        assert "Unentitled" in sub_status
+        assert 'Unentitled' in sub_status
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         session.contenthost.add_subscription(rhel7_contenthost.hostname, DEFAULT_SUBSCRIPTION_NAME)
@@ -520,7 +520,7 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
         updated_sub_status = session.contenthost.read(
             rhel7_contenthost.hostname, widget_names='details'
         )['details']['subscription_status']
-        assert "Fully entitled" in updated_sub_status
-        response = entities.Ping().search_json()["services"]["candlepin_events"]
-        assert response["status"] == "ok"
-        assert "0 Failed" in response["message"]
+        assert 'Fully entitled' in updated_sub_status
+        response = entities.Ping().search_json()['services']['candlepin_events']
+        assert response['status'] == 'ok'
+        assert '0 Failed' in response['message']
