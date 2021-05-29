@@ -31,7 +31,6 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import FAKE_1_YUM_REPO_RPMS
 from robottelo.constants import FAKE_1_YUM_REPOS_COUNT
@@ -57,7 +56,6 @@ from robottelo.helpers import md5_by_url
 from robottelo.host_info import get_repo_files
 from robottelo.host_info import get_repomd_revision
 from robottelo.utils.issue_handlers import is_open
-from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
@@ -824,7 +822,7 @@ class TestCapsuleContentManagement:
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_mirror_on_sync(self, capsule_vm):
+    def test_positive_mirror_on_sync(self, capsule_vm, rhel7_contenthost):
         """Create 2 repositories with 'on_demand' download policy and mirror on
         sync option, associate them with capsule, sync first repo, move package
         from first repo to second one, sync it, attempt to install package on
@@ -949,19 +947,18 @@ class TestCapsuleContentManagement:
         )[0]
         activation_key.add_subscriptions(data={'subscription_id': subscription.id})
         # Subscribe a host with activation key
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
-            client.install_katello_ca()
-            client.register_contenthost(org.label, activation_key.name)
-            # Install the package
-            package_name = FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
-            result = client.run(f'yum install -y {package_name}')
-            assert result.return_code == 0
+        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.register_contenthost(org.label, activation_key.name)
+        # Install the package
+        package_name = FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
+        result = rhel7_contenthost.run(f'yum install -y {package_name}')
+        assert result.return_code == 0
 
-            # Ensure package installed
-            result = client.run(f'rpm -qa | grep {package_name}')
+        # Ensure package installed
+        result = rhel7_contenthost.run(f'rpm -qa | grep {package_name}')
 
-            assert result.return_code == 0
-            assert package_name in result.stdout[0]
+        assert result.return_code == 0
+        assert package_name in result.stdout[0]
 
     @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
