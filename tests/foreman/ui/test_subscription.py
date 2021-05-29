@@ -297,7 +297,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost):
     )
     with session:
         session.organization.select(org.name)
-        session.contenthost.add_subscription(vm.hostname, VDC_SUBSCRIPTION_NAME)
+        session.contenthost.add_subscription(rhel7_contenthost.hostname, VDC_SUBSCRIPTION_NAME)
         provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
         # ensure that subscription provided products list is not empty and that the product is
         # in the provided products.
