@@ -301,11 +301,11 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost):
         provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
         # ensure that subscription provided products list is not empty and that the product is
         # in the provided products.
-        assert provided_products and product_name in provided_products
+        assert product_name in provided_products
         content_products = session.subscription.content_products(VDC_SUBSCRIPTION_NAME)
         # ensure that subscription enabled products list is not empty and that product is in
         # content products.
-        assert content_products and product_name in content_products
+        assert product_name in content_products
 
 
 @pytest.mark.skip_if_not_set('compute_resources')
@@ -378,13 +378,13 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
         provided_products = session.subscription.provided_products(
             VDC_SUBSCRIPTION_NAME, virt_who=True
         )
-        assert provided_products and product_name in provided_products
+        assert product_name in provided_products
         # ensure that hypervisor guests subscription content products list is not empty and
         # that product is in content products.
         content_products = session.subscription.content_products(
             VDC_SUBSCRIPTION_NAME, virt_who=True
         )
-        assert content_products and product_name in content_products
+        assert product_name in content_products
 
 
 @pytest.mark.tier3
