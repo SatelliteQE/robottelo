@@ -23,11 +23,8 @@ from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
-from robottelo.cleanup import cleanup_of_provisioned_server
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='class')
@@ -70,7 +67,9 @@ class TestScenarioREXCapsule:
     """
 
     @pre_upgrade
-    def test_pre_scenario_remoteexecution_external_capsule(self, request, default_location):
+    def test_pre_scenario_remoteexecution_external_capsule(
+        self, request, default_location, rhel7_contenthost
+    ):
         """Run REX job on client registered with external capsule
 
         :id: preupgrade-261dd2aa-be01-4c34-b877-54b8ee346561
@@ -96,21 +95,12 @@ class TestScenarioREXCapsule:
             organization=[self.org.id],
             remote_execution_proxy=[entities.SmartProxy(id=2)],
         ).create()
-        client = VirtualMachine(
-            distro=DISTRO_RHEL7, provisioning_server=self.libvirt_vm, bridge=self.bridge
+        rhel7_contenthost.install_capsule_katello_ca(capsule=self.proxy_name)
+        rhel7_contenthost.register_contenthost(org=self.org.label, lce='Library')
+        add_remote_execution_ssh_key(
+            hostname=rhel7_contenthost.ip_addr, proxy_hostname=self.proxy_name
         )
-        client.create()
-        request.addfinalizer(
-            lambda: cleanup_of_provisioned_server(
-                hostname=client.hostname,
-                provisioning_server=self.libvirt_vm,
-                distro=DISTRO_RHEL7,
-            )
-        )
-        client.install_capsule_katello_ca(capsule=self.proxy_name)
-        client.register_contenthost(org=self.org.label, lce='Library')
-        add_remote_execution_ssh_key(hostname=client.ip_addr, proxy_hostname=self.proxy_name)
-        host = entities.Host().search(query={'search': f'name="{client.hostname}"'})
+        host = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
         host[0].subnet = sn
         host[0].update(['subnet'])
         job = entities.JobInvocation().run(
@@ -118,11 +108,11 @@ class TestScenarioREXCapsule:
                 'job_template_id': 89,
                 'inputs': {'command': 'ls'},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {client.hostname}',
+                'search_query': f'name = {rhel7_contenthost.hostname}',
             }
         )
         assert job['output']['success_count'] == 1
-        global_dict = {self.__class__.__name__: {'client_name': client.hostname}}
+        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
         create_dict(global_dict)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_external_capsule)
@@ -148,9 +138,6 @@ class TestScenarioREXCapsule:
             }
         )
         assert job['output']['success_count'] == 1
-        cleanup_of_provisioned_server(
-            hostname=client_name, provisioning_server=self.libvirt_vm, distro=DISTRO_RHEL7
-        )
 
 
 # TODO Mark with infra markers from #8391
@@ -180,7 +167,7 @@ class TestScenarioREXSatellite:
 
     @pre_upgrade
     def test_pre_scenario_remoteexecution_satellite(
-        self, request, compute_resource_setup, default_location
+        self, request, compute_resource_setup, default_location, rhel7_contenthost
     ):
         """Run REX job on client registered with Satellite
 
@@ -207,21 +194,10 @@ class TestScenarioREXSatellite:
             organization=[self.org.id],
             remote_execution_proxy=[entities.SmartProxy(id=1)],
         ).create()
-        client = VirtualMachine(
-            distro=DISTRO_RHEL7, provisioning_server=self.libvirt_vm, bridge=self.bridge
-        )
-        client.create()
-        request.addfinalizer(
-            lambda: cleanup_of_provisioned_server(
-                hostname=client.hostname,
-                provisioning_server=self.libvirt_vm,
-                distro=DISTRO_RHEL7,
-            )
-        )
-        client.install_katello_ca()
-        client.register_contenthost(org=self.org.label, lce='Library')
-        add_remote_execution_ssh_key(hostname=client.ip_addr)
-        host = entities.Host().search(query={'search': f'name="{client.hostname}"'})
+        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.register_contenthost(org=self.org.label, lce='Library')
+        add_remote_execution_ssh_key(hostname=rhel7_contenthost.ip_addr)
+        host = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
         host[0].subnet = sn
         host[0].update(['subnet'])
         job = entities.JobInvocation().run(
@@ -229,11 +205,11 @@ class TestScenarioREXSatellite:
                 'job_template_id': 89,
                 'inputs': {'command': 'ls'},
                 'targeting_type': 'static_query',
-                'search_query': f'name = {client.hostname}',
+                'search_query': f'name = {rhel7_contenthost.hostname}',
             }
         )
         assert job['output']['success_count'] == 1
-        global_dict = {self.__class__.__name__: {'client_name': client.hostname}}
+        global_dict = {self.__class__.__name__: {'client_name': rhel7_contenthost.hostname}}
         create_dict(global_dict)
 
     @post_upgrade(depend_on=test_pre_scenario_remoteexecution_satellite)
@@ -259,6 +235,3 @@ class TestScenarioREXSatellite:
             }
         )
         assert job['output']['success_count'] == 1
-        cleanup_of_provisioned_server(
-            hostname=client_name, provisioning_server=self.libvirt_vm, distro=DISTRO_RHEL7
-        )
