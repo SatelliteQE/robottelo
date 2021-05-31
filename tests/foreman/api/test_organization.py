@@ -11,7 +11,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: lvrtelov
+:Assignee: shwsingh
 
 :TestType: Functional
 
