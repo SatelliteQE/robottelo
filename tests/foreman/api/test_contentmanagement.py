@@ -55,21 +55,22 @@ from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
 from robottelo.host_info import get_repo_files
 from robottelo.host_info import get_repomd_revision
+from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
-from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
-@pytest.fixture(scope='class')
-def capsule_vm():
+@pytest.fixture(scope='function')
+def capsule_vm(capsule_latest):
     """Create a standalone capsule for tests"""
-    vm = CapsuleVirtualMachine()
-    vm.create()
-
-    vm._capsule = entities.Capsule().search(query={'search': f'name={vm.hostname}'})[0]
-
-    yield vm
-
-    vm.destroy()
+    curr_sat = Satellite(hostname=settings.server.hostname)
+    curr_sat.connect()
+    capsule_latest.install_katello_ca()
+    capsule_latest.register_contenthost()
+    capsule_latest.capsule_setup(curr_sat)
+    capsule_latest._capsule = entities.Capsule().search(
+        query={'search': f'name={capsule_latest.hostname}'}
+    )[0]
+    yield capsule_latest
 
 
 class TestSatelliteContentManagement:
@@ -819,7 +820,6 @@ class TestCapsuleContentManagement:
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
-    @pytest.mark.libvirt_content_host
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_mirror_on_sync(self, capsule_vm, rhel7_contenthost):
