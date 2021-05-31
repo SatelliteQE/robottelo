@@ -511,8 +511,7 @@ def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost
         host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[
             'details'
         ]
-        sub_status = host['subscription_status']
-        assert 'Unentitled' in sub_status
+        assert 'Unentitled' in host['subscription_status']
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         session.contenthost.add_subscription(rhel7_contenthost.hostname, DEFAULT_SUBSCRIPTION_NAME)
