@@ -20,6 +20,7 @@ import re
 from random import choice
 
 import pytest
+from broker import VMBroker
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
@@ -44,7 +45,6 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -53,9 +53,9 @@ from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+from robottelo.hosts import ContentHost
 from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='module')
@@ -624,16 +624,16 @@ def test_positive_usage_limit(module_org):
             'max-hosts': '1',
         }
     )
-    with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
-            vm1.install_katello_ca()
-            vm1.register_contenthost(module_org.label, new_ak['name'])
-            assert vm1.subscribed
-            vm2.install_katello_ca()
-            result = vm2.register_contenthost(module_org.label, new_ak['name'])
-            assert not vm2.subscribed
-            assert result.return_code == 70
-            assert len(result.stderr) > 0
+    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2) as clients:
+        vm1, vm2 = clients
+        vm1.install_katello_ca()
+        vm1.register_contenthost(module_org.label, new_ak['name'])
+        assert vm1.subscribed
+        vm2.install_katello_ca()
+        result = vm2.register_contenthost(module_org.label, new_ak['name'])
+        assert not vm2.subscribed
+        assert result.status == 70
+        assert len(result.stderr) > 0
 
 
 @pytest.mark.tier2
@@ -862,7 +862,7 @@ def test_positive_delete_subscription(module_manifest_org):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 @pytest.mark.libvirt_content_host
-def test_positive_update_aks_to_chost(module_org):
+def test_positive_update_aks_to_chost(module_org, rhel7_contenthost):
     """Check if multiple Activation keys can be attached to a
     Content host
 
@@ -888,11 +888,10 @@ def test_positive_update_aks_to_chost(module_org):
         )
         for _ in range(2)
     ]
-    with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-        vm.install_katello_ca()
-        for i in range(2):
-            vm.register_contenthost(module_org.label, new_aks[i]['name'])
-            assert vm.subscribed
+    rhel7_contenthost.install_katello_ca()
+    for i in range(2):
+        rhel7_contenthost.register_contenthost(module_org.label, new_aks[i]['name'])
+        assert rhel7_contenthost.subscribed
 
 
 @pytest.mark.skip_if_not_set('clients')
@@ -1574,7 +1573,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
 @pytest.mark.tier3
 @pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_subscription_quantity_attached(module_org):
+def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 
     see https://bugzilla.redhat.com/show_bug.cgi?id=1633094
@@ -1612,18 +1611,17 @@ def test_positive_subscription_quantity_attached(module_org):
     )
     subs = Subscription.list({'organization-id': org['id']}, per_page=False)
     subs_lookup = {s['id']: s for s in subs}
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(org['label'], activation_key=ak['name'])
-        assert vm.subscribed
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(org['label'], activation_key=ak['name'])
+    assert rhel7_contenthost.subscribed
 
-        ak_subs = ActivationKey.subscriptions(
-            {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json'
-        )
-        assert len(ak_subs) == 2  # one for #rh product, one for custom product
-        for ak_sub in ak_subs:
-            assert ak_sub['id'] in subs_lookup
-            assert ak_sub['quantity'] == '1'
-            amount = subs_lookup[ak_sub['id']]['quantity']
-            regex = re.compile(f'1 out of {amount}')
-            assert regex.match(ak_sub['attached'])
+    ak_subs = ActivationKey.subscriptions(
+        {'activation-key': ak['name'], 'organization-id': org['id']}, output_format='json'
+    )
+    assert len(ak_subs) == 2  # one for #rh product, one for custom product
+    for ak_sub in ak_subs:
+        assert ak_sub['id'] in subs_lookup
+        assert ak_sub['quantity'] == '1'
+        amount = subs_lookup[ak_sub['id']]['quantity']
+        regex = re.compile(f'1 out of {amount}')
+        assert regex.match(ak_sub['attached'])

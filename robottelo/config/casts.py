@@ -1,5 +1,4 @@
 """Configuration casts to help typing the settings."""
-import logging
 from shlex import shlex
 
 
@@ -51,6 +50,8 @@ class LoggingLevel:
     :param str value: A string to cast to a logging level.
 
     """
+
+    import logging
 
     _logging_levels = {
         'critical': logging.CRITICAL,

@@ -47,14 +47,12 @@ from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
 from robottelo.helpers import ProxyError
 from robottelo.hosts import ContentHost
-from robottelo.vm import VirtualMachine
 
 
 puppet_classes = ['foreman_scap_client::params', 'foreman_scap_client']
 rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
 rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
 rhel8_content = OSCAP_DEFAULT_CONTENT['rhel8_content']
-sat6_hostname = settings.server.hostname
 ak_name = {
     'rhel8': gen_string('alpha'),
     'rhel7': gen_string('alpha'),
@@ -84,7 +82,7 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 @pytest.fixture(scope='module')
 def default_proxy():
     """ Returns default capsule/proxy id"""
-    proxy = Proxy.list({'search': sat6_hostname})[0]
+    proxy = Proxy.list({'search': settings.server.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Puppet', 'Ansible', 'Openscap'}.issubset(p_features):
         proxy_id = proxy.get('id')
@@ -94,7 +92,7 @@ def default_proxy():
 
 
 @pytest.fixture(scope='module')
-def puppet_env(module_org):
+def puppet_env(module_org, import_puppet_classes):
     """ Update puppet environment"""
     puppet_env = entities.Environment().search(query={'search': 'name=production'})[0].read()
     puppet_env.organization.append(module_org)
@@ -105,8 +103,6 @@ def puppet_env(module_org):
 @pytest.fixture(scope='module')
 def lifecycle_env(module_org, puppet_env):
     """ Create lifecycle environment"""
-    smart_proxy = entities.SmartProxy().search(query={'search': f'name={sat6_hostname}'})[0].read()
-    smart_proxy.import_puppetclasses(environment=puppet_env.name)
     lce_env = entities.LifecycleEnvironment(
         organization=module_org, name=gen_string('alpha')
     ).create()
@@ -155,48 +151,14 @@ def update_scap_content(module_org):
 
 
 @pytest.mark.tier4
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
-@pytest.mark.parametrize(
-    'rhel_repo, content, profile1, profile2, profile3, distro',
-    [
-        (
-            settings.rhel8_repo,
-            OSCAP_DEFAULT_CONTENT['rhel8_content'],
-            OSCAP_PROFILE['dsrhel8'],
-            OSCAP_PROFILE['pcidss8'],
-            OSCAP_PROFILE['ospp8'],
-            DISTRO_RHEL8,
-        ),
-        (
-            settings.rhel7_repo,
-            OSCAP_DEFAULT_CONTENT['rhel7_content'],
-            OSCAP_PROFILE['dsrhel7'],
-            OSCAP_PROFILE['pcidss7'],
-            OSCAP_PROFILE['ospp7'],
-            DISTRO_RHEL7,
-        ),
-        (
-            settings.rhel6_repo,
-            OSCAP_DEFAULT_CONTENT['rhel6_content'],
-            OSCAP_PROFILE['dsrhel6'],
-            OSCAP_PROFILE['pcidss6'],
-            OSCAP_PROFILE['usgcb'],
-            DISTRO_RHEL6,
-        ),
-    ],
-)
+@pytest.mark.parametrize('distro', [DISTRO_RHEL6, DISTRO_RHEL7, DISTRO_RHEL8])
 def test_positive_upload_to_satellite(
     module_org,
     default_proxy,
     content_view,
     lifecycle_env,
     puppet_env,
-    rhel_repo,
-    content,
-    profile1,
-    profile2,
-    profile3,
     distro,
 ):
     """Perform end to end oscap test, and push the updated scap content via puppet
@@ -216,15 +178,30 @@ def test_positive_upload_to_satellite(
     """
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
-
+    if distro == 'rhel6':
+        rhel_repo = settings.rhel6_repo
+        profile1 = OSCAP_PROFILE['dsrhel6']
+        profile2 = OSCAP_PROFILE['pcidss6']
+        profile3 = OSCAP_PROFILE['usgcb']
+    elif distro == 'rhel7':
+        rhel_repo = settings.rhel7_repo
+        profile1 = OSCAP_PROFILE['dsrhel7']
+        profile2 = OSCAP_PROFILE['pcidss7']
+        profile3 = OSCAP_PROFILE['ospp7']
+    else:
+        rhel_repo = settings.rhel8_repo
+        profile1 = OSCAP_PROFILE['dsrhel8']
+        profile2 = OSCAP_PROFILE['pcidss8']
+        profile3 = OSCAP_PROFILE['ospp8']
+    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': sat6_hostname,
+            'content-source': settings.server.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': sat6_hostname,
-            'puppet-proxy': sat6_hostname,
+            'puppet-ca-proxy': settings.server.hostname,
+            'puppet-proxy': settings.server.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }
@@ -244,7 +221,7 @@ def test_positive_upload_to_satellite(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VirtualMachine(distro=distro) as vm:
+    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca()
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -281,7 +258,7 @@ def test_positive_upload_to_satellite(
 
         vm.configure_puppet(rhel_repo)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
-        assert result.return_code == 0
+        assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
         vm.execute_foreman_scap_client()
@@ -306,7 +283,7 @@ def test_positive_upload_to_satellite(
                 vm.run('puppet agent -t 2> /dev/null')
             updated_result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep content_path')
             assert result != updated_result
-            assert updated_result.return_code == 0
+            assert updated_result.status == 0
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
             vm.execute_foreman_scap_client()
@@ -346,17 +323,17 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     tailoring_file_name = gen_string('alpha')
-    tailor_path = file_downloader(file_url=settings.oscap.tailoring_path, hostname=sat6_hostname)[
-        0
-    ]
+    tailor_path = file_downloader(
+        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
+    )[0]
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': sat6_hostname,
+            'content-source': settings.server.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': sat6_hostname,
-            'puppet-proxy': sat6_hostname,
+            'puppet-ca-proxy': settings.server.hostname,
+            'puppet-proxy': settings.server.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }
@@ -421,25 +398,9 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize(
-    'rhel_repo, content, profile, distro',
-    [
-        (
-            settings.rhel8_repo,
-            OSCAP_DEFAULT_CONTENT['rhel8_content'],
-            OSCAP_PROFILE['ospp8'],
-            DISTRO_RHEL8,
-        ),
-        (
-            settings.rhel7_repo,
-            OSCAP_DEFAULT_CONTENT['rhel7_content'],
-            OSCAP_PROFILE['security7'],
-            DISTRO_RHEL7,
-        ),
-    ],
-)
+@pytest.mark.parametrize('distro', [DISTRO_RHEL8, DISTRO_RHEL7])
 def test_positive_oscap_run_via_ansible(
-    module_org, default_proxy, content_view, lifecycle_env, rhel_repo, content, profile, distro
+    module_org, default_proxy, content_view, lifecycle_env, distro
 ):
     """End-to-End Oscap run via ansible
 
@@ -466,6 +427,13 @@ def test_positive_oscap_run_via_ansible(
 
     :CaseImportance: Critical
     """
+    if distro == 'rhel7':
+        rhel_repo = settings.rhel7_repo
+        profile = OSCAP_PROFILE['security7']
+    else:
+        rhel_repo = settings.rhel8_repo
+        profile = OSCAP_PROFILE['ospp8']
+    content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     # Creates host_group for rhel7

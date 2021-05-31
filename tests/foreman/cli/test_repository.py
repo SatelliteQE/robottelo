@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import logging
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -41,6 +39,7 @@ from robottelo.cli.file import File
 from robottelo.cli.filter import Filter
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.package import Package
+from robottelo.cli.product import Product
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
@@ -85,6 +84,7 @@ from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_http_credentials
 from robottelo.helpers import get_data_file
+from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -113,7 +113,7 @@ def _validated_image_tags_count(repo):
         > 0,
         timeout=30,
         delay=2,
-        logger=logging.getLogger('robottelo'),
+        logger=logger,
     )
     return _get_image_tags_count(repo=repo)
 
@@ -1073,14 +1073,18 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_positive_synchronize_docker_repo(self, repo):
-        """Check if Docker repository can be created and synced
+    def test_positive_synchronize_docker_repo(self, repo, module_product, module_org):
+        """Check if Docker repository can be created, synced, and deleted
 
         :id: cb9ae788-743c-4785-98b2-6ae0c161bc9a
 
         :parametrized: yes
 
-        :expectedresults: Docker repository is created and synced
+        :customerscenario: true
+
+        :expectedresults: Docker repository is created, synced, and deleted
+
+        :BZ: 1810165
         """
         # Assertion that repo is not yet synced
         assert repo['sync']['status'] == 'Not Synced'
@@ -1089,6 +1093,14 @@ class TestRepository:
         # Verify it has finished
         new_repo = Repository.info({'id': repo['id']})
         assert new_repo['sync']['status'] == 'Success'
+        # For BZ#1810165, assert repo can be deleted
+        Repository.delete({'id': repo['id']})
+        assert (
+            new_repo['name']
+            not in Product.info({'id': module_product.id, 'organization-id': module_org.id})[
+                'content'
+            ]
+        )
 
     @pytest.mark.tier2
     @pytest.mark.upgrade

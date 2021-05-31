@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import http
-import logging
 
 import pytest
 from nailgun import client
@@ -27,8 +26,9 @@ from nailgun import entity_fields
 from robottelo.config import settings
 from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
+from robottelo.logging import logger
 
-logger = logging.getLogger('robottelo')
+
 VALID_ENTITIES = {
     entities.ActivationKey,
     entities.Architecture,

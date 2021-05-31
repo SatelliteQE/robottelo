@@ -1,7 +1,8 @@
 """Module that aggregates common bits of the end to end tests."""
+from broker import VMBroker
+
 from robottelo.config import setting_is_set
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.vm import VirtualMachine
+from robottelo.hosts import ContentHost
 
 AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
@@ -25,15 +26,15 @@ class ClientProvisioningMixin:
         """
         if not setting_is_set('clients'):
             return
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
+        with VMBroker(nick='rhel6', host_classes={'host': ContentHost}) as host:
             # Pull rpm from Foreman server and install on client
-            vm.install_katello_ca()
+            host.install_katello_ca()
             # Register client with foreman server using act keys
-            vm.register_contenthost(organization_label, activation_key_name)
-            assert vm.subscribed
+            host.register_contenthost(organization_label, activation_key_name)
+            assert host.subscribed
             # Install rpm on client
-            result = vm.run(f'yum install -y {package_name}')
-            assert result.return_code == 0
+            result = host.run(f'yum install -y {package_name}')
+            assert result.status == 0
             # Verify that the package is installed by querying it
-            result = vm.run(f'rpm -q {package_name}')
-            assert result.return_code == 0
+            result = host.run(f'rpm -q {package_name}')
+            assert result.status == 0

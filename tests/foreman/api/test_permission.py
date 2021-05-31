@@ -1,7 +1,7 @@
 """Unit tests for the ``permissions`` paths.
 
-Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
-tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
+Each class tests a single URL. A full list of URLs to be tested can be found on your satellite:
+http://<satellite-host>/apidoc/v2/permissions.html
 
 
 :Requirement: Permission
@@ -12,7 +12,7 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 
 :CaseComponent: UsersRoles
 
-:Assignee: pondrejk
+:Assignee: dsynk
 
 :TestType: Functional
 
@@ -199,23 +199,16 @@ def _permission_name(entity, which_perm):
 class TestUserRole:
     """Give a user various permissions and see if they are enforced."""
 
-    @pytest.fixture(scope='class', autouse=True)
-    def create_org_loc(self):
-        # workaround for setting class variables
-        cls = type(self)
-        cls.org = entities.Organization().create()
-        cls.loc = entities.Location().create()
-
     @pytest.fixture(autouse=True)
-    def create_user(self, create_org_loc):
+    def create_user(self, class_org, class_location):
         """Create a set of credentials and a user."""
         self.cfg = get_nailgun_config()
         self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
         self.user = entities.User(
             login=self.cfg.auth[0],
             password=self.cfg.auth[1],
-            organization=[self.org],
-            location=[self.loc],
+            organization=[class_org],
+            location=[class_location],
         ).create()
 
     def give_user_permission(self, perm_name):
@@ -271,7 +264,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_create(self, entity_cls):
+    def test_positive_check_create(self, entity_cls, class_org, class_location):
         """Check whether the "create_*" role has an effect.
 
         :id: e4c92365-58b7-4538-9d1b-93f3cf51fbef
@@ -289,7 +282,7 @@ class TestUserRole:
         with pytest.raises(HTTPError):
             entity_cls(self.cfg).create()
         self.give_user_permission(_permission_name(entity_cls, 'create'))
-        new_entity = self.set_taxonomies(entity_cls(self.cfg), self.org, self.loc)
+        new_entity = self.set_taxonomies(entity_cls(self.cfg), class_org, class_location)
         # Entities with both org and loc require
         # additional permissions to set them.
         fields = {'organization', 'location'}
@@ -304,7 +297,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_read(self, entity_cls):
+    def test_positive_check_read(self, entity_cls, class_org, class_location):
         """Check whether the "view_*" role has an effect.
 
         :id: 55689121-2646-414f-beb1-dbba5973c523
@@ -318,7 +311,7 @@ class TestUserRole:
 
         :CaseImportance: Critical
         """
-        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = self.set_taxonomies(entity_cls(), class_org, class_location)
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).read()
@@ -331,7 +324,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_delete(self, entity_cls):
+    def test_positive_check_delete(self, entity_cls, class_org, class_location):
         """Check whether the "destroy_*" role has an effect.
 
         :id: 71365147-51ef-4602-948f-78a5e78e32b4
@@ -345,7 +338,7 @@ class TestUserRole:
 
         :CaseImportance: Critical
         """
-        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = self.set_taxonomies(entity_cls(), class_org, class_location)
         new_entity = new_entity.create()
         with pytest.raises(HTTPError):
             entity_cls(self.cfg, id=new_entity.id).delete()
@@ -359,7 +352,7 @@ class TestUserRole:
         'entity_cls',
         **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
     )
-    def test_positive_check_update(self, entity_cls):
+    def test_positive_check_update(self, entity_cls, class_org, class_location):
         """Check whether the "edit_*" role has an effect.
 
         :id: b5de2115-b031-413e-8e5b-eac8cb714174
@@ -375,7 +368,7 @@ class TestUserRole:
 
         :CaseImportance: Critical
         """
-        new_entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
+        new_entity = self.set_taxonomies(entity_cls(), class_org, class_location)
         new_entity = new_entity.create()
         name = new_entity.get_fields()['name'].gen_value()
         with pytest.raises(HTTPError):

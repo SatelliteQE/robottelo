@@ -8,7 +8,7 @@
 
 :CaseComponent: HostGroup
 
-:Assignee: tpapaioa
+:Assignee: okhatavk
 
 :TestType: Functional
 
@@ -191,7 +191,12 @@ class TestHostGroup:
                 'lifecycle_environment_id': lce.id,
             },
         ).create()
-        assert hostgroup.rebuild_config()['message'] == 'Configuration successfully rebuilt.'
+        # TODO: use host that can also rebuild the SSH_Nic, SSH_Host, and Content_Host_Status
+        # config
+        assert (
+            hostgroup.rebuild_config(data={'only': 'DNS,DHCP,TFTP'})['message']
+            == 'Configuration successfully rebuilt.'
+        )
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))

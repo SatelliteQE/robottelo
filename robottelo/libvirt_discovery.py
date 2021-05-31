@@ -8,15 +8,12 @@ Make sure to configure the ``compute_resources`` section on the configuration
 file. Also make sure that the ``vlan_networking`` section is properly
 configured.
 """
-import logging
 import os
 
 from fauxfactory import gen_mac
 
 from robottelo import ssh
 from robottelo.config import settings
-
-logger = logging.getLogger('robottelo')
 
 
 def _gen_mac_for_libvirt():

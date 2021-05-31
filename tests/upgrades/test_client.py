@@ -29,6 +29,7 @@ from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -40,7 +41,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.test import settings
 
 
 # host machine for containers

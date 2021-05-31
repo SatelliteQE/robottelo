@@ -70,11 +70,8 @@ validators = dict(
         Validator("compute_resources.libvirt_hostname", must_exist=True),
         Validator("compute_resources.libvirt_image_dir", default='/var/lib/libvirt/images'),
     ],
-    # FIXME: container_repo is stored in robottelo.yaml, which should be
-    # properly integrated with dynaconf
     container_repo=[
         Validator(
-            'container_repo.label',
             'container_repo.registry_url',
             'container_repo.registry_username',
             'container_repo.registry_password',

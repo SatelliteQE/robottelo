@@ -29,6 +29,7 @@ from wait_for import wait_for
 from robottelo import ssh
 from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_job_template
+from robottelo.cli.globalparam import GlobalParameter
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.recurring_logic import RecurringLogic
@@ -582,6 +583,68 @@ class TestAnsibleREX:
         rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
+
+    @pytest.mark.tier3
+    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    def test_positive_run_concurrent_jobs(self, fixture_vmsetup, module_org):
+        """Tests Ansible REX concurent jobs without batch trigger
+
+        :id: ad0f108c-03f2-49c7-8732-b1056570567b
+
+        :Steps:
+
+            0. Create 2 hosts, disable foreman_tasks_proxy_batch_trigger
+
+            1. Run Ansible Command job with concurrency-setting
+
+        :expectedresults: multiple asserts along the code
+
+        :CaseAutomation: Automated
+
+        :CaseLevel: System
+
+        :BZ: 1817320
+
+        :parametrized: yes
+        """
+        param_name = 'foreman_tasks_proxy_batch_trigger'
+        GlobalParameter().set({'name': param_name, 'value': 'false'})
+        client = fixture_vmsetup
+        output_msgs = []
+        with VMBroker(nick=fixture_vmsetup.param, host_classes={'host': ContentHost}) as client2:
+            client2.install_katello_ca()
+            client2.register_contenthost(org=module_org.label, lce='Library')
+            assert client2.subscribed
+            add_remote_execution_ssh_key(client2.ip_addr)
+            Host.set_parameter(
+                {
+                    'host': client2.hostname,
+                    'name': 'remote_execution_connect_by_ip',
+                    'value': 'True',
+                }
+            )
+            invocation_command = make_job_invocation(
+                {
+                    'job-template': 'Run Command - Ansible Default',
+                    'inputs': 'command="ls"',
+                    'search-query': f'name ~ {client.hostname} or name ~ {client2.hostname}',
+                    'concurrency-level': 2,
+                }
+            )
+            for vm in client, client2:
+                output_msgs.append(
+                    'host output from {}: {}'.format(
+                        vm.hostname,
+                        ' '.join(
+                            JobInvocation.get_output(
+                                {'id': invocation_command['id'], 'host': vm.hostname}
+                            )
+                        ),
+                    )
+                )
+            assert invocation_command['success'] == '2', output_msgs
+        GlobalParameter().delete({'name': param_name})
+        assert len(GlobalParameter().list({'search': param_name})) == 0
 
     @pytest.mark.tier3
     @pytest.mark.upgrade

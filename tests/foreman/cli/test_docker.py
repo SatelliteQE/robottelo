@@ -12,7 +12,6 @@
 
 :Upstream: No
 """
-import logging
 from random import choice
 from random import randint
 
@@ -43,9 +42,7 @@ from robottelo.datafactory import invalid_docker_upstream_names
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_docker_repository_names
 from robottelo.datafactory import valid_docker_upstream_names
-
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 def _repo(product_id, name=None, upstream_name=None, url=None):

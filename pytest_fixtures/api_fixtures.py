@@ -1,6 +1,4 @@
 # Module-wide Nailgun Entity Fixtures to be used by API, CLI and UI Tests
-import logging
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -14,6 +12,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
 from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
@@ -35,15 +34,13 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.helpers import download_gce_cert
-from robottelo.test import settings
+from robottelo.logging import logger
 
 
 # Global Satellite Entities
 
 if not settings.configured:
     settings.configure()
-
-logger = logging.getLogger('robottelo')
 
 
 @pytest.fixture(scope='session')
@@ -524,9 +521,7 @@ def module_promoted_cv(module_lce, module_published_cv):
 
 @pytest.fixture(scope='module')
 def default_contentview(module_org):
-    return entities.ContentView().search(
-        query={'search': f'name={DEFAULT_CV}', 'organization_id': f'{module_org.id}'}
-    )
+    return entities.ContentView(organization=module_org, name=DEFAULT_CV).search()
 
 
 @pytest.fixture(scope='module')

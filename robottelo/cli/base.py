@@ -1,5 +1,4 @@
 """Generic base class for cli hammer commands."""
-import logging
 import re
 
 from wait_for import wait_for
@@ -7,6 +6,7 @@ from wait_for import wait_for
 from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import settings
+from robottelo.logging import logger
 
 
 class CLIError(Exception):
@@ -59,8 +59,8 @@ class CLIDataBaseError(CLIBaseError):
 
 
 class Base:
-    """
-    @param command_base: base command of hammer.
+    """Base class for hammer CLI interaction
+
     See Subcommands section in `hammer --help` output on your Satellite.
     """
 
@@ -68,8 +68,7 @@ class Base:
     command_sub = None  # specific to instance, like: create, update, etc.
     command_requires_org = False  # True when command requires organization-id
     hostname = None  # Now used for Satellite class hammer execution
-
-    logger = logging.getLogger('robottelo')
+    logger = logger
     _db_error_regex = re.compile(r'.*INSERT INTO|.*SELECT .*FROM|.*violates foreign key')
 
     @classmethod

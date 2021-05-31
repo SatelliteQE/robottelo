@@ -40,9 +40,9 @@ extensions = ['autoapi.extension', 'sphinx.ext.autodoc', 'sphinx.ext.viewcode']
 autoapi_dirs = ['../robottelo']
 source_suffix = '.rst'
 master_doc = 'index'
-exclude_patterns = ['_build', 'pytest/*']
+exclude_patterns = ['_build', 'pytest/*', 'logs/']
 nitpicky = False
-autodoc_default_options = {'members': None, 'undoc-members': None}
+autodoc_default_options = {'members': None, 'undoc-members': None, 'autoapi_keep_files': True}
 
 # Format-Specific Options -----------------------------------------------------
 

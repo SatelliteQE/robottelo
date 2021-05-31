@@ -6,9 +6,9 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.cli.factory import make_scapcontent
+from robottelo.config import settings
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.helpers import file_downloader
-from robottelo.test import settings
 
 
 @pytest.fixture(scope="session")

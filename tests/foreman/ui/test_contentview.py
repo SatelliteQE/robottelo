@@ -89,7 +89,6 @@ from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
-from robottelo.vm import VirtualMachine
 
 VERSION = 'Version 1.0'
 
@@ -2810,9 +2809,8 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
 
 
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session):
+def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2832,20 +2830,21 @@ def test_positive_subscribe_system_with_custom_content(session):
         repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_0_YUM_REPO)],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        repos_collection.setup_virtual_machine(vm)
-        assert vm.subscribed
-        with session:
-            session.organization.select(org.name)
-            # assert the vm exists in content hosts page
-            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    assert rhel7_contenthost.subscribed
+    with session:
+        session.organization.select(org.name)
+        # assert the vm exists in content hosts page
+        assert (
+            session.contenthost.search(rhel7_contenthost.hostname)[0]['Name']
+            == rhel7_contenthost.hostname
+        )
 
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_subscribe_system_with_puppet_modules(session):
+def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthost):
     """Attempt to subscribe a host to content view with puppet modules
 
     :id: c57fbdca-31e8-43f1-844d-b82b13c0c4de
@@ -2872,13 +2871,15 @@ def test_positive_subscribe_system_with_puppet_modules(session):
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        repos_collection.setup_virtual_machine(vm)
-        assert vm.subscribed
-        with session:
-            session.organization.select(org.name)
-            # assert the vm exists in content hosts page
-            assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    assert rhel7_contenthost.subscribed
+    with session:
+        session.organization.select(org.name)
+        # assert the vm exists in content hosts page
+        assert (
+            session.contenthost.search(rhel7_contenthost.hostname)[0]['Name']
+            == rhel7_contenthost.hostname
+        )
 
 
 @pytest.mark.tier3
@@ -3265,7 +3266,7 @@ def test_positive_errata_inc_update_list_package(session):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_composite_child_inc_update(session):
+def test_positive_composite_child_inc_update(session, rhel7_contenthost):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
 
@@ -3329,33 +3330,30 @@ def test_positive_composite_child_inc_update(session):
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        repos_collection.setup_virtual_machine(vm)
-        result = vm.run('yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm')))
-        assert result.return_code == 0
-        create_repo(
-            repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    result = rhel7_contenthost.run(
+        'yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm'))
+    )
+    assert result.status == 0
+    create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
+    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}')
+    assert result.return_code == 0
+    entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
+    with session:
+        session.organization.select(org.name)
+        result = session.errata.install(FAKE_0_INC_UPD_ERRATA, rhel7_contenthost.hostname)
+        assert result['result'] == 'success'
+        expected_version = 'Version 1.1'
+        version = session.contentview.read_version(composite_cv.name, expected_version)
+        errata = version['errata']['table']
+        assert len(errata) > 1
+        assert FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata}
+        nvra1 = parse_nvra(FAKE_0_INC_UPD_NEW_PACKAGE)
+        packages = session.contentview.search_version_package(
+            composite_cv.name, expected_version, nvra1['name']
         )
-        result = repo_add_updateinfo(
-            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
-        )
-        assert result.return_code == 0
-        entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
-        with session:
-            session.organization.select(org.name)
-            result = session.errata.install(FAKE_0_INC_UPD_ERRATA, vm.hostname)
-            assert result['result'] == 'success'
-            expected_version = 'Version 1.1'
-            version = session.contentview.read_version(composite_cv.name, expected_version)
-            errata = version['errata']['table']
-            assert len(errata) > 1
-            assert FAKE_0_INC_UPD_ERRATA in {row['Errata ID'] for row in errata}
-            nvra1 = parse_nvra(FAKE_0_INC_UPD_NEW_PACKAGE)
-            packages = session.contentview.search_version_package(
-                composite_cv.name, expected_version, nvra1['name']
-            )
-            packages_data = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
-            assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
+        packages_data = {'{}-{}-{}.{}.rpm'.format(*row.values()) for row in packages}
+        assert FAKE_0_INC_UPD_NEW_PACKAGE in packages_data
 
 
 @pytest.mark.tier3

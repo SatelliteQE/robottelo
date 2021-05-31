@@ -15,6 +15,7 @@ CaseComponent:
     # No spaces allowed
     - ActivationKeys
     - Ansible
+    - AnsibleCollection
     - API
     - AuditLog
     - Authentication
@@ -126,8 +127,18 @@ CaseLevel:
     - Acceptance
     required: true
     type: choice
-CasePosNeg: {}
-CustomerScenario: {}
+CasePosNeg:
+    casesensitive: false
+    choices:
+    - Positive
+    - Negative
+    type: choice
+CustomerScenario:
+    casesensitive: false
+    choices:
+    - "true"
+    - "false"
+    type: choice
 ExpectedResults: {}
 Id:
     required: true

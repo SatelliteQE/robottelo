@@ -85,6 +85,7 @@ class TestKatelloCertsCheck:
 
     @pytest.fixture()
     def cert_setup(self, cert_data):
+        """copy all configuration files to satellite host for generating custom certs"""
         # Need a subdirectory under ssl-build with same name as Capsule name
         with get_connection(timeout=100) as connection:
             connection.run('mkdir ssl-build/{}'.format(cert_data['capsule_hostname']))
@@ -113,6 +114,7 @@ class TestKatelloCertsCheck:
 
     @pytest.fixture()
     def certs_cleanup(self):
+        """cleanup all cert configuration files"""
         yield
         files = [
             'cacert.crt',
@@ -132,6 +134,7 @@ class TestKatelloCertsCheck:
 
     @pytest.fixture()
     def generate_certs(self):
+        """generate custom certs in satellite host"""
         upload_file(
             local_file=get_data_file('certs.sh'),
             remote_file="certs.sh",
@@ -143,6 +146,15 @@ class TestKatelloCertsCheck:
         with get_connection(timeout=300) as connection:
             result = connection.run("bash certs.sh")
             assert result.return_code == 0
+
+    @pytest.fixture()
+    def update_system_date(self):
+        """update the satellite date to verify cert expiration"""
+        result = ssh.command("date -s 'next year'")
+        assert result.return_code == 0
+        yield
+        result = ssh.command("date -s 'last year'")
+        assert result.return_code == 0, 'Failed to revert the date setting'
 
     def validate_output(self, result, cert_data):
         """Validate katello-certs-check output against a set.
@@ -265,7 +277,7 @@ class TestKatelloCertsCheck:
                     )
                     break
             else:
-                pytest.fail("Failed to receive the error for invalid katello-cert-check")
+                pytest.fail('Failed to receive the error for invalid katello-cert-check')
 
     @pytest.mark.destructive
     def test_positive_update_katello_certs(self, cert_setup, cert_data, certs_cleanup):
@@ -426,22 +438,45 @@ class TestKatelloCertsCheck:
             # assert the certs.tar was built
             assert connection.run('test -e root/capsule_cert/capsule_certs_Rel.tar')
 
-    @pytest.mark.stubbed
     @pytest.mark.tier1
-    def test_negative_check_expiration_of_certificate(self):
+    def test_negative_check_expiration_of_certificate(
+        self, cert_setup, cert_data, update_system_date, certs_cleanup
+    ):
         """Check expiration of certificate.
 
         :id: 0acce44f-ebe5-42e1-a74b-3d4d20b97946
 
         :steps:
 
-            1. Use expired certificate
-            2. Run katello-certs-check with the required arguments
+            1. Generate the custom certificate
+            2. Change the date of system to next year
+            3. Run katello-certs-check with the required arguments
 
         :expectedresults: Checking expiration of certificate check should fail.
 
         :CaseAutomation: NotAutomated
         """
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-certs-check -c {} -k {} -b {}'.format(
+                    cert_data['cert_file_name'],
+                    cert_data['key_file_name'],
+                    cert_data['ca_bundle_file_name'],
+                ),
+                output_format='plain',
+            )
+        messages = [
+            'Checking expiration of certificate: \n[FAIL]',
+            'Checking CA bundle against the certificate file: \n[FAIL]',
+        ]
+        checks = result.stdout.split('\n\n')
+        for message in messages:
+            for check in checks:
+                if message == check:
+                    assert message == check
+                    break
+            else:
+                assert False, f'Failed, Unable to find message "{message}" in result'
 
     @pytest.mark.stubbed
     @pytest.mark.tier1
@@ -474,23 +509,6 @@ class TestKatelloCertsCheck:
             2. Run katello-certs-check with the required arguments
 
         :expectedresults: Private key match with the certificate should fail.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier1
-    def test_negative_check_expiration_of_ca_bundle(self):
-        """Validate expiration of ca bundle file.
-
-        :id: 09276306-41dd-49b9-953c-3ba74c74790d
-
-        :steps:
-
-            1. Have expired CA_BUNDLE_FILE
-            2. Run katello-certs-check with the required arguments
-
-        :expectedresults: Checking expiration of CA bundle should fail.
 
         :CaseAutomation: NotAutomated
         """

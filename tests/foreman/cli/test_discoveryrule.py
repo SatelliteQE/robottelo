@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import logging
 import random
 from functools import partial
 
@@ -39,9 +38,7 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 @filtered_datapoint

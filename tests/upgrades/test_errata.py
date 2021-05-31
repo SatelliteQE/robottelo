@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: tpapaioa
+:Assignee: akjha
 
 :TestType: Functional
 
@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import logging
-
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
@@ -29,6 +27,7 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_9_YUM_ERRATUM
@@ -36,14 +35,11 @@ from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.constants import REPOS
 from robottelo.constants.repos import FAKE_9_YUM_REPO
-from robottelo.test import settings
+from robottelo.logging import logger
 from robottelo.upgrade_utility import host_location_update
 from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd
-
-
-LOGGER = logging.getLogger('robottelo')
 
 
 class TestScenarioErrataAbstract:
@@ -164,7 +160,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         client_container_id = list(rhel7_client.values())[0]
         client_container_name = [key for key in rhel7_client.keys()][0]
         host_location_update(
-            client_container_name=client_container_name, logger_obj=LOGGER, loc=loc
+            client_container_name=client_container_name, logger_obj=logger, loc=loc
         )
 
         docker_vm = settings.upgrade.docker_vm
@@ -178,7 +174,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             )[docker_vm],
             timeout=800,
             delay=2,
-            logger=LOGGER,
+            logger=logger,
         )
         install_or_update_package(client_hostname=client_container_id, package="katello-agent")
         run_goferd(client_hostname=client_container_id)
@@ -268,7 +264,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             lambda: self._errata_count(ak=activation_key) == 0,
             timeout=400,
             delay=2,
-            logger=LOGGER,
+            logger=logger,
         )
         host = entities.Host().search(query={'search': f'activation_key={activation_key}'})[0]
         assert host.content_facet_attributes['errata_counts']['total'] == 0
@@ -361,7 +357,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
             )[docker_vm],
             timeout=800,
             delay=2,
-            logger=LOGGER,
+            logger=logger,
         )
         status = execute(
             docker_execute_command,
@@ -455,6 +451,6 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
             lambda: self._errata_count(ak=activation_key) == 0,
             timeout=400,
             delay=2,
-            logger=LOGGER,
+            logger=logger,
         )
         assert self._errata_count(ak=activation_key) == 0

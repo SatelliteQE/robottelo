@@ -2,7 +2,6 @@
 Factory object creation for all CLI methods
 """
 import datetime
-import logging
 import os
 import pprint
 import random
@@ -94,10 +93,10 @@ from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import update_dictionary
+from robottelo.logging import logger
 from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
 
-logger = logging.getLogger('robottelo')
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
 CONTENT_VIEW_KEYS = ['content-view', 'content-view-id']
@@ -2276,11 +2275,11 @@ def setup_virtual_machine(
             result = vm.run(
                 f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
             )
-            if result.return_code != 0:
+            # Check for either status or return_code attribute, depending on ssh implementation
+            status = getattr(result, 'status', getattr(result, 'return_code', None))
+            if status != 0:
                 raise CLIFactoryError(
-                    'Failed to enable custom repository "{}"\n{}'.format(
-                        repos_label, result.stderr
-                    )
+                    f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
                 )
     if install_katello_agent:
         vm.install_katello_agent()

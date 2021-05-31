@@ -1,10 +1,9 @@
 import inspect
-import logging
 import re
 
 import pytest
 
-LOGGER = logging.getLogger('robottelo.collection')
+from robottelo.logging import collection_logger as logger
 
 IMPORTANCE_LEVELS = []
 
@@ -65,6 +64,7 @@ def pytest_collection_modifyitems(session, items, config):
 
     selected = []
     deselected = []
+    logger.info('Processing test items to add testimony token markers')
     for item in items:
         if item.nodeid.startswith('tests/robottelo/'):
             # Unit test, no testimony markers
@@ -102,7 +102,7 @@ def pytest_collection_modifyitems(session, items, config):
             # testimony requires both importance and component, this will blow up if its forgotten
             importance_marker = item.get_closest_marker('importance').args[0]
             if importance and importance_marker not in importance:
-                LOGGER.debug(
+                logger.debug(
                     f'Deselected test {item.nodeid} due to "--importance {importance}",'
                     f'test has importance mark: {importance_marker}'
                 )
@@ -110,7 +110,7 @@ def pytest_collection_modifyitems(session, items, config):
                 continue
             component_marker = item.get_closest_marker('component').args[0]
             if component and component_marker not in component:
-                LOGGER.debug(
+                logger.debug(
                     f'Deselected test {item.nodeid} due to "--component {component}",'
                     f'test has component mark: {component_marker}'
                 )
@@ -118,7 +118,7 @@ def pytest_collection_modifyitems(session, items, config):
                 continue
             assignee_marker = item.get_closest_marker('assignee').args[0]
             if assignee and assignee_marker not in assignee:
-                LOGGER.debug(
+                logger.debug(
                     f'Deselected test {item.nodeid} due to "--assignee {assignee}",'
                     f'test has assignee mark: {assignee_marker}'
                 )

@@ -1,4 +1,3 @@
-import logging
 import re
 from collections import defaultdict
 
@@ -13,8 +12,8 @@ from robottelo.config import settings
 from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
 from robottelo.constants import WONTFIX_RESOLUTIONS
+from robottelo.logging import logger
 
-LOGGER = logging.getLogger('robottelo')
 
 # match any version as in `sat-6.2.x` or `sat-6.2.0` or `6.2.9`
 # The .version group being a `d.d` string that can be casted to Version()
@@ -210,14 +209,14 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         return cached_by_call
 
     if cached_data:
-        LOGGER.debug(f"Using cached data for {set(bz_numbers)}")
+        logger.debug(f"Using cached data for {set(bz_numbers)}")
         if not all([f'BZ:{number}' in cached_data for number in bz_numbers]):
-            LOGGER.debug("There are BZs out of cache.")
+            logger.debug("There are BZs out of cache.")
         return [item['data'] for _, item in cached_data.items() if 'data' in item]
 
     # Ensure API key is set
     if not settings.bugzilla.api_key:
-        LOGGER.warning(
+        logger.warning(
             "Config file is missing bugzilla api_key "
             "so all tests with skip_if_open mark is skipped. "
             "Provide api_key or a bz_cache.json."
@@ -226,7 +225,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
         return [get_default_bz(number) for number in bz_numbers]
 
     # No cached data so Call Bugzilla API
-    LOGGER.debug(f"Calling Bugzilla API for {set(bz_numbers)}")
+    logger.debug(f"Calling Bugzilla API for {set(bz_numbers)}")
     bz_fields = [
         "id",
         "summary",

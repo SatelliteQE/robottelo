@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import logging
-
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
@@ -30,15 +28,15 @@ from wait_for import wait_for
 
 from robottelo.api.utils import attach_custom_product_subscription
 from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import REPOS
-from robottelo.test import settings
+from robottelo.logging import logger
 from robottelo.upgrade_utility import install_or_update_package
 from robottelo.upgrade_utility import publish_content_view
 from robottelo.upgrade_utility import run_goferd
 
 
-LOGGER = logging.getLogger('robottelo')
 DOCKER_VM = settings.upgrade.docker_vm
 CLIENT_OS = DISTRO_RHEL7
 
@@ -153,7 +151,7 @@ class TestScenarioYumPluginsCount:
             )[DOCKER_VM],
             timeout=800,
             delay=2,
-            logger=LOGGER,
+            logger=logger,
         )
         status = execute(
             docker_execute_command,

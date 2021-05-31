@@ -86,14 +86,16 @@ This module is intended to be used for upgrade tests, that have two run stages,
 import datetime
 import functools
 import json
-import logging
 import os
 
 import pytest
+from automation_tools.satellite6.hammer import set_hammer_config
+from fabric.api import env
 
+from robottelo.config import settings
 from robottelo.decorators.func_locker import lock_function
+from robottelo.logging import logger
 
-LOGGER = logging.getLogger('robottelo')
 
 pre_upgrade_failed_tests = []
 
@@ -227,6 +229,15 @@ def pre_upgrade_data(request):
     return data
 
 
+def pytest_sessionstart(session):
+    """Do some setup for automation-tools and satellite6-upgrade"""
+    # Fabric Config setup
+    env.host_string = settings.server.hostname
+    env.user = settings.server.ssh_username
+    # Hammer Config Setup
+    set_hammer_config(user=settings.server.admin_username, password=settings.server.admin_password)
+
+
 def pytest_addoption(parser):
     """This will add an option to the runner to be able to customize the location of the failed
     tests file.
@@ -295,7 +306,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus):
         for key in ['failed', 'error', 'skipped']:
             failed_test_reports.extend(terminalreporter.stats.get(key, []))
         failed_test_node_ids = [test_report.nodeid for test_report in failed_test_reports]
-        LOGGER.info('Save failed tests to file %s', PRE_UPGRADE_TESTS_FILE_PATH)
+        logger.info('Save failed tests to file %s', PRE_UPGRADE_TESTS_FILE_PATH)
         with open(PRE_UPGRADE_TESTS_FILE_PATH, 'w') as json_file:
             json.dump(failed_test_node_ids, json_file)
 

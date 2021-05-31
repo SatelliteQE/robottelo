@@ -91,7 +91,7 @@ def test_positive_rhev_info(rhev):
     assert compute_resource['name'] == name
 
 
-@pytest.mark.tier
+@pytest.mark.tier1
 def test_positive_delete_by_name(rhev):
     """Delete the RHEV compute resource by name
 

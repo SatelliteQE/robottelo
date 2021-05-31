@@ -8,7 +8,7 @@
 
 :CaseComponent: ErrataManagement
 
-:Assignee: tpapaioa
+:Assignee: akjha
 
 :TestType: Functional
 
@@ -222,8 +222,6 @@ def test_end_to_end(session, module_repos_col, vm):
         'cves': 'N/A',
         'type': 'Security Advisory',
         'severity': 'N/A',
-        'issued': 'Jan 27, 12:00 AM',
-        'last_updated_on': 'Jan 27, 12:00 AM',
         'reboot_suggested': 'No',
         'topic': '',
         'description': 'Sea_Erratum',
@@ -245,7 +243,13 @@ def test_end_to_end(session, module_repos_col, vm):
         assert session.errata.search(value, applicable=True)[0]['Errata ID']
         # Check all tabs of Errata Details page
         errata = session.errata.read(CUSTOM_REPO_ERRATA_ID)
-        assert errata['details'] == ERRATA_DETAILS
+        # We ignore issued date and updated date in ERRATA_DETAILS, so we don't perform an
+        # equality check here.
+        # TODO: Find a way to account for browser time zone, so that the errata dates displayed
+        # in the UI can be compared to the UTC values in ERRATA_DETAILS.
+        assert (
+            not ERRATA_DETAILS.items() - errata['details'].items()
+        ), 'Errata details do not match expected values.'
         assert set(errata['packages']['independent_packages']) == set(
             ERRATA_PACKAGES['independent_packages']
         )

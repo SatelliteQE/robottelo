@@ -1,7 +1,7 @@
 import pytest
 from nailgun import entities
 
-from robottelo.test import settings
+from robottelo.config import settings
 
 
 @pytest.fixture(scope='session')

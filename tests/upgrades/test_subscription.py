@@ -28,7 +28,7 @@ from wait_for import wait_for
 
 from robottelo import manifests
 from robottelo import ssh
-from robottelo.test import settings
+from robottelo.config import settings
 from robottelo.upgrade_utility import host_location_update
 
 

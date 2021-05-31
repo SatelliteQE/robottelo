@@ -355,7 +355,7 @@ def test_positive_update_hosts(module_org, fake_hosts):
     """
     host_collection = entities.HostCollection(host=fake_hosts, organization=module_org).create()
     new_hosts = [entities.Host(organization=module_org).create() for _ in range(2)]
-    host_ids = {str(host.id) for host in new_hosts}
+    host_ids = [str(host.id) for host in new_hosts]
     host_collection.host_ids = host_ids
     host_collection = host_collection.update(['host_ids'])
     assert {host.id for host in host_collection.host} == {host.id for host in new_hosts}
