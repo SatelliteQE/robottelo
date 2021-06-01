@@ -41,7 +41,6 @@ from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
-from robottelo.vm import VirtualMachine
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_manifest')]
 
@@ -248,9 +247,8 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
         assert not session.subscription.has_manifest
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_view_vdc_subscription_products(session):
+def test_positive_view_vdc_subscription_products(session, rhel7_contenthost):
     """Ensure that Virtual Datacenters subscription provided products is
     not empty and that a consumed product exist in content products.
 
@@ -290,30 +288,28 @@ def test_positive_view_vdc_subscription_products(session):
     repos_collection.setup_content(
         org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
     )
-    with VirtualMachine() as vm:
-        setup_virtual_machine(
-            vm,
-            org.label,
-            activation_key=repos_collection.setup_content_data['activation_key']['name'],
-            install_katello_agent=False,
-        )
-        with session:
-            session.organization.select(org.name)
-            session.contenthost.add_subscription(vm.hostname, VDC_SUBSCRIPTION_NAME)
-            provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
-            # ensure that subscription provided products list is not empty and that the product is
-            # in the provided products.
-            assert provided_products and product_name in provided_products
-            content_products = session.subscription.content_products(VDC_SUBSCRIPTION_NAME)
-            # ensure that subscription enabled products list is not empty and that product is in
-            # content products.
-            assert content_products and product_name in content_products
+    setup_virtual_machine(
+        rhel7_contenthost,
+        org.label,
+        activation_key=repos_collection.setup_content_data['activation_key']['name'],
+        install_katello_agent=False,
+    )
+    with session:
+        session.organization.select(org.name)
+        session.contenthost.add_subscription(rhel7_contenthost.hostname, VDC_SUBSCRIPTION_NAME)
+        provided_products = session.subscription.provided_products(VDC_SUBSCRIPTION_NAME)
+        # ensure that subscription provided products list is not empty and that the product is
+        # in the provided products.
+        assert product_name in provided_products
+        content_products = session.subscription.content_products(VDC_SUBSCRIPTION_NAME)
+        # ensure that subscription enabled products list is not empty and that product is in
+        # content products.
+        assert product_name in content_products
 
 
 @pytest.mark.skip_if_not_set('compute_resources')
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_view_vdc_guest_subscription_products(session):
+def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost):
     """Ensure that Virtual Data Centers guest subscription Provided
     Products and Content Products are not empty.
 
@@ -355,41 +351,39 @@ def test_positive_view_vdc_guest_subscription_products(session):
             'hypervisor-username': 'root',
         }
     )
-    # create a virtual machine to host virt-who service
-    with VirtualMachine() as virt_who_vm:
-        # configure virtual machine and setup virt-who service
-        virt_who_data = virt_who_hypervisor_config(
-            virt_who_config['general-information']['id'],
-            virt_who_vm,
-            org_id=org.id,
-            lce_id=lce.id,
-            hypervisor_hostname=provisioning_server,
-            configure_ssh=True,
-            subscription_name=VDC_SUBSCRIPTION_NAME,
-            extra_repos=[rh_product_repository.data],
+    # configure virtual machine and setup virt-who service
+    virt_who_data = virt_who_hypervisor_config(
+        virt_who_config['general-information']['id'],
+        rhel7_contenthost,
+        org_id=org.id,
+        lce_id=lce.id,
+        hypervisor_hostname=provisioning_server,
+        configure_ssh=True,
+        subscription_name=VDC_SUBSCRIPTION_NAME,
+        extra_repos=[rh_product_repository.data],
+    )
+    virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
+    with session:
+        session.organization.select(org.name)
+        # ensure that VDS subscription is assigned to virt-who hypervisor
+        content_hosts = session.contenthost.search(
+            'subscription_name = "{}" and name = "{}"'.format(
+                VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name']
+            )
         )
-        virt_who_hypervisor_host = virt_who_data['virt_who_hypervisor_host']
-        with session:
-            session.organization.select(org.name)
-            # ensure that VDS subscription is assigned to virt-who hypervisor
-            content_hosts = session.contenthost.search(
-                'subscription_name = "{}" and name = "{}"'.format(
-                    VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name']
-                )
-            )
-            assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
-            # ensure that hypervisor guests subscription provided products list is not empty and
-            # that the product is in provided products.
-            provided_products = session.subscription.provided_products(
-                VDC_SUBSCRIPTION_NAME, virt_who=True
-            )
-            assert provided_products and product_name in provided_products
-            # ensure that hypervisor guests subscription content products list is not empty and
-            # that product is in content products.
-            content_products = session.subscription.content_products(
-                VDC_SUBSCRIPTION_NAME, virt_who=True
-            )
-            assert content_products and product_name in content_products
+        assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
+        # ensure that hypervisor guests subscription provided products list is not empty and
+        # that the product is in provided products.
+        provided_products = session.subscription.provided_products(
+            VDC_SUBSCRIPTION_NAME, virt_who=True
+        )
+        assert product_name in provided_products
+        # ensure that hypervisor guests subscription content products list is not empty and
+        # that product is in content products.
+        content_products = session.subscription.content_products(
+            VDC_SUBSCRIPTION_NAME, virt_who=True
+        )
+        assert product_name in content_products
 
 
 @pytest.mark.tier3
@@ -476,9 +470,8 @@ def test_positive_subscription_status_disabled_golden_ticket(
         assert 'Simple Content Access' in host
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_STOMP(session):
+def test_positive_candlepin_events_processed_by_STOMP(session, rhel7_contenthost):
     """Verify that Candlepin events are being read and processed by
        attaching subscriptions, validating host subscriptions status,
        and viewing processed and failed Candlepin events
@@ -510,22 +503,22 @@ def test_positive_candlepin_events_processed_by_STOMP(session):
         organization=org,
         environment=entities.LifecycleEnvironment(id=org.library.id),
     ).create()
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(org.name, ak.name)
-        with session:
-            session.organization.select(org_name=org.name)
-            host = session.contenthost.read(vm.hostname, widget_names='details')['details']
-            sub_status = host['subscription_status']
-            assert "Unentitled" in sub_status
-            with manifests.clone() as manifest:
-                upload_manifest(org.id, manifest.content)
-            session.contenthost.add_subscription(vm.hostname, DEFAULT_SUBSCRIPTION_NAME)
-            session.browser.refresh()
-            updated_sub_status = session.contenthost.read(vm.hostname, widget_names='details')[
-                'details'
-            ]['subscription_status']
-            assert "Fully entitled" in updated_sub_status
-            response = entities.Ping().search_json()["services"]["candlepin_events"]
-            assert response["status"] == "ok"
-            assert "0 Failed" in response["message"]
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(org.name, ak.name)
+    with session:
+        session.organization.select(org_name=org.name)
+        host = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')[
+            'details'
+        ]
+        assert 'Unentitled' in host['subscription_status']
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        session.contenthost.add_subscription(rhel7_contenthost.hostname, DEFAULT_SUBSCRIPTION_NAME)
+        session.browser.refresh()
+        updated_sub_status = session.contenthost.read(
+            rhel7_contenthost.hostname, widget_names='details'
+        )['details']['subscription_status']
+        assert 'Fully entitled' in updated_sub_status
+        response = entities.Ping().search_json()['services']['candlepin_events']
+        assert response['status'] == 'ok'
+        assert '0 Failed' in response['message']
