@@ -247,7 +247,6 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
         assert not session.subscription.has_manifest
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_view_vdc_subscription_products(session, rhel7_contenthost):
     """Ensure that Virtual Datacenters subscription provided products is
