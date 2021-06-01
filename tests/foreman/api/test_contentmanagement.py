@@ -952,12 +952,12 @@ class TestCapsuleContentManagement:
         # Install the package
         package_name = FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
         result = rhel7_contenthost.run(f'yum install -y {package_name}')
-        assert result.return_code == 0
+        assert result.status == 0
 
         # Ensure package installed
         result = rhel7_contenthost.run(f'rpm -qa | grep {package_name}')
 
-        assert result.return_code == 0
+        assert result.status == 0
         assert package_name in result.stdout[0]
 
     @pytest.mark.libvirt_content_host
