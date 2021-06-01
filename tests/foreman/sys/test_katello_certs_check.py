@@ -174,6 +174,13 @@ class TestKatelloCertsCheck:
         }
         assert result.return_code == 0
         assert cert_data['success_message'] in result.stdout
+
+        # validate correct installer used
+        pattern, count = 'satellite-installer --scenario satellite', 2
+        assert len(re.findall(pattern, result.stdout)) == count
+        pattern, count = 'foreman-installer --scenario katello', 0
+        assert len(re.findall(pattern, result.stdout)) == count
+
         # validate all checks passed
         assert not any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK')
         # validate options in output
