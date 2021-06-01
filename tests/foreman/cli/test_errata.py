@@ -79,6 +79,7 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import EPEL_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
@@ -1336,10 +1337,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so install older python2-psutil for errata test
-    rhel77_contenthost_module.run(
-        'rpm -Uvh https://download-ib01.fedoraproject.org/pub/epel/7/'
-        'x86_64/Packages/p/python2-psutil-5.6.7-1.el7.x86_64.rpm'
-    )
+    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
@@ -1437,3 +1435,59 @@ def test_update_applicable_package_using_default_content_view(chost):
         }
     )
     assert len(applicable_packages) == 0
+
+
+@pytest.mark.tier2
+def test_downgrade_applicable_package_using_default_content_view(chost):
+    """Downgrading a package on a host attached to the default content view
+    causes the package to become applicable and installable.
+
+    :id: 8503dff8-c2d9-4818-a607-746dc551894b
+
+    :steps:
+        1. Register a host that already requires errata to org with Library
+        2. Update the aplicable package
+        3. Ensure the expected package is not applicable on the newly registered host
+        4. Downgrade the applicable package on the host
+        5. Ensure the package is now applicable
+
+    :expectedresults: downgraded package now shows as applicable and installable
+
+    :CaseImportance: High
+    """
+    # Update package from Library, i.e. Default CV
+    chost.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    # Assert that the package is not applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': chost.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Downgrade package (we can't get it from Library, so we install older one from EPEL)
+    chost.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    chost.run('yum -y downgrade python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {chost.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # check that package is applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': chost.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 1
+    assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']

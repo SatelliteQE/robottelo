@@ -53,3 +53,4 @@ FAKE_PULP_REMOTE_FILEREPO = f'{REPOS_URL}/pulp_remote'
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
+EPEL_REPO = f'{REPOS_URL}/epel_repo'
