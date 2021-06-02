@@ -82,7 +82,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
         assert session.http_proxy.search(updated_proxy_name)[0]['Name'] == updated_proxy_name
         # Delete http_proxy
         session.http_proxy.delete(updated_proxy_name)
-        assert not session.http_proxy.search(updated_proxy_name)
+        assert not entities.HTTPProxy().search(query={'search': f'name={updated_proxy_name}'})
 
 
 @pytest.mark.tier2
