@@ -131,7 +131,6 @@ class ContentHost(Host):
 
         if ensure:
             try:
-                # refresh/establish the ssh connection
                 self.connect()
             # really broad diaper here, but connection exceptions could be a ton of types
             except Exception:
