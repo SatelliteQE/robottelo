@@ -116,7 +116,7 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
         assert not session.computeresource.search(name)
         assert session.computeresource.search(new_name)[0]['Name'] == new_name
         session.computeresource.delete(new_name)
-        assert not session.computeresource.search(new_name)
+        assert not entities.AbstractComputeResource().search(query={'search': f'name={new_name}'})
 
 
 @pytest.mark.on_premises_provisioning

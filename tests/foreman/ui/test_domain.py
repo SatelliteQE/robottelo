@@ -172,4 +172,4 @@ def test_positive_end_to_end(session, module_org, module_loc, valid_domain_name)
         assert session.domain.search(new_name)[0]['Description'] == new_name
         # Delete domain
         session.domain.delete(new_name)
-        assert not session.domain.search(new_name)
+        assert not entities.Domain().search(query={'search': f'name={new_name}'})
