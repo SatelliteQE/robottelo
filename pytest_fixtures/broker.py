@@ -15,7 +15,7 @@ def satellite_factory():
         vmb = VMBroker(
             host_classes={'host': Satellite},
             workflow=settings.server.deploy_workflow,
-            **broker_args
+            **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
         sat = wait_for(
@@ -108,8 +108,13 @@ def rhel77_contenthost_class(request):
 @pytest.fixture
 def satellite_latest():
     """A fixture that provides a latest Satellite"""
+    version_args = dict(
+        deploy_sat_version=settings.server.version.get('release', ''),
+        deploy_snap_version=settings.server.version.get('snap', ''),
+    )
+
     with VMBroker(
-        host_classes={'host': Satellite}, workflow=settings.server.deploy_workflow
+        host_classes={'host': Satellite}, workflow=settings.server.deploy_workflow, **version_args
     ) as sat:
         yield sat
 
@@ -117,8 +122,28 @@ def satellite_latest():
 @pytest.fixture
 def capsule_latest():
     """A fixture that provides an unconfigured latest Capsule"""
-    with VMBroker(host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow) as cap:
+    version_args = dict(
+        deploy_sat_version=settings.server.version.get('release', ''),
+        deploy_snap_version=settings.server.version.get('snap', ''),
+    )
+
+    with VMBroker(
+        host_classes={'host': Capsule},
+        workflow=str(settings.capsule.deploy_workflow),
+        **version_args,
+    ) as cap:
         yield cap
+
+
+@pytest.fixture
+def capsule_configured(capsule_latest):
+    """Configure the capsule instance with the satellite from settings.server.hostname"""
+    current_sat = Satellite(hostname=settings.server.hostname)
+    current_sat.connect()
+    capsule_latest.install_katello_ca()
+    capsule_latest.register_contenthost()
+    capsule_latest.capsule_setup(current_sat)
+    yield capsule_latest
 
 
 @pytest.fixture(scope='module')

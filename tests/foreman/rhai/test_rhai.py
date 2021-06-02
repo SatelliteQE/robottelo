@@ -37,7 +37,6 @@ NAV_ITEMS = [
 ]
 
 
-@pytest.mark.libvirt_content_host
 def test_positive_register_client_to_insights(vm, autosession):
     """Verify registration via insights-client.
 
@@ -89,7 +88,6 @@ def test_positive_register_client_with_template():
     pass
 
 
-@pytest.mark.libvirt_content_host
 def test_positive_unregister_client_from_insights(vm, autosession):
     """Verify unregistration via insights-client.
 
@@ -500,7 +498,6 @@ def test_positive_inventory_group_systems():
     pass
 
 
-@pytest.mark.libvirt_content_host
 def test_numeric_group(vm, autosession):
     """Check the rule appears when provoked and disappears on Satellite once applied.
 

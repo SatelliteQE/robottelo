@@ -281,7 +281,7 @@ def test_positive_add_and_remove_hostgroups(module_org):
 
 @pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.tier2
-@pytest.mark.libvirt_content_host
+@pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_add_and_remove_compute_resources(module_org):
     """Add and remove a compute resource from organization

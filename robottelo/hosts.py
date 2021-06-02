@@ -1,22 +1,30 @@
+import time
 from functools import cached_property
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
+from broker import VMBroker
 from broker.hosts import Host
+from fauxfactory import gen_alpha
 from nailgun import entities
 from wait_for import TimedOutError
 from wait_for import wait_for
+from wrapanapi.entities.vm import VmState
 
+from robottelo import constants
 from robottelo import ssh
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTRO_RHEL8
-from robottelo.constants import REPOS
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import remove_katello_ca
+
+POWER_WORKFLOW_KEYS = {
+    VmState.RUNNING: 'power_on',
+    VmState.STOPPED: 'power_off',
+    # TODO paused, suspended, shelved?
+}
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
@@ -83,6 +91,41 @@ class ContentHost(Host):
     def teardown(self):
         self.unregister()
 
+    def power_control(self, state=VmState.RUNNING, ensure=True):
+        """Lookup the host workflow for power on and execute
+
+        Args:
+            state: A VmState mapped in POWER_WORKFLOW_KEYS or settings.broker.host_workflows key
+            ensure: boolean indicating whether to try and connect to ensure power state
+
+        Raises:
+            NotImplementedError: if the workflow name isn't found in settings
+            BrokerError: various error types to do with broker execution
+            AssertionError: if the workflow status isn't successful and broker didn't raise
+        """
+        try:
+            workflow_key = POWER_WORKFLOW_KEYS.get(state, state)
+            workflow_name = getattr(settings.broker.host_workflows, workflow_key)
+        except (AttributeError, KeyError):
+            raise NotImplementedError(f'No workflow specified in broker.host_workflows for {state}')
+        assert (
+            VMBroker().execute(workflow=workflow_name, target_vm=self.name)['status'].lower()
+            == 'successful'
+        )
+
+        if ensure:
+            try:
+                self.connect()
+            # really broad diaper here, but connection exceptions could be a ton of types
+            except Exception:
+                if state == VmState.RUNNING:
+                    raise AssertionError('Unable to connect to host that should be running')
+                if state == VmState.STOPPED:
+                    # Other than running/stopped, no telling what state the host is in
+                    pass
+                else:
+                    pass
+
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
 
@@ -109,13 +152,13 @@ class ContentHost(Host):
 
         """
         downstream_repo = None
-        if repo == REPOS['rhst6']['id']:
+        if repo == constants.REPOS['rhst6']['id']:
             downstream_repo = settings.sattools_repo['rhel6']
-        elif repo == REPOS['rhst7']['id']:
+        elif repo == constants.REPOS['rhst7']['id']:
             downstream_repo = settings.sattools_repo['rhel7']
-        elif repo == REPOS['rhst8']['id']:
+        elif repo == constants.REPOS['rhst8']['id']:
             downstream_repo = settings.sattools_repo['rhel8']
-        elif repo in (REPOS['rhsc6']['id'], REPOS['rhsc7']['id']):
+        elif repo in (constants.REPOS['rhsc6']['id'], constants.REPOS['rhsc7']['id']):
             downstream_repo = settings.capsule_repo
         if force or settings.cdn or not downstream_repo:
             self.execute(f'subscription-manager repos --enable {repo}')
@@ -299,6 +342,50 @@ class ContentHost(Host):
         """Put a local file to the broker virtual machine."""
         self.session.sftp_write(source=local_path, destination=remote_path)
 
+    def put_ssh_key(self, source_key_path, destination_key_name):
+        """Copy ssh key to virtual machine ssh path and ensure proper permission is
+        set
+
+        :param source_key_path: The ssh key file path to copy to vm
+        :param destination_key_name: The ssh key file name when copied to vm
+        """
+        destination_key_path = f'/root/.ssh/{destination_key_name}'
+        self.put(local_path=source_key_path, remote_path=destination_key_path)
+        result = self.run(f'chmod 600 {destination_key_path}')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
+
+    def update_known_hosts(self, ssh_key_name, host, user=None):
+        """Create host entry in vm ssh config and know_hosts files to allow vm
+        to access host via ssh without password prompt
+
+        :param robottelo.hosts.ContentHost vm: Virtual machine instance
+        :param str ssh_key_name: The ssh key file name to use to access host,
+            the file must already exist in /root/.ssh directory
+        :param str host: the hostname to setup that will be accessed from vm
+        :param str user: the user that will access the host
+        """
+        user = user or 'root'
+        ssh_path = '/root/.ssh'
+        ssh_key_file_path = f'{ssh_path}/{ssh_key_name}'
+        # setup the config file
+        ssh_config_file_path = f'{ssh_path}/config'
+        result = self.run(f'touch {ssh_config_file_path}')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to create ssh config file:\n{result.stderr}')
+        result = self.run(
+            f'echo "\nHost {host}\n\tHostname {host}\n\tUser {user}\n'
+            f'\tIdentityFile {ssh_key_file_path}\n" >> {ssh_config_file_path}'
+        )
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to write to ssh config file:\n{result.stderr}')
+        # add host entry to ssh known_hosts
+        result = self.run(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
+        if result.status != 0:
+            raise CLIFactoryError(
+                f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
+            )
+
     def configure_rhel_repo(self, rhel_repo):
         """Configures specified Red Hat repository on the broker virtual machine.
 
@@ -382,9 +469,9 @@ class ContentHost(Host):
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
-            DISTRO_RHEL6: settings.rhel6_repo,
-            DISTRO_RHEL7: settings.rhel7_repo,
-            DISTRO_RHEL8: settings.rhel8_repo,
+            constants.DISTRO_RHEL6: settings.rhel6_repo,
+            constants.DISTRO_RHEL7: settings.rhel7_repo,
+            constants.DISTRO_RHEL8: settings.rhel8_repo,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
@@ -430,20 +517,252 @@ class ContentHost(Host):
         script_content = '\n'.join(script_content)
         self.execute(f"echo -e '{script_content}' > {script_path}")
 
-    def patch_os_release_version(self, distro=DISTRO_RHEL7):
+    def patch_os_release_version(self, distro=constants.DISTRO_RHEL7):
         """Patch VM OS release version.
 
         This is needed by yum package manager to generate the right RH
         repositories urls.
         """
-        if distro == DISTRO_RHEL7:
-            rh_product_os_releasever = REPOS['rhel7']['releasever']
+        if distro == constants.DISTRO_RHEL7:
+            rh_product_os_releasever = constants.REPOS['rhel7']['releasever']
         else:
             raise ContentHostError('No distro package available to retrieve release version')
         return self.execute(f"echo '{rh_product_os_releasever}' > /etc/yum/vars/releasever")
 
+    # What the heck to call this function?
+    def contenthost_setup(
+        self,
+        org_label,
+        rh_repo_ids=None,
+        repo_labels=None,
+        product_label=None,
+        lce=None,
+        activation_key=None,
+        patch_os_release_distro=None,
+        install_katello_agent=True,
+    ):
+        """
+        Setup a Content Host with basic components and tasks.
+
+        :param str org_label: The Organization label.
+        :param list rh_repo_ids: a list of RH repositories ids to enable.
+        :param list repo_labels: a list of custom repositories labels to enable.
+        :param str product_label: product label if repos_label is applicable.
+        :param str lce: Lifecycle environment label if applicable.
+        :param str activation_key: Activation key name if applicable.
+        :param str patch_os_release_distro: distro name, to patch the VM with os version.
+        :param bool install_katello_agent: whether to install katello agent.
+        """
+        rh_repo_ids = rh_repo_ids or []
+        repo_labels = repo_labels or []
+        self.install_katello_ca()
+        self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+        if not self.subscribed:
+            raise CLIFactoryError('Virtual machine failed subscription')
+        if patch_os_release_distro:
+            self.patch_os_release_version(distro=patch_os_release_distro)
+        # Enable RH repositories
+        for repo_id in rh_repo_ids:
+            self.enable_repo(repo_id, force=True)
+        if product_label:
+            # Enable custom repositories
+            for repo_label in repo_labels:
+                result = self.run(
+                    f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
+                )
+                if result.status != 0:
+                    raise CLIFactoryError(
+                        f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
+                    )
+        if install_katello_agent:
+            self.install_katello_agent()
+
+    def virt_who_hypervisor_config(
+        self,
+        config_id,
+        org_id=None,
+        lce_id=None,
+        hypervisor_hostname=None,
+        configure_ssh=False,
+        hypervisor_user=None,
+        subscription_name=None,
+        exec_one_shot=False,
+        upload_manifest=True,
+        extra_repos=None,
+    ):
+        """
+        Configure virtual machine as hypervisor virt-who service
+
+        :param int config_id: virt-who config id
+        :param int org_id: the organization id
+        :param int lce_id: the lifecycle environment id to use
+        :param str hypervisor_hostname: the hypervisor hostname
+        :param str hypervisor_user: hypervisor user that connect with the ssh key
+        :param bool configure_ssh: configure the ssh key to allow host to connect to hypervisor
+        :param str subscription_name: the subscription name to assign to virt-who hypervisor guests
+        :param bool exec_one_shot: whether to run the virt-who one-shot command after startup
+        :param bool upload_manifest: whether to upload the organization manifest
+        :param list extra_repos: (Optional) repositories dict options to setup additionally.
+        """
+        from robottelo.cli.org import Org
+        from robottelo.cli import factory as cli_factory
+        from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+        from robottelo.cli.subscription import Subscription
+        from robottelo.cli.virt_who_config import VirtWhoConfig
+
+        org = cli_factory.make_org() if org_id is None else Org.info({'id': org_id})
+
+        if lce_id is None:
+            lce = cli_factory.make_lifecycle_environment({'organization-id': org['id']})
+        else:
+            lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org['id']})
+        extra_repos = extra_repos or []
+        repos = [
+            # Red Hat Satellite Tools
+            {
+                'product': constants.PRDS['rhel'],
+                'repository-set': constants.REPOSET['rhst7'],
+                'repository': constants.REPOS['rhst7']['name'],
+                'repository-id': constants.REPOS['rhst7']['id'],
+                'url': settings.sattools_repo['rhel7'],
+                'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
+            }
+        ]
+        repos.extend(extra_repos)
+        content_setup_data = cli_factory.setup_cdn_and_custom_repos_content(
+            org['id'],
+            lce['id'],
+            repos,
+            upload_manifest=upload_manifest,
+            rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
+        )
+        activation_key = content_setup_data['activation_key']
+        content_view = content_setup_data['content_view']
+        self.contenthost_setup(
+            org_label=org['label'],
+            activation_key=activation_key['name'],
+            patch_os_release_distro=constants.DISTRO_RHEL7,
+            rh_repo_ids=[repo['repository-id'] for repo in repos if repo['cdn']],
+            install_katello_agent=False,
+        )
+        # configure manually RHEL custom repo url as sync time is very big
+        # (more than 2 hours for RHEL 7Server) and not critical in this context.
+        rhel_repo_option_name = (
+            f'rhel{constants.DISTROS_MAJOR_VERSION[constants.DISTRO_RHEL7]}_repo'
+        )
+        rhel_repo_url = getattr(settings.repos, rhel_repo_option_name, None)
+        if not rhel_repo_url:
+            raise ValueError(
+                f'Settings option "{rhel_repo_option_name}" is whether not set or does not exist'
+            )
+        self.configure_rhel_repo(rhel_repo_url)
+        if hypervisor_hostname and configure_ssh:
+            # configure ssh access of hypervisor from self
+            hypervisor_ssh_key_name = f'hypervisor-{gen_alpha().lower()}.key'
+            # upload the ssh key
+            self.put_ssh_key(settings.server.ssh_key, hypervisor_ssh_key_name)
+            # setup the ssh config and known_hosts files
+            self.update_known_hosts(
+                self, hypervisor_ssh_key_name, hypervisor_hostname, user=hypervisor_user
+            )
+
+        # upload the virt-who config deployment script
+        virt_who_deploy_directory = '/root/virt_who_deploy_output'
+        virt_who_deploy_filename = f'{gen_alpha(length=5)}-virt-who-deploy-{config_id}'
+        virt_who_deploy_file = f'{virt_who_deploy_directory}/{virt_who_deploy_filename}'
+        VirtWhoConfig.fetch({'id': config_id, 'output': virt_who_deploy_file})
+        # remote_copy from satellite to self
+        satellite = Satellite(settings.server.hostname)
+        satellite.session.remote_copy(virt_who_deploy_file, self)
+
+        # ensure the virt-who config deploy script is executable
+        result = self.run(f'chmod +x {virt_who_deploy_file}')
+        if result.status != 0:
+            raise CLIFactoryError(
+                f'Failed to set deployment script as executable:\n{result.stderr}'
+            )
+        # execute the deployment script
+        result = self.run(f'{virt_who_deploy_file}')
+        if result.status != 0:
+            raise CLIFactoryError(f'Deployment script failure:\n{result.stderr}')
+        # after this step, we should have virt-who service installed and started
+        if exec_one_shot:
+            # usually to be sure that the virt-who generated the report we need
+            # to force a one shot report, for this we have to stop the virt-who
+            # service
+            result = self.run('service virt-who stop')
+            if result.status != 0:
+                raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
+            result = self.run('virt-who --one-shot', timeout=900)
+            if result.status != 0:
+                raise CLIFactoryError(
+                    f'Failed when executing virt-who --one-shot:\n{result.stderr}'
+                )
+            result = self.run('service virt-who start')
+            if result.status != 0:
+                raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
+        # after this step the hypervisor as a content host should be created
+        # do not confuse virt-who host with hypervisor host as they can be
+        # diffrent hosts and as per this setup we have only registered the virt-who
+        # host, the hypervisor host should registered after virt-who send the
+        # first report when started or with one shot command
+        # the virt-who hypervisor will be registered to satellite with host name
+        # like "virt-who-{hypervisor_hostname}-{organization_id}"
+        virt_who_hypervisor_hostname = f'virt-who-{hypervisor_hostname}-{org["id"]}'
+        # find the registered virt-who hypervisor host
+        org_hosts = Host.list(
+            {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
+        )
+        # Note: if one shot command was executed the report is immediately
+        # generated, and the server must have already registered the virt-who
+        # hypervisor host
+        if not org_hosts and not exec_one_shot:
+            # we have to wait until the first report was sent.
+            # the report is generated after the virt-who service startup, but some
+            # small delay can occur.
+            max_time = time.time() + 60
+            while time.time() <= max_time:
+                time.sleep(5)
+                org_hosts = Host.list(
+                    {
+                        'organization-id': org['id'],
+                        'search': f'name={virt_who_hypervisor_hostname}',
+                    }
+                )
+                if org_hosts:
+                    break
+
+        if len(org_hosts) == 0:
+            raise CLIFactoryError(f'Failed to find hypervisor host:\n{result.stderr}')
+        virt_who_hypervisor_host = org_hosts[0]
+        subscription_id = None
+        if hypervisor_hostname and subscription_name:
+            subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
+            for subscription in subscriptions:
+                if subscription['name'] == subscription_name:
+                    subscription_id = subscription['id']
+                    Host.subscription_attach(
+                        {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
+                    )
+                    break
+        return {
+            'subscription_id': subscription_id,
+            'subscription_name': subscription_name,
+            'activation_key_id': activation_key['id'],
+            'organization_id': org['id'],
+            'content_view_id': content_view['id'],
+            'lifecycle_environment_id': lce['id'],
+            'virt_who_hypervisor_host': virt_who_hypervisor_host,
+        }
+
 
 class Capsule(ContentHost):
+    @property
+    def nailgun_capsule(self):
+        from nailgun.entities import Capsule as NailgunCapsule
+
+        return NailgunCapsule().search(query={'search': f'name={self.hostname}'})[0]
+
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
         result = self.execute('foreman-maintain service restart')

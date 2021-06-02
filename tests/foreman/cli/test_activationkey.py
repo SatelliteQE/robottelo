@@ -586,7 +586,6 @@ def test_negative_update_usage_limit(module_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 def test_positive_usage_limit(module_org):
     """Test that Usage limit actually limits usage
 
@@ -855,7 +854,6 @@ def test_positive_delete_subscription(module_manifest_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 def test_positive_update_aks_to_chost(module_org, rhel7_contenthost):
     """Check if multiple Activation keys can be attached to a
     Content host
@@ -1557,8 +1555,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skip_if_not_set('repos_hosting_url')
 def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 

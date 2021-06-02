@@ -48,7 +48,7 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import parametrized
 
-pytestmark = pytest.mark.libvirt_content_host
+pytestmark = pytest.mark.libvirt_discovery
 
 
 def valid_name_desc_data():
@@ -65,12 +65,12 @@ def valid_name_desc_data():
         },
         'utf8': {'name': gen_string('utf8'), 'description': gen_string('utf8')},
         'html': {
-            'name': '<html>{}</html>'.format(gen_string('alpha')),
-            'description': '<html>{}</html>'.format(gen_string('alpha')),
+            'name': f'<html>{gen_string("alpha")}</html>',
+            'description': f'<html>{gen_string("alpha")}</html>',
         },
         'non_letters': {
-            'name': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('utf8')),
-            'description': "{0}[]@#$%^&*(),./?\\\"{{}}><|''".format(gen_string('alpha')),
+            'name': f"{gen_string('utf8')}[]@#$%^&*(),./?\\\"{{}}><|''",
+            'description': "{gen_string('alpha')}[]@#$%^&*(),./?\\\"{{}}><|''",
         },
     }
 
@@ -90,7 +90,7 @@ def valid_update_data():
     return {
         'utf8_name': {'new-name': gen_string('utf8', 255)},
         'alpha_name': {'new-name': gen_string('alphanumeric')},
-        'white_space_name': {'new-name': 'white spaces %s' % gen_string(str_type='alphanumeric')},
+        'white_space_name': {'new-name': f'white spaces {gen_string("alphanumeric")}'},
         'utf8_descr': {'description': gen_string('utf8', 255)},
         'alpha_descr': {'description': gen_string('alphanumeric')},
         'gen_url': {'url': gen_url()},
@@ -128,7 +128,7 @@ def test_positive_create_with_name(libvirt_url):
     """
     ComputeResource.create(
         {
-            'name': 'cr {}'.format(gen_string(str_type='alpha')),
+            'name': f'cr {gen_string("alpha")}',
             'provider': 'Libvirt',
             'url': libvirt_url,
         }
