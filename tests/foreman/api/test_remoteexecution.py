@@ -24,14 +24,13 @@ from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.hosts import Satellite
 
 
 CAPSULE_TARGET_VERSION = '6.9.z'
 
 
 @pytest.mark.tier4
-def test_positive_run_capsule_upgrade_playbook(capsule_latest):
+def test_positive_run_capsule_upgrade_playbook(capsule_configured):
     """Run Capsule Upgrade playbook against an External Capsule
 
     :id: 9ec6903d-2bb7-46a5-8002-afc74f06d83b
@@ -44,16 +43,12 @@ def test_positive_run_capsule_upgrade_playbook(capsule_latest):
 
     :CaseImportance: Medium
     """
-    curr_sat = Satellite(hostname=settings.server.hostname)
-    curr_sat.connect()
-    capsule_latest.install_katello_ca()
-    capsule_latest.register_contenthost()
-    capsule_latest.capsule_setup(curr_sat)
+
     template_id = (
         entities.JobTemplate().search(query={'search': 'name="Capsule Upgrade Playbook"'})[0].id
     )
 
-    add_remote_execution_ssh_key(capsule_latest.ip_addr)
+    add_remote_execution_ssh_key(capsule_configured.ip_addr)
     job = entities.JobInvocation().run(
         synchronous=False,
         data={
@@ -63,20 +58,20 @@ def test_positive_run_capsule_upgrade_playbook(capsule_latest):
                 'whitelist_options': 'repositories-validate,repositories-setup',
             },
             'targeting_type': 'static_query',
-            'search_query': f'name = {capsule_latest.hostname}',
+            'search_query': f'name = {capsule_configured.hostname}',
         },
     )
     wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = entities.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
-    result = capsule_latest.run('foreman-maintain health check')
+    result = capsule_configured.run('foreman-maintain health check')
     assert result.status == 0
     for line in result.stdout:
         assert 'FAIL' not in line
 
     result = entities.SmartProxy(
-        id=entities.SmartProxy(name=capsule_latest.hostname).search()[0].id
+        id=entities.SmartProxy(name=capsule_configured.hostname).search()[0].id
     ).refresh()
     feature_list = [feat['name'] for feat in result['features']]
     assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)

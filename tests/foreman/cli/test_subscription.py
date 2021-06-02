@@ -254,7 +254,6 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
 
 @pytest.mark.tier2
-@pytest.mark.libvirt_content_host
 def test_positive_auto_attach_disabled_golden_ticket(
     module_org, golden_ticket_host_setup, rhel77_contenthost_class
 ):

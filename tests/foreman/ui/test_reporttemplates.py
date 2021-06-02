@@ -443,9 +443,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
     os.system(f'gunzip {gzip_path}')
     with open(file_path) as json_file:
         data = json.load(json_file)
-    subscription_cnt = len(entities.Subscription(organization=module_org).search())
-    assert subscription_cnt > 0
-    assert len(data) >= subscription_cnt
+    assert len(data) >= len(entities.Subscription(organization=module_org).search()) > 0
     keys_expected = ['Available', 'Contract number', 'ID', 'Name', 'Quantity', 'SKU']
     for subscription in data:
         assert sorted(list(subscription.keys())) == keys_expected

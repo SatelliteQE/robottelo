@@ -308,8 +308,8 @@ class TestRemoteExecution:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=client.ip_addr)
-        assert result.return_code == 0
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == 0
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
@@ -681,7 +681,7 @@ class TestAnsibleREX:
         repo.sync()
         prod = repo.product.read()
         subs = entities.Subscription().search(query={'search': f'name={prod.name}'})
-        assert len(subs) > 0, 'No subscriptions matching the product returned'
+        assert len(subs), 'No subscriptions matching the product returned'
         ak = entities.ActivationKey(
             organization=self.org,
             content_view=self.org.default_content_view,
@@ -709,8 +709,8 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {}".format(*packages), hostname=client.ip_addr)
-        assert result.return_code == 0
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == 0
 
         # start a service
         service = "postfix"

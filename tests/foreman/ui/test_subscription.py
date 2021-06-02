@@ -29,8 +29,6 @@ from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_virt_who_config
-from robottelo.cli.factory import setup_virtual_machine
-from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
@@ -286,8 +284,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost):
     repos_collection.setup_content(
         org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
     )
-    setup_virtual_machine(
-        rhel7_contenthost,
+    rhel7_contenthost.contenthost_setup(
         org.label,
         activation_key=repos_collection.setup_content_data['activation_key']['name'],
         install_katello_agent=False,
@@ -350,9 +347,8 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
         }
     )
     # configure virtual machine and setup virt-who service
-    virt_who_data = virt_who_hypervisor_config(
+    virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
         virt_who_config['general-information']['id'],
-        rhel7_contenthost,
         org_id=org.id,
         lce_id=lce.id,
         hypervisor_hostname=provisioning_server,
@@ -365,9 +361,8 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
         session.organization.select(org.name)
         # ensure that VDS subscription is assigned to virt-who hypervisor
         content_hosts = session.contenthost.search(
-            'subscription_name = "{}" and name = "{}"'.format(
-                VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name']
-            )
+            f'subscription_name = "{VDC_SUBSCRIPTION_NAME}" '
+            f'and name = "{virt_who_hypervisor_host["name"]}"'
         )
         assert content_hosts and content_hosts[0]['Name'] == virt_who_hypervisor_host['name']
         # ensure that hypervisor guests subscription provided products list is not empty and
@@ -440,7 +435,6 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(session):
         assert set(col[1:]) == set(checkbox_dict)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_subscription_status_disabled_golden_ticket(
     session, golden_ticket_host_setup, rhel7_contenthost

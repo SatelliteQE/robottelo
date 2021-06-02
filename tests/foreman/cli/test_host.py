@@ -614,7 +614,8 @@ def test_positive_unregister(module_ak_with_cv, module_lce, module_org, rhel7_co
 
 @pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.host_create
-@pytest.mark.libvirt_content_host
+@pytest.mark.libvirt_discovery
+@pytest.mark.onprem_provisioning
 @pytest.mark.tier1
 def test_positive_create_using_libvirt_without_mac(
     module_location, module_org, module_default_proxy
@@ -1693,7 +1694,7 @@ def test_negative_install_package(katello_host_tools_client):
     with pytest.raises(CLIReturnCodeError) as context:
         Host.package_install({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
     assert (
-        'The task has been cancelled. Is katello-agent installed and ' 'goferd running on the Host?'
+        'The task has been cancelled. Is katello-agent installed and goferd running on the Host?'
     ) in str(context.value.message)
 
 

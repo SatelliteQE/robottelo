@@ -26,7 +26,8 @@ WRAPPER_EXCEPTIONS = (
     'server.admin_password',
     'server.inventory_filter',
     'server.deploy_workflow',
-    'capsule.deploy_workflow',
+    'server.version.release',
+    'server.version.snap' 'capsule.deploy_workflow',
     'azurerm.azure_region',
     'azurerm.client_id',
     'azurerm.client_secret',
@@ -118,6 +119,7 @@ WRAPPER_EXCEPTIONS = (
     'shared_function.redis_db',
     'shared_function.redis_password',
     'shared_function.call_retries',
+    'broker.host_workflows',
 )
 
 

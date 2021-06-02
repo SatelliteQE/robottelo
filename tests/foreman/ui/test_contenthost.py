@@ -30,7 +30,6 @@ from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
-from robottelo.cli.factory import virt_who_hypervisor_config
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SYSPURPOSE_ATTRIBUTES
@@ -675,6 +674,8 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
 
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
+# The content host has been moved to broker, but the test still depends on libvirt compute resource
+@pytest.mark.libvirt_discovery
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_contenthost):
@@ -699,6 +700,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
+    # TODO move this to either hack around virt-who service or use an env-* compute resource
     provisioning_server = settings.compute_resources.libvirt_hostname
     # Create a new virt-who config
     virt_who_config = make_virt_who_config(
@@ -712,9 +714,8 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     # use broker virtual machine to host virt-who service
     # configure virtual machine and setup virt-who service
     # do not supply subscription to attach to virt_who hypervisor
-    virt_who_data = virt_who_hypervisor_config(
+    virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
         virt_who_config['general-information']['id'],
-        rhel7_contenthost,
         org_id=org.id,
         lce_id=lce.id,
         hypervisor_hostname=provisioning_server,
