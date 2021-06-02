@@ -1392,13 +1392,14 @@ def test_update_applicable_package_using_default_content_view(chost):
 
     :id: f761f39c-026c-4987-8c1e-deec895f09a8
 
-    :steps:
-        1. Register a host that already requires errata to org with Library
-        2. Ensure the expected package is applicable on the newly registered host
-        3. Update the applicable package on the host
-        4. Ensure the package is no longer applicable
+    :setup: Register a host that already requires errata to org with Library
 
-    :expectedresults: package listed successfully and is installable
+    :steps:
+        1. Ensure the expected package is applicable
+        2. Update the applicable package on the host
+        3. Ensure the package is no longer applicable
+
+    :expectedresults: after updating the package it is no longer shown as applicable
 
     :CaseImportance: High
     """
@@ -1444,14 +1445,15 @@ def test_downgrade_applicable_package_using_default_content_view(chost):
 
     :id: 8503dff8-c2d9-4818-a607-746dc551894b
 
-    :steps:
-        1. Register a host that already requires errata to org with Library
-        2. Update the aplicable package
-        3. Ensure the expected package is not applicable on the newly registered host
-        4. Downgrade the applicable package on the host
-        5. Ensure the package is now applicable
+    :setup: Register a host that already requires errata to org with Library
 
-    :expectedresults: downgraded package now shows as applicable and installable
+    :steps:
+        1. Update the applicable package
+        2. Ensure the expected package is not applicable
+        3. Downgrade the applicable package on the host using yum
+        4. Ensure the package is now applicable
+
+    :expectedresults: downgraded package shows as applicable
 
     :CaseImportance: High
     """
