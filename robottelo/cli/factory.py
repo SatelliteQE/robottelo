@@ -2578,17 +2578,17 @@ def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
     # setup the config file
     ssh_config_file_path = f'{ssh_path}/config'
     result = vm.run(f'touch {ssh_config_file_path}')
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Failed to create ssh config file:\n{result.stderr}')
     result = vm.run(
         'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
         '\tIdentityFile {2}\n" >> {3}'.format(host, user, ssh_key_file_path, ssh_config_file_path)
     )
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Failed to write to ssh config file:\n{result.stderr}')
     # add host entry to ssh known_hosts
     result = vm.run(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}')
 
 
@@ -2603,7 +2603,7 @@ def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
     destination_key_path = f'/root/.ssh/{destination_key_name}'
     upload_file(local_file=source_key_path, remote_file=destination_key_path, hostname=vm.ip_addr)
     result = vm.run(f'chmod 600 {destination_key_path}')
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
 
@@ -2717,11 +2717,11 @@ def virt_who_hypervisor_config(
     )
     # ensure the virt-who config deploy script is executable
     result = virt_who_vm.run(f'chmod +x {temp_virt_who_deploy_file_path}')
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Failed to set deployment script as executable:\n{result.stderr}')
     # execute the deployment script
     result = virt_who_vm.run(f'{temp_virt_who_deploy_file_path}')
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIFactoryError(f'Deployment script failure:\n{result.stderr}')
     # after this step, we should have virt-who service installed and started
     if exec_one_shot:
@@ -2729,13 +2729,13 @@ def virt_who_hypervisor_config(
         # to force a one shot report, for this we have to stop the virt-who
         # service
         result = virt_who_vm.run('service virt-who stop')
-        if result.return_code != 0:
+        if result.status != 0:
             raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
         result = virt_who_vm.run('virt-who --one-shot', timeout=900)
-        if result.return_code != 0:
+        if result.status != 0:
             raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
         result = virt_who_vm.run('service virt-who start')
-        if result.return_code != 0:
+        if result.status != 0:
             raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
     # after this step the hypervisor as a content host should be created
     # do not confuse virt-who host with hypervisor host as they can be
