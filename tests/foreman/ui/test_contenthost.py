@@ -111,9 +111,6 @@ def repos_collection_for_module_streams(module_org):
 @pytest.fixture
 def vm(repos_collection, rhel7_contenthost):
     """Virtual machine registered in satellite with katello-agent installed"""
-    # with VirtualMachine(distro=repos_collection.distro) as vm:
-    #     repos_collection.setup_virtual_machine(vm)
-    #     yield vm
     repos_collection.setup_virtual_machine(rhel7_contenthost)
     yield rhel7_contenthost
 
@@ -121,12 +118,6 @@ def vm(repos_collection, rhel7_contenthost):
 @pytest.fixture
 def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost):
     """Virtual machine registered in satellite without katello-agent installed"""
-    # with VirtualMachine(distro=repos_collection_for_module_streams.distro) as vm_module_streams:
-    #     repos_collection_for_module_streams.setup_virtual_machine(
-    #         vm_module_streams, install_katello_agent=True
-    #     )
-    #     add_remote_execution_ssh_key(vm_module_streams.ip_addr)
-    #     yield vm_module_streams
     repos_collection_for_module_streams.setup_virtual_machine(
         rhel8_contenthost, install_katello_agent=True
     )
