@@ -101,7 +101,7 @@ def vm_content_hosts(request, module_loc, module_repos_collection):
         for client in clients:
             module_repos_collection.setup_virtual_machine(client)
             update_vm_host_location(client, module_loc.id)
-    return clients
+        yield clients
 
 
 @pytest.fixture
