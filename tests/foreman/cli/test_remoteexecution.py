@@ -41,7 +41,7 @@ from robottelo.hosts import ContentHost
 
 
 @pytest.fixture()
-def fixture_vmsetup(request):
+def fixture_vmsetup(request, module_org):
     """ Create VM and register content host """
     if '_count' in request.param.keys():
         with VMBroker(
@@ -50,18 +50,18 @@ def fixture_vmsetup(request):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                _setup_host(client)
+                _setup_host(client, module_org.label)
             yield clients
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
-            _setup_host(client)
+            _setup_host(client, module_org.label)
             yield client
 
 
-def _setup_host(client, module_org):
+def _setup_host(client, org_label):
     """Set up host for remote execution"""
     client.install_katello_ca()
-    client.register_contenthost(org=module_org.label, lce='Library')
+    client.register_contenthost(org=org_label, lce='Library')
     assert client.subscribed
     add_remote_execution_ssh_key(client.ip_addr)
     Host.set_parameter(
@@ -180,7 +180,12 @@ class TestRemoteExecution:
         assert username == result.stdout[0]
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup',
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
+        ids=['rhel7', 'rhel7_fips'],
+        indirect=True,
+    )
     def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org):
         """Run custom template on host connected by ip
 
@@ -634,7 +639,12 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup',
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
+        ids=['rhel7', 'rhel7_fips'],
+        indirect=True,
+    )
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, module_org):
         """Tests Ansible REX job can install packages and start services
