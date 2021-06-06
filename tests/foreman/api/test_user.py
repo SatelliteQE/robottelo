@@ -915,13 +915,16 @@ class TestPersonalAccessToken:
         :id: 3080e57c-5de2-4eb5-819c-25d09f73ce7c
 
         :steps:
-            1. Create a new user. Assign a role to it and create personal access token
+            1. Create a new user. Assign a role to it and create personal
+               access token
             2. Use an api endpoint to that specific role and other roles.
             3. Revoke the access token
 
         :expectedresults:
-        1. When used with the correct role and end point, corresponding output should be displayed.
-        2. When an incorrect role and end point is used, missing permission should be displayed.
+            1. When used with the correct role and end point, corresponding
+               output should be displayed.
+            2. When an incorrect role and end point is used, missing
+               permission should be displayed.
 
         :CaseLevel: System
         """

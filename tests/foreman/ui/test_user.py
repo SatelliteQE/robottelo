@@ -365,13 +365,16 @@ def test_positive_personal_access_token_user_with_role():
     :id: 7e392265-feed-47d4-bad4-15dad9171f12
 
     :steps:
-        1. Create a new user. Assign a role to it and create personal access token
+        1. Create a new user. Assign a role to it and create personal
+           access token
         2. Use an api endpoint to that specific role and other roles.
         3. Revoke the access token
 
     :expectedresults:
-    1. When used with the correct role and end point, corresponding output should be displayed.
-    2. When an incorrect role and end point is used, missing permission should be displayed.
+        1. When used with the correct role and end point, corresponding
+           output should be displayed.
+        2. When an incorrect role and end point is used, missing
+           permission should be displayed.
 
     :CaseLevel: System
     """
