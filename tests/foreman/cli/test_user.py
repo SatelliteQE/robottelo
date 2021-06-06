@@ -380,3 +380,65 @@ class TestSshKeyInUser:
         assert ssh_name in [i['name'] for i in result]
         result = User.ssh_keys_info({'user': 'admin', 'name': ssh_name})
         assert ssh_key == result[0]['public-key']
+
+
+class TestPersonalAccessToken:
+    """Implement personal access token for the users"""
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_personal_access_token_admin(self):
+        """Personal access token for admin
+
+        :id: f2d3813f-e477-4b6b-8507-246b08fcb3b4
+
+        :steps:
+            1. Edit ‘admin’ user to add personal access token
+            2. Use any api endpoint with the token
+            3. Revoke the token and check for the result.
+
+        :expectedresults:
+            1. Should show output of the api endpoint
+            2. When revoked, authentication error
+
+        :CaseLevel: System
+        """
+        pass
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_positive_personal_access_token_user_with_role(self):
+        """Personal access token for user with a role
+
+        :id: b9fe7ddd-d1e4-4d76-9966-d223b02768ec
+
+        :steps:
+            1. Create a new user. Assign a role to it and create personal access token
+            2. Use an api endpoint to that specific role and other roles.
+            3. Revoke the access token
+
+        :expectedresults:
+        1. When used with the correct role and end point, corresponding output should be displayed.
+        2. When an incorrect role and end point is used, missing permission should be displayed.
+
+        :CaseLevel: System
+        """
+        pass
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_expired_personal_access_token(self):
+        """Personal access token expired for the user.
+
+        :id: cb07b096-aba4-4a95-9a15-5413f32b597b
+
+        :steps:
+            1. Set the expired time to 1 minute from the current time.
+            2. Wait 1 minute
+            3. Try using the token with any end point.
+
+        :expectedresults: Authentication error
+
+        :CaseLevel: System
+        """
+        pass
