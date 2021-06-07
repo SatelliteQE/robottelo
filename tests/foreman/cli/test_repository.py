@@ -3134,3 +3134,30 @@ class TestFileRepository:
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_file_repo_contains_only_newer_of_two_file_versions():
+    """
+        Check that a published file-type repo contains only the newer of
+        two versions of a file with the same name.
+
+    :id: d2530bc4-647c-41cd-a062-5dcf8f9086c6
+
+    :Setup:
+        1. Create a product with a file type repository
+        2. Create a text file locally
+        3. Upload the file and check it is in the published repo
+        4. Add some text keyword to the file locally
+        5. Upload new version of file
+
+    :Steps:
+        1. Check that the published repo contains only the new version of the file
+
+    :expectedresults: only the latest version of the file is present in the repo
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: High
+    """
