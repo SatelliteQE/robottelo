@@ -7,3 +7,5 @@ REPORT_PORTAL:
   # To skip the rerun, if the failed tests in last run more than fail_threshold
   # if its not set, 20% by default will be considered
   FAIL_THRESHOLD: 0
+  # name of the launch for reporting results to
+  LAUNCH_NAME: launch-name
