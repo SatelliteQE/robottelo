@@ -312,9 +312,7 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loc,
         session.architecture.update(arch.name, {'name': new_name})
         assert session.architecture.search(new_name)[0]['Name'] == new_name
         with pytest.raises(NavigationTriesExceeded):
-            session.organization.create(
-                {'name': gen_string('alpha'), 'label': gen_string('alpha')}
-            )
+            session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
 
 
 @pytest.mark.tier2

@@ -190,9 +190,7 @@ class TestContentViewFilter:
 
         :CaseLevel: Integration
         """
-        cvf = entities.RPMContentViewFilter(
-            content_view=content_view, inclusion=inclusion
-        ).create()
+        cvf = entities.RPMContentViewFilter(content_view=content_view, inclusion=inclusion).create()
         assert cvf.inclusion == inclusion
 
     @pytest.mark.tier2
@@ -571,9 +569,7 @@ class TestContentViewFilter:
             inclusion=True,
             repository=[sync_repo],
         ).create()
-        repos = [
-            entities.Repository(product=module_product).create() for _ in range(randint(3, 5))
-        ]
+        repos = [entities.Repository(product=module_product).create() for _ in range(randint(3, 5))]
         for repo in repos:
             repo.sync()
         content_view.repository = repos

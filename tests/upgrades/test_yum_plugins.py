@@ -161,9 +161,7 @@ class TestScenarioYumPluginsCount:
         )[DOCKER_VM]
         assert default_org.label in status
 
-        install_or_update_package(
-            client_hostname=client_container_id, package='katello-host-tools'
-        )
+        install_or_update_package(client_hostname=client_container_id, package='katello-host-tools')
         install_or_update_package(client_hostname=client_container_id, package='katello-agent')
         run_goferd(client_hostname=client_container_id)
 

@@ -145,9 +145,7 @@ def delete_puppet_class(
         imported.
     """
     # Find puppet class
-    puppet_classes = entities.PuppetClass().search(
-        query={'search': f'name = "{puppetclass_name}"'}
-    )
+    puppet_classes = entities.PuppetClass().search(query={'search': f'name = "{puppetclass_name}"'})
     # And all subclasses
     puppet_classes.extend(
         entities.PuppetClass().search(query={'search': f'name ~ "{puppetclass_name}::"'})
@@ -468,9 +466,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
 
     # Get the arch ID
     arch = (
-        entities.Architecture()
-        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
-        .read()
+        entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0].read()
     )
 
     # Update the OS to associate arch, ptable, templates
@@ -723,9 +719,7 @@ def wait_for_errata_applicability_task(
             break
         time.sleep(search_rate)
     else:
-        raise AssertionError(
-            f"No task was found using query '{search_query}' for host '{host_id}'"
-        )
+        raise AssertionError(f"No task was found using query '{search_query}' for host '{host_id}'")
 
 
 def create_discovered_host(name=None, ip_address=None, mac_address=None, options=None):

@@ -1693,8 +1693,7 @@ def test_negative_install_package(katello_host_tools_client):
     with pytest.raises(CLIReturnCodeError) as context:
         Host.package_install({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
     assert (
-        'The task has been cancelled. Is katello-agent installed and '
-        'goferd running on the Host?'
+        'The task has been cancelled. Is katello-agent installed and ' 'goferd running on the Host?'
     ) in str(context.value.message)
 
 
@@ -1833,9 +1832,7 @@ class HostSubscription:
             auto_attach=False,
         ).create()
         if add_subscription:
-            activation_key.add_subscriptions(
-                data={'subscription_id': self.default_subscription_id}
-            )
+            activation_key.add_subscriptions(data={'subscription_id': self.default_subscription_id})
         return activation_key
 
     def _host_subscription_register(self, request):
@@ -2112,9 +2109,7 @@ def test_positive_remove(request, module_host_subscription, host_subscription_cl
         },
         output_format='json',
     )
-    assert module_host_subscription.subscription_name in [
-        sub['name'] for sub in host_subscriptions
-    ]
+    assert module_host_subscription.subscription_name in [sub['name'] for sub in host_subscriptions]
     Host.subscription_remove(
         {
             'host-id': host['id'],

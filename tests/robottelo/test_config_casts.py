@@ -61,8 +61,7 @@ class TestLoggingLevelCast:
         import logging
 
         assert [logging.CRITICAL, logging.DEBUG, logging.ERROR, logging.INFO, logging.WARNING] == [
-            cast_logging_level(value)
-            for value in ('critical', 'debug', 'error', 'info', 'warning')
+            cast_logging_level(value) for value in ('critical', 'debug', 'error', 'info', 'warning')
         ]
 
     def test_raise_value_error(self, cast_logging_level):

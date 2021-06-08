@@ -451,8 +451,7 @@ class TestAzureRMUserDataProvisioning:
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = (
-            "compute_network={},compute_public_ip=Dynamic,"
-            "compute_private_ip=false".format(nw_id)
+            "compute_network={},compute_public_ip=Dynamic," "compute_private_ip=false".format(nw_id)
         )
 
     @pytest.fixture(scope='class')
@@ -550,9 +549,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
     """AzureRM Host Provisioning Test with BYOS Image"""
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(
-        self, request, module_domain, module_azurerm_cr, module_azurerm_byos_finishimg
-    ):
+    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_byos_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -656,9 +653,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         assert class_byos_ft_host['name'] == self.fullhostname
         assert class_byos_ft_host['status']['build-status'] == "Installed"
         assert class_byos_ft_host['compute-resource'] == module_azurerm_cr.name
-        assert (
-            class_byos_ft_host['operating-system']['image'] == module_azurerm_byos_finishimg.name
-        )
+        assert class_byos_ft_host['operating-system']['image'] == module_azurerm_byos_finishimg.name
         assert class_byos_ft_host['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
 
         # Azure cloud

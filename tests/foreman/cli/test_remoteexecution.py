@@ -258,9 +258,7 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_install_multiple_packages_with_a_job_by_ip(
-        self, fixture_vmsetup, module_org
-    ):
+    def test_positive_install_multiple_packages_with_a_job_by_ip(self, fixture_vmsetup, module_org):
         """Run job to install several packages on host by ip
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320

@@ -435,9 +435,7 @@ class TestDockerContentView:
         content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
         ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
-        assert repo['id'] in [
-            repo_['id'] for repo_ in content_view['container-image-repositories']
-        ]
+        assert repo['id'] in [repo_['id'] for repo_ in content_view['container-image-repositories']]
 
     @pytest.mark.tier2
     def test_positive_add_docker_repos_by_id(self, module_org, module_product):
@@ -475,9 +473,7 @@ class TestDockerContentView:
         content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
         ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
         content_view = ContentView.info({'id': content_view['id']})
-        assert repo['id'] in [
-            repo_['id'] for repo_ in content_view['container-image-repositories']
-        ]
+        assert repo['id'] in [repo_['id'] for repo_ in content_view['container-image-repositories']]
 
     @pytest.mark.tier2
     def test_positive_add_docker_repo_by_id_to_ccv(self, module_org, content_view):
@@ -494,9 +490,7 @@ class TestDockerContentView:
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'id': comp_content_view['id'],
@@ -522,18 +516,14 @@ class TestDockerContentView:
         """
         cv_versions = []
         for _ in range(randint(2, 5)):
-            content_view = make_content_view(
-                {'composite': False, 'organization-id': module_org.id}
-            )
+            content_view = make_content_view({'composite': False, 'organization-id': module_org.id})
             repo = _repo(module_product.id)
             ContentView.add_repository({'id': content_view['id'], 'repository-id': repo['id']})
             ContentView.publish({'id': content_view['id']})
             content_view = ContentView.info({'id': content_view['id']})
             assert len(content_view['versions']) == 1
             cv_versions.append(content_view['versions'][0])
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': [cv_version['id'] for cv_version in cv_versions],
@@ -579,9 +569,7 @@ class TestDockerContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
 
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view['versions'][0]['id'],
@@ -636,9 +624,7 @@ class TestDockerContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
 
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view['versions'][0]['id'],
@@ -673,9 +659,7 @@ class TestDockerContentView:
         cvv = ContentView.version_info({'id': content_view['versions'][0]['id']})
         assert len(cvv['lifecycle-environments']) == 1
 
-        ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': module_lce.id}
-        )
+        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': module_lce.id})
         cvv = ContentView.version_info({'id': content_view['versions'][0]['id']})
         assert len(cvv['lifecycle-environments']) == 2
 
@@ -703,9 +687,7 @@ class TestDockerContentView:
         ]
 
         for expected_lces, lce in enumerate(lces, start=2):
-            ContentView.version_promote(
-                {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-            )
+            ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']})
             cvv = ContentView.version_info({'id': cvv['id']})
             assert len(cvv['lifecycle-environments']) == expected_lces
 
@@ -727,9 +709,7 @@ class TestDockerContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
 
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view['versions'][0]['id'],
@@ -772,9 +752,7 @@ class TestDockerContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
 
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view['versions'][0]['id'],
@@ -1135,9 +1113,7 @@ class TestDockerActivationKey:
 
         :BZ: 1359665
         """
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view_publish['id'],
@@ -1179,9 +1155,7 @@ class TestDockerActivationKey:
 
         :BZ: 1359665
         """
-        comp_content_view = make_content_view(
-            {'composite': True, 'organization-id': module_org.id}
-        )
+        comp_content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
         ContentView.update(
             {
                 'component-ids': content_view_publish['id'],

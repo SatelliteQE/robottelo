@@ -205,9 +205,7 @@ def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
 def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
-    with VMBroker(
-        nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts
-    ) as hosts:
+    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts) as hosts:
         if type(hosts) is not list or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts
@@ -460,9 +458,7 @@ def test_negative_install_by_hc_id_without_errata_info(module_org, host_collecti
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_name_without_errata_info(
-    module_org, host_collection, errata_hosts
-):
+def test_negative_install_by_hc_name_without_errata_info(module_org, host_collection, errata_hosts):
     """Attempt to install an erratum on a host collection by host collection name but no errata
     info specified.
 
@@ -955,9 +951,7 @@ def test_host_errata_search_commands(
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize(
-    'sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date')
-)
+@pytest.mark.parametrize('sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date'))
 @pytest.mark.parametrize(
     'filter_by_org',
     ('id', 'name', 'label', None),

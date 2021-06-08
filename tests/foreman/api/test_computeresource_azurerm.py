@@ -80,9 +80,7 @@ class TestAzureRMComputeResourceTestCase:
 
         # Delete CR
         compresource.delete()
-        assert not entities.AzureRMComputeResource().search(
-            query={'search': f'name={new_cr_name}'}
-        )
+        assert not entities.AzureRMComputeResource().search(query={'search': f'name={new_cr_name}'})
 
     @pytest.mark.upgrade
     @pytest.mark.tier2

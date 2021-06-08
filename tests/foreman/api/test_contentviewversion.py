@@ -222,9 +222,7 @@ def test_positive_delete(module_org, module_product):
     key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(
-        gpg_key=gpgkey, product=module_product, url=FAKE_1_YUM_REPO
-    ).create()
+    repo = entities.Repository(gpg_key=gpgkey, product=module_product, url=FAKE_1_YUM_REPO).create()
     # sync repository
     repo.sync()
     # Create content view
@@ -1035,8 +1033,7 @@ def test_positive_incremental_update_propagate_composite():
                 {
                     'content_view_version_id': content_view.version[0].id,
                     'environment_ids': [
-                        environment.id
-                        for environment in content_view.version[0].read().environment
+                        environment.id for environment in content_view.version[0].read().environment
                     ],
                 }
             ],

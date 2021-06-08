@@ -383,9 +383,7 @@ class ContainerRepositorySettings(FeatureSettings):
             if not self.long_pass_registry:
                 validation_errors.append(f'[{self.section}] contains no long_pass_registry')
             else:
-                validation_errors.extend(
-                    self._validate_registry_configs([self.long_pass_registry])
-                )
+                validation_errors.extend(self._validate_registry_configs([self.long_pass_registry]))
 
             if not self.multi_registry_test_configs:
                 validation_errors.append(

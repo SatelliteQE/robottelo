@@ -2587,12 +2587,8 @@ def test_positive_update_filter_affected_repos(session, module_org):
     repo2_package_name = 'dolphin'
     create_sync_custom_repo(module_org.id, repo_name=repo1_name, repo_url=FAKE_3_YUM_REPO)
     create_sync_custom_repo(module_org.id, repo_name=repo2_name)
-    repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[
-        0
-    ]
-    repo2 = entities.Repository(name=repo2_name).search(query={'organization_id': module_org.id})[
-        0
-    ]
+    repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[0]
+    repo2 = entities.Repository(name=repo2_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo1, repo2]).create()
     with session:
         # create a filter that affects a subset of repos in the cv
@@ -2695,9 +2691,7 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
                     module_org.name,
                     ENVIRONMENT,
                     cv_name,
-                    str(
-                        entities.ContentView(name=cv_name, organization=module_org).search()[0].id
-                    ),
+                    str(entities.ContentView(name=cv_name, organization=module_org).search()[0].id),
                 )
                 if not add_puppet and not force_value:
                     assert not session.puppetenvironment.search(env_name)
@@ -2743,9 +2737,7 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
         session.contentview.create({'name': cv_name})
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name
         # Update repository publishing method
-        session.repository.update(
-            product_name, repo_name, {'repo_content.publish_via_http': False}
-        )
+        session.repository.update(product_name, repo_name, {'repo_content.publish_via_http': False})
         session.contentview.add_yum_repo(cv_name, repo_name)
         # Publish content view
         result = session.contentview.publish(cv_name)
@@ -2922,9 +2914,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     ptable = entities.PartitionTable().search(query={'search': f'name="{DEFAULT_PTABLE}"'})[0]
     # Get the arch ID
     arch = (
-        entities.Architecture()
-        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
-        .read()
+        entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0].read()
     )
     # Get the OS ID
     os = entities.OperatingSystem().search(
@@ -2949,9 +2939,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
                 'host_group.puppet_ca': sat_hostname,
                 'host_group.puppet_master': sat_hostname,
                 'operating_system.architecture': arch.name,
-                'operating_system.operating_system': '{} {}.{}'.format(
-                    os.name, os.major, os.minor
-                ),
+                'operating_system.operating_system': f'{os.name} {os.major}.{os.minor}',
                 'operating_system.ptable': ptable.name,
                 'operating_system.media_type': 'Synced Content',
                 'operating_system.media_content.synced_content': repo.name,
@@ -3509,9 +3497,7 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
     # login as the user created above
     with Session(test_name, user=user_login, password=user_password) as session:
         with pytest.raises(NavigationTriesExceeded):
-            session.organization.create(
-                {'name': gen_string('alpha'), 'label': gen_string('alpha')}
-            )
+            session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
         # assert the user can view all the content views created
         # by admin user
         assert session.contentview.search(cv_name)[0]['Name'] == cv_name

@@ -387,9 +387,9 @@ def test_positive_update_auto_attach():
     :CaseImportance: Critical
     """
     act_key = entities.ActivationKey().create()
-    act_key_2 = entities.ActivationKey(
-        id=act_key.id, auto_attach=(not act_key.auto_attach)
-    ).update(['auto_attach'])
+    act_key_2 = entities.ActivationKey(id=act_key.id, auto_attach=(not act_key.auto_attach)).update(
+        ['auto_attach']
+    )
     assert act_key.auto_attach != act_key_2.auto_attach
 
 

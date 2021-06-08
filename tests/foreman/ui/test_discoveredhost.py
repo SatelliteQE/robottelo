@@ -237,9 +237,7 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_auto_provision_host_with_rule(
-    session, module_org, module_loc, module_host_group
-):
+def test_positive_auto_provision_host_with_rule(session, module_org, module_loc, module_host_group):
     """Create a new discovery rule and automatically create host from discovered host using that
     discovery rule.
 

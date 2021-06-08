@@ -303,9 +303,7 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {
-            host['Host'] for host in job_values['hosts_table']
-        }
+        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
 
 
 @pytest.mark.tier2
@@ -338,9 +336,7 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {
-            host['Host'] for host in job_values['hosts_table']
-        }
+        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
 
 
 @pytest.mark.upgrade

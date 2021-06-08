@@ -110,9 +110,7 @@ def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_
         assert resource_values['description'] == description
         assert resource_values['provider'] == FOREMAN_PROVIDERS['rhev']
         assert resource_values['provider_content']['user'] == rhev_data['username']
-        assert (
-            resource_values['provider_content']['datacenter']['value'] == rhev_data['datacenter']
-        )
+        assert resource_values['provider_content']['datacenter']['value'] == rhev_data['datacenter']
         assert resource_values['provider_content']['api4'] == version
         session.computeresource.edit(name, {'name': new_name})
         assert not session.computeresource.search(name)

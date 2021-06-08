@@ -124,9 +124,7 @@ def test_positive_end_to_end(session):
         subscription_values = session.dashboard.read('SubscriptionStatus')['subscriptions']
         assert subscription_values[0]['Subscription Status'] == 'Active Subscriptions'
         assert int(subscription_values[0]['Count']) >= 1
-        assert (
-            subscription_values[1]['Subscription Status'] == 'Subscriptions Expiring in 120 Days'
-        )
+        assert subscription_values[1]['Subscription Status'] == 'Subscriptions Expiring in 120 Days'
         assert int(subscription_values[1]['Count']) == 0
         assert subscription_values[2]['Subscription Status'] == 'Recently Expired Subscriptions'
         assert int(subscription_values[2]['Count']) == 0

@@ -30,9 +30,7 @@ def satellite_factory():
 def capsule_factory():
     def factory(retry_limit=3, delay=300, **broker_args):
         vmb = VMBroker(
-            host_classes={'host': Capsule},
-            workflow=settings.capsule.deploy_workflow,
-            **broker_args
+            host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow, **broker_args
         )
         timeout = (1200 + delay) * retry_limit
         cap = wait_for(
@@ -119,9 +117,7 @@ def satellite_latest():
 @pytest.fixture
 def capsule_latest():
     """A fixture that provides an unconfigured latest Capsule"""
-    with VMBroker(
-        host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow
-    ) as cap:
+    with VMBroker(host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow) as cap:
         yield cap
 
 

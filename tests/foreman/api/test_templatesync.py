@@ -97,8 +97,7 @@ class TestTemplateSyncTestCase:
             }
         )
         imported_count = [
-            template['imported']
-            for template in filtered_imported_templates['message']['templates']
+            template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(True)
         assert imported_count == 8
         ptemplates = entities.ProvisioningTemplate().search(
@@ -169,8 +168,7 @@ class TestTemplateSyncTestCase:
             }
         )
         not_imported_count = [
-            template['imported']
-            for template in filtered_imported_templates['message']['templates']
+            template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(False)
         assert not_imported_count == 8
         ptemplates = entities.ProvisioningTemplate().search(
@@ -356,8 +354,7 @@ class TestTemplateSyncTestCase:
             }
         )
         imported_count = [
-            template['imported']
-            for template in filtered_imported_templates['message']['templates']
+            template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(True)
         # check name of imported temp
         assert imported_count == 1
@@ -386,8 +383,7 @@ class TestTemplateSyncTestCase:
             }
         )
         imported_count = [
-            template['imported']
-            for template in filtered_imported_templates['message']['templates']
+            template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(True)
         assert imported_count > 150
 
@@ -703,9 +699,7 @@ class TestTemplateSyncTestCase:
         assert not bool(post_template['message']['templates'][0]['changed'])
 
     @pytest.mark.tier2
-    def test_positive_import_json_output_name_key(
-        self, create_import_export_local_dir, module_org
-    ):
+    def test_positive_import_json_output_name_key(self, create_import_export_local_dir, module_org):
         """Assert template imports output `name` key returns correct name
 
         :id: a5639368-3d23-4a37-974a-889e2ec0916e
@@ -759,9 +753,7 @@ class TestTemplateSyncTestCase:
         assert bool(template['message']['templates'][0]['imported'])
 
     @pytest.mark.tier2
-    def test_positive_import_json_output_file_key(
-        self, create_import_export_local_dir, module_org
-    ):
+    def test_positive_import_json_output_file_key(self, create_import_export_local_dir, module_org):
         """Assert template imports output `file` key returns correct file name
         from where the template is imported
 

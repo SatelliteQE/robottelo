@@ -1679,9 +1679,7 @@ def activationkey_add_subscription_to_repo(options=None):
         or not options.get('activationkey-id')
         or not options.get('subscription')
     ):
-        raise CLIFactoryError(
-            'Please provide valid organization, activation key and subscription.'
-        )
+        raise CLIFactoryError('Please provide valid organization, activation key and subscription.')
     # List the subscriptions in given org
     subscriptions = Subscription.list(
         {'organization-id': options['organization-id']}, per_page=False
@@ -2121,9 +2119,7 @@ def configure_env_for_provision(org=None, loc=None):
                     'operatingsystems': list(
                         set(template.get('operating-systems') or []) | {os['title']}
                     ),
-                    'organizations': list(
-                        set(template.get('organizations') or []) | {org['name']}
-                    ),
+                    'organizations': list(set(template.get('organizations') or []) | {org['name']}),
                 }
             )
 
@@ -2138,9 +2134,7 @@ def configure_env_for_provision(org=None, loc=None):
         Medium.update(
             {
                 'id': media['id'],
-                'operatingsystems': list(
-                    set(media.get('operating-systems') or []) | {os['title']}
-                ),
+                'operatingsystems': list(set(media.get('operating-systems') or []) | {os['title']}),
                 'locations': list(set(media.get('locations') or []) | {loc['name']}),
                 'organizations': list(set(media.get('organizations') or []) | {org['name']}),
             }
@@ -2214,9 +2208,7 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     if not organization_id:
         organization_id = make_org()['id']
     product = make_product({'organization-id': organization_id})
-    repo = make_repository(
-        {'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url}
-    )
+    repo = make_repository({'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url})
     # Synchronize repo via provided URL
     Repository.synchronize({'id': repo['id']})
     # Add selected module to Content View
@@ -2272,9 +2264,7 @@ def setup_virtual_machine(
     if product_label:
         # Enable custom repositories
         for repo_label in repos_label:
-            result = vm.run(
-                f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
-            )
+            result = vm.run(f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}')
             # Check for either status or return_code attribute, depending on ssh implementation
             status = getattr(result, 'status', getattr(result, 'return_code', None))
             if status != 0:
@@ -2392,9 +2382,7 @@ def add_role_permissions(role_id, resource_permissions):
         make_filter(options=options)
 
 
-def setup_cdn_and_custom_repositories(
-    org_id, repos, download_policy='on_demand', synchronize=True
-):
+def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand', synchronize=True):
     """Setup cdn and custom repositories
 
     :param int org_id: The organization id

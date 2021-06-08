@@ -142,9 +142,7 @@ def test_positive_end_to_end(session, puppet_class, sc_params_list):
         },
     ]
     with session:
-        assert (
-            session.sc_parameter.search(sc_param.parameter)[0]['Parameter'] == sc_param.parameter
-        )
+        assert session.sc_parameter.search(sc_param.parameter)[0]['Parameter'] == sc_param.parameter
         for data in data_list:
             session.sc_parameter.update(
                 sc_param.parameter,

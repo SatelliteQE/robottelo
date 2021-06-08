@@ -124,9 +124,7 @@ def test_positive_CRUD_with_attributes(module_org, module_locs):
     assert len(result) == 1
     assert result[0]['name'] == env_name
     # List by org loc id
-    results = Environment.list(
-        {'organization-id': module_org.id, 'location-id': module_locs[0].id}
-    )
+    results = Environment.list({'organization-id': module_org.id, 'location-id': module_locs[0].id})
     assert env_name in [res['name'] for res in results]
     # List by org loc name
     results = Environment.list({'organization': module_org.name, 'location': module_locs[0].name})

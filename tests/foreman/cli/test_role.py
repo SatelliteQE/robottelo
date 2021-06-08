@@ -89,9 +89,7 @@ class TestRole:
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {"search": "resource_type=Organization"}
-            )
+            for permission in Filter.available_permissions({"search": "resource_type=Organization"})
         ]
         # Assign filter to created role
         make_filter({'role-id': role['id'], 'permissions': permissions})
@@ -111,9 +109,7 @@ class TestRole:
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {"search": "resource_type=Organization"}
-            )
+            for permission in Filter.available_permissions({"search": "resource_type=Organization"})
         ]
         # Assign filter to created role
         filter_ = make_filter({'role-id': role['id'], 'permissions': permissions})
@@ -134,9 +130,7 @@ class TestRole:
         # Pick permissions by its resource type
         permissions = [
             permission['name']
-            for permission in Filter.available_permissions(
-                {"search": "resource_type=Organization"}
-            )
+            for permission in Filter.available_permissions({"search": "resource_type=Organization"})
         ]
         # Assign filter to created role
         filter_ = make_filter({'role': role['name'], 'permissions': permissions})
@@ -239,9 +233,7 @@ class TestRole:
         """
         role_list = Role.list({'search': 'name=\\"{}\\"'.format(choice(ROLES))})
         assert len(role_list) == 1
-        cloned_role = Role.clone(
-            {'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')}
-        )
+        cloned_role = Role.clone({'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')})
         Role.delete({'id': cloned_role['id']})
         with pytest.raises(CLIReturnCodeError):
             Role.info({'id': cloned_role['id']})

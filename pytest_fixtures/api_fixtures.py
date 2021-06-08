@@ -234,9 +234,7 @@ def module_ak_with_cv(module_lce, module_org, module_promoted_cv):
 @pytest.fixture(scope='session')
 def default_architecture():
     arch = (
-        entities.Architecture()
-        .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
-        .read()
+        entities.Architecture().search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0].read()
     )
     return arch
 

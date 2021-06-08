@@ -77,9 +77,7 @@ def test_negative_set_parameter(session, valid_domain_name):
     :CaseImportance: Medium
     """
     update_values = {
-        'parameters.params': [
-            {'name': gen_string('alpha', 256), 'value': gen_string('alpha', 256)}
-        ]
+        'parameters.params': [{'name': gen_string('alpha', 256), 'value': gen_string('alpha', 256)}]
     }
     with session:
         name = valid_domain_name

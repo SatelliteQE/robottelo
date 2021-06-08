@@ -47,9 +47,7 @@ class Repository(Base):
     def export(cls, options=None):
         """Export a repository"""
         cls.command_sub = 'export'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv', ignore_stderr=True
-        )
+        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
 
     @classmethod
     def info(cls, options=None):
@@ -79,14 +77,10 @@ class Repository(Base):
     def remove_content(cls, options):
         """Remove content from a repository"""
         cls.command_sub = 'remove-content'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv', ignore_stderr=True
-        )
+        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
 
     @classmethod
     def upload_content(cls, options):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'
-        return cls.execute(
-            cls._construct_command(options), output_format='csv', ignore_stderr=True
-        )
+        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)

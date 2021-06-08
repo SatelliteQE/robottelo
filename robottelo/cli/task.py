@@ -36,9 +36,7 @@ class Task(Base):
             --name NAME                   Name to search by
         """
         cls.command_sub = 'progress'
-        return cls.execute(
-            cls._construct_command(options), return_raw_response=return_raw_response
-        )
+        return cls.execute(cls._construct_command(options), return_raw_response=return_raw_response)
 
     @classmethod
     def resume(cls, options=None):

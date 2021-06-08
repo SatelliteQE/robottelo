@@ -107,9 +107,7 @@ def test_positive_end_to_end(session):
         assert location.name in org_values['locations']['resources']['assigned']
 
         ptables_before_remove = len(org_values['partition_tables']['resources']['assigned'])
-        templates_before_remove = len(
-            org_values['provisioning_templates']['resources']['assigned']
-        )
+        templates_before_remove = len(org_values['provisioning_templates']['resources']['assigned'])
 
         # remove attributes
         session.organization.update(

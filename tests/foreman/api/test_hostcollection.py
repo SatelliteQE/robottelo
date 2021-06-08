@@ -124,9 +124,7 @@ def test_positive_create_with_limit(module_org):
     """
     for _ in range(5):
         limit = randint(1, 30)
-        host_collection = entities.HostCollection(
-            max_hosts=limit, organization=module_org
-        ).create()
+        host_collection = entities.HostCollection(max_hosts=limit, organization=module_org).create()
         assert host_collection.max_hosts == limit
 
 

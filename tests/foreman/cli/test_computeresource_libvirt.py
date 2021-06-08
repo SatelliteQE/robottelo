@@ -171,9 +171,7 @@ def test_positive_list(libvirt_url):
 
     :CaseLevel: Component
     """
-    comp_res = make_compute_resource(
-        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
-    )
+    comp_res = make_compute_resource({'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url})
     assert comp_res['name']
     result_list = ComputeResource.list({'search': 'name=%s' % comp_res['name']})
     assert len(result_list) > 0
@@ -194,9 +192,7 @@ def test_positive_delete_by_name(libvirt_url):
 
     :CaseLevel: Component
     """
-    comp_res = make_compute_resource(
-        {'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url}
-    )
+    comp_res = make_compute_resource({'provider': FOREMAN_PROVIDERS['libvirt'], 'url': libvirt_url})
     assert comp_res['name']
     ComputeResource.delete({'name': comp_res['name']})
     result = ComputeResource.exists(search=('name', comp_res['name']))

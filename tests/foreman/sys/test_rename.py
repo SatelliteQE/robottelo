@@ -122,9 +122,7 @@ class TestRenameHost:
             # check answer file for instances of old hostname
             ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
             result = connection.run(f'grep " {old_hostname}" {ans_f}')
-            assert (
-                result.return_code == 1
-            ), 'old hostname was not correctly replaced in answers.yml'
+            assert result.return_code == 1, 'old hostname was not correctly replaced in answers.yml'
 
             # check repository published at path
             result = connection.run(

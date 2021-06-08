@@ -112,9 +112,7 @@ class TestHostgroup:
         proxy = entities.SmartProxy().search(
             query={'search': f'url = https://{settings.server.hostname}:9090'}
         )[0]
-        hostgrp = entities.HostGroup().search(query={'search': f'name={pre_test_name}_host_grp'})[
-            0
-        ]
+        hostgrp = entities.HostGroup().search(query={'search': f'name={pre_test_name}_host_grp'})[0]
         request.addfinalizer(hostgrp.parent.delete)
         request.addfinalizer(hostgrp.delete)
         assert f"{pre_test_name}_host_grp" == hostgrp.name
