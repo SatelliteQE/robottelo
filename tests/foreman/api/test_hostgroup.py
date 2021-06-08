@@ -95,9 +95,7 @@ class TestHostGroup:
         # was created after promotion), so we need to select promoted one
         environments = entities.Environment().search(query={'organization_id': org.id})
         assert len(environments) == 2
-        environments = [
-            environment for environment in environments if environment.name == env_name
-        ]
+        environments = [environment for environment in environments if environment.name == env_name]
         assert len(environments) == 1
         environment = environments[0].read()
         environment.location = [location]
@@ -405,9 +403,7 @@ class TestHostGroup:
 
         :CaseLevel: Integration
         """
-        locs = [
-            entities.Location(organization=[module_org]).create() for _ in range(randint(3, 5))
-        ]
+        locs = [entities.Location(organization=[module_org]).create() for _ in range(randint(3, 5))]
         hostgroup = entities.HostGroup(location=locs, organization=[module_org]).create()
         assert {loc.name for loc in locs} == {loc.read().name for loc in hostgroup.location}
 
@@ -556,9 +552,7 @@ class TestHostGroup:
         new_orgs = [entities.Organization().create() for _ in range(randint(3, 5))]
         hostgroup.organization = new_orgs
         hostgroup = hostgroup.update(['organization'])
-        assert {org.name for org in new_orgs} == {
-            org.read().name for org in hostgroup.organization
-        }
+        assert {org.name for org in new_orgs} == {org.read().name for org in hostgroup.organization}
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))

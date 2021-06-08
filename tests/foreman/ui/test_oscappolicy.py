@@ -181,9 +181,7 @@ def test_positive_end_to_end(
         assert oscappolicy_values['schedule']['period_selection']['day_of_month'] == '5'
         assert module_loc.name in oscappolicy_values['locations']['resources']['assigned']
         assert module_org.name in oscappolicy_values['organizations']['resources']['assigned']
-        assert oscappolicy_values['host_group']['resources']['assigned'] == [
-            module_host_group.name
-        ]
+        assert oscappolicy_values['host_group']['resources']['assigned'] == [module_host_group.name]
         # Update oscap policy with new name
         session.oscappolicy.update(name, {'general.name': new_name})
         oscappolicy_values = session.oscappolicy.read(new_name)

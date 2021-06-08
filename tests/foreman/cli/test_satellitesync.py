@@ -1449,9 +1449,7 @@ class TestContentViewSync:
                 'organization-id': imported_entities['importing_org']['id'],
             }
         )
-        imported_cvv = ContentView.info({'id': imported_entities['importing_cv']['id']})[
-            'versions'
-        ]
+        imported_cvv = ContentView.info({'id': imported_entities['importing_cv']['id']})['versions']
         assert str(new_major) == imported_cvv[0]['version'].split('.')[0]
         assert str(new_minor) == imported_cvv[0]['version'].split('.')[1]
 

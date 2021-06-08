@@ -124,9 +124,7 @@ def test_positive_end_to_end(session):
         )
         assert not session.operatingsystem.search(description)
         assert session.operatingsystem.search(new_description)[0]['Title'] == new_description
-        assert (
-            session.partitiontable.search(ptable.name)[0]['Operating Systems'] == new_description
-        )
+        assert session.partitiontable.search(ptable.name)[0]['Operating Systems'] == new_description
         session.operatingsystem.delete(new_description)
         assert not session.operatingsystem.search(new_description)
 

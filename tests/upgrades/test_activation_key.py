@@ -73,9 +73,7 @@ class TestActivationKey:
         should be same with custom repos product id.
         """
         ak = activation_key_setup['ak']
-        org_subscriptions = entities.Subscription(
-            organization=activation_key_setup['org']
-        ).search()
+        org_subscriptions = entities.Subscription(organization=activation_key_setup['org']).search()
         for subscription in org_subscriptions:
             ak.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
         ak_subscriptions = ak.product_content()['results']

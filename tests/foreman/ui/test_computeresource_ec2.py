@@ -139,9 +139,7 @@ def test_positive_default_end_to_end_with_custom_profile(
                 'provider_content.flavor': AWS_EC2_FLAVOR_T2_MICRO,
                 'provider_content.availability_zone': module_ec2_settings['availability_zone'],
                 'provider_content.subnet': module_ec2_settings['subnet'],
-                'provider_content.security_groups.assigned': module_ec2_settings[
-                    'security_groups'
-                ],
+                'provider_content.security_groups.assigned': module_ec2_settings['security_groups'],
                 'provider_content.managed_ip': module_ec2_settings['managed_ip'],
             },
         )
@@ -154,8 +152,7 @@ def test_positive_default_end_to_end_with_custom_profile(
             new_cr_name, module_ec2_settings['region'], FOREMAN_PROVIDERS['ec2']
         )
         assert (
-            cr_profile_values['provider_content']['managed_ip']
-            == module_ec2_settings['managed_ip']
+            cr_profile_values['provider_content']['managed_ip'] == module_ec2_settings['managed_ip']
         )
         assert cr_profile_values['provider_content']['flavor'] == AWS_EC2_FLAVOR_T2_MICRO
         session.computeresource.delete(new_cr_name)

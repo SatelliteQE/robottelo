@@ -262,8 +262,7 @@ def test_end_to_end(session, module_repos_col, vm):
             == module_repos_col.custom_repos_info[-1]['name']
         )
         assert (
-            errata['repositories']['table'][0]['Product']
-            == module_repos_col.custom_product['name']
+            errata['repositories']['table'][0]['Product'] == module_repos_col.custom_product['name']
         )
         result = session.errata.install(CUSTOM_REPO_ERRATA_ID, vm.hostname)
         assert result['result'] == 'success'
@@ -520,9 +519,7 @@ def test_positive_filter_by_environment(session, module_org, module_repos_col):
     ) as clients:
         for client in clients:
             module_repos_col.setup_virtual_machine(client)
-            assert _install_client_package(
-                client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True
-            )
+            assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)
         # Promote the latest content view version to a new lifecycle environment
         content_view = entities.ContentView(
             id=module_repos_col.setup_content_data['content_view']['id']

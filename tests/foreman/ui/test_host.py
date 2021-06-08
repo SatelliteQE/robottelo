@@ -77,9 +77,7 @@ def _get_set_from_list_of_dict(value):
 
     :param list value: a list of simple dict.
     """
-    return {
-        tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value
-    }
+    return {tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value}
 
 
 @pytest.fixture
@@ -106,9 +104,7 @@ def module_org():
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
-        .read()
+        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
@@ -182,9 +178,7 @@ def os_path(module_os):
 def module_proxy(module_org, module_loc):
     # Search for SmartProxy, and associate organization/location
     proxy = (
-        entities.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
-        .read()
+        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
     )
     return proxy
 
@@ -536,9 +530,7 @@ def test_positive_read_from_edit_page(session, module_host_template):
         assert values['operating_system']['ptable'] == module_host_template.ptable.name
         assert values['interfaces']['interfaces_list'][0]['Identifier'] == interface_id
         assert values['interfaces']['interfaces_list'][0]['Type'] == 'Interface physical'
-        assert (
-            values['interfaces']['interfaces_list'][0]['MAC Address'] == module_host_template.mac
-        )
+        assert values['interfaces']['interfaces_list'][0]['MAC Address'] == module_host_template.mac
         assert values['interfaces']['interfaces_list'][0]['FQDN'] == host_name
         assert values['additional_information']['owned_by'] == values['current_user']
         assert values['additional_information']['enabled'] is True
@@ -1496,9 +1488,7 @@ def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
     """
     puppet_env = gen_string('alpha')
     content_view = gen_string('alpha')
-    entities.Environment(
-        name=puppet_env, organization=[module_org], location=[module_loc]
-    ).create()
+    entities.Environment(name=puppet_env, organization=[module_org], location=[module_loc]).create()
     entities.ContentView(name=content_view, organization=module_org).create()
     with session:
         session.contentview.update(content_view, {'details.force_puppet': True})
@@ -1685,8 +1675,7 @@ def test_positive_provision_end_to_end(
         )
         entities.Host(id=entities.Host().search(query={'search': f'name={name}'})[0].id).delete()
         assert (
-            session.host.get_details(name)['properties']['properties_table']['Build']
-            == 'Installed'
+            session.host.get_details(name)['properties']['properties_table']['Build'] == 'Installed'
         )
 
 
@@ -2001,8 +1990,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             host_info = session.host.get_details(hostname)
             assert session.host.search(hostname)[0]['Name'] == hostname
             assert (
-                host_info['properties']['properties_table']['Build']
-                == 'Pending installation clear'
+                host_info['properties']['properties_table']['Build'] == 'Pending installation clear'
             )
             # 1.2 GCE Backend Assertions
             gceapi_vm = gce_client.get_vm(gceapi_vmname)

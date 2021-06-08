@@ -542,9 +542,7 @@ class GenericRHRepository(BaseRepository):
             return self
         distro_repo_data = None
         for _, repo_data in REPOS.items():
-            if repo_data.get('distro') == self.distro and self._repo_is_distro(
-                repo_data=repo_data
-            ):
+            if repo_data.get('distro') == self.distro and self._repo_is_distro(repo_data=repo_data):
                 distro_repo_data = repo_data
                 break
 
@@ -626,9 +624,7 @@ class GenericRHRepository(BaseRepository):
             if synchronize:
                 self.synchronize()
         else:
-            repo_info = super().create(
-                organization_id, product_id, download_policy=download_policy
-            )
+            repo_info = super().create(organization_id, product_id, download_policy=download_policy)
         return repo_info
 
 

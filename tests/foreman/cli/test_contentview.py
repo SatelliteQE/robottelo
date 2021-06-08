@@ -1186,9 +1186,9 @@ class TestContentView:
         create_sync_custom_repo(
             module_org.id, repo_name=repo_name, repo_url=CUSTOM_MODULE_STREAM_REPO_2
         )
-        repo = entities.Repository(name=repo_name).search(
-            query={'organization_id': module_org.id}
-        )[0]
+        repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[
+            0
+        ]
         content_view = entities.ContentView(organization=module_org.id, repository=[repo]).create()
         walrus_stream = ModuleStream.list({'search': "name=walrus, stream=5.21"})[0]
         content_view = ContentView.info({'id': content_view.id})
@@ -1633,9 +1633,7 @@ class TestContentView:
         # Create CV
         new_cv = make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -1650,9 +1648,7 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    def test_positive_promote_rh_and_custom_content(
-        self, module_manifest_org, module_rhel_content
-    ):
+    def test_positive_promote_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
         """attempt to promote a content view containing RH content and
         custom content using filters
 
@@ -1675,9 +1671,7 @@ class TestContentView:
         # Create CV
         new_cv = make_content_view({'organization-id': module_manifest_org.id})
         # Associate repos with CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         cvf = make_content_view_filter(
             {'content-view-id': new_cv['id'], 'inclusion': 'false', 'type': 'rpm'}
@@ -1873,9 +1867,7 @@ class TestContentView:
         # Create CV
         new_cv = make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -1885,9 +1877,7 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    def test_positive_publish_rh_and_custom_content(
-        self, module_manifest_org, module_rhel_content
-    ):
+    def test_positive_publish_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
 
@@ -1910,9 +1900,7 @@ class TestContentView:
         # Create CV
         new_cv = make_content_view({'organization-id': module_manifest_org.id})
         # Associate repos with CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         cvf = make_content_view_filter(
             {'content-view-id': new_cv['id'], 'inclusion': 'false', 'type': 'rpm'}
@@ -3323,9 +3311,7 @@ class TestContentView:
             ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from Library lifecycle environment
         ContentView.remove_from_environment(
             {
@@ -3431,9 +3417,7 @@ class TestContentView:
             lce_dev['name'],
             lce_qe['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from Library lifecycle environment
         ContentView.remove_from_environment(
             {
@@ -3448,9 +3432,7 @@ class TestContentView:
             lce_dev['name'],
             lce_qe['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
 
     @pytest.mark.tier2
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -3538,9 +3520,7 @@ class TestContentView:
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from PROD lifecycle environment
         ContentView.remove_from_environment(
             {
@@ -3556,9 +3536,7 @@ class TestContentView:
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # promote content view version to PROD environment again
         ContentView.version_promote(
             {'id': content_view_version['id'], 'to-lifecycle-environment-id': lce_prod['id']}
@@ -3569,9 +3547,7 @@ class TestContentView:
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
 
     @pytest.mark.tier3
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -3655,9 +3631,7 @@ class TestContentView:
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from QE, STAGE, PROD lifecycle
         # environments
         for lce in [lce_qe, lce_stage, lce_prod]:
@@ -4254,9 +4228,7 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
         cvv = content_view['versions'][0]
-        create_repo(
-            repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
-        )
+        create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
         result = repo_add_updateinfo(
             repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
         )

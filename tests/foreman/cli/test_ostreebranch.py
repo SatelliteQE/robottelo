@@ -52,9 +52,7 @@ def ostree_repo_with_user(ostree_user_credentials):
     create content view and publish it for particular user
     """
     org = make_org_with_credentials(credentials=ostree_user_credentials)
-    product = make_product_with_credentials(
-        {'organization-id': org['id']}, ostree_user_credentials
-    )
+    product = make_product_with_credentials({'organization-id': org['id']}, ostree_user_credentials)
     # Create new custom ostree repo
     ostree_repo = make_repository_with_credentials(
         {

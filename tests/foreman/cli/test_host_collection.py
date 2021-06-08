@@ -102,9 +102,7 @@ def test_positive_end_to_end(module_org):
     # update
     new_name = list(valid_data_list().values())[0]
     new_desc = list(valid_data_list().values())[0]
-    HostCollection.update(
-        {'description': new_desc, 'id': new_host_col['id'], 'new-name': new_name}
-    )
+    HostCollection.update({'description': new_desc, 'id': new_host_col['id'], 'new-name': new_name})
     result = HostCollection.info({'id': new_host_col['id']})
     assert result['name'] == new_name
     assert result['description'] == new_desc

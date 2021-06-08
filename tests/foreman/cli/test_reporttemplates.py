@@ -946,8 +946,7 @@ def test_positive_generate_hostpkgcompare(
                 assert status == f'{host1["name"]} only'
             if name == FAKE_1_CUSTOM_PACKAGE_NAME:
                 assert (
-                    status == f'lower in {host1["name"]}'
-                    or status == f'greater in {host2["name"]}'
+                    status == f'lower in {host1["name"]}' or status == f'greater in {host2["name"]}'
                 )
 
 

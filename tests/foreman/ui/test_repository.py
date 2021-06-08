@@ -139,9 +139,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
         # ensure that the created user is not a global admin user
         # check administer->organizations page
         with pytest.raises(NavigationTriesExceeded):
-            session.organization.create(
-                {'name': gen_string('alpha'), 'label': gen_string('alpha')}
-            )
+            session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
         session.repository.create(
             product.name,
             {
@@ -744,9 +742,7 @@ def test_positive_reposet_disable(session):
             sat_tools_repo.data['arch'],
             version=sat_tools_repo.data['releasever'],
         )
-        results = session.redhatrepository.search(
-            f'name = "{repository_name}"', category='Enabled'
-        )
+        results = session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
         assert results[0]['name'] == repository_name
         results = session.sync_status.synchronize(
             [
@@ -795,9 +791,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
             sat_tools_repo.data['arch'],
             version=sat_tools_repo.data['releasever'],
         )
-        results = session.redhatrepository.search(
-            f'name = "{repository_name}"', category='Enabled'
-        )
+        results = session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
         assert results[0]['name'] == repository_name
         # Sync the repo and verify sync was successful
         results = session.sync_status.synchronize(
@@ -814,9 +808,7 @@ def test_positive_reposet_disable_after_manifest_deleted(session):
         # Delete manifest
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
-        results = session.redhatrepository.search(
-            f'name = "{repository_name}"', category='Enabled'
-        )
+        results = session.redhatrepository.search(f'name = "{repository_name}"', category='Enabled')
         assert results[0]['name'] == repository_name_orphaned
         # Disable the orphaned repository
         session.redhatrepository.disable(repository_name, orphaned=True)

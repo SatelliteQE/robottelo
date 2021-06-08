@@ -390,9 +390,7 @@ def test_positive_end_to_end_with_puppet_class(
 
 
 @pytest.mark.tier2
-def test_positive_create_and_update_with_subnet(
-    module_location, module_org, module_default_subnet
-):
+def test_positive_create_and_update_with_subnet(module_location, module_org, module_default_subnet):
     """Create and update a host with subnet specified
 
     :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
@@ -997,9 +995,9 @@ def test_positive_update_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = entities.SmartProxy().search(
-        query={'url': f'https://{settings.server.hostname}:9090'}
-    )[0]
+    proxy = entities.SmartProxy().search(query={'url': f'https://{settings.server.hostname}:9090'})[
+        0
+    ]
     promote(module_published_cv.version[0], environment_id=module_lce.id)
     host = entities.Host(
         organization=module_org,

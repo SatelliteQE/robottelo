@@ -374,9 +374,7 @@ def get_available_capsule_port(port_pool=None):
         # take the list of available ports and return randomly selected one
         return random.choice([port for port in port_pool if port not in used_ports])
     except IndexError:
-        raise CapsuleTunnelError(
-            'Failed to create ssh tunnel: No more ports available for mapping'
-        )
+        raise CapsuleTunnelError('Failed to create ssh tunnel: No more ports available for mapping')
 
 
 @contextlib.contextmanager

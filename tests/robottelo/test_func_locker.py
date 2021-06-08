@@ -240,9 +240,7 @@ class TestFuncLocker:
 
         assert str(os.getpid()) == content
 
-        file_path = _get_function_lock_path(
-            'simple_function_to_lock_cls', class_name='SimpleClass'
-        )
+        file_path = _get_function_lock_path('simple_function_to_lock_cls', class_name='SimpleClass')
         if os.path.exists(file_path):
             with open(file_path) as rf:
                 content = rf.read()
@@ -256,9 +254,7 @@ class TestFuncLocker:
 
         assert str(os.getpid()) == content
 
-        file_path = _get_function_lock_path(
-            'simple_function_to_lock_cls', class_name='SimpleClass'
-        )
+        file_path = _get_function_lock_path('simple_function_to_lock_cls', class_name='SimpleClass')
         if os.path.exists(file_path):
             with open(file_path) as rf:
                 content = rf.read()

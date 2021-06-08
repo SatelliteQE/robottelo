@@ -109,8 +109,7 @@ def _validated_image_tags_count(repo):
     immediately after synchronization), which was CLOSED WONTFIX
     """
     wait_for(
-        lambda: int(_get_image_tags_count(repo=repo)['content-counts']['container-image-tags'])
-        > 0,
+        lambda: int(_get_image_tags_count(repo=repo)['content-counts']['container-image-tags']) > 0,
         timeout=30,
         delay=2,
         logger=logger,
@@ -1183,9 +1182,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(
-        self, repo_options, repo
-    ):
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self, repo_options, repo):
         """Set tags whitelist to contain both valid and invalid (non-existing)
         tags. Check if only whitelisted tags are synchronized
 

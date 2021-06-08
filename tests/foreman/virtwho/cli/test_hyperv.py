@@ -73,9 +73,9 @@ class TestVirtWhoConfigforHyperv:
         hypervisor_name, guest_name = deploy_configure_by_command(
             command, form_data['hypervisor-type'], debug=True
         )
-        virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
-            'general-information'
-        ]['status']
+        virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
+            'status'
+        ]
         assert virt_who_instance == 'OK'
         hosts = [
             (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),
@@ -112,9 +112,9 @@ class TestVirtWhoConfigforHyperv:
         hypervisor_name, guest_name = deploy_configure_by_script(
             script, form_data['hypervisor-type'], debug=True
         )
-        virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})[
-            'general-information'
-        ]['status']
+        virt_who_instance = VirtWhoConfig.info({'id': virtwho_config['id']})['general-information'][
+            'status'
+        ]
         assert virt_who_instance == 'OK'
         hosts = [
             (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),

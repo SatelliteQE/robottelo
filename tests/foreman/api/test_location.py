@@ -298,7 +298,5 @@ class TestLocation:
         :expectedresults: The default_location ID remain 2.
 
         """
-        default_loc_id = (
-            entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-        )
+        default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         assert default_loc_id == 2

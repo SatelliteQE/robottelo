@@ -863,9 +863,7 @@ class TestCapsuleContentManagement:
         result = capsule.content_lifecycle_environments()
 
         assert len(result['results']) >= 2
-        assert {lce1.id, lce2.id}.issubset(
-            [capsule_lce['id'] for capsule_lce in result['results']]
-        )
+        assert {lce1.id, lce2.id}.issubset([capsule_lce['id'] for capsule_lce in result['results']])
 
         # Create content views with the repositories
         cv1 = entities.ContentView(organization=org, repository=[repo1]).create()

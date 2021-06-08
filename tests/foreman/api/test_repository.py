@@ -141,9 +141,7 @@ class TestRepository:
     @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_assign_http_proxy_to_repository(
-        self, module_org, module_product, http_proxy
-    ):
+    def test_positive_assign_http_proxy_to_repository(self, module_org, module_product, http_proxy):
         """Assign http_proxy to Repositories and perform repository sync.
 
         :id: 5b3b992e-02d3-4b16-95ed-21f1588c7741
@@ -1972,9 +1970,7 @@ class TestDockerRepository:
         ),
         indirect=True,
     )
-    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(
-        self, repo_options, repo
-    ):
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self, repo_options, repo):
         """Set tags whitelist to contain both valid and invalid (non-existing)
         tags. Check if only whitelisted tags are synchronized
 

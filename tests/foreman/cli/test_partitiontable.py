@@ -145,9 +145,7 @@ class TestPartitionTable:
         PartitionTable.add_operating_system({'id': ptable['id'], 'operatingsystem-id': os['id']})
         ptable = PartitionTable.info({'id': ptable['id']})
         assert os['title'] in ptable['operating-systems']
-        PartitionTable.remove_operating_system(
-            {'id': ptable['id'], 'operatingsystem-id': os['id']}
-        )
+        PartitionTable.remove_operating_system({'id': ptable['id'], 'operatingsystem-id': os['id']})
         ptable = PartitionTable.info({'id': ptable['id']})
         assert os['title'] not in ptable['operating-systems']
 

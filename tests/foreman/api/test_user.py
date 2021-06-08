@@ -617,9 +617,7 @@ class TestSshKeyInUser:
         user = entities.User(organization=[org], location=[loc]).create()
         ssh_key = self.gen_ssh_rsakey()
         entities.SSHKey(user=user, name=gen_string('alpha'), key=ssh_key).create()
-        host = entities.Host(
-            owner=user, owner_type='User', organization=org, location=loc
-        ).create()
+        host = entities.Host(owner=user, owner_type='User', organization=org, location=loc).create()
         sshkey_updated_for_host = f'{ssh_key} {user.login}@{settings.server.hostname}'
         host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
         assert sshkey_updated_for_host == host_enc_key[0]
@@ -866,9 +864,9 @@ class TestFreeIPAUser:
         )
         with pytest.raises(HTTPError):
             entities.Architecture(sc).search()
-        user = entities.User().search(
-            query={'search': 'login={}'.format(create_ldap['username'])}
-        )[0]
+        user = entities.User().search(query={'search': 'login={}'.format(create_ldap['username'])})[
+            0
+        ]
         user.role = [entities.Role(id=org_admin['id']).read()]
         user.update(['role'])
         for entity in [

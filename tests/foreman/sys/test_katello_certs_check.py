@@ -427,9 +427,7 @@ class TestKatelloCertsCheck:
                 'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
-                    cert_data['key_file_name']
-                )
+                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(cert_data['key_file_name'])
             )
             result = connection.run(
                 'capsule-certs-generate '

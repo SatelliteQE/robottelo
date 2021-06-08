@@ -89,9 +89,7 @@ def reader_user(module_loc, module_org):
 
 
 @pytest.mark.tier2
-def test_positive_create_rule_with_non_admin_user(
-    manager_loc, manager_user, module_org, test_name
-):
+def test_positive_create_rule_with_non_admin_user(manager_loc, manager_user, module_org, test_name):
     """Create rule with non-admin user by associating discovery_manager role
 
     :id: 6a03983b-363d-4646-b277-34af5f5abc55
@@ -114,9 +112,7 @@ def test_positive_create_rule_with_non_admin_user(
 
 
 @pytest.mark.tier2
-def test_positive_delete_rule_with_non_admin_user(
-    manager_loc, manager_user, module_org, test_name
-):
+def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user, module_org, test_name):
     """Delete rule with non-admin user by associating discovery_manager role
 
     :id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703

@@ -216,9 +216,7 @@ class TestEntityId:
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_get_status_code(self, entity_cls):
         """Create an entity and GET it.
 
@@ -237,9 +235,7 @@ class TestEntityId:
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_put_status_code(self, entity_cls):
         """Issue a PUT request and check the returned status code.
 
@@ -270,9 +266,7 @@ class TestEntityId:
         assert 'application/json' in response.headers['content-type']
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_delete_status_code(self, entity_cls):
         """Issue an HTTP DELETE request and check the returned status
         code.
@@ -310,9 +304,7 @@ class TestDoubleCheck:
     """
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_put_and_get_requests(self, entity_cls):
         """Update an entity, then read it back.
 
@@ -351,9 +343,7 @@ class TestDoubleCheck:
             assert value == entity_attrs[key]
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_post_and_get_requests(self, entity_cls):
         """Create an entity, then read it back.
 
@@ -377,9 +367,7 @@ class TestDoubleCheck:
             assert value == entity_attrs[key]
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind})
-    )
+    @pytest.mark.parametrize('entity_cls', **parametrized(VALID_ENTITIES - {entities.TemplateKind}))
     def test_positive_delete_and_get_requests(self, entity_cls):
         """Issue an HTTP DELETE request and GET the deleted entity.
 

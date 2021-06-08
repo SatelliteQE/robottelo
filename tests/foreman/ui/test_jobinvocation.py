@@ -57,9 +57,7 @@ def module_org():
 def module_loc(module_org):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
-        .read()
+        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
