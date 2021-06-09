@@ -1,14 +1,14 @@
 """Test for Remote Execution
 
-:Requirement: Upgraded Satellite
+:Requirement: Remoteexecution
 
 :CaseAutomation: Automated
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: RemoteExecution
 
-:Assignee: lhellebr
+:Assignee: pondrejk
 
 :TestType: Functional
 

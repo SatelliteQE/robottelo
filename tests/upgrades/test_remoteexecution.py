@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: RemoteExecution
 
-:Assignee: lhellebr
+:Assignee: pondrejk
 
 :TestType: Functional
 
