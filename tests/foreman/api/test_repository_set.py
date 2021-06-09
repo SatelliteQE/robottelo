@@ -11,7 +11,7 @@ https://theforeman.org/plugins/katello/3.16/api/apidoc/v2/repository_sets.html
 
 :CaseComponent: Repositories
 
-:Assignee: tpapaioa
+:Assignee: chiggins
 
 :TestType: Functional
 

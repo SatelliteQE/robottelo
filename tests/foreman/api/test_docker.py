@@ -105,7 +105,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :Assignee: tpapaioa
+    :Assignee: chiggins
     """
 
     @pytest.mark.tier1

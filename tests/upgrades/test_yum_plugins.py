@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: tpapaioa
+:Assignee: chiggins
 
 :TestType: Functional
 
