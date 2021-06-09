@@ -8,7 +8,7 @@
 
 :CaseComponent: API
 
-:Assignee: lhellebr
+:Assignee: gtalreja
 
 :TestType: Functional
 
