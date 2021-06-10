@@ -1,0 +1,10 @@
+content_host:
+    deploy_workflow: workflow-name
+    default_rhel_version: 7
+    rhel_versions:
+        - 6
+        - 7
+        - 8
+    # hardware:
+        # memory:
+        # cores:

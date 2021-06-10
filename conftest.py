@@ -3,6 +3,7 @@
 pytest_plugins = [
     # Plugins
     'pytest_plugins.disable_rp_params',
+    'pytest_plugins.fixture_markers',
     'pytest_plugins.infra_dependent_markers',
     'pytest_plugins.issue_handlers',
     'pytest_plugins.logging_hooks',

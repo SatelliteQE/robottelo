@@ -56,6 +56,20 @@ def rhel7_host():
 
 
 @pytest.fixture
+def rhel_contenthost(request):
+    """A function-level fixture that provides a content host object parametrized"""
+    # Request should be parametrized through pytest_fixtures.fixture_markers
+    # unpack params dict
+    workflow = request.param.get('workflow', settings.content_host.deploy_workflow)
+    rhel_version = request.param.get('rhel', settings.content_host.default_rhel_version)
+    # TODO: target_memory/cores, host type, other fields?
+    with VMBroker(
+        workflow=workflow, rhel_version=rhel_version, host_classes={'host': ContentHost}
+    ) as host:
+        yield host
+
+
+@pytest.fixture
 def rhel7_contenthost():
     """A function-level fixture that provides a content host object based on the rhel7 nick"""
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as host:
