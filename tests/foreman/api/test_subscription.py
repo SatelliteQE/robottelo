@@ -234,7 +234,7 @@ def test_positive_delete_manifest_as_another_user(function_org):
 
 
 @pytest.mark.tier2
-def test_positive_subscription_status_disabled(module_ak, rhel7_contenthost, module_org):
+def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, module_org):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -248,15 +248,15 @@ def test_positive_subscription_status_disabled(module_ak, rhel7_contenthost, mod
 
     :CaseImportance: Medium
     """
-    rhel7_contenthost.install_katello_ca()
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak.name)
-    assert rhel7_contenthost.subscribed
-    host_content = entities.Host(id=rhel7_contenthost.nailgun_host.id).read_raw().content
+    rhel_contenthost.install_katello_ca()
+    rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
+    assert rhel_contenthost.subscribed
+    host_content = entities.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
     assert 'Simple Content Access' in str(host_content)
 
 
 @pytest.mark.tier2
-def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custom_repo):
+def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom_repo):
     """Perform end to end testing for Simple Content Access Mode
 
     :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
@@ -268,9 +268,9 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
 
     :CaseImportance: Critical
     """
-    rhel7_contenthost.install_katello_ca()
-    rhel7_contenthost.register_contenthost(module_org.label, module_ak.name)
-    assert rhel7_contenthost.subscribed
+    rhel_contenthost.install_katello_ca()
+    rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
+    assert rhel_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
     assert entities.Organization(id=module_org.id).read().simple_content_access is True
     # Verify that you cannot attach a subscription to an activation key in SCA Mode
@@ -282,7 +282,7 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
     assert 'Simple Content Access' in ak_context.value.response.text
     # Verify that you cannot attach a subscription to an Host in SCA Mode
     with pytest.raises(HTTPError) as host_context:
-        entities.HostSubscription(host=rhel7_contenthost.nailgun_host.id).add_subscriptions(
+        entities.HostSubscription(host=rhel_contenthost.nailgun_host.id).add_subscriptions(
             data={'subscriptions': [{'id': subscription.id, 'quantity': 1}]}
         )
     assert 'Simple Content Access' in host_context.value.response.text
@@ -292,15 +292,15 @@ def test_sca_end_to_end(module_ak, rhel7_contenthost, module_org, rh_repo, custo
     content_view.update(['repository'])
     content_view.publish()
     assert len(content_view.repository) == 2
-    host = rhel7_contenthost.nailgun_host
+    host = rhel_contenthost.nailgun_host
     host.content_facet_attributes = {'content_view_id': content_view.id}
     host.update(['content_facet_attributes'])
-    rhel7_contenthost.run('subscription-manager repos --enable *')
-    repos = rhel7_contenthost.run('subscription-manager refresh && yum repolist')
+    rhel_contenthost.run('subscription-manager repos --enable *')
+    repos = rhel_contenthost.run('subscription-manager refresh && yum repolist')
     assert content_view.repository[1].name in repos.stdout
     assert 'Red Hat Satellite Tools' in repos.stdout
     # install package and verify it succeeds or is already installed
-    package = rhel7_contenthost.run('yum install -y python-pulp-manifest')
+    package = rhel_contenthost.run('yum install -y python-pulp-manifest')
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
