@@ -53,7 +53,6 @@ def test_selinux_status(connection):
         '/var/lib/pulp/assets',
         '/var/lib/pulp/media',
         '/var/lib/pulp/tmp',
-        '/var/lib/pulp/static',
     ],
 )
 def test_pulp_directory_exists(connection, directory):
