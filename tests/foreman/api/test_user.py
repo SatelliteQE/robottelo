@@ -882,3 +882,73 @@ class TestFreeIPAUser:
             entities.OperatingSystem,
         ]:
             entity(sc).search()
+
+
+class TestPersonalAccessToken:
+    """Implement personal access token for the users"""
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_personal_access_token_admin(self):
+        """Personal access token for admin
+
+        :id: b0d04d08-af7b-4bc8-8ba2-85a4df3582ef
+
+        :steps:
+            1. Edit ‘admin’ user to add personal access token
+            2. Use any api endpoint with the token
+            3. Revoke the token and check for the result.
+
+        :expectedresults:
+            1. Should show output of the api endpoint
+            2. When revoked, authentication error
+
+        :CaseLevel: System
+
+        :CaseImportance: High
+        """
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_positive_personal_access_token_user_with_role(self):
+        """Personal access token for user with a role
+
+        :id: 3080e57c-5de2-4eb5-819c-25d09f73ce7c
+
+        :steps:
+            1. Create a new user. Assign a role to it and create personal
+               access token
+            2. Use an api endpoint to that specific role and other roles.
+            3. Revoke the access token
+
+        :expectedresults:
+            1. When used with the correct role and end point, corresponding
+               output should be displayed.
+            2. When an incorrect role and end point is used, missing
+               permission should be displayed.
+
+        :CaseLevel: System
+
+        :CaseImportance: High
+
+        """
+
+    @pytest.mark.tier2
+    @pytest.mark.stubbed
+    def test_expired_personal_access_token(self):
+        """Personal access token expired for the user.
+
+        :id: 013a1ff0-cb06-455f-9b2f-6467182fa8c1
+
+        :steps:
+            1. Set the expired time to 1 minute from the current time.
+            2. Wait 1 minute
+            3. Try using the token with any end point.
+
+        :expectedresults: Authentication error
+
+        :CaseLevel: System
+
+        :CaseImportance: Medium
+
+        """

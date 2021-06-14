@@ -334,3 +334,70 @@ def test_positive_create_product_with_limited_user_permission(
             {'name': product_name, 'label': product_label, 'description': product_description}
         )
         assert newsession.product.search(product_name)[0]['Name'] == product_name
+
+
+@pytest.mark.tier2
+@pytest.mark.stubbed
+def test_personal_access_token_admin():
+    """Personal access token for admin
+
+    :id: 32162724-4a23-49f6-8644-28b6f44a3e18
+
+    :steps:
+        1. Edit ‘admin’ user to add personal access token
+        2. Use any api endpoint with the token
+        3. Revoke the token and check for the result.
+
+    :expectedresults:
+        1. Should show output of the api endpoint
+        2. When revoked, authentication error
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+
+
+@pytest.mark.tier2
+@pytest.mark.stubbed
+def test_positive_personal_access_token_user_with_role():
+    """Personal access token for user with a role
+
+    :id: 7e392265-feed-47d4-bad4-15dad9171f12
+
+    :steps:
+        1. Create a new user. Assign a role to it and create personal
+           access token
+        2. Use an api endpoint to that specific role and other roles.
+        3. Revoke the access token
+
+    :expectedresults:
+        1. When used with the correct role and end point, corresponding
+           output should be displayed.
+        2. When an incorrect role and end point is used, missing
+           permission should be displayed.
+
+    :CaseLevel: System
+
+    :CaseImportance: High
+    """
+
+
+@pytest.mark.tier2
+@pytest.mark.stubbed
+def test_expired_personal_access_token():
+    """Personal access token expired for the user.
+
+    :id: 8e46907f-cf56-4e77-8496-8d8935b333d8
+
+    :steps:
+        1. Set the expired time to 1 minute from the current time.
+        2. Wait 1 minute
+        3. Try using the token with any end point.
+
+    :expectedresults: Authentication error
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
