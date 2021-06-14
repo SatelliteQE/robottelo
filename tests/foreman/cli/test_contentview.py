@@ -4916,3 +4916,33 @@ class TestContentViewFileRepo:
         """
         result = ssh.command('sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"')
         assert 'id|bigint' in result.stdout[3].replace(' ', '')
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp3_is_installed(self):
+        """Ensure that pulp3 is installed
+
+        :id: 12a3ca7d-b865-47bd-9cd1-affd3674b628
+
+        :expectedresults: Pulp3 is active
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp2_is_removed(self):
+        """Ensure that pulp2 is removed from system
+
+        :id: c1c89433-fd7d-498a-9fc6-2fbd3e926732
+
+        :expectedresults: Cannot log into pulp2 db
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass

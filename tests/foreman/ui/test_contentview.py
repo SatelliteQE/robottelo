@@ -4111,3 +4111,33 @@ def test_positive_depsolve_with_module_errata(session, module_org):
             assert items['Name'] in rpm_pack
         assert result['module_streams']['table'][0]['Name'] == mod_stream
         assert result['errata']['table'][0]['Errata ID'] == FAKE_4_ERRATA_ID
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp3_is_installed():
+        """Ensure that pulp3 is installed
+
+        :id: 5cee7333-67de-4916-923c-f238b989f587
+
+        :expectedresults: Pulp3 is active
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp2_is_removed():
+        """Ensure that pulp2 is removed from system
+
+        :id: e89673be-f43a-4daf-8dfa-fa86f02952be
+
+        :expectedresults: Cannot log into pulp2 db
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass

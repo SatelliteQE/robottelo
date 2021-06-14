@@ -1722,3 +1722,33 @@ class TestContentViewRedHatOstreeContent:
         content_view.publish()
         promote(content_view.read().version[0], module_lce.id)
         assert len(content_view.read().version[0].read().environment) == 2
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp3_is_installed(self):
+        """Ensure that pulp3 is installed
+
+        :id: 5d5690bf-56c7-4dba-bb09-de0f5f4861b1
+
+        :expectedresults: Pulp3 is active
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass
+
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_positive_check_pulp2_is_removed(self):
+        """Ensure that pulp2 is removed from system
+
+        :id: 4b0ebd09-e417-4c42-a437-d11db724e671
+
+        :expectedresults: Cannot log into pulp2 db
+
+        :CaseLevel: System
+
+        :CaseImportance: Critical
+        """
+        pass
