@@ -353,8 +353,9 @@ def test_personal_access_token_admin():
         2. When revoked, authentication error
 
     :CaseLevel: System
+
+    :CaseImportance: High
     """
-    pass
 
 
 @pytest.mark.tier2
@@ -377,8 +378,9 @@ def test_positive_personal_access_token_user_with_role():
            permission should be displayed.
 
     :CaseLevel: System
+
+    :CaseImportance: High
     """
-    pass
 
 
 @pytest.mark.tier2
@@ -396,5 +398,6 @@ def test_expired_personal_access_token():
     :expectedresults: Authentication error
 
     :CaseLevel: System
+
+    :CaseImportance: Medium
     """
-    pass

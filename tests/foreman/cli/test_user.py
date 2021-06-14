@@ -402,8 +402,9 @@ class TestPersonalAccessToken:
             2. When revoked, authentication error
 
         :CaseLevel: System
+
+        :CaseImportance: High
         """
-        pass
 
     @pytest.mark.tier2
     @pytest.mark.stubbed
@@ -425,8 +426,9 @@ class TestPersonalAccessToken:
                permission should be displayed.
 
         :CaseLevel: System
+
+        :CaseImportance: High
         """
-        pass
 
     @pytest.mark.tier2
     @pytest.mark.stubbed
@@ -443,5 +445,6 @@ class TestPersonalAccessToken:
         :expectedresults: Authentication error
 
         :CaseLevel: System
+
+        :CaseImportance: Medium
         """
-        pass
