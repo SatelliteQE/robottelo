@@ -3178,3 +3178,106 @@ def test_file_repo_contains_only_newer_of_two_file_versions():
 
     :CaseImportance: High
     """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_mirror_on_sync_removes_RPM_deleted_upstream():
+    """
+        Check that a package removed upstream is removed downstream when the repo
+        is next synced.
+
+    :id: 637d6479-842d-4570-97eb-3a986eca2142
+
+    :Setup:
+        1. Create a product with a yum type repository (repo 1)
+        2. Add a link to an external repo and sync it
+        3. Create another product with a yum type repository (repo 2)
+        4. Add a link to the repo created in step 1 and sync it
+        5. Delete one package from repo 1.
+        6. Sync the second repo (repo 2) created in step 3.
+
+    :Steps:
+        1. Check that the package deleted from repo 1 was removed from repo 2
+
+    :expectedresults: A package removed from repo 1 is removed from repo 2 when synced
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: High
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_copy_package_group_from_one_repo_to_another():
+    """
+       Copy a group of packages from one repo to another.
+
+    :id: 18d832fc-7e27-4067-99ea-5da9eef22253
+
+    :Setup:
+        1. Add a product and sync a repo which has package groups (repo 1)
+        2. Create another product and create a yum repo (repo 2)
+        3. Select the package group from repo 1 and sync it to repo 2
+
+    :Steps:
+        Assert the list of package in repo 2 matches the group list from repo 1
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: Medium
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_include_and_exclude_content_units_and_their_dependencies():
+    """
+       Select two packages and include and exclude some dependencies
+       and then copy them from one repo to another.
+
+    :id: 073a0ade-6860-4b34-b64f-0f1a75025356
+
+    :Setup:
+        1. Add a product and sync a repo which has packages with dependencies (repo 1)
+        2. Create another product and create a yum repo (repo 2)
+        3. Select a package and include its dependencies
+        4. Select a package and exclude its dependencies
+        5. Copy packages from repo 1 to repo 2
+
+    :Steps:
+        Assert the list of packages in repo 2 matches the packages selected in repo 1,
+        including only those dependencies expected.
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: Medium
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_copy_erratum_and_RPMs_within_a_date_range():
+    """
+       Select some packages, filer by date range,
+       and then copy them from one repo to another.
+
+    :id: da48011b-841a-4706-84b5-2dcfe371c30a
+
+    :Setup:
+        1. Add a product and sync a repo which has packages with dependencies (repo 1)
+        2. Create another product and create a yum repo (repo 2)
+        3. Select some packages and include dependencies
+        4. Filter by date range
+        5. Copy filtered list of items from repo 1 to repo 2
+        6. Repeat using errata in place of RPMs
+
+    :Steps:
+        Assert the list of packages or errata in repo 2 matches those selected
+        and filtered in repo 1, including those dependencies expected.
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: Medium
+    """
