@@ -1325,6 +1325,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
         query={'search': f'{DEFAULT_SUBSCRIPTION_NAME}'}
     )
     assert subs
+    # Add default subscription to activation key
     new_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
     return new_module_ak
 
@@ -1553,3 +1554,58 @@ def test_install_applicable_package_to_registerd_host(chost):
     )
     assert len(applicable_packages) == 1
     assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
+
+
+@pytest.mark.tier2
+def test_downgrading_package_shows_errata_from_library(errata_host, module_manifest_org):
+    """Downgrading a package on a host attached to the default content view
+    causes the package to become applicable and installable.
+
+    :id: 09cf6325-a003-4eb2-bc98-bc50b2e4e4a0
+
+    :setup: Register a host that already requires errata to org with Library
+
+    :steps:
+        1. Update the applicable package
+        2. Ensure the expected package is not applicable
+        3. Downgrade the applicable package on the host using yum
+        4. Ensure the errata is now applicable
+
+    :expectedresults: errata shows as applicable
+
+    :CaseImportance: High
+    """
+    # Update package from Library, i.e. Default CV
+    errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    # Assert that the package is not applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': errata_host.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Downgrade package (we can't get it from Library, so get older one from EPEL)
+    errata_host.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    errata_host.run('yum -y downgrade python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {errata_host.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # check that errata is applicable
+    param = {
+        'errata-restrict-applicable': 1,
+        'organization-id': module_manifest_org.id,
+        'per-page': PER_PAGE_LARGE,
+    }
+    errata_ids = get_errata_ids(param)
+    assert REAL_0_ERRATA_ID in errata_ids
