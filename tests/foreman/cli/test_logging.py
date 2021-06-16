@@ -8,7 +8,7 @@
 
 :CaseComponent: Logging
 
-:Assignee: swadeley
+:Assignee: shwsingh
 
 :TestType: Functional
 

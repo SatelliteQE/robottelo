@@ -153,23 +153,17 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         assert pt['type']['template_type'] == 'iPXE template'
         assert pt['association']['applicable_os']['assigned'][0] == os.title
         assert pt['association']['hg_environment_combination'][0]['host_group'] == host_group.name
-        assert (
-            pt['association']['hg_environment_combination'][0]['environment'] == environment.name
-        )
+        assert pt['association']['hg_environment_combination'][0]['environment'] == environment.name
         assert pt['locations']['resources']['assigned'][0] == module_loc.name
         assert pt['organizations']['resources']['assigned'][0] == module_org.name
-        session.provisioningtemplate.update(
-            name, {'template.name': new_name, 'type.snippet': True}
-        )
+        session.provisioningtemplate.update(name, {'template.name': new_name, 'type.snippet': True})
         updated_pt = entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'})
         assert updated_pt, (
             'Provisioning template {} expected to exist but is not included in the search'
             'results'.format(new_name)
         )
         updated_pt = updated_pt[0].read()
-        assert (
-            updated_pt.snippet is True
-        ), 'Snippet attribute not updated for Provisioning Template'
+        assert updated_pt.snippet is True, 'Snippet attribute not updated for Provisioning Template'
         assert not updated_pt.template_kind, 'Snippet template is {}'.format(
             updated_pt.template_kind
         )

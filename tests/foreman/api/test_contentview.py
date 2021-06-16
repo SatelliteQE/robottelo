@@ -1350,7 +1350,10 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
         3. add a custom repository to content view
 
     :expectedresults: User with read only role for content view cannot
-        Modify, Delete, Publish, Promote the content views
+        Modify, Delete, Publish, Promote the content views.  Same user cannot
+        create Product, Host Collection, or Activation key
+
+    :BZ: 1922134
 
     :CaseLevel: Integration
 
@@ -1405,6 +1408,15 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
     assert len(content_view.version), 1
     with pytest.raises(HTTPError):
         promote(content_view.version[0], module_lce.id)
+    # Check that we cannot create a Product
+    with pytest.raises(HTTPError):
+        entities.Product(cfg).create()
+    # Check that we cannot create an activation key
+    with pytest.raises(HTTPError):
+        entities.ActivationKey(cfg).create()
+    # Check that we cannot create a host collection
+    with pytest.raises(HTTPError):
+        entities.HostCollection(cfg).create()
 
 
 @pytest.mark.tier2

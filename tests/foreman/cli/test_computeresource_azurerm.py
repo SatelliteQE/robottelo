@@ -259,25 +259,17 @@ class TestAzureRMComputeResourceTestCase:
             {
                 'compute-profile-id': int(profile['id']),
                 'compute-resource': module_azurerm_cr.name,
-                'compute-attributes': "resource_group={},"
-                "vm_size={},"
-                "username={},"
-                "password={},"
-                "platform={},"
-                "script_command={},"
-                "script_uris={},"
-                "premium_os_disk=1".format(
-                    AZURERM_RG_DEFAULT,
-                    AZURERM_VM_SIZE_DEFAULT,
-                    username,
-                    password,
-                    AZURERM_PLATFORM_DEFAULT,
-                    script_command,
-                    AZURERM_FILE_URI,
-                ),
-                'interface': "compute_network={},"
-                "compute_public_ip=Static,"
-                "compute_private_ip=false".format(nw_id),
+                'compute-attributes': f'resource_group={AZURERM_RG_DEFAULT},'
+                f'vm_size={AZURERM_VM_SIZE_DEFAULT},'
+                f'username={username},'
+                f'password={password},'
+                f'platform={AZURERM_PLATFORM_DEFAULT},'
+                f'script_command="{script_command}",'
+                f'script_uris={AZURERM_FILE_URI},'
+                f'premium_os_disk=1',
+                'interface': f'compute_network={nw_id},'
+                'compute_public_ip=Static,'
+                'compute_private_ip=false',
             }
         )[0]
 
@@ -285,14 +277,15 @@ class TestAzureRMComputeResourceTestCase:
 
         # Info
         result_info = ComputeProfile.info({'name': cp_name})
+        vm_attributes = result_info['compute-attributes'][0]['vm-attributes']
         assert module_azurerm_cr.name == result_info['compute-attributes'][0]['compute-resource']
-        assert AZURERM_RG_DEFAULT in result_info['compute-attributes'][0]['vm-attributes']
-        assert AZURERM_VM_SIZE_DEFAULT in result_info['compute-attributes'][0]['vm-attributes']
-        assert username in result_info['compute-attributes'][0]['vm-attributes']
-        assert password in result_info['compute-attributes'][0]['vm-attributes']
-        assert AZURERM_PLATFORM_DEFAULT in result_info['compute-attributes'][0]['vm-attributes']
-        assert script_command in result_info['compute-attributes'][0]['vm-attributes']
-        assert AZURERM_FILE_URI in result_info['compute-attributes'][0]['vm-attributes']
+        assert AZURERM_RG_DEFAULT in vm_attributes
+        assert AZURERM_VM_SIZE_DEFAULT in vm_attributes
+        assert username in vm_attributes
+        assert password in vm_attributes
+        assert AZURERM_PLATFORM_DEFAULT in vm_attributes
+        assert script_command in vm_attributes
+        assert AZURERM_FILE_URI in vm_attributes
 
 
 @pytest.mark.run_in_one_thread
@@ -314,21 +307,18 @@ class TestAzureRMFinishTemplateProvisioning:
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
-            "resource_group={},vm_size={},username={},ssh_key_data={},"
-            "platform={},script_command={},script_uris={},premium_os_disk={}".format(
-                self.rg_default,
-                self.vm_size,
-                module_azurerm_finishimg.username,
-                settings.azurerm.ssh_pub_key,
-                self.platform,
-                'touch /var/tmp/test.txt',
-                AZURERM_FILE_URI,
-                self.premium_os_disk,
-            )
+            f'resource_group={self.rg_default},'
+            f'vm_size={self.vm_size},'
+            f'username={module_azurerm_finishimg.username},'
+            f'ssh_key_data={settings.azurerm.ssh_pub_key},'
+            f'platform={self.platform},'
+            'script_command="touch /var/tmp/test.txt",'
+            f'script_uris={AZURERM_FILE_URI},'
+            f'premium_os_disk={self.premium_os_disk}'
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = (
-            "compute_network={},compute_public_ip=Static," "compute_private_ip=false".format(nw_id)
+            f'compute_network={nw_id},compute_public_ip=Static,compute_private_ip=false'
         )
 
     @pytest.fixture(scope='class')
@@ -437,22 +427,18 @@ class TestAzureRMUserDataProvisioning:
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
-            "resource_group={},vm_size={},username={},password={},"
-            "platform={},script_command={},script_uris={},premium_os_disk={}".format(
-                self.rg_default,
-                self.vm_size,
-                module_azurerm_cloudimg.username,
-                settings.azurerm.password,
-                self.platform,
-                'touch /var/tmp/test.txt',
-                AZURERM_FILE_URI,
-                self.premium_os_disk,
-            )
+            f'resource_group={self.rg_default},'
+            f'vm_size={self.vm_size},'
+            f'username={module_azurerm_cloudimg.username},'
+            f'password={settings.azurerm.password},'
+            f'platform={self.platform},'
+            f'script_command="touch /var/tmp/test.txt",'
+            f'script_uris={AZURERM_FILE_URI},'
+            f'premium_os_disk={self.premium_os_disk}'
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
         request.cls.interfaces_attributes = (
-            "compute_network={},compute_public_ip=Dynamic,"
-            "compute_private_ip=false".format(nw_id)
+            f'compute_network={nw_id},compute_public_ip=Dynamic,compute_private_ip=false'
         )
 
     @pytest.fixture(scope='class')
@@ -550,9 +536,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
     """AzureRM Host Provisioning Test with BYOS Image"""
 
     @pytest.fixture(scope='class', autouse=True)
-    def class_setup(
-        self, request, module_domain, module_azurerm_cr, module_azurerm_byos_finishimg
-    ):
+    def class_setup(self, request, module_domain, module_azurerm_cr, module_azurerm_byos_finishimg):
         """
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
@@ -656,9 +640,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         assert class_byos_ft_host['name'] == self.fullhostname
         assert class_byos_ft_host['status']['build-status'] == "Installed"
         assert class_byos_ft_host['compute-resource'] == module_azurerm_cr.name
-        assert (
-            class_byos_ft_host['operating-system']['image'] == module_azurerm_byos_finishimg.name
-        )
+        assert class_byos_ft_host['operating-system']['image'] == module_azurerm_byos_finishimg.name
         assert class_byos_ft_host['network-interfaces'][0]['ipv4-address'] == azureclient_host.ip
 
         # Azure cloud

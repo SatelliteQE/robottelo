@@ -23,60 +23,29 @@ import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 from nailgun import entities
+from wrapanapi.entities.vm import VmState
 
+from robottelo import constants
 from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
+from robottelo.cli import factory as cli_factory
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.capsule import Capsule
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_activation_key
-from robottelo.cli.factory import make_content_view
-from robottelo.cli.factory import make_content_view_filter
-from robottelo.cli.factory import make_content_view_filter_rule
-from robottelo.cli.factory import make_fake_host
-from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_location
-from robottelo.cli.factory import make_org
-from robottelo.cli.factory import make_product
-from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import make_role
-from robottelo.cli.factory import make_user
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.location import Location
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.org import Org
+from robottelo.cli.product import Product
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import FAKE_0_INC_UPD_ERRATA
-from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
-from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
-from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
-from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
-from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.constants.repos import FAKE_0_INC_UPD_URL
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import OSTREE_REPO
 from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
@@ -85,27 +54,28 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
 from robottelo.helpers import repo_add_updateinfo
-from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
 @pytest.fixture(scope='module')
 def module_rhel_content(module_manifest_org):
     """Returns RH repo after syncing it"""
-    product = entities.Product(name=PRDS['rhel'], organization=module_manifest_org).search()[0]
-    reposet = entities.RepositorySet(name=REPOSET['rhva6'], product=product).search()[0]
+    product = entities.Product(
+        name=constants.PRDS['rhel'], organization=module_manifest_org
+    ).search()[0]
+    reposet = entities.RepositorySet(name=constants.REPOSET['rhva6'], product=product).search()[0]
     data = {'basearch': 'x86_64', 'releasever': '6Server', 'product_id': product.id}
     reposet.enable(data=data)
 
     repo = Repository.info(
         {
-            'name': REPOS['rhva6']['name'],
+            'name': constants.REPOS['rhva6']['name'],
             'organization-id': module_manifest_org.id,
             'product': product.name,
         }
     )
     Repository.synchronize(
         {
-            'name': REPOS['rhva6']['name'],
+            'name': constants.REPOS['rhva6']['name'],
             'organization-id': module_manifest_org.id,
             'product': product.name,
         }
@@ -118,14 +88,14 @@ def module_rhel_content(module_manifest_org):
 @pytest.fixture(scope='class')
 def all_content_type(module_org):
     """Sync all content sync and return their repo info"""
-    product = make_product({'organization-id': module_org.id})
+    product = cli_factory.make_product({'organization-id': module_org.id})
     # Create new custom ostree repo
-    ostree_repo = make_repository(
+    ostree_repo = cli_factory.make_repository(
         {
             'product-id': product['id'],
             'content-type': 'ostree',
             'publish-via-http': 'false',
-            'url': OSTREE_REPO,
+            'url': constants.repos.OSTREE_REPO,
         }
     )
     Repository.synchronize({'id': ostree_repo['id']})
@@ -133,26 +103,32 @@ def all_content_type(module_org):
         {'name': ostree_repo['name'], 'organization-id': module_org.id, 'product': product['name']}
     )
     # Create new yum repo
-    yum_repo = make_repository({'url': FAKE_1_YUM_REPO, 'product-id': product['id']})
+    yum_repo = cli_factory.make_repository(
+        {'url': constants.repos.FAKE_1_YUM_REPO, 'product-id': product['id']}
+    )
     Repository.synchronize({'id': yum_repo['id']})
     yum_repo_info = Repository.info(
         {'name': yum_repo['name'], 'organization-id': module_org.id, 'product': product['name']}
     )
     # Create new Puppet repository
-    puppet_repo = make_repository(
-        {'url': FAKE_0_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+    puppet_repo = cli_factory.make_repository(
+        {
+            'url': constants.repos.FAKE_0_PUPPET_REPO,
+            'content-type': 'puppet',
+            'product-id': product['id'],
+        }
     )
     Repository.synchronize({'id': puppet_repo['id']})
     puppet_repo_info = Repository.info(
         {'name': puppet_repo['name'], 'organization-id': module_org.id, 'product': product['name']}
     )
     # Create new docker repository
-    docker_repo = make_repository(
+    docker_repo = cli_factory.make_repository(
         {
             'content-type': 'docker',
             'docker-upstream-name': 'busybox',
             'product-id': product['id'],
-            'url': CONTAINER_REGISTRY_HUB,
+            'url': constants.CONTAINER_REGISTRY_HUB,
         }
     )
     Repository.synchronize({'id': docker_repo['id']})
@@ -174,22 +150,26 @@ def atomic_repo(module_manifest_org):
     RepositorySet.enable(
         {
             'basearch': None,
-            'name': REPOSET['rhaht'],
+            'name': constants.REPOSET['rhaht'],
             'organization-id': module_manifest_org.id,
-            'product': PRDS['rhah'],
+            'product': constants.PRDS['rhah'],
             'releasever': None,
         }
     )
-    repo_name = REPOS['rhaht']['name']
+    repo_name = constants.REPOS['rhaht']['name']
     repo = Repository.info(
         {
-            'name': REPOS['rhaht']['name'],
+            'name': constants.REPOS['rhaht']['name'],
             'organization-id': module_manifest_org.id,
-            'product': PRDS['rhah'],
+            'product': constants.PRDS['rhah'],
         }
     )
     Repository.synchronize(
-        {'name': repo_name, 'organization-id': module_manifest_org.id, 'product': PRDS['rhah']}
+        {
+            'name': repo_name,
+            'organization-id': module_manifest_org.id,
+            'product': constants.PRDS['rhah'],
+        }
     )
     return repo
 
@@ -221,7 +201,9 @@ class TestContentView:
 
         :parametrized: yes
         """
-        content_view = make_content_view({'name': name, 'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view(
+            {'name': name, 'organization-id': module_org.id}
+        )
         assert content_view['name'] == name.strip()
 
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
@@ -238,8 +220,8 @@ class TestContentView:
 
         :parametrized: yes
         """
-        with pytest.raises(CLIFactoryError):
-            make_content_view({'name': name, 'organization-id': module_org.id})
+        with pytest.raises(cli_factory.CLIFactoryError):
+            cli_factory.make_content_view({'name': name, 'organization-id': module_org.id})
 
     @pytest.mark.tier1
     def test_negative_create_with_org_name(self):
@@ -267,8 +249,10 @@ class TestContentView:
         :CaseImportance: High
         :BZ: 1213097
         """
-        repo = make_repository({'product-id': module_product.id})
-        cv = make_content_view({'organization-id': module_org.id, 'repository-ids': [repo['id']]})
+        repo = cli_factory.make_repository({'product-id': module_product.id})
+        cv = cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': [repo['id']]}
+        )
         assert cv['yum-repositories'][0]['id'] == repo['id']
 
     @pytest.mark.tier1
@@ -283,13 +267,11 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
-        result = ssh.command(
-            'find /var/lib/pulp/published -name "*{}*"'.format(content_view['name'])
-        )
+        result = ssh.command(f'find /var/lib/pulp/published -name "*{content_view["name"]}*"')
         assert result.return_code == 0
         assert len(result.stdout) == 0
         assert len(content_view['versions']) == 1
@@ -309,7 +291,9 @@ class TestContentView:
 
         :parametrized: yes
         """
-        cv = make_content_view({'name': gen_string('utf8'), 'organization-id': module_org.id})
+        cv = cli_factory.make_content_view(
+            {'name': gen_string('utf8'), 'organization-id': module_org.id}
+        )
         ContentView.update({'id': cv['id'], 'new-name': new_name})
         cv = ContentView.info({'id': cv['id']})
         assert cv['name'] == new_name.strip()
@@ -329,7 +313,7 @@ class TestContentView:
 
         :parametrized: yes
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.update(
             {'name': cv['name'], 'organization-label': module_org.label, 'new-name': new_name}
         )
@@ -351,7 +335,7 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': repo_setup['org'].id})
+        new_cv = cli_factory.make_content_view({'organization-id': repo_setup['org'].id})
         # Associate repo to CV
         ContentView.add_repository(
             {
@@ -363,10 +347,10 @@ class TestContentView:
         Repository.synchronize({'id': repo_setup['repo'].id})
         new_cv = ContentView.info({'id': new_cv['id']})
         assert new_cv['yum-repositories'][0]['name'] == repo_setup['repo'].name
-        cvf = make_content_view_filter(
+        cvf = cli_factory.make_content_view_filter(
             {'content-view-id': new_cv['id'], 'inclusion': 'true', 'type': 'erratum'}
         )
-        cvf_rule = make_content_view_filter_rule(
+        cvf_rule = cli_factory.make_content_view_filter_rule(
             {'content-view-filter-id': cvf['filter-id'], 'types': ['bugfix', 'enhancement']}
         )
         cvf = ContentView.filter.info({'id': cvf['filter-id']})
@@ -391,7 +375,7 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.delete({'id': cv['id']})
         with pytest.raises(CLIReturnCodeError):
             ContentView.info({'id': cv['id']})
@@ -408,7 +392,7 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.delete({'name': cv['name'], 'organization': module_org.name})
         with pytest.raises(CLIReturnCodeError):
             ContentView.info({'id': cv['id']})
@@ -428,11 +412,11 @@ class TestContentView:
         :CaseImportance: Critical
         """
         # Create and sync a repository
-        new_product = make_product({'organization-id': module_org.id})
-        new_repo = make_repository({'product-id': new_product['id']})
+        new_product = cli_factory.make_product({'organization-id': module_org.id})
+        new_repo = cli_factory.make_repository({'product-id': new_product['id']})
         Repository.synchronize({'id': new_repo['id']})
         # Create a content view, add the repo and publish the content view
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -443,7 +427,7 @@ class TestContentView:
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         # Check content view files presence before deletion
-        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
+        result = ssh.command(f'find /var/lib/pulp -name "*{content_view["name"]}*"')
         assert result.return_code == 0
         assert len(result.stdout) != 0
         assert len(content_view['versions']) == 1
@@ -463,7 +447,7 @@ class TestContentView:
         )
         ContentView.delete({'id': content_view['id']})
         # Check content view files presence after deletion
-        result = ssh.command('find /var/lib/pulp -name "*{}*"'.format(content_view['name']))
+        result = ssh.command(f'find /var/lib/pulp -name "*{content_view["name"]}*"')
         assert result.return_code == 0
         assert len(result.stdout) == 0
 
@@ -482,7 +466,7 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
@@ -517,11 +501,11 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create new organization, product and repository
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create new content-view and add repository to view
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
@@ -561,7 +545,7 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
@@ -583,7 +567,7 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
         env = new_cv['lifecycle-environments'][0]
@@ -604,21 +588,24 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        env = [make_lifecycle_environment({'organization-id': module_org.id}) for _ in range(2)]
+        env = [
+            cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+            for _ in range(2)
+        ]
 
-        source_cv = make_content_view({'organization-id': module_org.id})
+        source_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': source_cv['id']})
         source_cv = ContentView.info({'id': source_cv['id']})
         cvv = source_cv['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env[0]['id']})
 
-        destination_cv = make_content_view({'organization-id': module_org.id})
+        destination_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': destination_cv['id']})
         destination_cv = ContentView.info({'id': destination_cv['id']})
         cvv = destination_cv['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env[1]['id']})
 
-        ac_key = make_activation_key(
+        ac_key = cli_factory.make_activation_key(
             {
                 'content-view-id': source_cv['id'],
                 'lifecycle-environment-id': env[0]['id'],
@@ -658,15 +645,18 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        env = [make_lifecycle_environment({'organization-id': module_org.id}) for _ in range(2)]
+        env = [
+            cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+            for _ in range(2)
+        ]
 
-        source_cv = make_content_view({'organization-id': module_org.id})
+        source_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': source_cv['id']})
         source_cv = ContentView.info({'id': source_cv['id']})
         cvv = source_cv['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env[0]['id']})
 
-        destination_cv = make_content_view({'organization-id': module_org.id})
+        destination_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': destination_cv['id']})
         destination_cv = ContentView.info({'id': destination_cv['id']})
         cvv = destination_cv['versions'][0]
@@ -675,7 +665,7 @@ class TestContentView:
         source_cv = ContentView.info({'id': source_cv['id']})
         assert source_cv['content-host-count'] == '0'
 
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': source_cv['id'],
                 'lifecycle-environment-id': env[0]['id'],
@@ -712,7 +702,7 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 1
@@ -738,7 +728,7 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
         assert len(new_cv['versions']) == 1
@@ -763,9 +753,9 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -787,9 +777,9 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -818,12 +808,12 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create REPO
-        new_product = make_product({'organization-id': module_org.id})
-        new_repo = make_repository({'product-id': new_product['id']})
+        new_product = cli_factory.make_product({'organization-id': module_org.id})
+        new_repo = cli_factory.make_repository({'product-id': new_product['id']})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -832,7 +822,9 @@ class TestContentView:
         # Let us now store the version1 id
         version1_id = new_cv['versions'][0]['id']
         # Create CV
-        con_view = make_content_view({'composite': True, 'organization-id': module_org.id})
+        con_view = cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
         # Associate version to composite CV
         ContentView.add_version({'content-view-version-id': version1_id, 'id': con_view['id']})
         # Assert whether version was associated to composite CV
@@ -855,13 +847,13 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        new_product = make_product({'organization-id': module_org.id})
+        new_product = cli_factory.make_product({'organization-id': module_org.id})
         # Create REPO
-        new_repo = make_repository({'product-id': new_product['id']})
+        new_repo = cli_factory.make_repository({'product-id': new_product['id']})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -869,7 +861,7 @@ class TestContentView:
         new_cv = ContentView.info({'id': new_cv['id']})
         cvv = new_cv['versions'][0]
         # Create CV
-        cv = make_content_view({'composite': True, 'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'composite': True, 'organization-id': module_org.id})
         assert len(cv['components']) == 0
         # Associate version to composite CV
         ContentView.add_version(
@@ -899,11 +891,11 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create new repository
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create new content-view and add repository to view
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
@@ -916,7 +908,7 @@ class TestContentView:
         # Get the CV info
         new_cv = ContentView.info({'id': new_cv['id']})
         # Create a composite CV
-        comp_cv = make_content_view(
+        comp_cv = cli_factory.make_content_view(
             {
                 'composite': True,
                 'organization-id': module_org.id,
@@ -950,11 +942,11 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create new repository
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create new content-view and add repository to view
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': new_cv['id'],
@@ -967,7 +959,7 @@ class TestContentView:
         # Get the CV info
         new_cv = ContentView.info({'id': new_cv['id']})
         # Create a composite CV
-        comp_cv = make_content_view(
+        comp_cv = cli_factory.make_content_view(
             {
                 'composite': True,
                 'organization-id': module_org.id,
@@ -1002,19 +994,19 @@ class TestContentView:
         :CaseImportance: High
         """
         # Create first CV
-        cv1 = make_content_view({'organization-id': module_org.id})
+        cv1 = cli_factory.make_content_view({'organization-id': module_org.id})
         # Publish a new version of CV
         ContentView.publish({'id': cv1['id']})
         cv1 = ContentView.info({'id': cv1['id']})
         # Create second CV
-        cv2 = make_content_view({'organization-id': module_org.id})
+        cv2 = cli_factory.make_content_view({'organization-id': module_org.id})
         # Publish a new version of CV
         ContentView.publish({'id': cv2['id']})
         cv2 = ContentView.info({'id': cv2['id']})
         # Let us now store the version ids
         component_ids = [cv1['versions'][0]['id'], cv2['versions'][0]['id']]
         # Create CV
-        comp_cv = make_content_view(
+        comp_cv = cli_factory.make_content_view(
             {'composite': True, 'organization-id': module_org.id, 'component-ids': component_ids}
         )
         # Assert whether the composite content view components IDs are equal
@@ -1039,7 +1031,7 @@ class TestContentView:
         :CaseImportance: Low
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Publish a new version of CV twice
         for _ in range(2):
             ContentView.publish({'id': new_cv['id']})
@@ -1047,8 +1039,8 @@ class TestContentView:
         # Let us now store the version ids
         component_ids = [version['id'] for version in new_cv['versions']]
         # Try create CV
-        with pytest.raises(CLIFactoryError) as context:
-            make_content_view(
+        with pytest.raises(cli_factory.CLIFactoryError) as context:
+            cli_factory.make_content_view(
                 {
                     'composite': True,
                     'organization-id': module_org.id,
@@ -1071,14 +1063,16 @@ class TestContentView:
             :CaseImportance: Low
             """
             # Create a CV to add to the composite one
-            cv = make_content_view({'organization-id': module_org.id})
+            cv = cli_factory.make_content_view({'organization-id': module_org.id})
             # Publish a new version of the CV
             ContentView.publish({'id': cv['id']})
             new_cv = ContentView.info({'id': cv['id']})
             # Let us now store the version ids
             component_ids = new_cv['versions'][0]['id']
             # Create a composite CV
-            comp_cv = make_content_view({'composite': True, 'organization-id': module_org.id})
+            comp_cv = cli_factory.make_content_view(
+                {'composite': True, 'organization-id': module_org.id}
+            )
             # Update a composite content view with a component id version
             ContentView.update({'id': comp_cv['id'], 'component-ids': component_ids})
             # Assert whether the composite content view components IDs are equal
@@ -1103,7 +1097,7 @@ class TestContentView:
         :CaseImportance: Critical
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
         ContentView.add_repository(
             {
@@ -1140,7 +1134,7 @@ class TestContentView:
         :BZ: 1359665
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
         ContentView.add_repository(
             {
@@ -1181,11 +1175,13 @@ class TestContentView:
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         create_sync_custom_repo(
-            module_org.id, repo_name=repo_name, repo_url=CUSTOM_MODULE_STREAM_REPO_2
+            module_org.id,
+            repo_name=repo_name,
+            repo_url=constants.repos.CUSTOM_MODULE_STREAM_REPO_2,
         )
-        repo = entities.Repository(name=repo_name).search(
-            query={'organization_id': module_org.id}
-        )[0]
+        repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[
+            0
+        ]
         content_view = entities.ContentView(organization=module_org.id, repository=[repo]).create()
         walrus_stream = ModuleStream.list({'search': "name=walrus, stream=5.21"})[0]
         content_view = ContentView.info({'id': content_view.id})
@@ -1222,11 +1218,11 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -1244,11 +1240,11 @@ class TestContentView:
 
         :BZ: 1343006
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
             {
@@ -1275,18 +1271,18 @@ class TestContentView:
         :CaseImportance: Medium
         """
         module = {'name': 'versioned', 'version': '3.3.3'}
-        puppet_repository = make_repository(
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': CUSTOM_PUPPET_REPO,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_module = PuppetModule.list(
-            {'search': 'name={name} and version={version}'.format(**module)}
+            {'search': f'name={module["name"]} and version={module["version"]}'}
         )[0]
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.puppet_module_add(
             {
                 'content-view-id': content_view['id'],
@@ -1300,7 +1296,7 @@ class TestContentView:
         assert puppet_module['name'] == content_view['puppet-modules'][0]['name']
         # Check output of `content-view puppet module list` subcommand
         cv_module = ContentView.puppet_module_list({'content-view-id': content_view['id']})
-        assert len(cv_module) > 0
+        assert len(cv_module)
         assert puppet_module['version'] in cv_module[0]['version']
         assert 'Latest' in cv_module[0]['version']
 
@@ -1325,19 +1321,19 @@ class TestContentView:
         :BZ: 1240491
         """
         module = {'name': 'versioned', 'version': '2.2.2'}
-        puppet_repository = make_repository(
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': CUSTOM_PUPPET_REPO,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_module = PuppetModule.list(
-            {'search': 'name={name} and version={version}'.format(**module)}
+            {'search': f'name={module["name"]} and version={module["version"]}'}
         )[0]
         for identifier_type in ('uuid', 'id'):
-            content_view = make_content_view({'organization-id': module_org.id})
+            content_view = cli_factory.make_content_view({'organization-id': module_org.id})
             ContentView.puppet_module_add(
                 {
                     'content-view-id': content_view['id'],
@@ -1346,11 +1342,11 @@ class TestContentView:
             )
             # Check output of `content-view info` subcommand
             content_view = ContentView.info({'id': content_view['id']})
-            assert len(content_view['puppet-modules']) > 0
+            assert len(content_view['puppet-modules'])
             assert puppet_module['name'] == content_view['puppet-modules'][0]['name']
             # Check output of `content-view puppet module list` subcommand
             cv_module = ContentView.puppet_module_list({'content-view-id': content_view['id']})
-            assert len(cv_module) > 0
+            assert len(cv_module)
             assert cv_module[0]['version'] == module['version']
 
     @pytest.mark.tier3
@@ -1366,17 +1362,17 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        puppet_repository = make_repository(
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': CUSTOM_PUPPET_REPO,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         # Add puppet module
         ContentView.puppet_module_add(
             {
@@ -1386,7 +1382,7 @@ class TestContentView:
             }
         )
         content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) > 0
+        assert len(content_view['puppet-modules'])
         # Remove puppet module
         ContentView.puppet_module_remove(
             {
@@ -1413,23 +1409,23 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        puppet_repository = make_repository(
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': CUSTOM_PUPPET_REPO,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         # Add puppet module
         ContentView.puppet_module_add(
             {'content-view-id': content_view['id'], 'id': puppet_module['id']}
         )
         content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) > 0
+        assert len(content_view['puppet-modules'])
         # Remove puppet module
         ContentView.puppet_module_remove(
             {'content-view-id': content_view['id'], 'id': content_view['puppet-modules'][0]['id']}
@@ -1450,17 +1446,17 @@ class TestContentView:
 
         :CaseImportance: Low
         """
-        puppet_repository = make_repository(
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': CUSTOM_PUPPET_REPO,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         # Add puppet module
         ContentView.puppet_module_add(
             {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
@@ -1490,14 +1486,14 @@ class TestContentView:
 
         :CaseImportance: Low
         """
-        new_repo = make_repository(
+        new_repo = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate puppet repo to CV
         with pytest.raises(CLIReturnCodeError):
             ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
@@ -1516,11 +1512,11 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create component CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -1528,8 +1524,8 @@ class TestContentView:
         # Fetch version id
         cv_version = ContentView.version_list({'content-view-id': new_cv['id']})
         # Create non-composite CV
-        with pytest.raises(CLIFactoryError):
-            make_content_view(
+        with pytest.raises(cli_factory.CLIFactoryError):
+            cli_factory.make_content_view(
                 {'component-ids': cv_version[0]['id'], 'organization-id': module_org.id}
             )
 
@@ -1546,11 +1542,11 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -1577,11 +1573,11 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # see BZ #1222118
-        repository = make_repository(
+        repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         # Sync REPO
@@ -1589,7 +1585,7 @@ class TestContentView:
         repository = Repository.info({'id': repository['id']})
         puppet_modules = int(repository['content-counts']['puppet-modules'])
         # Create CV
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         # Fetch puppet module
         puppet_result = PuppetModule.list({'repository-id': repository['id'], 'per-page': False})
         assert len(puppet_result) == puppet_modules
@@ -1628,15 +1624,13 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
-        env1 = make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        env1 = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': new_cv['versions'][0]['id'], 'to-lifecycle-environment-id': env1['id']}
@@ -1647,9 +1641,7 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    def test_positive_promote_rh_and_custom_content(
-        self, module_manifest_org, module_rhel_content
-    ):
+    def test_positive_promote_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
         """attempt to promote a content view containing RH content and
         custom content using filters
 
@@ -1664,32 +1656,34 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create custom repo
-        new_repo = make_repository(
-            {'product-id': make_product({'organization-id': module_manifest_org.id})['id']}
+        new_repo = cli_factory.make_repository(
+            {
+                'product-id': cli_factory.make_product({'organization-id': module_manifest_org.id})[
+                    'id'
+                ]
+            }
         )
         # Sync custom repo
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repos with CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
-        cvf = make_content_view_filter(
+        cvf = cli_factory.make_content_view_filter(
             {'content-view-id': new_cv['id'], 'inclusion': 'false', 'type': 'rpm'}
         )
-        make_content_view_filter_rule(
+        cli_factory.make_content_view_filter_rule(
             {
                 'content-view-filter-id': cvf['filter-id'],
                 'min-version': 5,
-                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+                'name': constants.FAKE_1_CUSTOM_PACKAGE_NAME,
             }
         )
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
-        env1 = make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        env1 = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': new_cv['versions'][0]['id'], 'to-lifecycle-environment-id': env1['id']}
@@ -1713,13 +1707,13 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # create lce
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -1758,13 +1752,13 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create lce
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -1773,7 +1767,9 @@ class TestContentView:
         # Let us now store the version1 id
         version1_id = new_cv['versions'][0]['id']
         # Create CV
-        con_view = make_content_view({'composite': True, 'organization-id': module_org.id})
+        con_view = cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
         # Associate version to composite CV
         ContentView.add_version({'content-view-version-id': version1_id, 'id': con_view['id']})
         # Publish a new version of CV
@@ -1804,10 +1800,10 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         print("Hello, the org ID is currently", module_org.id)
         result = ContentView.list({'organization-id': module_org.id}, per_page=False)
-        content_view = random.choice([cv for cv in result if cv['name'] == DEFAULT_CV])
+        content_view = random.choice([cv for cv in result if cv['name'] == constants.DEFAULT_CV])
         cvv = ContentView.version_list({'content-view-id': content_view['content-view-id']})[0]
         # Promote the Default CV to the next env
         with pytest.raises(CLIReturnCodeError):
@@ -1829,11 +1825,11 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -1868,11 +1864,9 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         # Publish a new version of CV
         ContentView.publish({'id': new_cv['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
@@ -1882,9 +1876,7 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    def test_positive_publish_rh_and_custom_content(
-        self, module_manifest_org, module_rhel_content
-    ):
+    def test_positive_publish_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
 
@@ -1899,26 +1891,28 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create custom repo
-        new_repo = make_repository(
-            {'product-id': make_product({'organization-id': module_manifest_org.id})['id']}
+        new_repo = cli_factory.make_repository(
+            {
+                'product-id': cli_factory.make_product({'organization-id': module_manifest_org.id})[
+                    'id'
+                ]
+            }
         )
         # Sync custom repo
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repos with CV
-        ContentView.add_repository(
-            {'id': new_cv['id'], 'repository-id': module_rhel_content['id']}
-        )
+        ContentView.add_repository({'id': new_cv['id'], 'repository-id': module_rhel_content['id']})
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
-        cvf = make_content_view_filter(
+        cvf = cli_factory.make_content_view_filter(
             {'content-view-id': new_cv['id'], 'inclusion': 'false', 'type': 'rpm'}
         )
-        make_content_view_filter_rule(
+        cli_factory.make_content_view_filter_rule(
             {
                 'content-view-filter-id': cvf['filter-id'],
                 'min-version': 5,
-                'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+                'name': constants.FAKE_1_CUSTOM_PACKAGE_NAME,
             }
         )
         # Publish a new version of CV
@@ -1943,11 +1937,11 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a new version of CV
@@ -1974,19 +1968,19 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        software_repo = make_repository(
+        software_repo = cli_factory.make_repository(
             {
                 'product-id': module_product.id,
                 'content-type': 'yum',
-                'url': CUSTOM_MODULE_STREAM_REPO_1,
+                'url': constants.repos.CUSTOM_MODULE_STREAM_REPO_1,
             }
         )
 
-        animal_repo = make_repository(
+        animal_repo = cli_factory.make_repository(
             {
                 'product-id': module_product.id,
                 'content-type': 'yum',
-                'url': CUSTOM_MODULE_STREAM_REPO_2,
+                'url': constants.repos.CUSTOM_MODULE_STREAM_REPO_2,
             }
         )
 
@@ -1994,7 +1988,7 @@ class TestContentView:
         Repository.synchronize({'id': animal_repo['id']})
         Repository.synchronize({'id': software_repo['id']})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': animal_repo['id']})
         # Publish a new version of CV
@@ -2028,21 +2022,21 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create new Yum repository
-        yum_repo = make_repository({'product-id': module_product.id})
+        yum_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Create new Docker repository
-        docker_repo = make_repository(
+        docker_repo = cli_factory.make_repository(
             {
                 'content-type': 'docker',
                 'docker-upstream-name': 'quay/busybox',
                 'product-id': module_product.id,
-                'url': CONTAINER_REGISTRY_HUB,
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
         # Sync all three repos
         for repo_id in [yum_repo['id'], docker_repo['id']]:
             Repository.synchronize({'id': repo_id})
         # Create CV with different content types
-        new_cv = make_content_view(
+        new_cv = cli_factory.make_content_view(
             {
                 'organization-id': module_org.id,
                 'repository-ids': [yum_repo['id'], docker_repo['id']],
@@ -2093,7 +2087,7 @@ class TestContentView:
 
         :CaseImportance: Medium
         """
-        new_cv = make_content_view({'organization-id': module_manifest_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV
         ContentView.add_repository(
             {
@@ -2138,11 +2132,11 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        repository = make_repository({'product-id': module_product.id})
+        repository = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': repository['id']})
         # Create CV
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': content_view['id'], 'repository-id': repository['id']})
         # Publish a new version of CV
@@ -2151,7 +2145,9 @@ class TestContentView:
         # Let us now store the version1 id
         version1_id = content_view['versions'][0]['id']
         # Create composite CV
-        composite_cv = make_content_view({'composite': True, 'organization-id': module_org.id})
+        composite_cv = cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
         # Associate version to composite CV
         ContentView.add_version({'content-view-version-id': version1_id, 'id': composite_cv['id']})
         # Assert whether version was associated to composite CV
@@ -2161,7 +2157,7 @@ class TestContentView:
         ContentView.publish({'id': composite_cv['id']})
         # Assert whether Version1 was created and exists in Library Env.
         composite_cv = ContentView.info({'id': composite_cv['id']})
-        assert composite_cv['lifecycle-environments'][0]['name'] == ENVIRONMENT
+        assert composite_cv['lifecycle-environments'][0]['name'] == constants.ENVIRONMENT
         assert composite_cv['versions'][0]['version'] == '1.0'
 
     @pytest.mark.tier2
@@ -2192,13 +2188,13 @@ class TestContentView:
         :CaseImportance: Critical
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create lce
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a version1 of CV
@@ -2210,7 +2206,7 @@ class TestContentView:
         # Actual assert for this test happens HERE
         # Test whether the version1 now belongs to Library
         version1 = ContentView.version_info({'id': version1_id})
-        assert ENVIRONMENT in [env['label'] for env in version1['lifecycle-environments']]
+        assert constants.ENVIRONMENT in [env['label'] for env in version1['lifecycle-environments']]
         # Promotion of version1 to Dev env
         ContentView.version_promote(
             {'id': version1_id, 'to-lifecycle-environment-id': environment['id']}
@@ -2228,7 +2224,7 @@ class TestContentView:
         version2_id = new_cv['versions'][1]['id']
         # Test whether the version2 now belongs to Library
         version2 = ContentView.version_info({'id': version2_id})
-        assert ENVIRONMENT in [env['label'] for env in version2['lifecycle-environments']]
+        assert constants.ENVIRONMENT in [env['label'] for env in version2['lifecycle-environments']]
         # Promotion of version2 to Dev env
         ContentView.version_promote(
             {'id': version2_id, 'to-lifecycle-environment-id': environment['id']}
@@ -2263,13 +2259,13 @@ class TestContentView:
         :CaseLevel: Integration
         """
         # Create REPO
-        new_repo = make_repository({'product-id': module_product.id})
+        new_repo = cli_factory.make_repository({'product-id': module_product.id})
         # Sync REPO
         Repository.synchronize({'id': new_repo['id']})
         # Create lce
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Create CV
-        new_cv = make_content_view({'organization-id': module_org.id})
+        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         # Publish a version1 of CV
@@ -2280,7 +2276,7 @@ class TestContentView:
         version1_id = new_cv['versions'][0]['id']
         # Test whether the version1 now belongs to Library
         version = ContentView.version_info({'id': version1_id})
-        assert ENVIRONMENT in [env['label'] for env in version['lifecycle-environments']]
+        assert constants.ENVIRONMENT in [env['label'] for env in version['lifecycle-environments']]
         # Promotion of version1 to Dev env
         ContentView.version_promote(
             {'id': version1_id, 'to-lifecycle-environment-id': environment['id']}
@@ -2298,7 +2294,9 @@ class TestContentView:
         # Test that version1 does not exist in Library after publishing v2
         version1 = ContentView.version_info({'id': version1_id})
         assert len(version1['lifecycle-environments']) == 1
-        assert ENVIRONMENT not in [env['label'] for env in version1['lifecycle-environments']]
+        assert constants.ENVIRONMENT not in [
+            env['label'] for env in version1['lifecycle-environments']
+        ]
         # Only after we publish version2 the info is populated.
         new_cv = ContentView.info({'id': new_cv['id']})
         new_cv['versions'].sort(key=lambda version: version['id'])
@@ -2341,12 +2339,14 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert len(content_view['versions']) == 1
         version_1_id = content_view['versions'][0]['id']
-        composite_cv = make_content_view({'composite': True, 'organization-id': module_org.id})
+        composite_cv = cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
         ContentView.component_add(
             {
                 'composite-content-view-id': composite_cv['id'],
@@ -2388,15 +2388,15 @@ class TestContentView:
 
         :CaseLevel: System
         """
-        env = make_lifecycle_environment({'organization-id': module_org.id})
-        content_view = make_content_view({'organization-id': module_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2424,8 +2424,8 @@ class TestContentView:
 
         :CaseImportance: Medium
         """
-        env = make_lifecycle_environment({'organization-id': module_manifest_org.id})
-        content_view = make_content_view({'organization-id': module_manifest_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -2441,7 +2441,7 @@ class TestContentView:
         ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2472,8 +2472,8 @@ class TestContentView:
 
         :CaseImportance: Low
         """
-        env = make_lifecycle_environment({'organization-id': module_manifest_org.id})
-        content_view = make_content_view({'organization-id': module_manifest_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -2494,7 +2494,7 @@ class TestContentView:
             }
         )
 
-        make_content_view_filter_rule(
+        cli_factory.make_content_view_filter_rule(
             {
                 'content-view-filter': name,
                 'content-view-id': content_view['id'],
@@ -2510,7 +2510,7 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
 
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2535,11 +2535,11 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        new_product = make_product({'organization-id': module_org.id})
-        new_repo = make_repository({'product-id': new_product['id']})
-        env = make_lifecycle_environment({'organization-id': module_org.id})
+        new_product = cli_factory.make_product({'organization-id': module_org.id})
+        new_repo = cli_factory.make_repository({'product-id': new_product['id']})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         Repository.synchronize({'id': new_repo['id']})
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -2556,7 +2556,7 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
 
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2580,8 +2580,10 @@ class TestContentView:
 
         :CaseLevel: System
         """
-        env = make_lifecycle_environment({'organization-id': module_org.id})
-        content_view = make_content_view({'composite': True, 'organization-id': module_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view(
+            {'composite': True, 'organization-id': module_org.id}
+        )
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]
@@ -2590,7 +2592,7 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
 
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2618,14 +2620,18 @@ class TestContentView:
         :CaseImportance: Low
         """
         # see BZ #1222118
-        new_product = make_product({'organization-id': module_org.id})
+        new_product = cli_factory.make_product({'organization-id': module_org.id})
 
-        repository = make_repository(
-            {'content-type': 'puppet', 'product-id': new_product['id'], 'url': FAKE_0_PUPPET_REPO}
+        repository = cli_factory.make_repository(
+            {
+                'content-type': 'puppet',
+                'product-id': new_product['id'],
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
+            }
         )
         Repository.synchronize({'id': repository['id']})
 
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
 
         puppet_result = PuppetModule.list({'repository-id': repository['id'], 'per-page': False})
 
@@ -2635,7 +2641,7 @@ class TestContentView:
                 {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
             )
 
-        env = make_lifecycle_environment({'organization-id': module_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
 
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
@@ -2645,7 +2651,7 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '0'
 
-        make_fake_host(
+        cli_factory.make_fake_host(
             {
                 'content-view-id': content_view['id'],
                 'lifecycle-environment-id': env['id'],
@@ -2723,12 +2729,12 @@ class TestContentView:
             'Architecture': ['view_architectures'],
         }
         # Create a location and organization
-        loc = make_location()
-        default_loc = Location.info({'name': DEFAULT_LOC})
-        org = make_org()
+        loc = cli_factory.make_location()
+        default_loc = Location.info({'name': constants.DEFAULT_LOC})
+        org = cli_factory.make_org()
         Org.add_location({'id': org['id'], 'location-id': loc['id']})
         # Create a non admin user, for the moment without any permissions
-        user = make_user(
+        user = cli_factory.make_user(
             {
                 'admin': False,
                 'default-organization-id': org['id'],
@@ -2740,7 +2746,7 @@ class TestContentView:
             }
         )
         # Create a new role
-        role = make_role()
+        role = cli_factory.make_role()
         # Get the available permissions
         available_permissions = Filter.available_permissions()
         # group the available permissions by resource type
@@ -2762,7 +2768,7 @@ class TestContentView:
             # assert that all the required permissions are available
             assert set(permission_names) == set(available_permission_names)
             # Create the current resource type role permissions
-            make_filter({'role-id': role['id'], 'permissions': permission_names})
+            cli_factory.make_filter({'role-id': role['id'], 'permissions': permission_names})
         # Add the created and initiated role with permissions to user
         User.add_role({'id': user['id'], 'role-id': role['id']})
         # assert that the user is not an admin one and cannot read the current
@@ -2771,14 +2777,16 @@ class TestContentView:
             Role.with_user(user_name, user_password).info({'id': role['id']})
         assert 'Access denied' in str(context)
         # Create a lifecycle environment
-        env = make_lifecycle_environment({'organization-id': org['id']})
+        env = cli_factory.make_lifecycle_environment({'organization-id': org['id']})
         # Create a product
-        product = make_product({'organization-id': org['id']})
+        product = cli_factory.make_product({'organization-id': org['id']})
         # Create a yum repository and synchronize
-        repo = make_repository({'product-id': product['id'], 'url': FAKE_1_YUM_REPO})
+        repo = cli_factory.make_repository(
+            {'product-id': product['id'], 'url': constants.repos.FAKE_1_YUM_REPO}
+        )
         Repository.synchronize({'id': repo['id']})
         # Create a content view, add the yum repository and publish
-        content_view = make_content_view({'organization-id': org['id']})
+        content_view = cli_factory.make_content_view({'organization-id': org['id']})
         ContentView.add_repository(
             {'id': content_view['id'], 'organization-id': org['id'], 'repository-id': repo['id']}
         )
@@ -2877,11 +2885,11 @@ class TestContentView:
             'Architecture': ['view_architectures'],
         }
         # Create organization
-        loc = Location.info({'name': DEFAULT_LOC})
-        org = make_org()
+        loc = Location.info({'name': constants.DEFAULT_LOC})
+        org = cli_factory.make_org()
         Org.add_location({'id': org['id'], 'location-id': loc['id']})
         # Create a non admin user, for the moment without any permissions
-        user = make_user(
+        user = cli_factory.make_user(
             {
                 'admin': False,
                 'default-organization-id': org['id'],
@@ -2893,7 +2901,7 @@ class TestContentView:
             }
         )
         # Create a new role
-        role = make_role()
+        role = cli_factory.make_role()
         # Get the available permissions
         available_permissions = Filter.available_permissions()
         # group the available permissions by resource type
@@ -2915,7 +2923,7 @@ class TestContentView:
             # assert that all the required permissions are available
             assert set(permission_names) == set(available_permission_names)
             # Create the current resource type role permissions
-            make_filter({'role-id': role['id'], 'permissions': permission_names})
+            cli_factory.make_filter({'role-id': role['id'], 'permissions': permission_names})
         # Add the created and initiated role with permissions to user
         User.add_role({'id': user['id'], 'role-id': role['id']})
         # assert that the user is not an admin one and cannot read the current
@@ -2924,14 +2932,16 @@ class TestContentView:
             Role.with_user(user_name, user_password).info({'id': role['id']})
             assert '403 Forbidden' in str(context)
         # Create a lifecycle environment
-        env = make_lifecycle_environment({'organization-id': org['id']})
+        env = cli_factory.make_lifecycle_environment({'organization-id': org['id']})
         # Create a product
-        product = make_product({'organization-id': org['id']})
+        product = cli_factory.make_product({'organization-id': org['id']})
         # Create a yum repository and synchronize
-        repo = make_repository({'product-id': product['id'], 'url': FAKE_1_YUM_REPO})
+        repo = cli_factory.make_repository(
+            {'product-id': product['id'], 'url': constants.repos.FAKE_1_YUM_REPO}
+        )
         Repository.synchronize({'id': repo['id']})
         # Create a content view, add the yum repository and publish
-        content_view = make_content_view({'organization-id': org['id']})
+        content_view = cli_factory.make_content_view({'organization-id': org['id']})
         ContentView.add_repository(
             {'id': content_view['id'], 'organization-id': org['id'], 'repository-id': repo['id']}
         )
@@ -2976,7 +2986,7 @@ class TestContentView:
         :CaseImportance: Critical
         """
         cloned_cv_name = gen_string('alpha')
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         new_cv = ContentView.copy({'id': content_view['id'], 'new-name': cloned_cv_name})[0]
         new_cv = ContentView.info({'id': new_cv['id']})
         assert new_cv['name'] == cloned_cv_name
@@ -2994,7 +3004,7 @@ class TestContentView:
         :CaseImportance: Critical
         """
         cloned_cv_name = gen_string('alpha')
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         new_cv = ContentView.copy(
             {
                 'name': content_view['name'],
@@ -3020,8 +3030,8 @@ class TestContentView:
         :CaseImportance: High
         """
         cloned_cv_name = gen_string('alpha')
-        lc_env = make_lifecycle_environment({'organization-id': module_org.id})
-        content_view = make_content_view({'organization-id': module_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]
@@ -3049,9 +3059,9 @@ class TestContentView:
         :CaseLevel: Integration
         """
         cloned_cv_name = gen_string('alpha')
-        lc_env = make_lifecycle_environment({'organization-id': module_org.id})
-        lc_env_cloned = make_lifecycle_environment({'organization-id': module_org.id})
-        content_view = make_content_view({'organization-id': module_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lc_env_cloned = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]
@@ -3123,16 +3133,16 @@ class TestContentView:
         :CaseImportance: Low
         """
         new_name = gen_string('alpha')
-        custom_yum_product = make_product({'organization-id': module_org.id})
-        custom_yum_repo = make_repository(
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': FAKE_1_YUM_REPO,
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -3145,7 +3155,7 @@ class TestContentView:
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
         assert len(content_view_versions) > 0
         content_view_version = content_view_versions[-1]
-        assert ENVIRONMENT in _get_content_view_version_lce_names_set(
+        assert constants.ENVIRONMENT in _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id']
         )
         # rename the content view
@@ -3157,12 +3167,12 @@ class TestContentView:
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': ENVIRONMENT,
+                'lifecycle-environment': constants.ENVIRONMENT,
             }
         )
         # ensure that the published content version is not in Library
         # environment
-        assert ENVIRONMENT not in _get_content_view_version_lce_names_set(
+        assert constants.ENVIRONMENT not in _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id']
         )
 
@@ -3190,13 +3200,13 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        puppet_product = make_product({'organization-id': module_org.id})
-        puppet_repository = make_repository(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3205,7 +3215,7 @@ class TestContentView:
         )
         assert len(puppet_modules) > 0
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.puppet_module_add(
             {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
         )
@@ -3228,7 +3238,7 @@ class TestContentView:
         content_view_version_lce_names = {
             lce['name'] for lce in content_view_version_info['lifecycle-environments']
         }
-        assert {ENVIRONMENT, lce_dev['name']} == content_view_version_lce_names
+        assert {constants.ENVIRONMENT, lce_dev['name']} == content_view_version_lce_names
         initial_puppet_modules_ids = {
             puppet_module['id']
             for puppet_module in content_view_version_info.get('puppet-modules', [])
@@ -3239,7 +3249,7 @@ class TestContentView:
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': ENVIRONMENT,
+                'lifecycle-environment': constants.ENVIRONMENT,
             }
         )
         # ensure content view version not in Library and only in DEV
@@ -3283,22 +3293,22 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        lce_qe = make_lifecycle_environment(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lce_qe = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_dev['name']}
         )
-        docker_product = make_product({'organization-id': module_org.id})
-        docker_repository = make_repository(
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': CONTAINER_REGISTRY_HUB,
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
         Repository.synchronize({'id': docker_repository['id']})
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -3317,18 +3327,16 @@ class TestContentView:
         # ensure that the published content version is in Library, DEV and QE
         # environments
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from Library lifecycle environment
         ContentView.remove_from_environment(
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': ENVIRONMENT,
+                'lifecycle-environment': constants.ENVIRONMENT,
             }
         )
         # ensure content view version is not in Library and only in DEV and QE
@@ -3360,28 +3368,28 @@ class TestContentView:
 
         :CaseLevel: Integration
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        lce_qe = make_lifecycle_environment(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lce_qe = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_dev['name']}
         )
-        lce_prod = make_lifecycle_environment(
+        lce_prod = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_qe['name']}
         )
-        custom_yum_product = make_product({'organization-id': module_org.id})
-        custom_yum_repo = make_repository(
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': FAKE_1_YUM_REPO,
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = make_product({'organization-id': module_org.id})
-        puppet_repository = make_repository(
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3390,18 +3398,18 @@ class TestContentView:
         )
         assert len(puppet_modules) > 0
         puppet_module = random.choice(puppet_modules)
-        docker_product = make_product({'organization-id': module_org.id})
-        docker_repository = make_repository(
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
-                'url': CONTAINER_REGISTRY_HUB,
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
         Repository.synchronize({'id': docker_repository['id']})
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         for repo in [custom_yum_repo, docker_repository]:
             ContentView.add_repository(
                 {
@@ -3424,19 +3432,17 @@ class TestContentView:
         # ensure that the published content version is in Library, DEV, QE and
         # PROD environments
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from Library lifecycle environment
         ContentView.remove_from_environment(
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': ENVIRONMENT,
+                'lifecycle-environment': constants.ENVIRONMENT,
             }
         )
         # ensure content view version is not in Library and only in DEV, QE
@@ -3445,9 +3451,7 @@ class TestContentView:
             lce_dev['name'],
             lce_qe['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
 
     @pytest.mark.tier2
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -3475,31 +3479,31 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        lce_qe = make_lifecycle_environment(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lce_qe = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_dev['name']}
         )
-        lce_stage = make_lifecycle_environment(
+        lce_stage = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_qe['name']}
         )
-        lce_prod = make_lifecycle_environment(
+        lce_prod = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_stage['name']}
         )
-        custom_yum_product = make_product({'organization-id': module_org.id})
-        custom_yum_repo = make_repository(
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': FAKE_1_YUM_REPO,
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = make_product({'organization-id': module_org.id})
-        puppet_repository = make_repository(
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3508,7 +3512,7 @@ class TestContentView:
         )
         assert len(puppet_modules) > 0
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -3530,14 +3534,12 @@ class TestContentView:
         # ensure that the published content version is in Library, DEV, QE,
         # STAGE and PROD environments
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from PROD lifecycle environment
         ContentView.remove_from_environment(
             {
@@ -3549,26 +3551,22 @@ class TestContentView:
         # ensure content view version is not in PROD and only in Library, DEV,
         # QE and STAGE environments
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # promote content view version to PROD environment again
         ContentView.version_promote(
             {'id': content_view_version['id'], 'to-lifecycle-environment-id': lce_prod['id']}
         )
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
 
     @pytest.mark.tier3
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
@@ -3592,31 +3590,31 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        lce_qe = make_lifecycle_environment(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lce_qe = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_dev['name']}
         )
-        lce_stage = make_lifecycle_environment(
+        lce_stage = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_qe['name']}
         )
-        lce_prod = make_lifecycle_environment(
+        lce_prod = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_stage['name']}
         )
-        custom_yum_product = make_product({'organization-id': module_org.id})
-        custom_yum_repo = make_repository(
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': FAKE_1_YUM_REPO,
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = make_product({'organization-id': module_org.id})
-        puppet_repository = make_repository(
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3625,7 +3623,7 @@ class TestContentView:
         )
         assert len(puppet_modules) > 0
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -3647,14 +3645,12 @@ class TestContentView:
         # ensure that the published content version is in Library, DEV, QE,
         # STAGE and PROD environments
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
             lce_prod['name'],
-        } == _get_content_view_version_lce_names_set(
-            content_view['id'], content_view_version['id']
-        )
+        } == _get_content_view_version_lce_names_set(content_view['id'], content_view_version['id'])
         # remove content view version from QE, STAGE, PROD lifecycle
         # environments
         for lce in [lce_qe, lce_stage, lce_prod]:
@@ -3667,7 +3663,7 @@ class TestContentView:
             )
         # ensure content view version is not in PROD and only in Library, DEV,
         # QE and STAGE environments
-        assert {ENVIRONMENT, lce_dev['name']} == _get_content_view_version_lce_names_set(
+        assert {constants.ENVIRONMENT, lce_dev['name']} == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id']
         )
 
@@ -3694,31 +3690,31 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        lce_dev = make_lifecycle_environment({'organization-id': module_org.id})
-        lce_qe = make_lifecycle_environment(
+        lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        lce_qe = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_dev['name']}
         )
-        lce_stage = make_lifecycle_environment(
+        lce_stage = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_qe['name']}
         )
-        lce_prod = make_lifecycle_environment(
+        lce_prod = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': lce_stage['name']}
         )
-        custom_yum_product = make_product({'organization-id': module_org.id})
-        custom_yum_repo = make_repository(
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': FAKE_1_YUM_REPO,
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = make_product({'organization-id': module_org.id})
-        puppet_repository = make_repository(
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': FAKE_0_PUPPET_REPO,
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3727,7 +3723,7 @@ class TestContentView:
         )
         assert len(puppet_modules) > 0
         puppet_module = random.choice(puppet_modules)
-        content_view = make_content_view({'organization-id': module_org.id})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
         ContentView.add_repository(
             {
                 'id': content_view['id'],
@@ -3752,7 +3748,7 @@ class TestContentView:
             content_view['id'], content_view_version['id']
         )
         assert {
-            ENVIRONMENT,
+            constants.ENVIRONMENT,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
@@ -3857,10 +3853,11 @@ class TestContentView:
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
-    @pytest.mark.libvirt_content_host
     @pytest.mark.upgrade
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self, module_org):
+    def test_positive_remove_cv_version_from_multi_env_capsule_scenario(
+        self, module_org, capsule_configured
+    ):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
 
@@ -3897,163 +3894,164 @@ class TestContentView:
         """
         # Note: This test case requires complete external capsule
         #  configuration.
-        dev_env = make_lifecycle_environment({'organization-id': module_org.id})
-        qe_env = make_lifecycle_environment(
+        dev_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
+        qe_env = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': dev_env['name']}
         )
-        prod_env = make_lifecycle_environment(
+        prod_env = cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id, 'prior': qe_env['name']}
         )
-        with CapsuleVirtualMachine(organization_ids=[module_org.id]) as capsule_vm:
-            capsule = Capsule().info({'name': capsule_vm.hostname})
-            # Add all environments to capsule
-            environments = {ENVIRONMENT, dev_env['name'], qe_env['name'], prod_env['name']}
-            for env_name in environments:
-                Capsule.content_add_lifecycle_environment(
-                    {
-                        'id': capsule['id'],
-                        'organization-id': module_org.id,
-                        'environment': env_name,
-                    }
-                )
-            capsule_environments = Capsule.content_lifecycle_environments(
-                {'id': capsule['id'], 'organization-id': module_org.id}
-            )
-            capsule_environments_names = {env['name'] for env in capsule_environments}
-            assert environments == capsule_environments_names
-            # Setup a yum repo
-            custom_yum_product = make_product({'organization-id': module_org.id})
-            custom_yum_repo = make_repository(
+        capsule = Capsule().info({'name': capsule_configured.hostname})
+        # Add all environments to capsule
+        environments = {constants.ENVIRONMENT, dev_env['name'], qe_env['name'], prod_env['name']}
+        for env_name in environments:
+            Capsule.content_add_lifecycle_environment(
                 {
-                    'content-type': 'yum',
-                    'product-id': custom_yum_product['id'],
-                    'url': FAKE_1_YUM_REPO,
+                    'id': capsule['id'],
+                    'organization-id': module_org.id,
+                    'environment': env_name,
                 }
             )
-            Repository.synchronize({'id': custom_yum_repo['id']})
-            # Setup a puppet repo
-            puppet_product = make_product({'organization-id': module_org.id})
-            puppet_repository = make_repository(
+        capsule_environments = Capsule.content_lifecycle_environments(
+            {'id': capsule['id'], 'organization-id': module_org.id}
+        )
+        capsule_environments_names = {env['name'] for env in capsule_environments}
+        assert environments == capsule_environments_names
+        # Setup a yum repo
+        custom_yum_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': custom_yum_product['id'],
+                'url': constants.repos.FAKE_1_YUM_REPO,
+            }
+        )
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        # Setup a puppet repo
+        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
+        puppet_repository = cli_factory.make_repository(
+            {
+                'content-type': 'puppet',
+                'product-id': puppet_product['id'],
+                'url': constants.repos.FAKE_0_PUPPET_REPO,
+            }
+        )
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list(
+            {'repository-id': puppet_repository['id'], 'per-page': False}
+        )
+        assert len(puppet_modules) > 0
+        puppet_module = puppet_modules[0]
+        # Setup a docker repo
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
+            {
+                'content-type': 'docker',
+                'docker-upstream-name': 'busybox',
+                'name': gen_string('alpha', 20),
+                'product-id': docker_product['id'],
+                'url': constants.CONTAINER_REGISTRY_HUB,
+            }
+        )
+        Repository.synchronize({'id': docker_repository['id']})
+        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
+        # Associate the yum repository to content view
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': custom_yum_repo['id'],
+            }
+        )
+        # Associate the puppet module to content view
+        ContentView.puppet_module_add(
+            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
+        )
+        # Associate the docker repository to content view
+        ContentView.add_repository(
+            {'id': content_view['id'], 'repository-id': docker_repository['id']}
+        )
+        # Publish the content view
+        ContentView.publish({'id': content_view['id']})
+        content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
+        # Promote the content view to DEV, QE, PROD
+        for env in [dev_env, qe_env, prod_env]:
+            ContentView.version_promote(
                 {
-                    'content-type': 'puppet',
-                    'product-id': puppet_product['id'],
-                    'url': FAKE_0_PUPPET_REPO,
+                    'id': content_view_version['id'],
+                    'organization-id': module_org.id,
+                    'to-lifecycle-environment-id': env['id'],
                 }
             )
-            Repository.synchronize({'id': puppet_repository['id']})
-            puppet_modules = PuppetModule.list(
-                {'repository-id': puppet_repository['id'], 'per-page': False}
-            )
-            assert len(puppet_modules) > 0
-            puppet_module = puppet_modules[0]
-            # Setup a docker repo
-            docker_product = make_product({'organization-id': module_org.id})
-            docker_repository = make_repository(
-                {
-                    'content-type': 'docker',
-                    'docker-upstream-name': 'busybox',
-                    'name': gen_string('alpha', 20),
-                    'product-id': docker_product['id'],
-                    'url': CONTAINER_REGISTRY_HUB,
-                }
-            )
-            Repository.synchronize({'id': docker_repository['id']})
-            content_view = make_content_view({'organization-id': module_org.id})
-            # Associate the yum repository to content view
-            ContentView.add_repository(
+        # Synchronize the capsule content
+        Capsule.content_synchronize({'id': capsule['id'], 'organization-id': module_org.id})
+        capsule_content_info = Capsule.content_info(
+            {'id': capsule['id'], 'organization-id': module_org.id}
+        )
+        # Ensure that all environments exists in capsule content
+        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
+        capsule_content_lce_names = {lce['name'] for lce in capsule_content_info_lces.values()}
+        assert environments == capsule_content_lce_names
+        # Ensure first that the content view exit in all capsule
+        # environments
+        for capsule_content_info_lce in capsule_content_info_lces.values():
+            assert 'content-views' in capsule_content_info_lce
+            # Retrieve the content views info of this lce
+            capsule_content_info_lce_cvs = list(capsule_content_info_lce['content-views'].values())
+            # Get the content views names of this lce
+            capsule_content_info_lce_cvs_names = [
+                cv['name']['name'] for cv in capsule_content_info_lce_cvs
+            ]
+            cv_count = 1
+            if capsule_content_info_lce['name'] == constants.ENVIRONMENT:
+                # There is a Default Organization View in addition
+                cv_count = 2
+            assert len(capsule_content_info_lce_cvs) == cv_count
+            assert content_view['name'] in capsule_content_info_lce_cvs_names
+        # Suspend the capsule with ensure True to ping the virtual machine
+        try:
+            capsule_configured.power_control(state=VmState.STOPPED, ensure=True)
+        except NotImplementedError:
+            pytest.skip('Power control host workflow is not defined')
+        # Remove the content view version from Library and DEV environments
+        for lce_name in [constants.ENVIRONMENT, dev_env['name']]:
+            ContentView.remove_from_environment(
                 {
                     'id': content_view['id'],
                     'organization-id': module_org.id,
-                    'repository-id': custom_yum_repo['id'],
+                    'lifecycle-environment': lce_name,
                 }
             )
-            # Associate the puppet module to content view
-            ContentView.puppet_module_add(
-                {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-            )
-            # Associate the docker repository to content view
-            ContentView.add_repository(
-                {'id': content_view['id'], 'repository-id': docker_repository['id']}
-            )
-            # Publish the content view
-            ContentView.publish({'id': content_view['id']})
-            content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
-            # Promote the content view to DEV, QE, PROD
-            for env in [dev_env, qe_env, prod_env]:
-                ContentView.version_promote(
-                    {
-                        'id': content_view_version['id'],
-                        'organization-id': module_org.id,
-                        'to-lifecycle-environment-id': env['id'],
-                    }
-                )
-            # Synchronize the capsule content
-            Capsule.content_synchronize({'id': capsule['id'], 'organization-id': module_org.id})
-            capsule_content_info = Capsule.content_info(
-                {'id': capsule['id'], 'organization-id': module_org.id}
-            )
-            # Ensure that all environments exists in capsule content
-            capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-            capsule_content_lce_names = {lce['name'] for lce in capsule_content_info_lces.values()}
-            assert environments == capsule_content_lce_names
-            # Ensure first that the content view exit in all capsule
-            # environments
-            for capsule_content_info_lce in capsule_content_info_lces.values():
-                assert 'content-views' in capsule_content_info_lce
-                # Retrieve the content views info of this lce
-                capsule_content_info_lce_cvs = list(
-                    capsule_content_info_lce['content-views'].values()
-                )
-                # Get the content views names of this lce
-                capsule_content_info_lce_cvs_names = [
-                    cv['name']['name'] for cv in capsule_content_info_lce_cvs
-                ]
-                cv_count = 1
-                if capsule_content_info_lce['name'] == ENVIRONMENT:
-                    # There is a Default Organization View in addition
-                    cv_count = 2
-                assert len(capsule_content_info_lce_cvs) == cv_count
+        # Assert that the content view version does not exit in Library and
+        # DEV and exist only in QE and PROD
+        environments_with_cv = {qe_env['name'], prod_env['name']}
+        assert environments_with_cv == _get_content_view_version_lce_names_set(
+            content_view['id'], content_view_version['id']
+        )
+        # Resume the capsule with ensure True to ping the virtual machine
+        try:
+            capsule_configured.power_control(state=VmState.RUNNING, ensure=True)
+        except NotImplementedError:
+            pytest.skip('Power control host workflow is not defined')
+        # Assert that in capsule content the content view version
+        # does not exit in Library and DEV and exist only in QE and PROD
+        capsule_content_info = Capsule.content_info(
+            {'id': capsule['id'], 'organization-id': module_org.id}
+        )
+        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
+        for capsule_content_info_lce in capsule_content_info_lces.values():
+            # retrieve the content views info of this lce
+            capsule_content_info_lce_cvs = capsule_content_info_lce.get(
+                'content-views', {}
+            ).values()
+            # get the content views names of this lce
+            capsule_content_info_lce_cvs_names = [
+                cv['name']['name'] for cv in capsule_content_info_lce_cvs
+            ]
+            if capsule_content_info_lce['name'] in environments_with_cv:
                 assert content_view['name'] in capsule_content_info_lce_cvs_names
-            # Suspend the capsule with ensure True to ping the virtual machine
-            suspended = capsule_vm.suspend(ensure=True)
-            assert suspended
-            # Remove the content view version from Library and DEV environments
-            for lce_name in [ENVIRONMENT, dev_env['name']]:
-                ContentView.remove_from_environment(
-                    {
-                        'id': content_view['id'],
-                        'organization-id': module_org.id,
-                        'lifecycle-environment': lce_name,
-                    }
-                )
-            # Assert that the content view version does not exit in Library and
-            # DEV and exist only in QE and PROD
-            environments_with_cv = {qe_env['name'], prod_env['name']}
-            assert environments_with_cv == _get_content_view_version_lce_names_set(
-                content_view['id'], content_view_version['id']
-            )
-            # Resume the capsule with ensure True to ping the virtual machine
-            resumed = capsule_vm.resume(ensure=True)
-            assert resumed
-            # Assert that in capsule content the content view version
-            # does not exit in Library and DEV and exist only in QE and PROD
-            capsule_content_info = Capsule.content_info(
-                {'id': capsule['id'], 'organization-id': module_org.id}
-            )
-            capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-            for capsule_content_info_lce in capsule_content_info_lces.values():
-                # retrieve the content views info of this lce
-                capsule_content_info_lce_cvs = capsule_content_info_lce.get(
-                    'content-views', {}
-                ).values()
-                # get the content views names of this lce
-                capsule_content_info_lce_cvs_names = [
-                    cv['name']['name'] for cv in capsule_content_info_lce_cvs
-                ]
-                if capsule_content_info_lce['name'] in environments_with_cv:
-                    assert content_view['name'] in capsule_content_info_lce_cvs_names
-                else:
-                    assert content_view['name'] not in capsule_content_info_lce_cvs_names
+            else:
+                assert content_view['name'] not in capsule_content_info_lce_cvs_names
 
     @pytest.mark.tier2
     def test_negative_user_with_no_create_view_cv_permissions(self, module_org):
@@ -4069,9 +4067,9 @@ class TestContentView:
         :CaseImportance: Critical
         """
         password = gen_alphanumeric()
-        no_rights_user = make_user({'password': password})
+        no_rights_user = cli_factory.make_user({'password': password})
         no_rights_user['password'] = password
-        org_id = make_org(cached=True)['id']
+        org_id = cli_factory.make_org(cached=True)['id']
         for name in generate_strings_list(exclude_types=['cjk']):
             # test that user can't create
             with pytest.raises(CLIReturnCodeError):
@@ -4079,7 +4077,7 @@ class TestContentView:
                     {'name': name, 'organization-id': org_id}
                 )
             # test that user can't read
-            con_view = make_content_view({'name': name, 'organization-id': org_id})
+            con_view = cli_factory.make_content_view({'name': name, 'organization-id': org_id})
             with pytest.raises(CLIReturnCodeError):
                 ContentView.with_user(no_rights_user['login'], no_rights_user['password']).info(
                     {'id': con_view['id']}
@@ -4094,18 +4092,21 @@ class TestContentView:
         :setup: create a user with the Content View read-only role
 
         :expectedresults: User with read-only role for content view can view
-            the content view but not Create / Modify / Promote / Publish
+            the content view but not Create / Modify / Promote / Publish /
+            create product / create host collection / create activation key
+
+        :BZ: 1922134
 
         :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_org.id})
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         password = gen_string('alphanumeric')
-        user = make_user({'password': password})
-        role = make_role()
-        make_filter(
+        user = cli_factory.make_user({'password': password})
+        role = cli_factory.make_role()
+        cli_factory.make_filter(
             {
                 'organization-ids': module_org.id,
                 'permissions': 'view_content_views',
@@ -4139,6 +4140,21 @@ class TestContentView:
                     'to-lifecycle-environment-id': environment['id'],
                 }
             )
+        # or create a product
+        with pytest.raises(CLIReturnCodeError):
+            Product.with_user(user['login'], password).create(
+                {'name': gen_string('alpha'), 'organization-id': module_org.id}
+            )
+        # cannot create activation key
+        with pytest.raises(CLIReturnCodeError):
+            ActivationKey.with_user(user['login'], password).create(
+                {'name': gen_string('alpha'), 'organization-id': module_org.id}
+            )
+        # cannot create host collection
+        with pytest.raises(CLIReturnCodeError):
+            HostCollection.with_user(user['login'], password).create(
+                {'organization-id': module_org.id}
+            )
 
     @pytest.mark.tier2
     def test_positive_user_with_all_cv_permissions(self, module_org):
@@ -4158,14 +4174,18 @@ class TestContentView:
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_org.id})
-        environment = make_lifecycle_environment({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
+        environment = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         password = gen_string('alphanumeric')
-        user = make_user({'password': password, 'organization-ids': module_org.id})
-        role = make_role({'organization-ids': module_org.id})
+        user = cli_factory.make_user({'password': password, 'organization-ids': module_org.id})
+        role = cli_factory.make_role({'organization-ids': module_org.id})
         # note: the filters inherit role organizations
-        make_filter({'permissions': PERMISSIONS['Katello::ContentView'], 'role-id': role['id']})
-        make_filter({'permissions': PERMISSIONS['Katello::KTEnvironment'], 'role-id': role['id']})
+        cli_factory.make_filter(
+            {'permissions': constants.PERMISSIONS['Katello::ContentView'], 'role-id': role['id']}
+        )
+        cli_factory.make_filter(
+            {'permissions': constants.PERMISSIONS['Katello::KTEnvironment'], 'role-id': role['id']}
+        )
         User.add_role({'id': user['id'], 'role-id': role['id']})
         # Make sure user is not admin and has only expected roles assigned
         user = User.info({'id': user['id']})
@@ -4219,14 +4239,17 @@ class TestContentView:
         :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
-        repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
+        repo_url = create_repo(
+            repo_name, constants.repos.FAKE_0_INC_UPD_URL, [constants.FAKE_0_INC_UPD_OLD_PACKAGE]
+        )
         result = repo_add_updateinfo(
-            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
+            repo_name,
+            f'{constants.repos.FAKE_0_INC_UPD_URL}{constants.FAKE_0_INC_UPD_OLD_UPDATEFILE}',
         )
         assert result.return_code == 0
-        repo = make_repository({'product-id': module_product.id, 'url': repo_url})
+        repo = cli_factory.make_repository({'product-id': module_product.id, 'url': repo_url})
         Repository.synchronize({'id': repo['id']})
-        content_view = make_content_view(
+        content_view = cli_factory.make_content_view(
             {'organization-id': module_org.id, 'repository-ids': repo['id']}
         )
         ContentView.publish({'id': content_view['id']})
@@ -4234,21 +4257,27 @@ class TestContentView:
         assert len(content_view['versions']) == 1
         cvv = content_view['versions'][0]
         create_repo(
-            repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
+            repo_name,
+            constants.repos.FAKE_0_INC_UPD_URL,
+            [constants.repos.FAKE_0_INC_UPD_NEW_PACKAGE],
+            wipe_repodata=True,
         )
         result = repo_add_updateinfo(
-            repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
+            repo_name,
+            f'{constants.repos.FAKE_0_INC_UPD_URL}{constants.FAKE_0_INC_UPD_NEW_UPDATEFILE}',
         )
         assert result.return_code == 0
         Repository.synchronize({'id': repo['id']})
         result = ContentView.version_incremental_update(
-            {'content-view-version-id': cvv['id'], 'errata-ids': FAKE_0_INC_UPD_ERRATA}
+            {'content-view-version-id': cvv['id'], 'errata-ids': constants.FAKE_0_INC_UPD_ERRATA}
         )
         # Inc update output format is pretty weird - list of dicts where each
         # key's value is actual line from stdout
         result = [line.strip() for line_dict in result for line in line_dict.values()]
-        assert FAKE_0_INC_UPD_ERRATA in [line.strip() for line in result]
-        assert FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm') in [line.strip() for line in result]
+        assert constants.FAKE_0_INC_UPD_ERRATA in [line.strip() for line in result]
+        assert constants.FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm') in [
+            line.strip() for line in result
+        ]
         content_view = ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
@@ -4283,9 +4312,9 @@ class TestContentView:
 
         :CaseImportance: Medium
         """
-        yum_repo = make_repository({'product-id': module_product.id})
+        yum_repo = cli_factory.make_repository({'product-id': module_product.id})
         Repository.synchronize({'id': yum_repo['id']})
-        content_view = make_content_view(
+        content_view = cli_factory.make_content_view(
             {'organization-id': module_org.id, 'repository-ids': yum_repo['id']}
         )
         ContentView.publish({'id': content_view['id']})
@@ -4293,7 +4322,7 @@ class TestContentView:
         assert len(content_view['versions']) == 1
         cvv = ContentView.version_info({'id': content_view['versions'][0]['id']})
         assert len(cvv['puppet-modules']) == 0
-        comp_content_view = make_content_view(
+        comp_content_view = cli_factory.make_content_view(
             {'component-ids': cvv['id'], 'composite': True, 'organization-id': module_org.id}
         )
         ContentView.publish({'id': comp_content_view['id']})
@@ -4301,8 +4330,12 @@ class TestContentView:
         assert len(comp_content_view['versions']) == 1
         comp_cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
         assert len(comp_cvv['puppet-modules']) == 0
-        puppet_repository = make_repository(
-            {'content-type': 'puppet', 'product-id': module_product.id, 'url': CUSTOM_PUPPET_REPO}
+        puppet_repository = cli_factory.make_repository(
+            {
+                'content-type': 'puppet',
+                'product-id': module_product.id,
+                'url': constants.repos.CUSTOM_PUPPET_REPO,
+            }
         )
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_module = PuppetModule.list(
@@ -4326,7 +4359,7 @@ class TestContentView:
             for version in content_view['versions']
             if version['version'] == '1.1'
         ]
-        assert len(cvvs) > 0
+        assert len(cvvs)
         cvv = cvvs[0]
         assert len(cvv['puppet-modules']) == 1
         assert list(cvv['puppet-modules'].values())[0]['id'] == puppet_module['id']
@@ -4337,13 +4370,13 @@ class TestContentView:
             for comp_version in comp_content_view['versions']
             if comp_version['version'] == '1.1'
         ]
-        assert len(comp_cvv) > 0
+        assert len(comp_cvv)
         comp_cvvs = comp_cvv[0]
         assert len(comp_cvvs['puppet-modules']) == 1
         assert list(comp_cvvs['puppet-modules'].values())[0]['id'] == puppet_module['id']
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
+@pytest.mark.skip_if_open('BZ:1625783')
 class TestOstreeContentView:
     """Tests for custom ostree contents in content views."""
 
@@ -4361,7 +4394,7 @@ class TestOstreeContentView:
         :CaseImportance: Critical
         """
         # Create CV
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         product = all_content_type['ostree_repo']['product']['name']
         ostree_repo = all_content_type['ostree_repo']['name']
         # Associate repo to CV with names.
@@ -4389,7 +4422,7 @@ class TestOstreeContentView:
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         product = all_content_type['ostree_repo']['product']['name']
         ostree_repo = all_content_type['ostree_repo']['name']
@@ -4418,7 +4451,7 @@ class TestOstreeContentView:
 
         :CaseLevel: Integration
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         product = all_content_type['ostree_repo']['product']['name']
         ostree_repo = all_content_type['ostree_repo']['name']
@@ -4432,7 +4465,7 @@ class TestOstreeContentView:
         )
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
-        lc_env = make_lifecycle_environment({'organization-id': module_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lc_env['id']}
@@ -4456,7 +4489,7 @@ class TestOstreeContentView:
 
         :CaseImportance: High
         """
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         product = all_content_type['ostree_repo']['product']['name']
         ostree_repo = all_content_type['ostree_repo']['name']
@@ -4486,7 +4519,7 @@ class TestOstreeContentView:
             )
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
-        lc_env = make_lifecycle_environment({'organization-id': module_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lc_env['id']}
@@ -4496,7 +4529,7 @@ class TestOstreeContentView:
         assert environment in cv['lifecycle-environments']
 
 
-@pytest.mark.skip_if_open("BZ:1625783")
+@pytest.mark.skip_if_open('BZ:1625783')
 @pytest.mark.run_in_one_thread
 class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
@@ -4514,14 +4547,14 @@ class TestContentViewRedHatOstreeContent:
 
         :CaseLevel: Integration
         """
-        cv = make_content_view({'organization-id': module_manifest_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV with names.
         repo = atomic_repo['name']
         ContentView.add_repository(
             {
                 'name': cv['name'],
                 'organization': module_manifest_org.name,
-                'product': PRDS['rhah'],
+                'product': constants.PRDS['rhah'],
                 'repository': repo,
             }
         )
@@ -4541,13 +4574,13 @@ class TestContentViewRedHatOstreeContent:
 
         :CaseImportance: Critical
         """
-        cv = make_content_view({'organization-id': module_manifest_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
             {
                 'name': cv['name'],
                 'organization': module_manifest_org.name,
-                'product': PRDS['rhah'],
+                'product': constants.PRDS['rhah'],
                 'repository': atomic_repo['name'],
             }
         )
@@ -4568,19 +4601,19 @@ class TestContentViewRedHatOstreeContent:
 
         :CaseImportance: High
         """
-        cv = make_content_view({'organization-id': module_manifest_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
             {
                 'name': cv['name'],
                 'organization': module_manifest_org.name,
-                'product': PRDS['rhah'],
+                'product': constants.PRDS['rhah'],
                 'repository': atomic_repo['name'],
             }
         )
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
-        lc_env = make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lc_env['id']}
@@ -4607,28 +4640,28 @@ class TestContentViewRedHatOstreeContent:
         """
         RepositorySet.enable(
             {
-                'name': REPOSET['rhst7'],
+                'name': constants.REPOSET['rhst7'],
                 'organization-id': module_manifest_org.id,
-                'product': PRDS['rhel'],
+                'product': constants.PRDS['rhel'],
                 'releasever': None,
                 'basearch': 'x86_64',
             }
         )
-        rpm_repo_name = REPOS['rhst7']['name']
+        rpm_repo_name = constants.REPOS['rhst7']['name']
         Repository.synchronize(
             {
                 'name': rpm_repo_name,
                 'organization-id': module_manifest_org.id,
-                'product': PRDS['rhel'],
+                'product': constants.PRDS['rhel'],
             }
         )
-        cv = make_content_view({'organization-id': module_manifest_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_manifest_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
             {
                 'name': cv['name'],
                 'organization': module_manifest_org.name,
-                'product': PRDS['rhah'],
+                'product': constants.PRDS['rhah'],
                 'repository': atomic_repo['name'],
             }
         )
@@ -4636,7 +4669,7 @@ class TestContentViewRedHatOstreeContent:
             {
                 'name': cv['name'],
                 'organization': module_manifest_org.name,
-                'product': PRDS['rhel'],
+                'product': constants.PRDS['rhel'],
                 'repository': rpm_repo_name,
             }
         )
@@ -4645,7 +4678,7 @@ class TestContentViewRedHatOstreeContent:
         assert cv['yum-repositories'][0]['name'] == rpm_repo_name
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
-        lc_env = make_lifecycle_environment({'organization-id': module_manifest_org.id})
+        lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_manifest_org.id})
         # Promote the Published version of CV to the next env
         ContentView.version_promote(
             {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lc_env['id']}
@@ -4667,14 +4700,16 @@ class TestContentViewFileRepo:
         if options is None:
             options = {'product-id': module_product.id, 'content-type': 'file'}
         if not options.get('content-type'):
-            raise CLIFactoryError('Please provide a valid Content Type.')
-        new_repo = make_repository(options)
-        remote_path = f"/tmp/{RPM_TO_UPLOAD}"
+            raise cli_factory.CLIFactoryError('Please provide a valid Content Type.')
+        new_repo = cli_factory.make_repository(options)
+        remote_path = f'/tmp/{constants.RPM_TO_UPLOAD}'
         if 'multi_upload' not in options or not options['multi_upload']:
-            ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_path)
+            ssh.upload_file(
+                local_file=get_data_file(constants.RPM_TO_UPLOAD), remote_file=remote_path
+            )
         else:
-            remote_path = "/tmp/{}/".format(gen_string('alpha'))
-            ssh.upload_files(local_dir=os.getcwd() + "/../data/", remote_dir=remote_path)
+            remote_path = f'/tmp/{gen_string("alpha")}/'
+            ssh.upload_files(local_dir=f'{os.getcwd()}/../data/', remote_dir=remote_path)
 
         Repository.upload_content(
             {
@@ -4688,7 +4723,7 @@ class TestContentViewFileRepo:
         assert int(new_repo['content-counts']['files']) > 0
         return new_repo
 
-    @pytest.mark.skip_if_open("BZ:1610309")
+    @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
     def test_positive_arbitrary_file_repo_addition(self, module_org, module_product):
         """Check a File Repository with Arbitrary File can be added to a
@@ -4715,7 +4750,7 @@ class TestContentViewFileRepo:
         :BZ: 1610309, 1908465
         """
         repo = self.make_file_repository_upload_contents(module_org, module_product)
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
             {
@@ -4806,12 +4841,12 @@ class TestContentViewFileRepo:
         :CaseImportance: High
         """
 
-        cv = make_content_view({'organization-id': module_org.id})
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
         repo = self.make_file_repository_upload_contents(module_product, module_product)
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
         )
-        env = make_lifecycle_environment({'organization-id': module_org.id})
+        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         ContentView.publish({'id': cv['id']})
         content_view_info = ContentView.version_info({'content-view-id': cv['id'], 'version': 1})
         ContentView.version_promote(
@@ -4842,4 +4877,4 @@ class TestContentViewFileRepo:
         :BZ: 1793701
         """
         result = ssh.command('sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"')
-        assert "id|bigint" in result.stdout[3].replace(" ", "")
+        assert 'id|bigint' in result.stdout[3].replace(' ', '')

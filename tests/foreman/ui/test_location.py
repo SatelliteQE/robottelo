@@ -8,7 +8,7 @@
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: lvrtelov
+:Assignee: shwsingh
 
 :TestType: Functional
 
@@ -218,9 +218,7 @@ def test_positive_update_compresource(session):
     resource_name = resource.name + ' (Libvirt)'
     loc = entities.Location().create()
     with session:
-        session.location.update(
-            loc.name, {'compute_resources.resources.assigned': [resource_name]}
-        )
+        session.location.update(loc.name, {'compute_resources.resources.assigned': [resource_name]})
         loc_values = session.location.read(loc.name)
         assert loc_values['compute_resources']['resources']['assigned'][0] == resource_name
         session.location.update(

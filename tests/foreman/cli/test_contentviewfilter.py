@@ -50,9 +50,7 @@ class TestContentViewFilter:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    @pytest.mark.parametrize(
-        'filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd']
-    )
+    @pytest.mark.parametrize('filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd'])
     def test_positive_create_with_name_by_cv_id(
         self, name, filter_content_type, module_org, content_view
     ):
@@ -82,9 +80,7 @@ class TestContentViewFilter:
         assert cvf['type'] == filter_content_type
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd']
-    )
+    @pytest.mark.parametrize('filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd'])
     def test_positive_create_with_content_type_by_cv_id(
         self, filter_content_type, module_org, content_view
     ):

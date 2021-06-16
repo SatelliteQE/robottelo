@@ -137,9 +137,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
             host_info = session.host.get_details(fqdn)
             assert 'Installed' in host_info['properties']['properties_table']['Build']
-            assert (
-                host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
-            )
+            assert host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
 
             # AzureRm Cloud assertion
             azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
@@ -216,9 +214,7 @@ def test_positive_azurerm_host_provision_ud(
 
             host_info = session.host.get_details(fqdn)
             assert 'Pending installation' in host_info['properties']['properties_table']['Build']
-            assert (
-                host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
-            )
+            assert host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
 
             # AzureRm Cloud assertion
             azurecloud_vm = azurermclient.get_vm(name=hostname.lower())

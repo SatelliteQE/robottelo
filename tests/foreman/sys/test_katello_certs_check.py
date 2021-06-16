@@ -174,6 +174,13 @@ class TestKatelloCertsCheck:
         }
         assert result.return_code == 0
         assert cert_data['success_message'] in result.stdout
+
+        # validate correct installer used
+        pattern, count = 'satellite-installer --scenario satellite', 2
+        assert len(re.findall(pattern, result.stdout)) == count
+        pattern, count = 'foreman-installer --scenario katello', 0
+        assert len(re.findall(pattern, result.stdout)) == count
+
         # validate all checks passed
         assert not any(flag for flag in re.findall(r"\[([A-Z]+)\]", result.stdout) if flag != 'OK')
         # validate options in output
@@ -420,9 +427,7 @@ class TestKatelloCertsCheck:
                 'cp "{}" /root/capsule_cert/capsule_cert.pem'.format(cert_data['cert_file_name'])
             )
             connection.run(
-                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(
-                    cert_data['key_file_name']
-                )
+                'cp "{}" /root/capsule_cert/capsule_cert_key.pem'.format(cert_data['key_file_name'])
             )
             result = connection.run(
                 'capsule-certs-generate '

@@ -6,9 +6,9 @@
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: AuditLog
 
-:Assignee: lhellebr
+:Assignee: rplevka
 
 :TestType: Functional
 
@@ -37,10 +37,6 @@ def test_positive_create_by_type():
     :BZ: 1426742, 1492668, 1492696
 
     :CaseImportance: Medium
-
-    :CaseComponent: AuditLog
-
-    :Assignee: rplevka
     """
     for entity_item in [
         {'entity': entities.Architecture()},
@@ -120,10 +116,6 @@ def test_positive_update_by_type():
         update event
 
     :CaseImportance: Medium
-
-    :CaseComponent: AuditLog
-
-    :Assignee: rplevka
     """
     for entity in [
         entities.Architecture(),
@@ -162,10 +154,6 @@ def test_positive_delete_by_type():
         delete event
 
     :CaseImportance: Medium
-
-    :CaseComponent: AuditLog
-
-    :Assignee: rplevka
     """
     for entity in [
         entities.Architecture(),

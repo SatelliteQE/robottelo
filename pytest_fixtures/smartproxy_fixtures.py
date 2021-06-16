@@ -7,9 +7,7 @@ from robottelo.config import settings
 @pytest.fixture(scope='session')
 def default_smart_proxy():
     smart_proxy = (
-        entities.SmartProxy()
-        .search(query={'search': f'name={settings.server.hostname}'})[0]
-        .read()
+        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
     )
     return entities.SmartProxy(id=smart_proxy.id).read()
 

@@ -218,9 +218,7 @@ def test_positive_create_content_and_check_enabled(module_org):
 
     :CaseLevel: Integration
     """
-    result = setup_org_for_a_custom_repo(
-        {'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id}
-    )
+    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
@@ -364,9 +362,7 @@ def test_positive_delete_with_cv(module_org):
     :CaseLevel: Integration
     """
     new_cv = make_content_view({'organization-id': module_org.id})
-    new_ak = make_activation_key(
-        {'organization-id': module_org.id, 'content-view': new_cv['name']}
-    )
+    new_ak = make_activation_key({'organization-id': module_org.id, 'content-view': new_cv['name']})
     ActivationKey.delete({'id': new_ak['id']})
     with pytest.raises(CLIReturnCodeError):
         ActivationKey.info({'id': new_ak['id']})
@@ -590,7 +586,6 @@ def test_negative_update_usage_limit(module_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 def test_positive_usage_limit(module_org):
     """Test that Usage limit actually limits usage
 
@@ -741,9 +736,7 @@ def test_positive_add_custom_product(module_org):
 
     :BZ: 1426386
     """
-    result = setup_org_for_a_custom_repo(
-        {'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id}
-    )
+    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
     repo = Repository.info({'id': result['repository-id']})
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
@@ -861,7 +854,6 @@ def test_positive_delete_subscription(module_manifest_org):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.libvirt_content_host
 def test_positive_update_aks_to_chost(module_org, rhel7_contenthost):
     """Check if multiple Activation keys can be attached to a
     Content host
@@ -1166,9 +1158,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
             'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info(
-        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
-    )
+    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_manifest_org.id})
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon1, test-addon2"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role1"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage1"
@@ -1184,9 +1174,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
             'organization-id': module_manifest_org.id,
         }
     )
-    updated_ak = ActivationKey.info(
-        {'id': new_ak['id'], 'organization-id': module_manifest_org.id}
-    )
+    updated_ak = ActivationKey.info({'id': new_ak['id'], 'organization-id': module_manifest_org.id})
     assert updated_ak['system-purpose']['purpose-addons'] == "test-addon3, test-addon4"
     assert updated_ak['system-purpose']['purpose-role'] == "test-role2"
     assert updated_ak['system-purpose']['purpose-usage'] == "test-usage2"
@@ -1420,9 +1408,7 @@ def test_positive_content_override(module_org):
 
     :CaseLevel: System
     """
-    result = setup_org_for_a_custom_repo(
-        {'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id}
-    )
+    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
@@ -1517,9 +1503,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
     activation_key = make_activation_key(
         {'name': ak_name, 'organization-id': module_manifest_org.id}
     )
-    ActivationKey.add_subscription(
-        {'id': activation_key['id'], 'subscription-id': subscription_id}
-    )
+    ActivationKey.add_subscription({'id': activation_key['id'], 'subscription-id': subscription_id})
     subscriptions = ActivationKey.subscriptions(
         {'organization-id': module_manifest_org.id, 'id': activation_key['id']},
         output_format='csv',
@@ -1571,8 +1555,7 @@ def test_positive_view_subscriptions_by_non_admin_user(module_manifest_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skip_if_not_set('repos_hosting_url')
 def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost):
     """Check the Quantity and Attached fields of 'hammer activation-key subscriptions'
 

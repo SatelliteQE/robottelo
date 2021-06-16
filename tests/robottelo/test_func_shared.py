@@ -324,9 +324,7 @@ class TestFuncShared:
         index_value = gen_integer(min_value=1, max_value=10000)
         index_increment_by = gen_integer(min_value=1, max_value=100)
         index_expected_value = index_value + index_increment_by
-        result = simple_shared_counter_increment(
-            index=index_value, increment_by=index_increment_by
-        )
+        result = simple_shared_counter_increment(index=index_value, increment_by=index_increment_by)
         assert isinstance(result, dict)
         assert 'index' in result
         assert result['index'] == index_expected_value

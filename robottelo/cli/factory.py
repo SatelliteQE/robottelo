@@ -5,7 +5,6 @@ import datetime
 import os
 import pprint
 import random
-import time
 from os import chmod
 from tempfile import mkstemp
 from time import sleep
@@ -19,6 +18,7 @@ from fauxfactory import gen_netmask
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
@@ -69,32 +69,12 @@ from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.usergroup import UserGroupExternal
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import DEFAULT_PTABLE
-from robottelo.constants import DEFAULT_PXE_TEMPLATE
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DEFAULT_TEMPLATE
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import DISTROS_MAJOR_VERSION
-from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants import SYNC_INTERVAL
-from robottelo.constants import TEMPLATE_TYPES
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.decorators import cacheable
 from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import update_dictionary
 from robottelo.logging import logger
-from robottelo.ssh import download_file
 from robottelo.ssh import upload_file
 
 
@@ -505,7 +485,7 @@ def make_partition_table(options=None):
         'operatingsystems': None,
         'organization-ids': None,
         'organizations': None,
-        'os-family': random.choice(OPERATING_SYSTEMS),
+        'os-family': random.choice(constants.OPERATING_SYSTEMS),
     }
 
     # Upload file to server
@@ -640,7 +620,7 @@ def make_repository_with_credentials(options=None, credentials=None):
         'http-proxy': None,
         'http-proxy-id': None,
         'http-proxy-policy': None,
-        'url': FAKE_1_YUM_REPO,
+        'url': constants.repos.FAKE_1_YUM_REPO,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)
     return create_object(repo_cls, args, options)
@@ -789,7 +769,7 @@ def make_sync_plan(options=None):
     args = {
         'description': gen_string('alpha', 20),
         'enabled': 'true',
-        'interval': random.choice(list(SYNC_INTERVAL.values())),
+        'interval': random.choice(list(constants.SYNC_INTERVAL.values())),
         'name': gen_string('alpha', 20),
         'organization': None,
         'organization-id': None,
@@ -797,9 +777,9 @@ def make_sync_plan(options=None):
         'sync-date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'cron-expression': None,
     }
-    if options.get('interval', args['interval']) == SYNC_INTERVAL['custom'] and not options.get(
-        'cron-expression'
-    ):
+    if options.get('interval', args['interval']) == constants.SYNC_INTERVAL[
+        'custom'
+    ] and not options.get('cron-expression'):
         args['cron-expression'] = gen_choice(valid_cron_expressions())
     return create_object(SyncPlan, args, options)
 
@@ -897,12 +877,12 @@ def make_fake_host(options=None):
     # not passed or defined previously
     if not options.get('organization') and not options.get('organization-id'):
         try:
-            options['organization-id'] = Org.info({'name': DEFAULT_ORG})['id']
+            options['organization-id'] = Org.info({'name': constants.DEFAULT_ORG})['id']
         except CLIReturnCodeError:
             options['organization-id'] = make_org()['id']
     if not options.get('location') and not options.get('location-id'):
         try:
-            options['location-id'] = Location.info({'name': DEFAULT_LOC})['id']
+            options['location-id'] = Location.info({'name': constants.DEFAULT_LOC})['id']
         except CLIReturnCodeError:
             options['location-id'] = make_location()['id']
     if not options.get('domain') and not options.get('domain-id'):
@@ -916,7 +896,9 @@ def make_fake_host(options=None):
         )['id']
     if not options.get('architecture') and not options.get('architecture-id'):
         try:
-            options['architecture-id'] = Architecture.info({'name': DEFAULT_ARCHITECTURE})['id']
+            options['architecture-id'] = Architecture.info(
+                {'name': constants.DEFAULT_ARCHITECTURE}
+            )['id']
         except CLIReturnCodeError:
             options['architecture-id'] = make_architecture()['id']
     if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
@@ -924,7 +906,7 @@ def make_fake_host(options=None):
             options['operatingsystem-id'] = OperatingSys.list(
                 {
                     'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                        RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+                        constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
                     )
                 }
             )[0]['id']
@@ -1219,7 +1201,7 @@ def make_compute_resource(options=None):
         options = {}
 
     if options.get('provider') is None:
-        options['provider'] = FOREMAN_PROVIDERS['libvirt']
+        options['provider'] = constants.FOREMAN_PROVIDERS['libvirt']
         if options.get('url') is None:
             options['url'] = 'qemu+tcp://localhost:16509/system'
 
@@ -1584,7 +1566,7 @@ def make_template(options=None):
         'name': gen_alphanumeric(6),
         'operatingsystem-ids': None,
         'organization-ids': None,
-        'type': random.choice(TEMPLATE_TYPES),
+        'type': random.choice(constants.TEMPLATE_TYPES),
     }
 
     # Write content to file or random text
@@ -1679,9 +1661,7 @@ def activationkey_add_subscription_to_repo(options=None):
         or not options.get('activationkey-id')
         or not options.get('subscription')
     ):
-        raise CLIFactoryError(
-            'Please provide valid organization, activation key and subscription.'
-        )
+        raise CLIFactoryError('Please provide valid organization, activation key and subscription.')
     # List the subscriptions in given org
     subscriptions = Subscription.list(
         {'organization-id': options['organization-id']}, per_page=False
@@ -1940,7 +1920,7 @@ def _setup_org_for_a_rh_repo(options=None):
         {
             'organization-id': org_id,
             'activationkey-id': activationkey_id,
-            'subscription': options.get('subscription', DEFAULT_SUBSCRIPTION_NAME),
+            'subscription': options.get('subscription', constants.DEFAULT_SUBSCRIPTION_NAME),
         }
     )
     return {
@@ -1969,13 +1949,13 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         ``setup_org_for_a_custom_repo``).
     """
     custom_repo_url = None
-    if options.get('repository') == REPOS['rhst6']['name']:
+    if options.get('repository') == constants.REPOS['rhst6']['name']:
         custom_repo_url = settings.sattools_repo['rhel6']
-    elif options.get('repository') == REPOS['rhst7']['name']:
+    elif options.get('repository') == constants.REPOS['rhst7']['name']:
         custom_repo_url = settings.sattools_repo['rhel7']
-    elif options.get('repository') == REPOS['rhel6']['name']:
+    elif options.get('repository') == constants.REPOS['rhel6']['name']:
         custom_repo_url = settings.rhel6_os
-    elif options.get('repository') == REPOS['rhel7']['name']:
+    elif options.get('repository') == constants.REPOS['rhel7']['name']:
         custom_repo_url = settings.rhel7_os
     elif 'Satellite Capsule' in options.get('repository'):
         custom_repo_url = settings.capsule_repo
@@ -1998,7 +1978,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
                 {
                     'activationkey-id': result['activationkey-id'],
                     'organization-id': result['organization-id'],
-                    'subscription': DEFAULT_SUBSCRIPTION_NAME,
+                    'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
                 }
             )
         return result
@@ -2098,20 +2078,20 @@ def configure_env_for_provision(org=None, loc=None):
         )
 
     # Get the Partition table entity
-    ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
+    ptable = PartitionTable.info({'name': constants.DEFAULT_PTABLE})
 
     # Get the OS entity
     os = OperatingSys.list(
         {
             'search': 'name="RedHat" AND major="{}" OR major="{}"'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+                constants.RHEL_6_MAJOR_VERSION, constants.RHEL_7_MAJOR_VERSION
             )
         }
     )[0]
 
     # Get proper Provisioning templates and update with OS, Org, Location
-    provisioning_template = Template.info({'name': DEFAULT_TEMPLATE})
-    pxe_template = Template.info({'name': DEFAULT_PXE_TEMPLATE})
+    provisioning_template = Template.info({'name': constants.DEFAULT_TEMPLATE})
+    pxe_template = Template.info({'name': constants.DEFAULT_PXE_TEMPLATE})
     for template in provisioning_template, pxe_template:
         if os['title'] not in template['operating-systems']:
             Template.update(
@@ -2121,14 +2101,12 @@ def configure_env_for_provision(org=None, loc=None):
                     'operatingsystems': list(
                         set(template.get('operating-systems') or []) | {os['title']}
                     ),
-                    'organizations': list(
-                        set(template.get('organizations') or []) | {org['name']}
-                    ),
+                    'organizations': list(set(template.get('organizations') or []) | {org['name']}),
                 }
             )
 
     # Get the architecture entity
-    arch = Architecture.list({'search': f'name={DEFAULT_ARCHITECTURE}'})[0]
+    arch = Architecture.list({'search': f'name={constants.DEFAULT_ARCHITECTURE}'})[0]
 
     os = OperatingSys.info({'id': os['id']})
     # Get the media and update its location
@@ -2138,9 +2116,7 @@ def configure_env_for_provision(org=None, loc=None):
         Medium.update(
             {
                 'id': media['id'],
-                'operatingsystems': list(
-                    set(media.get('operating-systems') or []) | {os['title']}
-                ),
+                'operatingsystems': list(set(media.get('operating-systems') or []) | {os['title']}),
                 'locations': list(set(media.get('locations') or []) | {loc['name']}),
                 'organizations': list(set(media.get('organizations') or []) | {org['name']}),
             }
@@ -2214,9 +2190,7 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     if not organization_id:
         organization_id = make_org()['id']
     product = make_product({'organization-id': organization_id})
-    repo = make_repository(
-        {'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url}
-    )
+    repo = make_repository({'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url})
     # Synchronize repo via provided URL
     Repository.synchronize({'id': repo['id']})
     # Add selected module to Content View
@@ -2231,73 +2205,19 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return ContentView.info({'id': cv['id']})
 
 
-def setup_virtual_machine(
-    vm,
-    org_label,
-    rh_repos_id=None,
-    repos_label=None,
-    product_label=None,
-    lce=None,
-    activation_key=None,
-    patch_os_release_distro=None,
-    install_katello_agent=True,
-):
-    """
-    Setup a Virtual machine with basic components and tasks.
-
-    :param robottelo.vm.VirtualMachine vm: The Virtual machine to setup.
-    :param str org_label: The Organization label.
-    :param list rh_repos_id: a list of RH repositories ids to enable.
-    :param list repos_label: a list of custom repositories labels to enable.
-    :param str product_label: product label if repos_label is applicable.
-    :param str lce: Lifecycle environment label if applicable.
-    :param str activation_key: Activation key name if applicable.
-    :param str patch_os_release_distro: distro name, to patch the VM with os
-        version.
-    :param bool install_katello_agent: whether to install katello agent.
-    """
-    if rh_repos_id is None:
-        rh_repos_id = []
-    if repos_label is None:
-        repos_label = []
-    vm.install_katello_ca()
-    vm.register_contenthost(org_label, activation_key=activation_key, lce=lce)
-    if not vm.subscribed:
-        raise CLIFactoryError('Virtual machine failed subscription')
-    if patch_os_release_distro:
-        vm.patch_os_release_version(distro=patch_os_release_distro)
-    # Enable RH repositories
-    for repo_id in rh_repos_id:
-        vm.enable_repo(repo_id, force=True)
-    if product_label:
-        # Enable custom repositories
-        for repo_label in repos_label:
-            result = vm.run(
-                f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
-            )
-            # Check for either status or return_code attribute, depending on ssh implementation
-            status = getattr(result, 'status', getattr(result, 'return_code', None))
-            if status != 0:
-                raise CLIFactoryError(
-                    f'Failed to enable custom repository {repo_label!s}\n{result.stderr}'
-                )
-    if install_katello_agent:
-        vm.install_katello_agent()
-
-
 def _get_capsule_vm_distro_repos(distro):
     """Return the right RH repos info for the capsule setup"""
     rh_repos = []
-    if distro == DISTRO_RHEL7:
+    if distro == constants.DISTRO_RHEL7:
         # Red Hat Enterprise Linux 7 Server
-        rh_product_arch = REPOS['rhel7']['arch']
-        rh_product_releasever = REPOS['rhel7']['releasever']
+        rh_product_arch = constants.REPOS['rhel7']['arch']
+        rh_product_releasever = constants.REPOS['rhel7']['releasever']
         rh_repos.append(
             {
-                'product': PRDS['rhel'],
-                'repository-set': REPOSET['rhel7'],
-                'repository': REPOS['rhel7']['name'],
-                'repository-id': REPOS['rhel7']['id'],
+                'product': constants.PRDS['rhel'],
+                'repository-set': constants.REPOSET['rhel7'],
+                'repository': constants.REPOS['rhel7']['name'],
+                'repository-id': constants.REPOS['rhel7']['id'],
                 'releasever': rh_product_releasever,
                 'arch': rh_product_arch,
                 'cdn': True,
@@ -2306,10 +2226,10 @@ def _get_capsule_vm_distro_repos(distro):
         # Red Hat Software Collections (for 7 Server)
         rh_repos.append(
             {
-                'product': PRDS['rhscl'],
-                'repository-set': REPOSET['rhscl7'],
-                'repository': REPOS['rhscl7']['name'],
-                'repository-id': REPOS['rhscl7']['id'],
+                'product': constants.PRDS['rhscl'],
+                'repository-set': constants.REPOSET['rhscl7'],
+                'repository': constants.REPOS['rhscl7']['name'],
+                'repository-id': constants.REPOS['rhscl7']['id'],
                 'releasever': rh_product_releasever,
                 'arch': rh_product_arch,
                 'cdn': True,
@@ -2318,10 +2238,10 @@ def _get_capsule_vm_distro_repos(distro):
         # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
         rh_repos.append(
             {
-                'product': PRDS['rhsc'],
-                'repository-set': REPOSET['rhsc7'],
-                'repository': REPOS['rhsc7']['name'],
-                'repository-id': REPOS['rhsc7']['id'],
+                'product': constants.PRDS['rhsc'],
+                'repository-set': constants.REPOSET['rhsc7'],
+                'repository': constants.REPOS['rhsc7']['name'],
+                'repository-id': constants.REPOS['rhsc7']['id'],
                 'url': settings.capsule_repo,
                 'cdn': bool(settings.cdn or not settings.capsule_repo),
             }
@@ -2392,9 +2312,7 @@ def add_role_permissions(role_id, resource_permissions):
         make_filter(options=options)
 
 
-def setup_cdn_and_custom_repositories(
-    org_id, repos, download_policy='on_demand', synchronize=True
-):
+def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand', synchronize=True):
     """Setup cdn and custom repositories
 
     :param int org_id: The organization id
@@ -2417,7 +2335,7 @@ def setup_cdn_and_custom_repositories(
                     'organization-id': org_id,
                     'product': repo['product'],
                     'name': repo['repository-set'],
-                    'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                    'basearch': repo.get('arch', constants.DEFAULT_ARCHITECTURE),
                     'releasever': repo.get('releasever'),
                 }
             )
@@ -2559,234 +2477,6 @@ def setup_cdn_and_custom_repos_content(
         data['lce'] = lce
 
     return data
-
-
-def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
-    """Create host entry in vm ssh config and know_hosts files to allow vm
-    to access host via ssh without password prompt
-
-    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
-    :param str ssh_key_name: The ssh key file name to use to access host,
-        the file must already exist in /root/.ssh directory
-    :param str host: the hostname to setup that will be accessed from vm
-    :param str user: the user that will access the host
-    """
-    if user is None:
-        user = 'root'
-    ssh_path = '/root/.ssh'
-    ssh_key_file_path = f'{ssh_path}/{ssh_key_name}'
-    # setup the config file
-    ssh_config_file_path = f'{ssh_path}/config'
-    result = vm.run(f'touch {ssh_config_file_path}')
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Failed to create ssh config file:\n{result.stderr}')
-    result = vm.run(
-        'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
-        '\tIdentityFile {2}\n" >> {3}'.format(host, user, ssh_key_file_path, ssh_config_file_path)
-    )
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Failed to write to ssh config file:\n{result.stderr}')
-    # add host entry to ssh known_hosts
-    result = vm.run(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}')
-
-
-def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
-    """Copy ssh key to virtual machine ssh path and ensure proper permission is
-    set
-
-    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
-    :param source_key_path: The ssh key file path to copy to vm
-    :param destination_key_name: The ssh key file name when copied to vm
-    """
-    destination_key_path = f'/root/.ssh/{destination_key_name}'
-    upload_file(local_file=source_key_path, remote_file=destination_key_path, hostname=vm.ip_addr)
-    result = vm.run(f'chmod 600 {destination_key_path}')
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
-
-
-def virt_who_hypervisor_config(
-    config_id,
-    virt_who_vm,
-    org_id=None,
-    lce_id=None,
-    hypervisor_hostname=None,
-    configure_ssh=False,
-    hypervisor_user=None,
-    subscription_name=None,
-    exec_one_shot=False,
-    upload_manifest=True,
-    extra_repos=None,
-):
-    """
-    Configure virtual machine as hypervisor virt-who service
-
-    :param int config_id: virt-who config id
-    :param robottelo.vm.VirtualMachine virt_who_vm: the Virtual machine
-        instance to use for configuration
-    :param int org_id: the organization id
-    :param int lce_id: the lifecycle environment id to use
-    :param str hypervisor_hostname: the hypervisor hostname
-    :param str hypervisor_user: hypervisor user that connect with the ssh key
-    :param bool configure_ssh: whether to configure the ssh key to allow this
-        virtual machine to connect to hypervisor
-    :param str subscription_name: the subscription name to assign to virt-who
-        hypervisor guests
-    :param bool exec_one_shot: whether to run the virt-who one-shot command
-        after startup
-    :param bool upload_manifest: whether to upload the organization manifest
-    :param list extra_repos: (Optional) a list of repositories dict options to setup additionally.
-    """
-    if org_id is None:
-        org = make_org()
-    else:
-        org = Org.info({'id': org_id})
-
-    if lce_id is None:
-        lce = make_lifecycle_environment({'organization-id': org['id']})
-    else:
-        lce = LifecycleEnvironment.info({'id': lce_id, 'organization-id': org['id']})
-    if extra_repos is None:
-        extra_repos = []
-    repos = [
-        # Red Hat Satellite Tools
-        {
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'repository-id': REPOS['rhst7']['id'],
-            'url': settings.sattools_repo['rhel7'],
-            'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
-        }
-    ]
-    repos.extend(extra_repos)
-    content_setup_data = setup_cdn_and_custom_repos_content(
-        org['id'],
-        lce['id'],
-        repos,
-        upload_manifest=upload_manifest,
-        rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME],
-    )
-    activation_key = content_setup_data['activation_key']
-    content_view = content_setup_data['content_view']
-    setup_virtual_machine(
-        virt_who_vm,
-        org['label'],
-        activation_key=activation_key['name'],
-        patch_os_release_distro=DISTRO_RHEL7,
-        rh_repos_id=[repo['repository-id'] for repo in repos if repo['cdn']],
-        install_katello_agent=False,
-    )
-    # configure manually RHEL custom repo url as sync time is very big
-    # (more than 2 hours for RHEL 7Server) and not critical in this context.
-    rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[DISTRO_RHEL7])
-    rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
-    if not rhel_repo_url:
-        raise ValueError(
-            'Settings option "{}" is whether not set or does not exist'.format(
-                rhel_repo_option_name
-            )
-        )
-    virt_who_vm.configure_rhel_repo(rhel_repo_url)
-    if hypervisor_hostname and configure_ssh:
-        # configure ssh access of hypervisor from virt_who_vm
-        hypervisor_ssh_key_name = 'hypervisor-{}.key'.format(gen_string('alpha').lower())
-        # upload the ssh key
-        vm_upload_ssh_key(virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
-        # setup the ssh config and known_hosts files
-        vm_setup_ssh_config(
-            virt_who_vm, hypervisor_ssh_key_name, hypervisor_hostname, user=hypervisor_user
-        )
-
-    # upload the virt-who config deployment script
-    _, temp_virt_who_deploy_file_path = mkstemp(
-        suffix=f'-virt_who_deploy-{config_id}', dir=settings.tmp_dir
-    )
-    VirtWhoConfig.fetch({'id': config_id, 'output': temp_virt_who_deploy_file_path})
-    download_file(
-        remote_file=temp_virt_who_deploy_file_path,
-        local_file=temp_virt_who_deploy_file_path,
-        hostname=settings.server.hostname,
-    )
-    upload_file(
-        local_file=temp_virt_who_deploy_file_path,
-        remote_file=temp_virt_who_deploy_file_path,
-        hostname=virt_who_vm.ip_addr,
-    )
-    # ensure the virt-who config deploy script is executable
-    result = virt_who_vm.run(f'chmod +x {temp_virt_who_deploy_file_path}')
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Failed to set deployment script as executable:\n{result.stderr}')
-    # execute the deployment script
-    result = virt_who_vm.run(f'{temp_virt_who_deploy_file_path}')
-    if result.return_code != 0:
-        raise CLIFactoryError(f'Deployment script failure:\n{result.stderr}')
-    # after this step, we should have virt-who service installed and started
-    if exec_one_shot:
-        # usually to be sure that the virt-who generated the report we need
-        # to force a one shot report, for this we have to stop the virt-who
-        # service
-        result = virt_who_vm.run('service virt-who stop')
-        if result.return_code != 0:
-            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
-        result = virt_who_vm.run('virt-who --one-shot', timeout=900)
-        if result.return_code != 0:
-            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
-        result = virt_who_vm.run('service virt-who start')
-        if result.return_code != 0:
-            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
-    # after this step the hypervisor as a content host should be created
-    # do not confuse virt-who host with hypervisor host as they can be
-    # diffrent hosts and as per this setup we have only registered the virt-who
-    # host, the hypervisor host should registered after virt-who send the
-    # first report when started or with one shot command
-    # the virt-who hypervisor will be registered to satellite with host name
-    # like "virt-who-{hypervisor_hostname}-{organization_id}"
-    virt_who_hypervisor_hostname = 'virt-who-{}-{}'.format(hypervisor_hostname, org['id'])
-    # find the registered virt-who hypervisor host
-    org_hosts = Host.list(
-        {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
-    )
-    # Note: if one shot command was executed the report is immediately
-    # generated, and the server must have already registered the virt-who
-    # hypervisor host
-    if not org_hosts and not exec_one_shot:
-        # we have to wait until the first report was sent.
-        # the report is generated after the virt-who service startup, but some
-        # small delay can occur.
-        max_time = time.time() + 60
-        while time.time() <= max_time:
-            time.sleep(5)
-            org_hosts = Host.list(
-                {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
-            )
-            if org_hosts:
-                break
-
-    if len(org_hosts) == 0:
-        raise CLIFactoryError(f'Failed to find hypervisor host:\n{result.stderr}')
-    virt_who_hypervisor_host = org_hosts[0]
-    subscription_id = None
-    if hypervisor_hostname and subscription_name:
-        subscriptions = Subscription.list({'organization-id': org_id}, per_page=False)
-        for subscription in subscriptions:
-            if subscription['name'] == subscription_name:
-                subscription_id = subscription['id']
-                Host.subscription_attach(
-                    {'host': virt_who_hypervisor_hostname, 'subscription-id': subscription_id}
-                )
-                break
-    return {
-        'subscription_id': subscription_id,
-        'subscription_name': subscription_name,
-        'activation_key_id': activation_key['id'],
-        'organization_id': org['id'],
-        'content_view_id': content_view['id'],
-        'lifecycle_environment_id': lce['id'],
-        'virt_who_hypervisor_host': virt_who_hypervisor_host,
-    }
 
 
 @cacheable

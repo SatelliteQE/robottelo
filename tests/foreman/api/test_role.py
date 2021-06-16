@@ -851,9 +851,7 @@ class TestCannedRole:
         dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id).create()
         cloned_role = entities.Role(id=role.id).clone(
-            data={
-                'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}
-            }
+            data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
         )
         cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
         cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
@@ -891,9 +889,7 @@ class TestCannedRole:
         dom_perm = entities.Permission().search(query={'search': 'resource_type="Domain"'})
         entities.Filter(permission=dom_perm, role=role.id, unlimited=True).create()
         cloned_role = entities.Role(id=role.id).clone(
-            data={
-                'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}
-            }
+            data={'role': {'name': gen_string('alpha'), 'location_ids': [], 'organization_ids': []}}
         )
         cloned_role_filter = entities.Role(id=cloned_role['id']).read().filters[0]
         cloned_filter = entities.Filter(id=cloned_role_filter.id).read()
@@ -1038,9 +1034,7 @@ class TestCannedRole:
             name=ug_name, role=[org_admin.id], user=[user_one.id, user_two.id]
         ).create()
         assert user_group.name == ug_name
-        dom = self.create_domain(
-            orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id]
-        )
+        dom = self.create_domain(orgs=[role_taxonomies['org'].id], locs=[role_taxonomies['loc'].id])
         for user in [user_one, user_two]:
             sc = self.user_config(user)
             with pytest.raises(HTTPError):

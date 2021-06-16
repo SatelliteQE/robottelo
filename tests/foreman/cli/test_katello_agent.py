@@ -158,9 +158,7 @@ def test_positive_apply_security_erratum(katello_agent_client):
     assert host_errata[0]['erratum-id'] == FAKE_1_ERRATA_ID
     assert host_errata[0]['installable'] == 'true'
     # Check the erratum becomes available
-    result = client.run(
-        'yum update --assumeno --security | grep "No packages needed for security"'
-    )
+    result = client.run('yum update --assumeno --security | grep "No packages needed for security"')
     assert result.status == 1
 
 

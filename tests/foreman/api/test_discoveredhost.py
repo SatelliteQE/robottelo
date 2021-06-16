@@ -415,8 +415,7 @@ class TestLibvirtHostDiscovery:
                     == provisioning_env['ptable']['name']
                 )
                 assert (
-                    provisioned_host.operatingsystem.read().title
-                    == provisioning_env['os']['title']
+                    provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
                 )
                 assert not entities.DiscoveredHost(cfg).search(
                     query={'search': f'name={discovered_host.name}'}
@@ -488,8 +487,7 @@ class TestLibvirtHostDiscovery:
                     == provisioning_env['ptable']['name']
                 )
                 assert (
-                    provisioned_host.operatingsystem.read().title
-                    == provisioning_env['os']['title']
+                    provisioned_host.operatingsystem.read().title == provisioning_env['os']['title']
                 )
                 assert not entities.DiscoveredHost(cfg).search(
                     query={'search': f'name={discovered_host.name}'}

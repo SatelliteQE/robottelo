@@ -10,7 +10,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 :CaseLevel: Acceptance
 
-:CaseComponent: API
+:CaseComponent: ComputeResources-libvirt
 
 :Assignee: lhellebr
 

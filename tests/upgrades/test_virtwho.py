@@ -78,9 +78,7 @@ class TestScenarioPositiveVirtWho:
             3. Report is sent to satellite.
             4. Virtual sku can be generated and attached.
         """
-        default_loc_id = (
-            entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-        )
+        default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=ORG_DATA['name']).create()
         default_loc.organization.append(entities.Organization(id=org.id))
@@ -126,9 +124,7 @@ class TestScenarioPositiveVirtWho:
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
             result = (
-                entities.Host(organization=org.id)
-                .search(query={'search': hostname})[0]
-                .read_json()
+                entities.Host(organization=org.id).search(query={'search': hostname})[0].read_json()
             )
             assert result['subscription_status_label'] == 'Fully entitled'
 
@@ -177,9 +173,7 @@ class TestScenarioPositiveVirtWho:
         hosts = [hypervisor_name, guest_name]
         for hostname in hosts:
             result = (
-                entities.Host(organization=org.id)
-                .search(query={'search': hostname})[0]
-                .read_json()
+                entities.Host(organization=org.id).search(query={'search': hostname})[0].read_json()
             )
             assert result['subscription_status_label'] == 'Fully entitled'
 

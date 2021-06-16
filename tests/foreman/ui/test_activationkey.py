@@ -20,9 +20,11 @@ import random
 
 import pytest
 from airgun.session import Session
+from broker import VMBroker
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import create_sync_custom_repo
@@ -33,27 +35,11 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.config import settings
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_CV
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_RELEASE_VERSION
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import PERMISSIONS
-from robottelo.constants import PRDS
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
+from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
-from robottelo.vm import VirtualMachine
 
 
 @pytest.mark.tier2
@@ -76,14 +62,14 @@ def test_positive_end_to_end_crud(session, module_org):
     with session:
         # Create activation key with content view and LCE assigned
         session.activationkey.create(
-            {'name': name, 'lce': {ENVIRONMENT: True}, 'content_view': cv.name}
+            {'name': name, 'lce': {constants.ENVIRONMENT: True}, 'content_view': cv.name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         # Verify content view and LCE are assigned
         ak_values = session.activationkey.read(name, widget_names='details')
         assert ak_values['details']['name'] == name
         assert ak_values['details']['content_view'] == cv.name
-        assert ak_values['details']['lce'][ENVIRONMENT][ENVIRONMENT]
+        assert ak_values['details']['lce'][constants.ENVIRONMENT][constants.ENVIRONMENT]
         # Update activation key with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
@@ -94,9 +80,8 @@ def test_positive_end_to_end_crud(session, module_org):
 
 
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
-def test_positive_end_to_end_register(session):
+def test_positive_end_to_end_register(session, rhel7_contenthost):
     """Create activation key and use it during content host registering
 
     :id: dfaecf6a-ba61-47e1-87c5-f8966a319b41
@@ -111,19 +96,19 @@ def test_positive_end_to_end_register(session):
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
+        distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     ak_name = repos_collection.setup_content_data['activation_key']['name']
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-        repos_collection.setup_virtual_machine(vm)
-        with session:
-            session.organization.select(org.name)
-            chost = session.contenthost.read(vm.hostname, widget_names='details')
-            assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
-            ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
-            assert len(ak_values['content_hosts']['table']) == 1
-            assert ak_values['content_hosts']['table'][0]['Name'] == vm.hostname
+
+    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    with session:
+        session.organization.select(org.name)
+        chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='details')
+        assert chost['details']['registered_by'] == f'Activation Key {ak_name}'
+        ak_values = session.activationkey.read(ak_name, widget_names='content_hosts')
+        assert len(ak_values['content_hosts']['table']) == 1
+        assert ak_values['content_hosts']['table'][0]['Name'] == rhel7_contenthost.hostname
 
 
 @pytest.mark.tier2
@@ -207,7 +192,7 @@ def test_positive_create_with_host_collection(session, module_org):
     name = gen_string('alpha')
     hc = entities.HostCollection(organization=module_org).create()
     with session:
-        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
+        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_host_collection(name, hc.name)
         ak = session.activationkey.read(name, widget_names='host_collections')
@@ -260,8 +245,8 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
     # Create non-admin user with specified permissions
     roles = [entities.Role().create()]
     user_permissions = {
-        'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
-        'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
+        'Katello::ActivationKey': constants.PERMISSIONS['Katello::ActivationKey'],
+        'Katello::HostCollection': constants.PERMISSIONS['Katello::HostCollection'],
     }
     viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
@@ -271,7 +256,7 @@ def test_positive_add_host_collection_non_admin(module_org, test_name):
         admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with Session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
+        session.activationkey.create({'name': ak_name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
@@ -296,8 +281,8 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
     # Create non-admin user with specified permissions
     roles = [entities.Role().create()]
     user_permissions = {
-        'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
-        'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
+        'Katello::ActivationKey': constants.PERMISSIONS['Katello::ActivationKey'],
+        'Katello::HostCollection': constants.PERMISSIONS['Katello::HostCollection'],
     }
     viewer_role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
@@ -307,7 +292,7 @@ def test_positive_remove_host_collection_non_admin(module_org, test_name):
         admin=False, role=roles, password=password, organization=[module_org]
     ).create()
     with Session(test_name, user=user.login, password=password) as session:
-        session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
+        session.activationkey.create({'name': ak_name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.add_host_collection(ak_name, hc.name)
         ak = session.activationkey.read(ak_name, widget_names='host_collections')
@@ -385,14 +370,14 @@ def test_positive_update_env(session, module_org):
     repo_id = create_sync_custom_repo(module_org.id)
     cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
-        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
+        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['lce'][env_name][ENVIRONMENT]
+        assert ak['details']['lce'][env_name][constants.ENVIRONMENT]
         assert not ak['details']['lce'][env_name][env_name]
         session.activationkey.update(name, {'details.lce': {env_name: True}})
         ak = session.activationkey.read(name, widget_names='details')
-        assert not ak['details']['lce'][env_name][ENVIRONMENT]
+        assert not ak['details']['lce'][env_name][constants.ENVIRONMENT]
         assert ak['details']['lce'][env_name][env_name]
 
 
@@ -462,18 +447,18 @@ def test_positive_update_rh_product(session):
     cv1_name = gen_string('alpha')
     cv2_name = gen_string('alpha')
     rh_repo1 = {
-        'name': REPOS['rhva6']['name'],
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhva6'],
-        'basearch': DEFAULT_ARCHITECTURE,
-        'releasever': DEFAULT_RELEASE_VERSION,
+        'name': constants.REPOS['rhva6']['name'],
+        'product': constants.PRDS['rhel'],
+        'reposet': constants.REPOSET['rhva6'],
+        'basearch': constants.DEFAULT_ARCHITECTURE,
+        'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
     rh_repo2 = {
         'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs i386 6Server'),
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhva6'],
+        'product': constants.PRDS['rhel'],
+        'reposet': constants.REPOSET['rhva6'],
         'basearch': 'i386',
-        'releasever': DEFAULT_RELEASE_VERSION,
+        'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
     org = entities.Organization().create()
     with manifests.clone() as manifest:
@@ -513,11 +498,11 @@ def test_positive_add_rh_product(session):
     cv_name = gen_string('alpha')
     env_name = gen_string('alpha')
     rh_repo = {
-        'name': REPOS['rhva6']['name'],
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhva6'],
-        'basearch': DEFAULT_ARCHITECTURE,
-        'releasever': DEFAULT_RELEASE_VERSION,
+        'name': constants.REPOS['rhva6']['name'],
+        'product': constants.PRDS['rhel'],
+        'reposet': constants.REPOSET['rhva6'],
+        'basearch': constants.DEFAULT_ARCHITECTURE,
+        'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
     # Create new org to import manifest
     org = entities.Organization().create()
@@ -533,10 +518,10 @@ def test_positive_add_rh_product(session):
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        session.activationkey.add_subscription(name, DEFAULT_SUBSCRIPTION_NAME)
+        session.activationkey.add_subscription(name, constants.DEFAULT_SUBSCRIPTION_NAME)
         ak = session.activationkey.read(name, widget_names='subscriptions')
         subs_name = ak['subscriptions']['resources']['assigned'][0]['Repository Name']
-        assert subs_name == DEFAULT_SUBSCRIPTION_NAME
+        assert subs_name == constants.DEFAULT_SUBSCRIPTION_NAME
 
 
 @pytest.mark.tier2
@@ -589,11 +574,11 @@ def test_positive_add_rh_and_custom_products(session):
     """
     name = gen_string('alpha')
     rh_repo = {
-        'name': REPOS['rhva6']['name'],
-        'product': PRDS['rhel'],
-        'reposet': REPOSET['rhva6'],
-        'basearch': DEFAULT_ARCHITECTURE,
-        'releasever': DEFAULT_RELEASE_VERSION,
+        'name': constants.REPOS['rhva6']['name'],
+        'product': constants.PRDS['rhel'],
+        'reposet': constants.REPOSET['rhva6'],
+        'basearch': constants.DEFAULT_ARCHITECTURE,
+        'releasever': constants.DEFAULT_RELEASE_VERSION,
     }
     custom_product_name = gen_string('alpha')
     repo_name = gen_string('alpha')
@@ -615,17 +600,21 @@ def test_positive_add_rh_and_custom_products(session):
     with session:
         session.organization.select(org.name)
         session.activationkey.create(
-            {'name': name, 'lce': {ENVIRONMENT: True}, 'content_view': DEFAULT_CV}
+            {
+                'name': name,
+                'lce': {constants.ENVIRONMENT: True},
+                'content_view': constants.DEFAULT_CV,
+            }
         )
         assert session.activationkey.search(name)[0]['Name'] == name
-        for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
+        for subscription in (constants.DEFAULT_SUBSCRIPTION_NAME, custom_product_name):
             session.activationkey.add_subscription(name, subscription)
         ak = session.activationkey.read(name, widget_names='subscriptions')
         subscriptions = [
             subscription['Repository Name']
             for subscription in ak['subscriptions']['resources']['assigned']
         ]
-        assert {DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(subscriptions)
+        assert {constants.DEFAULT_SUBSCRIPTION_NAME, custom_product_name} == set(subscriptions)
 
 
 @pytest.mark.run_in_one_thread
@@ -650,9 +639,9 @@ def test_positive_fetch_product_content(session):
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,
-        product=PRDS['rhel'],
-        repo=REPOS['rhst7']['name'],
-        reposet=REPOSET['rhst7'],
+        product=constants.PRDS['rhel'],
+        repo=constants.REPOS['rhst7']['name'],
+        reposet=constants.REPOSET['rhst7'],
         releasever=None,
     )
     rh_repo = entities.Repository(id=rh_repo_id).read()
@@ -670,11 +659,11 @@ def test_positive_fetch_product_content(session):
     ak = entities.ActivationKey(content_view=cv, organization=org).create()
     with session:
         session.organization.select(org.name)
-        for subscription in (DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
+        for subscription in (constants.DEFAULT_SUBSCRIPTION_NAME, custom_product.name):
             session.activationkey.add_subscription(ak.name, subscription)
         ak = session.activationkey.read(ak.name, widget_names='repository_sets')
         reposets = [reposet['Repository Name'] for reposet in ak['repository_sets']['table']]
-        assert {custom_repo.name, REPOSET['rhst7']} == set(reposets)
+        assert {custom_repo.name, constants.REPOSET['rhst7']} == set(reposets)
 
 
 @pytest.mark.tier2
@@ -726,7 +715,7 @@ def test_positive_access_non_admin_user(session, test_name):
     ).create()
 
     # Create new user with a configured role
-    default_loc = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+    default_loc = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[0]
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
     entities.User(
@@ -741,7 +730,7 @@ def test_positive_access_non_admin_user(session, test_name):
 
     with session:
         session.organization.select(org_name=org.name)
-        session.location.select(DEFAULT_LOC)
+        session.location.select(constants.DEFAULT_LOC)
         for name in [ak_name, non_searchable_ak_name]:
             session.activationkey.create(
                 {'name': name, 'lce': {env_name: True}, 'content_view': cv.name}
@@ -752,7 +741,7 @@ def test_positive_access_non_admin_user(session, test_name):
 
     with Session(test_name, user=user_login, password=user_password) as session:
         session.organization.select(org.name)
-        session.location.select(DEFAULT_LOC)
+        session.location.select(constants.DEFAULT_LOC)
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         assert (
             session.activationkey.search(non_searchable_ak_name)[0]['Name']
@@ -777,7 +766,9 @@ def test_positive_remove_user(session, module_org, test_name):
     user = entities.User(admin=True, default_organization=module_org, password=password).create()
     # Create Activation Key using new user credentials
     with Session(test_name, user.login, password) as non_admin_session:
-        non_admin_session.activationkey.create({'name': ak_name, 'lce': {ENVIRONMENT: True}})
+        non_admin_session.activationkey.create(
+            {'name': ak_name, 'lce': {constants.ENVIRONMENT: True}}
+        )
         assert non_admin_session.activationkey.search(ak_name)[0]['Name'] == ak_name
     # Remove user and check that AK still exists
     user.delete()
@@ -800,9 +791,9 @@ def test_positive_add_docker_repo_cv(session, module_org):
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
-        content_type=REPO_TYPE['docker'],
+        content_type=constants.REPO_TYPE['docker'],
         product=entities.Product(organization=module_org).create(),
-        url=CONTAINER_REGISTRY_HUB,
+        url=constants.CONTAINER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -836,9 +827,9 @@ def test_positive_add_docker_repo_ccv(session, module_org):
     """
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo = entities.Repository(
-        content_type=REPO_TYPE['docker'],
+        content_type=constants.REPO_TYPE['docker'],
         product=entities.Product(organization=module_org).create(),
-        url=CONTAINER_REGISTRY_HUB,
+        url=constants.CONTAINER_REGISTRY_HUB,
     ).create()
     content_view = entities.ContentView(
         composite=False, organization=module_org, repository=[repo]
@@ -864,8 +855,7 @@ def test_positive_add_docker_repo_ccv(session, module_org):
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
-def test_positive_add_host(session, module_org):
+def test_positive_add_host(session, module_org, rhel6_contenthost):
     """Test that hosts can be associated to Activation Keys
 
     :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
@@ -881,25 +871,24 @@ def test_positive_add_host(session, module_org):
     """
     ak = entities.ActivationKey(
         environment=entities.LifecycleEnvironment(
-            name=ENVIRONMENT, organization=module_org
+            name=constants.ENVIRONMENT, organization=module_org
         ).search()[0],
         organization=module_org,
     ).create()
-    with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(module_org.label, ak.name)
-        assert vm.subscribed
-        with session:
-            session.organization.select(module_org.name)
-            ak = session.activationkey.read(ak.name, widget_names='content_hosts')
-            assert len(ak['content_hosts']['table']) == 1
-            assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
+
+    rhel6_contenthost.install_katello_ca()
+    rhel6_contenthost.register_contenthost(module_org.label, ak.name)
+    assert rhel6_contenthost.subscribed
+    with session:
+        session.organization.select(module_org.name)
+        ak = session.activationkey.read(ak.name, widget_names='content_hosts')
+        assert len(ak['content_hosts']['table']) == 1
+        assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
 
 
 @pytest.mark.skip_if_not_set('clients')
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_positive_delete_with_system(session):
+def test_positive_delete_with_system(session, rhel6_contenthost):
     """Delete an Activation key which has registered systems
 
     :id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
@@ -928,18 +917,16 @@ def test_positive_delete_with_system(session):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.add_subscription(name, product_name)
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(org.label, name)
-            assert vm.subscribed
-            session.activationkey.delete(name)
-            assert session.activationkey.search(name)[0]['Name'] != name
+        rhel6_contenthost.install_katello_ca()
+        rhel6_contenthost.register_contenthost(org.label, name)
+        assert rhel6_contenthost.subscribed
+        session.activationkey.delete(name)
+        assert session.activationkey.search(name)[0]['Name'] != name
 
 
 @pytest.mark.skip_if_not_set('clients')
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
-def test_negative_usage_limit(session, module_org):
+def test_negative_usage_limit(session, module_org, rhel6_contenthost):
     """Test that Usage limit actually limits usage
 
     :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
@@ -958,29 +945,28 @@ def test_negative_usage_limit(session, module_org):
     name = gen_string('alpha')
     hosts_limit = '1'
     with session:
-        session.activationkey.create({'name': name, 'lce': {ENVIRONMENT: True}})
+        session.activationkey.create({'name': name, 'lce': {constants.ENVIRONMENT: True}})
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(name, {'details.hosts_limit': hosts_limit})
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['hosts_limit'] == hosts_limit
-    with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
-            vm1.install_katello_ca()
-            vm1.register_contenthost(module_org.label, name)
-            assert vm1.subscribed
-            vm2.install_katello_ca()
-            result = vm2.register_contenthost(module_org.label, name)
-            assert not vm2.subscribed
-            assert len(result.stderr) > 0
-            assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stderr
+    with VMBroker(nick='rhel6', host_classes={'host': ContentHost}, _count=2) as hosts:
+        vm1, vm2 = hosts
+        vm1.install_katello_ca()
+        vm1.register_contenthost(module_org.label, name)
+        assert vm1.subscribed
+        vm2.install_katello_ca()
+        result = vm2.register_contenthost(module_org.label, name)
+        assert not vm2.subscribed
+        assert len(result.stderr)
+        assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stderr
 
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_add_multiple_aks_to_system(session, module_org):
+def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenthost):
     """Check if multiple Activation keys can be attached to a system
 
     :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
@@ -1000,7 +986,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
     repo_1_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_1_name)
     cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
     repo_2_id = create_sync_custom_repo(
-        org_id=module_org.id, product_name=product_2_name, repo_url=FAKE_2_YUM_REPO
+        org_id=module_org.id, product_name=product_2_name, repo_url=constants.repos.FAKE_2_YUM_REPO
     )
     cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
@@ -1021,20 +1007,18 @@ def test_positive_add_multiple_aks_to_system(session, module_org):
             ]
             assert product_name in subscriptions
         # Create VM
-        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
-            vm.install_katello_ca()
-            vm.register_contenthost(module_org.label, f'{key_1_name},{key_2_name}')
-            assert vm.subscribed
-            # Assert the content-host association with activation keys
-            for key_name in [key_1_name, key_2_name]:
-                ak = session.activationkey.read(key_name, widget_names='content_hosts')
-                assert len(ak['content_hosts']['table']) == 1
-                assert ak['content_hosts']['table'][0]['Name'] == vm.hostname
+        rhel6_contenthost.install_katello_ca()
+        rhel6_contenthost.register_contenthost(module_org.label, ','.join(key_1_name, key_2_name))
+        assert rhel6_contenthost.subscribed
+        # Assert the content-host association with activation keys
+        for key_name in [key_1_name, key_2_name]:
+            ak = session.activationkey.read(key_name, widget_names='content_hosts')
+            assert len(ak['content_hosts']['table']) == 1
+            assert ak['content_hosts']['table'][0]['Name'] == rhel6_contenthost.hostname
 
 
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_host_associations(session):
@@ -1051,14 +1035,17 @@ def test_positive_host_associations(session):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    org_entities = setup_org_for_a_custom_repo({'url': FAKE_1_YUM_REPO, 'organization-id': org.id})
+    org_entities = setup_org_for_a_custom_repo(
+        {'url': constants.repos.FAKE_1_YUM_REPO, 'organization-id': org.id}
+    )
     ak1 = entities.ActivationKey(id=org_entities['activationkey-id']).read()
     ak2 = entities.ActivationKey(
         content_view=org_entities['content-view-id'],
         environment=org_entities['lifecycle-environment-id'],
         organization=org.id,
     ).create()
-    with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(distro=DISTRO_RHEL7) as vm2:
+    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
+        vm1, vm2 = hosts
         vm1.install_katello_ca()
         vm1.register_contenthost(org.label, ak1.name)
         assert vm1.subscribed
@@ -1077,9 +1064,8 @@ def test_positive_host_associations(session):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-@pytest.mark.libvirt_content_host
 @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-def test_positive_service_level_subscription_with_custom_product(session):
+def test_positive_service_level_subscription_with_custom_product(session, rhel7_contenthost):
     """Subscribe a host to activation key with Premium service level and with
     custom product
 
@@ -1109,36 +1095,38 @@ def test_positive_service_level_subscription_with_custom_product(session):
     """
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
-    entities_ids = setup_org_for_a_custom_repo({'url': FAKE_1_YUM_REPO, 'organization-id': org.id})
+    entities_ids = setup_org_for_a_custom_repo(
+        {'url': constants.repos.FAKE_1_YUM_REPO, 'organization-id': org.id}
+    )
     product = entities.Product(id=entities_ids['product-id']).read()
     activation_key = entities.ActivationKey(id=entities_ids['activationkey-id']).read()
     # add the default RH subscription
     subscription = entities.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     # ensure all the needed subscriptions are attached to activation key
     results = activation_key.subscriptions()['results']
-    assert {product.name, DEFAULT_SUBSCRIPTION_NAME} == {
+    assert {product.name, constants.DEFAULT_SUBSCRIPTION_NAME} == {
         ak_subscription['name'] for ak_subscription in results
     }
     # Set the activation service_level to Premium
     activation_key.service_level = 'Premium'
     activation_key = activation_key.update(['service_level'])
-    with VirtualMachine() as vm:
-        vm.install_katello_ca()
-        vm.register_contenthost(org.label, activation_key=activation_key.name)
-        assert vm.subscribed
-        result = vm.run('subscription-manager list --consumed')
-        assert result.return_code == 0
-        assert f'Subscription Name:   {product.name}' in '\n'.join(result.stdout)
-        with session:
-            session.organization.select(org.name)
-            chost = session.contenthost.read(vm.hostname, widget_names='subscriptions')
-            subscriptions = {
-                subs['Repository Name'] for subs in chost['subscriptions']['resources']['assigned']
-            }
-            assert product.name in subscriptions
+
+    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.register_contenthost(org.label, activation_key=activation_key.name)
+    assert rhel7_contenthost.subscribed
+    result = rhel7_contenthost.run('subscription-manager list --consumed')
+    assert result.status == 0
+    assert f'Subscription Name:   {product.name}' in '\n'.join(result.stdout)
+    with session:
+        session.organization.select(org.name)
+        chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='subscriptions')
+        subscriptions = {
+            subs['Repository Name'] for subs in chost['subscriptions']['resources']['assigned']
+        }
+        assert product.name in subscriptions
 
 
 @pytest.mark.run_in_one_thread
@@ -1167,7 +1155,7 @@ def test_positive_delete_manifest(session):
     activation_key = entities.ActivationKey(organization=org).create()
     # Associate a manifest to the activation key
     subscription = entities.Subscription(organization=org).search(
-        query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
+        query={'search': f'name="{constants.DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
     activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subscription.id})
     with session:
@@ -1176,7 +1164,7 @@ def test_positive_delete_manifest(session):
         ak = session.activationkey.read(activation_key.name, widget_names='subscriptions')
         assert (
             ak['subscriptions']['resources']['assigned'][0]['Repository Name']
-            == DEFAULT_SUBSCRIPTION_NAME
+            == constants.DEFAULT_SUBSCRIPTION_NAME
         )
         # Delete the manifest
         # Ignore "404 Not Found" as server will connect to upstream subscription service to verify

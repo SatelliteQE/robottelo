@@ -79,6 +79,7 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
+from robottelo.constants.repos import EPEL_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
@@ -204,9 +205,7 @@ def custom_repo(module_org, module_lce, module_cv, module_ak_cv_lce):
 def hosts(request):
     """Deploy hosts via broker."""
     num_hosts = getattr(request, 'param', 2)
-    with VMBroker(
-        nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts
-    ) as hosts:
+    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=num_hosts) as hosts:
         if type(hosts) is not list or len(hosts) != num_hosts:
             pytest.fail('Failed to provision the expected number of hosts.')
         yield hosts
@@ -459,9 +458,7 @@ def test_negative_install_by_hc_id_without_errata_info(module_org, host_collecti
 
 
 @pytest.mark.tier3
-def test_negative_install_by_hc_name_without_errata_info(
-    module_org, host_collection, errata_hosts
-):
+def test_negative_install_by_hc_name_without_errata_info(module_org, host_collection, errata_hosts):
     """Attempt to install an erratum on a host collection by host collection name but no errata
     info specified.
 
@@ -954,9 +951,7 @@ def test_host_errata_search_commands(
 
 
 @pytest.mark.tier3
-@pytest.mark.parametrize(
-    'sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date')
-)
+@pytest.mark.parametrize('sort_by_date', ('issued', 'updated'), ids=('issued_date', 'updated_date'))
 @pytest.mark.parametrize(
     'filter_by_org',
     ('id', 'name', 'label', None),
@@ -1333,13 +1328,20 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 
 
 @pytest.fixture
-def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
+def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
-    # python-psutil is obsoleted by python2-psutil, so install older python2-psutil for errata test
-    rhel77_contenthost_module.run(
-        'rpm -Uvh https://download-ib01.fedoraproject.org/pub/epel/7/'
-        'x86_64/Packages/p/python2-psutil-5.6.7-1.el7.x86_64.rpm'
-    )
+    # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
+    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    rhel77_contenthost_module.install_katello_ca()
+    rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
+    assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
+    rhel77_contenthost_module.install_katello_host_tools()
+    return rhel77_contenthost_module
+
+
+@pytest.fixture
+def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
+    """A RHEL77 Content Host registered to Library that does not have applicable errata"""
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
@@ -1348,7 +1350,7 @@ def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
 
 
 @pytest.mark.tier2
-def test_apply_errata_using_default_content_view(chost):
+def test_apply_errata_using_default_content_view(errata_host):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
 
@@ -1365,13 +1367,170 @@ def test_apply_errata_using_default_content_view(chost):
     :CaseImportance: High
     """
     # check that package errata is applicable
-    erratum = Host.errata_list({'host': chost.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
     assert len(erratum) == 1
     assert erratum[0]['installable'] == 'true'
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
     # Update errata from Library, i.e. Default CV
-    chost.run(f'yum -y update --advisory {REAL_0_ERRATA_ID}')
+    errata_host.run(f'yum -y update --advisory {REAL_0_ERRATA_ID}')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {errata_host.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Assert that the erratum is no longer applicable
+    erratum = Host.errata_list({'host': errata_host.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
+    assert len(erratum) == 0
+
+
+@pytest.mark.tier2
+def test_update_applicable_package_using_default_content_view(errata_host):
+    """Updating an applicable package on a host attached to the default content view causes the
+    package to not be applicable or installable.
+
+    :id: f761f39c-026c-4987-8c1e-deec895f09a8
+
+    :setup: Register a host that already requires errata to org with Library
+
+    :steps:
+        1. Ensure the expected package is applicable
+        2. Update the applicable package on the host
+        3. Ensure the package is no longer applicable
+
+    :expectedresults: after updating the package it is no longer shown as applicable
+
+    :CaseImportance: High
+    """
+    # check that package is applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': errata_host.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 1
+    assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Update package from Library, i.e. Default CV
+    errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {errata_host.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # Assert that the package is no longer applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': errata_host.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+
+
+@pytest.mark.tier2
+def test_downgrade_applicable_package_using_default_content_view(errata_host):
+    """Downgrading a package on a host attached to the default content view
+    causes the package to become applicable and installable.
+
+    :id: 8503dff8-c2d9-4818-a607-746dc551894b
+
+    :setup: Register a host that already requires errata to org with Library
+
+    :steps:
+        1. Update the applicable package
+        2. Ensure the expected package is not applicable
+        3. Downgrade the applicable package on the host using yum
+        4. Ensure the package is now applicable
+
+    :expectedresults: downgraded package shows as applicable
+
+    :CaseImportance: High
+    """
+    # Update package from Library, i.e. Default CV
+    errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
+    # Assert that the package is not applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': errata_host.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # Downgrade package (we can't get it from Library, so get older one from EPEL)
+    errata_host.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    errata_host.run('yum -y downgrade python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    # Wait for upload profile event (in case Satellite system slow)
+    wait_for_tasks(
+        search_query=(
+            'label = Actions::Katello::Host::UploadProfiles'
+            f' and resource_id = {errata_host.nailgun_host.id}'
+            f' and started_at >= "{timestamp}"'
+        ),
+        search_rate=15,
+        max_tries=10,
+    )
+    # check that package is applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': errata_host.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 1
+    assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
+
+
+@pytest.mark.tier2
+def test_install_applicable_package_to_registerd_host(chost):
+    """Installing an older package to an already registered host should show the newer package
+    and errata as applicable and installable.
+
+    :id: 519bfe91-cf86-4d6e-94ef-aaf3e5d40a81
+
+    :setup: Register a host to default org with Library
+
+    :steps:
+        1. Ensure package is not applicable
+        2. Install package that has errata
+        3. Ensure the expected package is applicable
+
+    :expectedresults: Installed package shows errata as applicable and installable
+
+    :CaseImportance: High
+    """
+    # Assert that the package is not applicable
+    applicable_packages = Package.list(
+        {
+            'host-id': chost.nailgun_host.id,
+            'packages-restrict-applicable': 'true',
+            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
+        }
+    )
+    assert len(applicable_packages) == 0
+    # note time for later wait_for_tasks include 2 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    # python-psutil is obsoleted by python2-psutil, so download older python2-psutil for this test
+    chost.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    chost.run('yum -y install python2-psutil-5.6.7-1.el7.x86_64.rpm')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
@@ -1382,28 +1541,6 @@ def test_apply_errata_using_default_content_view(chost):
         search_rate=15,
         max_tries=10,
     )
-    # Assert that the eratum is no longer applicable
-    erratum = Host.errata_list({'host': chost.hostname, 'search': f'id = {REAL_0_ERRATA_ID}'})
-    assert len(erratum) == 0
-
-
-@pytest.mark.tier2
-def test_update_applicable_package_using_default_content_view(chost):
-    """Updating an applicable package on a host attached to the default content view causes the
-    package to not be applicable or installable.
-
-    :id: f761f39c-026c-4987-8c1e-deec895f09a8
-
-    :steps:
-        1. Register a host that already requires errata to org with Library
-        2. Ensure the expected package is applicable on the newly registered host
-        3. Update the applicable package on the host
-        4. Ensure the package is no longer applicable
-
-    :expectedresults: package listed successfully and is installable
-
-    :CaseImportance: High
-    """
     # check that package is applicable
     applicable_packages = Package.list(
         {
@@ -1414,26 +1551,3 @@ def test_update_applicable_package_using_default_content_view(chost):
     )
     assert len(applicable_packages) == 1
     assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
-    # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-    # Update package from Library, i.e. Default CV
-    chost.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
-    # Wait for upload profile event (in case Satellite system slow)
-    wait_for_tasks(
-        search_query=(
-            'label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {chost.nailgun_host.id}'
-            f' and started_at >= "{timestamp}"'
-        ),
-        search_rate=15,
-        max_tries=10,
-    )
-    # Assert that the package is no longer applicable
-    applicable_packages = Package.list(
-        {
-            'host-id': chost.nailgun_host.id,
-            'packages-restrict-applicable': 'true',
-            'search': f'name={REAL_RHEL7_0_2_PACKAGE_NAME}',
-        }
-    )
-    assert len(applicable_packages) == 0

@@ -8,7 +8,7 @@
 
 :CaseComponent: Repositories
 
-:Assignee: tpapaioa
+:Assignee: chiggins
 
 :TestType: Functional
 
@@ -109,8 +109,7 @@ def _validated_image_tags_count(repo):
     immediately after synchronization), which was CLOSED WONTFIX
     """
     wait_for(
-        lambda: int(_get_image_tags_count(repo=repo)['content-counts']['container-image-tags'])
-        > 0,
+        lambda: int(_get_image_tags_count(repo=repo)['content-counts']['container-image-tags']) > 0,
         timeout=30,
         delay=2,
         logger=logger,
@@ -1183,9 +1182,7 @@ class TestRepository:
         ),
         indirect=True,
     )
-    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(
-        self, repo_options, repo
-    ):
+    def test_negative_synchronize_docker_repo_with_mix_valid_invalid_tags(self, repo_options, repo):
         """Set tags whitelist to contain both valid and invalid (non-existing)
         tags. Check if only whitelisted tags are synchronized
 
@@ -2299,6 +2296,26 @@ class TestRepository:
             key: value for key, value in actual_result.items() if key in expected_result
         }
 
+    @pytest.mark.stubbed
+    @pytest.mark.tier1
+    def test_negative_update_red_hat_repo():
+        """Updates to Red Hat products fail.
+
+        :id: d3ac0ea2-faab-4df4-be66-733e1b7ae6b4
+
+        :customerscenario: true
+
+        :BZ: 1756951
+
+        :Steps:
+            1. Import manifest and enable a Red Hat repository.
+            2. Update the repository url:
+               # hammer repository update --id <id> --url http://example.com/repo
+
+        :expectedresults: hammer returns error code. The repository is not updated.
+        """
+        pass
+
 
 class TestOstreeRepository:
     """Ostree Repository CLI tests."""
@@ -3134,3 +3151,30 @@ class TestFileRepository:
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_file_repo_contains_only_newer_of_two_file_versions():
+    """
+        Check that a published file-type repo contains only the newer of
+        two versions of a file with the same name.
+
+    :id: d2530bc4-647c-41cd-a062-5dcf8f9086c6
+
+    :Setup:
+        1. Create a product with a file type repository
+        2. Create a text file locally
+        3. Upload the file and check it is in the published repo
+        4. Add some text keyword to the file locally
+        5. Upload new version of file
+
+    :Steps:
+        1. Check that the published repo contains only the new version of the file
+
+    :expectedresults: only the latest version of the file is present in the repo
+
+    :CaseAutomation: NotAutomated
+
+    :CaseImportance: High
+    """

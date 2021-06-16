@@ -65,9 +65,7 @@ class FileStorageHandler(BaseStorageHandler):
     def lock(self, key):
         """Return the storage locker context manager"""
         lock_key = f'{key}.lock'
-        return file_lock(
-            self.get_key_file_path(lock_key), remove=False, timeout=self._lock_timeout
-        )
+        return file_lock(self.get_key_file_path(lock_key), remove=False, timeout=self._lock_timeout)
 
     def when_lock_acquired(self, handler):
         """Write the process id to file handler"""

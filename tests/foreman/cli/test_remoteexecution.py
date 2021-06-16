@@ -42,31 +42,43 @@ from robottelo.hosts import ContentHost
 
 @pytest.fixture()
 def fixture_vmsetup(request, module_org):
-    """Create Org, Lifecycle Environment, Content View, Activation key,
-    VM, install katello-ca, register it, add remote execution key
-    """
-    # Create VM and register content host
-    with VMBroker(nick=request.param, host_classes={'host': ContentHost}) as client:
-        client.install_katello_ca()
-        client.register_contenthost(org=module_org.label, lce='Library')
-        assert client.subscribed
-        add_remote_execution_ssh_key(client.ip_addr)
-        Host.set_parameter(
-            {
-                'host': client.hostname,
-                'name': 'remote_execution_connect_by_ip',
-                'value': 'True',
-            }
-        )
-        yield client
+    """ Create VM and register content host """
+    if '_count' in request.param.keys():
+        with VMBroker(
+            nick=request.param['nick'],
+            host_classes={'host': ContentHost},
+            _count=request.param['_count'],
+        ) as clients:
+            for client in clients:
+                _setup_host(client, module_org.label)
+            yield clients
+    else:
+        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+            _setup_host(client, module_org.label)
+            yield client
+
+
+def _setup_host(client, org_label):
+    """Set up host for remote execution"""
+    client.install_katello_ca()
+    client.register_contenthost(org=org_label, lce='Library')
+    assert client.subscribed
+    add_remote_execution_ssh_key(client.ip_addr)
+    Host.set_parameter(
+        {
+            'host': client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        }
+    )
 
 
 class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup):
         """Run default template on host connected by ip and list task
 
         :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
@@ -78,14 +90,13 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         command = "echo {}".format(gen_string('alpha'))
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f'command={command}',
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
             }
         )
 
@@ -95,7 +106,7 @@ class TestRemoteExecution:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -107,8 +118,8 @@ class TestRemoteExecution:
 
     @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup):
         """Run default job template as effective user on a host by ip
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
@@ -120,8 +131,7 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -129,7 +139,7 @@ class TestRemoteExecution:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f"command='useradd -m {username}'",
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
             }
         )
         try:
@@ -137,9 +147,7 @@ class TestRemoteExecution:
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
-                    JobInvocation.get_output(
-                        {'id': make_user_job['id'], 'host': self.client.hostname}
-                    )
+                    JobInvocation.get_output({'id': make_user_job['id'], 'host': client.hostname})
                 )
             )
             raise AssertionError(result)
@@ -148,7 +156,7 @@ class TestRemoteExecution:
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': f"command='touch /home/{username}/{filename}'",
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
         )
@@ -158,7 +166,7 @@ class TestRemoteExecution:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -166,13 +174,18 @@ class TestRemoteExecution:
         # check the file owner
         result = ssh.command(
             f'''stat -c '%U' /home/{username}/{filename}''',
-            hostname=self.client.ip_addr,
+            hostname=client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0]
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup',
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
+        ids=['rhel7', 'rhel7_fips'],
+        indirect=True,
+    )
     def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org):
         """Run custom template on host connected by ip
 
@@ -183,7 +196,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         template_file = 'template_file.txt'
         ssh.command(f'echo "echo Enforcing" > {template_file}')
         template_name = gen_string('alpha', 7)
@@ -191,7 +204,7 @@ class TestRemoteExecution:
             {'organizations': self.org.name, 'name': template_name, 'file': template_file}
         )
         invocation_command = make_job_invocation(
-            {'job-template': template_name, 'search-query': f"name ~ {self.client.hostname}"}
+            {'job-template': template_name, 'search-query': f"name ~ {client.hostname}"}
         )
         try:
             assert invocation_command['success'] == '1'
@@ -199,7 +212,7 @@ class TestRemoteExecution:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -207,7 +220,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], indirect=True)
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, fixture_vmsetup, module_org
     ):
@@ -219,19 +232,17 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
-        client2 = fixture_vmsetup
+        clients = fixture_vmsetup
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': 'command="ls"',
-                'search-query': f'name ~ {self.client.hostname} or name ~ {client2.hostname}',
+                'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
             }
         )
         # collect output messages from clients
         output_msgs = []
-        for vm in self.client, client2:
+        for vm in clients:
             output_msgs.append(
                 'host output from {}: {}'.format(
                     vm.hostname,
@@ -245,11 +256,9 @@ class TestRemoteExecution:
         assert invocation_command['success'] == '2', output_msgs
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
-    def test_positive_install_multiple_packages_with_a_job_by_ip(
-        self, fixture_vmsetup, module_org
-    ):
+    def test_positive_install_multiple_packages_with_a_job_by_ip(self, fixture_vmsetup, module_org):
         """Run job to install several packages on host by ip
 
         :id: 8b73033f-83c9-4024-83c3-5e442a79d320
@@ -260,7 +269,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
         repo = entities.Repository(
@@ -279,13 +288,13 @@ class TestRemoteExecution:
             environment=self.org.library,
         ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        self.client.register_contenthost(org=self.org.label, activation_key=ak.name)
+        client.register_contenthost(org=self.org.label, activation_key=ak.name)
 
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Install Package - Katello SSH Default',
                 'inputs': 'package={} {} {}'.format(*packages),
-                'search-query': f'name ~ {self.client.hostname}',
+                'search-query': f'name ~ {client.hostname}',
             }
         )
         try:
@@ -294,19 +303,17 @@ class TestRemoteExecution:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {}".format(" ".join(packages)), hostname=self.client.ip_addr)
-        assert result.return_code == 0
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == 0
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_recurring_job_with_max_iterations_by_ip(
-        self, fixture_vmsetup, module_org
-    ):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_recurring_job_with_max_iterations_by_ip(self, fixture_vmsetup):
         """Run default job template multiple times with max iteration by ip
 
         :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
@@ -316,26 +323,25 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - SSH Default',
                 'inputs': 'command="ls"',
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
             }
         )
 
-        JobInvocation.get_output({'id': invocation_command['id'], 'host': self.client.hostname})
+        JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
         try:
             assert invocation_command['status'] == 'queued'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -347,8 +353,8 @@ class TestRemoteExecution:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -358,14 +364,13 @@ class TestRemoteExecution:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         system_current_time = ssh.command('date --utc +"%b %d %Y %I:%M%p"').stdout[0]
         current_time_object = datetime.strptime(system_current_time, '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
         Host.set_parameter(
             {
-                'host': self.client.hostname,
+                'host': client.hostname,
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
             }
@@ -375,7 +380,7 @@ class TestRemoteExecution:
                 'job-template': 'Run Command - SSH Default',
                 'inputs': 'command="ls"',
                 'start-at': plan_time,
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
             }
         )
         # Wait until the job runs
@@ -391,7 +396,7 @@ class TestRemoteExecution:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -457,8 +462,8 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_effective_user_job(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_effective_user_job(self, fixture_vmsetup):
         """Tests Ansible REX job having effective user runs successfully
 
         :id: a5fa20d8-c2bd-4bbf-a6dc-bf307b59dd8c
@@ -481,8 +486,7 @@ class TestAnsibleREX:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         # create a user on client via remote job
         username = gen_string('alpha')
         filename = gen_string('alpha')
@@ -490,7 +494,7 @@ class TestAnsibleREX:
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': f"command='useradd -m {username}'",
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
             }
         )
         try:
@@ -498,9 +502,7 @@ class TestAnsibleREX:
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
-                    JobInvocation.get_output(
-                        {'id': make_user_job['id'], 'host': self.client.hostname}
-                    )
+                    JobInvocation.get_output({'id': make_user_job['id'], 'host': client.hostname})
                 )
             )
             raise AssertionError(result)
@@ -509,7 +511,7 @@ class TestAnsibleREX:
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': f"command='touch /home/{username}/{filename}'",
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
                 'effective-user': f'{username}',
             }
         )
@@ -519,7 +521,7 @@ class TestAnsibleREX:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -527,15 +529,15 @@ class TestAnsibleREX:
         # check the file owner
         result = ssh.command(
             f'''stat -c '%U' /home/{username}/{filename}''',
-            hostname=self.client.ip_addr,
+            hostname=client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0], "file ownership mismatch"
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
-    def test_positive_run_reccuring_job(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    def test_positive_run_reccuring_job(self, fixture_vmsetup):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
         :id: 49b0d31d-58f9-47f1-aa5d-561a1dcb0d66
@@ -556,25 +558,24 @@ class TestAnsibleREX:
 
         :parametrized: yes
         """
-        self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Run Command - Ansible Default',
                 'inputs': 'command="ls"',
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
                 'cron-line': '* * * * *',  # every minute
                 'max-iteration': 2,  # just two runs
             }
         )
-        JobInvocation.get_output({'id': invocation_command['id'], 'host': self.client.hostname})
+        JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
         try:
             assert invocation_command['status'] == 'queued'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
@@ -585,7 +586,7 @@ class TestAnsibleREX:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], indirect=True)
     def test_positive_run_concurrent_jobs(self, fixture_vmsetup, module_org):
         """Tests Ansible REX concurent jobs without batch trigger
 
@@ -609,46 +610,39 @@ class TestAnsibleREX:
         """
         param_name = 'foreman_tasks_proxy_batch_trigger'
         GlobalParameter().set({'name': param_name, 'value': 'false'})
-        client = fixture_vmsetup
+        clients = fixture_vmsetup
         output_msgs = []
-        with VMBroker(nick=fixture_vmsetup.param, host_classes={'host': ContentHost}) as client2:
-            client2.install_katello_ca()
-            client2.register_contenthost(org=module_org.label, lce='Library')
-            assert client2.subscribed
-            add_remote_execution_ssh_key(client2.ip_addr)
-            Host.set_parameter(
-                {
-                    'host': client2.hostname,
-                    'name': 'remote_execution_connect_by_ip',
-                    'value': 'True',
-                }
-            )
-            invocation_command = make_job_invocation(
-                {
-                    'job-template': 'Run Command - Ansible Default',
-                    'inputs': 'command="ls"',
-                    'search-query': f'name ~ {client.hostname} or name ~ {client2.hostname}',
-                    'concurrency-level': 2,
-                }
-            )
-            for vm in client, client2:
-                output_msgs.append(
-                    'host output from {}: {}'.format(
-                        vm.hostname,
-                        ' '.join(
-                            JobInvocation.get_output(
-                                {'id': invocation_command['id'], 'host': vm.hostname}
-                            )
-                        ),
-                    )
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - Ansible Default',
+                'inputs': 'command="ls"',
+                'search-query': f'name ~ {clients[0].hostname} or name ~ {clients[1].hostname}',
+                'concurrency-level': 2,
+            }
+        )
+        for vm in clients:
+            output_msgs.append(
+                'host output from {}: {}'.format(
+                    vm.hostname,
+                    ' '.join(
+                        JobInvocation.get_output(
+                            {'id': invocation_command['id'], 'host': vm.hostname}
+                        )
+                    ),
                 )
-            assert invocation_command['success'] == '2', output_msgs
+            )
+        assert invocation_command['success'] == '2', output_msgs
         GlobalParameter().delete({'name': param_name})
         assert len(GlobalParameter().list({'search': param_name})) == 0
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', ['rhel7'], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup',
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
+        ids=['rhel7', 'rhel7_fips'],
+        indirect=True,
+    )
     @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, module_org):
         """Tests Ansible REX job can install packages and start services
@@ -676,7 +670,7 @@ class TestAnsibleREX:
         :parametrized: yes
         """
         self.org = module_org
-        self.client = fixture_vmsetup
+        client = fixture_vmsetup
         packages = ["cow"]
         # Create a custom repo
         repo = entities.Repository(
@@ -687,21 +681,21 @@ class TestAnsibleREX:
         repo.sync()
         prod = repo.product.read()
         subs = entities.Subscription().search(query={'search': f'name={prod.name}'})
-        assert len(subs) > 0, 'No subscriptions matching the product returned'
+        assert len(subs), 'No subscriptions matching the product returned'
         ak = entities.ActivationKey(
             organization=self.org,
             content_view=self.org.default_content_view,
             environment=self.org.library,
         ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
-        self.client.register_contenthost(org=self.org.label, activation_key=ak.name)
+        client.register_contenthost(org=self.org.label, activation_key=ak.name)
 
         # install package
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Package Action - Ansible Default',
                 'inputs': 'state=latest, name={}'.format(*packages),
-                'search-query': f'name ~ {self.client.hostname}',
+                'search-query': f'name ~ {client.hostname}',
             }
         )
         try:
@@ -710,25 +704,25 @@ class TestAnsibleREX:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
             raise AssertionError(result)
-        result = ssh.command("rpm -q {}".format(*packages), hostname=self.client.ip_addr)
-        assert result.return_code == 0
+        result = client.run(f'rpm -q {" ".join(packages)}')
+        assert result.status == 0
 
         # start a service
         service = "postfix"
         ssh.command(
             "sed -i 's/^inet_protocols.*/inet_protocols = ipv4/' /etc/postfix/main.cf",
-            hostname=self.client.ip_addr,
+            hostname=client.ip_addr,
         )
         invocation_command = make_job_invocation(
             {
                 'job-template': 'Service Action - Ansible Default',
                 'inputs': f'state=started, name={service}',
-                'search-query': f"name ~ {self.client.hostname}",
+                'search-query': f"name ~ {client.hostname}",
             }
         )
         try:
@@ -737,10 +731,10 @@ class TestAnsibleREX:
             result = 'host output: {}'.format(
                 ' '.join(
                     JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.client.hostname}
+                        {'id': invocation_command['id'], 'host': client.hostname}
                     )
                 )
             )
             raise AssertionError(result)
-        result = ssh.command(f"systemctl status {service}", hostname=self.client.ip_addr)
+        result = ssh.command(f"systemctl status {service}", hostname=client.ip_addr)
         assert result.return_code == 0

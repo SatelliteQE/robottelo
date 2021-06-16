@@ -186,8 +186,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import TYPE_CHECKING
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
@@ -196,32 +196,18 @@ from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_product_wait
 from robottelo.cli.factory import make_repository
-from robottelo.cli.factory import setup_virtual_machine
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_DEFAULT
-from robottelo.constants import DISTRO_RHEL6
-from robottelo.constants import DISTROS_MAJOR_VERSION
-from robottelo.constants import DISTROS_SUPPORTED
-from robottelo.constants import ENVIRONMENT
-from robottelo.constants import MAJOR_VERSION_DISTRO
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
 from robottelo.helpers import get_host_info
 
-if TYPE_CHECKING:
-    from robottelo.vm import VirtualMachine  # noqa
-
-REPO_TYPE_YUM = REPO_TYPE['yum']
-REPO_TYPE_DOCKER = REPO_TYPE['docker']
-REPO_TYPE_PUPPET = REPO_TYPE['puppet']
-REPO_TYPE_OSTREE = REPO_TYPE['ostree']
+REPO_TYPE_YUM = constants.REPO_TYPE['yum']
+REPO_TYPE_DOCKER = constants.REPO_TYPE['docker']
+REPO_TYPE_PUPPET = constants.REPO_TYPE['puppet']
+REPO_TYPE_OSTREE = constants.REPO_TYPE['ostree']
 
 DOWNLOAD_POLICY_ON_DEMAND = 'on_demand'
 DOWNLOAD_POLICY_IMMEDIATE = 'immediate'
@@ -267,7 +253,7 @@ def get_server_distro():  # type: () -> str
     global _server_distro
     if _server_distro is None:
         _, major, _ = get_host_info()
-        _server_distro = MAJOR_VERSION_DISTRO[major]
+        _server_distro = constants.MAJOR_VERSION_DISTRO[major]
     return _server_distro
 
 
@@ -316,9 +302,7 @@ class BaseRepository:
         return self._type
 
     def __repr__(self):
-        return '<Repo type: {}, url: {}, object: {}>'.format(
-            self.content_type, self.url, hex(id(self))
-        )
+        return f'<Repo type: {self.content_type}, url: {self.url}, object: {hex(id(self))}>'
 
     @property
     def repo_info(self):  # type: () -> Optional[Dict]
@@ -432,7 +416,7 @@ class GenericRHRepository(BaseRepository):
     """Generic RH repository"""
 
     _type = REPO_TYPE_YUM
-    _distro = DISTRO_DEFAULT  # type: str
+    _distro = constants.DISTRO_DEFAULT  # type: str
     _key = None  # type: str
     _repo_data = None  # type: Dict
     _url = None  # type: Optional[str]
@@ -474,7 +458,7 @@ class GenericRHRepository(BaseRepository):
         """Set a new distro value, we have to reinitialise the repo data also,
         if not found raise exception
         """
-        if distro is not None and distro not in DISTROS_SUPPORTED:
+        if distro is not None and distro not in constants.DISTROS_SUPPORTED:
             raise DistroNotSupportedError(f'distro "{distro}" not supported')
         if distro is None:
             distro = self._distro
@@ -491,7 +475,7 @@ class GenericRHRepository(BaseRepository):
         if distro is None:
             distro = self.distro
         repo_data = None
-        for _, data in REPOS.items():
+        for _, data in constants.REPOS.items():
             repo_key = data.get('key')
             repo_distro = data.get('distro')
             if repo_key == self.key and repo_distro == distro:
@@ -520,7 +504,7 @@ class GenericRHRepository(BaseRepository):
 
     @property
     def distro_major_version(self):
-        return DISTROS_MAJOR_VERSION[self.distro]
+        return constants.DISTROS_MAJOR_VERSION[self.distro]
 
     @property
     def distro_repository(self):  # type: () -> Optional[RHELRepository]
@@ -541,10 +525,8 @@ class GenericRHRepository(BaseRepository):
         if self.is_distro_repository:
             return self
         distro_repo_data = None
-        for _, repo_data in REPOS.items():
-            if repo_data.get('distro') == self.distro and self._repo_is_distro(
-                repo_data=repo_data
-            ):
+        for repo_data in constants.REPOS.values():
+            if repo_data.get('distro') == self.distro and self._repo_is_distro(repo_data=repo_data):
                 distro_repo_data = repo_data
                 break
 
@@ -567,7 +549,7 @@ class GenericRHRepository(BaseRepository):
             data['repository'] = self.repo_data.get('name')
             data['repository-id'] = self.repo_data.get('id')
             data['releasever'] = self.repo_data.get('releasever')
-            data['arch'] = self.repo_data.get('arch', DEFAULT_ARCHITECTURE)
+            data['arch'] = self.repo_data.get('arch', constants.DEFAULT_ARCHITECTURE)
             data['cdn'] = True
         else:
             data['url'] = self.url
@@ -577,11 +559,12 @@ class GenericRHRepository(BaseRepository):
 
     def __repr__(self):
         if self.cdn:
-            return '<RH cdn Repo: {} within distro:{}, object: {}>'.format(
-                self.data['repository'], self.distro, hex(id(self))
+            return (
+                f'<RH cdn Repo: {self.data["repository"]} within distro: '
+                f'{self.distro}, object: {hex(id(self))}>'
             )
         else:
-            return '<RH custom Repo url: {} object: {}>'.format(self.url, hex(id(self)))
+            return f'<RH custom Repo url: {self.url} object: {hex(id(self))}>'
 
     def create(
         self,
@@ -608,7 +591,7 @@ class GenericRHRepository(BaseRepository):
                         'organization-id': organization_id,
                         'product': data['product'],
                         'name': data['repository-set'],
-                        'basearch': data.get('arch', DEFAULT_ARCHITECTURE),
+                        'basearch': data.get('arch', constants.DEFAULT_ARCHITECTURE),
                         'releasever': data.get('releasever'),
                     }
                 )
@@ -626,9 +609,7 @@ class GenericRHRepository(BaseRepository):
             if synchronize:
                 self.synchronize()
         else:
-            repo_info = super().create(
-                organization_id, product_id, download_policy=download_policy
-            )
+            repo_info = super().create(organization_id, product_id, download_policy=download_policy)
         return repo_info
 
 
@@ -668,11 +649,11 @@ class VirtualizationAgentsRepository(GenericRHRepository):
     """Virtualization Agents repository"""
 
     _key = PRODUCT_KEY_VIRT_AGENTS
-    _distro = DISTRO_RHEL6
+    _distro = constants.DISTRO_RHEL6
 
 
 class RHELCloudFormsTools(GenericRHRepository):
-    _distro = DISTRO_RHEL6
+    _distro = constants.DISTRO_RHEL6
     _key = PRODUCT_KEY_CLOUD_FORMS_TOOLS
 
 
@@ -697,7 +678,7 @@ class RepositoryCollection:
 
         self._items = []
 
-        if distro is not None and distro not in DISTROS_SUPPORTED:
+        if distro is not None and distro not in constants.DISTROS_SUPPORTED:
             raise DistroNotSupportedError(f'distro "{distro}" not supported')
         if distro is not None:
             self._distro = distro
@@ -836,7 +817,7 @@ class RepositoryCollection:
             repo.add_to_content_view(org_id, content_view['id'])
         # Publish the content view
         ContentView.publish({'id': content_view['id']})
-        if lce['name'] != ENVIRONMENT:
+        if lce['name'] != constants.ENVIRONMENT:
             # Get the latest content view version id
             content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
             # Promote content view version to lifecycle environment
@@ -927,7 +908,7 @@ class RepositoryCollection:
                 manifests.upload_manifest_locked(org_id, interface=manifests.INTERFACE_CLI)
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
-                rh_subscriptions = [DEFAULT_SUBSCRIPTION_NAME]
+                rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
         custom_product, repos_info = self.setup(org_id=org_id, download_policy=download_policy)
         content_view, lce = self.setup_content_view(org_id, lce_id)
         custom_product_name = custom_product['name'] if custom_product else None
@@ -961,7 +942,7 @@ class RepositoryCollection:
         Setup The virtual machine basic task, eg: install katello ca,
         register vm host, enable rh repos and install katello-agent
 
-        :param VirtualMachine vm: The Virtual machine to setup.
+        :param robottelo.hosts.ContentHost vm: The Virtual machine to setup.
         :param bool patch_os_release: whether to patch the VM with os version.
         :param bool install_katello_agent: whether to install katello-agent
         :param bool enable_rh_repos: whether to enable RH repositories
@@ -976,32 +957,29 @@ class RepositoryCollection:
         patch_os_release_distro = None
         if patch_os_release and self.os_repo:
             patch_os_release_distro = self.os_repo.distro
-        rh_repos_id = []  # type: List[str]
+        rh_repo_ids = []  # type: List[str]
         if enable_rh_repos:
-            rh_repos_id = [getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
-        custom_repos_label = []  # type: List[str]
+            rh_repo_ids = [getattr(repo, 'rh_repository_id') for repo in self.rh_repos]
+        repo_labels = []  # type: List[str]
         if enable_custom_repos:
-            custom_repos_label = [
+            repo_labels = [
                 repo['label'] for repo in self.custom_repos_info if repo['content-type'] == 'yum'
             ]
 
-        setup_virtual_machine(
-            vm,
+        vm.contenthost_setup(
             self.organization['label'],
-            rh_repos_id=rh_repos_id,
-            repos_label=custom_repos_label,
+            rh_repo_ids=rh_repo_ids,
+            repo_labels=repo_labels,
             product_label=self.custom_product['label'] if self.custom_product else None,
             activation_key=self._setup_content_data['activation_key']['name'],
             patch_os_release_distro=patch_os_release_distro,
             install_katello_agent=install_katello_agent,
         )
         if configure_rhel_repo:
-            rhel_repo_option_name = 'rhel{}_repo'.format(DISTROS_MAJOR_VERSION[self.distro])
+            rhel_repo_option_name = f'rhel{constants.DISTROS_MAJOR_VERSION[self.distro]}_repo'
             rhel_repo_url = getattr(settings, rhel_repo_option_name, None)
             if not rhel_repo_url:
                 raise ValueError(
-                    'Settings option "{}" is whether not set or does not exist'.format(
-                        rhel_repo_option_name
-                    )
+                    f'Settings option "{rhel_repo_option_name}" is not set or does not exist'
                 )
             vm.configure_rhel_repo(rhel_repo_url)

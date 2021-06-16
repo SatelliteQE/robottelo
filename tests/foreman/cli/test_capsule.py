@@ -59,9 +59,7 @@ def test_negative_create_with_url():
     """
     # Create a random proxy
     with pytest.raises(CLIFactoryError, match='Could not create the proxy:'):
-        make_proxy(
-            {'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4))}
-        )
+        make_proxy({'url': 'http://{}:{}'.format(gen_string('alpha', 6), gen_string('numeric', 4))})
 
 
 @pytest.mark.skip_if_not_set('fake_capsules')

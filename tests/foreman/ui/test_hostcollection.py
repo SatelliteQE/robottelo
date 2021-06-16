@@ -19,6 +19,7 @@
 import time
 
 import pytest
+from broker import VMBroker
 from nailgun import entities
 
 from robottelo.api.utils import promote
@@ -44,10 +45,10 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
-from robottelo.vm import VirtualMachine
 
 
 @pytest.fixture(scope='module')
@@ -95,22 +96,18 @@ def module_repos_collection_module_stream(module_org, module_lce):
 
 @pytest.fixture
 def vm_content_hosts(request, module_loc, module_repos_collection):
-    clients = []
-    for _ in range(2):
-        client = VirtualMachine(distro=module_repos_collection.distro)
-        clients.append(client)
-        request.addfinalizer(client.destroy)
-        client.create()
-        module_repos_collection.setup_virtual_machine(client)
-        update_vm_host_location(client, module_loc.id)
-    return clients
+    distro = module_repos_collection.distro
+    with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
+        for client in clients:
+            module_repos_collection.setup_virtual_machine(client)
+            update_vm_host_location(client, module_loc.id)
+        yield clients
 
 
 @pytest.fixture
 def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_stream):
     distro = module_repos_collection_module_stream.distro
-    with VirtualMachine(distro=distro) as client1, VirtualMachine(distro=distro) as client2:
-        clients = [client1, client2]
+    with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_module_stream.setup_virtual_machine(
                 client, install_katello_agent=False
@@ -151,7 +148,7 @@ def _run_remote_command_on_content_hosts(command, vm_clients):
     """run remote command on content hosts"""
     for vm_client in vm_clients:
         result = vm_client.run(command)
-        assert result.return_code == 0
+        assert result.status == 0
 
 
 def _is_package_installed(
@@ -167,10 +164,10 @@ def _is_package_installed(
     for vm_client in vm_clients:
         for ind in range(retries):
             result = vm_client.run(f'rpm -q {package_name}')
-            if result.return_code == 0 and expect_installed:
+            if result.status == 0 and expect_installed:
                 installed += 1
                 break
-            elif result.return_code != 0 and not expect_installed:
+            elif result.status != 0 and not expect_installed:
                 installed -= 1
                 break
             if ind < retries - 1:
@@ -188,7 +185,7 @@ def _install_package_with_assertion(vm_clients, package_name):
     """Install package in Virtual machine clients and assert installed"""
     for client in vm_clients:
         result = client.run(f'yum install -y {package_name}')
-        assert result.return_code == 0
+        assert result.status == 0
     assert _is_package_installed(vm_clients, package_name)
 
 
@@ -306,9 +303,7 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {
-            host['Host'] for host in job_values['hosts_table']
-        }
+        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
 
 
 @pytest.mark.tier2
@@ -341,9 +336,7 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
         assert job_values['job_status'] == 'Failed'
         assert job_values['job_status_progress'] == '100%'
         assert int(job_values['total_hosts']) == len(hosts)
-        assert {host.name for host in hosts} == {
-            host['Host'] for host in job_values['hosts_table']
-        }
+        assert {host.name for host in hosts} == {host['Host'] for host in job_values['hosts_table']}
 
 
 @pytest.mark.upgrade
@@ -379,7 +372,6 @@ def test_positive_add_host(session):
         assert hc_values['hosts']['resources']['assigned'][0]['Name'] == host.name
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package(session, module_org, vm_content_hosts, vm_host_collection):
@@ -400,7 +392,6 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_collection):
@@ -424,7 +415,6 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
         )
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host_collection):
     """Upgrade a package on hosts inside host collection remotely
@@ -445,7 +435,6 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_package_group(session, module_org, vm_content_hosts, vm_host_collection):
@@ -470,7 +459,6 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
             assert _is_package_installed(vm_content_hosts, package)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm_host_collection):
     """Remove a package group from hosts inside host collection remotely
@@ -484,7 +472,7 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
     """
     for client in vm_content_hosts:
         result = client.run(f'yum groups install -y {FAKE_0_CUSTOM_PACKAGE_GROUP_NAME}')
-        assert result.return_code == 0
+        assert result.status == 0
     for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
         assert _is_package_installed(vm_content_hosts, package)
     with session:
@@ -499,7 +487,6 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
             assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_collection):
@@ -522,7 +509,6 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 def test_positive_change_assigned_content(
     session, module_org, module_lce, vm_content_hosts, vm_host_collection, module_repos_collection
@@ -591,7 +577,7 @@ def test_positive_change_assigned_content(
     )
     for client in vm_content_hosts:
         result = client.run("subscription-manager repos")
-        assert result.return_code == 0
+        assert result.status == 0
         client_repo_urls = [
             line.split(' ')[-1] for line in result.stdout if line.startswith(repo_line_start_with)
         ]
@@ -608,10 +594,10 @@ def test_positive_change_assigned_content(
         )
         for client in vm_content_hosts:
             result = client.run("subscription-manager refresh")
-            assert result.return_code == 0
+            assert result.status == 0
             assert 'All local data refreshed' in result.stdout
             result = client.run("subscription-manager repos")
-            assert result.return_code == 0
+            assert result.status == 0
             client_repo_urls = [
                 line.split(' ')[-1]
                 for line in result.stdout
@@ -670,7 +656,6 @@ def test_negative_hosts_limit(session, module_org, module_loc):
         ) in str(context.value)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_module_stream(
@@ -708,7 +693,6 @@ def test_positive_install_module_stream(
         assert _is_package_installed(vm_content_hosts_module_stream, FAKE_3_CUSTOM_PACKAGE)
 
 
-@pytest.mark.libvirt_content_host
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_install_modular_errata(

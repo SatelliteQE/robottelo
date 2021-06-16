@@ -8,7 +8,7 @@
 
 :CaseComponent: OrganizationsLocations
 
-:Assignee: lvrtelov
+:Assignee: shwsingh
 
 :TestType: Functional
 
@@ -275,15 +275,13 @@ def test_positive_add_and_remove_hostgroups(module_org):
     Org.remove_hostgroup({'hostgroup-id': hostgroups[1]['id'], 'id': module_org.id})
     Org.remove_hostgroup({'hostgroup': hostgroups[0]['name'], 'name': module_org.name})
     org_info = Org.info({'id': module_org.id})
-    assert (
-        hostgroups[0]['name'] not in org_info['hostgroups']
-    ), "Failed to remove hostgroup by name"
+    assert hostgroups[0]['name'] not in org_info['hostgroups'], "Failed to remove hostgroup by name"
     assert hostgroups[1]['name'] not in org_info['hostgroups'], "Failed to remove hostgroup by id"
 
 
 @pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.tier2
-@pytest.mark.libvirt_content_host
+@pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
 def test_positive_add_and_remove_compute_resources(module_org):
     """Add and remove a compute resource from organization
@@ -357,9 +355,7 @@ def test_positive_add_and_remove_media(module_org):
     Org.remove_medium({'name': module_org.name, 'medium': media[0]['name']})
     Org.remove_medium({'id': module_org.id, 'medium-id': media[1]['id']})
     org_info = Org.info({'id': module_org.id})
-    assert (
-        media[0]['name'] not in org_info['installation-media']
-    ), "Failed to remove medium by name"
+    assert media[0]['name'] not in org_info['installation-media'], "Failed to remove medium by name"
     assert media[1]['name'] not in org_info['installation-media'], "Failed to remove medium by id"
 
 
@@ -404,9 +400,7 @@ def test_positive_add_and_remove_templates(module_org):
 
     # add and remove templates by id
     # Add provisioning-template
-    Org.add_provisioning_template(
-        {'provisioning-template-id': template['id'], 'id': module_org.id}
-    )
+    Org.add_provisioning_template({'provisioning-template-id': template['id'], 'id': module_org.id})
     org_info = Org.info({'id': module_org.id})
     assert (
         f"{template['name']} ({template['type']})" in org_info['templates']

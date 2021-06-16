@@ -183,9 +183,7 @@ def _permission_name(entity, which_perm):
         which_perm
     ]
     perm_names = []
-    permissions = PERMISSIONS.get(entity.__name__) or PERMISSIONS.get(
-        f'Katello::{entity.__name__}'
-    )
+    permissions = PERMISSIONS.get(entity.__name__) or PERMISSIONS.get(f'Katello::{entity.__name__}')
     for permission in permissions:
         match = re.match(pattern, permission)
         if match is not None:

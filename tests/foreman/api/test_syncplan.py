@@ -349,9 +349,7 @@ def test_positive_update_description(module_org, description):
     :expectedresults: A sync plan is created and its description can be
         updated with the specified description.
     """
-    sync_plan = entities.SyncPlan(
-        description=gen_string('alpha'), organization=module_org
-    ).create()
+    sync_plan = entities.SyncPlan(description=gen_string('alpha'), organization=module_org).create()
     sync_plan.description = description
     sync_plan.update(['description'])
     sync_plan = sync_plan.read()
@@ -942,9 +940,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     delay = 2 * 60
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(product=product).create()
-    start_date = (
-        datetime.utcnow().replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
-    )
+    start_date = datetime.utcnow().replace(second=0) - timedelta(weeks=1) + timedelta(seconds=delay)
     # Create and Associate sync plan with product
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, interval='weekly', sync_date=start_date
