@@ -230,3 +230,28 @@ def test_positive_logging_from_dynflow(module_org):
                 assert match, "Request ID not found"
                 logger.info("Request ID found for logging from dynflow ")
     assert POST_line_found, "The POST command to enable a repo was not found in logs."
+
+
+@pytest.mark.tier4
+@pytest.mark.stubbed
+def test_positive_logging_from_pulp3():
+    """
+    Verify Pulp3 logs are getting captured using pulp3 correlation ID
+
+    :id: 8d5718e6-3442-47d6-b541-0aa78d007e8b
+
+    :steps:
+        1. Create a Product and assign it to default organization
+        2. Create a Repository and add it in the Product
+        3. Sync the repository
+        4. Use Hammer command to get the UUID of Repository sync.
+        5. Search for the UUID in production log and get the correaltion ID of pulp3 from it
+        6. Search for that correlation ID in var/log/messages.
+
+    :expectedresults:
+        1.Pulp3 logs are being captured in the logs with the correlation ID.
+
+    :CaseLevel: Component
+
+    :CaseImportance: High
+    """
