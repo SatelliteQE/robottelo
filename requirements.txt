@@ -19,7 +19,7 @@ pytest-services==2.2.1
 pytest-mock==3.6.1
 pytest-reportportal==5.0.8
 pytest-xdist==2.2.1
-pytest-ibutsu==1.14.1
+pytest-ibutsu==1.16
 PyYAML==5.4.1
 requests==2.25.1
 selenium==3.141.0
