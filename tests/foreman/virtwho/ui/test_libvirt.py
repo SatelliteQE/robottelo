@@ -72,6 +72,7 @@ class TestVirtwhoConfigforLibvirt:
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
             vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
             vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -109,6 +110,7 @@ class TestVirtwhoConfigforLibvirt:
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
             vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
             vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)

@@ -3886,7 +3886,9 @@ class TestContentView:
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(
         self, module_org, capsule_configured
     ):

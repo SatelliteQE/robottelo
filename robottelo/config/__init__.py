@@ -135,6 +135,7 @@ def configure_nailgun():
         """Set a default value on the ``content`` field."""
         gpgkey_init(self, server_config, **kwargs)
         self._fields['content'].default = str(
+
             Path().joinpath('tests/foreman/data/valid_gpg_key.txt')
         )
 
