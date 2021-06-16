@@ -69,6 +69,7 @@ class ContentHost(Host):
     run = Host.execute
 
     def __init__(self, hostname, auth=None, **kwargs):
+
         """ContentHost object with optional ssh connection
 
         :param hostname: The fqdn of a ContentHost target
