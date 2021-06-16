@@ -104,7 +104,7 @@ def test_positive_cli_find_admin_user():
 @pytest.mark.tier4
 @pytest.mark.on_premises_provisioning
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_cli_end_to_end(fake_manifest_is_set):
     """Perform end to end smoke tests using RH and custom repos.
 

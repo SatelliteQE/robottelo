@@ -1,10 +1,8 @@
 """Only External Repos url specific constants module"""
 from robottelo.config import settings
 
-if not settings.configured:
-    settings.configure()
 
-REPOS_URL = settings.repos_hosting_url
+REPOS_URL = settings.robottelo.repos_hosting_url
 
 CUSTOM_FILE_REPO = 'https://fixtures.pulpproject.org/file/'
 CUSTOM_KICKSTART_REPO = 'http://ftp.cvut.cz/centos/8/BaseOS/x86_64/kickstart/'

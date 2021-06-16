@@ -1,10 +1,10 @@
 CAPSULE:
   # Capsule name to be used in the CapsuleVirtualMachine class (will be deprecated)
-  # SATELLITE_VERSION_TAG: "@jinja {{this.robottelo.satellite_version | replace('.', '')}}"
-  # INSTANCE_NAME: "@format qe-sat{this[capsule].satellite_version_tag}-rhel7-tierX-capsule"
+  SATELLITE_VERSION_TAG: "@jinja {{this.robottelo.satellite_version | replace('.', '')}}"
+  INSTANCE_NAME: "@format qe-sat{this[capsule].satellite_version_tag}-rhel7-tierX-capsule"
   VERSION:
     # The full release version (6.9.2)
-    # RELEASE: populate with capsule version
+    RELEASE:  # populate with capsule version
     # The snap version currently testing (if applicable)
     # SNAP:
     # The source of Capsule packages. Can be one of:

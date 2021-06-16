@@ -135,7 +135,9 @@ REPOS_WITH_ERRATA = (
 )
 
 pytestmark = [
-    pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url'),
+    pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    ),
     pytest.mark.run_in_one_thread,
 ]
 

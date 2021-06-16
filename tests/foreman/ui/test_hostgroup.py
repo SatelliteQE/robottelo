@@ -138,7 +138,7 @@ def test_create_with_config_group(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_create_with_puppet_class(session, module_org, module_loc):
     """Create new host group with assigned puppet class to it
 

@@ -29,7 +29,7 @@ from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 
 pytestmark = [
     pytest.mark.skipif(
-        not settings.repos_hosting_url,
+        not settings.robottelo.REPOS_HOSTING_URL,
         reason="repos_hosting_url is not defined in robottelo.properties",
     )
 ]

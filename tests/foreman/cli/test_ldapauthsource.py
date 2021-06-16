@@ -487,24 +487,24 @@ class TestRHSSOAuthSource:
                 'oidc-token-endpoint': get_oidc_token_endpoint(),
                 'oidc-client-id': get_oidc_client_id(),
                 'username': settings.rhsso.rhsso_user,
-                'password': settings.rhsso.password,
+                'password': settings.rhsso.rhsso_password,
             }
         )
         assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
         result = Auth.with_user(
-            username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+            username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
         ).status()
         assert (
             f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
             == result[0]['message']
         )
         task_list = Task.with_user(
-            username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+            username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
         ).list()
         assert len(task_list) >= 0
         with pytest.raises(CLIReturnCodeError) as error:
             Role.with_user(
-                username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+                username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
             ).list()
         assert 'Missing one of the required permissions' in error.value.message
 
@@ -529,14 +529,14 @@ class TestRHSSOAuthSource:
                 'oidc-token-endpoint': get_oidc_token_endpoint(),
                 'oidc-client-id': get_oidc_client_id(),
                 'username': settings.rhsso.rhsso_user,
-                'password': settings.rhsso.password,
+                'password': settings.rhsso.rhsso_password,
             }
         )
         assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
         sleep(70)
         with pytest.raises(CLIReturnCodeError) as error:
             Task.with_user(
-                username=settings.rhsso.rhsso_user, password=settings.rhsso.password
+                username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
             ).list()
         assert 'Unable to authenticate user sat_admin' in error.value.message
 
@@ -554,7 +554,7 @@ class TestRHSSOAuthSource:
         """
         with Session(login=False) as rhsso_session:
             two_factor_code = rhsso_session.rhsso_login.get_two_factor_login_code(
-                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.password},
+                {'username': settings.rhsso.rhsso_user, 'password': settings.rhsso.rhsso_password},
                 get_two_factor_token_rh_sso_url(),
             )
             with open_pxssh_session() as ssh_session:

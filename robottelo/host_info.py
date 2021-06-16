@@ -3,10 +3,14 @@ import functools
 import re
 
 from packaging.version import Version
+from ssh2.exceptions import AuthenticationError
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
+from robottelo.constants import SATELLITE_VERSION
+from robottelo.hosts import ContentHostError
+from robottelo.hosts import Satellite
 from robottelo.logging import logger
 
 
@@ -152,5 +156,14 @@ class SatVersionDependentValues:
 def get_sat_version():
     """Try to read sat_version from envvar SATELLITE_VERSION
     if not available fallback to ssh connection to get it."""
-    sat_ver = str(settings.robottelo.satellite_version) or get_host_sat_version()
-    return Version('9999' if 'nightly' in sat_ver else sat_ver)
+
+    try:
+        sat_version = Satellite().version
+    except (AuthenticationError, ContentHostError):
+        if hasattr(settings.server.version, 'release'):
+            sat_version = str(settings.server.version.release)
+        elif hasattr(settings.robottelo, 'satellite_version'):
+            sat_version = settings.robottelo.satellite_version
+        else:
+            sat_version = SATELLITE_VERSION
+    return Version('9999' if 'nightly' in sat_version else sat_version)

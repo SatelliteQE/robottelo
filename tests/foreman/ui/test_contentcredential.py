@@ -143,7 +143,7 @@ def test_positive_add_empty_product(session, module_org, gpg_content):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository
@@ -177,7 +177,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository
@@ -235,7 +235,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -264,7 +264,7 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_add_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg key
@@ -309,7 +309,7 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_product_and_search(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key
     then associate it with custom product that has one repository
@@ -346,7 +346,7 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
@@ -403,7 +403,7 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
 def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid gpg then associate
@@ -478,7 +478,7 @@ def test_positive_update_key_for_empty_product(session, module_org, gpg_content)
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has one repository then update the key
@@ -509,7 +509,7 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     with custom product that has more than one repository then update the
@@ -541,7 +541,7 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has one repository then update
@@ -574,7 +574,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_update_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then associate it
     to repository from custom product that has more than one repository
@@ -635,7 +635,7 @@ def test_positive_delete_key_for_empty_product(session, module_org, gpg_content)
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has one repository then delete it
@@ -676,7 +676,7 @@ def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_cont
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it with custom product that has more than one repository then
@@ -722,7 +722,7 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has one repository
@@ -758,7 +758,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_key_for_repo_from_product_with_repos(session, module_org, gpg_content):
     """Create gpg key with valid name and valid gpg key then
     associate it to repository from custom product that has more than

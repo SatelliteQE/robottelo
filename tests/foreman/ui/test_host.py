@@ -166,9 +166,9 @@ def module_os(default_architecture, default_partition_table, module_org, module_
 def os_path(module_os):
     # Check what OS was found to use correct media
     if module_os.major == str(RHEL_6_MAJOR_VERSION):
-        os_distr_url = settings.rhel6_os
+        os_distr_url = settings.repos.rhel6_os
     elif module_os.major == str(RHEL_7_MAJOR_VERSION):
-        os_distr_url = settings.rhel7_os
+        os_distr_url = settings.repos.rhel7_os
     else:
         raise ValueError('Proposed RHEL version is not supported')
     return os_distr_url
@@ -580,7 +580,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
     """Create new Host with puppet class assigned to it
 
@@ -718,7 +718,7 @@ def test_positive_assign_compliance_policy(session, scap_policy):
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
-@pytest.mark.skipif((settings.webdriver != 'chrome'), reason='Only tested on Chrome')
+@pytest.mark.skipif((settings.robottelo.webdriver != 'chrome'), reason='Only tested on Chrome')
 @pytest.mark.tier3
 def test_positive_export(session):
     """Create few hosts and export them via UI
@@ -1394,7 +1394,7 @@ def test_positive_global_registration_end_to_end(
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as client:
         # rhel repo required for insights client installation,
         # syncing it to the satellite would take too long
-        client.configure_rhel_repo(settings.rhel7_repo)
+        client.configure_rhel_repo(settings.repos.rhel7_repo)
         # run curl
         result = client.execute(cmd)
         assert result.status == 0

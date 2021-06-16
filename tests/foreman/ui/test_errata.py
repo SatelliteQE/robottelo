@@ -269,7 +269,7 @@ def test_end_to_end(session, module_repos_col, vm):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_content_host_errata_page_pagination(session, org, lce):
     """
     # Test per-page pagination for BZ#1662254
@@ -353,7 +353,7 @@ def test_content_host_errata_page_pagination(session, org, lce):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_repos_col')
 def test_positive_list(session, org, lce):
     """View all errata in an Org
@@ -807,7 +807,7 @@ def test_positive_show_count_on_content_host_details_page(session, module_org, e
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_filtered_errata_status_installable_param(session, errata_status_installable):
     """Filter errata for specific content view and verify that host that
     was registered using that content view has different states in

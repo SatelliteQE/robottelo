@@ -1,7 +1,6 @@
 SERVER:
   # Server hostnames, a list of one or more dns-resolvable hostnames
-  HOSTNAMES:
-    - null
+  HOSTNAMES: []
   #  - replace.with.satellite.hostname
   #  - replace.with.satellite.hostname
   VERSION:
@@ -36,11 +35,11 @@ SERVER:
   SSH_USERNAME: root
   # Use either of SSH_PASSWORD or SSH_KEY or SSH_KEY_STRING below
   # SSH password if not using a SSH key to connect
-  # SSH_PASSWORD: replace-with-ssh-passwd
+  SSH_PASSWORD:  # replace-with-ssh-passwd
   # Path to private ssh key to be used when connecting via SSH.
-  # SSH_KEY:
+  SSH_KEY:
   # private ssh key as a string to be used when connecting via SSH.
-  # SSH_KEY_STRING:
+  SSH_KEY_STRING:
   # Admin username when accessing API and UI
   ADMIN_USERNAME: admin
   # Admin password when accessing API and UI

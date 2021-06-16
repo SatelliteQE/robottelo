@@ -140,7 +140,9 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_assign_http_proxy_to_repository(self, module_org, module_product, http_proxy):
         """Assign http_proxy to Repositories and perform repository sync.
 
@@ -195,7 +197,9 @@ class TestRepository:
         assert repo.name != repo_options['label']
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
@@ -216,7 +220,9 @@ class TestRepository:
             assert getattr(repo, k) == repo_options[k]
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO}]),
@@ -236,7 +242,9 @@ class TestRepository:
         assert repo.content_type == repo_options['content_type']
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -445,7 +453,9 @@ class TestRepository:
         assert repo.download_policy == 'on_demand'
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -683,7 +693,9 @@ class TestRepository:
             entities.Repository(**repo_options).create()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -710,7 +722,9 @@ class TestRepository:
             entities.Repository(**repo_options).create()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -922,7 +936,9 @@ class TestRepository:
         assert repo.checksum_type == updated_checksum
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_update_url(self, repo):
         """Update repository url to another valid one.
 
@@ -1024,7 +1040,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
     )
@@ -1047,7 +1065,9 @@ class TestRepository:
             repo.read()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
@@ -1109,7 +1129,9 @@ class TestRepository:
             repo.update(['label'])
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'url',
         **parametrized(
@@ -1138,7 +1160,9 @@ class TestRepository:
             repo.update(['url'])
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'url',
         **parametrized(
@@ -1178,7 +1202,9 @@ class TestRepository:
         assert repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1212,7 +1238,9 @@ class TestRepository:
         assert repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1243,7 +1271,9 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1277,7 +1307,9 @@ class TestRepository:
         assert repo.read().content_counts['puppet_module'] == 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
@@ -1309,7 +1341,9 @@ class TestRepository:
         assert repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
@@ -1363,7 +1397,9 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
@@ -1389,7 +1425,9 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
@@ -1416,7 +1454,9 @@ class TestRepository:
             repo.read()
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO}]),
@@ -1457,7 +1497,9 @@ class TestRepository:
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'unprotected': False, 'url': FAKE_2_YUM_REPO}]),
@@ -1500,7 +1542,9 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -1562,7 +1606,9 @@ class TestRepositorySync:
         entities.Repository(id=repo_id).sync()
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'content_type': 'yum', 'url': FAKE_0_YUM_REPO_STRING_BASED_VERSIONS}]),
@@ -2021,7 +2067,9 @@ class TestOstreeRepository:
     """Tests specific to using ``OSTree`` repositories."""
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -2043,7 +2091,9 @@ class TestOstreeRepository:
         assert repo.content_type == repo_options['content_type']
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -2068,7 +2118,9 @@ class TestOstreeRepository:
         assert repo.name == new_name
 
     @pytest.mark.tier1
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -2094,7 +2146,9 @@ class TestOstreeRepository:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -2177,7 +2231,9 @@ class TestSRPMRepository:
     @pytest.mark.upgrade
     @pytest.mark.tier2
     @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
     )
@@ -2224,7 +2280,9 @@ class TestSRPMRepositoryIgnoreContent:
     """
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'ignorable_content': ['srpm'], 'url': FAKE_YUM_SRPM_REPO}]),
@@ -2244,7 +2302,9 @@ class TestSRPMRepositoryIgnoreContent:
         assert repo.content_counts['srpm'] == 0
 
     @pytest.mark.tier2
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_DUPLICATE_REPO}]), indirect=True
     )
@@ -2264,7 +2324,9 @@ class TestSRPMRepositoryIgnoreContent:
 
     @pytest.mark.tier2
     @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized([{'ignorable_content': ['srpm'], 'url': FAKE_YUM_SRPM_REPO}]),

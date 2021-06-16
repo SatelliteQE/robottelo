@@ -33,6 +33,8 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.config import get_credentials
+from robottelo.config import get_url
 from robottelo.config import setting_is_set
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
@@ -933,8 +935,8 @@ class TestAvailableURLs:
 
     @pytest.fixture(scope='class')
     def api_url(self):
-        """We want to delay referencing server.get_url() until test execution"""
-        return f'{settings.server.get_url()}/api/v2'
+        """We want to delay referencing get_url() until test execution"""
+        return f'{get_url()}/api/v2'
 
     @pytest.mark.build_sanity
     def test_positive_get_status_code(self, api_url):
@@ -946,7 +948,7 @@ class TestAvailableURLs:
             content-type
 
         """
-        response = client.get(api_url, auth=settings.server.get_credentials(), verify=False)
+        response = client.get(api_url, auth=get_credentials(), verify=False)
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
@@ -959,7 +961,7 @@ class TestAvailableURLs:
 
         """
         # Did the server give us any paths at all?
-        response = client.get(api_url, auth=settings.server.get_credentials(), verify=False)
+        response = client.get(api_url, auth=get_credentials(), verify=False)
         response.raise_for_status()
         # response.json()['links'] is a dict like this:
         #
@@ -1065,7 +1067,9 @@ class TestEndToEnd(ClientProvisioningMixin):
     @pytest.mark.tier4
     @pytest.mark.on_premises_provisioning
     @pytest.mark.upgrade
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_positive_end_to_end(self, fake_manifest_is_set):
         """Perform end to end smoke tests using RH and custom repos.
 

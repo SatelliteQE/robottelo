@@ -1,3 +1,3 @@
 DISCOVERY:
- # SATELLITE_VERSION_SHORT: "@jinja {{this.robottelo.satellite_version | replace('.', '')}}"
- # DISCOVERY_ISO: "discovery_image_sat{this[discovery].satellite_version_short}.iso"
+  SATELLITE_VERSION_SHORT: "@jinja {{this.robottelo.satellite_version | replace('.', '')}}"
+  DISCOVERY_ISO: "discovery_image_sat{this[discovery].satellite_version_short}.iso"

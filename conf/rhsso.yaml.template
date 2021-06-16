@@ -1,13 +1,13 @@
 # section for RH-SSO integration
 RHSSO:
-# RH-SSO Hostname
-  # HOST_NAME: update with rhsso host name
-# RH-SSO Host Url
-  # HOST_URL: update with rhsso environment url
-# RH-SSO Host Admin of Realm
+  # RH-SSO Hostname
+  HOST_NAME:  # update with rhsso host name
+  # RH-SSO Host Url
+  HOST_URL:  # update with rhsso environment url
+  # RH-SSO Host Admin of Realm
   RHSSO_USER: sat_admin
-# RH-SSO Host Admin Password
-  # USER_PASSWORD: update with password
-# RH-SSO Host Realm
+  # RH-SSO Host Admin Password
+  RHSSO_PASSWORD:  # update with password
+  # RH-SSO Host Realm
   REALM: satqe
-  # TOTP_SECRET: update with the totp secret token
+  TOTP_SECRET:  # update with the totp secret token

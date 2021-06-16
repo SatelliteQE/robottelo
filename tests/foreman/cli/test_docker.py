@@ -82,9 +82,9 @@ def docker_host(rhel7_contenthost):
     rhel7_contenthost.install_katello_ca()
 
     repos = {
-        'server': settings.rhel7_os,
-        'optional': settings.rhel7_optional,
-        'extras': settings.rhel7_extras,
+        'server': settings.repos.rhel7_os,
+        'optional': settings.repos.rhel7_optional,
+        'extras': settings.repos.rhel7_extras,
     }
     rhel7_contenthost.create_custom_repos(**repos)
     rhel7_contenthost.execute('yum -y install docker')

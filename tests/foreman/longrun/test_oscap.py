@@ -119,9 +119,9 @@ def content_view(module_org):
 def activation_key(module_org, lifecycle_env, content_view):
     """ Create activation keys"""
     repo_values = [
-        {'repo': settings.sattools_repo['rhel8'], 'akname': ak_name['rhel8']},
-        {'repo': settings.sattools_repo['rhel7'], 'akname': ak_name['rhel7']},
-        {'repo': settings.sattools_repo['rhel6'], 'akname': ak_name['rhel6']},
+        {'repo': settings.repos.sattools_repo.rhel8, 'akname': ak_name['rhel8']},
+        {'repo': settings.repos.sattools_repo.rhel7, 'akname': ak_name['rhel7']},
+        {'repo': settings.repos.sattools_repo.rhel6, 'akname': ak_name['rhel6']},
     ]
 
     for repo in repo_values:
@@ -179,17 +179,17 @@ def test_positive_upload_to_satellite(
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
     if distro == 'rhel6':
-        rhel_repo = settings.rhel6_repo
+        rhel_repo = settings.repos.rhel6_repo
         profile1 = OSCAP_PROFILE['dsrhel6']
         profile2 = OSCAP_PROFILE['pcidss6']
         profile3 = OSCAP_PROFILE['usgcb']
     elif distro == 'rhel7':
-        rhel_repo = settings.rhel7_repo
+        rhel_repo = settings.repos.rhel7_repo
         profile1 = OSCAP_PROFILE['dsrhel7']
         profile2 = OSCAP_PROFILE['pcidss7']
         profile3 = OSCAP_PROFILE['ospp7']
     else:
-        rhel_repo = settings.rhel8_repo
+        rhel_repo = settings.repos.rhel8_repo
         profile1 = OSCAP_PROFILE['dsrhel8']
         profile2 = OSCAP_PROFILE['pcidss8']
         profile3 = OSCAP_PROFILE['ospp8']
@@ -383,7 +383,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
                 'puppet-environment-id': puppet_env.id,
             }
         )
-        vm.configure_puppet(settings.rhel7_repo)
+        vm.configure_puppet(settings.repos.rhel7_repo)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
@@ -428,10 +428,10 @@ def test_positive_oscap_run_via_ansible(
     :CaseImportance: Critical
     """
     if distro == 'rhel7':
-        rhel_repo = settings.rhel7_repo
+        rhel_repo = settings.repos.rhel7_repo
         profile = OSCAP_PROFILE['security7']
     else:
-        rhel_repo = settings.rhel8_repo
+        rhel_repo = settings.repos.rhel8_repo
         profile = OSCAP_PROFILE['ospp8']
     content = OSCAP_DEFAULT_CONTENT[f'{distro}_content']
     hgrp_name = gen_string('alpha')
@@ -579,7 +579,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
                 'value': 'True',
             }
         )
-        vm.configure_rhel_repo(settings.rhel7_repo)
+        vm.configure_rhel_repo(settings.repos.rhel7_repo)
         # Harden the rhel7 client with DISA STIG security policy
         vm.run('yum install -y scap-security-guide')
         vm.run(

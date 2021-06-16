@@ -68,6 +68,25 @@ class SatelliteHostError(Exception):
 class ContentHost(Host):
     run = Host.execute
 
+    def __init__(self, hostname, auth=None, connect=True, **kwargs):
+        """ContentHost object with optional ssh connection
+
+        :param hostname: The fqdn of a ContentHost target
+        :param auth: ('root', 'rootpass') or '/path/to/keyfile.rsa'
+        :param connect: Establish an ssh connection or not
+        """
+        if not hostname:
+            raise ContentHostError('A valid hostname must be provided')
+        if isinstance(auth, tuple):
+            # username/password-based auth
+            kwargs.update({'username': auth[0], 'password': auth[1]})
+        elif isinstance(auth, str):
+            # key file based authentication
+            kwargs.update({'key_filename': auth})
+        super().__init__(hostname=hostname, **kwargs)
+        if connect:
+            self.connect()
+
     @property
     def nailgun_host(self):
         """If this host is subscribed, provide access ot its nailgun object"""
@@ -153,14 +172,14 @@ class ContentHost(Host):
         """
         downstream_repo = None
         if repo == constants.REPOS['rhst6']['id']:
-            downstream_repo = settings.sattools_repo['rhel6']
+            downstream_repo = settings.repos.sattools_repo['rhel6']
         elif repo == constants.REPOS['rhst7']['id']:
-            downstream_repo = settings.sattools_repo['rhel7']
+            downstream_repo = settings.repos.sattools_repo['rhel7']
         elif repo == constants.REPOS['rhst8']['id']:
-            downstream_repo = settings.sattools_repo['rhel8']
+            downstream_repo = settings.repos.sattools_repo['rhel8']
         elif repo in (constants.REPOS['rhsc6']['id'], constants.REPOS['rhsc7']['id']):
-            downstream_repo = settings.capsule_repo
-        if force or settings.cdn or not downstream_repo:
+            downstream_repo = settings.repos.capsule_repo
+        if force or settings.robottelo.cdn or not downstream_repo:
             self.execute(f'subscription-manager repos --enable {repo}')
 
     def subscription_manager_list_repos(self):
@@ -469,9 +488,9 @@ class ContentHost(Host):
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
         distro_repo_map = {
-            constants.DISTRO_RHEL6: settings.rhel6_repo,
-            constants.DISTRO_RHEL7: settings.rhel7_repo,
-            constants.DISTRO_RHEL8: settings.rhel8_repo,
+            constants.DISTRO_RHEL6: settings.repos.rhel6_repo,
+            constants.DISTRO_RHEL7: settings.repos.rhel7_repo,
+            constants.DISTRO_RHEL8: settings.repos.rhel8_repo,
         }
         rhel_repo = distro_repo_map.get(rhel_distro)
 
@@ -785,16 +804,16 @@ class Capsule(ContentHost):
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
         return self.execute(installer_obj.get_command())
 
-    def capsule_setup(self, sat_host, **installer_kwargs):
+    def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
-        self.satellite = sat_host
+        self.satellite = sat_host or Satellite()
         self.create_custom_repos(
-            capsule=settings.capsule_repo,
-            rhscl=settings.rhscl_repo,
-            ansible=settings.ansible_repo,
-            maint=settings.satmaintenance_repo,
+            capsule=settings.repos.capsule_repo,
+            rhscl=settings.repos.rhscl_repo,
+            ansible=settings.repos.ansible_repo,
+            maint=settings.repos.satmaintenance_repo,
         )
-        self.configure_rhel_repo(settings.rhel7_repo)
+        self.configure_rhel_repo(settings.repos.rhel7_repo)
         # self.execute('yum repolist')
         self.execute('yum -y update')
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
@@ -831,8 +850,9 @@ class Capsule(ContentHost):
 
 
 class Satellite(Capsule):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, hostname=None, **kwargs):
+        hostname = hostname or settings.server.hostname
+        super().__init__(hostname=hostname, **kwargs)
         self._init_nailgun()
         self._init_cli()
         self._init_airgun()

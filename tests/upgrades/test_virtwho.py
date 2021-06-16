@@ -34,19 +34,18 @@ from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import virtwho
 
 
 FORM_DATA = {
     'debug': 1,
     'interval': '60',
     'hypervisor_id': 'hostname',
-    'hypervisor_type': virtwho.esx.hypervisor_type,
-    'hypervisor_server': virtwho.esx.hypervisor_server,
+    'hypervisor_type': settings.virtwho.esx.hypervisor_type,
+    'hypervisor_server': settings.virtwho.esx.hypervisor_server,
     'filtering_mode': 'none',
     'satellite_url': settings.server.hostname,
-    'hypervisor_username': virtwho.esx.hypervisor_username,
-    'hypervisor_password': virtwho.esx.hypervisor_password,
+    'hypervisor_username': settings.virtwho.esx.hypervisor_username,
+    'hypervisor_password': settings.virtwho.esx.hypervisor_password,
     'name': 'preupgrade_virt_who',
 }
 
@@ -99,8 +98,8 @@ class TestScenarioPositiveVirtWho:
         )
         assert virt_who_instance == 'ok'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             if 'type=NORMAL' in sku:

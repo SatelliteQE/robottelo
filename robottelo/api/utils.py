@@ -10,6 +10,7 @@ from nailgun import entity_mixins
 from nailgun.client import request
 
 from robottelo import ssh
+from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
@@ -284,14 +285,14 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         org = entities.Organization().create()
     if loc is None:
         loc = entities.Location(organization=[org]).create()
-    if settings.rhel7_os is None:
+    if settings.repos.rhel7_os is None:
         raise ImproperlyConfigured('settings file is not configured for rhel os')
     # Create a new Life-Cycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product, Repository for custom RHEL7 contents
     product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        product=product, url=settings.rhel7_os, download_policy='immediate'
+        product=product, url=settings.repos.rhel7_os, download_policy='immediate'
     ).create()
 
     # Increased timeout value for repo sync and CV publishing and promotion
@@ -649,7 +650,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
         # Send request to pulp API to get the task info
         req = request(
             'POST',
-            f'{settings.server.get_url()}/pulp/api/v2/tasks/search/',
+            f'{get_url()}/pulp/api/v2/tasks/search/',
             verify=False,
             auth=('admin', f'{pulp_pass}'),
             headers={'content-type': 'application/json'},

@@ -39,7 +39,7 @@ def make_puppet():
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason="Missing repos_hosting_url")
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason="Missing repos_hosting_url")
 def test_positive_list_smart_class_parameters(make_puppet):
     """List smart class parameters associated with the puppet class.
 

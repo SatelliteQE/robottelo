@@ -27,7 +27,6 @@ from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import virtwho
 
 
 @pytest.fixture(scope='class')
@@ -42,11 +41,11 @@ def form_data(default_org):
         'debug': 1,
         'interval': '60',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': virtwho.kubevirt.hypervisor_type,
+        'hypervisor_type': settings.virtwho.kubevirt.hypervisor_type,
         'organization_id': default_org.id,
         'filtering_mode': 'none',
         'satellite_url': settings.server.hostname,
-        'kubeconfig': virtwho.kubevirt.hypervisor_config_file,
+        'kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
     }
     return form
 
@@ -101,11 +100,11 @@ class TestVirtWhoConfigforKubevirt:
         hosts = [
             (
                 hypervisor_name,
-                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
             ),
             (
                 guest_name,
-                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
             ),
         ]
         for hostname, sku in hosts:
@@ -157,11 +156,11 @@ class TestVirtWhoConfigforKubevirt:
         hosts = [
             (
                 hypervisor_name,
-                f'product_id={virtwho.sku.vdc_physical} and type=NORMAL',
+                f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL',
             ),
             (
                 guest_name,
-                f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED',
+                f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED',
             ),
         ]
         for hostname, sku in hosts:

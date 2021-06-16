@@ -82,7 +82,7 @@ def _get_default_scope():
 
 
 def get_temp_dir():
-    tmp_dir = settings.tmp_dir
+    tmp_dir = settings.robottelo.tmp_dir
     if not tmp_dir:
         tmp_dir = tempfile.gettempdir()
     return tmp_dir

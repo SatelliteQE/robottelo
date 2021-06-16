@@ -57,7 +57,7 @@ def module_org_with_manifest():
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_repo(session, module_custom_product):
     """Create Content Custom Sync with minimal input parameters
 
@@ -115,7 +115,7 @@ def test_positive_sync_rh_repos(session, module_org_with_manifest):
 @skip_if_os('RHEL6')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_sync_custom_ostree_repo(session, module_custom_product):
     """Create custom ostree repository and sync it.
 

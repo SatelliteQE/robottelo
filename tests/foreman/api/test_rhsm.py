@@ -25,7 +25,8 @@ import http
 import pytest
 from nailgun import client
 
-from robottelo.config import settings
+from robottelo.config import get_credentials
+from robottelo.config import get_url
 
 
 @pytest.mark.tier1
@@ -42,8 +43,8 @@ def test_positive_path():
 
     :CaseImportance: Critical
     """
-    path = f'{settings.server.get_url()}/rhsm'
-    response = client.get(path, auth=settings.server.get_credentials(), verify=False)
+    path = f'{get_url()}/rhsm'
+    response = client.get(path, auth=get_credentials(), verify=False)
     assert response.status_code == http.client.OK
     assert 'application/json' in response.headers['content-type']
     assert type(response.json()) is list

@@ -1935,12 +1935,12 @@ def _setup_org_for_a_rh_repo(options=None):
 def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use_cdn=False):
     """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
     instead of CDN's 'Satellite Capsule', 'Satellite Tools'  and base OS repos if
-    ``settings.cdn == 0`` and URL for custom repositories is set in properties.
+    ``settings.robottelo.cdn == 0`` and URL for custom repositories is set in properties.
 
     :param options: a dict with options to pass to function
         ``_setup_org_for_a_rh_repo``. See its docstring for more details
     :param force_use_cdn: bool flag whether to use CDN even if there's
-        downstream repo available and ``settings.cdn == 0``.
+        downstream repo available and ``settings.robottelo.cdn == 0``.
     :param force_manifest_upload: bool flag whether to upload a manifest to
         organization even if downstream custom repo is used instead of CDN.
         Useful when test relies on organization with manifest (e.g. uses some
@@ -1950,16 +1950,16 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
     """
     custom_repo_url = None
     if options.get('repository') == constants.REPOS['rhst6']['name']:
-        custom_repo_url = settings.sattools_repo['rhel6']
+        custom_repo_url = settings.repos.sattools_repo.rhel6
     elif options.get('repository') == constants.REPOS['rhst7']['name']:
-        custom_repo_url = settings.sattools_repo['rhel7']
+        custom_repo_url = settings.repos.sattools_repo.rhel7
     elif options.get('repository') == constants.REPOS['rhel6']['name']:
-        custom_repo_url = settings.rhel6_os
+        custom_repo_url = settings.repos.rhel6_os
     elif options.get('repository') == constants.REPOS['rhel7']['name']:
-        custom_repo_url = settings.rhel7_os
+        custom_repo_url = settings.repos.rhel7_os
     elif 'Satellite Capsule' in options.get('repository'):
-        custom_repo_url = settings.capsule_repo
-    if force_use_cdn or settings.cdn or not custom_repo_url:
+        custom_repo_url = settings.repos.capsule_repo
+    if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
         return _setup_org_for_a_rh_repo(options)
     else:
         options['url'] = custom_repo_url
@@ -2110,7 +2110,7 @@ def configure_env_for_provision(org=None, loc=None):
 
     os = OperatingSys.info({'id': os['id']})
     # Get the media and update its location
-    medium = Medium.list({'search': f'path={settings.rhel7_os}'})
+    medium = Medium.list({'search': f'path={settings.repos.rhel7_os}'})
     if medium:
         media = Medium.info({'id': medium[0]['id']})
         Medium.update(
@@ -2127,7 +2127,7 @@ def configure_env_for_provision(org=None, loc=None):
                 'location-ids': loc['id'],
                 'operatingsystem-ids': os['id'],
                 'organization-ids': org['id'],
-                'path': settings.rhel7_os,
+                'path': settings.repos.rhel7_os,
             }
         )
 
@@ -2242,8 +2242,8 @@ def _get_capsule_vm_distro_repos(distro):
                 'repository-set': constants.REPOSET['rhsc7'],
                 'repository': constants.REPOS['rhsc7']['name'],
                 'repository-id': constants.REPOS['rhsc7']['id'],
-                'url': settings.capsule_repo,
-                'cdn': bool(settings.cdn or not settings.capsule_repo),
+                'url': settings.repos.capsule_repo,
+                'cdn': bool(settings.robottelo.cdn or not settings.repos.capsule_repo),
             }
         )
     else:

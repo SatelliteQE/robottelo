@@ -189,7 +189,7 @@ def test_positive_task_status(session):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_user_access_with_host_filter(test_name, module_loc, rhel7_contenthost):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values

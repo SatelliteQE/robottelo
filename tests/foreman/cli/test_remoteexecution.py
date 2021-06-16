@@ -257,7 +257,9 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
+    )
     def test_positive_install_multiple_packages_with_a_job_by_ip(self, fixture_vmsetup, module_org):
         """Run job to install several packages on host by ip
 
@@ -643,7 +645,9 @@ class TestAnsibleREX:
         ids=['rhel7', 'rhel7_fips'],
         indirect=True,
     )
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
+    )
     def test_positive_run_packages_and_services_job(self, fixture_vmsetup, module_org):
         """Tests Ansible REX job can install packages and start services
 

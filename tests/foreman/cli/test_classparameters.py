@@ -63,7 +63,9 @@ def module_sc_params(module_puppet):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.skipif(not settings.repos_hosting_url, reason="repos_hosting_url is not defined")
+@pytest.mark.skipif(
+    not settings.robottelo.REPOS_HOSTING_URL, reason="repos_hosting_url is not defined"
+)
 class TestSmartClassParameters:
     """Implements Smart Class Parameter tests in CLI"""
 

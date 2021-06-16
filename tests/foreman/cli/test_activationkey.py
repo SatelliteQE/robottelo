@@ -205,7 +205,7 @@ def test_positive_create_with_usage_limit_finite(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_content_and_check_enabled(module_org):
     """Create activation key and add content to it. Check enabled state.
 
@@ -723,7 +723,7 @@ def test_positive_add_redhat_product(module_org):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_custom_product(module_org):
     """Test that custom product can be associated to Activation Keys
 
@@ -748,7 +748,7 @@ def test_positive_add_custom_product(module_org):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_add_redhat_and_custom_products(module_org):
     """Test if RH/Custom product can be associated to Activation key
 
@@ -1391,7 +1391,7 @@ def test_negative_update_autoattach(module_org):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_content_override(module_org):
     """Positive content override
 

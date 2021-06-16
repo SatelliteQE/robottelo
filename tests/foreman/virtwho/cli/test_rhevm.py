@@ -29,7 +29,6 @@ from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import virtwho
 
 
 @pytest.fixture()
@@ -39,13 +38,13 @@ def form_data():
         'debug': 1,
         'interval': '60',
         'hypervisor-id': 'hostname',
-        'hypervisor-type': virtwho.rhevm.hypervisor_type,
-        'hypervisor-server': virtwho.rhevm.hypervisor_server,
+        'hypervisor-type': settings.virtwho.rhevm.hypervisor_type,
+        'hypervisor-server': settings.virtwho.rhevm.hypervisor_server,
         'organization-id': 1,
         'filtering-mode': 'none',
         'satellite-url': settings.server.hostname,
-        'hypervisor-username': virtwho.rhevm.hypervisor_username,
-        'hypervisor-password': virtwho.rhevm.hypervisor_password,
+        'hypervisor-username': settings.virtwho.rhevm.hypervisor_username,
+        'hypervisor-password': settings.virtwho.rhevm.hypervisor_password,
     }
     return form
 
@@ -78,8 +77,8 @@ class TestVirtWhoConfigforRhevm:
         ]
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]
@@ -117,8 +116,8 @@ class TestVirtWhoConfigforRhevm:
         ]
         assert virt_who_instance == 'OK'
         hosts = [
-            (hypervisor_name, f'product_id={virtwho.sku.vdc_physical} and type=NORMAL'),
-            (guest_name, f'product_id={virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
+            (hypervisor_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=NORMAL'),
+            (guest_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
             host = Host.list({'search': hostname})[0]

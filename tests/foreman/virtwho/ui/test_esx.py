@@ -22,6 +22,7 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 
+from robottelo.config import settings
 from robottelo.datafactory import valid_emails_list
 from robottelo.virtwho_utils import add_configure_option
 from robottelo.virtwho_utils import create_http_proxy
@@ -35,7 +36,6 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import get_virtwho_status
 from robottelo.virtwho_utils import restart_virtwho_service
 from robottelo.virtwho_utils import update_configure_option
-from robottelo.virtwho_utils import virtwho
 from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
@@ -45,10 +45,10 @@ def form_data():
         'debug': True,
         'interval': 'Every hour',
         'hypervisor_id': 'hostname',
-        'hypervisor_type': virtwho.esx.hypervisor_type,
-        'hypervisor_content.server': virtwho.esx.hypervisor_server,
-        'hypervisor_content.username': virtwho.esx.hypervisor_username,
-        'hypervisor_content.password': virtwho.esx.hypervisor_password,
+        'hypervisor_type': settings.virtwho.esx.hypervisor_type,
+        'hypervisor_content.server': settings.virtwho.esx.hypervisor_server,
+        'hypervisor_content.username': settings.virtwho.esx.hypervisor_username,
+        'hypervisor_content.password': settings.virtwho.esx.hypervisor_password,
     }
     return form
 
@@ -82,8 +82,8 @@ class TestVirtwhoConfigforEsx:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)
@@ -119,8 +119,8 @@ class TestVirtwhoConfigforEsx:
             )
             assert session.virtwho_configure.search(name)[0]['Status'] == 'ok'
             hypervisor_display_name = session.contenthost.search(hypervisor_name)[0]['Name']
-            vdc_physical = f'product_id = {virtwho.sku.vdc_physical} and type=NORMAL'
-            vdc_virtual = f'product_id = {virtwho.sku.vdc_physical} and type=STACK_DERIVED'
+            vdc_physical = f'product_id = {settings.virtwho.sku.vdc_physical} and type=NORMAL'
+            vdc_virtual = f'product_id = {settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'
             session.contenthost.add_subscription(hypervisor_display_name, vdc_physical)
             assert session.contenthost.search(hypervisor_name)[0]['Subscription Status'] == 'green'
             session.contenthost.add_subscription(guest_name, vdc_virtual)

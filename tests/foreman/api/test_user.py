@@ -772,9 +772,9 @@ class TestFreeIPAUser:
         """Fetch necessary properties from settings and Create ldap auth source"""
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
-        ldap_user_name = settings.ipa.username_ipa
-        ldap_user_passwd = settings.ipa.password_ipa
-        username = settings.ipa.user_ipa
+        ldap_user_name = settings.ipa.username
+        ldap_user_passwd = settings.ipa.password
+        username = settings.ipa.user
         yield dict(
             org=org,
             loc=loc,
@@ -786,15 +786,15 @@ class TestFreeIPAUser:
                 onthefly_register=True,
                 account=ldap_user_name,
                 account_password=ldap_user_passwd,
-                base_dn=settings.ipa.basedn_ipa,
-                groups_base=settings.ipa.grpbasedn_ipa,
+                base_dn=settings.ipa.basedn,
+                groups_base=settings.ipa.grpbasedn,
                 attr_firstname=LDAP_ATTR['firstname'],
                 attr_lastname=LDAP_ATTR['surname'],
                 attr_login=LDAP_ATTR['login'],
                 server_type=LDAP_SERVER_TYPE['API']['ipa'],
                 attr_mail=LDAP_ATTR['mail'],
                 name=gen_string('alpha'),
-                host=settings.ipa.hostname_ipa,
+                host=settings.ipa.hostname,
                 tls=False,
                 port='389',
                 location=[loc],

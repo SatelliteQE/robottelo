@@ -37,18 +37,22 @@ def filtered_datapoint(func):
         dataset = func(*args, **kwargs)
         if isinstance(dataset, dict):
             # New UI tests are written using pytest, update dict to support pytest's parametrize
-            if 'ui' in args or kwargs.get('interface') == 'ui' and settings.webdriver == 'chrome':
+            if (
+                'ui' in args
+                or kwargs.get('interface') == 'ui'
+                and settings.robottelo.webdriver == 'chrome'
+            ):
                 # Chromedriver only supports BMP chars
                 utf8 = dataset.pop('utf8', None)
                 if utf8:
                     dataset['utf8'] = gen_utf8(len(utf8), smp=False)
-            if settings.run_one_datapoint:
+            if settings.robottelo.run_one_datapoint:
                 key = random.choice(list(dataset.keys()))
                 dataset = {key: dataset[key]}
         else:
             # Otherwise use list for backwards compatibility
             dataset = list(dataset)
-            if settings.run_one_datapoint:
+            if settings.robottelo.run_one_datapoint:
                 dataset = [random.choice(dataset)]
         return dataset
 

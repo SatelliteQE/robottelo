@@ -203,7 +203,7 @@ def test_negative_promote_out_of_sequence_environment(module_lce_cv, module_org)
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete(module_org, module_product):
     """Create content view and publish it. After that try to
     disassociate content view from 'Library' environment through
@@ -281,7 +281,7 @@ def test_positive_delete_non_default(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_composite_version(module_org):
     """Create composite content view and publish it. After that try to
     disassociate content view from 'Library' environment through
@@ -324,7 +324,7 @@ def test_positive_delete_composite_version(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_with_puppet_content(module_org, module_lce_library):
     """Delete content view version with puppet module content
 
@@ -405,7 +405,7 @@ def test_negative_delete(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     """Remove version of renamed content view from Library environment
 
@@ -510,7 +510,7 @@ def test_positive_remove_qe_promoted_cv_version_from_default_env(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     """Remove PROD promoted content view version from Library environment
 
@@ -580,7 +580,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_cv_version_from_env(module_org):
     """Remove promoted content view version from environment
 
@@ -653,7 +653,7 @@ def test_positive_remove_cv_version_from_env(module_org):
 
 
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_remove_cv_version_from_multi_env(module_org):
     """Remove promoted content view version from multiple environments
 
@@ -721,7 +721,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_delete_cv_promoted_to_multi_env(module_org):
     """Delete published content view with version promoted to multiple
      environments

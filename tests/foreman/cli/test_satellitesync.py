@@ -1259,7 +1259,9 @@ class TestContentViewSync:
         assert cvv.split('.')[1] == str(minor)
 
     @pytest.mark.tier3
-    @pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
     def test_negative_export_cv_with_puppet_repo(self, function_export_cv_directory):
         """Exporting CV version having non yum(puppet) repo throws error
 

@@ -22,6 +22,7 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import wait_for_tasks
+from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.helpers import add_remote_execution_ssh_key
 
@@ -43,7 +44,6 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured):
 
     :CaseImportance: Medium
     """
-
     template_id = (
         entities.JobTemplate().search(query={'search': 'name="Capsule Upgrade Playbook"'})[0].id
     )
@@ -116,7 +116,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
     )[0]
     response = client.get(
         f'https://{sat.name}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=settings.server.get_credentials(),
+        auth=get_credentials(),
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text

@@ -1,24 +1,22 @@
+import logging
 import os
+from pathlib import Path
+from urllib.parse import urljoin
+from urllib.parse import urlunsplit
 
 from dynaconf import LazySettings
 from dynaconf.validator import ValidationError
 
-from .validators import validators as dynaconf_validators
-from robottelo.config.base import Settings as LegacySettings
-from robottelo.config.facade import SettingsFacade
-from robottelo.config.facade import SettingsNodeWrapper
-from robottelo.errors import ImproperlyConfigured
-from robottelo.logging import config_logger as logger
+from robottelo.config.validators import VALIDATORS
+from robottelo.logging import logger
 from robottelo.logging import robottelo_root_dir
-
 
 if not os.getenv('ROBOTTELO_DIR'):
     # dynaconf robottelo file uses ROBOTELLO_DIR for screenshots
     os.environ['ROBOTTELO_DIR'] = str(robottelo_root_dir)
 
-legacy_settings = LegacySettings()
 
-dynaconf_settings = LazySettings(
+settings = LazySettings(
     envvar_prefix="ROBOTTELO",
     core_loaders=["YAML"],
     settings_file="settings.yaml",
@@ -27,35 +25,72 @@ dynaconf_settings = LazySettings(
     envless_mode=True,
     lowercase_read=True,
 )
-dynaconf_settings.validators.register(**dynaconf_validators)
+settings.validators.register(**VALIDATORS)
 
 try:
-    legacy_settings.configure()
-except ImproperlyConfigured:
-    logger.warning(
-        "Legacy Robottelo settings configure() failed, most likely required "
-        "configuration option is not provided. Continuing for the sake of unit tests"
-    )
-
-try:
-    dynaconf_settings.validators.validate()
+    settings.validators.validate()
 except ValidationError:
     logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
 
-settings_proxy = SettingsFacade()
-settings_proxy.set_configs(dynaconf_settings, legacy_settings)
 
-settings = SettingsNodeWrapper(settings_proxy)
-settings.configure_nailgun()
-settings.configure_airgun()
+if not os.getenv('BROKER_DIRECTORY'):
+    # set the BROKER_DIRECTORY envar so broker knows where to operate from
+    os.environ['BROKER_DIRECTORY'] = settings.broker.get('broker_directory')
+
+
+def get_credentials():
+    """Return credentials for interacting with a Foreman deployment API.
+
+    :return: A username-password pair.
+    :rtype: tuple
+
+    """
+    username = settings.server.admin_username
+    password = settings.server.admin_password
+    return (username, password)
+
+
+def get_url():
+    """Return the base URL of the Foreman deployment being tested.
+
+    The following values from the config file are used to build the URL:
+
+    * ``[server] scheme`` (default: https)
+    * ``[server] hostname`` (required)
+    * ``[server] port`` (default: none)
+
+    Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
+    ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default
+    to 'https'.
+
+    :return: A URL.
+    :rtype: str
+
+    """
+    hostname = settings.server.get('hostname')
+    scheme = settings.server.scheme
+    port = settings.server.port
+    if port is not None:
+        hostname = f"{hostname}:{port}"
+
+    return urlunsplit((scheme, hostname, '', '', ''))
+
+
+def get_cert_rpm_url():
+    """Return the Katello cert RPM URL of the server being tested.
+    The following values from the config file are used to build the URL:
+    * ``main.server.hostname`` (required)
+    :return: The Katello cert RPM URL.
+    :rtype: str
+    """
+    pub_url = urlunsplit(('http', settings.server.get('hostname'), 'pub/', '', ''))
+    return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
 
 def setting_is_set(option):
     """Return either ``True`` or ``False`` if a Robottelo section setting is
     set or not respectively.
     """
-    if not settings.configured:
-        settings.configure()
     # Example: `settings.clients`
     # TODO: Use dynaconf 3.2 selective validation
     # Within the split world of Legacy settings and dynaconf, there is a limitation on validating
@@ -69,4 +104,73 @@ def setting_is_set(option):
     opt_inst = getattr(settings, option, None)
     if opt_inst is None:
         raise ValueError(f'Setting {option} did not resolve in settings')
-    return opt_inst.validate() == [] or isinstance(opt_inst, DynaBox)
+    if hasattr(opt_inst, 'validate'):
+        return opt_inst.validate()
+    return isinstance(opt_inst, DynaBox)
+
+
+def configure_nailgun():
+    """Configure NailGun's entity classes.
+
+    Do the following:
+
+    * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
+        ``EntityCreateMixin.create_raw`` to generate values for empty and
+        required fields.
+    * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
+        returned by :meth:`robottelo.helpers.get_nailgun_config`. See
+        ``robottelo.entity_mixins.Entity`` for more information on the effects
+        of this.
+    * Set a default value for ``nailgun.entities.GPGKey.content``.
+    """
+    from nailgun import entities
+    from nailgun import entity_mixins
+    from nailgun.config import ServerConfig
+
+    entity_mixins.CREATE_MISSING = True
+    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=False)
+    gpgkey_init = entities.GPGKey.__init__
+
+    def patched_gpgkey_init(self, server_config=None, **kwargs):
+        """Set a default value on the ``content`` field."""
+        gpgkey_init(settings, server_config, **kwargs)
+        settings._fields['content'].default = str(
+            Path().joinpath('tests/foreman/data/valid_gpg_key.txt')
+        )
+
+    entities.GPGKey.__init__ = patched_gpgkey_init
+
+
+configure_nailgun()
+
+
+def configure_airgun():
+    """Pass required settings to AirGun"""
+    import airgun
+
+    airgun.settings.configure(
+        {
+            'airgun': {
+                'verbosity': logging.getLevelName(logger.getEffectiveLevel()),
+                'tmp_dir': settings.robottelo.tmp_dir,
+            },
+            'satellite': {
+                'hostname': settings.server.get('hostname', None),
+                'password': settings.server.admin_password,
+                'username': settings.server.admin_username,
+            },
+            'selenium': {
+                'browser': settings.robottelo.browser,
+                'screenshots_path': settings.robottelo.screenshots_path,
+                'webdriver': settings.robottelo.webdriver,
+                'webdriver_binary': settings.robottelo.webdriver_binary,
+                'command_executor': settings.robottelo.command_executor,
+            },
+            'webdriver_desired_capabilities': (
+                settings.robottelo.webdriver_desired_capabilities or {}
+            ),
+        }
+    )
+
+
+configure_airgun()

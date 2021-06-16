@@ -965,7 +965,7 @@ def test_negative_usage_limit(session, module_org, rhel6_contenthost):
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenthost):
     """Check if multiple Activation keys can be attached to a system
 
@@ -1020,7 +1020,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
 @pytest.mark.skip_if_not_set('clients')
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_host_associations(session):
     """Register few hosts with different activation keys and ensure proper
     data is reflected under Associations > Content Hosts tab
@@ -1064,7 +1064,7 @@ def test_positive_host_associations(session):
 
 @pytest.mark.skip_if_not_set('clients', 'fake_manifest')
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.repos_hosting_url), reason='Missing repos_hosting_url')
+@pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_service_level_subscription_with_custom_product(session, rhel7_contenthost):
     """Subscribe a host to activation key with Premium service level and with
     custom product

@@ -16,15 +16,15 @@ from robottelo.constants import RHSSO_RESET_PASSWORD
 from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
 
-satellite = settings.server.hostname
 rhsso_host = str(settings.rhsso.host_name)
 realm = settings.rhsso.realm
 rhsso_user = settings.rhsso.rhsso_user
-rhsso_password = settings.rhsso.password
+rhsso_password = settings.rhsso.rhsso_password
 
 
-def run_command(cmd, hostname=satellite, timeout=None):
+def run_command(cmd, hostname=None, timeout=None):
     """helper function for ssh command and avoiding the return code check in called function"""
+    hostname = hostname or settings.server.hostname
     if timeout:
         result = ssh.command(cmd=cmd, hostname=hostname, timeout=timeout)
     else:
@@ -41,15 +41,15 @@ def run_command(cmd, hostname=satellite, timeout=None):
 
 def get_rhsso_client_id():
     """Getter method for fetching the client id and can be used other functions"""
-    client_name = f"{satellite}-foreman-openidc"
+    client_name = f'{settings.server.hostname}-foreman-openidc'
     run_command(
-        cmd="{} config credentials "
-        "--server {}/auth "
-        "--realm {} "
-        "--user {} "
-        "--password {}".format(
+        cmd='{} config credentials '
+        '--server {}/auth '
+        '--realm {} '
+        '--user {} '
+        '--password {}'.format(
             KEY_CLOAK_CLI,
-            settings.rhsso.host_url.replace("https://", "http://"),
+            settings.rhsso.host_url.replace('https://', 'http://'),
             realm,
             rhsso_user,
             rhsso_password,
@@ -221,7 +221,7 @@ def get_two_factor_token_rh_sso_url():
 @contextmanager
 def open_pxssh_session(
     ssh_key=settings.server.ssh_key,
-    hostname=settings.server.hostname,
+    hostname=settings.server.get('hostname', None),
     username=settings.server.ssh_username,
 ):
     ssh_options = {'IdentityAgent': ssh_key}

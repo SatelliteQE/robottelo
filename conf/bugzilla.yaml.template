@@ -2,4 +2,4 @@ BUGZILLA:
   # url default value is set to 'https://bugzilla.redhat.com' even if not provided.
   URL: https://bugzilla.redhat.com
   # Provide api_key to access Bugzilla REST API
-  # API_KEY: replace-with-bugzilla-api-key
+  API_KEY: replace-with-bugzilla-api-key

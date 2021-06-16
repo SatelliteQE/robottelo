@@ -4,26 +4,28 @@ from robottelo.constants import AZURERM_VALID_REGIONS
 from robottelo.constants import VALID_GCE_ZONES
 
 
-validators = dict(
+VALIDATORS = dict(
     server=[
-        Validator("server.hostname", must_exist=False),
-        Validator("server.hostnames", must_exist=True, is_type_of=list),
-        Validator("server.version.release", must_exist=True),
-        Validator("server.version.source", must_exist=True),
+        Validator('server.hostname', must_exist=False, default=''),
+        Validator('server.hostnames', must_exist=True, is_type_of=list),
+        Validator('server.version.release', must_exist=True),
+        Validator('server.version.source', must_exist=True),
         Validator(
-            "server.xdist_behavior", must_exist=True, is_in=['run-on-one', 'balance', 'on-demand']
+            'server.xdist_behavior', must_exist=True, is_in=['run-on-one', 'balance', 'on-demand']
         ),
-        Validator("server.auto_checkin", default=False, is_type_of=bool),
+        Validator('server.auto_checkin', default=False, is_type_of=bool),
         (
-            Validator("server.ssh_key", must_exist=True)
-            | Validator("server.ssh_password", must_exist=True)
-            | Validator("server.ssh_key_string", must_exist=True)
+            Validator('server.ssh_key', must_exist=True)
+            | Validator('server.ssh_password', must_exist=True)
+            | Validator('server.ssh_key_string', must_exist=True)
         ),
-        Validator("server.admin_password", default="changeme"),
-        Validator("server.admin_username", default="admin"),
-        Validator("server.deploy_workflow", must_exist=True),
-        Validator("server.scheme", default="https"),
-        Validator("server.ssh_username", default="root"),
+        Validator('server.admin_password', default='changeme'),
+        Validator('server.admin_username', default='admin'),
+        Validator('server.deploy_workflow', must_exist=True),
+        Validator('server.scheme', default='https'),
+        Validator('server.port', default=443),
+        Validator('server.ssh_username', default='root'),
+        Validator('server.ssh_password', default=None),
     ],
     subscription=[
         Validator('subscription.rhn_username', must_exist=True),
@@ -32,43 +34,43 @@ validators = dict(
     ],
     azurerm=[
         Validator(
-            "azurerm.client_id",
-            "azurerm.client_secret",
-            "azurerm.subscription_id",
-            "azurerm.tenant_id",
-            "azurerm.azure_region",
-            "azurerm.ssh_pub_key",
-            "azurerm.username",
-            "azurerm.password",
-            "azurerm.azure_subnet",
+            'azurerm.client_id',
+            'azurerm.client_secret',
+            'azurerm.subscription_id',
+            'azurerm.tenant_id',
+            'azurerm.azure_region',
+            'azurerm.ssh_pub_key',
+            'azurerm.username',
+            'azurerm.password',
+            'azurerm.azure_subnet',
             must_exist=True,
         ),
-        Validator("azurerm.azure_region", is_in=AZURERM_VALID_REGIONS),
+        Validator('azurerm.azure_region', is_in=AZURERM_VALID_REGIONS),
     ],
     broker=[Validator('broker.broker_directory', default='.')],
     bugzilla=[
-        Validator("bugzilla.url", default='https://bugzilla.redhat.com'),
-        Validator("bugzilla.api_key", must_exist=True),
+        Validator('bugzilla.url', default='https://bugzilla.redhat.com'),
+        Validator('bugzilla.api_key', must_exist=True),
     ],
     capsule=[
-        Validator("capsule.instance_name", must_exist=True),
-        Validator("capsule.version.release", must_exist=True),
-        Validator("capsule.version.source", must_exist=True),
-        Validator("capsule.deploy_workflow", must_exist=True),
+        Validator('capsule.instance_name', must_exist=True),
+        Validator('capsule.version.release', must_exist=True),
+        Validator('capsule.version.source', must_exist=True),
+        Validator('capsule.deploy_workflow', must_exist=True),
     ],
     certs=[
         Validator(
-            "certs.cert_file",
-            "certs.key_file",
-            "certs.req_file",
-            "certs.ca_bundle_file",
+            'certs.cert_file',
+            'certs.key_file',
+            'certs.req_file',
+            'certs.ca_bundle_file',
             must_exist=True,
         )
     ],
-    clients=[Validator("clients.provisioning_server")],
+    clients=[Validator('clients.provisioning_server')],
     compute_resources=[
-        Validator("compute_resources.libvirt_hostname", must_exist=True),
-        Validator("compute_resources.libvirt_image_dir", default='/var/lib/libvirt/images'),
+        Validator('compute_resources.libvirt_hostname', must_exist=True),
+        Validator('compute_resources.libvirt_image_dir', default='/var/lib/libvirt/images'),
     ],
     container_repo=[
         Validator(
@@ -79,7 +81,7 @@ validators = dict(
             must_exist=True,
         )
     ],
-    discovery=[Validator("discovery.discovery_iso", must_exist=True)],
+    discovery=[Validator('discovery.discovery_iso', must_exist=True)],
     distro=[
         Validator(
             'distro.image_el7',
@@ -112,7 +114,7 @@ validators = dict(
         Validator('ec2.security_group', default=['default']),
     ],
     fake_capsules=[Validator('fake_capsules.port_range', must_exist=True)],
-    # FIXME: we don't check if "default" is defined
+    # FIXME: we don't check if 'default' is defined
     # since that's YAML, could we change API and check for presence of at least one setting?
     fake_manifest=[
         Validator(
@@ -121,97 +123,97 @@ validators = dict(
     ],
     gce=[
         Validator(
-            "gce.project_id",
-            "gce.client_email",
-            "gce.cert_path",
-            "gce.zone",
-            "gce.cert_url",
+            'gce.project_id',
+            'gce.client_email',
+            'gce.cert_path',
+            'gce.zone',
+            'gce.cert_url',
             must_exist=True,
         ),
-        Validator("gce.cert_path", startswith='/usr/share/foreman/'),
-        Validator("gce.zone", is_in=VALID_GCE_ZONES),
+        Validator('gce.cert_path', startswith='/usr/share/foreman/'),
+        Validator('gce.zone', is_in=VALID_GCE_ZONES),
     ],
     http_proxy=[
         Validator(
-            "http_proxy.un_auth_proxy_url",
-            "http_proxy.auth_proxy_url",
-            "http_proxy.username",
-            "http_proxy.password",
+            'http_proxy.un_auth_proxy_url',
+            'http_proxy.auth_proxy_url',
+            'http_proxy.username',
+            'http_proxy.password',
             must_exist=True,
         )
     ],
     ipa=[
         Validator(
-            "ipa.basedn_ipa",
-            "ipa.grpbasedn_ipa",
-            "ipa.hostname_ipa",
-            "ipa.password_ipa",
-            "ipa.username_ipa",
-            "ipa.user_ipa",
-            "ipa.otp_user",
-            "ipa.time_based_secret",
-            "ipa.disabled_user_ipa",
-            "ipa.group_users",
-            "ipa.groups",
+            'ipa.basedn_ipa',
+            'ipa.grpbasedn_ipa',
+            'ipa.hostname_ipa',
+            'ipa.password_ipa',
+            'ipa.username_ipa',
+            'ipa.user_ipa',
+            'ipa.otp_user',
+            'ipa.time_based_secret',
+            'ipa.disabled_ipa_user',
+            'ipa.group_users',
+            'ipa.groups',
             must_exist=True,
         )
     ],
     ldap=[
         Validator(
-            "ldap.basedn",
-            "ldap.grpbasedn",
-            "ldap.hostname",
-            "ldap.nameserver",
-            "ldap.password",
-            "ldap.realm",
-            "ldap.username",
-            "ldap.workgroup",
+            'ldap.basedn',
+            'ldap.grpbasedn',
+            'ldap.hostname',
+            'ldap.nameserver',
+            'ldap.password',
+            'ldap.realm',
+            'ldap.username',
+            'ldap.workgroup',
             must_exist=True,
         )
     ],
     open_ldap=[
         Validator(
-            "open_ldap.base_dn",
-            "open_ldap.group_base_dn",
-            "open_ldap.hostname",
-            "open_ldap.password",
-            "open_ldap.username",
-            "open_ldap.open_ldap_user",
+            'open_ldap.base_dn',
+            'open_ldap.group_base_dn',
+            'open_ldap.hostname',
+            'open_ldap.password',
+            'open_ldap.username',
+            'open_ldap.open_ldap_user',
             must_exist=True,
         )
     ],
     oscap=[
         Validator(
-            "oscap.content_path",
-            "oscap.tailoring_path",
+            'oscap.content_path',
+            'oscap.tailoring_path',
             must_exist=True,
         )
     ],
     osp=[
         Validator(
-            "osp.hostname",
-            "osp.username",
-            "osp.password",
-            "osp.tenant",
-            "osp.project_domain_id",
-            "osp.security_group",
-            "osp.vm_name",
-            "osp.image_os",
-            "osp.image_arch",
-            "osp.image_username",
-            "osp.image_name",
+            'osp.hostname',
+            'osp.username',
+            'osp.password',
+            'osp.tenant',
+            'osp.project_domain_id',
+            'osp.security_group',
+            'osp.vm_name',
+            'osp.image_os',
+            'osp.image_arch',
+            'osp.image_username',
+            'osp.image_name',
             must_exist=True,
         )
     ],
-    performance=[Validator("performance.time_hammer", default=False)],
+    performance=[Validator('performance.time_hammer', default=False)],
     report_portal=[
         Validator(
-            "report_portal.portal_url",
-            "report_portal.project",
-            "report_portal.api_key",
+            'report_portal.portal_url',
+            'report_portal.project',
+            'report_portal.api_key',
             must_exist=True,
         ),
-        Validator("report_portal.fail_threshold", default=20),
+        Validator('report_portal.fail_threshold', default=20),
     ],
     repos=[
         Validator(
@@ -241,89 +243,89 @@ validators = dict(
     ],
     rhev=[
         Validator(
-            "rhev.hostname",
-            "rhev.username",
-            "rhev.password",
-            "rhev.datacenter",
-            "rhev.vm_name",
-            "rhev.storage_domain",
-            "rhev.image_os",
-            "rhev.image_arch",
-            "rhev.image_username",
-            "rhev.image_password",
-            "rhev.image_name",
+            'rhev.hostname',
+            'rhev.username',
+            'rhev.password',
+            'rhev.datacenter',
+            'rhev.vm_name',
+            'rhev.storage_domain',
+            'rhev.image_os',
+            'rhev.image_arch',
+            'rhev.image_username',
+            'rhev.image_password',
+            'rhev.image_name',
             must_exist=True,
         )
     ],
     rhsso=[
         Validator(
-            "rhsso.host_name",
-            "rhsso.host_url",
-            "rhsso.rhsso_user",
-            "rhsso.user_password",
-            "rhsso.realm",
+            'rhsso.host_name',
+            'rhsso.host_url',
+            'rhsso.rhsso_user',
+            'rhsso.user_password',
+            'rhsso.realm',
             must_exist=True,
         )
     ],
     shared_function=[
-        Validator("shared_function.storage", is_in=("file", "redis"), default='file'),
-        Validator("shared_function.share_timeout", lte=86400, default=86400),
-        Validator("shared_function.scope", default=None),
-        Validator("shared_function.enabled", default=False),
-        Validator("shared_function.lock_timeout", default=7200),
-        Validator("shared_function.redis_host", default='localhost'),
-        Validator("shared_function.redis_port", default=6379),
-        Validator("shared_function.redis_db", default=0),
-        Validator("shared_function.call_retries", default=2),
-        Validator("shared_function.redis_password", default=None),
+        Validator('shared_function.storage', is_in=('file', 'redis'), default='file'),
+        Validator('shared_function.share_timeout', lte=86400, default=86400),
+        Validator('shared_function.scope', default=None),
+        Validator('shared_function.enabled', default=False),
+        Validator('shared_function.lock_timeout', default=7200),
+        Validator('shared_function.redis_host', default='localhost'),
+        Validator('shared_function.redis_port', default=6379),
+        Validator('shared_function.redis_db', default=0),
+        Validator('shared_function.call_retries', default=2),
+        Validator('shared_function.redis_password', default=None),
     ],
     upgrade=[
-        Validator("upgrade.rhev_cap_host", must_exist=False)
-        | Validator("upgrade.capsule_hostname", must_exist=False),
-        Validator("upgrade.rhev_capsule_ak", must_exist=False)
-        | Validator("upgrade.capsule_ak", must_exist=False),
+        Validator('upgrade.rhev_cap_host', must_exist=False)
+        | Validator('upgrade.capsule_hostname', must_exist=False),
+        Validator('upgrade.rhev_capsule_ak', must_exist=False)
+        | Validator('upgrade.capsule_ak', must_exist=False),
     ],
     vlan_networking=[
         Validator(
-            "vlan_networking.subnet",
-            "vlan_networking.netmask",
-            "vlan_networking.gateway",
+            'vlan_networking.subnet',
+            'vlan_networking.netmask',
+            'vlan_networking.gateway',
             must_exist=True,
         ),
-        Validator("vlan_networking.dhcp_ipam", is_in=('Internal DB', 'DHCP')),
-        # one, and only one, of ("bridge", "network") must be defined
+        Validator('vlan_networking.dhcp_ipam', is_in=('Internal DB', 'DHCP')),
+        # one, and only one, of ('bridge', 'network') must be defined
         (
-            Validator("vlan_networking.bridge", must_exist=True)
-            & Validator("vlan_networking.network", must_exist=False)
+            Validator('vlan_networking.bridge', must_exist=True)
+            & Validator('vlan_networking.network', must_exist=False)
         )
         | (
-            Validator("vlan_networking.bridge", must_exist=False)
-            & Validator("vlan_networking.network", must_exist=True)
+            Validator('vlan_networking.bridge', must_exist=False)
+            & Validator('vlan_networking.network', must_exist=True)
         ),
         # both dhcp_from and dhcp_to are defined, or neither is
         Validator(
-            "vlan_networking.dhcp_from",
-            "vlan_networking.dhcp_to",
+            'vlan_networking.dhcp_from',
+            'vlan_networking.dhcp_to',
             must_exist=True,
         )
         | Validator(
-            "vlan_networking.dhcp_from",
-            "vlan_networking.dhcp_to",
+            'vlan_networking.dhcp_from',
+            'vlan_networking.dhcp_to',
             must_exist=False,
         ),
     ],
     vmware=[
         Validator(
-            "vmware.vcenter",
-            "vmware.username",
-            "vmware.password",
-            "vmware.datacenter",
-            "vmware.vm_name",
-            "vmware.image_os",
-            "vmware.image_arch",
-            "vmware.image_username",
-            "vmware.image_password",
-            "vmware.image_name",
+            'vmware.vcenter',
+            'vmware.username',
+            'vmware.password',
+            'vmware.datacenter',
+            'vmware.vm_name',
+            'vmware.image_os',
+            'vmware.image_arch',
+            'vmware.image_username',
+            'vmware.image_password',
+            'vmware.image_name',
             must_exist=True,
         )
     ],

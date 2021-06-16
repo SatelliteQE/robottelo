@@ -17,10 +17,10 @@ class TestFilteredDataPoint:
     def run_one_datapoint(self, request):
         # Modify run_one_datapoint on settings singleton based on the indirect param
         # default to false when not parametrized
-        original = settings.run_one_datapoint
-        settings.run_one_datapoint = getattr(request, 'param', False)
-        yield settings.run_one_datapoint
-        settings.run_one_datapoint = original
+        original = settings.robottelo.run_one_datapoint
+        settings.robottelo.run_one_datapoint = getattr(request, 'param', False)
+        yield settings.robottelo.run_one_datapoint
+        settings.robottelo.run_one_datapoint = original
 
     @pytest.mark.parametrize('run_one_datapoint', [True, False], indirect=True)
     def test_filtered_datapoint(self, run_one_datapoint):
