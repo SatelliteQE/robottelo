@@ -311,6 +311,8 @@ def test_positive_ansible_job_check_mode(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -332,6 +334,8 @@ def test_positive_ansible_config_report_failed_tasks_errors(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -354,6 +358,8 @@ def test_positive_ansible_config_report_changes_notice(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -373,6 +379,8 @@ def test_positive_ansible_variables_imported_with_roles(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -392,6 +400,8 @@ def test_positive_roles_import_in_background(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -412,6 +422,8 @@ def test_positive_ansible_roles_ignore_list(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -434,6 +446,8 @@ def test_positive_ansible_variables_installed_with_collection(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -458,6 +472,8 @@ def test_positive_install_ansible_collection_via_job_invocation(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -481,6 +497,8 @@ def test_positive_set_ansible_role_order_per_host(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -506,6 +524,8 @@ def test_positive_set_ansible_role_order_per_hostgroup(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
 
 
@@ -530,4 +550,6 @@ def test_positive_matcher_field_highlight(session):
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
     """
