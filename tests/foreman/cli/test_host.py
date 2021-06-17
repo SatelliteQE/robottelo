@@ -982,7 +982,7 @@ def test_negative_update_os(function_host, module_architecture):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.host_update
-def test_hammer_host_info_output():
+def test_hammer_host_info_output(module_user):
     """Verify re-add of 'owner-id' in `hammer host info` output
 
     :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
@@ -990,15 +990,31 @@ def test_hammer_host_info_output():
     :Steps:
         1. Update the host with any owner
         2. Get host info by running `hammer host info`
+        3. Create new user and update his location and organization based on the hosts
+        4. Update the host with new owner
+        5. Verify that the owner-id has changed
 
     :expectedresults: 'owner-id' should be in `hammer host info` output
 
-    :BZ: 1779093
+    :customerscenario: true
+
+    :BZ: 1779093, 1910314
     """
     user = entities.User().search(query={'search': f'login={settings.server.admin_username}'})[0]
     Host.update({'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'})
     result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == user.id
+    host = Host.info({'id': '1'})
+    User.update(
+        {
+            'id': module_user.id,
+            'organizations': [host['organization']],
+            'locations': [host['location']],
+        }
+    )
+    Host.update({'owner-id': module_user.id, 'id': '1'})
+    result_info = Host.info(options={'id': '1', 'fields': 'Additional info'})
+    assert int(result_info['additional-info']['owner-id']) == module_user.id
 
 
 @pytest.mark.host_update
