@@ -5,16 +5,17 @@ import pytest
 from automation_tools.satellite6.hammer import set_hammer_config
 from fabric.api import env
 
-import robottelo
+from robottelo.config import configure_airgun
+from robottelo.config import configure_nailgun
 from robottelo.config import settings
 
 
 _json_file = 'upgrade_workers.json'
+json_file = Path(_json_file)
 
 
 def save_worker_hostname(test_name):
     data = {}
-    json_file = Path(_json_file)
     if json_file.exists():
         data = json.loads(json_file.read_text())
     # Removing the parameter name from test name before save
@@ -23,10 +24,14 @@ def save_worker_hostname(test_name):
     json_file.write_text(json.dumps(data))
 
 
-def get_worker_hostname(test_name):
-    with open(_json_file) as rjson:
-        data = json.load(rjson)
-        return data.get(test_name)
+@pytest.fixture(scope='session')
+def shared_workers():
+    if json_file.exists():
+        return json.loads(json_file.read_text())
+
+
+def get_worker_hostname_from_testname(test_name, shared_workers):
+    return shared_workers.get(test_name)
 
 
 @pytest.fixture(autouse=True)
@@ -37,7 +42,7 @@ def save_pre_upgrade_worker_hostname(request):
 
 
 @pytest.fixture(autouse=True)
-def set_post_upgrade_hostname(request):
+def set_post_upgrade_hostname(request, shared_workers):
     """Retrieves worker hostname of pre_upgrade and sets the same to run post_upgrade
 
     The limitation of this implementation is that the XDIST_BEHAVIOR won't be observed,
@@ -48,16 +53,14 @@ def set_post_upgrade_hostname(request):
         depend_test = post_upgrade.kwargs.get('depend_on')
         if depend_test:
             pre_test_name = depend_test.__name__
-            settings.configure()
-            cache_proxy = robottelo.config.settings_proxy._cache
-            pre_hostname = get_worker_hostname(pre_test_name)
+            pre_hostname = get_worker_hostname_from_testname(pre_test_name, shared_workers)
             if (pre_hostname is None) or (pre_hostname not in settings.server.hostnames):
                 pytest.skip(
                     'Skipping the post_upgrade test as the pre_upgrade hostname is not found!'
                 )
             # Read the worker id of pre test name
-            cache_proxy['server.hostname'] = env.host_string = pre_hostname
+            settings.server.hostname = env.host_string = pre_hostname
             env.user = 'root'
-            settings.configure_nailgun()
-            settings.configure_airgun()
+            configure_nailgun()
+            configure_airgun()
             set_hammer_config()
