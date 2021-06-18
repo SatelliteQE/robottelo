@@ -290,3 +290,266 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_vm_client_by_
         assert job_status['overview']['job_status'] == 'Success'
         assert job_status['overview']['hosts_table'][0]['Host'] == hostname
         assert job_status['overview']['hosts_table'][0]['Status'] == 'success'
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_job_check_mode(session):
+    """Run a job on a host with enable_roles_check_mode parameter enabled
+
+    :id: 7aeb7253-e555-4e28-977f-71f16d3c32e2
+
+    :Steps:
+
+        1. Set the value of the ansible_roles_check_mode parameter to true on a host
+        2. Associate one or more Ansible roles with the host
+        3. Run Ansible roles against the host
+
+    :expectedresults: Verify that the roles were run in check mode
+                      (i.e. no changes were made on the host)
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_config_report_failed_tasks_errors(session):
+    """Check that failed Ansible tasks show as errors in the config report
+
+    :id: 1a91e534-143f-4f35-953a-7ad8b7d2ddf3
+
+    :Steps:
+
+        1. Import Ansible roles
+        2. Assign Ansible roles to a host
+        3. Run Ansible roles on host
+
+    :expectedresults: Verify that any task failures are listed as errors in the config report
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_config_report_changes_notice(session):
+    """Check that Ansible tasks that make changes on a host show as notice in the config report
+
+    :id: 8c90f179-8b70-4932-a477-75dc3566c437
+
+    :Steps:
+
+        1. Import Ansible Roles
+        2. Assign Ansible roles to a host
+        3. Run Ansible Roles on a host
+
+    :expectedresults: Verify that any tasks that make changes on the host
+                      are listed as notice in the config report
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_variables_imported_with_roles(session):
+    """Verify that, when Ansible roles are imported, their variables are imported simultaneously
+
+    :id: 107c53e8-5a8a-4291-bbde-fbd66a0bb85e
+
+    :Steps:
+
+        1. Import Ansible roles
+
+    :expectedresults: Verify that any variables in the role were also imported to Satellite
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_roles_import_in_background(session):
+    """Verify that importing roles does not create a popup that blocks the UI
+
+    :id: 4f1c7b76-9c67-42b2-9a73-980ca1f05abc
+
+    :Steps:
+
+        1. Import Ansible roles
+
+    :expectedresults: Verify that the UI is accessible while roles are importing
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_roles_ignore_list(session):
+    """Verify that the ignore list setting prevents selected roles from being available for import
+
+    :id: 6fa1d8f0-b583-4a07-88eb-c9ae7fcd0219
+
+    :Steps:
+
+        1. Add roles to the ignore list in Administer > Settings > Ansible
+        2. Navigate to Configure > Roles
+
+    :expectedresults: Verify that any roles on the ignore list are not available for import
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_ansible_variables_installed_with_collection(session):
+    """Verify that installing an Ansible collection also imports
+       any variables associated with the collection
+
+    :id: 7ff88022-fe9b-482f-a6bb-3922036a1e1c
+
+    :Steps:
+
+        1. Install an Ansible collection
+        2. Navigate to Configure > Variables
+
+    :expectedresults: Verify that any variables associated with the collection
+                      are present on Configure > Variables
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_install_ansible_collection_via_job_invocation(session):
+    """Verify that Ansible collections can be installed on hosts via job invocations
+
+    :id: d4096aef-f6fc-41b6-ae56-d19b1f49cd42
+
+    :Steps:
+
+        1. Enable a host for remote execution
+        2. Navigate to Hosts > Schedule Remote Job
+        3. Select "Ansible Galaxy" as the job category
+        4. Select "Ansible Collection - Install from Galaxy" as the job template
+        5. Enter a collection in the ansible_collections_list field
+        6. Click "Submit"
+
+    :expectedresults: The Ansible collection is successfully installed on the host
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_set_ansible_role_order_per_host(session):
+    """Verify that role run order can be set and that this order is respected when roles are run
+
+    :id: 24fbcd60-7cd1-46ff-86ac-16d6b436202c
+
+    :Steps:
+
+        1. Enable a host for remote execution
+        2. Navigate to Hosts > All Hosts > $hostname > Edit > Ansible Roles
+        3. Assign more than one role to the host
+        4. Use the drag-and-drop mechanism to change the order of the roles
+        5. Run Ansible roles on the host
+
+    :expectedresults: The roles are run in the specified order
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_set_ansible_role_order_per_hostgroup(session):
+    """Verify that role run order can be set and that this order is respected when roles are run
+
+    :id: 9eb5bc8e-081a-45b9-8751-f4220c944da6
+
+    :Steps:
+
+        1. Enable a host for remote execution
+        2. Create a host group
+        3. Navigate to Configure > Host Groups > $hostgroup > Ansible Roles
+        4. Assign more than one role to the host group
+        5. Use the drag-and-drop mechanism to change the order of the roles
+        6. Add the host to the host group
+        7. Run Ansible roles on the host group
+
+    :expectedresults: The roles are run in the specified order
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_matcher_field_highlight(session):
+    """Verify that Ansible variable matcher fields change color when modified
+
+    :id: 67b45cfe-31bb-41a8-b88e-27917c68f33e
+
+    :Steps:
+
+        1. Navigate to Configure > Variables > $variablename
+        2. Select the "Override" checkbox in the "Default Behavior" section
+        3. Click "+Add Matcher" in the "Specify Matcher" section
+        4. Select an option from the "Attribute type" dropdown
+        5. Add text to the attribute type input field
+        6. Add text to the "Value" input field
+
+    :expectedresults: The background of each field turns yellow when a change is made
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+
+    :assignee: dsynk
+    """
