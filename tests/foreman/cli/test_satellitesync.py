@@ -2232,23 +2232,6 @@ class TestInterSatelliteSync:
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
-    def test_positive_export_redhat_yum_repo_iso(self):
-        """Export Red Hat YUM repo as ISO in directory.
-
-        :id: e96a7a8c-9e71-4379-86e6-78177dfbf555
-
-        :steps: Export whole Red Hat YUM repo as ISO.
-
-        :expectedresults: Whole repo contents has been exported as ISO in
-            separate directory.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and Import.
@@ -2258,34 +2241,15 @@ class TestInterSatelliteSync:
         :steps:
 
             1. Export whole Red Hat YUM repo as ISO.
-            2. Mount exported ISO and explore the ISO contents on HTTP.
-            3. Import the repository by defining the CDN URL the same as the
+            2. Check 'hammer content-export list'
+            3. Mount exported ISO and explore the ISO contents on HTTP.
+            4. Import the repository by defining the CDN URL the same as the
                exported HTTP URL.
+            5. Check production logs
+            6. Check audit log
 
-        :expectedresults: All The exported repo contents in ISO has been
+        :expectedresults: All the exported repo contents in ISO has been
             imported successfully.
-
-        :CaseAutomation: NotAutomated
-
-        :CaseLevel: System
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier3
-    def test_positive_export_redhat_yum_incremental_repo_iso(self):
-        """Export Red Hat YUM repo as ISO in directory and import incrementally.
-
-        :id: c54e9410-9945-4662-bea0-a4ab35e90606
-
-        :steps:
-
-            1. First, Export and Import whole Red Hat YUM repo.
-            2. Add some packages to the earlier exported yum repo.
-            3. Incrementally export the yum repo as ISO from last exported
-               date.
-
-        :expectedresults: Repo contents have been exported as ISO incrementally
-            in separate directory.
 
         :CaseAutomation: NotAutomated
 
@@ -2308,6 +2272,8 @@ class TestInterSatelliteSync:
                date.
             4. Mount incrementally exported contents ISO.
             5. Import the repo contents incrementally.
+            6. Check production logs
+            7. Check audit log
 
         :expectedresults: Repo contents have been exported as ISO and imported
             incrementally.
