@@ -488,7 +488,7 @@ def test_positive_set_ansible_role_order_per_host(session):
 
         1. Enable a host for remote execution
         2. Navigate to Hosts > All Hosts > $hostname > Edit > Ansible Roles
-        3. Assign more than 1 role to the host
+        3. Assign more than one role to the host
         4. Use the drag-and-drop mechanism to change the order of the roles
         5. Run Ansible roles on the host
 
