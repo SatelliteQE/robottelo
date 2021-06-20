@@ -3155,7 +3155,7 @@ class TestFileRepository:
 
 @pytest.mark.stubbed
 @pytest.mark.tier2
-def test_file_repo_contains_only_newer_of_two_file_versions():
+def test_file_repo_contains_only_newer_file():
     """
         Check that a published file-type repo contains only the newer of
         two versions of a file with the same name.
@@ -3182,7 +3182,7 @@ def test_file_repo_contains_only_newer_of_two_file_versions():
 
 @pytest.mark.stubbed
 @pytest.mark.tier2
-def test_mirror_on_sync_removes_RPM_deleted_upstream():
+def test_mirror_on_sync_removes_RPM():
     """
         Check that a package removed upstream is removed downstream when the repo
         is next synced.
@@ -3210,7 +3210,7 @@ def test_mirror_on_sync_removes_RPM_deleted_upstream():
 
 @pytest.mark.stubbed
 @pytest.mark.tier2
-def test_copy_package_group_from_one_repo_to_another():
+def test_copy_package_group_between_repos():
     """
        Copy a group of packages from one repo to another.
 
@@ -3232,7 +3232,7 @@ def test_copy_package_group_from_one_repo_to_another():
 
 @pytest.mark.stubbed
 @pytest.mark.tier2
-def test_include_and_exclude_content_units_and_their_dependencies():
+def test_include_and_exclude_content_units():
     """
        Select two packages and include and exclude some dependencies
        and then copy them from one repo to another.
