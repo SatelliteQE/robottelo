@@ -47,6 +47,8 @@ from robottelo.datafactory import valid_data_list
 from robottelo.logging import logger
 from robottelo.ssh import upload_file
 
+SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
+
 
 @filtered_datapoint
 def valid_name_interval_create_tests():
@@ -111,7 +113,7 @@ def validate_task_status(repo_id, max_tries=6, repo_name=None):
     wait_for_tasks(
         search_query='resource_type = Katello::Repository'
         ' and owner.login = foreman_admin'
-        ' and resource_id = {}'.format(repo_id),
+        f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
 
@@ -128,10 +130,8 @@ def validate_repo_content(repo, content_types, after_sync=True):
     """
     repo = Repository.info({'id': repo['id']})
     for content in content_types:
-        if after_sync:
-            assert int(repo['content-counts'][content]) > 0
-        else:
-            assert not int(repo['content-counts'][content])
+        count = int(repo['content-counts'][content])
+        assert count > 0 if after_sync else count == 0
 
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
@@ -273,7 +273,7 @@ def test_positive_update_sync_date(module_org):
     new_sync_plan = make_sync_plan(
         {
             'name': sync_plan_name,
-            'sync-date': today.strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': today.strftime(SYNC_DATE_FMT),
             'organization-id': module_org.id,
         }
     )
@@ -282,9 +282,7 @@ def test_positive_update_sync_date(module_org):
     # Set sync date 5 days in the future
     future_date = today + timedelta(days=5)
     # Update sync interval
-    SyncPlan.update(
-        {'id': new_sync_plan['id'], 'sync-date': future_date.strftime("%Y-%m-%d %H:%M:%S")}
-    )
+    SyncPlan.update({'id': new_sync_plan['id'], 'sync-date': future_date.strftime(SYNC_DATE_FMT)})
     # Fetch it
     result = SyncPlan.info({'id': new_sync_plan['id']})
     assert result['start-date'] != new_sync_plan['start-date']
@@ -353,7 +351,7 @@ def test_positive_info_with_assigned_product(module_org):
         {
             'enabled': 'false',
             'organization-id': module_org.id,
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': datetime.utcnow().strftime(SYNC_DATE_FMT),
         }
     )
     for prod_name in [prod1, prod2]:
@@ -382,7 +380,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
         {
             'enabled': 'true',
             'organization-id': module_org.id,
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': datetime.utcnow().strftime(SYNC_DATE_FMT),
         }
     )
     product = make_product({'organization-id': module_org.id})
@@ -431,7 +429,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
             'interval': 'hourly',
             'organization-id': module_org.id,
             'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
-                "%Y-%m-%d %H:%M:%S"
+                SYNC_DATE_FMT
             ),
         }
     )
@@ -480,7 +478,7 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
             'enabled': 'true',
             'organization-id': module_org.id,
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
-                "%Y-%m-%d %H:%M:%S"
+                SYNC_DATE_FMT
             ),
             'cron-expression': ["*/4 * * * *"],
         }
@@ -534,7 +532,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
             'enabled': 'true',
             'organization-id': module_org.id,
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
-                "%Y-%m-%d %H:%M:%S"
+                SYNC_DATE_FMT
             ),
             'cron-expression': ["*/4 * * * *"],
         }
@@ -603,7 +601,7 @@ def test_positive_synchronize_rh_product_past_sync_date(module_org):
             'interval': 'hourly',
             'organization-id': module_org.id,
             'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
-                "%Y-%m-%d %H:%M:%S"
+                SYNC_DATE_FMT
             ),
         }
     )
@@ -668,7 +666,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
             'enabled': 'true',
             'organization-id': module_org.id,
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
-                "%Y-%m-%d %H:%M:%S"
+                SYNC_DATE_FMT
             ),
             'cron-expression': ["*/4 * * * *"],
         }
@@ -722,7 +720,7 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
             'enabled': 'true',
             'interval': 'daily',
             'organization-id': module_org.id,
-            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': start_date.strftime(SYNC_DATE_FMT),
         }
     )
     # Associate sync plan with product
@@ -771,7 +769,7 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
             'enabled': 'true',
             'interval': 'weekly',
             'organization-id': module_org.id,
-            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': start_date.strftime(SYNC_DATE_FMT),
         }
     )
     # Associate sync plan with product
