@@ -10,6 +10,7 @@ Parameters::
 
 Subcommands::
 
+    access-token                  Managing personal access tokens
     add-role                      Assign a user role
     create                        Create an user.
     delete                        Delete an user.
@@ -92,4 +93,22 @@ class User(Base):
 
         """
         cls.command_sub = 'ssh-keys info'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def personal_access_token_create(cls, options=None):
+        """
+        Usage:
+        hammer user access-token create [ARG] ...
+        """
+        cls.command_sub = 'access-token create'
+        return cls.execute(cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def personal_access_token_revoke(cls, options=None):
+        """
+        Usage:
+        hammer user access-token revoke [OPTIONS]...
+        """
+        cls.command_sub = 'access-token revoke'
         return cls.execute(cls._construct_command(options), output_format='csv')

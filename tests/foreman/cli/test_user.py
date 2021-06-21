@@ -24,9 +24,11 @@ When testing email validation [1] and [2] should be taken into consideration.
 """
 import datetime
 import random
+from time import sleep
 
 import paramiko
 import pytest
+from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -42,6 +44,7 @@ from robottelo.constants import LOCALES
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
+from robottelo.ssh import command
 from robottelo.ssh import get_connection
 
 
@@ -386,14 +389,13 @@ class TestPersonalAccessToken:
     """Implement personal access token for the users"""
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
-    def test_personal_access_token_admin(self):
-        """Personal access token for admin
+    def test_personal_access_token_admin_user(self):
+        """Personal access token for admin user
 
         :id: f2d3813f-e477-4b6b-8507-246b08fcb3b4
 
         :steps:
-            1. Edit ‘admin’ user to add personal access token
+            1. Create an admin user and add personal access token
             2. Use any api endpoint with the token
             3. Revoke the token and check for the result.
 
@@ -405,9 +407,22 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
+        user = make_user({'admin': '1'})
+        token_name = gen_alphanumeric()
+        result = User.personal_access_token_create({'name': token_name, 'user-id': user['id']})
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} '
+            f'https://{settings.server.hostname}/api/v2/users'
+        )
+        curl_result = str(command(curl_command))
+        assert user['login'] in curl_result
+        assert user['email'] in curl_result
+        User.personal_access_token_revoke({'user': user["login"], 'name': token_name})
+        curl_result = str(command(curl_command))
+        assert f'Unable to authenticate user {user["login"]}' in curl_result
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
     def test_positive_personal_access_token_user_with_role(self):
         """Personal access token for user with a role
 
@@ -429,9 +444,25 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
+        user = make_user()
+        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        token_name = gen_alphanumeric()
+        result = User.personal_access_token_create({'name': token_name, 'user-id': user['id']})
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} '
+            f'https://{settings.server.hostname}/api/v2/hosts'
+        )
+        curl_result = str(command(curl_command))
+        assert settings.server.hostname in curl_result
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} '
+            f'https://{settings.server.hostname}/api/v2/users'
+        )
+        curl_result = str(command(curl_command))
+        assert 'Access denied' in curl_result
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
     def test_expired_personal_access_token(self):
         """Personal access token expired for the user.
 
@@ -448,3 +479,30 @@ class TestPersonalAccessToken:
 
         :CaseImportance: Medium
         """
+        user = make_user()
+        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        token_name = gen_alphanumeric()
+        datetime_now = datetime.datetime.now()
+        print('*'*10, datetime_now.strftime("%Y-%m-%d %H:%M:%S"), '*'*10)
+        datetime_expire = datetime_now + datetime.timedelta(seconds=30)
+        datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
+        print('*'*10, datetime_expire, '*'*10)
+
+        result = User.personal_access_token_create(
+            {'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire}
+        )
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} '
+            f'https://{settings.server.hostname}/api/v2/hosts'
+        )
+        curl_result = str(command(curl_command))
+        assert settings.server.hostname in curl_result
+        sleep(10)
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} '
+            f'https://{settings.server.hostname}/api/v2/hosts'
+        )
+        curl_result = str(command(curl_command))
+        assert f'Unable to authenticate user {user["login"]}' in curl_result
+
