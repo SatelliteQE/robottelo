@@ -358,8 +358,9 @@ REPOSET = {
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
-    'rhae2': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server',
+    'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
+    'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -540,9 +541,9 @@ REPOS = {
         ),
     },
     'rhae2': {
-        'id': 'rhel-7-server-ansible-2.7-rpms',
-        'name': 'Red Hat Ansible Engine 2.7 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
-        'version': '2.7',
+        'id': 'rhel-7-server-ansible-2.9-rpms',
+        'name': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server x86_64',
+        'version': '2.9',
         'arch': 'x86_64',
         'reposet': REPOSET['rhae2'],
         'product': PRDS['rhae'],
