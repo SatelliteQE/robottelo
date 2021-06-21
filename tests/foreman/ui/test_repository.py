@@ -886,7 +886,8 @@ def test_positive_recommended_repos(session, module_org):
         session.organization.select(module_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on')
         assert REPOSET['rhel7'] in [repo['name'] for repo in rrepos_on]
-        sat_version = get_sat_version().public
+        v = get_sat_version()
+        sat_version = f'{v.major}.{v.minor}'
         cap_tool_repos = [
             repo['name']
             for repo in rrepos_on
@@ -895,7 +896,7 @@ def test_positive_recommended_repos(session, module_org):
         cap_tools_repos = [repo for repo in cap_tool_repos if repo.split()[4] != sat_version]
         assert not cap_tools_repos, 'Tools/Capsule repos do not match with Satellite version'
         rrepos_off = session.redhatrepository.read(recommended_repo='off')
-        assert REPOSET['rhae2'] in [repo['name'] for repo in rrepos_off]
+        assert REPOSET['fdrh8'] in [repo['name'] for repo in rrepos_off]
         assert len(rrepos_off) > len(rrepos_on)
 
 
