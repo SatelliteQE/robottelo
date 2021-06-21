@@ -134,6 +134,10 @@ REPOS_WITH_ERRATA = (
     },
 )
 
+TIMESTAMP_FMT = '%Y-%m-%d %H:%M'
+
+PSUTIL_RPM = 'python2-psutil-5.6.7-1.el7.x86_64.rpm'
+
 pytestmark = [
     pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
@@ -801,7 +805,7 @@ def test_host_errata_search_commands(
     :expectedresults: The hosts are correctly listed for security and bugfix advisories.
     """
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
 
     errata = REPO_WITH_ERRATA['errata']
 
@@ -1334,7 +1338,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
-    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/{PSUTIL_RPM}')
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
@@ -1374,7 +1378,7 @@ def test_apply_errata_using_default_content_view(errata_host):
     assert len(erratum) == 1
     assert erratum[0]['installable'] == 'true'
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Update errata from Library, i.e. Default CV
     errata_host.run(f'yum -y update --advisory {REAL_0_ERRATA_ID}')
     # Wait for upload profile event (in case Satellite system slow)
@@ -1421,7 +1425,7 @@ def test_update_applicable_package_using_default_content_view(errata_host):
     assert len(applicable_packages) == 1
     assert REAL_RHEL7_0_2_PACKAGE_NAME in applicable_packages[0]['filename']
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Update package from Library, i.e. Default CV
     errata_host.run(f'yum -y update {REAL_RHEL7_0_2_PACKAGE_NAME}')
     # Wait for upload profile event (in case Satellite system slow)
@@ -1476,10 +1480,10 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host):
     )
     assert len(applicable_packages) == 0
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Downgrade package (we can't get it from Library, so get older one from EPEL)
-    errata_host.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
-    errata_host.run('yum -y downgrade python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    errata_host.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
@@ -1530,10 +1534,10 @@ def test_install_applicable_package_to_registerd_host(chost):
     )
     assert len(applicable_packages) == 0
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # python-psutil is obsoleted by python2-psutil, so download older python2-psutil for this test
-    chost.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
-    chost.run('yum -y install python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    chost.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    chost.run(f'yum -y install {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
@@ -1587,10 +1591,10 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     )
     assert len(applicable_packages) == 0
     # note time for later wait_for_tasks include 2 mins margin of safety.
-    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+    timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Downgrade package (we can't get it from Library, so get older one from EPEL)
-    errata_host.run(f'curl -O {EPEL_REPO}/python2-psutil-5.6.7-1.el7.x86_64.rpm')
-    errata_host.run('yum -y downgrade python2-psutil-5.6.7-1.el7.x86_64.rpm')
+    errata_host.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
         search_query=(
