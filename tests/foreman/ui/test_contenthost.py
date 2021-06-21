@@ -1257,8 +1257,8 @@ def test_syspurpose_bulk_action(session, vm):
     """
     syspurpose_attributes = {
         'service_level': 'Standard',
-        'role': 'Production',
-        'usage_type': 'Red Hat Enterprise Linux Server',
+        'usage_type': 'Production',
+        'role': 'Red Hat Enterprise Linux Server',
     }
     with session:
         session.contenthost.bulk_set_syspurpose([vm.hostname], syspurpose_attributes)
