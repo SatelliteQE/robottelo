@@ -413,3 +413,25 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost):
     # registration of a host with an expired SCA cert
     rhel7_contenthost.register_contenthost(module_org.label, ak.name)
     assert rhel7_contenthost.subscribed
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_positive_os_restriction_on_repos():
+    """Verify that you can specify OS restrictions on custom repos
+
+    :id: fd40842f-48c3-4505-a670-235d8a5f466b
+
+    :steps:
+        1. Register Content Host with RHEL/EPEL 6 and 7 repos synced
+        2. Set Restriction to OS on repos
+        3. Subscription-manager refresh
+        4. Verify enabled repos
+
+    :expectedresults: Custom EPEL repos with OS restrictions set are
+        disabled based on its corresponding RHEL version
+
+    :BZ: 1526564
+
+    :CaseImportance: High
+    """
