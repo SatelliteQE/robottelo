@@ -434,4 +434,6 @@ def test_positive_os_restriction_on_repos():
     :BZ: 1526564
 
     :CaseImportance: High
+
+    :CaseAutomation: NotAutomated
     """
