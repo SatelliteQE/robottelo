@@ -24,7 +24,12 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo import ssh
+from robottelo.cli.factory import make_product
+from robottelo.cli.factory import make_repository
+from robottelo.cli.product import Product
+from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
+from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.logging import logger
 from robottelo.ssh import upload_file
 
@@ -233,25 +238,44 @@ def test_positive_logging_from_dynflow(module_org):
 
 
 @pytest.mark.tier4
-@pytest.mark.stubbed
-def test_positive_logging_from_pulp3():
+def test_positive_logging_from_pulp3(module_org):
     """
     Verify Pulp3 logs are getting captured using pulp3 correlation ID
 
     :id: 8d5718e6-3442-47d6-b541-0aa78d007e8b
 
-    :steps:
-        1. Create a Product and assign it to default organization
-        2. Create a Repository and add it in the Product
-        3. Sync the repository
-        4. Use Hammer command to get the UUID of Repository sync.
-        5. Search for the UUID in production log and get the correaltion ID of pulp3 from it
-        6. Search for that correlation ID in var/log/messages.
-
-    :expectedresults:
-        1.Pulp3 logs are being captured in the logs with the correlation ID.
-
     :CaseLevel: Component
 
     :CaseImportance: High
     """
+    source_log = '/var/log/foreman/production.log'
+    test_logfile = '/var/log/messages'
+
+    # Create custom product and repository
+    product_name = gen_string('alpha')
+    name = product_name
+    label = product_name
+    desc = product_name
+    product = make_product(
+        {'description': desc, 'label': label, 'name': name, 'organization-id': module_org.id},
+    )
+    repo = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product['id'],
+            'url': FAKE_0_YUM_REPO,
+        },
+    )
+    # Synchronize the repository
+    Product.synchronize({'id': product['id'], 'organization-id': module_org.id})
+    Repository.synchronize({'id': repo['id']})
+    # Get the id of repository sync from task
+    task_out = ssh.command(
+        "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"
+    ).stdout[0][:8]
+    prod_log_out = ssh.command(f'grep  {task_out} {source_log}').stdout[0]
+    # Get correlation id of pulp from production logs
+    pulp_correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
+    # verify pulp correlation id in message
+    message_log = ssh.command(f'cat {test_logfile} | grep {pulp_correlation_id}')
+    assert message_log.return_code == 0
