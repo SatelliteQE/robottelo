@@ -5,7 +5,7 @@ VIRTWHO:
         # The SKU ID for virtual vdc
         VDC_VIRTUAL:
     ESX:
-        # The hypervisor type, one of the values: esx, xen, hyperv, rhevm, libvirt, kubevirt
+        # The hypervisor type, one of the values: esx, hyperv, rhevm, libvirt, kubevirt
         HYPERVISOR_TYPE: esx
         # The hostname or ip or other values for hypervisor server, depends on the type
         HYPERVISOR_SERVER:
@@ -20,15 +20,6 @@ VIRTWHO:
         # ssh username to access guest
         GUEST_USERNAME:
         # ssh password to access guest
-        GUEST_PASSWORD:
-    XEN:
-        HYPERVISOR_TYPE: xen
-        HYPERVISOR_SERVER:
-        HYPERVISOR_USERNAME:
-        HYPERVISOR_PASSWORD:
-        GUEST:
-        GUEST_PORT:
-        GUEST_USERNAME:
         GUEST_PASSWORD:
     HYPERV:
         HYPERVISOR_TYPE: hyperv
