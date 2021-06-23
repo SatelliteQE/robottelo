@@ -24,27 +24,21 @@ import pytest
 from fauxfactory import gen_choice
 from nailgun import entities
 
-from robottelo.api.utils import wait_for_syncplan_tasks
 from robottelo.api.utils import wait_for_tasks
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_cron_expressions
 
 
-def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
-    """Wait for Pulp and foreman_tasks to complete or timeout
+def validate_task_status(repo_id, max_tries=10):
+    """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
-    :param repo_backend_id: Backend identifier of repository to filter the
         pulp tasks
     """
-    if repo_backend_id:
-        wait_for_syncplan_tasks(repo_backend_id)
     wait_for_tasks(
-        search_query='resource_type = Katello::Repository'
-        ' and owner.login = foreman_admin'
-        ' and resource_id = {}'.format(repo_id),
+        search_query='Actions::Katello::Repository::Sync' f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
 
