@@ -77,7 +77,7 @@ class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup):
         """Run default template on host connected by ip and list task
 
@@ -118,7 +118,7 @@ class TestRemoteExecution:
 
     @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup):
         """Run default job template as effective user on a host by ip
 
@@ -220,7 +220,9 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], ids=['rhel7'], indirect=True
+    )
     def test_positive_run_default_job_template_multiple_hosts_by_ip(
         self, fixture_vmsetup, module_org
     ):
@@ -256,7 +258,7 @@ class TestRemoteExecution:
         assert invocation_command['success'] == '2', output_msgs
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
@@ -314,7 +316,7 @@ class TestRemoteExecution:
         assert result.status == 0
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_recurring_job_with_max_iterations_by_ip(self, fixture_vmsetup):
         """Run default job template multiple times with max iteration by ip
 
@@ -355,7 +357,7 @@ class TestRemoteExecution:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup):
         """Schedule a job to be ran against a host
 
@@ -464,7 +466,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_effective_user_job(self, fixture_vmsetup):
         """Tests Ansible REX job having effective user runs successfully
 
@@ -538,7 +540,7 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], indirect=True)
+    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_reccuring_job(self, fixture_vmsetup):
         """Tests Ansible REX reccuring job runs successfully multiple times
 
@@ -588,7 +590,9 @@ class TestAnsibleREX:
         assert rec_logic['iteration'] == '2'
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], indirect=True)
+    @pytest.mark.parametrize(
+        'fixture_vmsetup', [{'nick': 'rhel7', '_count': 2}], ids=['rhel7'], indirect=True
+    )
     def test_positive_run_concurrent_jobs(self, fixture_vmsetup, module_org):
         """Tests Ansible REX concurent jobs without batch trigger
 
