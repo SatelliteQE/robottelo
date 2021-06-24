@@ -70,11 +70,11 @@ def module_loc(module_org):
 
 
 @pytest.fixture
-def module_vm_client_by_ip(rhel7_host, module_org, module_loc):
+def module_vm_client_by_ip(rhel7_contenthost, module_org, module_loc):
     """Setup a VM client to be used in remote execution by ip"""
-    _setup_vm_client_host(rhel7_host.host, module_org.label)
-    update_vm_host_location(rhel7_host.host, location_id=module_loc.id)
-    yield rhel7_host.host
+    _setup_vm_client_host(rhel7_contenthost, module_org.label)
+    update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
+    yield rhel7_contenthost
 
 
 @pytest.mark.tier3
