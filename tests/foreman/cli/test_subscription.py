@@ -247,7 +247,7 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
     :expectedresults: Candlepin events are being read and processed
                       correctly without any failures
-    :BZ: #1826515
+    :BZ: 1826515
 
     :CaseImportance: High
     """
