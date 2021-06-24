@@ -1748,7 +1748,7 @@ def gce_client(download_cert):
 @pytest.fixture
 def gce_template(gce_client):
     max_rhel7_template = max(
-        [img.name for img in gce_client.list_templates(True) if str(img.name).startswith('rhel-7')]
+        img.name for img in gce_client.list_templates(True) if str(img.name).startswith('rhel-7')
     )
     return gce_client.get_template(max_rhel7_template, project='rhel-cloud').uuid
 

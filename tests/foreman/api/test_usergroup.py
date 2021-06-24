@@ -86,8 +86,8 @@ class TestUserGroup:
         """
         users = [entities.User().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(user=users).create()
-        assert sorted([user.login for user in users]) == sorted(
-            [user.read().login for user in user_group.user]
+        assert sorted(user.login for user in users) == sorted(
+            user.read().login for user in user_group.user
         )
 
     @pytest.mark.tier1
@@ -121,8 +121,8 @@ class TestUserGroup:
         """
         roles = [entities.Role().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(role=roles).create()
-        assert sorted([role.name for role in roles]) == sorted(
-            [role.read().name for role in user_group.role]
+        assert sorted(role.name for role in roles) == sorted(
+            role.read().name for role in user_group.role
         )
 
     @pytest.mark.tier1
@@ -158,8 +158,8 @@ class TestUserGroup:
         """
         sub_user_groups = [entities.UserGroup().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(usergroup=sub_user_groups).create()
-        assert sorted([usergroup.name for usergroup in sub_user_groups]) == sorted(
-            [usergroup.read().name for usergroup in user_group.usergroup]
+        assert sorted(usergroup.name for usergroup in sub_user_groups) == sorted(
+            usergroup.read().name for usergroup in user_group.usergroup
         )
 
     @pytest.mark.tier1

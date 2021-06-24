@@ -96,7 +96,7 @@ def get_repo_files(repo_path, extension='rpm', hostname=None):
         raise CLIReturnCodeError(result.return_code, result.stderr, f'No .{extension} found')
     # strip empty lines and sort alphabetically (as order may be wrong because
     # of different paths)
-    return sorted([repo_file for repo_file in result.stdout if repo_file])
+    return sorted(repo_file for repo_file in result.stdout if repo_file)
 
 
 def get_repomd_revision(repo_path, hostname=None):

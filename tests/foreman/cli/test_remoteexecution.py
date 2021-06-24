@@ -42,7 +42,7 @@ from robottelo.hosts import ContentHost
 
 @pytest.fixture()
 def fixture_vmsetup(request, module_org):
-    """ Create VM and register content host """
+    """Create VM and register content host"""
     if '_count' in request.param.keys():
         with VMBroker(
             nick=request.param['nick'],

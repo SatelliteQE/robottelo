@@ -13,7 +13,7 @@ from robottelo.helpers import file_downloader
 
 @pytest.fixture(scope="session")
 def tailoring_file_path():
-    """ Return Tailoring file path."""
+    """Return Tailoring file path."""
     local = file_downloader(file_url=settings.oscap.tailoring_path)[0]
     satellite = file_downloader(
         file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
@@ -23,7 +23,7 @@ def tailoring_file_path():
 
 @pytest.fixture(scope="session")
 def oscap_content_path():
-    """ Download scap content from satellite and return local path of it."""
+    """Download scap content from satellite and return local path of it."""
     _, file_name = os.path.split(settings.oscap.content_path)
     local_file = f"/tmp/{file_name}"
     ssh.download_file(settings.oscap.content_path, local_file)
@@ -51,7 +51,7 @@ def scap_content(import_ansible_roles, import_puppet_classes):
 
 @pytest.fixture(scope="module")
 def tailoring_file(module_org, module_location, tailoring_file_path):
-    """ Create Tailoring file."""
+    """Create Tailoring file."""
     tailoring_file_name = f"tailoring-file-{gen_string('alpha')}"
     tf_info = entities.TailoringFile(
         name=f"{tailoring_file_name}",

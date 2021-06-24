@@ -458,7 +458,7 @@ class TestSshKeyInUser:
 
         :return: string type well formatted RSA key
         """
-        return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+        return f'ssh-rsa {paramiko.RSAKey.generate(2048).get_base64()}'
 
     @pytest.fixture(scope='class')
     def create_user(self):

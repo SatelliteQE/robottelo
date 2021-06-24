@@ -150,7 +150,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_org, module_rhel
                 'template_content.command': 'ls',
             }
         )
-        job_description = '{} with inputs command="ls"'.format(camelize(job_template_name.lower()))
+        job_description = f'{camelize(job_template_name.lower())} with inputs command="ls"'
         session.jobinvocation.wait_job_invocation_state(
             entity_name=job_description, host_name=hostname
         )

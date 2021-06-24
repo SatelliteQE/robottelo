@@ -15,7 +15,7 @@ from robottelo.cli.base import Base
 
 
 class Auth(Base):
-    """ Authenticates Foreman users """
+    """Authenticates Foreman users"""
 
     command_base = 'auth'
 

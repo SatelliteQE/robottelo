@@ -72,7 +72,7 @@ from robottelo.hosts import ContentHostError
 
 @pytest.fixture(scope="module")
 def module_default_proxy():
-    """ Use the default installation smart proxy """
+    """Use the default installation smart proxy"""
     return Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[0]
 
 
@@ -529,7 +529,7 @@ def test_positive_list_scparams(module_env_search, module_org, module_puppet_cla
     sc_params_list = SmartClassParameter.list(
         {
             'environment': module_env_search.name,
-            'search': 'puppetclass="{}"'.format(module_puppet_classes[0].name),
+            'search': f'puppetclass="{module_puppet_classes[0].name}"',
         }
     )
     scp_id = choice(sc_params_list)['id']

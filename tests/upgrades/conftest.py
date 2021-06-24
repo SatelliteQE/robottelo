@@ -114,7 +114,7 @@ __initiated = False
 
 
 class OptionMarksError(Exception):
-    """"Raised when upgrade marks are missing or badly used in runner options"""
+    """ "Raised when upgrade marks are missing or badly used in runner options"""
 
 
 def log(message, level="DEBUG"):
