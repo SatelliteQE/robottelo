@@ -307,10 +307,9 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
         power_status = session.computeresource.vm_status(cr_name, vm_name)
         if power_status:
             session.computeresource.vm_poweroff(cr_name, vm_name)
-            assert session.computeresource.vm_status(cr_name, vm_name) is not power_status
         else:
             session.computeresource.vm_poweron(cr_name, vm_name)
-            assert session.computeresource.vm_status(cr_name, vm_name) is power_status
+        assert session.computeresource.vm_status(cr_name, vm_name) is not power_status
 
 
 @pytest.mark.on_premises_provisioning
