@@ -862,7 +862,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
         logger.info('Need to set seconds to zero because BZ:1695733')
         sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
     else:
-        sync_date = (datetime.utcnow() + timedelta(seconds=delay),)
+        sync_date = datetime.utcnow() + timedelta(seconds=delay)
     sync_plan = entities.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
