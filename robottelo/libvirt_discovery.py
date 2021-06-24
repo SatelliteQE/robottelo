@@ -176,7 +176,7 @@ class LibvirtGuest:
         ssh.command(f'virsh undefine {self.hostname}', hostname=self.libvirt_server)
         image_name = f'{self.hostname}.img'
         ssh.command(
-            'rm {}'.format(os.path.join(self.image_dir, image_name)),
+            f'rm {os.path.join(self.image_dir, image_name)}',
             hostname=self.libvirt_server,
         )
 

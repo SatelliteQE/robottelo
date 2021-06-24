@@ -109,7 +109,7 @@ def test_positive_create_with_multiple_elements():
     user_group = make_usergroup({'users': users, 'roles': roles, 'user-groups': sub_user_groups})
     assert sorted(users) == sorted(user_group['users'])
     assert sorted(roles) == sorted(user_group['roles'])
-    assert sorted(sub_user_groups) == sorted([ug['usergroup'] for ug in user_group['user-groups']])
+    assert sorted(sub_user_groups) == sorted(ug['usergroup'] for ug in user_group['user-groups'])
 
 
 @pytest.mark.tier2

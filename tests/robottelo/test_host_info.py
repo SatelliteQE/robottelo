@@ -231,7 +231,7 @@ class TestSatVersionDependentValues:
 
     @mock.patch("robottelo.host_info.get_host_sat_version")
     def test_common_dct_override(self, get_host_sat_version, common_versions_data):
-        """Check common is overridden by version dct """
+        """Check common is overridden by version dct"""
         get_host_sat_version.return_value = '6.1'
         common_versions_data.sat_dep_values = host_info.SatVersionDependentValues(
             {"6.1": self.rpms_61}, {"6.2": self.rpms_62}, common={'missing_version': 'fallback'}

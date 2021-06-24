@@ -26,6 +26,6 @@ class GlobalParameter(Base):
 
     @classmethod
     def set(cls, options=None):
-        """ Set global parameter """
+        """Set global parameter"""
         cls.command_sub = 'set'
         return cls.execute(cls._construct_command(options))

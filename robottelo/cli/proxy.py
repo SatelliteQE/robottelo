@@ -26,7 +26,7 @@ class CapsuleTunnelError(Exception):
 
 
 class Proxy(Base):
-    """Manipulates Foreman's smart proxies. """
+    """Manipulates Foreman's smart proxies."""
 
     command_base = 'proxy'
 

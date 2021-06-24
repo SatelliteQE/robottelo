@@ -620,7 +620,7 @@ def test_positive_publish_multiple_with_docker_repo(session, module_org, module_
     with session:
         for version in range(randint(2, 5)):
             result = session.contentview.publish(content_view.name)
-            assert result['Version'] == 'Version {}.0'.format(version + 1)
+            assert result['Version'] == f'Version {version + 1}.0'
 
 
 @pytest.mark.tier2
@@ -648,7 +648,7 @@ def test_positive_publish_multiple_with_docker_repo_composite(session, module_or
         session.contentview.add_cv(composite_cv.name, content_view.name)
         for version in range(randint(2, 5)):
             result = session.contentview.publish(composite_cv.name)
-            assert result['Version'] == 'Version {}.0'.format(version + 1)
+            assert result['Version'] == f'Version {version + 1}.0'
 
 
 @pytest.mark.tier2
@@ -1194,7 +1194,7 @@ def test_positive_publish_version_changes_in_target_env(session, module_org):
     cv_name = gen_string('alpha')
     # will promote environment to 3 versions
     versions_count = 3
-    versions = ('Version {}.0'.format(ver + 1) for ver in range(versions_count))
+    versions = (f'Version {ver + 1}.0' for ver in range(versions_count))
     # create environment lifecycle
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repo_names = [gen_string('alphanumeric') for _ in range(versions_count)]

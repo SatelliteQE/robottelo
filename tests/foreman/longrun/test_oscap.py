@@ -81,7 +81,7 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 
 @pytest.fixture(scope='module')
 def default_proxy():
-    """ Returns default capsule/proxy id"""
+    """Returns default capsule/proxy id"""
     proxy = Proxy.list({'search': settings.server.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Puppet', 'Ansible', 'Openscap'}.issubset(p_features):
@@ -93,7 +93,7 @@ def default_proxy():
 
 @pytest.fixture(scope='module')
 def puppet_env(module_org, import_puppet_classes):
-    """ Update puppet environment"""
+    """Update puppet environment"""
     puppet_env = entities.Environment().search(query={'search': 'name=production'})[0].read()
     puppet_env.organization.append(module_org)
     puppet_env = puppet_env.update(['organization'])
@@ -102,7 +102,7 @@ def puppet_env(module_org, import_puppet_classes):
 
 @pytest.fixture(scope='module')
 def lifecycle_env(module_org, puppet_env):
-    """ Create lifecycle environment"""
+    """Create lifecycle environment"""
     lce_env = entities.LifecycleEnvironment(
         organization=module_org, name=gen_string('alpha')
     ).create()
@@ -111,13 +111,13 @@ def lifecycle_env(module_org, puppet_env):
 
 @pytest.fixture(scope='module')
 def content_view(module_org):
-    """ Create content view"""
+    """Create content view"""
     return entities.ContentView(organization=module_org, name=gen_string('alpha')).create()
 
 
 @pytest.fixture(scope='module', autouse=True)
 def activation_key(module_org, lifecycle_env, content_view):
-    """ Create activation keys"""
+    """Create activation keys"""
     repo_values = [
         {'repo': settings.repos.sattools_repo.rhel8, 'akname': ak_name['rhel8']},
         {'repo': settings.repos.sattools_repo.rhel7, 'akname': ak_name['rhel7']},
@@ -142,7 +142,7 @@ def activation_key(module_org, lifecycle_env, content_view):
 
 @pytest.fixture(scope='module', autouse=True)
 def update_scap_content(module_org):
-    """ Update default scap contents"""
+    """Update default scap contents"""
     for content in rhel8_content, rhel7_content, rhel6_content:
         content = Scapcontent.info({'title': content}, output_format='json')
         organization_ids = [content_org['id'] for content_org in content.get('organizations', [])]

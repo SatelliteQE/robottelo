@@ -21,7 +21,7 @@ def pytest_configure(config):
 
 
 def module_markers():
-    """ Register custom markers for each module """
+    """Register custom markers for each module"""
     return [
         "host_create: Marks host creation CLI tests",
         "host_update: Marks host update CLI tests",

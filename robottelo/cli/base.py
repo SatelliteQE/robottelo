@@ -267,7 +267,7 @@ class Base:
             options = {}
 
         if search is not None and 'search' not in options:
-            options.update({'search': '{}=\\"{}\\"'.format(search[0], search[1])})
+            options.update({'search': f'{search[0]}=\\"{search[1]}\\"'})
 
         result = cls.list(options)
         if result:

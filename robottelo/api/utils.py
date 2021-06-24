@@ -938,7 +938,7 @@ def set_hammer_api_timeout(timeout=-1, reverse=False):
     :param bool reverse: Reverses the request timeout
     :return: ssh.command
     """
-    default_timeout = ':request_timeout: {}'.format(120)
+    default_timeout = f':request_timeout: {120}'
     new_timeout = f':request_timeout: {timeout}'
     if not reverse:
         return ssh.command(

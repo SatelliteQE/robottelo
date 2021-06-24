@@ -655,7 +655,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert len(ch_erratum) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 
         # Assert IDs are that of RHSA errata
-        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
         assert errata_ids == sorted(FAKE_9_YUM_SECURITY_ERRATUM)
         # Search for RHBA buxfix errata
         ch_erratum = session.contenthost.search_errata(
@@ -666,7 +666,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert len(ch_erratum) == FAKE_10_YUM_BUGFIX_ERRATUM_COUNT
 
         # Assert IDs are that of RHBA errata
-        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
         assert errata_ids == sorted(FAKE_10_YUM_BUGFIX_ERRATUM)
         # Search for RHEA enhancement errata
         ch_erratum = session.contenthost.search_errata(
@@ -677,7 +677,7 @@ def test_positive_content_host_search_type(session, erratatype_vm):
         assert len(ch_erratum) == FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 
         # Assert IDs are that of RHEA errata
-        errata_ids = sorted([erratum['Id'] for erratum in ch_erratum])
+        errata_ids = sorted(erratum['Id'] for erratum in ch_erratum)
         assert errata_ids == sorted(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
 
