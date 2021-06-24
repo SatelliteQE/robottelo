@@ -50,27 +50,24 @@ from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
 
 
-@filtered_datapoint
-def valid_sync_dates():
-    """Returns a list of valid sync dates."""
-    return [
-        # Today
-        datetime.now(),
-        # 5 minutes from now
-        datetime.now() + timedelta(seconds=300),
-        # 5 days from now
-        datetime.now() + timedelta(days=5),
-        # Yesterday
-        datetime.now() - timedelta(days=1),
-        # 5 minutes ago
-        datetime.now() - timedelta(seconds=300),
-    ]
+sync_date_deltas = {
+    # Today
+    'now': 0,
+    # 5 minutes from now
+    '5min': 300,
+    # 5 days from now
+    '5days': 432000,
+    # Yesterday
+    'yesterday': -86400,
+    # 5 minutes ago
+    '5min_ago': -300,
+}
 
 
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return ['hourly', 'daily', 'weekly', 'custom cron']
+    return {i.replace(' ', '_'): i for i in ['hourly', 'daily', 'weekly', 'custom cron']}
 
 
 def validate_task_status(repo_id, max_tries=6, repo_backend_id=None):
@@ -225,9 +222,9 @@ def test_positive_create_with_interval(module_org, interval):
     assert sync_plan.interval == interval
 
 
-@pytest.mark.parametrize('syncdate', **parametrized(valid_sync_dates()))
+@pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_create_with_sync_date(module_org, syncdate):
+def test_positive_create_with_sync_date(module_org, sync_delta):
     """Create a sync plan and update its sync date.
 
     :id: bdb6e0a9-0d3b-4811-83e2-2140b7bb62e3
@@ -238,9 +235,10 @@ def test_positive_create_with_sync_date(module_org, syncdate):
 
     :CaseImportance: Critical
     """
-    sync_plan = entities.SyncPlan(organization=module_org, sync_date=syncdate).create()
+    sync_date = datetime.now() + timedelta(seconds=sync_delta)
+    sync_plan = entities.SyncPlan(organization=module_org, sync_date=sync_date).create()
     sync_plan = sync_plan.read()
-    assert syncdate.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
+    assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -417,9 +415,9 @@ def test_positive_update_interval_custom_cron(module_org, interval):
         assert sync_plan.interval == SYNC_INTERVAL['custom']
 
 
-@pytest.mark.parametrize('syncdate', **parametrized(valid_sync_dates()))
+@pytest.mark.parametrize('sync_delta', **parametrized(sync_date_deltas))
 @pytest.mark.tier1
-def test_positive_update_sync_date(module_org, syncdate):
+def test_positive_update_sync_date(module_org, sync_delta):
     """Updated sync plan's sync date.
 
     :id: fad472c7-01b4-453b-ae33-0845c9e0dfd4
@@ -430,13 +428,14 @@ def test_positive_update_sync_date(module_org, syncdate):
 
     :CaseImportance: Critical
     """
+    sync_date = datetime.now() + timedelta(seconds=sync_delta)
     sync_plan = entities.SyncPlan(
         organization=module_org, sync_date=datetime.now() + timedelta(days=10)
     ).create()
-    sync_plan.sync_date = syncdate
+    sync_plan.sync_date = sync_date
     sync_plan.update(['sync_date'])
     sync_plan = sync_plan.read()
-    assert syncdate.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
+    assert sync_date.strftime('%Y-%m-%d %H:%M:%S UTC') == sync_plan.sync_date
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
