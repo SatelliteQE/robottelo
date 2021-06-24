@@ -39,7 +39,7 @@ from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
+from robottelo.constants import FAKE_6_CUSTOM_PACKAGE
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_6_YUM_REPO
@@ -713,18 +713,14 @@ def test_positive_install_modular_errata(
 
     :CaseLevel: System
     """
+    stream = "0"
+    version = "20180704111719"
+    _module_install_command = 'dnf -y module install {}:{}:{}'.format(
+        FAKE_4_CUSTOM_PACKAGE_NAME, stream, version
+    )
+    _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
+    _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
-        stream = "0"
-        version = "20180704111719"
-        _module_install_command = 'dnf -y module install {}:{}:{}'.format(
-            FAKE_4_CUSTOM_PACKAGE_NAME, stream, version
-        )
-        _run_remote_command_on_content_hosts(
-            _module_install_command, vm_content_hosts_module_stream
-        )
-        _run_remote_command_on_content_hosts(
-            'dnf -y upload-profile', vm_content_hosts_module_stream
-        )
         result = session.hostcollection.install_errata(
             vm_host_collection_module_stream.name,
             FAKE_0_MODULAR_ERRATA_ID,
@@ -733,4 +729,4 @@ def test_positive_install_modular_errata(
         assert result['job_status'] == 'Success'
         assert result['job_status_progress'] == '100%'
         assert int(result['total_hosts']) == 2
-        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_5_CUSTOM_PACKAGE)
+        assert _is_package_installed(vm_content_hosts_module_stream, FAKE_6_CUSTOM_PACKAGE)
