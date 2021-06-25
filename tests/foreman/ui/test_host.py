@@ -1359,7 +1359,7 @@ def test_positive_global_registration_end_to_end(
 
     :customerscenario: true
 
-    :expectedresults: Host is succesfully registered, remote execution and insights
+    :expectedresults: Host is successfully registered, remote execution and insights
          client work out of the box
 
     :CaseLevel: Integration
@@ -1426,6 +1426,124 @@ def test_positive_global_registration_end_to_end(
         host = Host.info({'name': client.hostname})
         interface = [item for item in host['network-interfaces'] if item['identifier'] == iface]
         assert 'execution' in interface[0]['type']
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_global_registration_form_populate():
+    """Host registration form should be populated automatically based on the host-group
+
+    :id: b949e010-36b8-48b8-9907-36138342c72b
+
+    :expectedresults: Some of the fields in the form should be populated based on host-group
+        e.g. activation key, operating system, life-cycle environment, host parameters for
+        remote-execution, insights setup.
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. create and sync repository
+        2. create the content view and activation-key
+        3. create the host-group with activation key, operating system, host-parameters
+        4. Open the global registration form and select the same host-group
+        5. check host registration form should be populated automatically based on the host-group
+
+    :CaseAutomation: ManualOnly
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_global_registration_with_capsule_host():
+    """Host registration form produces a correct registration command and host is
+    registered successfully with selected capsule from form.
+
+    :id: 6356c6d0-ee45-4ad7-8a0e-484d3490bc58
+
+    :expectedresults: Host is successfully registered with capsule host,
+        remote execution and insights client work out of the box
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. create and sync repository
+        2. create the content view and activation-key
+        3. integrate capsule and sync content
+        4. open the global registration form and select the same capsule
+        5. check host is registered successfully with selected capsule
+
+    :CaseAutomation: ManualOnly
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_global_registration_with_gpg_repo_and_default_package():
+    """Host registration form produces a correct registration command and host is
+    registered successfully with gpg repo enabled and have default package
+    installed.
+
+    :id: b5738b20-e281-4d0b-ac78-dcdc177b8c9f
+
+    :expectedresults: Host is successfully registered, gpg repo in enabled
+        and default package should get install.
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. create and sync repository
+        2. create the content view and activation-key
+        3. update the 'host_packages' parameter in organization with package name e.g. vim
+        4. open the global registration form and update the gpg repo and key
+        5. check host is registered successfully with installed same package
+        6. check gpg repo is exist in registered host
+
+    :CaseAutomation: ManualOnly
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_global_re_registration_host_with_force_ignore_error_options():
+    """If the ignore_error and force checkbox is checked then registered host can
+    get re-registered without any error.
+
+    :id: 8f0ecc13-5d18-4adb-acf5-3f3276dccbb7
+
+    :expectedresults: Verify the force and ignore checkbox options
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. create and sync repository
+        2. create the content view and activation-key
+        3. open the global registration form and select --force and --Ignore Errors option
+        4. registered the host with generated curl command
+        5. re-register the same host again and check it is getting registered
+
+    :CaseAutomation: ManualOnly
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier2
+def test_global_registration_token_restriction():
+    """Global registration token should be only used for registration call, it
+    should be restricted for any other api calls.
+
+    :id: 4528b5c6-0a6d-40cd-857a-68b76db2179b
+
+    :expectedresults: global registration token should be restricted for any api calls
+        other than the registration
+
+    :CaseLevel: Integration
+
+    :steps:
+        1. open the global registration form and generate the curl token
+        2. use that curl token to execute other api calls e.g. GET /hosts, /users
+
+    :CaseAutomation: ManualOnly
+    """
 
 
 @pytest.mark.tier2
