@@ -47,7 +47,6 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
 from robottelo.datafactory import valid_data_list
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 
 sync_date_deltas = {
@@ -701,11 +700,9 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
         validate_task_status(repo.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
-    if is_open('BZ:1695733'):
-        logger.info('Need to set seconds to zero because BZ#1695733')
-        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    else:
-        sync_date = datetime.utcnow() + timedelta(seconds=delay)
+    # BZ:1695733 is closed WONTFIX so apply this workaround
+    logger.info('Need to set seconds to zero because BZ#1695733')
+    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -749,11 +746,9 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
         with pytest.raises(AssertionError):
             validate_task_status(repo.id)
     # Create and Associate sync plan with products
-    if is_open('BZ:1695733'):
-        logger.info('Need to set seconds to zero because BZ#1695733')
-        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    else:
-        sync_date = datetime.utcnow() + timedelta(seconds=delay)
+    # BZ:1695733 is closed WONTFIX so apply this workaround
+    logger.info('Need to set seconds to zero because BZ#1695733')
+    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
     sync_plan = entities.SyncPlan(
         organization=module_org, enabled=True, sync_date=sync_date
     ).create()
@@ -858,11 +853,9 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
     )
     product = entities.Product(name=PRDS['rhel'], organization=org).search()[0]
     repo = entities.Repository(id=repo_id).read()
-    if is_open('BZ:1695733'):
-        logger.info('Need to set seconds to zero because BZ:1695733')
-        sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
-    else:
-        sync_date = datetime.utcnow() + timedelta(seconds=delay)
+    # BZ:1695733 is closed WONTFIX so apply this workaround
+    logger.info('Need to set seconds to zero because BZ#1695733')
+    sync_date = datetime.utcnow().replace(second=0) + timedelta(seconds=delay)
     sync_plan = entities.SyncPlan(
         organization=org, enabled=True, interval='hourly', sync_date=sync_date
     ).create()
