@@ -715,8 +715,8 @@ def test_positive_install_modular_errata(
     """
     stream = "0"
     version = "20180704111719"
-    _module_install_command = 'dnf -y module install {}:{}:{}'.format(
-        FAKE_4_CUSTOM_PACKAGE_NAME, stream, version
+    _module_install_command = (
+        f'dnf -y module install {FAKE_4_CUSTOM_PACKAGE_NAME}:{stream}:{version}'
     )
     _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
