@@ -72,7 +72,7 @@ def module_org():
     return org
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope='module')
 def repos_collection(module_org):
     """Adds required repositories, AK, LCE and CV for content host testing"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -89,7 +89,7 @@ def repos_collection(module_org):
     return repos_collection
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope='module')
 def repos_collection_for_module_streams(module_org):
     """Adds required repositories, AK, LCE and CV for content host testing for
     module streams"""
