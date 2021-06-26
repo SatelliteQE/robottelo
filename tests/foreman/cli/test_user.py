@@ -483,11 +483,8 @@ class TestPersonalAccessToken:
         User.add_role({'login': user['login'], 'role': 'View hosts'})
         token_name = gen_alphanumeric()
         datetime_now = datetime.datetime.now()
-        print('*'*10, datetime_now.strftime("%Y-%m-%d %H:%M:%S"), '*'*10)
         datetime_expire = datetime_now + datetime.timedelta(seconds=30)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
-        print('*'*10, datetime_expire, '*'*10)
-
         result = User.personal_access_token_create(
             {'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire}
         )
