@@ -416,8 +416,7 @@ class TestPersonalAccessToken:
             f'https://{settings.server.hostname}/api/v2/users'
         )
         curl_result = str(command(curl_command))
-        assert user['login'] in curl_result
-        assert user['email'] in curl_result
+        assert user['login'] and user['email'] in curl_result
         User.personal_access_token_revoke({'user': user["login"], 'name': token_name})
         curl_result = str(command(curl_command))
         assert f'Unable to authenticate user {user["login"]}' in curl_result
@@ -482,8 +481,8 @@ class TestPersonalAccessToken:
         user = make_user()
         User.add_role({'login': user['login'], 'role': 'View hosts'})
         token_name = gen_alphanumeric()
-        datetime_now = datetime.datetime.now()
-        datetime_expire = datetime_now + datetime.timedelta(seconds=30)
+        datetime_now = datetime.datetime.utcnow()
+        datetime_expire = datetime_now + datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
         result = User.personal_access_token_create(
             {'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire}
@@ -495,11 +494,10 @@ class TestPersonalAccessToken:
         )
         curl_result = str(command(curl_command))
         assert settings.server.hostname in curl_result
-        sleep(10)
+        sleep(20)
         curl_command = (
             f'curl -k -u {user["login"]}:{token_value} '
             f'https://{settings.server.hostname}/api/v2/hosts'
         )
         curl_result = str(command(curl_command))
         assert f'Unable to authenticate user {user["login"]}' in curl_result
-
