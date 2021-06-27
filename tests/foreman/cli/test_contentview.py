@@ -255,27 +255,6 @@ class TestContentView:
         )
         assert cv['yum-repositories'][0]['id'] == repo['id']
 
-    @pytest.mark.tier1
-    def test_positive_create_empty_and_verify_files(self, module_org):
-        """Create an empty content view and make sure no files are created at
-        /var/lib/pulp/published.
-
-        :id: 0e31573d-bf02-44ae-b3f4-d8aae450ba5e
-
-        :expectedresults: Content view is published and no file is present at
-            /var/lib/pulp/published.
-
-        :CaseImportance: Critical
-        """
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        # Check content view files presence before deletion
-        result = ssh.command(f'find /var/lib/pulp/published -name "*{content_view["name"]}*"')
-        assert result.return_code == 0
-        assert len(result.stdout) == 0
-        assert len(content_view['versions']) == 1
-
     @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
     @pytest.mark.tier1
     def test_positive_update_name_by_id(self, module_org, new_name):
