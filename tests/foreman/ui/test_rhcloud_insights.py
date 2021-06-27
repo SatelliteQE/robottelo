@@ -1,12 +1,12 @@
 """Tests for RH Cloud - Insights
 
-:Requirement: RH Cloud - Insights
+:Requirement: RH Cloud - Inventory
 
 :CaseAutomation: Automated
 
 :CaseLevel: System
 
-:CaseComponent: RHCloud-Insights
+:CaseComponent: RH Cloud - Inventory
 
 :Assignee: jpathan
 
@@ -17,6 +17,9 @@
 :Upstream: No
 """
 import pytest
+from datetime import datetime
+from datetime import timedelta
+from robottelo.api.utils import wait_for_tasks
 
 from robottelo.config import settings
 
@@ -35,9 +38,8 @@ def test_rhcloud_insights_e2e(
         3. In Satellite UI, Configure -> Insights -> Add RH Cloud token and syns recommendations.
         4. Run remediation for dnf.conf recommendation against rhel8 host.
         5. Assert that job completed successfully.
-        6. Upload insights data again.
-        7. Sync Insights recommendations.
-        8. Search for previously remediated issue.
+        6. Sync Insights recommendations.
+        7. Search for previously remediated issue.
 
     :expectedresults:
         1. Insights recommendation related to dnf.conf issue is listed for misconfigured machine.
@@ -50,8 +52,18 @@ def test_rhcloud_insights_e2e(
     query = 'dnf.conf'
     with session:
         session.organization.select(org_name=org.name)
-        # uncomment once https://bugzilla.redhat.com/show_bug.cgi?id=1965901 is fixed
-        # session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
+        import pdb
+        pdb.set_trace()
+        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
+        wait_for_tasks(
+            search_query=(
+                'Insights full sync'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=15,
+            max_tries=10,
+        )
         result = session.cloudinsights.search(query)[0]
         assert result['Hostname'] == rhel8_insights_vm.hostname
         assert (
@@ -68,8 +80,14 @@ def test_rhcloud_insights_e2e(
             host_name=rhel8_insights_vm.hostname,
         )
         assert status['overview']['hosts_table'][0]['Status'] == 'success'
-        rhel8_insights_vm.run('insights-client')
+        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
-        # Workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1962048
-        session.browser.refresh()
+        wait_for_tasks(
+            search_query=(
+                'Insights full sync'
+                f' and started_at >= "{timestamp}"'
+            ),
+            search_rate=15,
+            max_tries=10,
+        )
         assert not session.cloudinsights.search(query)

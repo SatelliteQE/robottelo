@@ -23,7 +23,7 @@ def unset_set_cloud_token():
     rh_cloud_token_setting = entities.Setting().search(query={'search': 'name="rh_cloud_token"'})[
         0
     ]
-    rh_cloud_token_setting.value = 'invalid_token_value'
+    rh_cloud_token_setting.value = ''
     rh_cloud_token_setting.update({'value'})
     yield
     rh_cloud_token_setting = entities.Setting().search(query={'search': 'name="rh_cloud_token"'})[
@@ -65,5 +65,5 @@ def rhel8_insights_vm(organization_ak_setup, rhel8_contenthost_module):
 def fixable_rhel8_vm(rhel8_insights_vm):
     """A function-level fixture to create dnf related insights recommendation for rhel8 host."""
     rhel8_insights_vm.run('dnf update -y dnf')
-    rhel8_insights_vm.run("sed -i -e '/^best/d' /etc/dnf/dnf.conf")
-    rhel8_insights_vm.run('insights-client --register')
+    rhel8_insights_vm.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
+    rhel8_insights_vm.run('insights-client')
