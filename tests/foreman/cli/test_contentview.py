@@ -255,27 +255,6 @@ class TestContentView:
         )
         assert cv['yum-repositories'][0]['id'] == repo['id']
 
-    @pytest.mark.tier1
-    def test_positive_create_empty_and_verify_files(self, module_org):
-        """Create an empty content view and make sure no files are created at
-        /var/lib/pulp/published.
-
-        :id: 0e31573d-bf02-44ae-b3f4-d8aae450ba5e
-
-        :expectedresults: Content view is published and no file is present at
-            /var/lib/pulp/published.
-
-        :CaseImportance: Critical
-        """
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        # Check content view files presence before deletion
-        result = ssh.command(f'find /var/lib/pulp/published -name "*{content_view["name"]}*"')
-        assert result.return_code == 0
-        assert len(result.stdout) == 0
-        assert len(content_view['versions']) == 1
-
     @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
     @pytest.mark.tier1
     def test_positive_update_name_by_id(self, module_org, new_name):
@@ -396,60 +375,6 @@ class TestContentView:
         ContentView.delete({'name': cv['name'], 'organization': module_org.name})
         with pytest.raises(CLIReturnCodeError):
             ContentView.info({'id': cv['id']})
-
-    @pytest.mark.tier1
-    def test_positive_delete_with_custom_repo_by_name_and_verify_files(self, module_org):
-        """Delete content view containing custom repo and verify it was
-        actually deleted from hard drive.
-
-        :id: 9f381f77-ce43-4b68-8d00-459f40c9efb6
-
-        :expectedresults: Content view was deleted and pulp folder doesn't
-            contain content view files anymore
-
-        :BZ: 1317057, 1265703
-
-        :CaseImportance: Critical
-        """
-        # Create and sync a repository
-        new_product = cli_factory.make_product({'organization-id': module_org.id})
-        new_repo = cli_factory.make_repository({'product-id': new_product['id']})
-        Repository.synchronize({'id': new_repo['id']})
-        # Create a content view, add the repo and publish the content view
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': new_repo['id'],
-            }
-        )
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        # Check content view files presence before deletion
-        result = ssh.command(f'find /var/lib/pulp -name "*{content_view["name"]}*"')
-        assert result.return_code == 0
-        assert len(result.stdout) != 0
-        assert len(content_view['versions']) == 1
-        # Completely delete the content view
-        ContentView.remove_from_environment(
-            {
-                'id': content_view['id'],
-                'lifecycle-environment-id': content_view['lifecycle-environments'][0]['id'],
-            }
-        )
-        ContentView.version_delete(
-            {
-                'content-view': content_view['name'],
-                'organization': module_org.name,
-                'version': content_view['versions'][0]['version'],
-            }
-        )
-        ContentView.delete({'id': content_view['id']})
-        # Check content view files presence after deletion
-        result = ssh.command(f'find /var/lib/pulp -name "*{content_view["name"]}*"')
-        assert result.return_code == 0
-        assert len(result.stdout) == 0
 
     @pytest.mark.tier2
     def test_positive_delete_version_by_name(self, module_org):
