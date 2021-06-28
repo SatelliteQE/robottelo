@@ -157,7 +157,7 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseLevel: Acceptance
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: ManualOnly
 
         :steps:
             1. Create Azure Compute Resource
@@ -175,6 +175,8 @@ class TestAzureRMComputeResourceTestCase:
             6. US Gov Virginia
 
         :BZ: 1829107
+
+        :customer_scenario: true
         """
 
 
