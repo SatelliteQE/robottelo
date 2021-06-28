@@ -32,7 +32,6 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CUSTOM_REPODATA_PATH
 from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
@@ -572,87 +571,6 @@ class TestContentViewPublishPromote:
             assert len(content_view.read().version) == i + 1
         for cvv in content_view.read().version:
             assert len(cvv.read().puppet_module) == 1
-
-    @pytest.mark.tier2
-    def test_positive_publish_with_swid_tags(self, content_view, module_org, module_product):
-        """Verify SWID tags content file should exist in publish content view
-        version location
-
-        :id: 25f10e99-ceef-4543-9b9c-fc21690c088b
-
-        :steps:
-            1. create product and repository with custom contents having swid tags
-            2. sync the repository
-            3. create the content view
-            4. publish the content-view
-            5. ssh into Satellite
-            6. verify SWID tags content file exist in publish content view version location
-
-        :expectedresults: SWID tags content file should exist in publish content view
-            version location
-
-        :CaseImportance: High
-
-        :CaseLevel: Integration
-        """
-        content_view.repository = [self.swid_repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        content_view_version_info = content_view.version[0].read()
-        assert len(content_view.repository) == 1
-        assert len(content_view.version) == 1
-        swid_repo_path = "{}/{}/content_views/{}/{}/custom/{}/{}/repodata".format(
-            CUSTOM_REPODATA_PATH,
-            module_org.name,
-            content_view.name,
-            content_view_version_info.version,
-            module_product.name,
-            self.swid_repo.name,
-        )
-        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
-        assert result.return_code == 0
-
-    @pytest.mark.tier2
-    def test_positive_promote_with_swid_tags(
-        self, content_view, module_lce, module_org, module_product
-    ):
-        """Verify SWID tags content file get copied over promoted content view
-
-        :id: 7c2305e5-c836-4dd8-bc6b-53f6296b0020
-
-        :steps:
-            1. create product and repository with custom contents having swid tags
-            2. sync the repository
-            3. create the content view
-            4. publish the content-view
-            5. promote the content-view
-            6. ssh into Satellite
-            7. verify SWID tags content file exist in promoted environment location
-
-        :expectedresults: SWID tags content file should exist in promoted environment location
-
-        :CaseImportance: High
-
-        :CaseLevel: Integration
-        """
-        content_view.repository = [self.swid_repo]
-        content_view = content_view.update(['repository'])
-        content_view.publish()
-        content_view = content_view.read()
-        assert len(content_view.repository) == 1
-        assert len(content_view.version) == 1
-        promote(content_view.version[0], module_lce.id)
-        swid_repo_path = "{}/{}/{}/{}/custom/{}/{}/repodata".format(
-            CUSTOM_REPODATA_PATH,
-            module_org.name,
-            module_lce.name,
-            content_view.name,
-            module_product.name,
-            self.swid_repo.name,
-        )
-        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
-        assert result.return_code == 0
 
     @pytest.mark.tier2
     def test_positive_promote_with_yum_multiple(self, content_view, module_org):
