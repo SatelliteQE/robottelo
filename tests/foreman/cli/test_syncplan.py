@@ -24,7 +24,6 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo import manifests
-from robottelo.api.utils import wait_for_syncplan_tasks
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
@@ -100,20 +99,15 @@ def valid_name_interval_update_tests():
     ]
 
 
-def validate_task_status(repo_id, max_tries=6, repo_name=None):
-    """Wait for Pulp and foreman_tasks to complete or timeout
+def validate_task_status(repo_id, max_tries=6):
+    """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
-    :param repo_name: Repository name of repository to filter the
         pulp tasks
     """
-    if repo_name:
-        wait_for_syncplan_tasks(repo_name=repo_name)
     wait_for_tasks(
-        search_query='resource_type = Katello::Repository'
-        ' and owner.login = foreman_admin'
-        f' and resource_id = {repo_id}',
+        search_query='Actions::Katello::Repository::Sync' f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
 

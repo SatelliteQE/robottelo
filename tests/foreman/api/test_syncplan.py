@@ -33,7 +33,6 @@ from requests.exceptions import HTTPError
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import wait_for_syncplan_tasks
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import get_credentials
 from robottelo.config import get_url
@@ -69,20 +68,14 @@ def valid_sync_interval():
     return {i.replace(' ', '_'): i for i in ['hourly', 'daily', 'weekly', 'custom cron']}
 
 
-def validate_task_status(repo_id, max_tries=6, repo_backend_id=None):
-    """Wait for Pulp and foreman_tasks to complete or timeout
+def validate_task_status(repo_id, max_tries=6):
+    """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
-    :param repo_backend_id: Backend identifier of repository to filter the
-        pulp tasks
     """
-    if repo_backend_id:
-        wait_for_syncplan_tasks(repo_backend_id)
     wait_for_tasks(
-        search_query='resource_type = Katello::Repository'
-        ' and owner.login = foreman_admin'
-        f' and resource_id = {repo_id}',
+        search_query='Actions::Katello::Repository::Sync' f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
 
