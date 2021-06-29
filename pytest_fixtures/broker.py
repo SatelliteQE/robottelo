@@ -168,3 +168,10 @@ def registered_hosts(organization_ak_setup, content_hosts):
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
     return content_hosts
+
+
+@pytest.fixture
+def destructive_sat(satellite_latest):
+    """Destructive tests require changing settings.server.hostname for now"""
+    with satellite_latest as sat:
+        yield sat

@@ -13,11 +13,8 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 
-from robottelo import ssh
 from robottelo.constants import DEFAULT_ORG
-from robottelo.rhsso_utils import run_command
 
 
 @pytest.mark.destructive
@@ -38,9 +35,10 @@ def test_positive_foreman_service_auto_restart(foreman_service_teardown):
 
     :expectedresults: Foreman Service should get restarted automatically
     """
-    run_command('systemctl stop foreman')
-    result = ssh.command('foreman-maintain service status --only=foreman')
-    assert result.return_code == 1
-    assert 'not running (foreman)' in ''.join(result.stdout)
-    assert entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-    run_command('foreman-maintain service status --only=foreman')
+    sat = foreman_service_teardown
+    sat.execute('systemctl stop foreman')
+    result = sat.execute('foreman-maintain service status --only=foreman')
+    assert result.status == 1
+    assert 'not running (foreman)' in result.stdout
+    assert sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    sat.execute('foreman-maintain service status --only=foreman')
