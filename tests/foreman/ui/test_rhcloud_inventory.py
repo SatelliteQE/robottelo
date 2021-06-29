@@ -16,16 +16,29 @@
 
 :Upstream: No
 """
-import pytest
-
-from robottelo.rh_cloud_utils import get_local_file_data
-from robottelo.rh_cloud_utils import get_remote_report_checksum
 from datetime import datetime
 from datetime import timedelta
+
+import pytest
+from nailgun import entities
+
 from robottelo.api.utils import wait_for_tasks
+from robottelo.rh_cloud_utils import get_local_file_data
+from robottelo.rh_cloud_utils import get_remote_report_checksum
+from robottelo.rh_cloud_utils import get_report_data
+
+
+def setting_update(name, value):
+    """
+    change setting value
+    """
+    setting = entities.Setting().search(query={'search': f'name="{name}"'})[0]
+    setting.value = value
+    setting.update({'value'})
 
 
 def common_assertion(report_path, inventory_data, org):
+    """" Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
         f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
@@ -74,14 +87,18 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
 
-    common_assertion(report_path, inventory_data, org)
+    common_assertion(report_path, inventory_data, org.name)
+    json_data = get_report_data(report_path)
+    hostnames = [key['fqdn'] for key in json_data['hosts']]
+    assert virtual_host.hostname in hostnames
+    assert baremetal_host.hostname in hostnames
 
 
 @pytest.mark.stubbed
@@ -106,7 +123,9 @@ def test_hits_synchronization():
 
 
 @pytest.mark.tier3
-def test_hosts_synchronization(set_rh_cloud_token, organization_ak_setup, registered_hosts, session):
+def test_hosts_synchronization(
+    set_rh_cloud_token, organization_ak_setup, registered_hosts, session
+):
     """Synchronize list of available hosts from cloud and mark them in Satellite
 
     :id: 2f1bdd42-140d-46f8-bad5-299c54620ee8
@@ -181,7 +200,7 @@ def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
@@ -189,23 +208,34 @@ def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['obfuscate_hostnames'] is True
         common_assertion(report_path, inventory_data, org)
-        # To do, check obfuscate_hostnames are obfuscated from report
+        json_data = get_report_data(report_path)
+        hostnames = [key['fqdn'] for key in json_data['hosts']]
+        assert virtual_host.hostname not in hostnames
+        assert baremetal_host.hostname not in hostnames
+        ipv4_addresses = [key['ip_addresses'][0] for key in json_data['hosts']]
+        assert virtual_host.ip_addr not in ipv4_addresses
+        assert baremetal_host.ip_addr not in ipv4_addresses
         session.cloudinventory.update({'obfuscate_hostnames': False})
-
-        # to do, change setting value for obfuscate_hostnames
-        session.settings.update('name = obfuscate_hostnames', True)
+        setting_update("obfuscate_inventory_hostnames", True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['obfuscate_hostnames'] is True
-        # To do, check obfuscate_hostnames are obfuscated from report
+        json_data = get_report_data(report_path)
+        hostnames = [key['fqdn'] for key in json_data['hosts']]
+        assert virtual_host.hostname not in hostnames
+        assert baremetal_host.hostname not in hostnames
+        ipv4_addresses = [key['ip_addresses'][0] for key in json_data['hosts']]
+        assert virtual_host.ip_addr not in ipv4_addresses
+        assert baremetal_host.ip_addr not in ipv4_addresses
+        setting_update("obfuscate_inventory_hostnames", False)
 
 
 @pytest.mark.tier3
@@ -242,7 +272,7 @@ def test_obfuscate_host_ipv4_addresses(organization_ak_setup, registered_hosts, 
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
@@ -250,23 +280,46 @@ def test_obfuscate_host_ipv4_addresses(organization_ak_setup, registered_hosts, 
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['obfuscate_ips'] is True
         common_assertion(report_path, inventory_data, org)
-        # To do, check ip address are obfuscated from report
+        json_data = get_report_data(report_path)
+        hostnames = [key['fqdn'] for key in json_data['hosts']]
+        assert virtual_host.hostname in hostnames
+        assert baremetal_host.hostname in hostnames
+        ip_addresses = [
+            key['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+            for key in json_data['hosts']
+        ]
+        ipv4_addresses = [key['ip_addresses'][0] for key in json_data['hosts']]
+        assert virtual_host.ip_addr not in ip_addresses
+        assert baremetal_host.ip_addr not in ip_addresses
+        assert virtual_host.ip_addr not in ipv4_addresses
+        assert baremetal_host.ip_addr not in ipv4_addresses
         session.cloudinventory.update({'obfuscate_ips': False})
-
-        # to do, change setting value for exclude_packages
-        session.settings.update('name = obfuscate_ips', True)
+        setting_update("obfuscate_inventory_ips", True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['obfuscate_ips'] is True
-        # To do, check ip address are obfuscated from report
+        json_data = get_report_data(report_path)
+        hostnames = [key['fqdn'] for key in json_data['hosts']]
+        assert virtual_host.hostname in hostnames
+        assert baremetal_host.hostname in hostnames
+        ip_addresses = [
+            key['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+            for key in json_data['hosts']
+        ]
+        ipv4_addresses = [key['ip_addresses'][0] for key in json_data['hosts']]
+        assert virtual_host.ip_addr not in ip_addresses
+        assert baremetal_host.ip_addr not in ip_addresses
+        assert virtual_host.ip_addr not in ipv4_addresses
+        assert baremetal_host.ip_addr not in ipv4_addresses
+        setting_update("obfuscate_inventory_ips", False)
 
 
 @pytest.mark.tier3
@@ -304,24 +357,23 @@ def test_exclude_packages_setting(organization_ak_setup, registered_hosts, sessi
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['exclude_packages'] is True
+        session.cloudinventory.update({'exclude_packages': False})
         common_assertion(report_path, inventory_data, org)
         # To do, check whether packages are excluded from report
-        session.cloudinventory.update({'exclude_packages': False})
 
-        # to do, change setting value for exclude_packages
-        session.settings.update('name = exclude_packages', True)
+        setting_update("exclude_installed_packages", True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
             search_query='label = ForemanInventoryUpload::Async::GenerateReportJob'
-                         f' and started_at >= "{timestamp}"',
+            f' and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
@@ -329,4 +381,4 @@ def test_exclude_packages_setting(organization_ak_setup, registered_hosts, sessi
         inventory_data = session.cloudinventory.read(org.name)
         assert inventory_data['exclude_packages'] is True
         # To do, check whether packages are excluded from report
-
+        setting_update("exclude_installed_packages", False)

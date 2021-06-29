@@ -83,3 +83,19 @@ def get_remote_report_checksum(org_id):
             continue
         checksum, _ = result.stdout.split(maxsplit=1)
         return checksum
+
+
+def get_report_data(report_path):
+    """Returns hosts count from tar file.
+
+    Args:
+        tarobj: tar file to get host count from
+    """
+    tarobj = tarfile.open(report_path, mode='r')
+    for file_ in tarobj.getmembers():
+        file_name = os.path.basename(file_.name)
+        if not file_name.endswith('.json'):
+            continue
+        if file_name != 'metadata.json':
+            json_data = json.load(tarobj.extractfile(file_))
+        return json_data

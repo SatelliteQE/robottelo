@@ -7,30 +7,27 @@ from robottelo.constants import DISTRO_RHEL8
 from robottelo.helpers import add_remote_execution_ssh_key
 
 
+def setting_update(name, value):
+    """
+    change setting value
+    """
+    setting = entities.Setting().search(query={'search': f'name="{name}"'})[0]
+    setting.value = value
+    setting.update({'value'})
+
+
 @pytest.fixture(scope='module')
 def set_rh_cloud_token():
     """A module-level fixture to set rh cloud token value."""
-    rh_cloud_token_setting = entities.Setting().search(query={'search': 'name="rh_cloud_token"'})[
-        0
-    ]
-    rh_cloud_token_setting.value = settings.rh_cloud.token
-    rh_cloud_token_setting.update({'value'})
+    setting_update('rh_cloud_token', settings.rh_cloud.token)
 
 
 @pytest.fixture
 def unset_set_cloud_token():
     """A function-level fixture to unset and reset rh cloud token value."""
-    rh_cloud_token_setting = entities.Setting().search(query={'search': 'name="rh_cloud_token"'})[
-        0
-    ]
-    rh_cloud_token_setting.value = ''
-    rh_cloud_token_setting.update({'value'})
+    setting_update('rh_cloud_token', '')
     yield
-    rh_cloud_token_setting = entities.Setting().search(query={'search': 'name="rh_cloud_token"'})[
-        0
-    ]
-    rh_cloud_token_setting.value = settings.rh_cloud.token
-    rh_cloud_token_setting.update({'value'})
+    setting_update('rh_cloud_token', settings.rh_cloud.token)
 
 
 @pytest.fixture(scope='module')
