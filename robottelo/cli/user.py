@@ -96,19 +96,12 @@ class User(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def personal_access_token_create(cls, options=None):
+    def personal_access_token(cls, action=None, options=None):
         """
         Usage:
-        hammer user access-token create [ARG] ...
-        """
-        cls.command_sub = 'access-token create'
-        return cls.execute(cls._construct_command(options), output_format='csv')
+        hammer user access-token [ARG] ...
 
-    @classmethod
-    def personal_access_token_revoke(cls, options=None):
+        action: create | revoke
         """
-        Usage:
-        hammer user access-token revoke [OPTIONS]...
-        """
-        cls.command_sub = 'access-token revoke'
+        cls.command_sub = f'access-token {action}'
         return cls.execute(cls._construct_command(options), output_format='csv')
