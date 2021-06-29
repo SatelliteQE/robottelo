@@ -34,18 +34,17 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.package import Package
-from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 
 
 @pytest.fixture(scope='class')
@@ -1259,74 +1258,16 @@ class TestContentViewSync:
         assert cvv.split('.')[1] == str(minor)
 
     @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_negative_export_cv_with_puppet_repo(self, function_export_cv_directory):
-        """Exporting CV version having non yum(puppet) repo throws error
-
-        :id: 5e27f994-34f2-4595-95a9-346c6b9415f6
-
-        :steps:
-
-            1. Create product and non yum(puppet) repository
-            2. Sync the repository
-            3. Create CV with above product and publish
-            4. Attempt to export CV version contents to a directory
-
-        :expectedresults:
-
-            1. Export fails with error 'Could not export the content view:
-            Error: Ensure the content view version '#name' has at least one
-            repository.'.
-
-        """
-        module = {'name': 'versioned', 'version': '3.3.3'}
-        exporting_org = make_org()
-        product = make_product(
-            {'organization-id': exporting_org['id'], 'name': gen_string('alpha')}
-        )
-        repo = make_repository(
-            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
-        )
-        Repository.synchronize({'id': repo['id']})
-        puppet_module = PuppetModule.list(
-            {'search': f'name={module["name"]} and version={module["version"]}'}
-        )[0]
-        content_view = make_content_view({'organization-id': exporting_org['id']})
-        ContentView.puppet_module_add(
-            {
-                'content-view-id': content_view['id'],
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
-            }
-        )
-        ContentView.publish({'id': content_view['id']})
-        cv_version = ContentView.info({'id': content_view['id']})['versions'][0]['version']
-        with pytest.raises(CLIReturnCodeError) as error:
-            ContentView.version_export(
-                {
-                    'export-dir': f'{function_export_cv_directory}',
-                    'id': ContentView.info({'id': content_view['id']})['versions'][0]['id'],
-                }
-            )
-        assert (
-            'Could not export the content view:\n  '
-            f'''Error: Ensure the content view version '{content_view['name']} {cv_version}' '''
-            'has at least one repository.\n'
-        ) in error.value.message
-
-    @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
         self, class_export_entities, function_export_cv_directory
     ):
-        """Exporting CV version having yum and non-yum(puppet) is successful
+        """Exporting CV version having yum and non-yum(docker) is successful
 
         :id: ffcdbbc6-f787-4978-80a7-4b44c389bf49
 
         :steps:
 
-            1. Create product with yum and non-yum(puppet) repos
+            1. Create product with yum and non-yum(docker) repos
             2. Sync the repositories
             3. Create CV with above product and publish
             4. Export CV version contents to a directory
@@ -1339,7 +1280,6 @@ class TestContentViewSync:
         :BZ: 1726457
 
         """
-        module = {'name': 'versioned', 'version': '3.3.3'}
         product = make_product(
             {
                 'organization-id': class_export_entities['exporting_org']['id'],
@@ -1347,7 +1287,13 @@ class TestContentViewSync:
             }
         )
         nonyum_repo = make_repository(
-            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+            {
+                'content-type': 'docker',
+                'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
+                'name': gen_string('alpha', 20),
+                'product-id': product['id'],
+                'url': CONTAINER_REGISTRY_HUB,
+            }
         )
         Repository.synchronize({'id': nonyum_repo['id']})
         yum_repo = make_repository(
@@ -1359,26 +1305,17 @@ class TestContentViewSync:
             }
         )
         Repository.synchronize({'id': yum_repo['id']})
-        puppet_module = PuppetModule.list(
-            {'search': f'name={module["name"]} and version={module["version"]}'}
-        )[0]
         content_view = make_content_view(
             {'organization-id': class_export_entities['exporting_org']['id']}
         )
-        ContentView.puppet_module_add(
-            {
-                'content-view-id': content_view['id'],
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
-            }
-        )
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': class_export_entities['exporting_org']['id'],
-                'repository-id': yum_repo['id'],
-            }
-        )
+        for repo in [yum_repo, nonyum_repo]:
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': class_export_entities['exporting_org']['id'],
+                    'repository-id': repo['id'],
+                }
+            )
         ContentView.publish({'id': content_view['id']})
         export_cvv_info = ContentView.info({'id': content_view['id']})['versions'][0]
         ContentView.version_export(

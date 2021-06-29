@@ -59,21 +59,16 @@ from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import FILTER_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
-from robottelo.constants import PUPPET_MODULE_CUSTOM_FILE_NAME
-from robottelo.constants import PUPPET_MODULE_CUSTOM_NAME
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_INC_UPD_URL
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.constants.repos import FAKE_10_YUM_REPO
 from robottelo.constants.repos import FAKE_11_YUM_REPO
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
@@ -82,10 +77,8 @@ from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
-from robottelo.helpers import get_data_file
 from robottelo.helpers import repo_add_updateinfo
 from robottelo.products import DockerRepository
-from robottelo.products import PuppetRepository
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import VirtualizationAgentsRepository
@@ -273,46 +266,11 @@ def test_positive_repo_count_for_composite_cv(session, module_org):
         assert session.contentview.search(ccv_name)[0]['Repositories'] == '3'
 
 
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_puppet_module(session, module_org):
-    """create content view with puppet repository
-
-    :id: c772d55b-6762-4c25-bbaf-83e7c200fe8a
-
-    :customerscenario: true
-
-    :steps:
-        1. Create Product/puppet repo and Sync it
-        2. Create CV and add puppet modules from created repo
-
-    :expectedresults: content view is created, updated with puppet module
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    repo_url = FAKE_0_PUPPET_REPO
-    cv_name = gen_string('alpha')
-    puppet_module = 'httpd'
-    create_sync_custom_repo(module_org.id, repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
-    with session:
-        session.contentview.create({'name': cv_name})
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_puppet_module(cv_name, puppet_module)
-        cv = session.contentview.read(cv_name)
-        assert cv['puppet_modules']['table'][0]['Name'] == puppet_module
-
-
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_composite(session):
-    # Note: puppet repos cannot/should not be used in this test
-    # It shouldn't work - and that is tested in a different case.
-    # Individual modules from a puppet repo, however, are a valid
-    # variation.
     """Create a composite content views
 
     :id: 550f1970-5cbd-4571-bb7b-17e97639b715
@@ -325,7 +283,6 @@ def test_positive_create_composite(session):
 
     :CaseImportance: High
     """
-    puppet_module = 'httpd'
     cv_name1 = gen_string('alpha')
     cv_name2 = gen_string('alpha')
     composite_name = gen_string('alpha')
@@ -341,16 +298,12 @@ def test_positive_create_composite(session):
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
     enable_sync_redhat_repo(rh_repo, org.id)
-    create_sync_custom_repo(org.id, repo_url=FAKE_0_PUPPET_REPO, repo_type=REPO_TYPE['puppet'])
     with session:
         session.organization.select(org.name)
         # Create content views
         for cv_name in (cv_name1, cv_name2):
             session.contentview.create({'name': cv_name})
             assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_puppet_module(cv_name1, puppet_module)
-        cv1 = session.contentview.read(cv_name1)
-        assert cv1['puppet_modules']['table'][0]['Name'] == puppet_module
         session.contentview.publish(cv_name1)
         session.contentview.add_yum_repo(cv_name2, rh_repo['name'])
         session.contentview.publish(cv_name2)
@@ -777,28 +730,6 @@ def test_positive_promote_multiple_with_docker_repo_composite(session, module_or
 
 
 @pytest.mark.tier2
-def test_negative_add_puppet_repo_to_composite(session):
-    """Attempt to associate puppet repos within a composite content view
-
-    :id: 283fa7da-ca40-4ce2-b3c5-da58ae01b8e7
-
-    :expectedresults: User cannot create a composite content view that contains
-        direct puppet repos.
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-    composite_name = gen_string('alpha')
-    with session:
-        session.contentview.create({'name': composite_name, 'composite_view': True})
-        assert session.contentview.search(composite_name)[0]['Name'] == composite_name
-        with pytest.raises(NavigationTriesExceeded) as context:
-            session.contentview.add_puppet_module(composite_name, 'httpd')
-        assert 'failed to reach [AddPuppetModule]' in str(context.value)
-
-
-@pytest.mark.tier2
 def test_negative_add_components_to_non_composite(session):
     """Attempt to associate components to a non-composite content view
 
@@ -985,39 +916,6 @@ def test_negative_add_dupe_repos(session, module_org):
 
 
 @pytest.mark.tier2
-def test_negative_add_dupe_modules(session, module_org):
-    """Attempt to associate duplicate puppet module(s) within a content view
-
-    :id: ee33a306-9f91-439d-ac7c-d30f7e1a14cc
-
-    :expectedresults: User cannot add modules multiple times to the view
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Low
-    """
-    cv_name = gen_string('alpha')
-    module_name = 'samba'
-    product = entities.Product(organization=module_org).create()
-    puppet_repository = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
-    ).create()
-    puppet_repository.sync()
-    with session:
-        # Create content-view
-        session.contentview.create({'name': cv_name})
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_puppet_module(cv_name, module_name)
-        # ensure that the puppet module is added to content view
-        cv = session.contentview.read(cv_name)
-        assert cv['puppet_modules']['table'][0]['Name'] == module_name
-        # ensure that cannot add the same module a second time.
-        with pytest.raises(NavigationTriesExceeded) as context:
-            session.contentview.add_puppet_module(cv_name, module_name)
-        assert 'Navigation failed to reach [SelectPuppetModuleVersion]' in str(context.value)
-
-
-@pytest.mark.tier2
 def test_positive_publish_with_custom_content(session, module_org):
     """Attempt to publish a content view containing custom content
 
@@ -1107,10 +1005,6 @@ def test_positive_publish_composite_with_custom_content(session):
     custom_repo2_name = gen_string('alpha')
     custom_repo1_url = FAKE_0_YUM_REPO
     custom_repo2_url = FAKE_1_YUM_REPO
-    puppet_repo1_url = FAKE_0_PUPPET_REPO
-    puppet_repo2_url = FAKE_1_PUPPET_REPO
-    puppet_module1 = 'httpd'
-    puppet_module2 = 'ntp'
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -1129,9 +1023,6 @@ def test_positive_publish_composite_with_custom_content(session):
         (custom_repo2_name, custom_repo2_url),
     ):
         create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
-    # Create custom puppet repositories
-    for url in (puppet_repo1_url, puppet_repo2_url):
-        create_sync_custom_repo(repo_url=url, repo_type=REPO_TYPE['puppet'], org_id=org.id)
     with session:
         session.organization.select(org.name)
         # create the first content view
@@ -1140,8 +1031,6 @@ def test_positive_publish_composite_with_custom_content(session):
         # add repositories to first content view
         for repo_name in (rh7_repo['name'], custom_repo1_name):
             session.contentview.add_yum_repo(cv1_name, repo_name)
-        # add the first puppet module to first content view
-        session.contentview.add_puppet_module(cv1_name, puppet_module1)
         # publish the first content
         result = session.contentview.publish(cv1_name)
         assert result['Version'] == VERSION
@@ -1150,8 +1039,6 @@ def test_positive_publish_composite_with_custom_content(session):
         assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
         # add repositories to the second content view
         session.contentview.add_yum_repo(cv2_name, custom_repo2_name)
-        # add the second puppet module to the second content view
-        session.contentview.add_puppet_module(cv2_name, puppet_module2)
         # publish the second content
         result = session.contentview.publish(cv2_name)
         assert result['Version'] == VERSION
@@ -1338,10 +1225,6 @@ def test_positive_promote_composite_with_custom_content(session):
     custom_repo2_name = gen_string('alpha')
     custom_repo1_url = FAKE_0_YUM_REPO
     custom_repo2_url = FAKE_1_YUM_REPO
-    puppet_repo1_url = FAKE_0_PUPPET_REPO
-    puppet_repo2_url = FAKE_1_PUPPET_REPO
-    puppet_module1 = 'httpd'
-    puppet_module2 = 'ntp'
     rh7_repo = {
         'name': REPOS['rhst7']['name'],
         'product': PRDS['rhel'],
@@ -1362,9 +1245,6 @@ def test_positive_promote_composite_with_custom_content(session):
         (custom_repo2_name, custom_repo2_url),
     ):
         create_sync_custom_repo(repo_name=name, repo_url=url, org_id=org.id)
-    # Create custom puppet repositories
-    for url in (puppet_repo1_url, puppet_repo2_url):
-        create_sync_custom_repo(repo_url=url, repo_type=REPO_TYPE['puppet'], org_id=org.id)
     with session:
         session.organization.select(org.name)
         # create the first content view
@@ -1373,8 +1253,6 @@ def test_positive_promote_composite_with_custom_content(session):
         # add repositories to first content view
         for repo_name in (rh7_repo['name'], custom_repo1_name):
             session.contentview.add_yum_repo(cv1_name, repo_name)
-        # add the first puppet module to first content view
-        session.contentview.add_puppet_module(cv1_name, puppet_module1)
         # publish the first content
         result = session.contentview.publish(cv1_name)
         assert result['Version'] == VERSION
@@ -1383,8 +1261,6 @@ def test_positive_promote_composite_with_custom_content(session):
         assert session.contentview.search(cv2_name)[0]['Name'] == cv2_name
         # add repositories to the second content view
         session.contentview.add_yum_repo(cv2_name, custom_repo2_name)
-        # add the second puppet module to the second content view
-        session.contentview.add_puppet_module(cv2_name, puppet_module2)
         # publish the second content
         result = session.contentview.publish(cv2_name)
         assert result['Version'] == VERSION
@@ -1533,7 +1409,7 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
     :Steps:
 
         1. Create a content view
-        2. Add a puppet module(s) to the content view
+        2. Add a yum repo to the content view
         3. Publish the content view
         4. Promote the content view version from Library -> DEV
         5. remove the content view version from Library environment
@@ -1541,40 +1417,35 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
     :expectedresults:
 
         1. Content view version exist only in DEV and not in Library
-        2. The puppet module(s) exists in content view version
+        2. The yum repo exists in content view version
 
     :CaseLevel: Integration
 
     :CaseImportance: High
     """
-    puppet_module_name = 'generic_1'
-    author = 'robottelo'
-    repo = RepositoryCollection(
+    dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
+    repos = RepositoryCollection(
         repositories=[
-            PuppetRepository(
-                url=CUSTOM_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
-            )
+            YumRepository(url=FAKE_0_YUM_REPO),
         ]
     )
-    repo.setup(module_org.id)
-    cv, lce = repo.setup_content_view(module_org.id)
+    repos.setup(module_org.id)
+    yum_repo_name = [repo['name'] for repo in repos.repos_info if repo['content-type'] == 'yum'][0]
+    cv, lce = repos.setup_content_view(module_org.id, dev_lce.id)
     with session:
         cv_values = session.contentview.read(cv['name'])
-        assert cv_values['puppet_modules']['table'][0]['Name'] == puppet_module_name
-        assert cv_values['puppet_modules']['table'][0]['Author'] == author
+        cv_values['repositories']['resources']['assigned'][0]['Name'] = yum_repo_name
         cvv = session.contentview.read_version(cv['name'], VERSION)
-        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
-        assert cvv['puppet_modules']['table'][0]['Author'] == author
+        assert yum_repo_name in cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
         assert ENVIRONMENT in cvv['Environments']
         # remove the content view version from Library
         session.contentview.remove_version(cv['name'], VERSION, False, [ENVIRONMENT])
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
         assert ENVIRONMENT not in cvv['Environments']
-        # ensure that puppet module still in content view version
+        # ensure that yum repo is still in content view version
         cvv = session.contentview.read_version(cv['name'], VERSION)
-        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
-        assert cvv['puppet_modules']['table'][0]['Author'] == author
+        assert yum_repo_name in cvv['yum_repositories']['table'][0]['Name']
 
 
 @pytest.mark.tier2
@@ -1639,7 +1510,7 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     :Steps:
 
         1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker to the content view
         3. Publish the content view
         4. Promote the content view version to multiple environments
             Library -> DEV -> QE
@@ -1655,14 +1526,9 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     """
     dev_lce = entities.LifecycleEnvironment(organization=module_org).create()
     qe_lce = entities.LifecycleEnvironment(organization=module_org, prior=dev_lce).create()
-    puppet_module_name = 'generic_1'
-    author = 'robottelo'
     repos = RepositoryCollection(
         repositories=[
             YumRepository(url=FAKE_0_YUM_REPO),
-            PuppetRepository(
-                url=CUSTOM_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
-            ),
         ]
     )
     repos.setup(module_org.id)
@@ -1673,7 +1539,6 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     with session:
         cvv = session.contentview.read_version(cv['name'], VERSION)
         assert cvv['yum_repositories']['table'][0]['Name']
-        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
         assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
@@ -1685,7 +1550,6 @@ def test_positive_remove_cv_version_from_env(session, module_org):
         result = session.contentview.promote(cv['name'], VERSION, qe_lce.name)
         assert f'Promoted to {qe_lce.name}' in result['Status']
         cvv = session.contentview.read_version(cv['name'], VERSION)
-        assert puppet_module_name in cvv['puppet_modules']['table'][0]['Name']
         assert yum_repo_name == cvv['yum_repositories']['table'][0]['Name']
         cvv = session.contentview.search_version(cv['name'], VERSION)[0]
         assert ' '.join((ENVIRONMENT, dev_lce.name, qe_lce.name)) == cvv['Environments']
@@ -1703,7 +1567,7 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
     :Steps:
 
         1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker to the content view
         3. Publish the content view
         4. Promote the content view to multiple environment Library -> DEV
         5. Disassociate content view from promoted environment
@@ -2651,55 +2515,6 @@ def test_positive_search_composite(session):
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_with_force_puppet_env(session, module_org):
-    """Check that puppet environment will be created automatically once
-    content view that contains puppet module is published, no matter
-    whether 'Force Puppet' option is enabled or disabled for that content
-    view
-    Check that puppet environment will be created automatically once content
-    view without puppet module is published, only if 'Force Puppet' option is
-    enabled
-
-    :id: af553367-e621-41e8-86cb-091ba7ba6c0a
-
-    :customerscenario: true
-
-    :expectedresults: puppet environment is created only in expected cases
-
-    :BZ: 1437110
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    puppet_module = 'httpd'
-    create_sync_custom_repo(
-        module_org.id, repo_url=FAKE_0_PUPPET_REPO, repo_type=REPO_TYPE['puppet']
-    )
-    with session:
-        for add_puppet in [True, False]:
-            for force_value in [True, False]:
-                cv_name = gen_string('alpha')
-                session.contentview.create({'name': cv_name})
-                session.contentview.update(cv_name, {'details.force_puppet': force_value})
-                if add_puppet:
-                    session.contentview.add_puppet_module(cv_name, puppet_module)
-                result = session.contentview.publish(cv_name)
-                assert result['Version'] == VERSION
-                env_name = 'KT_{}_{}_{}_{}'.format(
-                    module_org.name,
-                    ENVIRONMENT,
-                    cv_name,
-                    str(entities.ContentView(name=cv_name, organization=module_org).search()[0].id),
-                )
-                if not add_puppet and not force_value:
-                    assert not session.puppetenvironment.search(env_name)
-                else:
-                    assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
-
-
-@pytest.mark.tier3
 def test_positive_publish_with_repo_with_disabled_http(session, module_org):
     """Attempt to publish content view with repository that set
     'publish via http' to False
@@ -2744,63 +2559,6 @@ def test_positive_publish_with_repo_with_disabled_http(session, module_org):
         assert result['Version'] == VERSION
 
 
-@pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_publish_promote_with_custom_puppet_module(session, module_org):
-    """Ensure that a custom puppet module file can be added to an existent
-     puppet repo and it's module added to content view
-
-    :id: 9562c548-5b65-4b79-acc7-382f8a21249d
-
-    :customerscenario: true
-
-    :steps:
-        1. Create a product with a puppet repository
-        2. Add a custom puppet module file
-        3. Create a content view and add The puppet module
-        4. Publish and promote the content view
-
-    :expectedresults:
-        1. Custom puppet module file successfully uploaded
-        2. Puppet module successfully added to content view
-        3. Content view successfully published and promoted
-
-    :BZ: 1335833
-
-    :CaseLevel: System
-
-    :CaseImportance: High
-    """
-    cv_name = gen_string('alpha')
-    env = entities.LifecycleEnvironment(organization=module_org).create()
-    # Creates new custom product via API's
-    product = entities.Product(organization=module_org).create()
-    # Creates new custom repository via API's
-    repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
-    ).create()
-    # Sync repo
-    call_entity_method_with_timeout(entities.Repository(id=repo.id).sync, timeout=1500)
-    with session:
-        repo_values = session.repository.read(product.name, repo.name)
-        initial_modules_count = int(repo_values['content_counts']['Puppet Modules'])
-        session.repository.upload_content(
-            product.name, repo.name, get_data_file(PUPPET_MODULE_CUSTOM_FILE_NAME)
-        )
-        repo_values = session.repository.read(product.name, repo.name)
-        assert int(repo_values['content_counts']['Puppet Modules']) == initial_modules_count + 1
-        session.contentview.create({'name': cv_name})
-        assert session.contentview.search(cv_name)[0]['Name'] == cv_name
-        session.contentview.add_puppet_module(cv_name, PUPPET_MODULE_CUSTOM_NAME)
-        cv = session.contentview.read(cv_name)
-        assert cv['puppet_modules']['table'][0]['Name'] == PUPPET_MODULE_CUSTOM_NAME
-        # Publish and promote CV to next environment
-        result = session.contentview.publish(cv_name)
-        assert result['Version'] == VERSION
-        result = session.contentview.promote(cv_name, VERSION, env.name)
-        assert f'Promoted to {env.name}' in result['Status']
-
-
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost):
@@ -2821,47 +2579,6 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_0_YUM_REPO)],
-    )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
-    assert rhel7_contenthost.subscribed
-    with session:
-        session.organization.select(org.name)
-        # assert the vm exists in content hosts page
-        assert (
-            session.contenthost.search(rhel7_contenthost.hostname)[0]['Name']
-            == rhel7_contenthost.hostname
-        )
-
-
-@pytest.mark.upgrade
-@pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthost):
-    """Attempt to subscribe a host to content view with puppet modules
-
-    :id: c57fbdca-31e8-43f1-844d-b82b13c0c4de
-
-    :setup: content view with puppet module
-
-    :expectedresults: Systems can be subscribed to content view(s)
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-    """
-    puppet_module_name = 'stdlib'
-    author = 'puppetlabs'
-    org = entities.Organization().create()
-    lce = entities.LifecycleEnvironment(organization=org).create()
-    repos_collection = RepositoryCollection(
-        distro=DISTRO_RHEL7,
-        repositories=[
-            SatelliteToolsRepository(),
-            PuppetRepository(
-                url=FAKE_1_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
-            ),
-        ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     repos_collection.setup_virtual_machine(rhel7_contenthost)
@@ -3077,7 +2794,7 @@ def test_positive_rh_ostree_end_to_end(session):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_mixed_content_end_to_end(session, module_org):
-    """Create a CV with ostree as well as yum and puppet type contents and
+    """Create a CV with ostree as well as yum and docker contents and
     publish and promote them to next environment. Remove promoted version afterwards
 
     :id: 6da1a167-cef8-420e-9fdd-bf357f820056
@@ -3102,11 +2819,6 @@ def test_positive_mixed_content_end_to_end(session, module_org):
         product=product,
         unprotected=False,
     ).create()
-    # Creates puppet module
-    puppet_module = 'httpd'
-    entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
-    ).create()
     yum_repo_name = gen_string('alpha')
     # Creates yum repository
     entities.Repository(
@@ -3118,11 +2830,9 @@ def test_positive_mixed_content_end_to_end(session, module_org):
     entities.ContentView(name=cv_name, organization=module_org).create()
     with session:
         session.contentview.add_yum_repo(cv_name, yum_repo_name)
-        session.contentview.add_puppet_module(cv_name, puppet_module)
         session.contentview.add_ostree_repo(cv_name, ostree_repo_name)
         cv = session.contentview.read(cv_name)
         assert cv['repositories']['resources']['assigned'][0]['Name'] == yum_repo_name
-        assert cv['puppet_modules']['table'][0]['Name'] == puppet_module
         assert cv['ostree_content']['resources']['assigned'][0]['Name'] == ostree_repo_name
         # Publish and promote CV to next environment
         result = session.contentview.publish(cv_name)
@@ -3512,7 +3222,6 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
             'versions',
             'repositories',
             'filters',
-            'puppet_modules',
             'docker_repositories',
             'ostree_content',
         ]:

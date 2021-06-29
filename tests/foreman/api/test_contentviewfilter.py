@@ -30,15 +30,12 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CUSTOM_REPODATA_PATH
 from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -320,71 +317,6 @@ class TestContentViewFilter:
             assert len(cvf.repository) == 2
         assert content_view.id == cvf.content_view.id
         assert cvf.type == 'modulemd'
-
-    @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_publish_with_content_view_filter_and_swid_tags(
-        self, module_org, module_product
-    ):
-        """Verify SWID tags content file should exist in publish content view
-        version location even after applying content view filters.
-
-        :id: 00ac640f-1dfc-4083-8405-5164650d71b5
-
-        :steps:
-            1. create product and repository with custom contents having swid tags
-            2. sync the repository
-            3. create the content view
-            4. create content view filter
-            5. apply content view filter to repository
-            6. publish the content-view
-            7. ssh into Satellite
-            8. verify SWID tags content file exist in publish content view version location
-
-        :expectedresults: SWID tags content file should exist in publish content view
-            version location
-
-        :CaseAutomation: Automated
-
-        :CaseImportance: Critical
-
-        :CaseLevel: Integration
-        """
-        swid_tag_repository = entities.Repository(
-            product=module_product, url=CUSTOM_SWID_TAG_REPO
-        ).create()
-        swid_tag_repository.sync()
-        content_view = entities.ContentView(organization=module_org).create()
-        content_view.repository = [swid_tag_repository]
-        content_view.update(['repository'])
-
-        cv_filter = entities.RPMContentViewFilter(
-            content_view=content_view,
-            inclusion=True,
-            repository=[swid_tag_repository],
-        ).create()
-        assert len(cv_filter.repository) == 1
-        cv_filter_rule = entities.ContentViewFilterRule(
-            content_view_filter=cv_filter, name='walrus', version='1.0'
-        ).create()
-        assert cv_filter.id == cv_filter_rule.content_view_filter.id
-        content_view.publish()
-        content_view = content_view.read()
-        content_view_version_info = content_view.version[0].read()
-        assert len(content_view.repository) == 1
-        assert len(content_view.version) == 1
-        swid_repo_path = "{}/{}/content_views/{}/{}/custom/{}/{}/repodata".format(
-            CUSTOM_REPODATA_PATH,
-            module_org.name,
-            content_view.name,
-            content_view_version_info.version,
-            module_product.name,
-            swid_tag_repository.name,
-        )
-        result = ssh.command(f'ls {swid_repo_path} | grep swidtags.xml.gz')
-        assert result.return_code == 0
 
     @pytest.mark.tier2
     @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))

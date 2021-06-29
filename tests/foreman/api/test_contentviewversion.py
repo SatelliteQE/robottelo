@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import random
-
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
@@ -28,12 +26,8 @@ from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 
 
@@ -322,63 +316,6 @@ def test_positive_delete_composite_version(module_org):
     assert len(composite_cv.read().version) == 0
 
 
-@pytest.mark.upgrade
-@pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_delete_with_puppet_content(module_org, module_lce_library):
-    """Delete content view version with puppet module content
-
-    :id: cae1164c-6608-4e19-923c-936e75ed807b
-
-    :steps:
-        1. Create a lifecycle environment
-        2. Create a content view
-        3. Add a puppet module to content view
-        4. Publish the content view
-        5. Promote the content view to lifecycle environment
-        6. Remove the content view versions from all lifecycle environments
-        7. Delete the content view version
-
-    :expectedresults: Content view version deleted successfully
-
-    :CaseLevel: Integration
-    """
-    lce = entities.LifecycleEnvironment(organization=module_org, prior=module_lce_library).create()
-    product = entities.Product(organization=module_org).create()
-    puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
-    ).create()
-    puppet_repo.sync()
-    # create a content view and add the yum repo to it
-    content_view = entities.ContentView(organization=module_org).create()
-    # get a random puppet module
-    puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-    # add the puppet module to content view
-    entities.ContentViewPuppetModule(
-        author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-    ).create()
-    # publish the content view
-    content_view.publish()
-    content_view = content_view.read()
-    assert len(content_view.version) == 1
-    content_view_version = content_view.version[0].read()
-    assert len(content_view_version.environment) == 1
-    lce_library = entities.LifecycleEnvironment(id=content_view_version.environment[0].id).read()
-    assert lce_library.name == ENVIRONMENT
-    # promote content view version to the created lifecycle environment
-    promote(content_view_version, lce.id)
-    content_view_version = content_view_version.read()
-    assert {lce_library.id, lce.id} == {lce.id for lce in content_view_version.environment}
-    # remove the content view versions from all lifecycle environments
-    for env in (lce_library, lce):
-        content_view.delete_from_environment(env.id)
-    content_view_version = content_view_version.read()
-    assert len(content_view_version.environment) == 0
-    # delete the content view version
-    content_view_version.delete()
-    assert len(content_view.read().version) == 0
-
-
 @pytest.mark.tier2
 def test_negative_delete(module_org):
     """Create content view and publish it. Try to delete content
@@ -519,7 +456,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     :Steps:
 
         1. Create a content view
-        2. Add yum repositories, puppet modules, docker repositories to CV
+        2. Add yum repositories and docker repositories to CV
         3. Publish content view
         4. Promote the content view version to multiple environments
             Library -> DEV -> QE -> PROD
@@ -543,19 +480,10 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
         url=CONTAINER_REGISTRY_HUB,
     ).create()
     docker_repo.sync()
-    puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
-    ).create()
-    puppet_repo.sync()
     # create a content view and add to it the yum and docker repos
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
-    # get a random puppet module and add it to content view
-    puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-    entities.ContentViewPuppetModule(
-        author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-    ).create()
     # publish the content view
     content_view.publish()
     content_view = content_view.read()
@@ -589,7 +517,7 @@ def test_positive_remove_cv_version_from_env(module_org):
     :Steps:
 
         1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker repo to the content view
         3. Publish the content view
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE -> STAGE -> PROD
@@ -610,19 +538,18 @@ def test_positive_remove_cv_version_from_env(module_org):
     product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
-    puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+    docker_repo = entities.Repository(
+        content_type='docker',
+        docker_upstream_name='busybox',
+        product=product,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
-    puppet_repo.sync()
-    # create a content view and add the yum repo to it
+    docker_repo.sync()
+    # create a content view and add the yum repo and docker repo to it
     content_view = entities.ContentView(organization=module_org).create()
-    content_view.repository = [yum_repo]
+    content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
-    # get a random puppet module and add it to content view
-    puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-    entities.ContentViewPuppetModule(
-        author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-    ).create()
+
     # publish the content view
     content_view.publish()
     content_view = content_view.read()
@@ -662,7 +589,7 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     :Steps:
 
         1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker repo to the content view
         3. Publish the content view
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE -> STAGE -> PROD
@@ -681,19 +608,17 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
-    puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+    docker_repo = entities.Repository(
+        content_type='docker',
+        docker_upstream_name='busybox',
+        product=product,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
-    puppet_repo.sync()
-    # create a content view and add the yum repo to it
+    docker_repo.sync()
+    # create a content view and add the yum repo and docker repo to it
     content_view = entities.ContentView(organization=module_org).create()
-    content_view.repository = [yum_repo]
+    content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
-    # get a random puppet module and add it to content view
-    puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-    entities.ContentViewPuppetModule(
-        author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-    ).create()
     # publish the content view
     content_view.publish()
     content_view = content_view.read()
@@ -731,7 +656,7 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     :Steps:
 
         1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker repo to the content view
         3. Publish the content view
         4. Promote the content view to multiple environment
            Library -> DEV -> QE -> STAGE -> PROD
@@ -751,19 +676,17 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     product = entities.Product(organization=module_org).create()
     yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
     yum_repo.sync()
-    puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+    docker_repo = entities.Repository(
+        content_type='docker',
+        docker_upstream_name='busybox',
+        product=product,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
-    puppet_repo.sync()
+    docker_repo.sync()
     # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
-    content_view.repository = [yum_repo]
+    content_view.repository = [yum_repo, docker_repo]
     content_view = content_view.update(['repository'])
-    # get a random puppet module and add it to content view
-    puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-    entities.ContentViewPuppetModule(
-        author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-    ).create()
     # publish the content view
     content_view.publish()
     content_view = content_view.read()
@@ -800,7 +723,7 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
     :Steps:
 
         1. Create a content view cv1
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo and a docker repo to the content view
         3. Publish the content view
         4. Promote the content view to multiple environment Library -> DEV
            -> QE
@@ -840,7 +763,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
     :Steps:
 
         1. Create two content views, cv1 and cv2
-        2. Add a yum repo and a puppet module to both content views
+        2. Add a yum repo and a docker to both content views
         3. Publish the content views
         4. Promote the content views to multiple environment Library -> DEV
            -> QE
@@ -882,7 +805,7 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
         1. Create a content view
         2. module_lce_cv satellite to use a capsule and to sync all lifecycle
            environments
-        3. Add a yum repo, puppet module and a docker repo to the content
+        3. Add a yum repo and a docker repo to the content
            view
         4. Publish the content view
         5. Promote the content view to multiple environment Library -> DEV
@@ -906,148 +829,3 @@ def test_positive_remove_cv_version_from_multi_env_capsule_scenario():
     """
     # Note: This test case requires complete external capsule
     #  configuration.
-
-
-# Tests for content view version promotion.
-
-
-@pytest.mark.upgrade
-@pytest.mark.tier3
-def test_positive_incremental_update_puppet():
-    """Incrementally update a CVV with a puppet module.
-
-    :id: 19b2fe3b-6c91-4713-9910-17517fba661f
-
-    :expectedresults: The incremental update succeeds with no errors, and
-        the content view is given an additional version.
-
-    :CaseLevel: Integration
-    """
-    # Create a content view and add a yum repository to it. Publish the CV.
-    product = entities.Product().create()
-    yum_repo = entities.Repository(content_type='yum', product=product).create()
-    content_view = entities.ContentView(
-        organization=product.organization, repository=[yum_repo]
-    ).create()
-    content_view.publish()
-    content_view = content_view.read()
-
-    # Create a puppet repository and upload a puppet module into it.
-    puppet_repo = entities.Repository(content_type='puppet', product=product).create()
-    with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-        puppet_repo.upload_content(files={'content': handle})
-    # Extract all the available puppet modules.
-    puppet_modules = content_view.available_puppet_modules()['results']
-    # Make sure that we have results. Uploading content does not
-    # seem to create a task so we cannot poll it for status. We
-    # should then check that we have some results back before
-    # proceeding.
-    assert len(puppet_modules) > 0
-    puppet_module = entities.PuppetModule(id=puppet_modules[0]['id'])
-
-    # Incrementally update the CVV with the puppet module.
-    payload = {
-        'content_view_version_environments': [
-            {
-                'content_view_version_id': content_view.version[0].id,
-                'environment_ids': [
-                    environment.id for environment in content_view.version[0].read().environment
-                ],
-            }
-        ],
-        'add_content': {'puppet_module_ids': [puppet_module.id]},
-    }
-    content_view.version[0].incremental_update(data=payload)
-    content_view = content_view.read()
-
-    # The CV now has two versions. The first version has no puppet modules,
-    # and the second version has one puppet module. Let's verify this.
-    # NOTE: The `read_json` lines should be refactored after the 'minor'
-    assert len(content_view.version) == 2
-    for i in range(len(content_view.version)):
-        content_view.version[i] = content_view.version[i].read()
-    content_view.version.sort(key=lambda cvv: cvv.read_json()['minor'])
-    assert len(content_view.version[0].puppet_module) == 0
-    assert len(content_view.version[1].puppet_module) == 1
-    assert content_view.version[1].puppet_module[0].id == puppet_module.id
-
-
-@pytest.mark.tier3
-def test_positive_incremental_update_propagate_composite():
-    """Incrementally update a CVV in composite CV with
-    `propagate_all_composites` flag set
-
-    :BZ: 1288148
-
-    :id: 1ddcb2ef-3819-442e-b070-cf44aba58dcd
-
-    :customerscenario: true
-
-    :Steps:
-
-        1. Create and publish CV with some content
-        2. Create composite CV, add previously created CV inside it
-        3. Publish composite CV
-        4. Create a puppet repository and upload a puppet module into it
-        5. Incrementally update the CVV with the puppet module with
-           `propagate_all_composites` flag set to `True`
-
-    :expectedresults:
-
-        1. The incremental update succeeds with no errors
-        2. New incremental CVV contains new puppet module
-        3. New incremental composite CVV contains new puppet module
-
-    :CaseLevel: Integration
-
-    :CaseImportance: Medium
-    """
-    product = entities.Product().create()
-    yum_repo = entities.Repository(content_type='yum', product=product).create()
-    yum_repo.sync()
-    content_view = entities.ContentView(
-        organization=product.organization, repository=[yum_repo]
-    ).create()
-    content_view.publish()
-    content_view = content_view.read()
-    assert len(content_view.version) == 1
-    assert len(content_view.version[0].read().puppet_module) == 0
-    comp_content_view = entities.ContentView(
-        component=[content_view.version[0].id],
-        composite=True,
-        organization=product.organization,
-    ).create()
-    comp_content_view.publish()
-    comp_content_view = comp_content_view.read()
-    assert len(comp_content_view.version) == 1
-    assert len(comp_content_view.version[0].read().puppet_module) == 0
-    puppet_repo = entities.Repository(content_type='puppet', product=product).create()
-    with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-        puppet_repo.upload_content(files={'content': handle})
-    puppet_modules = content_view.available_puppet_modules()['results']
-    assert len(puppet_modules) > 0
-    puppet_module = entities.PuppetModule(id=puppet_modules[0]['id'])
-    content_view.version[0].incremental_update(
-        data={
-            'content_view_version_environments': [
-                {
-                    'content_view_version_id': content_view.version[0].id,
-                    'environment_ids': [
-                        environment.id for environment in content_view.version[0].read().environment
-                    ],
-                }
-            ],
-            'add_content': {'puppet_module_ids': [puppet_module.id]},
-            'propagate_all_composites': True,
-        }
-    )
-    content_view = content_view.read()
-    assert len(content_view.version) == 2
-    cvv = content_view.version[-1].read()
-    assert len(cvv.puppet_module) == 1
-    assert cvv.puppet_module[0].id == puppet_module.id
-    comp_content_view = comp_content_view.read()
-    assert len(comp_content_view.version) == 2
-    comp_cvv = comp_content_view.version[-1].read()
-    assert len(comp_cvv.puppet_module) == 1
-    assert comp_cvv.puppet_module[0].id == puppet_module.id

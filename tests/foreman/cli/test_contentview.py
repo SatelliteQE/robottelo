@@ -40,7 +40,6 @@ from robottelo.cli.location import Location
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
-from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
@@ -110,18 +109,6 @@ def all_content_type(module_org):
     yum_repo_info = Repository.info(
         {'name': yum_repo['name'], 'organization-id': module_org.id, 'product': product['name']}
     )
-    # Create new Puppet repository
-    puppet_repo = cli_factory.make_repository(
-        {
-            'url': constants.repos.FAKE_0_PUPPET_REPO,
-            'content-type': 'puppet',
-            'product-id': product['id'],
-        }
-    )
-    Repository.synchronize({'id': puppet_repo['id']})
-    puppet_repo_info = Repository.info(
-        {'name': puppet_repo['name'], 'organization-id': module_org.id, 'product': product['name']}
-    )
     # Create new docker repository
     docker_repo = cli_factory.make_repository(
         {
@@ -139,7 +126,6 @@ def all_content_type(module_org):
     repos = {
         'ostree_repo': ostree_repo_info,
         'yum_repo': yum_repo_info,
-        'puppet_repo': puppet_repo_info,
         'docker_repo': docker_repo_info,
     }
     return repos
@@ -716,10 +702,6 @@ class TestContentView:
 
     @pytest.mark.tier2
     def test_positive_create_composite(self, module_org):
-        # Note: puppet repos cannot/should not be used in this test
-        # It shouldn't work - and that is tested in a different case
-        # (test_negative_add_puppet_repo). Individual modules from a puppet
-        # repo, however, are a valid variation.
         """create a composite content view
 
         :id: bded6acd-8da3-45ea-9e39-19bdc6c06341
@@ -1184,259 +1166,6 @@ class TestContentView:
         new_cv = ContentView.info({'id': new_cv['id']})
         assert new_cv['yum-repositories'][0]['name'] == new_repo['name']
 
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_add_puppet_module(self, module_org, module_product):
-        """Add puppet module to Content View by name
-
-        :id: 81d3305e-c0c2-487b-9fd8-828b3250fe6e
-
-        :expectedresults: Module was added and has latest version.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Medium
-        """
-        module = {'name': 'versioned', 'version': '3.3.3'}
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_module = PuppetModule.list(
-            {'search': f'name={module["name"]} and version={module["version"]}'}
-        )[0]
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.puppet_module_add(
-            {
-                'content-view-id': content_view['id'],
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
-            }
-        )
-        # Check output of `content-view info` subcommand
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules'])
-        assert puppet_module['name'] == content_view['puppet-modules'][0]['name']
-        # Check output of `content-view puppet module list` subcommand
-        cv_module = ContentView.puppet_module_list({'content-view-id': content_view['id']})
-        assert len(cv_module)
-        assert puppet_module['version'] in cv_module[0]['version']
-        assert 'Latest' in cv_module[0]['version']
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_add_puppet_module_older_version(self, module_org, module_product):
-        """Add older version of puppet module to Content View by id/uuid
-
-        :id: 39654b3e-963f-4859-81f2-9992b60433c2
-
-        :Steps:
-
-            1. Upload/sync puppet repo with several versions of the same module
-            2. Add older version by id/uuid to CV
-
-        :expectedresults: Exact version (and not latest) was added.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-
-        :BZ: 1240491
-        """
-        module = {'name': 'versioned', 'version': '2.2.2'}
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_module = PuppetModule.list(
-            {'search': f'name={module["name"]} and version={module["version"]}'}
-        )[0]
-        for identifier_type in ('uuid', 'id'):
-            content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-            ContentView.puppet_module_add(
-                {
-                    'content-view-id': content_view['id'],
-                    identifier_type: puppet_module[identifier_type],
-                }
-            )
-            # Check output of `content-view info` subcommand
-            content_view = ContentView.info({'id': content_view['id']})
-            assert len(content_view['puppet-modules'])
-            assert puppet_module['name'] == content_view['puppet-modules'][0]['name']
-            # Check output of `content-view puppet module list` subcommand
-            cv_module = ContentView.puppet_module_list({'content-view-id': content_view['id']})
-            assert len(cv_module)
-            assert cv_module[0]['version'] == module['version']
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_remove_puppet_module_by_name(self, module_org, module_product):
-        """Remove puppet module from Content View by name
-
-        :id: b9d161de-d2a1-46e1-922d-5e22826a41e4
-
-        :expectedresults: Module successfully removed and no modules are listed
-
-        :CaseLevel: Integration
-
-        :CaseImportance: High
-        """
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
-        puppet_module = random.choice(puppet_modules)
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Add puppet module
-        ContentView.puppet_module_add(
-            {
-                'content-view-id': content_view['id'],
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
-            }
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules'])
-        # Remove puppet module
-        ContentView.puppet_module_remove(
-            {
-                'content-view-id': content_view['id'],
-                'name': puppet_module['name'],
-                'author': puppet_module['author'],
-            }
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) == 0
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_remove_puppet_module_by_id(self, module_org, module_product):
-        """Remove puppet module from Content View by id
-
-        :id: 972a484c-6f38-4015-b20b-6a83d15b6c97
-
-        :expectedresults: Module successfully removed and no modules are listed
-
-        :CaseLevel: Integration
-
-        :BZ: 1427260
-
-        :CaseImportance: High
-        """
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
-        puppet_module = random.choice(puppet_modules)
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Add puppet module
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'id': puppet_module['id']}
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules'])
-        # Remove puppet module
-        ContentView.puppet_module_remove(
-            {'content-view-id': content_view['id'], 'id': content_view['puppet-modules'][0]['id']}
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) == 0
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_remove_puppet_module_by_uuid(self, module_org, module_product):
-        """Remove puppet module from Content View by uuid
-
-        :id: c63339aa-3d74-4a37-aaef-6777e0f6cb35
-
-        :expectedresults: Module successfully removed and no modules are listed
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list({'repository-id': puppet_repository['id']})
-        puppet_module = random.choice(puppet_modules)
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Add puppet module
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) > 0
-        # Remove puppet module
-        ContentView.puppet_module_remove(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['puppet-modules']) == 0
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_negative_add_puppet_repo(self, module_org, module_product):
-        # Again, individual modules should be ok.
-        """attempt to associate puppet repos within a custom content
-        view
-
-        :id: 7625c07b-edeb-48ef-85a2-4d1c09874a4b
-
-        :expectedresults: User cannot create a content view that contains
-            direct puppet repos.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-        new_repo = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
-            }
-        )
-        new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Associate puppet repo to CV
-        with pytest.raises(CLIReturnCodeError):
-            ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
-
     @pytest.mark.tier2
     def test_negative_add_component_in_non_composite_cv(self, module_org, module_product):
         """attempt to associate components in a non-composite content
@@ -1495,59 +1224,6 @@ class TestContentView:
         ContentView.add_repository({'id': new_cv['id'], 'repository-id': new_repo['id']})
         new_cv = ContentView.info({'id': new_cv['id']})
         assert len(new_cv['yum-repositories']) == repos_length
-
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_negative_add_same_puppet_repo_twice(self, module_org, module_product):
-        """attempt to associate duplicate puppet module(s) within a
-        content view
-
-        :id: 674cbae2-8493-466d-a2e4-dc11fb5c6b6f
-
-        :expectedresults: User cannot add puppet modules multiple times to the
-            content view
-
-        :CaseImportance: Low
-
-        :CaseLevel: Integration
-        """
-        # see BZ #1222118
-        repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
-            }
-        )
-        # Sync REPO
-        Repository.synchronize({'id': repository['id']})
-        repository = Repository.info({'id': repository['id']})
-        puppet_modules = int(repository['content-counts']['puppet-modules'])
-        # Create CV
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Fetch puppet module
-        puppet_result = PuppetModule.list({'repository-id': repository['id'], 'per-page': False})
-        assert len(puppet_result) == puppet_modules
-        for puppet_module in puppet_result:
-            # Associate puppet module to CV
-            ContentView.puppet_module_add(
-                {
-                    'author': puppet_module['author'],
-                    'content-view-id': content_view['id'],
-                    'name': puppet_module['name'],
-                }
-            )
-            # Re-associate same puppet module to CV
-            with pytest.raises(CLIReturnCodeError):
-                ContentView.puppet_module_add(
-                    {
-                        'author': puppet_module['author'],
-                        'content-view-id': content_view['id'],
-                        'name': puppet_module['name'],
-                    }
-                )
 
     @pytest.mark.run_in_one_thread
     @pytest.mark.tier2
@@ -1674,10 +1350,6 @@ class TestContentView:
 
     @pytest.mark.tier2
     def test_positive_promote_ccv(self, module_org, module_product):
-        # Variations:
-        # RHEL, custom content (i.e., google repos), puppet modules
-        # Custom content (i.e., fedora), puppet modules
-        # ...etc.
         """attempt to promote a content view containing custom content
 
         :id: 9d31113d-39ec-4524-854c-7f03b0f028fe
@@ -2058,10 +1730,6 @@ class TestContentView:
 
     @pytest.mark.tier2
     def test_positive_publish_ccv(self, module_org, module_product):
-        # Variations:
-        # RHEL, custom content (i.e., google repos), puppet modules
-        # Custom content (i.e., fedora), puppet modules
-        # ...etc.
         """attempt to publish a composite content view containing custom
         content
 
@@ -2527,67 +2195,6 @@ class TestContentView:
         content_view = cli_factory.make_content_view(
             {'composite': True, 'organization-id': module_org.id}
         )
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        cvv = content_view['versions'][0]
-        ContentView.version_promote({'id': cvv['id'], 'to-lifecycle-environment-id': env['id']})
-
-        content_view = ContentView.info({'id': content_view['id']})
-        assert content_view['content-host-count'] == '0'
-
-        cli_factory.make_fake_host(
-            {
-                'content-view-id': content_view['id'],
-                'lifecycle-environment-id': env['id'],
-                'name': gen_alphanumeric(),
-                'organization-id': module_org.id,
-            }
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert content_view['content-host-count'] == '1'
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_subscribe_chost_by_id_using_puppet_content(self, module_org):
-        """Attempt to subscribe content host to content view that has
-        puppet module assigned to it
-
-        :id: 7f45a162-e944-4e2c-a892-b26d1d21c844
-
-        :expectedresults: Content Host can be subscribed to content view with
-            puppet module
-
-        :CaseLevel: System
-
-        :CaseImportance: Low
-        """
-        # see BZ #1222118
-        new_product = cli_factory.make_product({'organization-id': module_org.id})
-
-        repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': new_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': repository['id']})
-
-        content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-
-        puppet_result = PuppetModule.list({'repository-id': repository['id'], 'per-page': False})
-
-        for puppet_module in puppet_result:
-            # Associate puppet module to CV
-            ContentView.puppet_module_add(
-                {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-            )
-
-        env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][0]
@@ -3137,7 +2744,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view
-            2. Add a puppet module(s) to the content view
+            2. Add a yum to the content view
             3. Publish the content view
             4. Promote the content view version from Library -> DEV
             5. remove the content view version from Library environment
@@ -3145,30 +2752,29 @@ class TestContentView:
         :expectedresults:
 
             1. Content view version exist only in DEV and not in Library
-            2. The puppet module(s) exists in content view version
+            2. The yum repos exists in content view version
 
         :CaseLevel: Integration
 
         :CaseImportance: High
         """
         lce_dev = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
+        custom_product = cli_factory.make_product({'organization-id': module_org.id})
+        custom_yum_repo = cli_factory.make_repository(
             {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'content-type': 'yum',
+                'product-id': custom_product['id'],
+                'url': constants.repos.FAKE_1_YUM_REPO,
             }
         )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = random.choice(puppet_modules)
+        Repository.synchronize({'id': custom_yum_repo['id']})
         content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
+        ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': custom_yum_repo['id'],
+            }
         )
         ContentView.publish({'id': content_view['id']})
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
@@ -3190,11 +2796,6 @@ class TestContentView:
             lce['name'] for lce in content_view_version_info['lifecycle-environments']
         }
         assert {constants.ENVIRONMENT, lce_dev['name']} == content_view_version_lce_names
-        initial_puppet_modules_ids = {
-            puppet_module['id']
-            for puppet_module in content_view_version_info.get('puppet-modules', [])
-        }
-        assert len(initial_puppet_modules_ids) > 0
         # remove content view version from Library lifecycle environment
         ContentView.remove_from_environment(
             {
@@ -3204,7 +2805,6 @@ class TestContentView:
             }
         )
         # ensure content view version not in Library and only in DEV
-        # environment and that puppet module still exist
         content_view_version_info = ContentView.version_info(
             {
                 'organization-id': module_org.id,
@@ -3216,11 +2816,6 @@ class TestContentView:
             lce['name'] for lce in content_view_version_info['lifecycle-environments']
         }
         assert {lce_dev['name']} == content_view_version_lce_names
-        puppet_modules_ids = {
-            puppet_module['id']
-            for puppet_module in content_view_version_info.get('puppet-modules', [])
-        }
-        assert initial_puppet_modules_ids == puppet_modules_ids
 
     @pytest.mark.tier2
     def test_positive_remove_qe_promoted_cv_version_from_default_env(self, module_org):
@@ -3308,7 +2903,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view
-            2. Add yum repositories, puppet modules, docker repositories to CV
+            2. Add yum repositories and docker repositories to CV
             3. Publish content view
             4. Promote the content view version to multiple environments
                Library -> DEV -> QE -> PROD
@@ -3337,20 +2932,6 @@ class TestContentView:
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = random.choice(puppet_modules)
         docker_product = cli_factory.make_product({'organization-id': module_org.id})
         docker_repository = cli_factory.make_repository(
             {
@@ -3371,9 +2952,6 @@ class TestContentView:
                     'repository-id': repo['id'],
                 }
             )
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
         ContentView.publish({'id': content_view['id']})
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
         assert len(content_view_versions) > 0
@@ -3418,7 +2996,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view
-            2. Add a yum repo and a puppet module to the content view
+            2. Add a yum repo and a docker repo to the content view
             3. Publish the content view
             4. Promote the content view version to multiple environments
                Library -> DEV -> QE -> STAGE -> PROD
@@ -3453,31 +3031,26 @@ class TestContentView:
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
             {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'content-type': 'docker',
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'name': gen_string('alpha', 20),
+                'product-id': docker_product['id'],
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = random.choice(puppet_modules)
+        Repository.synchronize({'id': docker_repository['id']})
         content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': custom_yum_repo['id'],
-            }
-        )
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
+        for repo in [custom_yum_repo, docker_repository]:
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': module_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
         ContentView.publish({'id': content_view['id']})
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
         assert len(content_view_versions) > 0
@@ -3535,7 +3108,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view
-            2. Add a yum repo and a puppet module to the content view
+            2. Add a yum repo and a docker to the content view
             3. Publish the content view
             4. Promote the content view version to multiple environments
                Library -> DEV -> QE -> STAGE -> PROD
@@ -3566,31 +3139,26 @@ class TestContentView:
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
             {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'content-type': 'docker',
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'name': gen_string('alpha', 20),
+                'product-id': docker_product['id'],
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = random.choice(puppet_modules)
+        Repository.synchronize({'id': docker_repository['id']})
         content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': custom_yum_repo['id'],
-            }
-        )
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
+        for repo in [custom_yum_repo, docker_repository]:
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': module_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
         ContentView.publish({'id': content_view['id']})
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
         assert len(content_view_versions) > 0
@@ -3634,7 +3202,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view
-            2. Add a yum repo and a puppet module to the content view
+            2. Add a yum repo and a docker to the content view
             3. Publish the content view
             4. Promote the content view to multiple environment Library -> DEV
                -> QE -> STAGE -> PROD
@@ -3666,31 +3234,26 @@ class TestContentView:
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
+        docker_product = cli_factory.make_product({'organization-id': module_org.id})
+        docker_repository = cli_factory.make_repository(
             {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'content-type': 'docker',
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
+                'name': gen_string('alpha', 20),
+                'product-id': docker_product['id'],
+                'url': constants.CONTAINER_REGISTRY_HUB,
             }
         )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = random.choice(puppet_modules)
+        Repository.synchronize({'id': docker_repository['id']})
         content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': custom_yum_repo['id'],
-            }
-        )
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
+        for repo in [custom_yum_repo, docker_repository]:
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': module_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
         ContentView.publish({'id': content_view['id']})
         content_view_versions = ContentView.info({'id': content_view['id']})['versions']
         assert len(content_view_versions) > 0
@@ -3741,7 +3304,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view cv1
-            2. Add a yum repo and a puppet module to the content view
+            2. Add a yum repo and a docker repo to the content view
             3. Publish the content view
             4. Promote the content view to multiple environment Library -> DEV
                -> QE
@@ -3780,7 +3343,7 @@ class TestContentView:
         :Steps:
 
             1. Create two content view cv1 and cv2
-            2. Add a yum repo and a puppet module to both content views
+            2. Add a yum repo and a docker repo to both content views
             3. Publish the content views
             4. Promote the content views to multiple environment Library -> DEV
                -> QE
@@ -3827,7 +3390,7 @@ class TestContentView:
             1. Create a content view
             2. Setup satellite to use a capsule and to sync all lifecycle
                environments
-            3. Add a yum repo, puppet module and a docker repo to the content
+            3. Add a yum repo and a docker repo to the content
                view
             4. Publish the content view
             5. Promote the content view to multiple environment Library -> DEV
@@ -3886,27 +3449,11 @@ class TestContentView:
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
-        # Setup a puppet repo
-        puppet_product = cli_factory.make_product({'organization-id': module_org.id})
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_modules = PuppetModule.list(
-            {'repository-id': puppet_repository['id'], 'per-page': False}
-        )
-        assert len(puppet_modules) > 0
-        puppet_module = puppet_modules[0]
-        # Setup a docker repo
         docker_product = cli_factory.make_product({'organization-id': module_org.id})
         docker_repository = cli_factory.make_repository(
             {
                 'content-type': 'docker',
-                'docker-upstream-name': 'busybox',
+                'docker-upstream-name': constants.CONTAINER_UPSTREAM_NAME,
                 'name': gen_string('alpha', 20),
                 'product-id': docker_product['id'],
                 'url': constants.CONTAINER_REGISTRY_HUB,
@@ -3914,22 +3461,14 @@ class TestContentView:
         )
         Repository.synchronize({'id': docker_repository['id']})
         content_view = cli_factory.make_content_view({'organization-id': module_org.id})
-        # Associate the yum repository to content view
-        ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': custom_yum_repo['id'],
-            }
-        )
-        # Associate the puppet module to content view
-        ContentView.puppet_module_add(
-            {'content-view-id': content_view['id'], 'uuid': puppet_module['uuid']}
-        )
-        # Associate the docker repository to content view
-        ContentView.add_repository(
-            {'id': content_view['id'], 'repository-id': docker_repository['id']}
-        )
+        for repo in [custom_yum_repo, docker_repository]:
+            ContentView.add_repository(
+                {
+                    'id': content_view['id'],
+                    'organization-id': module_org.id,
+                    'repository-id': repo['id'],
+                }
+            )
         # Publish the content view
         ContentView.publish({'id': content_view['id']})
         content_view_version = ContentView.info({'id': content_view['id']})['versions'][-1]
@@ -4242,102 +3781,6 @@ class TestContentView:
         content_view = ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
-    @pytest.mark.tier3
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_positive_incremental_update_propagate_composite(self, module_org, module_product):
-        """Incrementally update a CVV in composite CV with
-        `propagate_all_composites` flag set
-
-        :BZ: 1288148
-
-        :id: 97f7c34d-0b89-49ca-ae2a-65a4552789b8
-
-        :customerscenario: true
-
-        :Steps:
-
-            1. Create and publish CV with some content
-            2. Create composite CV, add previously created CV inside it
-            3. Publish composite CV
-            4. Create a puppet repository and upload a puppet module into it
-            5. Incrementally update the CVV with the puppet module with
-               `propagate_all_composites` flag set to `True`
-
-        :expectedresults:
-
-            1. The incremental update succeeds with no errors
-            2. New incremental CVV contains new puppet module
-            3. New incremental composite CVV contains new puppet module
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Medium
-        """
-        yum_repo = cli_factory.make_repository({'product-id': module_product.id})
-        Repository.synchronize({'id': yum_repo['id']})
-        content_view = cli_factory.make_content_view(
-            {'organization-id': module_org.id, 'repository-ids': yum_repo['id']}
-        )
-        ContentView.publish({'id': content_view['id']})
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['versions']) == 1
-        cvv = ContentView.version_info({'id': content_view['versions'][0]['id']})
-        assert len(cvv['puppet-modules']) == 0
-        comp_content_view = cli_factory.make_content_view(
-            {'component-ids': cvv['id'], 'composite': True, 'organization-id': module_org.id}
-        )
-        ContentView.publish({'id': comp_content_view['id']})
-        comp_content_view = ContentView.info({'id': comp_content_view['id']})
-        assert len(comp_content_view['versions']) == 1
-        comp_cvv = ContentView.version_info({'id': comp_content_view['versions'][0]['id']})
-        assert len(comp_cvv['puppet-modules']) == 0
-        puppet_repository = cli_factory.make_repository(
-            {
-                'content-type': 'puppet',
-                'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
-            }
-        )
-        Repository.synchronize({'id': puppet_repository['id']})
-        puppet_module = PuppetModule.list(
-            {
-                'organization-id': module_org.id,
-                'product-id': module_product.id,
-                'repository-id': puppet_repository['id'],
-            }
-        )[0]
-        ContentView.version_incremental_update(
-            {
-                'content-view-version-id': cvv['id'],
-                'propagate-all-composites': 'true',
-                'puppet-module-ids': puppet_module['id'],
-            }
-        )
-        content_view = ContentView.info({'id': content_view['id']})
-        assert len(content_view['versions']) == 2
-        cvvs = [
-            ContentView.version_info({'id': version['id']}, output_format='json')
-            for version in content_view['versions']
-            if version['version'] == '1.1'
-        ]
-        assert len(cvvs)
-        cvv = cvvs[0]
-        assert len(cvv['puppet-modules']) == 1
-        assert list(cvv['puppet-modules'].values())[0]['id'] == puppet_module['id']
-        comp_content_view = ContentView.info({'id': comp_content_view['id']})
-        assert len(comp_content_view['versions']) == 2
-        comp_cvv = [
-            ContentView.version_info({'id': comp_version['id']}, output_format='json')
-            for comp_version in comp_content_view['versions']
-            if comp_version['version'] == '1.1'
-        ]
-        assert len(comp_cvv)
-        comp_cvvs = comp_cvv[0]
-        assert len(comp_cvvs['puppet-modules']) == 1
-        assert list(comp_cvvs['puppet-modules'].values())[0]['id'] == puppet_module['id']
-
 
 @pytest.mark.skip_if_open('BZ:1625783')
 class TestOstreeContentView:
@@ -4457,7 +3900,6 @@ class TestOstreeContentView:
         product = all_content_type['ostree_repo']['product']['name']
         ostree_repo = all_content_type['ostree_repo']['name']
         yum_repo = all_content_type['yum_repo']['name']
-        puppet_repo = all_content_type['puppet_repo']
         docker_repo = all_content_type['docker_repo']['name']
         repos = [ostree_repo, yum_repo, docker_repo]
         for repo in repos:
@@ -4473,13 +3915,6 @@ class TestOstreeContentView:
         assert cv['ostree-repositories'][0]['name'] == ostree_repo
         assert cv['yum-repositories'][0]['name'] == yum_repo
         assert cv['container-image-repositories'][0]['name'] == docker_repo
-        # Fetch puppet module
-        puppet_result = PuppetModule.list({'repository-id': puppet_repo['id'], 'per-page': False})
-        for puppet_module in puppet_result:
-            # Associate puppet module to CV
-            ContentView.puppet_module_add(
-                {'content-view-id': cv['id'], 'uuid': puppet_module['uuid']}
-            )
         ContentView.publish({'id': cv['id']})
         cv = ContentView.info({'id': cv['id']})
         lc_env = cli_factory.make_lifecycle_environment({'organization-id': module_org.id})

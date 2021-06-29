@@ -36,20 +36,17 @@ from robottelo.constants import CUSTOM_RPM_SHA_512_FEED_COUNT
 from robottelo.constants import FILTER_ERRATA_TYPE
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import PRDS
-from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
 from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file
 from robottelo.helpers import get_nailgun_config
 
 # Some tests repeatedly publish content views or promote content view versions.
@@ -214,35 +211,6 @@ class TestContentView:
         assert repo.content_counts['module_stream'] == 7
 
     @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_negative_add_puppet_content(self, module_product, module_org):
-        """Attempt to associate puppet repos within a custom content
-        view directly
-
-        :id: 659e0b7a-9886-43aa-a489-dbd509c29ef8
-
-        :expectedresults: User cannot create a non-composite content view that
-            contains direct puppet repos reference.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-        puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=module_product,
-            url=FAKE_0_PUPPET_REPO,
-        ).create()
-        puppet_repo.sync()
-        with pytest.raises(HTTPError):
-            entities.ContentView(
-                organization=module_org,
-                repository=[puppet_repo.id],
-            ).create()
-
-    @pytest.mark.tier2
     def test_negative_add_dupe_repos(self, content_view, module_product, module_org):
         """Attempt to associate the same repo multiple times within a
         content view
@@ -262,43 +230,6 @@ class TestContentView:
             content_view.repository = [yum_repo, yum_repo]
             content_view.update(['repository'])
         assert len(content_view.read().repository) == 0
-
-    @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    def test_negative_add_dupe_modules(self, content_view, module_product, module_org):
-        """Attempt to associate duplicate puppet modules within a
-        content view
-
-        :id: 79036b3b-18dd-489e-9725-15f052371512
-
-        :expectedresults: User cannot add same modules multiple times to the
-            view
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Low
-        """
-        puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=module_product,
-            url=FAKE_0_PUPPET_REPO,
-        ).create()
-        puppet_repo.sync()
-        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-        assert len(content_view.read().puppet_module) == 0
-        entities.ContentViewPuppetModule(
-            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-        ).create()
-        assert len(content_view.read().puppet_module) == 1
-        with pytest.raises(HTTPError):
-            entities.ContentViewPuppetModule(
-                author=puppet_module['author'],
-                name=puppet_module['name'],
-                content_view=content_view,
-            ).create()
-        assert len(content_view.read().puppet_module) == 1
 
     @pytest.mark.tier2
     @pytest.mark.skipif(
@@ -442,14 +373,6 @@ class TestContentViewPublishPromote:
             product=module_product, url=CUSTOM_SWID_TAG_REPO
         ).create()
         self.swid_repo.sync()
-        request.cls.puppet_repo = entities.Repository(
-            content_type='puppet',
-            product=module_product.id,
-            url=FAKE_0_PUPPET_REPO,
-        ).create()
-        self.puppet_repo.sync()
-        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            self.puppet_repo.upload_content(files={'content': handle})
 
     def add_content_views_to_composite(self, composite_cv, module_org, cv_amount=1):
         """Add necessary number of content views to the composite one
@@ -542,37 +465,6 @@ class TestContentViewPublishPromote:
             assert len(composite_cv.read().version) == i + 1
 
     @pytest.mark.tier2
-    def test_positive_publish_with_puppet_multiple(self, content_view, module_org):
-        """Publish a content view that has puppet module
-        several times.
-
-        :id: 7096abc9-e761-40cc-8e5b-acc16c7e9c27
-
-        :expectedresults: The puppet module is referenced from the content
-            view, the content view can be published several times, and each
-            version references the puppet module.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Medium
-        """
-        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-
-        # Assign a puppet module and check that it is referenced.
-        entities.ContentViewPuppetModule(
-            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-        ).create()
-        assert len(content_view.read().puppet_module) == 1
-
-        # Publish the content view several times and check that each version
-        # has the puppet module added above.
-        for i in range(random.randint(3, 5)):
-            content_view.publish()
-            assert len(content_view.read().version) == i + 1
-        for cvv in content_view.read().version:
-            assert len(cvv.read().puppet_module) == 1
-
-    @pytest.mark.tier2
     def test_positive_promote_with_yum_multiple(self, content_view, module_org):
         """Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
@@ -606,44 +498,6 @@ class TestContentViewPublishPromote:
         cvv_attrs = content_view.version[0].read_json()
         assert len(cvv_attrs['environments']) == REPEAT + 1
         assert cvv_attrs['package_count'] > 0
-
-    @pytest.mark.tier2
-    def test_positive_promote_with_puppet_multiple(self, content_view, module_org):
-        """Give a content view a puppet module, publish it once and
-        promote the content view version ``Library + random`` times.
-
-        :id: a01465b6-00e9-4a96-9ab5-269a270313cc
-
-        :expectedresults: The content view has one puppet module, the content
-            view version is in ``Library + random`` lifecycle environments and
-            it has one puppet module.
-
-        :CaseLevel: Integration
-
-        :CaseImportance: Medium
-        """
-        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-        entities.ContentViewPuppetModule(
-            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-        ).create()
-        content_view.publish()
-        content_view = content_view.read()
-
-        # Promote the content view version.
-        envs_amount = random.randint(2, 3)
-        for _ in range(envs_amount):
-            lce = entities.LifecycleEnvironment(organization=module_org).create()
-            promote(content_view.version[0], lce.id)
-
-        # Everything's done. Check some content view attributes...
-        content_view = content_view.read()
-        assert len(content_view.version) == 1
-        assert len(content_view.puppet_module) == 1
-
-        # ...and some content view version attributes.
-        cvv = content_view.version[0].read()
-        assert len(cvv.environment) == envs_amount + 1
-        assert len(cvv.puppet_module) == 1
 
     @pytest.mark.tier2
     def test_positive_add_to_composite(self, content_view, module_org):
@@ -1424,13 +1278,6 @@ class TestOstreeContentView:
             product=module_product,
         ).create()
         self.yum_repo.sync()
-        # Create new Puppet repository
-        request.cls.puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
-            content_type='puppet',
-            product=module_product,
-        ).create()
-        self.puppet_repo.sync()
         # Create new docker repository
         request.cls.docker_repo = entities.Repository(
             content_type='docker',
@@ -1499,7 +1346,7 @@ class TestOstreeContentView:
     @pytest.mark.tier2
     @pytest.mark.upgrade
     def test_positive_publish_promote_with_custom_ostree_and_other(self, content_view, module_lce):
-        """Publish & Promote a content view with custom ostree and other contents
+        """Publish & Promote a content view with custom ostree and file content
 
         :id: 690ec30a-56ac-4478-afb2-be34a85a614a
 
@@ -1513,11 +1360,6 @@ class TestOstreeContentView:
         content_view.repository = [self.ostree_repo, self.yum_repo, self.docker_repo]
         content_view = content_view.update(['repository'])
         assert len(content_view.repository) == 3
-        puppet_module = random.choice(content_view.available_puppet_modules()['results'])
-        entities.ContentViewPuppetModule(
-            author=puppet_module['author'], name=puppet_module['name'], content_view=content_view
-        ).create()
-        assert len(content_view.read().puppet_module) == 1
         content_view.publish()
         assert len(content_view.read().version) == 1
         promote(content_view.read().version[0], module_lce.id)

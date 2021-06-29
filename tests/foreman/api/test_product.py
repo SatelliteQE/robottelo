@@ -34,7 +34,6 @@ from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -356,15 +355,10 @@ def test_positive_sync_several_repos(module_org):
     rpm_repo = entities.Repository(
         product=product, content_type='yum', url=FAKE_1_YUM_REPO
     ).create()
-    puppet_repo = entities.Repository(
-        product=product, content_type='puppet', url=FAKE_1_PUPPET_REPO
-    ).create()
     assert rpm_repo.read().content_counts['rpm'] == 0
-    assert puppet_repo.read().content_counts['puppet_module'] == 0
 
     product.sync()
     assert rpm_repo.read().content_counts['rpm'] >= 1
-    assert puppet_repo.read().content_counts['puppet_module'] >= 1
 
 
 @pytest.mark.tier2
