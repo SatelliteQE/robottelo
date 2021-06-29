@@ -15,6 +15,8 @@ from wrapanapi.entities.vm import VmState
 from robottelo import constants
 from robottelo import ssh
 from robottelo.cli.factory import CLIFactoryError
+from robottelo.config import configure_airgun
+from robottelo.config import configure_nailgun
 from robottelo.config import settings
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import InstallerCommand
@@ -861,12 +863,19 @@ class Satellite(Capsule):
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname
         super().__init__(hostname=hostname, **kwargs)
-        self._init_nailgun()
-        self._init_cli()
-        self._init_airgun()
+        # create dummy classes for later population
+        self._api = type('api', (), {'_configured': False})
+        self._cli = type('cli', (), {'_configured': False})
+        self._ui_session = None
 
-    def _init_nailgun(self):
+    @property
+    def api(self):
         """Import all nailgun entities and wrap them under self.api"""
+        if not self._api:
+            self._api = type('api', (), {'_configured': False})
+        if self._api._configured:
+            return self._api
+
         from nailgun.config import ServerConfig
         from nailgun.entity_mixins import Entity
 
@@ -886,21 +895,26 @@ class Satellite(Capsule):
             verify=False,
         )
         # add each nailgun entity to self.api, injecting our server config
-        self.api = lambda: None
         for name, obj in entities.__dict__.items():
             try:
                 if Entity in obj.mro():
-                    setattr(self.api, name, inject_config(obj, self.nailgun_cfg))
+                    setattr(self._api, name, inject_config(obj, self.nailgun_cfg))
             except AttributeError:
                 # not everything has an mro method, we don't care about them
                 pass
+        return self._api
 
-    def _init_cli(self):
+    @property
+    def cli(self):
         """Import all robottelo cli entities and wrap them under self.cli"""
+        if not self._cli:
+            self._cli = type('cli', (), {'_configured': False})
+        if self._cli._configured:
+            return self._cli
+
         import importlib
         from robottelo.cli.base import Base
 
-        self.cli = lambda: None
         for file in Path('robottelo/cli/').iterdir():
             if file.suffix == '.py' and not file.name.startswith('_'):
                 cli_module = importlib.import_module(f'robottelo.cli.{file.stem}')
@@ -909,13 +923,18 @@ class Satellite(Capsule):
                         if Base in obj.mro():
                             # set our hostname as a class attribute
                             obj.hostname = self.hostname
-                            setattr(self.cli, name, obj)
+                            setattr(self._cli, name, obj)
                     except AttributeError:
                         # not everything has an mro method, we don't care about them
                         pass
+        return self._cli
 
-    def _init_airgun(self):
+    @property
+    def ui_session(self):
         """Initialize an airgun Session object and store it as self.ui_session"""
+        if self._ui_session:
+            return self._ui_session
+
         from airgun.session import Session
 
         def get_caller():
@@ -925,12 +944,13 @@ class Satellite(Capsule):
                 if frame.function.startswith('test_'):
                     return frame.function
 
-        self.ui_session = Session(
+        self._ui_session = Session(
             session_name=get_caller(),
             user=settings.server.admin_username,
             password=settings.server.admin_password,
             hostname=self.hostname,
         )
+        return self._ui_session
 
     @cached_property
     def version(self):
@@ -948,3 +968,18 @@ class Satellite(Capsule):
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
         return install_cmd
+
+    def __enter__(self):
+        """Satellite objects can be used as a context manager to temporarily force everything
+        to use the Satellite object's hostname.
+        """
+        self.__old_hostname = settings.server.hostname
+        settings.server.hostname = self.hostname
+        configure_nailgun()
+        configure_airgun()
+        return self
+
+    def __exit__(self, *err_args):
+        settings.server.hostname = self.__old_hostname
+        configure_nailgun()
+        configure_airgun()

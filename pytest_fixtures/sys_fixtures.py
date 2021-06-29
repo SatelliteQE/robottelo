@@ -4,10 +4,10 @@ from robottelo.config import settings
 
 
 @pytest.fixture
-def foreman_service_teardown(default_sat):
+def foreman_service_teardown(satellite_latest):
     """stop and restart of foreman service"""
-    yield
-    default_sat.execute('foreman-maintain service start --only=foreman')
+    yield satellite_latest
+    satellite_latest.execute('foreman-maintain service start --only=foreman')
 
 
 @pytest.fixture

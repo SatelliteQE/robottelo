@@ -455,7 +455,7 @@ class TestRHSSOAuthSource:
         run_command(f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}")
 
     @pytest.fixture()
-    def rh_sso_hammer_auth_setup(self, request):
+    def rh_sso_hammer_auth_setup(self, destructive_sat, request):
         """rh_sso hammer setup before running the auth login tests"""
         self.configure_hammer_session()
         client_config = {'publicClient': 'true'}
@@ -472,7 +472,11 @@ class TestRHSSOAuthSource:
     @pytest.mark.external_auth
     @pytest.mark.destructive
     def test_rhsso_login_using_hammer(
-        self, enable_external_auth_rhsso, rhsso_setting_setup, rh_sso_hammer_auth_setup
+        self,
+        destructive_sat,
+        enable_external_auth_rhsso,
+        rhsso_setting_setup,
+        rh_sso_hammer_auth_setup,
     ):
         """verify the hammer auth login using RHSSO auth source
 
@@ -482,7 +486,7 @@ class TestRHSSOAuthSource:
 
         :CaseImportance: High
         """
-        result = AuthLogin.oauth(
+        result = destructive_sat.cli.AuthLogin.oauth(
             {
                 'oidc-token-endpoint': get_oidc_token_endpoint(),
                 'oidc-client-id': get_oidc_client_id(),
@@ -491,19 +495,19 @@ class TestRHSSOAuthSource:
             }
         )
         assert f"Successfully logged in as '{settings.rhsso.rhsso_user}'." == result[0]['message']
-        result = Auth.with_user(
+        result = destructive_sat.cli.Auth.with_user(
             username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
         ).status()
         assert (
             f"Session exists, currently logged in as '{settings.rhsso.rhsso_user}'."
             == result[0]['message']
         )
-        task_list = Task.with_user(
+        task_list = destructive_sat.cli.Task.with_user(
             username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
         ).list()
         assert len(task_list) >= 0
         with pytest.raises(CLIReturnCodeError) as error:
-            Role.with_user(
+            destructive_sat.cli.Role.with_user(
                 username=settings.rhsso.rhsso_user, password=settings.rhsso.rhsso_password
             ).list()
         assert 'Missing one of the required permissions' in error.value.message

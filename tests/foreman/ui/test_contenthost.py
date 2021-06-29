@@ -1406,7 +1406,7 @@ def test_search_for_virt_who_hypervisors(session):
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
-def test_content_access_after_stopped_foreman(session, vm, foreman_service_teardown):
+def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_contenthost):
     """Install a package even after foreman service is stopped
 
     :id: 71ae6a56-30bb-11eb-8489-d46d6dd3b5b2
@@ -1421,10 +1421,29 @@ def test_content_access_after_stopped_foreman(session, vm, foreman_service_teard
 
     :Assignee: lpramuk
     """
-    result = vm.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
+    sat = foreman_service_teardown
+    org = sat.api.Organization().create()
+    # adding remote_execution_connect_by_ip=Yes at org level
+    sat.api.Parameter(
+        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+    ).create()
+    lce = sat.api.LifecycleEnvironment(organization=org).create()
+    with sat:  # ensure the context section only uses this satellite
+        repos_collection = RepositoryCollection(
+            distro=DISTRO_RHEL7,
+            repositories=[
+                RHELAnsibleEngineRepository(cdn=True),
+                SatelliteToolsRepository(),
+                YumRepository(url=FAKE_1_YUM_REPO),
+                YumRepository(url=FAKE_6_YUM_REPO),
+            ],
+        )
+        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+        repos_collection.setup_virtual_machine(rhel7_contenthost)
+    result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     run_command('systemctl stop foreman')
     result = ssh.command('foreman-maintain service status --only=foreman')
     assert result.return_code == 1
-    result = vm.run(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
+    result = rhel7_contenthost.run(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
