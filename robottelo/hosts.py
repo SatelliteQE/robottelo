@@ -68,12 +68,11 @@ class SatelliteHostError(Exception):
 class ContentHost(Host):
     run = Host.execute
 
-    def __init__(self, hostname, auth=None, connect=True, **kwargs):
+    def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
 
         :param hostname: The fqdn of a ContentHost target
         :param auth: ('root', 'rootpass') or '/path/to/keyfile.rsa'
-        :param connect: Establish an ssh connection or not
         """
         if not hostname:
             raise ContentHostError('A valid hostname must be provided')
@@ -84,8 +83,6 @@ class ContentHost(Host):
             # key file based authentication
             kwargs.update({'key_filename': auth})
         super().__init__(hostname=hostname, **kwargs)
-        if connect:
-            self.connect()
 
     @property
     def nailgun_host(self):
@@ -134,6 +131,7 @@ class ContentHost(Host):
 
         if ensure:
             try:
+                # refresh/establish the ssh connection
                 self.connect()
             # really broad diaper here, but connection exceptions could be a ton of types
             except Exception:
