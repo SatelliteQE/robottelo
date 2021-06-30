@@ -470,8 +470,8 @@ class TestPersonalAccessToken:
         :id: cb07b096-aba4-4a95-9a15-5413f32b597b
 
         :steps:
-            1. Set the expired time to 1 minute from the current time.
-            2. Wait 1 minute
+            1. Set the expired time to +x seconds from the current time.
+            2. Wait +x seconds
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
