@@ -38,7 +38,7 @@ def setting_update(name, value):
 
 
 def common_assertion(report_path, inventory_data, org):
-    """ Function to perform common assertions"""
+    """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
         f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
@@ -79,11 +79,12 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
         5. JSON files inside report can be parsed
         6. metadata.json lists all and only slice JSON files in tar
         7. Host counts in metadata matches host counts in slices
+        8. Assert Hostnames, IP addresses, and installed packages are present in report.
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = registered_hosts
     with session:
-        session.organization.select(org_name="Default Organization")
+        session.organization.select(org_name=org.name)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
@@ -95,12 +96,11 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
 
-    common_assertion(report_path, inventory_data, org.name)
+    common_assertion(report_path, inventory_data, org)
     json_data = get_report_data(report_path)
     hostnames = [host['fqdn'] for host in json_data['hosts']]
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
-    # Assert that ip_addresses are obfuscated from report.
     ip_addresses = [
         host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
         for host in json_data['hosts']
@@ -111,12 +111,6 @@ def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session)
     assert virtual_host.ip_addr in ipv4_addresses
     assert baremetal_host.ip_addr in ipv4_addresses
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
-    for host_profiles in all_host_profiles:
-        assert 'installed_packages' not in host_profiles
-
-    all_host_profiles = [
-        host['system_profile']['installed_packages'] for host in json_data['hosts']
-    ]
     for host_profiles in all_host_profiles:
         assert 'installed_packages' in host_profiles
         assert len(host_profiles['installed_packages']) > 1
@@ -220,8 +214,8 @@ def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
         assert baremetal_host.hostname not in hostnames
         # Assert that host ip_addresses are present in the report.
         ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        assert virtual_host.ip_addr in ipv4_addresses
+        assert baremetal_host.ip_addr in ipv4_addresses
         # Disable obfuscate_hostnames setting on inventory page.
         session.cloudinventory.update({'obfuscate_hostnames': False})
 
@@ -245,8 +239,8 @@ def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        assert virtual_host.ip_addr in ipv4_addresses
+        assert baremetal_host.ip_addr in ipv4_addresses
         setting_update("obfuscate_inventory_hostnames", False)
 
 
@@ -281,7 +275,7 @@ def test_obfuscate_host_ipv4_addresses(organization_ak_setup, registered_hosts, 
     with session:
         session.organization.select(org_name=org.name)
         # Enable obfuscate_ips setting on inventory page.
-        session.cloudinventory.update({'obfuscate_hostnames': True})
+        session.cloudinventory.update({'obfuscate_ips': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
