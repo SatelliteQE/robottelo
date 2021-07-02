@@ -29,9 +29,7 @@ from robottelo.rh_cloud_utils import get_report_data
 
 
 def setting_update(name, value):
-    """
-    change setting value
-    """
+    """change setting value"""
     setting = entities.Setting().search(query={'search': f'name="{name}"'})[0]
     setting.value = value
     setting.update({'value'})
@@ -43,7 +41,7 @@ def disable_inventory_settings():
     setting_update("exclude_installed_packages", False)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def inventory_settings():
     disable_inventory_settings()
     yield

@@ -92,11 +92,11 @@ def get_report_data(report_path):
         tarobj: tar file to get report data from
     """
     json_data = {}
-    tarobj = tarfile.open(report_path, mode='r')
-    for file_ in tarobj.getmembers():
-        file_name = os.path.basename(file_.name)
-        if not file_name.endswith('.json'):
-            continue
-        if file_name != 'metadata.json':
-            json_data = json.load(tarobj.extractfile(file_))
+    with tarfile.open(report_path, mode='r') as tarobj:
+        for file_ in tarobj.getmembers():
+            file_name = os.path.basename(file_.name)
+            if not file_name.endswith('.json'):
+                continue
+            if file_name != 'metadata.json':
+                json_data = json.load(tarobj.extractfile(file_))
     return json_data
