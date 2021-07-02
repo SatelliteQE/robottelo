@@ -95,6 +95,8 @@ def test_rhcloud_inventory_e2e(
         6. metadata.json lists all and only slice JSON files in tar
         7. Host counts in metadata matches host counts in slices
         8. Assert Hostnames, IP addresses, and installed packages are present in report.
+
+    :BZ: 1807829
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = registered_hosts
@@ -267,6 +269,8 @@ def test_obfuscate_host_ipv4_addresses(
 
     :id: c0fc4ee9-a6a1-42c0-83f0-0f131ca9ab41
 
+    :customerscenario: true
+
     :Steps:
 
         1. Prepare machine and upload its data to Insights
@@ -364,6 +368,8 @@ def test_exclude_packages_setting(
     """Test whether `Exclude Packages` setting works as expected.
 
     :id: 646093fa-fdd6-4f70-82aa-725e31fa3f12
+
+    :customerscenario: true
 
     :Steps:
 
