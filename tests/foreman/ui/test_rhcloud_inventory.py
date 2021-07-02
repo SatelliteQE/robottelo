@@ -37,6 +37,19 @@ def setting_update(name, value):
     setting.update({'value'})
 
 
+def disable_inventory_settings():
+    setting_update("obfuscate_inventory_hostnames", False)
+    setting_update("obfuscate_inventory_ips", False)
+    setting_update("exclude_installed_packages", False)
+
+
+@pytest.fixture(scope="function")
+def inventory_settings():
+    disable_inventory_settings()
+    yield
+    disable_inventory_settings()
+
+
 def common_assertion(report_path, inventory_data, org):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
@@ -65,7 +78,9 @@ def common_assertion(report_path, inventory_data, org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_rhcloud_inventory_e2e(organization_ak_setup, registered_hosts, session):
+def test_rhcloud_inventory_e2e(
+    inventory_settings, organization_ak_setup, registered_hosts, session
+):
     """Generate report and verify its basic properties
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
@@ -163,7 +178,7 @@ def test_hosts_synchronization():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
+def test_obfuscate_host_names(inventory_settings, organization_ak_setup, registered_hosts, session):
     """Test whether `Obfuscate host names` setting works as expected.
 
     :id: 3c3a36b6-6566-446b-b803-3f8f9aab2511
@@ -241,12 +256,13 @@ def test_obfuscate_host_names(organization_ak_setup, registered_hosts, session):
         ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
         assert virtual_host.ip_addr in ipv4_addresses
         assert baremetal_host.ip_addr in ipv4_addresses
-        setting_update("obfuscate_inventory_hostnames", False)
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_obfuscate_host_ipv4_addresses(organization_ak_setup, registered_hosts, session):
+def test_obfuscate_host_ipv4_addresses(
+    inventory_settings, organization_ak_setup, registered_hosts, session
+):
     """Test whether `Obfuscate host ipv4 addresses` setting works as expected.
 
     :id: c0fc4ee9-a6a1-42c0-83f0-0f131ca9ab41
@@ -338,12 +354,13 @@ def test_obfuscate_host_ipv4_addresses(organization_ak_setup, registered_hosts, 
         assert baremetal_host.ip_addr not in ip_addresses
         assert virtual_host.ip_addr not in ipv4_addresses
         assert baremetal_host.ip_addr not in ipv4_addresses
-        setting_update("obfuscate_inventory_ips", False)
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_exclude_packages_setting(organization_ak_setup, registered_hosts, session):
+def test_exclude_packages_setting(
+    inventory_settings, organization_ak_setup, registered_hosts, session
+):
     """Test whether `Exclude Packages` setting works as expected.
 
     :id: 646093fa-fdd6-4f70-82aa-725e31fa3f12
@@ -420,4 +437,3 @@ def test_exclude_packages_setting(organization_ak_setup, registered_hosts, sessi
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
             assert 'installed_packages' not in host_profiles
-        setting_update("exclude_installed_packages", False)
