@@ -2,7 +2,5 @@ BROKER:
     # The path where your broker settings and inventory are located
     BROKER_DIRECTORY: "."
     HOST_WORKFLOWS:
-        POWER_CYCLE: powercycle-vm
-        # POWER_OFF:
-        # POWER_ON:
+        POWER_CONTROL: vm-power-operation
         EXTEND: extend-vm

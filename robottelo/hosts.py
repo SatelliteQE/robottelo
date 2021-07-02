@@ -20,9 +20,10 @@ from robottelo.helpers import install_katello_ca
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import remove_katello_ca
 
-POWER_WORKFLOW_KEYS = {
-    VmState.RUNNING: 'power_on',
-    VmState.STOPPED: 'power_off',
+POWER_OPERATIONS = {
+    VmState.RUNNING: 'running',
+    VmState.STOPPED: 'stopped',
+    'reboot': 'reboot'
     # TODO paused, suspended, shelved?
 }
 
@@ -111,37 +112,42 @@ class ContentHost(Host):
         """Lookup the host workflow for power on and execute
 
         Args:
-            state: A VmState mapped in POWER_WORKFLOW_KEYS or settings.broker.host_workflows key
+            state: A VmState from wrapanpi.entities.vm or 'reboot'
             ensure: boolean indicating whether to try and connect to ensure power state
 
         Raises:
             NotImplementedError: if the workflow name isn't found in settings
             BrokerError: various error types to do with broker execution
-            AssertionError: if the workflow status isn't successful and broker didn't raise
+            ContentHostError: if the workflow status isn't successful and broker didn't raise
         """
         try:
-            workflow_key = POWER_WORKFLOW_KEYS.get(state, state)
-            workflow_name = getattr(settings.broker.host_workflows, workflow_key)
+            vm_operation = POWER_OPERATIONS.get(state)
+            workflow_name = settings.broker.host_workflows.power_control
         except (AttributeError, KeyError):
-            raise NotImplementedError(f'No workflow specified in broker.host_workflows for {state}')
+            raise NotImplementedError(
+                'No workflow in broker.host_workflows for power control, '
+                'or VM operation not supported'
+            )
         assert (
-            VMBroker().execute(workflow=workflow_name, target_vm=self.name)['status'].lower()
+            # TODO read the kwarg name from settings too?
+            VMBroker()
+            .execute(
+                workflow=workflow_name,
+                vm_operation=vm_operation,
+                source_vm=self.name,
+            )['status']
+            .lower()
             == 'successful'
         )
 
-        if ensure:
+        if ensure and state in [VmState.RUNNING, 'reboot']:
             try:
-                # refresh/establish the ssh connection
-                self.connect()
+                wait_for(
+                    self.connect, fail_condition=lambda res: res is not None, handle_exception=True
+                )
             # really broad diaper here, but connection exceptions could be a ton of types
-            except Exception:
-                if state == VmState.RUNNING:
-                    raise AssertionError('Unable to connect to host that should be running')
-                if state == VmState.STOPPED:
-                    # Other than running/stopped, no telling what state the host is in
-                    pass
-                else:
-                    pass
+            except TimedOutError:
+                raise ContentHostError('Unable to connect to host that should be running')
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the broker virtual machine.
