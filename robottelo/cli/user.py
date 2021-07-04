@@ -96,7 +96,7 @@ class User(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def personal_access_token(cls, action=None, options=None):
+    def access_token(cls, action=None, options=None):
         """
         Usage:
         hammer user access-token [ARG] ...

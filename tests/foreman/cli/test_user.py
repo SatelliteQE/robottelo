@@ -408,7 +408,7 @@ class TestPersonalAccessToken:
         """
         user = make_user({'admin': '1'})
         token_name = gen_alphanumeric()
-        result = User.personal_access_token(
+        result = User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split('\n')[-1]
@@ -417,9 +417,7 @@ class TestPersonalAccessToken:
         )
         command_output = default_sat.execute(curl_command)
         assert user['login'] and user['email'] in command_output.stdout
-        User.personal_access_token(
-            action="revoke", options={'name': token_name, 'user-id': user['id']}
-        )
+        User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
         command_output = default_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
@@ -448,7 +446,7 @@ class TestPersonalAccessToken:
         user = make_user()
         User.add_role({'login': user['login'], 'role': 'View hosts'})
         token_name = gen_alphanumeric()
-        result = User.personal_access_token(
+        result = User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split('\n')[-1]
@@ -486,7 +484,7 @@ class TestPersonalAccessToken:
         datetime_now = datetime.datetime.utcnow()
         datetime_expire = datetime_now + datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
-        result = User.personal_access_token(
+        result = User.access_token(
             action="create",
             options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
         )
