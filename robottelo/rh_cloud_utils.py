@@ -1,8 +1,8 @@
 """Utility module for RH cloud inventory tests"""
 import hashlib
 import json
-import os
 import tarfile
+from pathlib import Path
 
 from robottelo import ssh
 
@@ -16,7 +16,7 @@ def get_host_counts(tarobj):
     metadata_counts = {}
     slices_counts = {}
     for file_ in tarobj.getmembers():
-        file_name = os.path.basename(file_.name)
+        file_name = Path(file_.name).name
         if not file_name.endswith('.json'):
             continue
         json_data = json.load(tarobj.extractfile(file_))
@@ -40,7 +40,7 @@ def get_local_file_data(path):
     Args:
         path: path to tar file
     """
-    size = os.path.getsize(path)
+    size = Path(path).stat().st_size
 
     with open(path, 'rb') as fh:
         file_content = fh.read()
@@ -94,7 +94,7 @@ def get_report_data(report_path):
     json_data = {}
     with tarfile.open(report_path, mode='r') as tarobj:
         for file_ in tarobj.getmembers():
-            file_name = os.path.basename(file_.name)
+            file_name = Path(file_.name).name
             if not file_name.endswith('.json'):
                 continue
             if file_name != 'metadata.json':

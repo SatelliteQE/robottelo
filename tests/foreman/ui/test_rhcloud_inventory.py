@@ -36,9 +36,9 @@ def setting_update(name, value):
 
 
 def disable_inventory_settings():
-    setting_update("obfuscate_inventory_hostnames", False)
-    setting_update("obfuscate_inventory_ips", False)
-    setting_update("exclude_installed_packages", False)
+    setting_update('obfuscate_inventory_hostnames', False)
+    setting_update('obfuscate_inventory_ips', False)
+    setting_update('exclude_installed_packages', False)
 
 
 @pytest.fixture
@@ -235,7 +235,7 @@ def test_obfuscate_host_names(inventory_settings, organization_ak_setup, registe
         session.cloudinventory.update({'obfuscate_hostnames': False})
 
         # Enable obfuscate_hostnames setting.
-        setting_update("obfuscate_inventory_hostnames", True)
+        setting_update('obfuscate_inventory_hostnames', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
@@ -328,7 +328,7 @@ def test_obfuscate_host_ipv4_addresses(
         session.cloudinventory.update({'obfuscate_ips': False})
 
         # Enable obfuscate_inventory_ips setting.
-        setting_update("obfuscate_inventory_ips", True)
+        setting_update('obfuscate_inventory_ips', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
@@ -422,7 +422,7 @@ def test_exclude_packages_setting(
             assert 'installed_packages' not in host_profiles
 
         # Enable exclude_installed_packages setting.
-        setting_update("exclude_installed_packages", True)
+        setting_update('exclude_installed_packages', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
