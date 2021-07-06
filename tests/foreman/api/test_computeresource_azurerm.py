@@ -176,7 +176,7 @@ class TestAzureRMComputeResourceTestCase:
 
         :BZ: 1829107
 
-        :customer_scenario: true
+        :customerscenario: true
         """
 
 
