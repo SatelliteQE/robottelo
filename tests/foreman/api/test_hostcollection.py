@@ -394,7 +394,7 @@ def test_negative_create_with_invalid_name(module_org, name):
 
 
 @pytest.mark.tier1
-def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, module_puppet_classes):
+def test_positive_add_remove_subscription(module_org, module_ak_cv_lce):
     """Try to bulk add and remove a subscription to members of a host collection.
 
     :id: c4ec5727-eb25-452e-a91f-87cafb16666b
@@ -422,7 +422,9 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, module_p
     # Create a product so we have a subscription to use
     product = entities.Product(organization=module_org).create()
     prod_name = product.name
-    product_subscription = entities.Subscription().search(query={'search': f'name={prod_name}'})[0]
+    product_subscription = entities.Subscription(organization=module_org).search(
+        query={'search': f'name={prod_name}'}
+    )[0]
     # Create and register VMs as members of Host Collection
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         for client in hosts:
