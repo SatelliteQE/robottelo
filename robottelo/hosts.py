@@ -647,8 +647,8 @@ class ContentHost(Host):
                 'repository-set': constants.REPOSET['rhst7'],
                 'repository': constants.REPOS['rhst7']['name'],
                 'repository-id': constants.REPOS['rhst7']['id'],
-                'url': settings.sattools_repo['rhel7'],
-                'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
+                'url': settings.repos.sattools_repo['rhel7'],
+                'cdn': bool(settings.robottelo.cdn or not settings.repos.sattools_repo['rhel7']),
             }
         ]
         repos.extend(extra_repos)
