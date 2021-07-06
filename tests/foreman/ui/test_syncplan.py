@@ -31,20 +31,19 @@ from robottelo.datafactory import gen_string
 from robottelo.datafactory import valid_cron_expressions
 
 
-def validate_task_status(repo_id, max_tries=10, repo_backend_id=None):
-    """Wait for Pulp and foreman_tasks to complete or timeout
+def validate_task_status(repo_id, org_id, max_tries=10, repo_backend_id=None):
+    """Wait for pulp and foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
-    :param repo_backend_id: Backend identifier of repository to filter the
-        pulp tasks
+    :param org_id: Org ID to ensure valid check on busy Satellite
     """
     if repo_backend_id:
         wait_for_syncplan_tasks(repo_backend_id)
     wait_for_tasks(
-        search_query='resource_type = Katello::Repository'
-        ' and owner.login = foreman_admin'
-        ' and resource_id = {}'.format(repo_id),
+        search_query='Actions::Katello::Repository::Sync'
+        f' and organization_id = {org_id}'
+        f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
 
@@ -246,13 +245,14 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         )
         assert session.syncplan.search(plan_name)[0]['Name'] == plan_name
         session.syncplan.add_product(plan_name, product.name)
+        # check that product was not synced
         with pytest.raises(AssertionError) as context:
-            validate_task_status(repo.id, max_tries=2)
+            validate_task_status(repo.id, module_org.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Waiting part of delay that left and check that product was synced
+        # Waiting part of delay that is left and check that product was synced
         time.sleep(next_sync)
-        validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
+        validate_task_status(repo.id, module_org.id)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
@@ -299,12 +299,12 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(session,
         # Waiting part of delay and check that product was not synced
         time.sleep(delay / 4)
         with pytest.raises(AssertionError) as context:
-            validate_task_status(repo.id, max_tries=2)
+            validate_task_status(repo.id, module_org.id, max_tries=2)
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
-        # Waiting part of delay that left and check that product was synced
+        # Waiting part of delay that is left and check that product was synced
         time.sleep(delay * 3 / 4)
-        validate_task_status(repo.id, repo_backend_id=repo.backend_identifier)
+        validate_task_status(repo.id, module_org.id)
         validate_repo_content(repo, ['erratum', 'package', 'package_group'])
         repo_values = session.repository.read(product.name, repo.name)
         for repo_type in ['Packages', 'Errata', 'Package Groups']:
