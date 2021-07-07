@@ -559,7 +559,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_past_sync_date(module_org):
+def test_positive_synchronize_rh_product_past_sync_date():
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -595,7 +595,7 @@ def test_positive_synchronize_rh_product_past_sync_date(module_org):
         {
             'enabled': 'true',
             'interval': 'hourly',
-            'organization-id': module_org.id,
+            'organization-id': org['id'],
             'sync-date': (datetime.utcnow() - timedelta(seconds=interval - delay)).strftime(
                 SYNC_DATE_FMT
             ),
@@ -611,7 +611,7 @@ def test_positive_synchronize_rh_product_past_sync_date(module_org):
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
+        validate_task_status(repo['id'], org['id'], max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -620,14 +620,14 @@ def test_positive_synchronize_rh_product_past_sync_date(module_org):
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
+    validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date(module_org):
+def test_positive_synchronize_rh_product_future_sync_date():
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -660,7 +660,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
     sync_plan = make_sync_plan(
         {
             'enabled': 'true',
-            'organization-id': module_org.id,
+            'organization-id': org['id'],
             'sync-date': (datetime.utcnow().replace(second=0) + timedelta(seconds=delay)).strftime(
                 SYNC_DATE_FMT
             ),
@@ -669,7 +669,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
     )
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
+        validate_task_status(repo['id'], org['id'], max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Associate sync plan with product
     Product.set_sync_plan({'id': product['id'], 'sync-plan-id': sync_plan['id']})
@@ -681,7 +681,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
-        validate_task_status(repo['id'], module_org.id, max_tries=1)
+        validate_task_status(repo['id'], org['id'], max_tries=1)
     validate_repo_content(repo, ['errata', 'packages'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
@@ -690,7 +690,7 @@ def test_positive_synchronize_rh_product_future_sync_date(module_org):
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
-    validate_task_status(repo['id'], module_org.id)
+    validate_task_status(repo['id'], org['id'])
     validate_repo_content(repo, ['errata', 'packages'])
 
 
