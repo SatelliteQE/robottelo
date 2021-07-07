@@ -2243,7 +2243,7 @@ def _get_capsule_vm_distro_repos(distro):
                 'repository': constants.REPOS['rhsc7']['name'],
                 'repository-id': constants.REPOS['rhsc7']['id'],
                 'url': settings.repos.capsule_repo,
-                'cdn': bool(settings.robottelo.cdn or not settings.repos.capsule_repo),
+                'cdn': settings.robottelo.cdn or not settings.repos.capsule_repo,
             }
         )
     else:
