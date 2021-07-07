@@ -99,16 +99,16 @@ def valid_name_interval_update_tests():
     ]
 
 
-def validate_task_status(repo_id, module_org_id, max_tries=6):
+def validate_task_status(repo_id, org_id, max_tries=6):
     """Wait for foreman_tasks to complete or timeout
 
     :param repo_id: Repository Id to identify the correct task
     :param max_tries: Max tries to poll for the task creation
-    :param module_org_id: Org ID to ensure valid check on busy Satellite
+    :param org_id: Org ID to ensure valid check on busy Satellite
     """
     wait_for_tasks(
         search_query='Actions::Katello::Repository::Sync'
-        f' and organization_id = {module_org_id}'
+        f' and organization_id = {org_id}'
         f' and resource_id = {repo_id}',
         max_tries=max_tries,
     )
