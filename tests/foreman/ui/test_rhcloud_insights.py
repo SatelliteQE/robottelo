@@ -16,14 +16,16 @@
 
 :Upstream: No
 """
-import pytest
 from datetime import datetime
 from datetime import timedelta
-from robottelo.api.utils import wait_for_tasks
 
+import pytest
+
+from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 
 
+@pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_insights_e2e(
     session, rhel8_insights_vm, fixable_rhel8_vm, organization_ak_setup, unset_set_cloud_token
@@ -36,31 +38,28 @@ def test_rhcloud_insights_e2e(
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Add Cloud API key in Satellite.
         3. In Satellite UI, Configure -> Insights -> Add RH Cloud token and syns recommendations.
-        4. Run remediation for dnf.conf recommendation against rhel8 host.
+        4. Run remediation for a recommendation against rhel8 host.
         5. Assert that job completed successfully.
         6. Sync Insights recommendations.
         7. Search for previously remediated issue.
 
     :expectedresults:
-        1. Insights recommendation related to dnf.conf issue is listed for misconfigured machine.
+        1. Insights recommendation is listed for host.
         2. Remediation job finished successfully.
-        3. Insights recommendation related to dnf.conf issue is not listed.
+        3. Rremediated Insights recommendation is not listed.
 
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    query = 'dnf.conf'
+    # Use following recommendation instead of dnf one till BZ#1976754
+    query = 'title = "System is not able to get the latest recommendations and may ' \
+            'miss bug fixes when the Insights Client Core egg file is outdated" '
     with session:
         session.organization.select(org_name=org.name)
-        import pdb
-        pdb.set_trace()
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         wait_for_tasks(
-            search_query=(
-                'Insights full sync'
-                f' and started_at >= "{timestamp}"'
-            ),
+            search_query=('Insights full sync' f' and started_at >= "{timestamp}"'),
             search_rate=15,
             max_tries=10,
         )
@@ -83,10 +82,7 @@ def test_rhcloud_insights_e2e(
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for_tasks(
-            search_query=(
-                'Insights full sync'
-                f' and started_at >= "{timestamp}"'
-            ),
+            search_query=('Insights full sync' f' and started_at >= "{timestamp}"'),
             search_rate=15,
             max_tries=10,
         )
