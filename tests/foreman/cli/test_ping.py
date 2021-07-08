@@ -56,3 +56,26 @@ def test_positive_ping():
         assert result.return_code == 0, 'Return code should be 0 if all services are ok'
     else:
         assert result.return_code != 0, 'Return code should not be 0 if any service is not ok'
+
+
+@pytest.mark.destructive
+def test_negative_ping_fail_status_code(default_sat):
+    """Negative test to verify non-zero status code of ping fail
+
+    :id: 8f8675aa-df52-11eb-9353-b0a460e02491
+
+    :customerscenario: true
+
+    :BZ: 1941240
+
+    :CaseImportance: Critical
+
+    :expectedresults: Hammer ping fails and returns non-zero(1) status code.
+
+    """
+    command_out = default_sat.execute('satellite-maintain service stop --only tomcat.service')
+    assert command_out.status == 0
+    result = default_sat.execute("hammer ping")
+    assert result.status == 1
+    command_out = default_sat.execute('satellite-maintain service start --only tomcat.service')
+    assert command_out.status == 0
