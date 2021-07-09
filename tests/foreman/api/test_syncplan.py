@@ -374,10 +374,8 @@ def test_positive_update_interval(module_org, interval):
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
     sync_plan = sync_plan.create()
-    # get another random interval and workaround issue #7231
-    new_interval = gen_choice(valid_sync_interval())
-    while new_interval == interval:
-        new_interval = gen_choice(valid_sync_interval())
+    # get another random interval
+    new_interval = 'hourly' if interval != 'hourly' else 'daily'
     sync_plan.interval = new_interval
     if new_interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
