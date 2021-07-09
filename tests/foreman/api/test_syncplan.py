@@ -65,7 +65,7 @@ sync_date_deltas = {
 @filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
-    return ['hourly', 'daily', 'weekly', 'custom cron']
+    return {i.replace(' ', '_'): i for i in ['hourly', 'daily', 'weekly', 'custom cron']}
 
 
 def validate_task_status(repo_id, max_tries=6):
@@ -367,10 +367,8 @@ def test_positive_update_interval(module_org, interval):
     if interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
     sync_plan = sync_plan.create()
-    # get another random interval
-    new_interval = gen_choice(valid_sync_interval())
-    while new_interval == interval:
-        new_interval = gen_choice(valid_sync_interval())
+    # ensure "new interval" not equal to "interval"
+    new_interval = 'hourly' if interval != 'hourly' else 'daily'
     sync_plan.interval = new_interval
     if new_interval == SYNC_INTERVAL['custom']:
         sync_plan.cron_expression = gen_choice(valid_cron_expressions())
