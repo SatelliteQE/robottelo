@@ -4,6 +4,8 @@ import json
 import tarfile
 from pathlib import Path
 
+from nailgun import entities
+
 from robottelo import ssh
 
 
@@ -100,3 +102,10 @@ def get_report_data(report_path):
             if file_name != 'metadata.json':
                 json_data = json.load(tarobj.extractfile(file_))
     return json_data
+
+
+def setting_update(name, value):
+    """change setting value"""
+    setting = entities.Setting().search(query={'search': f'name="{name}"'})[0]
+    setting.value = value
+    setting.update({'value'})

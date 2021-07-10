@@ -1,4 +1,4 @@
-"""Tests for RH Cloud - Insights
+"""Tests for RH Cloud - Inventory
 
 :Requirement: RH Cloud - Inventory
 
@@ -46,44 +46,51 @@ def test_rhcloud_insights_e2e(
     :expectedresults:
         1. Insights recommendation is listed for host.
         2. Remediation job finished successfully.
-        3. Rremediated Insights recommendation is not listed.
+        3. Remediated Insights recommendation is not listed.
 
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    # Use following recommendation instead of dnf one till BZ#1976754
-    query = 'title = "System is not able to get the latest recommendations and may ' \
-            'miss bug fixes when the Insights Client Core egg file is outdated" '
+    # Use recommendation other than dnf one till BZ#1976754
+    query = 'Insights Client Core egg file'
+    job_query = (
+        f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
+    )
     with session:
         session.organization.select(org_name=org.name)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         wait_for_tasks(
-            search_query=('Insights full sync' f' and started_at >= "{timestamp}"'),
+            search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
         result = session.cloudinsights.search(query)[0]
         assert result['Hostname'] == rhel8_insights_vm.hostname
         assert (
-            result['Recommendation'] == 'The dnf installs lower versions of packages when the '
-            '"best" option is not present in the /etc/dnf/dnf.conf'
+            result['Recommendation']
+            == 'System is not able to get the latest recommendations and may miss bug '
+            'fixes when the Insights Client Core egg file is outdated'
         )
         session.cloudinsights.remediate(query)
-        session.jobinvocation.wait_job_invocation_state(
-            entity_name='Insights remediations for selected issues',
-            host_name=rhel8_insights_vm.hostname,
-        )
-        status = session.jobinvocation.read(
-            entity_name='Insights remediations for selected issues',
-            host_name=rhel8_insights_vm.hostname,
-        )
-        assert status['overview']['hosts_table'][0]['Status'] == 'success'
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinsights.sync_hits()
         wait_for_tasks(
-            search_query=('Insights full sync' f' and started_at >= "{timestamp}"'),
+            search_query=f'{job_query} and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
+        job_invocation = wait_for_tasks(
+            search_query=f'{job_query} and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=10,
+        )
+        assert job_invocation[0].result == 'success'
+        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinsights.sync_hits()
+        wait_for_tasks(
+            search_query=f'Insights full sync and started_at >= "{timestamp}"',
+            search_rate=15,
+            max_tries=10,
+        )
+        # Workaround for alert message causing search to fail.
+        session.browser.refresh()
         assert not session.cloudinsights.search(query)
