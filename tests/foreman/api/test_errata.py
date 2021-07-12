@@ -36,6 +36,7 @@ from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
 
+
 pytestmark = [
     pytest.mark.run_in_one_thread,
     pytest.mark.skipif(
@@ -167,38 +168,6 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_bulk_install_package(
-    module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost
-):
-    """Bulk install package to a collection of hosts
-
-    :id: c5167851-b456-457a-92c3-59f8de5b27ee
-
-    :Steps: PUT /api/v2/hosts/bulk/install_content
-
-    :expectedresults: package is installed in the hosts.
-
-    :BZ: 1528275
-
-    :CaseLevel: System
-    """
-    rhel7_contenthost.install_katello_ca()
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
-    assert rhel7_contenthost.subscribed
-    rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
-    _install_package(
-        module_org,
-        clients=[rhel7_contenthost],
-        host_ids=[rhel7_contenthost.nailgun_host.id],
-        package_name=constants.FAKE_1_CUSTOM_PACKAGE_NAME,
-        via_ssh=False,
-        rpm_package_name=constants.FAKE_2_CUSTOM_PACKAGE,
-    )
-
-
-@pytest.mark.upgrade
-@pytest.mark.tier3
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo):
     """Install errata in a host-collection
 
@@ -218,20 +187,25 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
             client.register_contenthost(module_org.label, activation_key.name)
             assert client.subscribed
             client.enable_repo(constants.REPOS['rhst7']['id'])
-            client.install_katello_agent()
+            add_remote_execution_ssh_key(client.hostname)
         host_ids = [client.nailgun_host.id for client in clients]
         _install_package(
             module_org,
             clients=clients,
             host_ids=host_ids,
-            package_name=constants.FAKE_1_CUSTOM_PACKAGE_NAME,
+            package_name=constants.FAKE_1_CUSTOM_PACKAGE,
         )
-        entities.Host().install_content(
+        host_collection = entities.HostCollection(organization=module_org).create()
+        host_ids = [client.nailgun_host.id for client in clients]
+        host_collection.host_ids = host_ids
+        host_collection = host_collection.update(['host_ids'])
+        entities.JobInvocation().run(
             data={
+                'feature': 'katello_errata_install',
+                'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
+                'targeting_type': 'static_query',
+                'search_query': f'host_collection_id = {host_collection.id}',
                 'organization_id': module_org.id,
-                'included': {'ids': host_ids},
-                'content_type': 'errata',
-                'content': [CUSTOM_REPO_ERRATA_ID],
             }
         )
         _validate_package_installed(clients, constants.FAKE_2_CUSTOM_PACKAGE)
@@ -247,7 +221,7 @@ def test_positive_install_in_host(
 
     :Setup: Errata synced on satellite server.
 
-    :Steps: PUT /api/v2/hosts/:id/errata/apply
+    :Steps: POST /api/v2/job_invocations/{hash}
 
     :expectedresults: errata is installed in the host.
 
@@ -257,7 +231,6 @@ def test_positive_install_in_host(
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
     host_id = rhel7_contenthost.nailgun_host.id
     _install_package(
         module_org,
@@ -265,7 +238,16 @@ def test_positive_install_in_host(
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
-    entities.Host(id=host_id).errata_apply(data={'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
+    add_remote_execution_ssh_key(rhel7_contenthost.hostname)
+    entities.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel7_contenthost.hostname}',
+            'organization_id': module_org.id,
+        },
+    )
     _validate_package_installed([rhel7_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
 
 
@@ -280,7 +262,7 @@ def test_positive_install_multiple_in_host(
 
     :customerscenario: true
 
-    :BZ: 1469800
+    :BZ: 1469800, 1528275
 
     :expectedresults: errata installation task succeeded, available errata
         counter decreased by one; it's possible to schedule another errata
@@ -292,7 +274,6 @@ def test_positive_install_multiple_in_host(
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
-    rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
         _install_package(
@@ -301,8 +282,17 @@ def test_positive_install_multiple_in_host(
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
+    add_remote_execution_ssh_key(rhel7_contenthost.hostname)
     for errata in constants.FAKE_9_YUM_ERRATUM[:2]:
-        host.errata_apply(data={'errata_ids': [errata]})
+        entities.JobInvocation().run(
+            data={
+                'feature': 'katello_errata_install',
+                'inputs': {'errata': f'{errata}'},
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel7_contenthost.hostname}',
+                'organization_id': module_org.id,
+            },
+        )
         host = host.read()
         applicable_errata_count -= 1
         assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
