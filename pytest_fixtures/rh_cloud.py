@@ -8,18 +8,12 @@ from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.rh_cloud_utils import setting_update
 
 
-@pytest.fixture(scope='module')
-def set_rh_cloud_token():
-    """A module-level fixture to set rh cloud token value."""
-    setting_update('rh_cloud_token', settings.rh_cloud.token)
-
-
 @pytest.fixture
-def unset_set_cloud_token():
-    """A function-level fixture to unset and reset rh cloud token value."""
-    setting_update('rh_cloud_token', '')
-    yield
+def set_rh_cloud_token():
+    """A function-level fixture to set rh cloud token value."""
     setting_update('rh_cloud_token', settings.rh_cloud.token)
+    yield
+    setting_update('rh_cloud_token', '')
 
 
 @pytest.fixture(scope='module')
