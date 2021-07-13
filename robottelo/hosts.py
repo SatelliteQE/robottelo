@@ -752,8 +752,8 @@ class ContentHost(Host):
                 time.sleep(5)
                 org_hosts = entities.Host().search(
                     query={
-                        'search': f'organization_id={org["id"]} '
-                        'and name={virt_who_hypervisor_hostname}'
+                        'search': f'organization_id={org["id"]}'
+                        f' and name={virt_who_hypervisor_hostname}'
                     }
                 )
                 if org_hosts:
