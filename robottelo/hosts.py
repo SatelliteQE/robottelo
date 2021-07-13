@@ -686,16 +686,20 @@ class ContentHost(Host):
             self.put_ssh_key(settings.server.ssh_key, hypervisor_ssh_key_name)
             # setup the ssh config and known_hosts files
             self.update_known_hosts(
-                self, hypervisor_ssh_key_name, hypervisor_hostname, user=hypervisor_user
+                hypervisor_ssh_key_name, hypervisor_hostname, user=hypervisor_user
             )
 
         # upload the virt-who config deployment script
         virt_who_deploy_directory = '/root/virt_who_deploy_output'
         virt_who_deploy_filename = f'{gen_alpha(length=5)}-virt-who-deploy-{config_id}'
         virt_who_deploy_file = f'{virt_who_deploy_directory}/{virt_who_deploy_filename}'
+        # create the virt-who directory on the broker VM
+        self.run(f'mkdir -p {virt_who_deploy_directory}')
+        # create the virt-who directory on satellite
+        satellite = Satellite(settings.server.hostname)
+        satellite.execute(f'mkdir -p {virt_who_deploy_directory}')
         VirtWhoConfig.fetch({'id': config_id, 'output': virt_who_deploy_file})
         # remote_copy from satellite to self
-        satellite = Satellite(settings.server.hostname)
         satellite.session.remote_copy(virt_who_deploy_file, self)
 
         # ensure the virt-who config deploy script is executable
@@ -733,8 +737,8 @@ class ContentHost(Host):
         # like "virt-who-{hypervisor_hostname}-{organization_id}"
         virt_who_hypervisor_hostname = f'virt-who-{hypervisor_hostname}-{org["id"]}'
         # find the registered virt-who hypervisor host
-        org_hosts = Host.list(
-            {'organization-id': org['id'], 'search': f'name={virt_who_hypervisor_hostname}'}
+        org_hosts = entities.Host().search(
+            query={'search': f'organization_id={org["id"]} and name={virt_who_hypervisor_hostname}'}
         )
         # Note: if one shot command was executed the report is immediately
         # generated, and the server must have already registered the virt-who
@@ -746,10 +750,10 @@ class ContentHost(Host):
             max_time = time.time() + 60
             while time.time() <= max_time:
                 time.sleep(5)
-                org_hosts = Host.list(
-                    {
-                        'organization-id': org['id'],
-                        'search': f'name={virt_who_hypervisor_hostname}',
+                org_hosts = entities.Host().search(
+                    query={
+                        'search': f'organization_id={org["id"]} '
+                        'and name={virt_who_hypervisor_hostname}'
                     }
                 )
                 if org_hosts:
