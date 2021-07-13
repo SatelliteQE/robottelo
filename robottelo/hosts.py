@@ -87,7 +87,7 @@ class ContentHost(Host):
 
     @property
     def nailgun_host(self):
-        """If this host is subscribed, provide access ot its nailgun object"""
+        """If this host is subscribed, provide access to its nailgun object"""
         if self.subscribed:
             return entities.Host().search(query={'search': self.hostname})[0]
 
@@ -112,7 +112,7 @@ class ContentHost(Host):
         """Lookup the host workflow for power on and execute
 
         Args:
-            state: A VmState from wrapanpi.entities.vm or 'reboot'
+            state: A VmState from wrapanapi.entities.vm or 'reboot'
             ensure: boolean indicating whether to try and connect to ensure power state
 
         Raises:
@@ -379,7 +379,7 @@ class ContentHost(Host):
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
     def update_known_hosts(self, ssh_key_name, host, user=None):
-        """Create host entry in vm ssh config and know_hosts files to allow vm
+        """Create host entry in vm ssh config and known_hosts files to allow vm
         to access host via ssh without password prompt
 
         :param robottelo.hosts.ContentHost vm: Virtual machine instance
@@ -696,7 +696,7 @@ class ContentHost(Host):
         # create the virt-who directory on the broker VM
         self.run(f'mkdir -p {virt_who_deploy_directory}')
         # create the virt-who directory on satellite
-        satellite = Satellite(settings.server.hostname)
+        satellite = Satellite()
         satellite.execute(f'mkdir -p {virt_who_deploy_directory}')
         VirtWhoConfig.fetch({'id': config_id, 'output': virt_who_deploy_file})
         # remote_copy from satellite to self
