@@ -725,19 +725,17 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     with session:
         session.organization.select(org.name)
         assert (
-            session.contenthost.search(virt_who_hypervisor_host['name'])[0]['Subscription Status']
+            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
             == 'yellow'
         )
-        chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
+        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
         assert chost['details']['subscription_status'] == 'Unsubscribed hypervisor'
-        session.contenthost.add_subscription(
-            virt_who_hypervisor_host['name'], VDC_SUBSCRIPTION_NAME
-        )
+        session.contenthost.add_subscription(virt_who_hypervisor_host.name, VDC_SUBSCRIPTION_NAME)
         assert (
-            session.contenthost.search(virt_who_hypervisor_host['name'])[0]['Subscription Status']
+            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
             == 'green'
         )
-        chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
+        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
         assert chost['details']['subscription_status'] == 'Fully entitled'
 
 
