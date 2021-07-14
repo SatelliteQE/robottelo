@@ -21,7 +21,7 @@ pytest-reportportal==5.0.8
 pytest-xdist==2.3.0
 pytest-ibutsu==1.16
 PyYAML==5.4.1
-requests==2.25.1
+requests==2.26.0
 selenium==3.141.0
 tenacity==7.0.0
 testimony==2.2.0
