@@ -10,15 +10,78 @@ UPGRADE:
     RHEL6:
     RHEL7:
     RHEL8:
+  # RHEL6 & RHEL7's client will only be available when we spawn the VM using upgrade template,
+  # it is used in content host upgrade.
+  CLIENT_AK:
+    RHEL6: "clientak_rhel6"
+    RHEL7: "clientak_rhel7"
+    RHEL8: "clientak_rhel8"
   # Custom capsule activation key
   CUSTOM_CAPSULE_AK:
     RHEL6:
     RHEL7:
     RHEL8:
+  # Upgrade codebase supports these types of upgrade only.
+  PRODUCTS:
+    - "satellite"
+    - "capsule"
+    - "client"
+    - "longrun"
+    - "n-1"
+  # Upgrade codebase select the repository based on the distribution.
+  DISTRIBUTION: "downstream"
+  # Ansible repo version
+  ANSIBLE_REPO_VERSION: "2.9"
+  # By default Satellite upgrade perform by foreman-maintain.
+  FOREMAN_MAINTAIN_SATELLITE_UPGRADE: true
+  # Satellite hostname.
+  SATELLITE_HOSTNAME:
   # capsule hostname
   CAPSULE_HOSTNAME:
+  # This statement will true until downstream release not become beta.
+  DOWNSTREAM_FM_UPGRADE: false
+  # Used to whitelist the mentioned params in the foreman-maintain upgrade.
+  WHITELIST_PARAM: ""
+  # Capsule upgrade via foreman-maintain, due to limited version support, we keep it as false.
+  FOREMAN_MAINTAIN_CAPSULE_UPGRADE: false
+  # User Defined clients, we use it for content host upgrade.
+  USER_DEFINED_CLIENT_HOSTS:
+    RHEL6:
+    RHEL7:
+    RHEL8:
+  # System Reboot after upgrade
+  SATELLITE_CAPSULE_SETUP_REBOOT: true
+  # Upgrade with http-proxy
+  UPGRADE_WITH_HTTP_PROXY: false
+  # Default size of client's which we use for content host upgrade.
+  CLIENTS_COUNT: "8"
+  # Satellite's REMOTE_SSH_PASSWORD
+  REMOTE_SSH_PASSWORD:
+  # Satellite's OAUTH_CONSUMER_KEY
+  OAUTH_CONSUMER_KEY:
+  # Satellite's OAUTH_CONSUMER_SECRET
+  OAUTH_CONSUMER_SECRET:
+  # Supported Satellite versions
+  SUPPORTED_SAT_VERSIONS:
+    - "6.7"
+    - "6.8"
+    - "6.9"
+    - "6.10"
+  # These environment variable used for existence test cases execution.
+  EXISTENCE_TEST:
+    ALLOWED_ENDS:
+      - "api"
+      - "cli"
+    ENDPOINT:
   # The docker host for container spawn
   DOCKER_VM:
   # The upgrade VLAN vm_domain
   VM_DOMAIN:
-  DISTRIBUTION:
+  # upgrade the mongodb to wiredTiger after upgrade
+  MONGODB_UPGRADE: false
+  # satellite backup
+  SATELLITE_BACKUP: false
+  # satellite backup type
+  SATELLITE_BACKUP_TYPE:
+    - "online"
+    - "offline"
