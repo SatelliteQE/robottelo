@@ -53,7 +53,6 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
@@ -1324,11 +1323,6 @@ def rh_repo_module_manifest(module_manifest_org):
 """Section for tests using RHEL7.7 Content Host.
    The applicability tests using Default Content View are related to the introduction of Pulp3.
    """
-
-
-@pytest.fixture(scope='module')
-def default_contentview(module_manifest_org):
-    return entities.ContentView(organization=module_manifest_org, name=DEFAULT_CV).search()
 
 
 @pytest.fixture(scope='module')
