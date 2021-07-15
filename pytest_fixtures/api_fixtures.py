@@ -9,8 +9,8 @@ from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.api.utils import import_puppet_module
 from robottelo.api.utils import promote
-from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
@@ -31,7 +31,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.helpers import download_gce_cert
 from robottelo.logging import logger
 
@@ -519,7 +518,7 @@ def module_promoted_cv(module_lce, module_published_cv):
 
 @pytest.fixture(scope='module')
 def default_contentview(module_org):
-    return entities.ContentView(organization=module_org, name=DEFAULT_CV).search()
+    return entities.ContentView(organization=module_org, name=DEFAULT_CV).search()[0]
 
 
 @pytest.fixture(scope='module')
@@ -537,15 +536,9 @@ def module_ak_cv_lce(module_org, module_lce, module_published_cv):
 
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
-def module_cv_with_puppet_module(module_org):
-    """Returns content view entity created by publish_puppet_module with chosen
-    name and author of puppet module, custom puppet repository and organization.
-    """
-    return publish_puppet_module(
-        [{'author': 'robottelo', 'name': 'generic_1'}],
-        CUSTOM_PUPPET_REPO,
-        organization_id=module_org.id,
-    )
+def module_import_puppet_module(default_sat):
+    """Import puppet module"""
+    return import_puppet_module(sat=default_sat)
 
 
 @pytest.fixture(scope='session')
@@ -560,22 +553,17 @@ def module_env():
 
 
 @pytest.fixture(scope='module')
-def module_env_search(module_org, module_location, module_cv_with_puppet_module):
-    """Search for puppet environment according to the following criteria:
-    Content view from module_cv_with_puppet_module and chosen organization.
-
-    Returns the puppet environment with updated location.
+def module_env_search(module_org, module_location, module_import_puppet_module):
+    """Search for puppet environment created inside module_import_puppet_module.
+    Returns the puppet environment with updated organization and location.
     """
     env = (
         entities.Environment()
-        .search(
-            query={
-                'search': f'content_view={module_cv_with_puppet_module.name} '
-                f'and organization_id={module_org.id}'
-            }
-        )[0]
+        .search(query={'search': f'name={module_import_puppet_module}'})[0]
         .read()
     )
+    env.organization.append(module_org)
+    env.update(['organization'])
     env.location.append(module_location)
     env.update(['location'])
     return env
@@ -595,10 +583,13 @@ def module_lce_library(module_org):
 def module_puppet_classes(module_env_search):
     """Returns puppet class based on following criteria:
     Puppet environment from module_env_search and puppet class name. The name was set inside
-    module_cv_with_puppet_module.
+    module_import_puppet_module.
     """
     return entities.PuppetClass().search(
-        query={'search': f'name ~ {"generic_1"} and environment = {module_env_search.name}'}
+        query={
+            'search': f'name ~ {"api_test_classparameters"} '
+            f'and environment = {module_env_search.name}'
+        }
     )
 
 

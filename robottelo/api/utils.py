@@ -130,6 +130,31 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return cv.read()
 
 
+def import_puppet_module(sat):
+    """Download install and import puppet class. This is workaround for 6.10, there is no longer
+    content view
+
+    :param sat: satellite object
+    :return: puppet environment name,
+        environment name is likely to be searched in next steps of the test
+    """
+    env_name = 'test_environment'
+    class_parameters_package_name = 'robottelo-api_test_classparameters-0.2.0.tar.gz'
+    sat.execute(
+        f'curl -O {settings.robottelo.repos_hosting_url}/custom_puppet/system/releases/r/robottelo/'
+        f'{class_parameters_package_name}',
+    )
+    sat.execute(
+        f'puppet module install {class_parameters_package_name} '
+        f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
+    )
+    smart_proxy = (
+        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
+    )
+    smart_proxy.import_puppetclasses()
+    return env_name
+
+
 def delete_puppet_class(
     puppetclass_name, puppet_module=None, proxy_hostname=None, environment_name=None
 ):
