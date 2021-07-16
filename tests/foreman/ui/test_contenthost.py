@@ -28,6 +28,7 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import setting_is_set
@@ -673,7 +674,6 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         assert session.operatingsystem.search(expected_os)[0]['Title'] == expected_os
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
 # The content host has been moved to broker, but the test still depends on libvirt compute resource
 @pytest.mark.libvirt_discovery
 @pytest.mark.tier3
@@ -694,7 +694,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
            "Fully entitled" and represented by a green icon in content
            hosts list.
 
-    :BZ: 1336924
+    :BZ: 1336924, 1860928
 
     :CaseLevel: System
     """
@@ -737,6 +737,19 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
         )
         chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
         assert chost['details']['subscription_status'] == 'Fully entitled'
+        # for BZ#1860928
+        checkin_time1 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
+        result = rhel7_contenthost.run('service virt-who stop')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
+        result = rhel7_contenthost.run('virt-who --one-shot')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
+        result = rhel7_contenthost.run('service virt-who start')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
+        checkin_time2 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
+        assert checkin_time2 > checkin_time1
 
 
 @pytest.mark.upgrade
