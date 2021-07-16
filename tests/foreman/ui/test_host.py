@@ -1323,18 +1323,18 @@ def test_positive_global_registration_form(
     with session:
         cmd = session.host.get_register_command(
             {
-                'setup_insights': 'Yes (enforce)' if insights_value else 'No (enforce)',
-                'remote_execution': 'Yes (enforce)' if rex_value else 'No (enforce)',
-                'insecure': True,
-                'hostgroup': hostgroup.name,
-                'operatingsystem': module_os.title,
-                'activation_keys': module_activation_key.name,
-                'remote_execution_interface': iface,
+                'advanced.setup_insights': 'Yes (override)' if insights_value else 'No (override)',
+                'advanced.setup_rex': 'Yes (override)' if rex_value else 'No (override)',
+                'general.insecure': True,
+                'general.host_group': hostgroup.name,
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'advanced.rex_interface': iface,
             }
         )
     expected_pairs = [
         f'organization_id={module_org.id}',
-        f'activation_key={module_activation_key.name}',
+        f'activation_keys={module_activation_key.name}',
         f'hostgroup_id={hostgroup.id}',
         f'location_id={module_loc.id}',
         f'operatingsystem_id={module_os.id}',
@@ -1373,16 +1373,16 @@ def test_positive_global_registration_end_to_end(
     with session:
         cmd = session.host.get_register_command(
             {
-                'capsule': module_proxy.name,
-                'operatingsystem': module_os.title,
-                'activation_keys': module_activation_key.name,
-                'remote_execution_interface': iface,
-                'insecure': True,
+                'general.capsule': module_proxy.name,
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'advanced.rex_interface': iface,
+                'general.insecure': True,
             }
         )
     expected_pairs = [
         f'organization_id={module_org.id}',
-        f'activation_key={module_activation_key.name}',
+        f'activation_keys={module_activation_key.name}',
         f'location_id={module_loc.id}',
         f'operatingsystem_id={module_os.id}',
         f'{module_proxy.name}:9090',
