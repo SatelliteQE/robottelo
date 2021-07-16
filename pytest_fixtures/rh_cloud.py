@@ -17,6 +17,14 @@ def set_rh_cloud_token():
 
 
 @pytest.fixture(scope='module')
+def enable_lab_features():
+    """A module-level fixture to enable lab features."""
+    setting_update('lab_features', True)
+    yield
+    setting_update('lab_features', False)
+
+
+@pytest.fixture(scope='module')
 def organization_ak_setup(module_manifest_org):
     """A module-level fixture to create an Activation key in module_org"""
     ak = entities.ActivationKey(

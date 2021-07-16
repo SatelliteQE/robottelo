@@ -27,7 +27,9 @@ from robottelo.config import settings
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_rhcloud_insights_e2e(session, rhel8_insights_vm, fixable_rhel8_vm, organization_ak_setup):
+def test_rhcloud_insights_e2e(
+    session, rhel8_insights_vm, fixable_rhel8_vm, organization_ak_setup, enable_lab_features
+):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
     :id: d952e83c-3faf-4299-a048-2eb6ccb8c9c2
