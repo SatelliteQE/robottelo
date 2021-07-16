@@ -77,11 +77,11 @@ def test_positive_import_templates(session, templates_org, templates_loc):
         )
         assert import_title == f'Import from {FOREMAN_TEMPLATES_COMMUNITY_URL}'
         imported_template = f'{prefix_name} {import_template}'
+        assert session.provisioningtemplate.is_locked(imported_template)
         pt = session.provisioningtemplate.read(imported_template)
         assert pt['template']['name'] == imported_template
         assert pt['template']['default'] is False
         assert pt['type']['snippet'] is False
-        assert pt['template']['locked'] is True
         assert pt['locations']['resources']['assigned'][0] == templates_loc.name
         assert pt['organizations']['resources']['assigned'][0] == templates_org.name
         assert f'name: {import_template}' in pt['template']['template_editor']['editor']
