@@ -71,6 +71,8 @@ def test_rhcloud_inventory_bz_1893439():
 
     :id: df6d5f4f-5ee1-4f34-bf24-b93fbd089322
 
+    :customerscenario: true
+
     :Steps:
         1. Register a content host.
         2. If value of mtu field is not a string then use foreman-rake to change it.
@@ -93,8 +95,9 @@ def test_rhcloud_inventory_bz_1845113():
     """Verify that system_purpose_sla field is present in the inventory report
     for the host subscribed using Activation key with service level set in it.
 
-
     :id: 3974338c-3a66-41ac-af32-ee76e3c37aef
+
+    :customerscenario: true
 
     :Steps:
         1. Create an activation key with service level set in it.
@@ -117,8 +120,9 @@ def test_rhcloud_inventory_bz_1845113():
 def test_rhcloud_inventory_auto_upload_setting():
     """Verify that Automatic inventory upload setting works as expected.
 
-
     :id: 0475aaaf-c228-45af-b80c-21d459f62ecb
+
+    :customerscenario: true
 
     :Steps:
         1. Register a content host with satellite.
@@ -146,8 +150,9 @@ def test_rhcloud_inventory_bz_1936906():
     """Verify that inventory report generate and upload process finish
     successfully when satellite is using http proxy listening on port 80.
 
-
     :id: 310a0c91-e313-474d-a5c6-64e85cea4e12
+
+    :customerscenario: true
 
     :Steps:
         1. Create a http proxy which is using port 80.
@@ -160,7 +165,6 @@ def test_rhcloud_inventory_bz_1936906():
     :expectedresults:
         1. Inventory report generate and upload process finished successfully.
         2. Host is present in the inventory report.
-
 
     :BZ: 1936906
 

@@ -83,6 +83,8 @@ def test_rhcloud_inventory_e2e(
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
 
+    :customerscenario: true
+
     :expectedresults:
 
         1. Report can be generated
