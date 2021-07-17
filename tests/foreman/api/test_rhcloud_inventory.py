@@ -19,6 +19,51 @@
 import pytest
 
 
+def test_rhcloud_inventory_api_e2e():
+    """Generate report using rh_cloud plugin api's and verify its basic properties.
+
+    :id: 8ead1ff6-a8f5-461b-9dd3-f50d96d6ed57
+
+    :expectedresults:
+
+        1. Report can be generated
+        2. Report can be downloaded
+        3. Report has non-zero size
+        4. Report can be extracted
+        5. JSON files inside report can be parsed
+        6. metadata.json lists all and only slice JSON files in tar
+        7. Host counts in metadata matches host counts in slices
+        8. Assert Hostnames, IP addresses, and installed packages are present in report.
+
+    :BZ: 1807829, 1926100
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_api_hosts_synchronization():
+    """Test RH Cloud plugin api to synchronize list of available hosts
+    from cloud and mark them in Satellite.
+
+    :id: 7be22e1c-906b-4ae5-93dd-5f79f395601c
+
+    :Steps:
+
+        1. Prepare machine and upload its data to Insights.
+        2. Add Cloud API key in Satellite
+        3. Sync inventory status using RH Cloud plugin api.
+        4. Assert content of response message once synchronization finishes.
+        5. Get host details.
+        6. Assert inventory status for the host.
+
+    :expectedresults:
+        1. Response of RH Cloud plugins api for syncing inventory status
+        should contain number of hosts synchronized and missed.
+        2. Presence in cloud is displayed in host properties.
+
+    :CaseAutomation: NotAutomated
+    """
+
+
 @pytest.mark.stubbed
 def test_rhcloud_inventory_bz_1893439():
     """Verify that the hosts having mtu field value as string in foreman's Nic object
