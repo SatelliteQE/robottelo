@@ -30,6 +30,8 @@ def test_positive_inventory_generate_upload_cli(organization_ak_setup, registere
 
     :id: f2da9506-97d4-4d1c-b373-9f71a52b8ab8
 
+    :customerscenario: true
+
     :Steps:
 
         0. Create a VM and register to insights within org having manifest.
@@ -52,8 +54,9 @@ def test_positive_inventory_generate_upload_cli(organization_ak_setup, registere
             # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
             # /usr/sbin/foreman-rake rh_cloud_inventory:report:upload
 
-
     :expectedresults: Inventory is generated and uploaded to cloud.redhat.com.
+
+    :BZ: 1957129
 
     :CaseAutomation: Automated
 
@@ -82,3 +85,55 @@ def test_positive_inventory_generate_upload_cli(organization_ak_setup, registere
     assert slices_in_metadata == slices_in_tar
     for slice_name, hosts_count in local_file_data['metadata_counts'].items():
         assert hosts_count == local_file_data['slices_counts'][slice_name]
+
+
+@pytest.mark.stubbed
+def test_positive_inventory_recommendation_sync():
+    """Tests Insights recommendation sync via foreman-rake commands:
+    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
+
+    :id: 361af91d-1246-4308-9cc8-66beada7d651
+
+    :Steps:
+
+        0. Create a VM and register to insights within org having manifest.
+
+        1. Sync insights recommendation using following foreman-rake command.
+            # /usr/sbin/foreman-rake rh_cloud_insights:sync
+
+    :expectedresults: Insights recommendations are successfully synced for the host.
+
+    :BZ: 1957186
+
+    :CaseAutomation: NotAutomated
+
+    :CaseLevel: System
+    """
+
+
+@pytest.mark.stubbed
+def test_positive_sync_inventory_status():
+    """Sync inventory status via foreman-rake commands:
+    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
+
+    :id: 915ffbfd-c2e6-4296-9d69-f3f9a0e79b32
+
+    :Steps:
+
+        0. Create a VM and register to insights within org having manifest.
+
+        1. Sync inventory status for all organizations.
+            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
+
+        2. Sync inventory status for specific organization.
+            # export organization_id=1
+            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
+
+    :expectedresults: Inventory status is successfully synced for satellite hosts.
+
+    :BZ: 1957186
+
+    :CaseAutomation: NotAutomated
+
+    :CaseLevel: System
+    """
