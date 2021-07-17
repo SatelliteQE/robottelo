@@ -94,7 +94,7 @@ def test_rhcloud_inventory_e2e(
         7. Host counts in metadata matches host counts in slices
         8. Assert Hostnames, IP addresses, and installed packages are present in report.
 
-    :BZ: 1807829
+    :BZ: 1807829, 1926100
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = registered_hosts
@@ -284,7 +284,7 @@ def test_obfuscate_host_ipv4_addresses(
     :expectedresults:
         1. Obfuscated host ipv4 addresses in generated reports.
 
-    :BZ: 1852594
+    :BZ: 1852594, 1889690
 
     :CaseAutomation: Automated
     """
