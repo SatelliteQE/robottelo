@@ -38,28 +38,31 @@ def test_rhcloud_insights_e2e(
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Add Cloud API key in Satellite.
         3. In Satellite UI, Configure -> Insights -> Add RH Cloud token and syns recommendations.
-        4. Run remediation for a recommendation against rhel8 host.
+        4. Run remediation for dnf.conf recommendation against rhel8 host.
         5. Assert that job completed successfully.
         6. Sync Insights recommendations.
         7. Search for previously remediated issue.
 
     :expectedresults:
-        1. Insights recommendation is listed for host.
+        1. Insights recommendation related to dnf.conf issue is listed for misconfigured machine.
         2. Remediation job finished successfully.
-        3. Remediated Insights recommendation is not listed.
+        3. Insights recommendation related to dnf.conf issue is not listed.
 
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    # Use recommendation other than dnf one till BZ#1976754
-    query = 'Insights Client Core egg file'
+    query = 'dnf.conf'
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
     )
     with session:
         session.organization.select(org_name=org.name)
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
+        # This is a workaround for BZ#1983575. Remove following two code lines once BZ is fixed.
+        session.browser.refresh()
+        session.cloudinsights.sync_hits()
+
+        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
@@ -68,9 +71,8 @@ def test_rhcloud_insights_e2e(
         result = session.cloudinsights.search(query)[0]
         assert result['Hostname'] == rhel8_insights_vm.hostname
         assert (
-            result['Recommendation']
-            == 'System is not able to get the latest recommendations and may miss bug '
-            'fixes when the Insights Client Core egg file is outdated'
+            result['Recommendation'] == 'The dnf installs lower versions of packages when the '
+            '"best" option is not present in the /etc/dnf/dnf.conf'
         )
         session.cloudinsights.remediate(query)
         wait_for_tasks(
