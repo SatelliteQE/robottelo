@@ -17,7 +17,6 @@
 :Upstream: No
 """
 from datetime import datetime
-from datetime import timedelta
 
 import pytest
 
@@ -28,7 +27,12 @@ from robottelo.config import settings
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_insights_e2e(
-    session, rhel8_insights_vm, fixable_rhel8_vm, organization_ak_setup, enable_lab_features
+    session,
+    rhel8_insights_vm,
+    fixable_rhel8_vm,
+    organization_ak_setup,
+    enable_lab_features,
+    unset_rh_cloud_token,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -62,12 +66,14 @@ def test_rhcloud_insights_e2e(
         session.browser.refresh()
         session.cloudinsights.sync_hits()
 
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
+        # Workaround for alert message causing search to fail. See airgun issue 584.
+        session.browser.refresh()
         result = session.cloudinsights.search(query)[0]
         assert result['Hostname'] == rhel8_insights_vm.hostname
         assert (
@@ -86,13 +92,13 @@ def test_rhcloud_insights_e2e(
             max_tries=10,
         )
         assert job_invocation[0].result == 'success'
-        timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
-        # Workaround for alert message causing search to fail.
+        # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
         assert not session.cloudinsights.search(query)

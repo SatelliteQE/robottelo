@@ -16,6 +16,13 @@ def set_rh_cloud_token():
     setting_update('rh_cloud_token', '')
 
 
+@pytest.fixture
+def unset_rh_cloud_token():
+    """A function-level fixture to unset rh cloud token value."""
+    yield
+    setting_update('rh_cloud_token', '')
+
+
 @pytest.fixture(scope='module')
 def enable_lab_features():
     """A module-level fixture to enable lab features."""
