@@ -137,6 +137,10 @@ class TestRenameHost:
                 new_hostname in result.stdout['published-at']
             ), 'repository published path not updated correctly'
 
+            # check for any other occurences of old hostname
+            result = connection.run(f'grep " {old_hostname}" /etc/* -r')
+            assert result.return_code == 1, 'there are remaining instances of the old hostname'
+
         repo.sync()
         cv = entities.ContentView(organization=module_org).create()
         cv.repository = [repo]
