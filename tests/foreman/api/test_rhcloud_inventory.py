@@ -128,10 +128,10 @@ def test_rhcloud_inventory_auto_upload_setting():
         1. Register a content host with satellite.
         2. Enable "Automatic inventory upload" setting.
         3. Verify that satellite automatically generate and upload
-        inventory report once a day.
+            inventory report once a day.
         4. Disable "Automatic inventory upload" setting.
         5. Verify that satellite is not automatically generating and uploading
-        inventory report.
+            inventory report.
 
     :expectedresults:
         1. If "Automatic inventory upload" setting is enabled then satellite
@@ -167,6 +167,31 @@ def test_rhcloud_inventory_bz_1936906():
         2. Host is present in the inventory report.
 
     :BZ: 1936906
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_include_parameter_tags_setting():
+    """Verify that include_parameter_tags setting doesn't cause invalid report
+    to be generated.
+
+    :id: 3136a1e3-f844-416b-8334-75b27fd9e3a1
+
+    :Steps:
+        1. Enable include_parameter_tags setting.
+        2. Set value for one of satellite_parameter to empty.(e.g. host_packages).
+        3. Register a content host with satellite.
+        4. Generate inventory report.
+        5. Assert that generated report contains valid json file.
+
+    :expectedresults:
+        1. If "Automatic inventory upload" setting is enabled then satellite
+        automatically generate and upload inventory report.
+
+
+    :BZ: 1793017
 
     :CaseAutomation: NotAutomated
     """
