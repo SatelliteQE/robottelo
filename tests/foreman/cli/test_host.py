@@ -506,7 +506,7 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
 @pytest.mark.host_create
 @pytest.mark.tier1
 def test_positive_create_with_puppet_class_name(
-    module_env_search, module_org, module_puppet_classes
+    module_env_search, module_location, module_org, module_puppet_classes
 ):
     """Check if host can be created with puppet class name
 
@@ -521,6 +521,7 @@ def test_positive_create_with_puppet_class_name(
             'puppet-classes': module_puppet_classes[0].name,
             'environment': module_env_search.name,
             'organization-id': module_org.id,
+            'location-id': module_location.id,
         }
     )
     host_classes = Host.puppetclasses({'host': host['name']})
@@ -665,7 +666,9 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 
 @pytest.mark.host_create
 @pytest.mark.tier2
-def test_positive_list_scparams(module_env_search, module_org, module_puppet_classes):
+def test_positive_list_scparams(
+    module_env_search, module_location, module_org, module_puppet_classes
+):
     """List all smart class parameters using host id
 
     :id: 61814875-5ccd-4c04-a638-d36fe089d514
@@ -681,6 +684,7 @@ def test_positive_list_scparams(module_env_search, module_org, module_puppet_cla
             'puppet-classes': module_puppet_classes[0].name,
             'environment': module_env_search.name,
             'organization-id': module_org.id,
+            'location-id': module_location.id,
         }
     )
 

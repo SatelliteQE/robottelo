@@ -848,6 +848,20 @@ PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
+CUSTOM_PUPPET_MODULE_REPOS_PATH = '/custom_puppet/system/releases/r/robottelo/'
+CUSTOM_PUPPET_MODULE_REPOS = {
+    'api_test_classparameters': 'robottelo-api_test_classparameters',
+    'api_test_variables': 'robottelo-api_test_variables',
+    'cli_test_classparameters': 'robottelo-cli_test_classparameters',
+    'cli_test_variables': 'robottelo-cli_test_variables',
+    'generic_1': 'robottelo-generic_1',
+    'generic_2': 'robottelo-generic_2',
+    'generic_3': 'robottelo-generic_3',
+    'ui_test_classparameters': 'robottelo-ui_test_classparameters',
+    'ui_test_variables': 'robottelo-ui_test_variables',
+}
+CUSTOM_PUPPET_MODULE_REPOS_VERSION = '-0.2.0.tar.gz'
+
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {

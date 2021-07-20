@@ -1066,7 +1066,7 @@ def test_positive_read_enc_information(
     host_enc_parameters = host_enc_info['data']['parameters']
     assert host_enc_parameters['organization'] == module_org.name
     assert host_enc_parameters['location'] == module_location.name
-    assert host_enc_parameters['content_view'] == default_contentview.name.replace(' ', '_')
+    assert host_enc_parameters['content_view'] == default_contentview.label
     assert host_enc_parameters['lifecycle_environment'] == module_lce_library.name
     for param in host_parameters_attributes:
         assert param['name'] in host_enc_parameters

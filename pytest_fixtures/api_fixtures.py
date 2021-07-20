@@ -554,7 +554,8 @@ def module_env():
 
 @pytest.fixture(scope='module')
 def module_env_search(module_org, module_location, module_import_puppet_module):
-    """Search for puppet environment created inside module_import_puppet_module.
+    """Search for puppet environment created from module_import_puppet_module fixture.
+
     Returns the puppet environment with updated organization and location.
     """
     env = (
@@ -562,9 +563,9 @@ def module_env_search(module_org, module_location, module_import_puppet_module):
         .search(query={'search': f'name={module_import_puppet_module}'})[0]
         .read()
     )
-    env.organization.append(module_org)
+    env.organization = [module_org]
     env.update(['organization'])
-    env.location.append(module_location)
+    env.location = [module_location]
     env.update(['location'])
     return env
 
@@ -586,10 +587,7 @@ def module_puppet_classes(module_env_search):
     module_import_puppet_module.
     """
     return entities.PuppetClass().search(
-        query={
-            'search': f'name ~ {"api_test_classparameters"} '
-            f'and environment = {module_env_search.name}'
-        }
+        query={'search': f'name ~ {"generic_1"} ' f'and environment = {module_env_search.name}'}
     )
 
 
