@@ -29,18 +29,17 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
+from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_1_ERRATA_ID
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.hosts import ContentHost
 
 
@@ -64,7 +63,7 @@ def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
     # Create custom repository content
     setup_org_for_a_custom_repo(
         {
-            'url': FAKE_1_YUM_REPO,
+            'url': settings.repos.yum_1.url,
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -107,8 +106,8 @@ def test_positive_get_errata_info(katello_agent_client):
     client = katello_agent_client['client']
     host_info = katello_agent_client['host_info']
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    result = Host.errata_info({'host-id': host_info['id'], 'id': FAKE_1_ERRATA_ID})
-    assert result[0]['errata-id'] == FAKE_1_ERRATA_ID
+    result = Host.errata_info({'host-id': host_info['id'], 'id': settings.repos.yum_0.errata[1]})
+    assert result[0]['errata-id'] == settings.repos.yum_0.errata[1]
     assert FAKE_2_CUSTOM_PACKAGE in result[0]['packages']
 
 
@@ -126,7 +125,7 @@ def test_positive_apply_errata(katello_agent_client):
     client = katello_agent_client['client']
     host_info = katello_agent_client['host_info']
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    Host.errata_apply({'errata-ids': FAKE_1_ERRATA_ID, 'host-id': host_info['id']})
+    Host.errata_apply({'errata-ids': settings.repos.yum_0.errata[1], 'host-id': host_info['id']})
 
 
 @pytest.mark.tier3
@@ -146,7 +145,7 @@ def test_positive_apply_security_erratum(katello_agent_client):
     """
     client = katello_agent_client['client']
     host_info = katello_agent_client['host_info']
-    client.download_install_rpm(FAKE_1_YUM_REPO, FAKE_2_CUSTOM_PACKAGE)
+    client.download_install_rpm(settings.repos.yum_1.url, FAKE_2_CUSTOM_PACKAGE)
     # Check the system is up to date
     result = client.run('yum update --security | grep "No packages needed for security"')
     assert result.status == 0
@@ -157,7 +156,7 @@ def test_positive_apply_security_erratum(katello_agent_client):
     wait_for_errata_applicability_task(int(host_info['id']), before_downgrade)
     # Check that host has applicable errata
     host_errata = Host.errata_list({'host-id': host_info['id']})
-    assert host_errata[0]['erratum-id'] == FAKE_1_ERRATA_ID
+    assert host_errata[0]['erratum-id'] == settings.repos.yum_0.errata[1]
     assert host_errata[0]['installable'] == 'true'
     # Check the erratum becomes available
     result = client.run('yum update --assumeno --security | grep "No packages needed for security"')

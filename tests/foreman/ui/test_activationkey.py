@@ -986,7 +986,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
     repo_1_id = create_sync_custom_repo(org_id=module_org.id, product_name=product_1_name)
     cv_publish_promote(cv_1_name, env_1_name, repo_1_id, module_org.id)
     repo_2_id = create_sync_custom_repo(
-        org_id=module_org.id, product_name=product_2_name, repo_url=constants.repos.FAKE_2_YUM_REPO
+        org_id=module_org.id, product_name=product_2_name, repo_url=settings.repos.yum_2.url
     )
     cv_publish_promote(cv_2_name, env_2_name, repo_2_id, module_org.id)
     with session:
@@ -1038,7 +1038,7 @@ def test_positive_host_associations(session, default_sat):
     """
     org = entities.Organization().create()
     org_entities = setup_org_for_a_custom_repo(
-        {'url': constants.repos.FAKE_1_YUM_REPO, 'organization-id': org.id}
+        {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     ak1 = entities.ActivationKey(id=org_entities['activationkey-id']).read()
     ak2 = entities.ActivationKey(
@@ -1100,7 +1100,7 @@ def test_positive_service_level_subscription_with_custom_product(
     org = entities.Organization().create()
     manifests.upload_manifest_locked(org.id)
     entities_ids = setup_org_for_a_custom_repo(
-        {'url': constants.repos.FAKE_1_YUM_REPO, 'organization-id': org.id}
+        {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     product = entities.Product(id=entities_ids['product-id']).read()
     activation_key = entities.ActivationKey(id=entities_ids['activationkey-id']).read()

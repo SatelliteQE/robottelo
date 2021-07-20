@@ -31,8 +31,6 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import ZOO_CUSTOM_GPG_KEY
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 
@@ -222,7 +220,9 @@ def test_positive_delete(module_org, module_product):
     key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
     gpgkey = entities.GPGKey(content=key_content, organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(gpg_key=gpgkey, product=module_product, url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(
+        gpg_key=gpgkey, product=module_product, url=settings.repos.yum_1.url
+    ).create()
     # sync repository
     repo.sync()
     # Create content view
@@ -299,7 +299,7 @@ def test_positive_delete_composite_version(module_org):
     """
     # Create product with repository and publish it
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
     repo.sync()
     # Create and publish content views
     content_view = entities.ContentView(organization=module_org, repository=[repo]).create()
@@ -346,7 +346,7 @@ def test_positive_delete_with_puppet_content(module_org, module_lce_library):
     lce = entities.LifecycleEnvironment(organization=module_org, prior=module_lce_library).create()
     product = entities.Product(organization=module_org).create()
     puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
+        url=settings.repos.puppet_0.url, content_type=REPO_TYPE['puppet'], product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add the yum repo to it
@@ -427,7 +427,7 @@ def test_positive_remove_renamed_cv_version_from_default_env(module_org):
     new_name = gen_string('alpha')
     # create yum product and repo
     product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     yum_repo.sync()
     # create a content view and add the yum repo to it
     content_view = entities.ContentView(organization=module_org).create()
@@ -534,7 +534,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     lce_qe = entities.LifecycleEnvironment(organization=module_org, prior=lce_dev).create()
     lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
     product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     yum_repo.sync()
     docker_repo = entities.Repository(
         content_type='docker',
@@ -544,7 +544,7 @@ def test_positive_remove_prod_promoted_cv_version_from_default_env(module_org):
     ).create()
     docker_repo.sync()
     puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+        url=settings.repos.puppet_0.url, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add to it the yum and docker repos
@@ -608,10 +608,10 @@ def test_positive_remove_cv_version_from_env(module_org):
     lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
     lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
     product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+        url=settings.repos.puppet_0.url, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add the yum repo to it
@@ -679,10 +679,10 @@ def test_positive_remove_cv_version_from_multi_env(module_org):
     lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
     lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
     product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+        url=settings.repos.puppet_0.url, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add the yum repo to it
@@ -749,10 +749,10 @@ def test_positive_delete_cv_promoted_to_multi_env(module_org):
     lce_stage = entities.LifecycleEnvironment(organization=module_org, prior=lce_qe).create()
     lce_prod = entities.LifecycleEnvironment(organization=module_org, prior=lce_stage).create()
     product = entities.Product(organization=module_org).create()
-    yum_repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    yum_repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     yum_repo.sync()
     puppet_repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+        url=settings.repos.puppet_0.url, content_type='puppet', product=product
     ).create()
     puppet_repo.sync()
     # create a content view and add the yum repo to it

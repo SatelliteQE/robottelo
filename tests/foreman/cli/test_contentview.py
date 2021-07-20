@@ -104,7 +104,7 @@ def all_content_type(module_org):
     )
     # Create new yum repo
     yum_repo = cli_factory.make_repository(
-        {'url': constants.repos.FAKE_1_YUM_REPO, 'product-id': product['id']}
+        {'url': settings.repos.yum_1.url, 'product-id': product['id']}
     )
     Repository.synchronize({'id': yum_repo['id']})
     yum_repo_info = Repository.info(
@@ -113,7 +113,7 @@ def all_content_type(module_org):
     # Create new Puppet repository
     puppet_repo = cli_factory.make_repository(
         {
-            'url': constants.repos.FAKE_0_PUPPET_REPO,
+            'url': settings.repos.puppet_0.url,
             'content-type': 'puppet',
             'product-id': product['id'],
         }
@@ -1104,7 +1104,7 @@ class TestContentView:
         create_sync_custom_repo(
             module_org.id,
             repo_name=repo_name,
-            repo_url=constants.repos.CUSTOM_MODULE_STREAM_REPO_2,
+            repo_url=settings.repos.module_stream_1.url,
         )
         repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[
             0
@@ -1204,7 +1204,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -1256,7 +1256,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -1299,7 +1299,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -1348,7 +1348,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -1387,7 +1387,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -1429,7 +1429,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         new_cv = cli_factory.make_content_view({'organization-id': module_org.id})
@@ -1518,7 +1518,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         # Sync REPO
@@ -1915,7 +1915,7 @@ class TestContentView:
             {
                 'product-id': module_product.id,
                 'content-type': 'yum',
-                'url': constants.repos.CUSTOM_MODULE_STREAM_REPO_1,
+                'url': settings.repos.module_stream_0.url,
             }
         )
 
@@ -1923,7 +1923,7 @@ class TestContentView:
             {
                 'product-id': module_product.id,
                 'content-type': 'yum',
-                'url': constants.repos.CUSTOM_MODULE_STREAM_REPO_2,
+                'url': settings.repos.module_stream_1.url,
             }
         )
 
@@ -2575,7 +2575,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': new_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': repository['id']})
@@ -2735,7 +2735,7 @@ class TestContentView:
         product = cli_factory.make_product({'organization-id': org['id']})
         # Create a yum repository and synchronize
         repo = cli_factory.make_repository(
-            {'product-id': product['id'], 'url': constants.repos.FAKE_1_YUM_REPO}
+            {'product-id': product['id'], 'url': settings.repos.yum_1.url}
         )
         Repository.synchronize({'id': repo['id']})
         # Create a content view, add the yum repository and publish
@@ -2890,7 +2890,7 @@ class TestContentView:
         product = cli_factory.make_product({'organization-id': org['id']})
         # Create a yum repository and synchronize
         repo = cli_factory.make_repository(
-            {'product-id': product['id'], 'url': constants.repos.FAKE_1_YUM_REPO}
+            {'product-id': product['id'], 'url': settings.repos.yum_1.url}
         )
         Repository.synchronize({'id': repo['id']})
         # Create a content view, add the yum repository and publish
@@ -3093,7 +3093,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3163,7 +3163,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3339,7 +3339,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3348,7 +3348,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3455,7 +3455,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3464,7 +3464,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3568,7 +3568,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3577,7 +3577,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3668,7 +3668,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3677,7 +3677,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -3888,7 +3888,7 @@ class TestContentView:
             {
                 'content-type': 'yum',
                 'product-id': custom_yum_product['id'],
-                'url': constants.repos.FAKE_1_YUM_REPO,
+                'url': settings.repos.yum_1.url,
             }
         )
         Repository.synchronize({'id': custom_yum_repo['id']})
@@ -3898,7 +3898,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': puppet_product['id'],
-                'url': constants.repos.FAKE_0_PUPPET_REPO,
+                'url': settings.repos.puppet_0.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})
@@ -4207,11 +4207,11 @@ class TestContentView:
         """
         repo_name = gen_string('alphanumeric')
         repo_url = create_repo(
-            repo_name, constants.repos.FAKE_0_INC_UPD_URL, [constants.FAKE_0_INC_UPD_OLD_PACKAGE]
+            repo_name, settings.repos.inc_upd.url, [constants.FAKE_0_INC_UPD_OLD_PACKAGE]
         )
         result = repo_add_updateinfo(
             repo_name,
-            f'{constants.repos.FAKE_0_INC_UPD_URL}{constants.FAKE_0_INC_UPD_OLD_UPDATEFILE}',
+            f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_OLD_UPDATEFILE}',
         )
         assert result.return_code == 0
         repo = cli_factory.make_repository({'product-id': module_product.id, 'url': repo_url})
@@ -4225,13 +4225,13 @@ class TestContentView:
         cvv = content_view['versions'][0]
         create_repo(
             repo_name,
-            constants.repos.FAKE_0_INC_UPD_URL,
+            settings.repos.inc_upd.url,
             [constants.repos.FAKE_0_INC_UPD_NEW_PACKAGE],
             wipe_repodata=True,
         )
         result = repo_add_updateinfo(
             repo_name,
-            f'{constants.repos.FAKE_0_INC_UPD_URL}{constants.FAKE_0_INC_UPD_NEW_UPDATEFILE}',
+            f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_NEW_UPDATEFILE}',
         )
         assert result.return_code == 0
         Repository.synchronize({'id': repo['id']})
@@ -4303,7 +4303,7 @@ class TestContentView:
             {
                 'content-type': 'puppet',
                 'product-id': module_product.id,
-                'url': constants.repos.CUSTOM_PUPPET_REPO,
+                'url': settings.repos.custom_puppet.url,
             }
         )
         Repository.synchronize({'id': puppet_repository['id']})

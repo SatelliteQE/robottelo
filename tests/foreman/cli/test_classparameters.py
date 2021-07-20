@@ -29,14 +29,13 @@ from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
 def module_puppet(module_org, module_location):
     puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
-    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, module_org.id)
+    cv = publish_puppet_module(puppet_modules, settings.repos.custom_puppet.url, module_org.id)
     env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
     Environment.update(
         {
@@ -171,7 +170,9 @@ class TestSmartClassParameters:
 
         :CaseImportance: Low
         """
-        cv = publish_puppet_module(module_puppet['modules'], CUSTOM_PUPPET_REPO, module_org.id)
+        cv = publish_puppet_module(
+            module_puppet['modules'], settings.repos.custom_puppet.url, module_org.id
+        )
         env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
         puppet_class = Puppet.info(
             {'name': module_puppet['modules'][0]['name'], 'environment': env['name']}

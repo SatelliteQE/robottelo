@@ -27,8 +27,6 @@ from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.constants import DISTROS_SUPPORTED
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.hosts import ContentHost
 from robottelo.products import DockerRepository
 from robottelo.products import PuppetRepository
@@ -66,10 +64,11 @@ def test_vm_install_package(org, lce, distro, cdn, default_sat):
         distro=distro,
         repositories=[
             SatelliteToolsRepository(cdn=cdn, distro=distro),
-            YumRepository(url=FAKE_0_YUM_REPO),
+            YumRepository(url=settings.repos.yum_0.url),
             DockerRepository(url=CONTAINER_REGISTRY_HUB, upstream_name=CONTAINER_UPSTREAM_NAME),
             PuppetRepository(
-                url=CUSTOM_PUPPET_REPO, modules=[dict(name='generic_1', author='robottelo')]
+                url=settings.repos.custom_puppet.url,
+                modules=[dict(name='generic_1', author='robottelo')],
             ),
         ],
     )

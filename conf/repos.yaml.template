@@ -35,3 +35,126 @@ REPOS:
   # which are essentially required for generating swid tags in RHEL8 content host.
   SWID_TOOLS_REPO: replace-with-swid-tools-repo
   FAKE_REPO_ZOO3: replace-with-zoo-fedorapeople-repo
+
+# Robottelo fixtures repos
+  MODULE_STREAM_0:
+    URL:
+    ERRATA:
+      - "EX#"
+      - "EX#"
+      - "EX#"
+
+  MODULE_STREAM_1:
+    URL:
+    ERRATA:
+
+  SWID_TAG:
+    URL:
+    ERRATA:
+
+  YUM_0:
+    URL:
+    ERRATA:
+      - "EX#"
+      - "EX#"
+
+  YUM_1:
+    URL:
+    ERRATA:
+      - "EX#"
+      - "EX#"
+      - "EX#"
+      - "EX#"
+
+  YUM_2:
+    URL:
+    ERRATA:
+      - "EX#"
+      - "EX#"
+      - "EX#"
+      - "EX#"
+
+  YUM_3:
+    URL:
+    ERRATA:
+      - "EX#"
+      - "EX#"
+      - "EX#"
+      - "EX#"
+      - "EX#"
+      - "EX#"
+
+  YUM_4:
+    URL:
+    ERRATA:
+
+  YUM_6:
+    URL:
+    ERRATA:
+      - "EX1"
+      - "EX2"
+      - "EX3"
+
+  YUM_7:
+    URL:
+
+  YUM_8:
+    URL:
+
+  YUM_9:
+    URL:
+    ERRATA:
+      - "EX1"
+      - "EX2"
+      - "EX3"
+      - "EX4"
+      - "EX5"
+
+  YUM_10:
+    URL:
+    ERRATA:
+      - "EX1"
+
+  YUM_11:
+    URL:
+
+  YUM_MIXED:
+    URL:
+
+  CUSTOM_PUPPET:
+    URL:
+
+  PUPPET_0:
+    URL:
+
+  PUPPET_1:
+    URL:
+
+  PUPPET_2:
+    URL:
+
+  PUPPET_3:
+    URL:
+
+  PUPPET_4:
+    URL:
+
+  PUPPET_5:
+    URL:
+
+  PUPPET_8:
+    URL:
+
+  REPO_DISCOVERY:
+    URL:
+    ERRATA:
+
+  INC_UPD:
+    URL:
+    ERRATA:
+
+  FILE_TYPE_REPO:
+    URL:
+
+  EPEL_REPO:
+    URL:

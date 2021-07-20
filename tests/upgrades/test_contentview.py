@@ -21,9 +21,8 @@ from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
 from robottelo import ssh
+from robottelo.config import settings
 from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.helpers import get_data_file
 
 
@@ -50,7 +49,7 @@ class TestContentView:
         org = entities.Organization(name=f'{request.node.name}_org').create()
         product = entities.Product(organization=org, name=f'{request.node.name}_prod').create()
         yum_repository = entities.Repository(
-            product=product, name=f'{test_name}_yum_repo', url=FAKE_1_YUM_REPO
+            product=product, name=f'{test_name}_yum_repo', url=settings.repos.yum_1.url
         ).create()
         entities.Repository.sync(yum_repository)
         file_repository = entities.Repository(
@@ -112,7 +111,7 @@ class TestContentView:
         assert len(cv.read_json()['repositories']) == 0
 
         yum_repository2 = entities.Repository(
-            product=product, name=f'{pre_test_name}_yum_repos2', url=FAKE_2_YUM_REPO
+            product=product, name=f'{pre_test_name}_yum_repos2', url=settings.repos.yum_2.url
         ).create()
         yum_repository2.sync()
         cv.repository = [yum_repository2]

@@ -46,10 +46,7 @@ from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
-from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_7_PUPPET_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_DUPLICATE_REPO
@@ -201,7 +198,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
+        **parametrized([{'content_type': 'yum', 'url': settings.repos.yum_2.url}]),
         indirect=True,
     )
     def test_positive_create_yum(self, repo_options, repo):
@@ -860,9 +857,9 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        repo.url = FAKE_2_YUM_REPO
+        repo.url = settings.repos.yum_2.url
         repo = repo.update(['url'])
-        assert repo.url == FAKE_2_YUM_REPO
+        assert repo.url == settings.repos.yum_2.url
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -985,7 +982,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        [{'content_type': 'yum', 'url': settings.repos.yum_2.url}],
         ids=['yum_fake_2'],
         indirect=True,
     )
@@ -1191,7 +1188,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        [{'content_type': 'yum', 'url': settings.repos.yum_2.url}],
         ids=['yum_fake_2'],
         indirect=True,
     )
@@ -1248,7 +1245,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        [{'content_type': 'yum', 'url': settings.repos.yum_2.url}],
         ids=['yum_fake_2'],
         indirect=True,
     )
@@ -1277,7 +1274,9 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'unprotected': False, 'url': FAKE_2_YUM_REPO}]),
+        **parametrized(
+            [{'content_type': 'yum', 'unprotected': False, 'url': settings.repos.yum_2.url}]
+        ),
         indirect=True,
     )
     def test_positive_access_protected_repository(self, module_org, repo, default_sat):
@@ -1322,7 +1321,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        [{'content_type': 'yum', 'unprotected': False, 'url': CUSTOM_MODULE_STREAM_REPO_2}],
+        [{'content_type': 'yum', 'unprotected': False, 'url': settings.repos.module_stream_1.url}],
         ids=['protected_yum'],
         indirect=True,
     )
@@ -1342,7 +1341,7 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['module_stream'] == 7
 
-        repo.url = CUSTOM_MODULE_STREAM_REPO_1
+        repo.url = settings.repos.module_stream_0.url
         repo = repo.update(['url'])
         repo.sync()
         assert repo.read().content_counts['module_stream'] >= 14

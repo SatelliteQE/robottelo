@@ -39,11 +39,7 @@ from robottelo.constants import PRDS
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512
-from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
@@ -202,7 +198,7 @@ class TestContentView:
         :CaseImportance: High
         """
         yum_repo = entities.Repository(
-            product=module_product, url=CUSTOM_MODULE_STREAM_REPO_2
+            product=module_product, url=settings.repos.module_stream_1.url
         ).create()
         yum_repo.sync()
         assert len(content_view.repository) == 0
@@ -233,7 +229,7 @@ class TestContentView:
         puppet_repo = entities.Repository(
             content_type='puppet',
             product=module_product,
-            url=FAKE_0_PUPPET_REPO,
+            url=settings.repos.puppet_0.url,
         ).create()
         puppet_repo.sync()
         with pytest.raises(HTTPError):
@@ -283,7 +279,7 @@ class TestContentView:
         puppet_repo = entities.Repository(
             content_type='puppet',
             product=module_product,
-            url=FAKE_0_PUPPET_REPO,
+            url=settings.repos.puppet_0.url,
         ).create()
         puppet_repo.sync()
         puppet_module = random.choice(content_view.available_puppet_modules()['results'])
@@ -441,13 +437,13 @@ class TestContentViewPublishPromote:
         request.cls.yum_repo = entities.Repository(product=module_product).create()
         self.yum_repo.sync()
         request.cls.swid_repo = entities.Repository(
-            product=module_product, url=CUSTOM_SWID_TAG_REPO
+            product=module_product, url=settings.repos.swid_tag.url
         ).create()
         self.swid_repo.sync()
         request.cls.puppet_repo = entities.Repository(
             content_type='puppet',
             product=module_product.id,
-            url=FAKE_0_PUPPET_REPO,
+            url=settings.repos.puppet_0.url,
         ).create()
         self.puppet_repo.sync()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
@@ -852,7 +848,7 @@ class TestContentViewPublishPromote:
         """
         product = entities.Product(organization=module_org).create()
         repo = entities.Repository(
-            content_type='yum', product=product, url=CUSTOM_MODULE_STREAM_REPO_2
+            content_type='yum', product=product, url=settings.repos.module_stream_1.url
         ).create()
         repo.sync()
         content_view_1 = entities.ContentView(organization=module_org).create()
@@ -1426,13 +1422,13 @@ class TestOstreeContentView:
         self.ostree_repo.sync()
         # Create new yum repository
         request.cls.yum_repo = entities.Repository(
-            url=FAKE_1_YUM_REPO,
+            url=settings.repos.yum_1.url,
             product=module_product,
         ).create()
         self.yum_repo.sync()
         # Create new Puppet repository
         request.cls.puppet_repo = entities.Repository(
-            url=FAKE_0_PUPPET_REPO,
+            url=settings.repos.puppet_0.url,
             content_type='puppet',
             product=module_product,
         ).create()

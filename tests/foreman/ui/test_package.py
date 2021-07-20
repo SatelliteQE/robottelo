@@ -22,9 +22,8 @@ from nailgun import entities
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
+from robottelo.config import settings
 from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.constants.repos import FAKE_0_YUM_REPO
-from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.helpers import get_data_file
 from robottelo.products import SatelliteToolsRepository
 
@@ -42,7 +41,10 @@ def module_product(module_org):
 @pytest.fixture(scope='module')
 def module_yum_repo(module_product):
     yum_repo = entities.Repository(
-        name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_0_YUM_REPO
+        name=gen_string('alpha'),
+        product=module_product,
+        content_type='yum',
+        url=settings.repos.yum_0.url,
     ).create()
     yum_repo.sync()
     return yum_repo
@@ -51,7 +53,10 @@ def module_yum_repo(module_product):
 @pytest.fixture(scope='module')
 def module_yum_repo2(module_product):
     yum_repo = entities.Repository(
-        name=gen_string('alpha'), product=module_product, content_type='yum', url=FAKE_3_YUM_REPO
+        name=gen_string('alpha'),
+        product=module_product,
+        content_type='yum',
+        url=settings.repos.yum_3.url,
     ).create()
     yum_repo.sync()
     return yum_repo

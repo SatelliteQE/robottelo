@@ -37,7 +37,6 @@ from robottelo.constants import CONTAINER_UPSTREAM_NAME
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -333,7 +332,9 @@ def test_positive_sync(module_org):
     :CaseImportance: Critical
     """
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product, content_type='yum', url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(
+        product=product, content_type='yum', url=settings.repos.yum_1.url
+    ).create()
     assert repo.read().content_counts['rpm'] == 0
     product.sync()
     assert repo.read().content_counts['rpm'] >= 1
@@ -356,7 +357,7 @@ def test_positive_sync_several_repos(module_org):
     """
     product = entities.Product(organization=module_org).create()
     rpm_repo = entities.Repository(
-        product=product, content_type='yum', url=FAKE_1_YUM_REPO
+        product=product, content_type='yum', url=settings.repos.yum_1.url
     ).create()
     docker_repo = entities.Repository(
         content_type=REPO_TYPE['docker'],

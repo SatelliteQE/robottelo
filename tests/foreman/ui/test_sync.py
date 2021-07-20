@@ -31,7 +31,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.decorators.host import skip_if_os
 from robottelo.products import RepositoryCollection
@@ -67,7 +66,7 @@ def test_positive_sync_custom_repo(session, module_custom_product):
 
     :CaseImportance: Critical
     """
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=module_custom_product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=module_custom_product).create()
     with session:
         results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1

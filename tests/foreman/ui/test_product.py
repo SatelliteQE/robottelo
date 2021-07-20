@@ -26,7 +26,6 @@ from robottelo.config import settings
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_cron_expressions
@@ -89,7 +88,7 @@ def test_positive_end_to_end(session, module_org):
             {
                 'name': gen_string('alpha'),
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
             },
         )
         # Synchronize the product
