@@ -12,6 +12,9 @@ from nailgun.client import request
 from robottelo import ssh
 from robottelo.config import get_url
 from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_PTABLE
 from robottelo.constants import DEFAULT_PXE_TEMPLATE
@@ -130,22 +133,29 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return cv.read()
 
 
-def import_puppet_module(sat):
-    """Download install and import puppet class. This is workaround for 6.10, there is no longer
+def import_puppet_module(sat, puppet_module_repo=CUSTOM_PUPPET_MODULE_REPOS['generic_1']):
+    """Download, install and import puppet module. This is workaround for 6.10, there is no longer
     content view
 
-    :param sat: satellite object
-    :return: puppet environment name,
+    :param puppet_module_repo: custom puppet module repository
+    :param sat: Satellite object
+    :return: Puppet environment name,
         environment name is likely to be searched in next steps of the test
     """
-    env_name = 'test_environment'
-    class_parameters_package_name = 'robottelo-api_test_classparameters-0.2.0.tar.gz'
+    if puppet_module_repo not in list(CUSTOM_PUPPET_MODULE_REPOS.values()):
+        raise ValueError(
+            f'Custom puppet module mismatch, actual custom puppet module repo: '
+            f'"{puppet_module_repo}", does not match any available puppet module: '
+            f'"{list(CUSTOM_PUPPET_MODULE_REPOS.values())}"'
+        )
+    env_name = gen_string('alpha')
+    custom_puppet_module_repo = f'{puppet_module_repo}{CUSTOM_PUPPET_MODULE_REPOS_VERSION}'
     sat.execute(
-        f'curl -O {settings.robottelo.repos_hosting_url}/custom_puppet/system/releases/r/robottelo/'
-        f'{class_parameters_package_name}',
+        f'curl -O {settings.robottelo.repos_hosting_url}{CUSTOM_PUPPET_MODULE_REPOS_PATH}'
+        f'{custom_puppet_module_repo}',
     )
     sat.execute(
-        f'puppet module install {class_parameters_package_name} '
+        f'puppet module install {custom_puppet_module_repo} '
         f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
     )
     smart_proxy = (
