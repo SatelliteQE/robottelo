@@ -42,7 +42,6 @@ from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -63,7 +62,7 @@ PUPPET_MODULES = [
 @pytest.fixture(scope='module')
 def cv(module_org):
     """Create puppet repo and content view, and return the content view."""
-    return publish_puppet_module(PUPPET_MODULES, CUSTOM_PUPPET_REPO, module_org.id)
+    return publish_puppet_module(PUPPET_MODULES, settings.repos.custom_puppet.url, module_org.id)
 
 
 @pytest.fixture(scope='module')

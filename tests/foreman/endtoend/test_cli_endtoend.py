@@ -52,7 +52,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 
 
 @pytest.fixture(scope='module')
@@ -184,7 +183,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set):
             'name': gen_alphanumeric(),
             'product-id': product['id'],
             'publish-via-http': 'true',
-            'url': FAKE_0_PUPPET_REPO,
+            'url': settings.repos.puppet_0.url,
         },
     )
     repositories.append(puppet_repo)

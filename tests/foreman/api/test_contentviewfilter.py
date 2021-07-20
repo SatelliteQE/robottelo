@@ -36,9 +36,6 @@ from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CUSTOM_REPODATA_PATH
-from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import CUSTOM_SWID_TAG_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -54,7 +51,7 @@ def sync_repo(module_product):
 @pytest.fixture(scope='module')
 def sync_repo_module_stream(module_product):
     repo = entities.Repository(
-        content_type='yum', product=module_product, url=CUSTOM_MODULE_STREAM_REPO_2
+        content_type='yum', product=module_product, url=settings.repos.module_stream_1.url
     ).create()
     repo.sync()
     return repo
@@ -353,7 +350,7 @@ class TestContentViewFilter:
         :CaseLevel: Integration
         """
         swid_tag_repository = entities.Repository(
-            product=module_product, url=CUSTOM_SWID_TAG_REPO
+            product=module_product, url=settings.repos.swid_tag.url
         ).create()
         swid_tag_repository.sync()
         content_view = entities.ContentView(organization=module_org).create()
@@ -859,7 +856,7 @@ class TestContentViewFilterRule:
             inclusion=True,
         ).create()
         errata = entities.Errata().search(
-            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
+            query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
@@ -878,7 +875,7 @@ class TestContentViewFilterRule:
             inclusion=False,
         ).create()
         errata = entities.Errata().search(
-            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
+            query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 
@@ -910,7 +907,7 @@ class TestContentViewFilterRule:
             inclusion=True,
         ).create()
         errata = entities.Errata().search(
-            query={'search': f'errata_id="{FAKE_0_MODULAR_ERRATA_ID}"'}
+            query={'search': f'errata_id="{settings.repos.module_stream_0.errata[2]}"'}
         )[0]
         entities.ContentViewFilterRule(content_view_filter=cv_filter, errata=errata).create()
 

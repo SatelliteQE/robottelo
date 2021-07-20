@@ -56,14 +56,12 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import NO_REPOS_AVAILABLE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import SATELLITE_SUBSCRIPTION_NAME
 from robottelo.constants import SM_OVERALL_STATUS
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_hosts_list
@@ -1499,7 +1497,7 @@ def katello_host_tools_repos():
     # Create custom repository content
     setup_org_for_a_custom_repo(
         {
-            'url': FAKE_6_YUM_REPO,
+            'url': settings.repos.yum_6.url,
             'organization-id': org.id,
             'content-view-id': cv.id,
             'lifecycle-environment-id': lce.id,
@@ -1666,17 +1664,17 @@ def test_positive_erratum_applicability(katello_host_tools_client):
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
-    assert FAKE_2_ERRATA_ID in applicable_erratum_ids
+    assert settings.repos.yum_6.errata[2] in applicable_erratum_ids
     before_upgrade = int(time.time())
     # apply errata
-    result = client.run(f'yum update -y --advisory {FAKE_2_ERRATA_ID}')
+    result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
     assert result.status == 0
     wait_for_errata_applicability_task(int(host_info['id']), before_upgrade)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
-    assert FAKE_2_ERRATA_ID not in applicable_erratum_ids
+    assert settings.repos.yum_6.errata[2] not in applicable_erratum_ids
 
 
 @pytest.mark.katello_host_tools

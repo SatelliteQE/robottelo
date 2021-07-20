@@ -25,6 +25,7 @@ from nailgun import entities
 from robottelo import constants
 from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
+from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
@@ -59,8 +60,8 @@ def module_repos_collection(module_org, module_lce):
         distro=constants.DISTRO_DEFAULT,
         repositories=[
             SatelliteToolsRepository(),
-            YumRepository(url=constants.repos.FAKE_1_YUM_REPO),
-            YumRepository(url=constants.repos.FAKE_6_YUM_REPO),
+            YumRepository(url=settings.repos.yum_1.url),
+            YumRepository(url=settings.repos.yum_6.url),
         ],
     )
     repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
@@ -71,7 +72,7 @@ def module_repos_collection(module_org, module_lce):
 def module_repos_collection_module_stream(module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=constants.DISTRO_RHEL8,
-        repositories=[YumRepository(url=constants.repos.CUSTOM_MODULE_STREAM_REPO_2)],
+        repositories=[YumRepository(url=settings.repos.module_stream_1.url)],
     )
     repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection
@@ -492,7 +493,7 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
     with session:
         session.organization.select(org_name=module_org.name)
         task_values = session.hostcollection.install_errata(
-            vm_host_collection.name, constants.FAKE_2_ERRATA_ID
+            vm_host_collection.name, settings.repos.yum_6.errata[2]
         )
         assert task_values['result'] == 'success'
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
@@ -724,7 +725,7 @@ def test_positive_install_modular_errata(
     with session:
         result = session.hostcollection.install_errata(
             vm_host_collection_module_stream.name,
-            constants.FAKE_0_MODULAR_ERRATA_ID,
+            settings.repos.module_stream_0.errata[2],
             install_via='via remote execution',
         )
         assert result['job_status'] == 'Success'

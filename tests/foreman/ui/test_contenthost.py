@@ -39,17 +39,12 @@ from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_0_MODULAR_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_ERRATA_ID
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
@@ -81,8 +76,8 @@ def repos_collection(module_org):
         repositories=[
             RHELAnsibleEngineRepository(cdn=True),
             SatelliteToolsRepository(),
-            YumRepository(url=FAKE_1_YUM_REPO),
-            YumRepository(url=FAKE_6_YUM_REPO),
+            YumRepository(url=settings.repos.yum_1.url),
+            YumRepository(url=settings.repos.yum_6.url),
         ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
@@ -100,7 +95,7 @@ def repos_collection_for_module_streams(module_org):
             YumRepository(url=settings.repos.rhel8_os.baseos),
             YumRepository(url=settings.repos.rhel8_os.appstream),
             YumRepository(url=settings.repos.sattools_repo[DISTRO_RHEL8]),
-            YumRepository(url=CUSTOM_MODULE_STREAM_REPO_2),
+            YumRepository(url=settings.repos.module_stream_1.url),
         ],
     )
     repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
@@ -228,7 +223,7 @@ def test_positive_end_to_end(session, repos_collection, vm):
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
-        result = session.errata.install(FAKE_2_ERRATA_ID, vm.hostname)
+        result = session.errata.install(settings.repos.yum_6.errata[2], vm.hostname)
         assert result['result'] == 'success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
@@ -365,7 +360,7 @@ def test_positive_remove_package(session, vm):
 
     :CaseLevel: System
     """
-    vm.download_install_rpm(FAKE_6_YUM_REPO, FAKE_0_CUSTOM_PACKAGE)
+    vm.download_install_rpm(settings.repos.yum_6.url, FAKE_0_CUSTOM_PACKAGE)
     with session:
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
@@ -517,7 +512,9 @@ def test_positive_search_errata_non_admin(session, vm, module_org, test_name, de
         test_name, user=default_viewer_role.login, password=default_viewer_role.password
     ) as session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
-        assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+        assert settings.repos.yum_6.errata[2] in {
+            errata['Id'] for errata in chost['errata']['table']
+        }
 
 
 @pytest.mark.tier3
@@ -554,11 +551,15 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
     assert result.status == 0
     with session:
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
-        assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+        assert settings.repos.yum_6.errata[2] in {
+            errata['Id'] for errata in chost['errata']['table']
+        }
         result = vm.run('subscription-manager refresh  && yum repolist')
         assert result.status == 0
         chost = session.contenthost.read(vm.hostname, widget_names='errata')
-        assert FAKE_2_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+        assert settings.repos.yum_6.errata[2] in {
+            errata['Id'] for errata in chost['errata']['table']
+        }
 
 
 @pytest.mark.tier3
@@ -927,11 +928,13 @@ def test_install_modular_errata(session, vm_module_streams):
 
         # verify the errata
         chost = session.contenthost.read(vm_module_streams.hostname, 'errata')
-        assert FAKE_0_MODULAR_ERRATA_ID in {errata['Id'] for errata in chost['errata']['table']}
+        assert settings.repos.module_stream_0.errata[2] in {
+            errata['Id'] for errata in chost['errata']['table']
+        }
 
         # Install errata
         result = session.contenthost.install_errata(
-            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='rex'
+            vm_module_streams.hostname, settings.repos.module_stream_0.errata[2], install_via='rex'
         )
         assert result['overview']['hosts_table'][0]['Status'] == 'success'
 
@@ -946,7 +949,9 @@ def test_install_modular_errata(session, vm_module_streams):
         run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
         # Install errata using Katello Agent
         result = session.contenthost.install_errata(
-            vm_module_streams.hostname, FAKE_0_MODULAR_ERRATA_ID, install_via='katello'
+            vm_module_streams.hostname,
+            settings.repos.module_stream_0.errata[2],
+            install_via='katello',
         )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,

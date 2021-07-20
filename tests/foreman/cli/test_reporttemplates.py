@@ -52,6 +52,7 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE_NAME
@@ -62,7 +63,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.hosts import ContentHost
 from robottelo.ssh import upload_file
 
@@ -885,7 +885,7 @@ def test_positive_generate_hostpkgcompare(
     )
     setup_org_for_a_custom_repo(
         {
-            'url': FAKE_6_YUM_REPO,
+            'url': settings.repos.yum_6.url,
             'organization-id': local_org['id'],
             'content-view-id': local_content_view['id'],
             'lifecycle-environment-id': local_environment['id'],

@@ -36,16 +36,8 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOSET
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_2_YUM_REPO
-from robottelo.constants.repos import FAKE_8_PUPPET_REPO
 from robottelo.constants.repos import FEDORA26_OSTREE_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
 from robottelo.host_info import get_sat_version
@@ -88,7 +80,7 @@ def test_positive_create_in_different_orgs(session, module_org):
                     'name': repo_name,
                     'label': org.label,
                     'repo_type': REPO_TYPE['yum'],
-                    'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                    'repo_content.upstream_url': settings.repos.yum_1.url,
                 },
             )
             assert session.repository.search(prod.name, repo_name)[0]['Name'] == repo_name
@@ -145,7 +137,7 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
             },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
@@ -166,14 +158,14 @@ def test_positive_create_puppet_repo_same_url_different_orgs(session, module_pro
     """
     # Create first repository
     repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO, product=module_prod, content_type=REPO_TYPE['puppet']
+        url=settings.repos.puppet_8.url, product=module_prod, content_type=REPO_TYPE['puppet']
     ).create()
     repo.sync()
     # Create second repository
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
     new_repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
+        url=settings.repos.puppet_8.url, product=product, content_type=REPO_TYPE['puppet']
     ).create()
     new_repo.sync()
     with session:
@@ -228,7 +220,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
         organization=[module_org],
     ).create()
     prod = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=prod, url=FAKE_2_YUM_REPO).create()
+    repo = entities.Repository(product=prod, url=settings.repos.yum_2.url).create()
     repo.sync()
     content_view = entities.ContentView(organization=module_org).create()
     content_view.repository = [repo]
@@ -256,7 +248,7 @@ def test_positive_create_as_non_admin_user_with_cv_published(module_org, test_na
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
             },
         )
         assert session.repository.search(prod.name, repo.name)[0]['Name'] == repo.name
@@ -282,7 +274,7 @@ def test_positive_discover_repo_via_existing_product(session, module_org):
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
-                'url': REPO_DISCOVERY_URL,
+                'url': settings.repos.repo_discovery.url,
                 'discovered_repos.repos': repo_name,
                 'create_repo.product_type': 'Existing Product',
                 'create_repo.product_content.product_name': product.name,
@@ -310,7 +302,7 @@ def test_positive_discover_repo_via_new_product(session, module_org):
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
-                'url': REPO_DISCOVERY_URL,
+                'url': settings.repos.repo_discovery.url,
                 'discovered_repos.repos': repo_name,
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
@@ -336,7 +328,7 @@ def test_positive_discover_module_stream_repo_via_existing_product(session, modu
         1. Create a product.
         2. From Content > Products, click on the Repo Discovery button.
         3. Enter a url containing a yum repository with module streams, e.g.,
-           CUSTOM_MODULE_STREAM_REPO_1.
+           settings.repos.module_stream_1.url.
         4. Click the Discover button.
 
     :expectedresults: Repositories are discovered.
@@ -356,7 +348,7 @@ def test_positive_sync_custom_repo_yum(session, module_org):
     :CaseLevel: Integration
     """
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
@@ -382,7 +374,7 @@ def test_positive_sync_custom_repo_puppet(session, module_org):
     """
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
+        url=settings.repos.puppet_0.url, product=product, content_type=REPO_TYPE['puppet']
     ).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
@@ -428,7 +420,7 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
     :CaseLevel: Integration
     """
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
@@ -439,7 +431,7 @@ def test_positive_resync_custom_repo_after_invalid_update(session, module_org):
         assert 'bad URI(is not URI?)' in str(context.value)
         assert session.repository.search(product.name, repo.name)[0]['Name'] == repo.name
         repo_values = session.repository.read(product.name, repo.name)
-        assert repo_values['repo_content']['upstream_url'] == FAKE_1_YUM_REPO
+        assert repo_values['repo_content']['upstream_url'] == settings.repos.yum_1.url
         result = session.repository.synchronize(product.name, repo.name)
         assert result['result'] == 'success'
 
@@ -459,7 +451,7 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
     :BZ: 1318004
     """
     repo = entities.Repository(
-        url=FAKE_1_YUM_REPO, content_type=REPO_TYPE['yum'], product=module_prod
+        url=settings.repos.yum_1.url, content_type=REPO_TYPE['yum'], product=module_prod
     ).create()
     with session:
         result = session.repository.synchronize(module_prod.name, repo.name)
@@ -494,7 +486,7 @@ def test_positive_resynchronize_puppet_repo(session, module_prod):
     :BZ: 1318004
     """
     repo = entities.Repository(
-        url=FAKE_1_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=module_prod
+        url=settings.repos.puppet_1.url, content_type=REPO_TYPE['puppet'], product=module_prod
     ).create()
     with session:
         result = session.repository.synchronize(module_prod.name, repo.name)
@@ -544,7 +536,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
                 'repo_content.checksum_type': checksum_type,
                 'repo_content.gpg_key': gpg_key.name,
                 'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
@@ -552,7 +544,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_url'] == FAKE_1_YUM_REPO
+        assert repo_values['repo_content']['upstream_url'] == settings.repos.yum_1.url
         assert repo_values['repo_content']['metadata_type'] == checksum_type
         assert repo_values['repo_content']['gpg_key'] == gpg_key.name
         assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
@@ -561,7 +553,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
             repo_name,
             {
                 'name': new_repo_name,
-                'repo_content.upstream_url': FAKE_2_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_2.url,
                 'repo_content.metadata_type': new_checksum_type,
                 'repo_content.gpg_key': new_gpg_key.name,
                 'repo_content.download_policy': DOWNLOAD_POLICIES['immediate'],
@@ -570,7 +562,7 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
         assert not session.repository.search(module_prod.name, repo_name)
         repo_values = session.repository.read(module_prod.name, new_repo_name)
         assert repo_values['name'] == new_repo_name
-        assert repo_values['repo_content']['upstream_url'] == FAKE_2_YUM_REPO
+        assert repo_values['repo_content']['upstream_url'] == settings.repos.yum_2.url
         assert repo_values['repo_content']['metadata_type'] == new_checksum_type
         assert repo_values['repo_content']['gpg_key'] == new_gpg_key.name
         assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
@@ -599,21 +591,23 @@ def test_positive_end_to_end_custom_module_streams_crud(session, module_org, mod
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_2,
+                'repo_content.upstream_url': settings.repos.module_stream_1.url,
             },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_2
+        assert repo_values['repo_content']['upstream_url'] == settings.repos.module_stream_1.url
         result = session.repository.synchronize(module_prod.name, repo_name)
         assert result['result'] == 'success'
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert int(repo_values['content_counts']['Module Streams']) >= 5
         session.repository.update(
-            module_prod.name, repo_name, {'repo_content.upstream_url': CUSTOM_MODULE_STREAM_REPO_1}
+            module_prod.name,
+            repo_name,
+            {'repo_content.upstream_url': settings.repos.module_stream_0.url},
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_url'] == CUSTOM_MODULE_STREAM_REPO_1
+        assert repo_values['repo_content']['upstream_url'] == settings.repos.module_stream_0.url
         session.repository.delete(module_prod.name, repo_name)
         assert not session.repository.search(module_prod.name, repo_name)
 
@@ -650,7 +644,7 @@ def test_positive_upstream_with_credentials(session, module_prod):
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
                 'repo_content.upstream_username': upstream_username,
                 'repo_content.upstream_password': upstream_password,
             },

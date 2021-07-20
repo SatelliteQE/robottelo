@@ -25,8 +25,6 @@ from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants.repos import FAKE_6_YUM_REPO
 from robottelo.datafactory import gen_string
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
@@ -239,7 +237,7 @@ def test_positive_user_access_with_host_filter(test_name, module_loc, rhel7_cont
         assert len(session.dashboard.read('LatestErrata')) == 0
         repos_collection = RepositoryCollection(
             distro=DISTRO_RHEL7,
-            repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_6_YUM_REPO)],
+            repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_6.url)],
         )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
         repos_collection.setup_virtual_machine(rhel7_contenthost)
@@ -253,4 +251,4 @@ def test_positive_user_access_with_host_filter(test_name, module_loc, rhel7_cont
         errata_values = session.dashboard.read('LatestErrata')['erratas']
         assert len(errata_values) == 1
         assert errata_values[0]['Type'] == 'security'
-        assert FAKE_2_ERRATA_ID in errata_values[0]['Errata']
+        assert settings.repos.yum_6.errata[2] in errata_values[0]['Errata']

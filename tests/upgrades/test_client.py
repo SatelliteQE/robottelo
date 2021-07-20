@@ -42,8 +42,6 @@ from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_0_YUM_REPO
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 
 
 # host machine for containers
@@ -84,7 +82,9 @@ def sat6tools_repo(default_org):
 @pytest.fixture(scope='module')
 def pre_upgrade_repo(default_org, module_product):
     """Enable custom errata repository"""
-    pre_upgrade_repo = entities.Repository(url=FAKE_0_YUM_REPO, product=module_product).create()
+    pre_upgrade_repo = entities.Repository(
+        url=settings.repos.yum_0.url, product=module_product
+    ).create()
     assert pre_upgrade_repo.sync()['result'] == 'success'
     return pre_upgrade_repo
 
@@ -92,7 +92,9 @@ def pre_upgrade_repo(default_org, module_product):
 @pytest.fixture(scope='module')
 def post_upgrade_repo(default_org, module_product):
     """Enable custom errata repository"""
-    post_upgrade_repo = entities.Repository(url=FAKE_9_YUM_REPO, product=module_product).create()
+    post_upgrade_repo = entities.Repository(
+        url=settings.repos.yum_9.url, product=module_product
+    ).create()
     assert post_upgrade_repo.sync()['result'] == 'success'
     return post_upgrade_repo
 

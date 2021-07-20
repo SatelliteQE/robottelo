@@ -33,12 +33,9 @@ from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM
 from robottelo.constants import FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_3_ERRATA_ID
 from robottelo.constants import FAKE_3_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_5_ERRATA_ID
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
@@ -46,9 +43,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
-from robottelo.constants.repos import FAKE_3_YUM_REPO
-from robottelo.constants.repos import FAKE_6_YUM_REPO
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.manifests import upload_manifest_locked
@@ -59,8 +53,8 @@ from robottelo.products import VirtualizationAgentsRepository
 from robottelo.products import YumRepository
 
 
-CUSTOM_REPO_URL = FAKE_6_YUM_REPO
-CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
+CUSTOM_REPO_URL = settings.repos.yum_6.url
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 RHVA_PACKAGE = REAL_0_RH_PACKAGE
 RHVA_ERRATA_ID = REAL_4_ERRATA_ID
@@ -177,7 +171,7 @@ def module_erratatype_repos_col(module_org, module_lce):
             # force the host to consume an RH product with adding a cdn repo.
             RHELAnsibleEngineRepository(cdn=True),
             # add a repo with errata of different types (security, advisory, etc)
-            YumRepository(url=FAKE_9_YUM_REPO),
+            YumRepository(url=settings.repos.yum_9.url),
         ],
     )
     repos_collection.setup_content(module_org.id, module_lce.id)
@@ -306,7 +300,7 @@ def test_content_host_errata_page_pagination(session, org, lce):
         distro=DISTRO_RHEL7,
         repositories=[
             SatelliteToolsRepository(),
-            YumRepository(url=FAKE_3_YUM_REPO),
+            YumRepository(url=settings.repos.yum_3.url),
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
@@ -370,18 +364,18 @@ def test_positive_list(session, org, lce):
 
     :CaseLevel: Integration
     """
-    rc = RepositoryCollection(repositories=[YumRepository(FAKE_3_YUM_REPO)])
+    rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
     rc.setup_content(org.id, lce.id)
     with session:
         assert (
             session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
             == CUSTOM_REPO_ERRATA_ID
         )
-        assert not session.errata.search(FAKE_3_ERRATA_ID, applicable=False)
+        assert not session.errata.search(settings.repos.yum_3.errata[5], applicable=False)
         session.organization.select(org_name=org.name)
         assert (
-            session.errata.search(FAKE_3_ERRATA_ID, applicable=False)[0]['Errata ID']
-            == FAKE_3_ERRATA_ID
+            session.errata.search(settings.repos.yum_3.errata[5], applicable=False)[0]['Errata ID']
+            == settings.repos.yum_3.errata[5]
         )
         assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
 
@@ -947,11 +941,15 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result, 'Needs-RHBA host not found'
             # Search for applicable RHSA errata by Errata ID
-            result = session.contenthost.search(f'applicable_errata = {FAKE_2_ERRATA_ID}')
+            result = session.contenthost.search(
+                f'applicable_errata = {settings.repos.yum_6.errata[2]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for applicable RHBA errata by Errata ID
-            result = session.contenthost.search(f'applicable_errata = {FAKE_5_ERRATA_ID}')
+            result = session.contenthost.search(
+                f'applicable_errata = {settings.repos.yum_6.errata[0]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
             # Search for RHSA applicable RPMs
@@ -963,10 +961,14 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
             # Search for installable RHSA errata by Errata ID
-            result = session.contenthost.search(f'installable_errata = {FAKE_2_ERRATA_ID}')
+            result = session.contenthost.search(
+                f'installable_errata = {settings.repos.yum_6.errata[2]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for installable RHBA errata by Errata ID
-            result = session.contenthost.search(f'installable_errata = {FAKE_5_ERRATA_ID}')
+            result = session.contenthost.search(
+                f'installable_errata = {settings.repos.yum_6.errata[0]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result

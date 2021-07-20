@@ -52,7 +52,6 @@ from robottelo.constants import FAKE_0_INC_UPD_NEW_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_NEW_UPDATEFILE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_PACKAGE
 from robottelo.constants import FAKE_0_INC_UPD_OLD_UPDATEFILE
-from robottelo.constants import FAKE_4_ERRATA_ID
 from robottelo.constants import FAKE_9_YUM_SECURITY_ERRATUM_COUNT
 from robottelo.constants import FILTER_CONTENT_TYPE
 from robottelo.constants import FILTER_ERRATA_TYPE
@@ -66,19 +65,7 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
-from robottelo.constants.repos import FAKE_0_INC_UPD_URL
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_0_YUM_REPO
-from robottelo.constants.repos import FAKE_10_YUM_REPO
-from robottelo.constants.repos import FAKE_11_YUM_REPO
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_3_YUM_REPO
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
@@ -292,7 +279,7 @@ def test_positive_add_puppet_module(session, module_org):
 
     :CaseImportance: High
     """
-    repo_url = FAKE_0_PUPPET_REPO
+    repo_url = settings.repos.puppet_0.url
     cv_name = gen_string('alpha')
     puppet_module = 'httpd'
     create_sync_custom_repo(module_org.id, repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
@@ -341,7 +328,9 @@ def test_positive_create_composite(session):
     with manifests.clone() as manifest:
         upload_manifest(org.id, manifest.content)
     enable_sync_redhat_repo(rh_repo, org.id)
-    create_sync_custom_repo(org.id, repo_url=FAKE_0_PUPPET_REPO, repo_type=REPO_TYPE['puppet'])
+    create_sync_custom_repo(
+        org.id, repo_url=settings.repos.puppet_0.url, repo_type=REPO_TYPE['puppet']
+    )
     with session:
         session.organization.select(org.name)
         # Create content views
@@ -1000,7 +989,7 @@ def test_negative_add_dupe_modules(session, module_org):
     module_name = 'samba'
     product = entities.Product(organization=module_org).create()
     puppet_repository = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type='puppet', product=product
+        url=settings.repos.puppet_0.url, content_type='puppet', product=product
     ).create()
     puppet_repository.sync()
     with session:
@@ -1105,10 +1094,10 @@ def test_positive_publish_composite_with_custom_content(session):
     cv_composite_name = gen_string('alpha')
     custom_repo1_name = gen_string('alpha')
     custom_repo2_name = gen_string('alpha')
-    custom_repo1_url = FAKE_0_YUM_REPO
-    custom_repo2_url = FAKE_1_YUM_REPO
-    puppet_repo1_url = FAKE_0_PUPPET_REPO
-    puppet_repo2_url = FAKE_1_PUPPET_REPO
+    custom_repo1_url = settings.repos.yum_0.url
+    custom_repo2_url = settings.repos.yum_1.url
+    puppet_repo1_url = settings.repos.puppet_0.url
+    puppet_repo2_url = settings.repos.puppet_1.url
     puppet_module1 = 'httpd'
     puppet_module2 = 'ntp'
     rh7_repo = {
@@ -1336,10 +1325,10 @@ def test_positive_promote_composite_with_custom_content(session):
     cv_composite_name = gen_string('alpha')
     custom_repo1_name = gen_string('alpha')
     custom_repo2_name = gen_string('alpha')
-    custom_repo1_url = FAKE_0_YUM_REPO
-    custom_repo2_url = FAKE_1_YUM_REPO
-    puppet_repo1_url = FAKE_0_PUPPET_REPO
-    puppet_repo2_url = FAKE_1_PUPPET_REPO
+    custom_repo1_url = settings.repos.yum_0.url
+    custom_repo2_url = settings.repos.yum_1.url
+    puppet_repo1_url = settings.repos.puppet_0.url
+    puppet_repo2_url = settings.repos.puppet_1.url
     puppet_module1 = 'httpd'
     puppet_module2 = 'ntp'
     rh7_repo = {
@@ -1552,7 +1541,8 @@ def test_positive_remove_promoted_cv_version_from_default_env(session, module_or
     repo = RepositoryCollection(
         repositories=[
             PuppetRepository(
-                url=CUSTOM_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
+                url=settings.repos.custom_puppet.url,
+                modules=[dict(name=puppet_module_name, author=author)],
             )
         ]
     )
@@ -1659,9 +1649,10 @@ def test_positive_remove_cv_version_from_env(session, module_org):
     author = 'robottelo'
     repos = RepositoryCollection(
         repositories=[
-            YumRepository(url=FAKE_0_YUM_REPO),
+            YumRepository(url=settings.repos.yum_0.url),
             PuppetRepository(
-                url=CUSTOM_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
+                url=settings.repos.custom_puppet.url,
+                modules=[dict(name=puppet_module_name, author=author)],
             ),
         ]
     )
@@ -1715,7 +1706,7 @@ def test_positive_delete_cv_promoted_to_multi_env(session, module_org):
 
     :CaseImportance:High
     """
-    repo = RepositoryCollection(repositories=[YumRepository(url=FAKE_0_YUM_REPO)])
+    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_0.url)])
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     repo_name = repo.repos_info[0]['name']
@@ -2099,7 +2090,7 @@ def test_positive_remove_package_from_exclusion_filter(session, module_org):
     """
     filter_name = gen_string('alpha')
     package_name = 'cow'
-    repo = RepositoryCollection(repositories=[YumRepository(url=FAKE_1_YUM_REPO)])
+    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_1.url)])
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2268,7 +2259,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
     filter_name = gen_string('alphanumeric')
     start_date = datetime.date(2010, 1, 1)
     end_date = datetime.date.today()
-    repo = RepositoryCollection(repositories=[YumRepository(url=FAKE_9_YUM_REPO)])
+    repo = RepositoryCollection(repositories=[YumRepository(url=settings.repos.yum_9.url)])
     repo.setup(module_org.id)
     cv, lce = repo.setup_content_view(module_org.id)
     with session:
@@ -2427,7 +2418,7 @@ def test_positive_add_all_security_errata_by_id_filter(session, module_org):
     version = 'Version 2.0'
     filter_name = gen_string('alphanumeric')
     product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(product=product, url=FAKE_9_YUM_REPO).create()
+    repo = entities.Repository(product=product, url=settings.repos.yum_9.url).create()
     repo.sync()
     content_view = entities.ContentView(organization=module_org, repository=[repo]).create()
     content_view.publish()
@@ -2507,7 +2498,7 @@ def test_positive_add_module_stream_filter(session, module_org):
     filter_name = gen_string('alpha')
     repo_name = gen_string('alpha')
     create_sync_custom_repo(
-        module_org.id, repo_name=repo_name, repo_url=CUSTOM_MODULE_STREAM_REPO_2
+        module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
@@ -2585,7 +2576,7 @@ def test_positive_update_filter_affected_repos(session, module_org):
     repo2_name = gen_string('alpha')
     repo1_package_name = 'dolphin'
     repo2_package_name = 'dolphin'
-    create_sync_custom_repo(module_org.id, repo_name=repo1_name, repo_url=FAKE_3_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo1_name, repo_url=settings.repos.yum_3.url)
     create_sync_custom_repo(module_org.id, repo_name=repo2_name)
     repo1 = entities.Repository(name=repo1_name).search(query={'organization_id': module_org.id})[0]
     repo2 = entities.Repository(name=repo2_name).search(query={'organization_id': module_org.id})[0]
@@ -2675,7 +2666,7 @@ def test_positive_publish_with_force_puppet_env(session, module_org):
     """
     puppet_module = 'httpd'
     create_sync_custom_repo(
-        module_org.id, repo_url=FAKE_0_PUPPET_REPO, repo_type=REPO_TYPE['puppet']
+        module_org.id, repo_url=settings.repos.puppet_0.url, repo_type=REPO_TYPE['puppet']
     )
     with session:
         for add_puppet in [True, False]:
@@ -2777,7 +2768,7 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
     product = entities.Product(organization=module_org).create()
     # Creates new custom repository via API's
     repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
+        url=settings.repos.puppet_0.url, content_type=REPO_TYPE['puppet'], product=product
     ).create()
     # Sync repo
     call_entity_method_with_timeout(entities.Repository(id=repo.id).sync, timeout=1500)
@@ -2820,7 +2811,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
-        repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_0_YUM_REPO)],
+        repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     repos_collection.setup_virtual_machine(rhel7_contenthost)
@@ -2859,7 +2850,8 @@ def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthos
         repositories=[
             SatelliteToolsRepository(),
             PuppetRepository(
-                url=FAKE_1_PUPPET_REPO, modules=[dict(name=puppet_module_name, author=author)]
+                url=settings.repos.puppet_1.url,
+                modules=[dict(name=puppet_module_name, author=author)],
             ),
         ],
     )
@@ -3105,12 +3097,15 @@ def test_positive_mixed_content_end_to_end(session, module_org):
     # Creates puppet module
     puppet_module = 'httpd'
     entities.Repository(
-        url=FAKE_0_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=product
+        url=settings.repos.puppet_0.url, content_type=REPO_TYPE['puppet'], product=product
     ).create()
     yum_repo_name = gen_string('alpha')
     # Creates yum repository
     entities.Repository(
-        name=yum_repo_name, url=FAKE_1_YUM_REPO, content_type=REPO_TYPE['yum'], product=product
+        name=yum_repo_name,
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
     ).create()
     # Sync all repositories in the product
     product.sync()
@@ -3209,8 +3204,10 @@ def test_positive_errata_inc_update_list_package(session):
     """
     # Create and publish a repo with 1 outdated package and some errata
     repo_name = gen_string('alphanumeric')
-    repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}')
+    repo_url = create_repo(repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_OLD_PACKAGE])
+    result = repo_add_updateinfo(
+        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
+    )
     assert result.return_code == 0
     # Create org, product, repo, sync & publish it
     org = entities.Organization().create()
@@ -3222,8 +3219,12 @@ def test_positive_errata_inc_update_list_package(session):
     assert len(cvvs) == 1
     cvv = cvvs[0].read()
     # Add updated package to the repo and errata for the outdated package
-    create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
-    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}')
+    create_repo(
+        repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
+    )
+    result = repo_add_updateinfo(
+        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
+    )
     assert result.return_code == 0
     # Sync the repo
     entities.Repository(id=custom_repo_id).sync()
@@ -3300,8 +3301,10 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost):
     :CaseLevel: Integration
     """
     repo_name = gen_string('alphanumeric')
-    repo_url = create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_OLD_PACKAGE])
-    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_OLD_UPDATEFILE}')
+    repo_url = create_repo(repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_OLD_PACKAGE])
+    result = repo_add_updateinfo(
+        repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
+    )
     assert result.return_code == 0
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -3324,8 +3327,12 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost):
         'yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm'))
     )
     assert result.status == 0
-    create_repo(repo_name, FAKE_0_INC_UPD_URL, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True)
-    result = repo_add_updateinfo(repo_name, f'{FAKE_0_INC_UPD_URL}{FAKE_0_INC_UPD_NEW_UPDATEFILE}')
+    create_repo(
+        repo_name, settings.repos.inc_upd.url, [FAKE_0_INC_UPD_NEW_PACKAGE], wipe_repodata=True
+    )
+    result = repo_add_updateinfo(
+        repo_name, f'{settings.repos.settings.repos.inc_upd.url.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
+    )
     assert result.return_code == 0
     entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
     with session:
@@ -3371,7 +3378,7 @@ def test_positive_module_stream_end_to_end(session, module_org):
     cv_name = gen_string('alpha')
     # Creates a CV along with product and sync'ed repository
     create_sync_custom_repo(
-        module_org.id, repo_name=repo_name, repo_url=CUSTOM_MODULE_STREAM_REPO_2
+        module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     with session:
         # Create Life-cycle environment
@@ -3411,7 +3418,7 @@ def test_positive_search_module_streams_in_content_view(session, module_org):
     repo_name = gen_string('alpha')
     module_stream = 'walrus'
     create_sync_custom_repo(
-        module_org.id, repo_name=repo_name, repo_url=CUSTOM_MODULE_STREAM_REPO_2
+        module_org.id, repo_name=repo_name, repo_url=settings.repos.module_stream_1.url
     )
     repo = entities.Repository(name=repo_name).search(query={'organization_id': module_org.id})[0]
     cv = entities.ContentView(organization=module_org, repository=[repo]).create()
@@ -3667,7 +3674,7 @@ def test_negative_read_only_user_actions(session, module_org, test_name):
             session.product.discover_repo(
                 {
                     'repo_type': 'Yum Repositories',
-                    'url': REPO_DISCOVERY_URL,
+                    'url': settings.repos.repo_discovery.url,
                     'discovered_repos.repos': repo_name,
                     'create_repo.product_type': 'Existing Product',
                     'create_repo.product_content.product_name': gen_string('alpha'),
@@ -3788,7 +3795,7 @@ def test_positive_conservative_solve_dependencies(session, module_org):
     package1_name = 'duck'
     package2_name = 'cockateel'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
     with session:
         session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -3857,7 +3864,7 @@ def test_positive_conservative_dep_solving_with_multiversion_packages(session, m
     repo_name = gen_string('alpha')
     package_name = 'walrus'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
     with session:
         session.settings.update(f'name = {property_name}', param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -3930,7 +3937,7 @@ def test_positive_greedy_solve_dependencies(session, module_org):
     package1_name = 'duck'
     package2_name = 'cockateel'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
     with session:
         session.settings.update(f'name = {property_name}', greedy_param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -4002,7 +4009,7 @@ def test_positive_greedy_dep_solving_with_multiversion_packages(session, module_
     repo_name = gen_string('alpha')
     package_name = 'walrus'
     arch = 'noarch'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=FAKE_0_YUM_REPO)
+    create_sync_custom_repo(module_org.id, repo_name=repo_name, repo_url=settings.repos.yum_0.url)
     with session:
         session.settings.update(f'name = {property_name}', greedy_param_value)
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -4072,8 +4079,12 @@ def test_positive_depsolve_with_module_errata(session, module_org):
     ms_version = '0.71'
     rpm_pack = ['shark', 'stork', 'walrus', 'whale']
     mod_stream = 'walrus'
-    create_sync_custom_repo(module_org.id, repo_name=repo_name_1, repo_url=FAKE_10_YUM_REPO)
-    create_sync_custom_repo(module_org.id, repo_name=repo_name_2, repo_url=FAKE_11_YUM_REPO)
+    create_sync_custom_repo(
+        module_org.id, repo_name=repo_name_1, repo_url=settings.repos.yum_10.url
+    )
+    create_sync_custom_repo(
+        module_org.id, repo_name=repo_name_2, repo_url=settings.repos.yum_11.url
+    )
     content = '4 Packages 1 Errata ( 1 0 0 ) 1 Module Streams'
     with session:
         session.contentview.create({'name': cv_name, 'solve_dependencies': True})
@@ -4110,4 +4121,4 @@ def test_positive_depsolve_with_module_errata(session, module_org):
         for items in result['rpm_packages']['table']:
             assert items['Name'] in rpm_pack
         assert result['module_streams']['table'][0]['Name'] == mod_stream
-        assert result['errata']['table'][0]['Errata ID'] == FAKE_4_ERRATA_ID
+        assert result['errata']['table'][0]['Errata ID'] == settings.repos.yum_10.errata[0]

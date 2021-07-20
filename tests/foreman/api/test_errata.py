@@ -30,7 +30,6 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import repos
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
@@ -43,8 +42,8 @@ pytestmark = [
     ),
 ]
 
-CUSTOM_REPO_URL = repos.FAKE_9_YUM_REPO
-CUSTOM_REPO_ERRATA_ID = constants.FAKE_2_ERRATA_ID
+CUSTOM_REPO_URL = settings.repos.yum_9.url
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 
 @pytest.fixture(scope='module')
@@ -75,7 +74,7 @@ def rh_repo(module_org, module_lce, module_cv, activation_key):
 def custom_repo(module_org, module_lce, module_cv, activation_key):
     return setup_org_for_a_custom_repo(
         {
-            'url': repos.FAKE_9_YUM_REPO,
+            'url': settings.repos.yum_9.url,
             'organization-id': module_org.id,
             'content-view-id': module_cv.id,
             'lifecycle-environment-id': module_lce.id,
@@ -301,7 +300,7 @@ def test_positive_install_multiple_in_host(
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
-    for errata in constants.FAKE_9_YUM_ERRATUM[:2]:
+    for errata in settings.repos.yum_9.errata[:2]:
         host.errata_apply(data={'errata_ids': [errata]})
         host = host.read()
         applicable_errata_count -= 1
@@ -326,7 +325,7 @@ def test_positive_list(module_org, custom_repo):
     """
     repo1 = entities.Repository(id=custom_repo['repository-id']).read()
     repo2 = entities.Repository(
-        product=entities.Product().create(), url=repos.FAKE_3_YUM_REPO
+        product=entities.Product().create(), url=settings.repos.yum_3.url
     ).create()
     repo2.sync()
     repo1_errata_ids = [
@@ -335,12 +334,12 @@ def test_positive_list(module_org, custom_repo):
     repo2_errata_ids = [
         errata['errata_id'] for errata in repo2.errata(data={'per_page': '1000'})['results']
     ]
-    assert len(repo1_errata_ids) == constants.FAKE_9_YUM_ERRATUM_COUNT
-    assert len(repo2_errata_ids) == constants.FAKE_3_YUM_ERRATUM_COUNT
+    assert len(repo1_errata_ids) == len(settings.repos.yum_9.errata)
+    assert len(repo2_errata_ids) == len(settings.repos.yum_3.errata)
     assert CUSTOM_REPO_ERRATA_ID in repo1_errata_ids
     assert CUSTOM_REPO_ERRATA_ID not in repo2_errata_ids
-    assert constants.FAKE_3_ERRATA_ID in repo2_errata_ids
-    assert constants.FAKE_3_ERRATA_ID not in repo1_errata_ids
+    assert settings.repos.yum_3.errata[5] in repo2_errata_ids
+    assert settings.repos.yum_3.errata[5] not in repo1_errata_ids
 
 
 @pytest.mark.tier3
@@ -785,7 +784,7 @@ def test_positive_incremental_update_required(
         data={
             'organization_id': module_org.id,
             'included': {'ids': [host.id]},
-            'errata_ids': [constants.FAKE_2_ERRATA_ID],
+            'errata_ids': [settings.repos.yum_6.errata[2]],
         },
     )
     assert not response, 'Incremental update should not be required at this point'
@@ -805,7 +804,7 @@ def test_positive_incremental_update_required(
         data={
             'organization_id': module_org.id,
             'included': {'ids': [host.id]},
-            'errata_ids': [constants.FAKE_2_ERRATA_ID],
+            'errata_ids': [settings.repos.yum_6.errata[2]],
         },
     )
     assert 'next_version' in response[0], 'Incremental update should be suggested'
@@ -815,7 +814,7 @@ def test_positive_incremental_update_required(
 @pytest.fixture(scope='module')
 def repos_collection(module_org, module_lce):
     repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL8, repositories=[YumRepository(url=repos.CUSTOM_SWID_TAG_REPO)]
+        distro=constants.DISTRO_RHEL8, repositories=[YumRepository(url=settings.repos.swid_tag.url)]
     )
     repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
     return repos_collection

@@ -25,9 +25,9 @@ from nailgun import entities
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 
 PM_NAME = 'ui_test_classparameters'
@@ -49,7 +49,7 @@ def module_loc():
 
 @pytest.fixture(scope='module')
 def content_view(module_org):
-    return publish_puppet_module(PUPPET_MODULES, CUSTOM_PUPPET_REPO, module_org)
+    return publish_puppet_module(PUPPET_MODULES, settings.repos.custom_puppet.url, module_org)
 
 
 @pytest.fixture(scope='module')
