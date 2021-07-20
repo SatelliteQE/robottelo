@@ -29,7 +29,7 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
-from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.ssh import upload_file
 
@@ -263,7 +263,7 @@ def test_positive_logging_from_pulp3(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
         },
     )
     # Synchronize the repository

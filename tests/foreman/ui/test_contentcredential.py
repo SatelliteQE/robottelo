@@ -22,9 +22,6 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_2_YUM_REPO
-from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
@@ -160,7 +157,7 @@ def test_positive_add_product_with_repo(session, module_org, gpg_content):
     # Creates new product
     product = entities.Product(organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -193,9 +190,9 @@ def test_positive_add_product_with_repos(session, module_org, gpg_content):
     # Creates new product and associate GPGKey with it
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
+    repo1 = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
+    repo2 = entities.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         values = session.contentcredential.read(name)
         assert len(values['repositories']['table']) == 2
@@ -221,7 +218,7 @@ def test_positive_add_repo_from_product_with_repo(session, module_org, gpg_conte
     # Creates new product
     product = entities.Product(organization=module_org).create()
     # Creates new repository
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -252,9 +249,11 @@ def test_positive_add_repo_from_product_with_repos(session, module_org, gpg_cont
     # Creates new product without selecting GPGkey
     product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo1 = entities.Repository(url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key).create()
+    repo1 = entities.Repository(
+        url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
+    ).create()
     # Creates new repository without GPGKey
-    entities.Repository(url=FAKE_2_YUM_REPO, product=product).create()
+    entities.Repository(url=settings.repos.yum_2.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
         assert values['products']['table'][0]['Name'] == empty_message
@@ -294,7 +293,7 @@ def test_positive_add_product_using_repo_discovery(session, gpg_path):
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
-                'url': REPO_DISCOVERY_URL,
+                'url': settings.repos.repo_discovery.url,
                 'discovered_repos.repos': repo_name,
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
@@ -331,7 +330,7 @@ def test_positive_add_product_and_search(session, module_org, gpg_content):
     # Creates new product and associate GPGKey with it
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(url=FAKE_1_YUM_REPO, product=product).create()
+    repo = entities.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(gpg_key.name)
         assert len(values['products']['table']) == 1
@@ -377,7 +376,7 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
-                'url': REPO_DISCOVERY_URL,
+                'url': settings.repos.repo_discovery.url,
                 'discovered_repos.repos': repo_name,
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
@@ -434,7 +433,7 @@ def test_positive_delete_key_for_product_using_repo_discovery(session, gpg_path)
         session.product.discover_repo(
             {
                 'repo_type': 'Yum Repositories',
-                'url': REPO_DISCOVERY_URL,
+                'url': settings.repos.repo_discovery.url,
                 'discovered_repos.repos': repo_name,
                 'create_repo.product_type': 'New Product',
                 'create_repo.product_content.product_name': product_name,
@@ -496,7 +495,7 @@ def test_positive_update_key_for_product_with_repo(session, module_org, gpg_cont
     # Creates new product and associate GPGKey with it
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository without GPGKey
-    repo = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -528,9 +527,9 @@ def test_positive_update_key_for_product_with_repos(session, module_org, gpg_con
     # Creates new product and associate GPGKey with it
     product = entities.Product(gpg_key=gpg_key, organization=module_org).create()
     # Creates new repository_1 without GPGKey
-    repo1 = entities.Repository(product=product, url=FAKE_1_YUM_REPO).create()
+    repo1 = entities.Repository(product=product, url=settings.repos.yum_1.url).create()
     # Creates new repository_2 without GPGKey
-    repo2 = entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
+    repo2 = entities.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -560,7 +559,9 @@ def test_positive_update_key_for_repo_from_product_with_repo(session, module_org
     # Creates new product without selecting GPGkey
     product = entities.Product(organization=module_org).create()
     # Creates new repository with GPGKey
-    repo = entities.Repository(gpg_key=gpg_key, product=product, url=FAKE_1_YUM_REPO).create()
+    repo = entities.Repository(
+        gpg_key=gpg_key, product=product, url=settings.repos.yum_1.url
+    ).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -593,9 +594,11 @@ def test_positive_update_key_for_repo_from_product_with_repos(session, module_or
     # Creates new product without selecting GPGkey
     product = entities.Product(organization=module_org).create()
     # Creates new repository_1 with GPGKey
-    repo1 = entities.Repository(url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key).create()
+    repo1 = entities.Repository(
+        url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
+    ).create()
     # Creates new repository_2 without GPGKey
-    entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
+    entities.Repository(product=product, url=settings.repos.yum_2.url).create()
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
@@ -655,7 +658,7 @@ def test_positive_delete_key_for_product_with_repo(session, module_org, gpg_cont
     ).create()
     # Creates new repository without GPGKey
     repo = entities.Repository(
-        name=gen_string('alpha'), url=FAKE_1_YUM_REPO, product=product
+        name=gen_string('alpha'), url=settings.repos.yum_1.url, product=product
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -697,11 +700,11 @@ def test_positive_delete_key_for_product_with_repos(session, module_org, gpg_con
     ).create()
     # Creates new repository_1 without GPGKey
     repo1 = entities.Repository(
-        name=gen_string('alpha'), product=product, url=FAKE_1_YUM_REPO
+        name=gen_string('alpha'), product=product, url=settings.repos.yum_1.url
     ).create()
     # Creates new repository_2 without GPGKey
     repo2 = entities.Repository(
-        name=gen_string('alpha'), product=product, url=FAKE_2_YUM_REPO
+        name=gen_string('alpha'), product=product, url=settings.repos.yum_2.url
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -740,7 +743,7 @@ def test_positive_delete_key_for_repo_from_product_with_repo(session, module_org
     product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
     # Creates new repository with GPGKey
     repo = entities.Repository(
-        name=gen_string('alpha'), url=FAKE_1_YUM_REPO, product=product, gpg_key=gpg_key
+        name=gen_string('alpha'), url=settings.repos.yum_1.url, product=product, gpg_key=gpg_key
     ).create()
     with session:
         # Assert that GPGKey is associated with product
@@ -780,12 +783,12 @@ def test_positive_delete_key_for_repo_from_product_with_repos(session, module_or
     product = entities.Product(name=gen_string('alpha'), organization=module_org).create()
     # Creates new repository_1 with GPGKey association
     repo1 = entities.Repository(
-        gpg_key=gpg_key, name=gen_string('alpha'), product=product, url=FAKE_1_YUM_REPO
+        gpg_key=gpg_key, name=gen_string('alpha'), product=product, url=settings.repos.yum_1.url
     ).create()
     repo2 = entities.Repository(
         name=gen_string('alpha'),
         product=product,
-        url=FAKE_2_YUM_REPO,
+        url=settings.repos.yum_2.url,
         # notice that we're not making this repo point to the GPG key
     ).create()
     with session:

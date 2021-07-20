@@ -45,7 +45,6 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 
 
 @pytest.fixture(scope='class')
@@ -1289,7 +1288,11 @@ class TestContentViewSync:
             {'organization-id': exporting_org['id'], 'name': gen_string('alpha')}
         )
         repo = make_repository(
-            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+            {
+                'url': settings.repos.custom_puppet.url,
+                'content-type': 'puppet',
+                'product-id': product['id'],
+            }
         )
         Repository.synchronize({'id': repo['id']})
         puppet_module = PuppetModule.list(
@@ -1351,7 +1354,11 @@ class TestContentViewSync:
             }
         )
         nonyum_repo = make_repository(
-            {'url': CUSTOM_PUPPET_REPO, 'content-type': 'puppet', 'product-id': product['id']}
+            {
+                'url': settings.repos.custom_puppet.url,
+                'content-type': 'puppet',
+                'product-id': product['id'],
+            }
         )
         Repository.synchronize({'id': nonyum_repo['id']})
         yum_repo = make_repository(

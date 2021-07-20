@@ -49,7 +49,6 @@ from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -218,7 +217,9 @@ def test_positive_create_content_and_check_enabled(module_org):
 
     :CaseLevel: Integration
     """
-    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
+    result = setup_org_for_a_custom_repo(
+        {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
+    )
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
@@ -736,7 +737,9 @@ def test_positive_add_custom_product(module_org):
 
     :BZ: 1426386
     """
-    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
+    result = setup_org_for_a_custom_repo(
+        {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
+    )
     repo = Repository.info({'id': result['repository-id']})
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
@@ -781,7 +784,7 @@ def test_positive_add_redhat_and_custom_products(module_org):
     )
     result = setup_org_for_a_custom_repo(
         {
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
             'organization-id': org['id'],
             'activationkey-id': result['activationkey-id'],
             'content-view-id': result['content-view-id'],
@@ -1408,7 +1411,9 @@ def test_positive_content_override(module_org):
 
     :CaseLevel: System
     """
-    result = setup_org_for_a_custom_repo({'url': FAKE_0_YUM_REPO, 'organization-id': module_org.id})
+    result = setup_org_for_a_custom_repo(
+        {'url': settings.repos.yum_0.url, 'organization-id': module_org.id}
+    )
     content = ActivationKey.product_content(
         {'id': result['activationkey-id'], 'organization-id': module_org.id}
     )
@@ -1587,7 +1592,7 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost, 
     ak = ActivationKey.info({'id': result['activationkey-id']})
     setup_org_for_a_custom_repo(
         {
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
             'organization-id': org['id'],
             'activationkey-id': result['activationkey-id'],
             'content-view-id': result['content-view-id'],

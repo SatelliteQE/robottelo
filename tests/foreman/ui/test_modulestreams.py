@@ -20,7 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
+from robottelo.config import settings
 
 
 @pytest.fixture(scope='module')
@@ -39,7 +39,7 @@ def module_yum_repo(module_product):
         name=gen_string('alpha'),
         product=module_product,
         content_type='yum',
-        url=CUSTOM_MODULE_STREAM_REPO_2,
+        url=settings.repos.module_stream_1.url,
     ).create()
     yum_repo.sync()
     return yum_repo

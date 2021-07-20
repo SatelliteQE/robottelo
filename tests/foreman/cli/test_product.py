@@ -36,7 +36,6 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
-from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
@@ -106,7 +105,7 @@ def test_positive_CRUD(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
         },
     )
     Product.synchronize({'id': product['id'], 'organization-id': module_org.id})
@@ -200,7 +199,7 @@ def test_product_list_with_default_settings(module_org):
             {
                 'organization-id': org_id,
                 'product-id': product['id'],
-                'url': FAKE_0_YUM_REPO,
+                'url': settings.repos.yum_0.url,
             },
         )
 
@@ -264,7 +263,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product_a['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
             'http-proxy-policy': 'none',
         },
     )
@@ -272,7 +271,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product_a['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
             'http-proxy-policy': 'use_selected_http_proxy',
             'http-proxy-id': http_proxy_a['id'],
         },
@@ -281,7 +280,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product_b['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
             'http-proxy-policy': 'none',
         },
     )
@@ -289,7 +288,7 @@ def test_positive_assign_http_proxy_to_products(module_org):
         {
             'organization-id': module_org.id,
             'product-id': product_b['id'],
-            'url': FAKE_0_YUM_REPO,
+            'url': settings.repos.yum_0.url,
         },
     )
     # Add http_proxy to products

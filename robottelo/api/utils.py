@@ -20,7 +20,6 @@ from robottelo.constants import DEFAULT_TEMPLATE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.errors import ImproperlyConfigured
 
 
@@ -187,7 +186,7 @@ def create_sync_custom_repo(
     product = entities.Product(name=product_name, organization=org_id).create()
     repo = entities.Repository(
         name=repo_name,
-        url=repo_url or FAKE_1_YUM_REPO,
+        url=repo_url or settings.repos.yum_1.url,
         content_type=repo_type or REPO_TYPE['yum'],
         product=product,
         unprotected=repo_unprotected,

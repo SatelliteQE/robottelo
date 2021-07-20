@@ -27,7 +27,6 @@ from requests import HTTPError
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import parametrized
 
@@ -65,7 +64,7 @@ def invalid_sc_parameters_data():
 def module_puppet():
     puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
     org = entities.Organization().create()
-    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, org)
+    cv = publish_puppet_module(puppet_modules, settings.repos.custom_puppet.url, org)
     env = entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
     puppet_class = entities.PuppetClass().search(
         query={'search': f'name = "{puppet_modules[0]["name"]}" and environment = "{env.name}"'}

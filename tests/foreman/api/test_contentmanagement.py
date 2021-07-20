@@ -65,9 +65,7 @@ class TestSatelliteContentManagement:
         org = entities.Organization().create()
         for _ in range(2):
             product = entities.Product(organization=org).create()
-            repo = entities.Repository(
-                product=product, url=constants.repos.FAKE_7_YUM_REPO
-            ).create()
+            repo = entities.Repository(product=product, url=settings.repos.yum_7.url).create()
             response = repo.sync()
             assert response, f"Repository {repo} failed to sync."
 
@@ -88,7 +86,7 @@ class TestSatelliteContentManagement:
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
-        repo = entities.Repository(product=product, url=constants.repos.FAKE_8_YUM_REPO).create()
+        repo = entities.Repository(product=product, url=settings.repos.yum_8.url).create()
         response = repo.sync()
         assert response, f"Repository {repo} failed to sync."
 
@@ -409,7 +407,7 @@ class TestCapsuleContentManagement:
         repo_name = gen_string('alphanumeric')
         # Create and publish custom repository with 2 packages in it
         repo_url = create_repo(
-            repo_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[0:2]
+            repo_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[0:2]
         )
         # Create organization, product, repository in satellite, and lifecycle
         # environment
@@ -538,7 +536,7 @@ class TestCapsuleContentManagement:
         assert lce_revision_capsule == new_lce_revision_capsule
 
         # Update a repository with 1 new rpm
-        create_repo(repo_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[-1:])
+        create_repo(repo_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[-1:])
         # Sync, publish and promote the repository
         repo.sync()
         repo = repo.read()
@@ -678,7 +676,7 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: System
         """
-        repo_url = constants.repos.FAKE_3_YUM_REPO
+        repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
         package = constants.FAKE_1_YUM_REPO_RPMS[0]
         # Create organization, product, repository in satellite, and lifecycle
@@ -808,7 +806,7 @@ class TestCapsuleContentManagement:
         repo2_name = gen_string('alphanumeric')
         # Create and publish first custom repository with 2 packages in it
         repo1_url = create_repo(
-            repo1_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[1:3]
+            repo1_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[1:3]
         )
         # Create and publish second repo with no packages in it
         repo2_url = create_repo(repo2_name)
@@ -954,7 +952,7 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: System
         """
-        repo_url = constants.repos.FAKE_1_YUM_REPO
+        repo_url = settings.repos.yum_1.url
         packages_count = constants.FAKE_1_YUM_REPOS_COUNT
         # Create organization, product, repository in satellite, and lifecycle
         # environment

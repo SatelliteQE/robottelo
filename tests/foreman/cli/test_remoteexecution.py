@@ -34,7 +34,6 @@ from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.cli.task import Task
 from robottelo.config import settings
-from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.hosts import ContentHost
 
 
@@ -324,7 +323,7 @@ class TestRemoteExecution:
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=FAKE_0_YUM_REPO,
+            url=settings.repos.yum_0.url,
         ).create()
         repo.sync()
         prod = repo.product.read()
@@ -736,7 +735,7 @@ class TestAnsibleREX:
         repo = entities.Repository(
             content_type='yum',
             product=entities.Product(organization=self.org).create(),
-            url=FAKE_0_YUM_REPO,
+            url=settings.repos.yum_0.url,
         ).create()
         repo.sync()
         prod = repo.product.read()

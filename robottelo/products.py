@@ -116,7 +116,7 @@ return cdn repo data::
             RHELRepository(),
             SatelliteToolsRepository(),
             SatelliteCapsuleRepository(),
-            CustomYumRepository(url=FAKE_0_YUM_REPO)
+            CustomYumRepository(url=settings.repos.yum_0.url)
         ]
     )
 
@@ -143,7 +143,7 @@ return cdn repo data::
         repositories=[
             SatelliteToolsRepository(cdn=True),
             SatelliteCapsuleRepository(),
-            YumRepository(url=FAKE_0_YUM_REPO)
+            YumRepository(url=settings.repos.yum_0.url)
         ]
     )
     repos_collection.distro >> rhel6

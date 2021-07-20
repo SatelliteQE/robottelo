@@ -30,11 +30,9 @@ from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import FAKE_9_YUM_ERRATUM
 from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES
 from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.constants import REPOS
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.logging import logger
 from robottelo.upgrade_utility import host_location_update
 from robottelo.upgrade_utility import install_or_update_package
@@ -141,7 +139,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
 
         product = entities.Product(organization=org).create()
         custom_yum_repo = entities.Repository(
-            product=product, content_type='yum', url=FAKE_9_YUM_REPO
+            product=product, content_type='yum', url=settings.repos.yum_9.url
         ).create()
         product.sync()
 
@@ -189,7 +187,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             query={'order': 'updated ASC', 'per_page': 1000}
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
-        assert sorted(errata_ids) == sorted(FAKE_9_YUM_ERRATUM)
+        assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         scenario_dict = {
             self.__class__.__name__: {
                 'rhel_client': rhel7_client,
@@ -252,9 +250,9 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
             query={'order': 'updated ASC', 'per_page': 1000}
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
-        assert sorted(errata_ids) == sorted(FAKE_9_YUM_ERRATUM)
+        assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
 
-        for errata in FAKE_9_YUM_ERRATUM:
+        for errata in settings.repos.yum_9.errata:
             host.errata_apply(data={'errata_ids': [errata]})
             installable_errata_count -= 1
 
@@ -320,7 +318,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
 
         product = entities.Product(organization=default_org).create()
         custom_yum_repo = entities.Repository(
-            product=product, content_type='yum', url=FAKE_9_YUM_REPO
+            product=product, content_type='yum', url=settings.repos.yum_9.url
         ).create()
         call_entity_method_with_timeout(product.sync, timeout=1400)
 
@@ -386,7 +384,7 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
             query={'order': 'updated ASC', 'per_page': 1000}
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
-        assert sorted(errata_ids) == sorted(FAKE_9_YUM_ERRATUM)
+        assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         scenario_dict = {
             self.__class__.__name__: {
                 'rhel_client': rhel7_client,
@@ -437,9 +435,9 @@ class TestScenarioErrataCountWithPreviousVersionKatelloAgent(TestScenarioErrataA
             query={'order': 'updated ASC', 'per_page': 1000}
         )
         errata_ids = [errata.errata_id for errata in erratum_list]
-        assert sorted(errata_ids) == sorted(FAKE_9_YUM_ERRATUM)
+        assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
 
-        for errata in FAKE_9_YUM_ERRATUM:
+        for errata in settings.repos.yum_9.errata:
             host.errata_apply(data={'errata_ids': [errata]})
 
         for package in FAKE_9_YUM_UPDATED_PACKAGES:
