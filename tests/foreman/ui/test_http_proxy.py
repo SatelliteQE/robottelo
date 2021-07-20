@@ -24,8 +24,6 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
 
 
 @pytest.fixture(scope='module')
@@ -127,7 +125,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             {
                 'name': repo_a1_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )
@@ -139,7 +137,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             {
                 'name': repo_a2_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': FAKE_1_YUM_REPO,
+                'repo_content.upstream_url': settings.repos.yum_1.url,
                 'repo_content.http_proxy_policy': 'Use specific HTTP Proxy',
                 'repo_content.proxy_policy.http_proxy': http_proxy_a.name,
             },
@@ -153,7 +151,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             {
                 'name': repo_b1_name,
                 'repo_type': REPO_TYPE['puppet'],
-                'repo_content.upstream_url': FAKE_0_PUPPET_REPO,
+                'repo_content.upstream_url': settings.repos.puppet_0.url,
                 'repo_content.http_proxy_policy': 'Global Default',
             },
         )
@@ -165,7 +163,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             {
                 'name': repo_b2_name,
                 'repo_type': REPO_TYPE['puppet'],
-                'repo_content.upstream_url': FAKE_0_PUPPET_REPO,
+                'repo_content.upstream_url': settings.repos.puppet_0.url,
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )

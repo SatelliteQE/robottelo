@@ -620,7 +620,7 @@ def make_repository_with_credentials(options=None, credentials=None):
         'http-proxy': None,
         'http-proxy-id': None,
         'http-proxy-policy': None,
-        'url': constants.repos.FAKE_1_YUM_REPO,
+        'url': settings.repos.yum_1.url,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)
     return create_object(repo_cls, args, options)

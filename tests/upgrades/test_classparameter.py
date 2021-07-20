@@ -27,7 +27,7 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import delete_puppet_class
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
+from robottelo.config import settings
 
 
 def _valid_sc_parameters_data():
@@ -70,7 +70,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         """
         self.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
         self.org = entities.Organization().create()
-        cv = publish_puppet_module(self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
+        cv = publish_puppet_module(self.puppet_modules, settings.repos.custom_puppet.url, self.org)
         self.env = (
             entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
         )

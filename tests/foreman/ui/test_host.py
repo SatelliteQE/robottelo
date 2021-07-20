@@ -63,7 +63,6 @@ from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
@@ -588,7 +587,7 @@ def test_positive_create_with_puppet_class(session, module_host_template, module
     pc_name = 'generic_1'
     cv = publish_puppet_module(
         [{'author': 'robottelo', 'name': pc_name}],
-        CUSTOM_PUPPET_REPO,
+        settings.repos.custom_puppet.url,
         organization_id=module_org.id,
     )
     env = (

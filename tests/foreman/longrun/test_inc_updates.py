@@ -22,6 +22,7 @@ from nailgun import entities
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
@@ -29,7 +30,6 @@ from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -79,7 +79,8 @@ def rhel7_sat6tools_repo(module_manifest_org):
 def custom_repo(module_manifest_org):
     """Enable custom errata repository"""
     custom_repo = entities.Repository(
-        url=FAKE_9_YUM_REPO, product=entities.Product(organization=module_manifest_org).create()
+        url=settings.repos.yum_9.url,
+        product=entities.Product(organization=module_manifest_org).create(),
     ).create()
     assert custom_repo.sync()['result'] == 'success'
     return custom_repo

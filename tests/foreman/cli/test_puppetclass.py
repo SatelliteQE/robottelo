@@ -23,7 +23,6 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 
 
 @pytest.fixture(scope='module')
@@ -31,7 +30,7 @@ def make_puppet():
     """Import a parametrized puppet class."""
     puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
     org = make_org()
-    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, org['id'])
+    cv = publish_puppet_module(puppet_modules, settings.repos.custom_puppet.url, org['id'])
     env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
     puppet = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
     return puppet

@@ -24,7 +24,6 @@ from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 
 
 @pytest.fixture(scope='module')
@@ -150,7 +149,7 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     pc_name = 'generic_1'
     cv = publish_puppet_module(
         [{'author': 'robottelo', 'name': pc_name}],
-        CUSTOM_PUPPET_REPO,
+        settings.repos.custom_puppet.url,
         organization_id=module_org.id,
     )
     env = (

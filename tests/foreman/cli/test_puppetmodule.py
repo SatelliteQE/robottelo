@@ -23,9 +23,6 @@ from robottelo.cli.factory import make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
-
 
 pytestmark = [
     pytest.mark.skipif(
@@ -43,7 +40,7 @@ def module_setup(module_org):
             'organization-id': module_org.id,
             'product-id': product['id'],
             'content-type': 'puppet',
-            'url': FAKE_0_PUPPET_REPO,
+            'url': settings.repos.puppet_0.url,
         }
     )
     Repository.synchronize({'id': repo['id']})
@@ -109,7 +106,7 @@ def test_positive_list_multiple_repos(module_setup):
             'organization-id': module_setup['org'].id,
             'product-id': module_setup['product']['id'],
             'content-type': 'puppet',
-            'url': FAKE_1_PUPPET_REPO,
+            'url': settings.repos.puppet_1.url,
         }
     )
     Repository.synchronize({'id': repo2['id']})

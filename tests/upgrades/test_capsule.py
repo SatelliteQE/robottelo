@@ -27,7 +27,6 @@ from upgrade_tests.helpers.scenarios import rpm2
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.upgrade_utility import create_repo
 
@@ -243,7 +242,7 @@ class TestCapsuleSyncNewRepo:
 
         product = default_sat.api.Product(organization=default_org).create()
         repo = default_sat.api.Repository(
-            product=product, content_type='puppet', url=CUSTOM_PUPPET_REPO
+            product=product, content_type='puppet', url=settings.repos.custom_puppet.url
         ).create()
         repo.sync()
         module = repo.puppet_modules()

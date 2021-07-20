@@ -44,7 +44,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
@@ -1131,7 +1130,7 @@ class TestEndToEnd(ClientProvisioningMixin):
 
         # step 2.6: Create custom PUPPET repository
         repo2 = entities.Repository(
-            server_config, product=prod, content_type='puppet', url=FAKE_0_PUPPET_REPO
+            server_config, product=prod, content_type='puppet', url=settings.repos.puppet_0.url
         ).create()
         repositories.append(repo2)
 

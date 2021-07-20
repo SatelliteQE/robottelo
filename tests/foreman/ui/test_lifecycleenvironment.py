@@ -31,9 +31,6 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
 from robottelo.constants import REPO_TYPE
-from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import gen_string
 
 
@@ -126,7 +123,7 @@ def test_positive_add_puppet_module(session, module_org):
     puppet_module = 'httpd'
     product = entities.Product(organization=module_org).create()
     repo = entities.Repository(
-        product=product, content_type=REPO_TYPE['puppet'], url=FAKE_0_PUPPET_REPO
+        product=product, content_type=REPO_TYPE['puppet'], url=settings.repos.puppet_0.url
     ).create()
     repo.sync()
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -179,7 +176,7 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
         },
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(product=product, url=FAKE_0_YUM_REPO).create()
+    repository = entities.Repository(product=product, url=settings.repos.yum_0.url).create()
     repository.sync()
     content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()
@@ -227,7 +224,7 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org):
         {'name': FAKE_1_CUSTOM_PACKAGE_NAME, 'packages_count': 2},
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(product=product, url=FAKE_0_YUM_REPO).create()
+    repository = entities.Repository(product=product, url=settings.repos.yum_0.url).create()
     repository.sync()
     content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()
@@ -270,7 +267,9 @@ def test_positive_search_lce_content_view_module_streams_by_name(session, module
         {'name': FAKE_3_CUSTOM_PACKAGE_NAME, 'streams_count': 3},
     ]
     product = entities.Product(organization=module_org).create()
-    repository = entities.Repository(product=product, url=CUSTOM_MODULE_STREAM_REPO_2).create()
+    repository = entities.Repository(
+        product=product, url=settings.repos.module_stream_1.url
+    ).create()
     repository.sync()
     content_view = entities.ContentView(organization=module_org, repository=[repository]).create()
     content_view.publish()

@@ -30,7 +30,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.logging import logger
 
 
@@ -529,7 +528,7 @@ def module_cv_with_puppet_module(module_org):
     """
     return publish_puppet_module(
         [{'author': 'robottelo', 'name': 'generic_1'}],
-        CUSTOM_PUPPET_REPO,
+        settings.repos.custom_puppet.url,
         organization_id=module_org.id,
     )
 

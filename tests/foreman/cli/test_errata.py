@@ -56,22 +56,12 @@ from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
-from robottelo.constants import FAKE_0_ERRATA_ID
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_1_ERRATA_ID
-from robottelo.constants import FAKE_1_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
-from robottelo.constants import FAKE_2_ERRATA_ID
-from robottelo.constants import FAKE_2_YUM_ERRATUM_COUNT
-from robottelo.constants import FAKE_3_ERRATA_ID
-from robottelo.constants import FAKE_3_YUM_ERRATUM_COUNT
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_4_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_5_CUSTOM_PACKAGE
-from robottelo.constants import FAKE_5_ERRATA_ID
-from robottelo.constants import FAKE_9_YUM_ERRATUM
-from robottelo.constants import FAKE_9_YUM_ERRATUM_COUNT
 from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_ERRATA_ID
 from robottelo.constants import REAL_4_ERRATA_CVES
@@ -79,58 +69,53 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.constants.repos import EPEL_REPO
-from robottelo.constants.repos import FAKE_1_YUM_REPO
-from robottelo.constants.repos import FAKE_2_YUM_REPO
-from robottelo.constants.repos import FAKE_3_YUM_REPO
-from robottelo.constants.repos import FAKE_9_YUM_REPO
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10
 PER_PAGE_LARGE = 1000
 ERRATA = [
     {
-        'id': FAKE_2_ERRATA_ID,  # security advisory
+        'id': settings.repos.yum_6.errata[2],  # security advisory
         'old_package': FAKE_1_CUSTOM_PACKAGE,
         'new_package': FAKE_2_CUSTOM_PACKAGE,
         'package_name': FAKE_2_CUSTOM_PACKAGE_NAME,
     },
     {
-        'id': FAKE_5_ERRATA_ID,  # bugfix advisory
+        'id': settings.repos.yum_6.errata[0],  # bugfix advisory
         'old_package': FAKE_4_CUSTOM_PACKAGE,
         'new_package': FAKE_5_CUSTOM_PACKAGE,
         'package_name': FAKE_4_CUSTOM_PACKAGE_NAME,
     },
 ]
 REPO_WITH_ERRATA = {
-    'url': FAKE_9_YUM_REPO,
+    'url': settings.repos.yum_9.url,
     'errata': ERRATA,
-    'errata_ids': FAKE_9_YUM_ERRATUM,
+    'errata_ids': settings.repos.yum_9.errata,
 }
 REPOS_WITH_ERRATA = (
     {
-        'url': FAKE_9_YUM_REPO,
-        'errata_count': FAKE_9_YUM_ERRATUM_COUNT,
-        'org_errata_count': FAKE_9_YUM_ERRATUM_COUNT,
-        'errata_id': FAKE_2_ERRATA_ID,
+        'url': settings.repos.yum_9.url,
+        'errata_count': len(settings.repos.yum_9.errata),
+        'org_errata_count': len(settings.repos.yum_9.errata),
+        'errata_id': settings.repos.yum_9.errata[0],
     },
     {
-        'url': FAKE_1_YUM_REPO,
-        'errata_count': FAKE_1_YUM_ERRATUM_COUNT,
-        'org_errata_count': FAKE_1_YUM_ERRATUM_COUNT,
-        'errata_id': FAKE_1_ERRATA_ID,
+        'url': settings.repos.yum_1.url,
+        'errata_count': len(settings.repos.yum_1.errata),
+        'org_errata_count': len(settings.repos.yum_1.errata),
+        'errata_id': settings.repos.yum_0.errata[1],
     },
     {
-        'url': FAKE_2_YUM_REPO,
-        'errata_count': FAKE_2_YUM_ERRATUM_COUNT,
-        'org_errata_count': FAKE_2_YUM_ERRATUM_COUNT + FAKE_3_YUM_ERRATUM_COUNT,
-        'errata_id': FAKE_0_ERRATA_ID,
+        'url': settings.repos.yum_2.url,
+        'errata_count': len(settings.repos.yum_2.errata),
+        'org_errata_count': len(settings.repos.yum_2.errata) + len(settings.repos.yum_3.errata),
+        'errata_id': settings.repos.yum_0.errata[0],
     },
     {
-        'url': FAKE_3_YUM_REPO,
-        'errata_count': FAKE_3_YUM_ERRATUM_COUNT,
-        'org_errata_count': FAKE_2_YUM_ERRATUM_COUNT + FAKE_3_YUM_ERRATUM_COUNT,
-        'errata_id': FAKE_3_ERRATA_ID,
+        'url': settings.repos.yum_3.url,
+        'errata_count': len(settings.repos.yum_3.errata),
+        'org_errata_count': len(settings.repos.yum_2.errata) + len(settings.repos.yum_3.errata),
+        'errata_id': settings.repos.yum_3.errata[5],
     },
 )
 
@@ -1338,7 +1323,7 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
-    rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/{PSUTIL_RPM}')
+    rhel77_contenthost_module.run(f'rpm -Uvh {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     rhel77_contenthost_module.install_katello_ca()
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
@@ -1482,7 +1467,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host):
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Downgrade package (we can't get it from Library, so get older one from EPEL)
-    errata_host.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
@@ -1536,7 +1521,7 @@ def test_install_applicable_package_to_registerd_host(chost):
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # python-psutil is obsoleted by python2-psutil, so download older python2-psutil for this test
-    chost.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    chost.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     chost.run(f'yum -y install {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
@@ -1593,7 +1578,7 @@ def test_downgrading_package_shows_errata_from_library(errata_host, module_manif
     # note time for later wait_for_tasks include 2 mins margin of safety.
     timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime(TIMESTAMP_FMT)
     # Downgrade package (we can't get it from Library, so get older one from EPEL)
-    errata_host.run(f'curl -O {EPEL_REPO}/{PSUTIL_RPM}')
+    errata_host.run(f'curl -O {settings.repos.epel_repo.url}/{PSUTIL_RPM}')
     errata_host.run(f'yum -y downgrade {PSUTIL_RPM}')
     # Wait for upload profile event (in case Satellite system slow)
     wait_for_tasks(
