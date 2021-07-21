@@ -368,6 +368,8 @@ def test_positive_os_list_with_default_organization_set(satellite_latest):
 
     :BZ: 1649011
 
+    :customerscenario: true
+
     :expectedresults: os list should list operating systems when the
         default organization is set
     """

@@ -2274,6 +2274,8 @@ class TestSRPMRepositoryIgnoreContent:
 
     :CaseComponent: Pulp
 
+    :customerscenario: true
+
     :Assignee: ltran
 
     :BZ: 1673215

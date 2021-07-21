@@ -319,6 +319,8 @@ class TestContentView:
 
         :CaseImportance: Medium
 
+        :customerscenario: true
+
         :BZ: 1639406
         """
         product = entities.Product(organization=module_org).create()
@@ -813,6 +815,8 @@ class TestContentViewPublishPromote:
 
         :CaseImportance: Medium
 
+        :customerscenario: true
+
         :BZ: 1651930
         """
         product = entities.Product(organization=module_org).create()
@@ -841,6 +845,8 @@ class TestContentViewPublishPromote:
             case of mismatch.
 
         :bz: 1639390
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """
