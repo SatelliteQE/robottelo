@@ -806,13 +806,14 @@ def test_negative_delete_primary_interface(session, module_host_template):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
-@pytest.mark.skip_if_open("BZ:1801630")
 @pytest.mark.tier2
 def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
 
-    :BZ: 1642076
+    :BZ: 1642076, 1801630
+
+    :customerscenario: true
 
     :id: 19a07026-0550-11ea-bfdc-98fa9b6ecd5a
 
@@ -1207,6 +1208,8 @@ def test_positive_search_with_org_and_loc_context(session):
         result is returned
 
     :BZ: 1405496
+
+    :customerscenario: true
 
     :CaseLevel: Integration
     """

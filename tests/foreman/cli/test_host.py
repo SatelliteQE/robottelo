@@ -456,6 +456,8 @@ def test_negative_update_content_source(
 
     :BZ: 1260697, 1483252, 1313056
 
+    :customerscenario: true
+
     :expectedresults: Host was not updated. Content source remains the same
         as it was before update
 
@@ -601,6 +603,8 @@ def test_positive_katello_and_openscap_loaded():
         (note: help is generated dynamically based on apipie cache)
 
     :CaseLevel: System
+
+    :customerscenario: true
 
     :CaseImportance: Medium
 
@@ -850,6 +854,8 @@ def test_positive_create_inherit_nested_hostgroup():
 
     :CaseLevel: System
 
+    :customerscenario: true
+
     :BZ: 1436162
     """
     options = entities.Host()
@@ -995,6 +1001,8 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
         matches
 
     :BZ: 1343392, 1679300
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """
@@ -1801,14 +1809,11 @@ def test_positive_package_applicability(katello_host_tools_client):
 
 
 @pytest.mark.katello_host_tools
-@pytest.mark.skip_if_open("BZ:1740790")
 @pytest.mark.tier3
 def test_positive_erratum_applicability(katello_host_tools_client):
     """Ensure erratum applicability is functioning properly
 
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
-
-    :customerscenario: true
 
     :steps:
         1. register a host to activation key with content view that contain
@@ -2088,6 +2093,8 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
 
     :BZ: 1199515
 
+    :customerscenario: true
+
     :expectedresults: host successfully subscribed, subscription repository
         enabled, and repository package installed
 
@@ -2125,6 +2132,8 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
     :id: a362b959-9dde-4d1b-ae62-136c6ef943ba
 
     :BZ: 1199515
+
+    :customerscenario: true
 
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed
@@ -2479,7 +2488,7 @@ def test_positive_dump_enc_yaml():
 
     :customerscenario: true
 
-    :BZ: 1372731
+    :BZ: 1372731, 1392747
 
     :CaseImportance: Critical
     """
