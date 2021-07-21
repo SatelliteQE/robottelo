@@ -1962,6 +1962,8 @@ class TestContentView:
 
         :CaseImportance: High
 
+        :customerscenario: true
+
         :CaseLevel: Integration
         """
         # Create new Yum repository
@@ -2027,6 +2029,8 @@ class TestContentView:
         :BZ: 1323751
 
         :CaseLevel: Integration
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """
@@ -2620,6 +2624,8 @@ class TestContentView:
         :id: 0184ab20-2ffd-4377-9efa-4f25bb6e5a0c
 
         :BZ: 1379856, 1470765, 1511481
+
+        :customerscenario: true
 
         :steps:
 
@@ -4836,6 +4842,8 @@ class TestContentViewFileRepo:
         :expectedresults: id datatype is bigint
 
         :CaseImportance: Medium
+
+        :customerscenario: true
 
         :BZ: 1793701
         """

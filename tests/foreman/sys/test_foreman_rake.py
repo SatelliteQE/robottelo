@@ -35,6 +35,8 @@ def test_positive_katello_reimport():
     :expectedresults: Successfully reimport without errors
 
     :bz: 1771555
+
+    :customerscenario: true
     """
 
     result = ssh.command('foreman-rake katello:reimport')

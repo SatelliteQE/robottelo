@@ -140,6 +140,8 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
         expected values in details section
 
     :CaseLevel: Integration
+
+    :customerscenario: true
     """
     with session:
         session.organization.select(org_name=module_org.name)

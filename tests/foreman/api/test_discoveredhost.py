@@ -654,6 +654,8 @@ class TestLibvirtHostDiscovery:
 
         :bz: 1367549
 
+        :customerscenario: true
+
         :Setup: Provisioning should be configured and a host should be
             discovered
 
