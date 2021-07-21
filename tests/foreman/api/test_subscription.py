@@ -191,6 +191,8 @@ def test_positive_delete_manifest_as_another_user(function_org):
 
     :expectedresults: manifest is refreshed
 
+    :customerscenario: true
+
     :BZ: 1669241
 
     :CaseImportance: Medium
@@ -239,6 +241,8 @@ def test_positive_subscription_status_disabled(module_ak, rhel7_contenthost, mod
     :id: d7d7e20a-e386-43d5-9619-da933aa06694
 
     :expectedresults: subscription status is 'Disabled'
+
+    :customerscenario: true
 
     :BZ: 1789924
 
@@ -430,6 +434,8 @@ def test_positive_os_restriction_on_repos():
 
     :expectedresults: Custom EPEL repos with OS restrictions set are
         disabled based on its corresponding RHEL version
+
+    :customerscenario: true
 
     :BZ: 1526564
 

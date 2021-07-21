@@ -1023,6 +1023,8 @@ class TestRepository:
 
         :CaseImportance: Critical
 
+        :customerscenario: true
+
         :BZ: 1378442
         """
         # upload srpm
@@ -1626,6 +1628,8 @@ class TestRepositorySync:
 
         :CaseLevel: Integration
 
+        :customerscenario: true
+
         :BZ: 1741011
         """
         repo.sync()
@@ -1739,6 +1743,8 @@ class TestDockerRepository:
         :expectedresults: A product with a synced Docker repository can be deleted.
 
         :CaseImportance: High
+
+        :customerscenario: true
 
         :BZ: 1867287
         """
@@ -2184,6 +2190,8 @@ class TestOstreeRepository:
         :expectedresults: Synced repo should fetch the data successfully.
 
         :CaseLevel: Integration
+
+        :customerscenario: true
 
         :BZ: 1625783
         """

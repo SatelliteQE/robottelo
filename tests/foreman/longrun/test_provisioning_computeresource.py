@@ -186,6 +186,8 @@ def test_positive_provision_vmware_with_host_group(vmware, provisioning, tear_do
 
     :Assignee: lhellebr
 
+    :customerscenario: true
+
     :id: ae4d5949-f0e6-44ca-93b6-c5241a02b64b
 
     :setup:

@@ -1030,6 +1030,8 @@ def test_positive_host_associations(session):
     :expectedresults: Only hosts, registered by specific AK are shown under
         Associations > Content Hosts tab
 
+    :customerscenario: true
+
     :BZ: 1344033, 1372826, 1394388
 
     :CaseLevel: System

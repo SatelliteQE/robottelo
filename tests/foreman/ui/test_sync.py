@@ -123,6 +123,8 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product):
 
     :expectedresults: ostree repo should be synced successfully
 
+    :customerscenario: true
+
     :CaseLevel: Integration
 
     :BZ: 1625783
@@ -153,6 +155,8 @@ def test_positive_sync_rh_ostree_repo(session, module_org_with_manifest):
     :Steps:
         1. Import a valid manifest
         2. Enable the OStree repo and sync it
+
+    :customerscenario: true
 
     :expectedresults: ostree repo should be synced successfully from CDN
 
