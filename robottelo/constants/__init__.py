@@ -1184,8 +1184,8 @@ PERMISSIONS = {
         'edit_organizations',
         'destroy_organizations',
         'assign_organizations',
-        'import_library_content',
-        'export_library_content',
+        'import_content',
+        'export_content',
     ],
     'Katello::SyncPlan': [
         'view_sync_plans',
@@ -1377,8 +1377,8 @@ PERMISSIONS_UI = {
         'edit_organizations',
         'destroy_organizations',
         'assign_organizations',
-        'import_library_content',
-        'export_library_content',
+        'import_content',
+        'export_content',
     ],
     'Parameter': ['view_params', 'create_params', 'edit_params', 'destroy_params'],
     'Partition Table': [
