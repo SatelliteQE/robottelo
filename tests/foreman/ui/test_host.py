@@ -1588,52 +1588,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
         assert values['host']['inherit_puppet_environment'] is False
 
 
-@pytest.mark.tier2
-def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
-    """Content View puppet environment is inherited to host in create
-    procedure and can be rolled back to its value at any moment using
-    'Reset Puppet Environment to match selected Content View' button
-
-    :id: f8f35bd9-9e7c-418f-837a-ccec21c05d59
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the field
-
-    :BZ: 1336802
-
-    :CaseLevel: Integration
-    """
-    puppet_env = gen_string('alpha')
-    content_view = gen_string('alpha')
-    entities.Environment(name=puppet_env, organization=[module_org], location=[module_loc]).create()
-    entities.ContentView(name=content_view, organization=module_org).create()
-    with session:
-        session.contentview.update(content_view, {'details.force_puppet': True})
-        session.contentview.publish(content_view)
-        published_puppet_env = [
-            env.name
-            for env in entities.Environment().search(
-                query=dict(search=f'organization_id={module_org.id}', per_page='1000')
-            )
-            if content_view in env.name
-        ][0]
-        values = session.host.helper.read_create_view(
-            {'host.lce': ENVIRONMENT, 'host.content_view': content_view},
-            ['host.puppet_environment'],
-        )
-        assert values['host']['puppet_environment'] == published_puppet_env
-        values = session.host.helper.read_create_view(
-            {'host.puppet_environment': puppet_env}, ['host.puppet_environment']
-        )
-        assert values['host']['puppet_environment'] == puppet_env
-        # reset_puppet_environment
-        values = session.host.helper.read_create_view(
-            {'host.reset_puppet_environment': True}, ['host.puppet_environment']
-        )
-        assert values['host']['puppet_environment'] == published_puppet_env
-
-
 @pytest.mark.tier3
 def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module_host_template):
     """Check that host parameter value with multi-line and spaces is
