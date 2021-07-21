@@ -168,7 +168,7 @@ def delete_rhsso_group(group_name):
     group_details = get_rhsso_groups_details(group_name)
     run_command(
         cmd=f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}",
-        hostnamesettings.rhsso.host_name,
+        hostname=settings.rhsso.host_name,
     )
 
 
@@ -179,7 +179,7 @@ def update_client_configuration(json_content):
     update_cmd = (
         f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info -s enabled=true --merge"
     )
-    run_command(cmd=update_cmd, hostname=settings.rhsso.host_name))
+    run_command(cmd=update_cmd, hostname=settings.rhsso.host_name)
 
 
 def get_oidc_token_endpoint():
