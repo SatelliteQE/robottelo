@@ -1047,6 +1047,8 @@ class TestCannedRole:
 
         :id: d8586573-70df-4438-937f-4869583a3d58
 
+        :customerscenario: true
+
         :steps:
 
             1. Create Org Admin role by cloning 'Organization admin' role
@@ -1407,6 +1409,8 @@ class TestCannedRole:
         :id: 971bc909-96a5-4614-b254-04a51c708432
 
         :bz: 1694199
+
+        :customerscenario: true
 
         :steps:
             1. Create a regular user and associate it with existing location

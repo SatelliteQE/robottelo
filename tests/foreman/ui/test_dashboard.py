@@ -40,6 +40,8 @@ def test_positive_host_configuration_status(session):
 
     :id: ffb0a6a1-2b65-4578-83c7-61492122d865
 
+    :customerscenario: true
+
     :Steps:
 
         1. Navigate to Monitor -> Dashboard

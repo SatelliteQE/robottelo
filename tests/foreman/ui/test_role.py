@@ -49,6 +49,8 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
     :CaseLevel: Integration
 
+    :customerscenario: true
+
     :BZ: 1353788
 
     :CaseImportance: High

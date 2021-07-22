@@ -249,6 +249,8 @@ def test_positive_end_to_end_bulk_update(session, vm):
 
     :id: d460ba30-82c7-11e9-9af5-54ee754f2151
 
+    :customerscenario: true
+
     :expectedresults: package installation and update to a later version
         are successful.
 
@@ -442,6 +444,8 @@ def test_actions_katello_host_package_update_timeout(session, vm):
     out if goferd does not respond while attempting to update a package.
 
     :id: 26f3ea2a-509a-4f3f-b5d7-d34b29ceb2cc
+
+    :customerscenario: true
 
     :BZ: 1651852
 
@@ -1311,6 +1315,8 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
 
     :id: e63e4872-5fcf-4468-ab66-63ac4f4f5dac
 
+    :customerscenario: true
+
     :BZ: 1642549
     """
     new_per_page_setting = 2
@@ -1360,6 +1366,8 @@ def test_search_for_virt_who_hypervisors(session):
     :expectedresults: Search with hypervisor=True and hypervisor=False gives the correct result.
 
     :BZ: 1653386
+
+    :customerscenario: true
 
     :CaseLevel: System
 

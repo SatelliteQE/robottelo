@@ -233,6 +233,8 @@ class TestUser:
 
         :id: 967282d3-92d0-42ce-9ef3-e542d2883408
 
+        :customerscenario: true
+
         :expectedresults: last login should be updated for user after login using hammer
 
         :BZ: 1763816

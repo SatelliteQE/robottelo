@@ -492,6 +492,8 @@ def test_positive_entries_per_page(session, setting_update):
 
     :parametrized: yes
 
+    :customerscenario: true
+
     :expectedresults: New set entry-per-page should be available in the pagination list and
         page count should match according to the new setting
 
