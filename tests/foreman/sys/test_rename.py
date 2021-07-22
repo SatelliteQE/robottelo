@@ -60,7 +60,7 @@ class TestRenameHost:
                 resync repos, republish CVs and re-register hosts
             7. Create new entities (run end-to-end test from robottelo)
 
-        :BZ: 1469466, 1897360, 1901983, 1925616
+        :BZ: 1469466, 1897360, 1925616
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly

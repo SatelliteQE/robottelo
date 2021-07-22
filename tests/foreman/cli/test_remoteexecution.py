@@ -88,6 +88,8 @@ class TestRemoteExecution:
 
         :BZ: 1647582
 
+        :customerscenario: true
+
         :parametrized: yes
         """
         client = fixture_vmsetup
@@ -607,6 +609,8 @@ class TestAnsibleREX:
         :expectedresults: multiple asserts along the code
 
         :CaseAutomation: Automated
+
+        :customerscenario: true
 
         :CaseLevel: System
 
