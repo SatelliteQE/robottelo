@@ -600,6 +600,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is created with assigned group parameters
 
+        :customerscenario: true
+
         :CaseLevel: Integration
 
         :BZ: 1710853

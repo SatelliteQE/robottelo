@@ -141,6 +141,8 @@ class TestOrganization:
 
         :expectedresults: no cert information in org api endpoint
 
+        :customerscenario: true
+
         :bz: 1828549
 
         :CaseImportance: Critical
