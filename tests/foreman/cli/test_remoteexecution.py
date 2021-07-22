@@ -184,8 +184,8 @@ class TestRemoteExecution:
     @pytest.mark.tier3
     @pytest.mark.parametrize(
         'fixture_vmsetup',
-        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
-        ids=['rhel7', 'rhel7_fips'],
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}, {'nick': 'rhel8'}, {'nick': 'rhel8_fips'}],
+        ids=['rhel7', 'rhel7_fips', 'rhel8', 'rhel8_fips'],
         indirect=True,
     )
     def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org):
@@ -194,6 +194,10 @@ class TestRemoteExecution:
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
 
         :expectedresults: Verify the job was successfully ran against the host
+
+        :bz: 1872688, 1811166
+
+        :customerscenario: true
 
         :parametrized: yes
         """
@@ -649,8 +653,8 @@ class TestAnsibleREX:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'fixture_vmsetup',
-        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}],
-        ids=['rhel7', 'rhel7_fips'],
+        [{'nick': 'rhel7'}, {'nick': 'rhel7_fips'}, {'nick': 'rhel8'}, {'nick': 'rhel8_fips'}],
+        ids=['rhel7', 'rhel7_fips', 'rhel8', 'rhel8_fips'],
         indirect=True,
     )
     @pytest.mark.skipif(
@@ -678,6 +682,10 @@ class TestAnsibleREX:
         :CaseAutomation: Automated
 
         :CaseLevel: System
+
+        :bz: 1872688, 1811166
+
+        :customerscenario: true
 
         :parametrized: yes
         """
