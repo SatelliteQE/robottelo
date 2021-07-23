@@ -36,6 +36,7 @@ from robottelo.constants import REPO_TYPE
 from robottelo.constants import REPOSET
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
@@ -738,6 +739,41 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
         session.repository.delete(module_prod.name, new_repo_name)
         assert not session.repository.search(module_prod.name, new_repo_name)
+
+
+def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
+    """Sync ansible collection repository from ansible gallaxy
+
+    :id: f3212dbd-3b8a-49ad-ba03-58f059150c04
+
+    :expectedresults: All content synced successfully
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+
+    """
+    repo_name = f'gallaxy-{gen_string("alpha")}'
+    requirements = '''
+    ---
+    collections:
+    - name: theforeman.foreman
+      version: "2.1.0"
+    - name: theforeman.operations
+      version: "0.1.0"
+    '''
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['ansible_collection'],
+                'repo_content.requirements': requirements,
+                'repo_content.upstream_url': ANSIBLE_GALAXY,
+            },
+        )
+        result = session.repository.synchronize(module_prod.name, repo_name)
+        assert result['result'] == 'success'
 
 
 @pytest.mark.tier2

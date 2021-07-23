@@ -52,3 +52,6 @@ FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
     'https://fixtures.pulpproject.org/rpm-string-version-updateinfo/'
 )
 EPEL_REPO = f'{REPOS_URL}/epel_repo'
+
+ANSIBLE_GALAXY = 'https://galaxy.ansible.com/'
+ANSIBLE_HUB = 'https://cloud.redhat.com/api/automation-hub/'
