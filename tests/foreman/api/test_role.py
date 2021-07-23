@@ -1337,6 +1337,8 @@ class TestCannedRole:
 
         :BZ: 1538316, 1825698
 
+        :customerscenario: true
+
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(

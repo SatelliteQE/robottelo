@@ -183,6 +183,8 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
 
     :CaseLevel: Integration
 
+    :customerscenario: true
+
     :BZ: 1387766, 1394390
     """
     with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:

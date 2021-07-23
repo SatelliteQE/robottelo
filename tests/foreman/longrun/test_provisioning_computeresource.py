@@ -279,6 +279,8 @@ def test_positive_provision_vmware_with_host_group_bootdisk(
 
     :CaseAutomation: Automated
 
+    :customerscenario: true
+
     :CaseLevel: System
     """
     host_name = gen_string('alpha').lower()

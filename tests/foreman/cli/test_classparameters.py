@@ -291,6 +291,8 @@ class TestSmartClassParameters:
 
         :expectedresults: Error not raised for default value in list.
 
+        :customerscenario: true
+
         :BZ: 1830834
 
         :CaseImportance: Medium

@@ -3152,6 +3152,8 @@ def test_positive_rh_mixed_content_end_to_end(session):
 
     :CaseLevel: System
 
+    :customerscenario: true
+
     :CaseImportance: High
     """
     cv_name = gen_string('alpha')
