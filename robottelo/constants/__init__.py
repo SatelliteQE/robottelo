@@ -309,7 +309,13 @@ NOT_IMPLEMENTED = 'This is a Manual test!'
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
-REPO_TYPE = {'yum': "yum", 'puppet': "puppet", 'docker': "docker", 'ostree': "ostree"}
+REPO_TYPE = {
+    'yum': "yum",
+    'puppet': "puppet",
+    'docker': "docker",
+    'ostree': "ostree",
+    "ansible_collection": "ansible collection",
+}
 
 DOWNLOAD_POLICIES = {
     'on_demand': "On Demand",
