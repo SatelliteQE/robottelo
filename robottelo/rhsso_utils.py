@@ -16,11 +16,6 @@ from robottelo.constants import RHSSO_RESET_PASSWORD
 from robottelo.constants import RHSSO_USER_UPDATE
 from robottelo.datafactory import valid_emails_list
 
-rhsso_host = str(settings.rhsso.host_name)
-realm = settings.rhsso.realm
-rhsso_user = settings.rhsso.rhsso_user
-rhsso_password = settings.rhsso.rhsso_password
-
 
 def run_command(cmd, hostname=None, timeout=None):
     """helper function for ssh command and avoiding the return code check in called function"""
@@ -50,16 +45,16 @@ def get_rhsso_client_id():
         '--password {}'.format(
             KEY_CLOAK_CLI,
             settings.rhsso.host_url.replace('https://', 'http://'),
-            realm,
-            rhsso_user,
-            rhsso_password,
+            settings.rhsso.realm,
+            settings.rhsso.rhsso_user,
+            settings.rhsso.rhsso_password,
         ),
-        hostname=rhsso_host,
+        hostname=settings.rhsso.host_name,
     )
 
     result = run_command(
         cmd=f"{KEY_CLOAK_CLI} get clients --fields id,clientId",
-        hostname=rhsso_host,
+        hostname=settings.rhsso.host_name,
     )
     result_json = json.loads("[{{{0}".format("".join(result)))
     client_id = None
@@ -73,8 +68,8 @@ def get_rhsso_client_id():
 def get_rhsso_user_details(username):
     """Getter method to receive the user id"""
     result = run_command(
-        cmd=f"{KEY_CLOAK_CLI} get users -r {realm} -q username={username}",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}",
+        hostname=settings.rhsso.host_name,
     )
     result_json = json.loads("[{{{0}".format("".join(result)))
     return result_json[0]
@@ -83,8 +78,8 @@ def get_rhsso_user_details(username):
 def get_rhsso_groups_details(group_name):
     """Getter method to receive the group id"""
     result = run_command(
-        cmd=f"{KEY_CLOAK_CLI} get groups -r {realm} -q group_name={group_name}",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}",
+        hostname=settings.rhsso.host_name,
     )
     result_json = json.loads("[{{{0}".format("".join(result)))
     return result_json[0]
@@ -94,7 +89,7 @@ def upload_rhsso_entity(json_content, entity_name):
     """Helper method upload the entity json request as file on RHSSO Server"""
     with open(entity_name, "w") as file:
         json.dump(json_content, file)
-    ssh.upload_file(entity_name, entity_name, hostname=rhsso_host)
+    ssh.upload_file(entity_name, entity_name, hostname=settings.rhsso.host_name)
 
 
 def create_mapper(json_content, client_id):
@@ -102,9 +97,9 @@ def create_mapper(json_content, client_id):
     upload_rhsso_entity(json_content, "mapper_file")
     run_command(
         cmd="{} create clients/{}/protocol-mappers/models -r {} -f {}".format(
-            KEY_CLOAK_CLI, client_id, realm, "mapper_file"
+            KEY_CLOAK_CLI, client_id, settings.rhsso.realm, "mapper_file"
         ),
-        hostname=rhsso_host,
+        hostname=settings.rhsso.host_name,
     )
 
 
@@ -114,35 +109,35 @@ def create_new_rhsso_user(client_id, username=None):
         username = gen_string('alphanumeric')
     RHSSO_NEW_USER['username'] = username
     RHSSO_NEW_USER['email'] = random.choice(valid_emails_list())
-    RHSSO_RESET_PASSWORD['value'] = rhsso_password
+    RHSSO_RESET_PASSWORD['value'] = settings.rhsso.rhsso_password
     upload_rhsso_entity(RHSSO_NEW_USER, "create_user")
     upload_rhsso_entity(RHSSO_RESET_PASSWORD, "reset_password")
     run_command(
-        cmd=f"{KEY_CLOAK_CLI} create users -r {realm} -f create_user",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} create users -r {settings.rhsso.realm} -f create_user",
+        hostname=settings.rhsso.host_name,
     )
     user_details = get_rhsso_user_details(RHSSO_NEW_USER['username'])
     run_command(
         cmd="{} update -r {} users/{}/reset-password -f {}".format(
-            KEY_CLOAK_CLI, realm, user_details['id'], "reset_password"
+            KEY_CLOAK_CLI, settings.rhsso.realm, user_details['id'], "reset_password"
         ),
-        hostname=rhsso_host,
+        hostname=settings.rhsso.host_name,
     )
     return RHSSO_NEW_USER
 
 
 def update_rhsso_user(username, group_name=None):
     user_details = get_rhsso_user_details(username)
-    RHSSO_USER_UPDATE["realm"] = f"{realm}"
-    RHSSO_USER_UPDATE["userId"] = f"{user_details['id']}"
+    RHSSO_USER_UPDATE['realm'] = f"{settings.rhsso.realm}"
+    RHSSO_USER_UPDATE['userId'] = f"{user_details['id']}"
     if group_name:
         group_details = get_rhsso_groups_details(group_name=group_name)
-        RHSSO_USER_UPDATE["groupId"] = f"{group_details['id']}"
+        RHSSO_USER_UPDATE['groupId'] = f"{group_details['id']}"
         upload_rhsso_entity(RHSSO_USER_UPDATE, "update_user")
         group_path = f"users/{user_details['id']}/groups/{group_details['id']}"
         run_command(
-            cmd=f"{KEY_CLOAK_CLI} update -r {realm} {group_path} -f update_user",
-            hostname=rhsso_host,
+            cmd=f"{KEY_CLOAK_CLI} update -r {settings.rhsso.realm} {group_path} -f update_user",
+            hostname=settings.rhsso.host_name,
         )
 
 
@@ -150,8 +145,8 @@ def delete_rhsso_user(username):
     """Delete the RHSSO user"""
     user_details = get_rhsso_user_details(username)
     run_command(
-        cmd=f"{KEY_CLOAK_CLI} delete -r {realm} users/{user_details['id']}",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} users/{user_details['id']}",
+        hostname=settings.rhsso.host_name,
     )
 
 
@@ -162,8 +157,8 @@ def create_group(group_name=None):
     RHSSO_NEW_GROUP['name'] = group_name
     upload_rhsso_entity(RHSSO_NEW_GROUP, "create_group")
     result = run_command(
-        cmd=f"{KEY_CLOAK_CLI} create groups -r {realm} -f create_group",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} create groups -r {settings.rhsso.realm} -f create_group",
+        hostname=settings.rhsso.host_name,
     )
     return result
 
@@ -172,8 +167,8 @@ def delete_rhsso_group(group_name):
     """Delete the RHSSO group"""
     group_details = get_rhsso_groups_details(group_name)
     run_command(
-        cmd=f"{KEY_CLOAK_CLI} delete -r {realm} groups/{group_details['id']}",
-        hostname=rhsso_host,
+        cmd=f"{KEY_CLOAK_CLI} delete -r {settings.rhsso.realm} groups/{group_details['id']}",
+        hostname=settings.rhsso.host_name,
     )
 
 
@@ -184,7 +179,7 @@ def update_client_configuration(json_content):
     update_cmd = (
         f"{KEY_CLOAK_CLI} update clients/{client_id} -f update_client_info -s enabled=true --merge"
     )
-    run_command(cmd=update_cmd, hostname=rhsso_host)
+    run_command(cmd=update_cmd, hostname=settings.rhsso.host_name)
 
 
 def get_oidc_token_endpoint():
