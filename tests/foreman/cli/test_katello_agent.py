@@ -140,6 +140,8 @@ def test_positive_apply_security_erratum(katello_agent_client):
 
     :CaseLevel: System
 
+    :customerscenario: true
+
     :BZ: 1420671, 1740790
     """
     client = katello_agent_client['client']

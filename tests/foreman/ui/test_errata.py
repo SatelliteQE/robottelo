@@ -296,6 +296,7 @@ def test_content_host_errata_page_pagination(session, org, lce):
     :expectedresults: More than page of errata can be selected and applied using REX while
         changing per-page settings.
 
+    :customerscenario: true
 
     :BZ: 1662254, 1846670
 
@@ -632,6 +633,8 @@ def test_positive_content_host_search_type(session, erratatype_vm):
 
     :Setup: Content Host with applicable errata
 
+    :customerscenario: true
+
     :Steps: Search for errata on content host by type (e.g. 'type = security')
      Step 1 Search for "type = security", assert expected amount and IDs found
      Step 2 Search for "type = bugfix", assert expected amount and IDs found
@@ -687,6 +690,8 @@ def test_positive_content_host_errata_details(session, erratatype_vm, module_org
     """Read for errata details on a content_host by user with only viewer permission
 
     :id: 236de56f-8035-4072-b0fa-03abbf3fc692
+
+    :customerscenario: true
 
     :Steps:
 
@@ -909,6 +914,8 @@ def test_content_host_errata_search_commands(session, module_org, module_repos_c
     :id: 45114f8e-0fc8-4c7c-85e0-f9b613530dac
 
     :Setup: Two Content Hosts, one with RHSA and one with RHBA errata.
+
+    :customerscenario: true
 
     :Steps:
         1.  host list --search "errata_status = security_needed"

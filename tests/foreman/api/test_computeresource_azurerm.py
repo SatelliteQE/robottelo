@@ -146,6 +146,39 @@ class TestAzureRMComputeResourceTestCase:
         portal_nws = azurermclient.list_network()
         assert len(portal_nws) == len(cr_nws['results'])
 
+    @pytest.mark.stubbed
+    @pytest.mark.tier2
+    def test_gov_cloud_regions_from_azure_compute_resources(self):
+        """Check Azure Gov Cloud for US Cloud region options when creating a compute resource
+
+        :id: 65e03f7e-a2c7-4541-b92b-38d80ab48175
+
+        :CaseImportance: Medium
+
+        :CaseLevel: Acceptance
+
+        :CaseAutomation: ManualOnly
+
+        :steps:
+            1. Create Azure Compute Resource
+            2. Select US Government Cloud option
+            3. Input Client ID, tenant ID, Secret, and Sub Id
+            4. Verify you can select US regions
+            5. Test connection and create compute resource
+
+        :expectedresults: All regions below should be visible
+            1. US DoD Central
+            2. US DoD East
+            3. US Gov Arizona
+            4. US Gov Iowa
+            5. US Gov Texas
+            6. US Gov Virginia
+
+        :BZ: 1829107
+
+        :customerscenario: true
+        """
+
 
 @pytest.mark.run_in_one_thread
 class TestAzureRMHostProvisioningTestCase:

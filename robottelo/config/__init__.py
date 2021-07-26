@@ -38,6 +38,10 @@ if not os.getenv('BROKER_DIRECTORY'):
     os.environ['BROKER_DIRECTORY'] = settings.broker.get('broker_directory')
 
 
+robottelo_tmp_dir = Path(settings.robottelo.tmp_dir)
+robottelo_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+
 def get_credentials():
     """Return credentials for interacting with a Foreman deployment API.
 

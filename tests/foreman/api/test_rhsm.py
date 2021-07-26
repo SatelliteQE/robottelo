@@ -41,6 +41,8 @@ def test_positive_path():
 
     :BZ: 1112802
 
+    :customerscenario: true
+
     :CaseImportance: Critical
     """
     path = f'{get_url()}/rhsm'

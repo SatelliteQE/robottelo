@@ -163,6 +163,8 @@ def test_positive_remove_user_assigned_to_usergroup():
 
     :expectedresults: User should delete successfully.
 
+    :customerscenario: true
+
     :CaseLevel: Integration
 
     :BZ: 1667704
@@ -183,6 +185,8 @@ def test_positive_automate_bz1426957(ldap_auth_source, function_user_group):
     :id: 1c1209a6-5bb8-489c-a151-bb2fce4dbbfc
 
     :expectedresults: Roles from usergroup is applied on AD user successfully.
+
+    :customerscenario: true
 
     :CaseLevel: Integration
 

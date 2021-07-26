@@ -391,6 +391,8 @@ class TestContentViewSync:
 
         :bz: 1671319
 
+        :customerscenario: true
+
         :steps:
 
             1. Create product and repository with custom contents.
@@ -1337,6 +1339,8 @@ class TestContentViewSync:
             No warning is printed (see BZ 1775383)
 
         :BZ: 1726457
+
+        :customerscenario: true
 
         """
         module = {'name': 'versioned', 'version': '3.3.3'}

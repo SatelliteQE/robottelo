@@ -326,6 +326,8 @@ def test_positive_create_with_https(
 
     :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
 
+    :customerscenario: true
+
     :steps:
         1. Create a new LDAP Auth source with HTTPS, provide organization and
            location information.
@@ -1206,6 +1208,8 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
 
     :BZ: 1873439
 
+    :customerscenario: true
+
     :CaseImportance: High
 
     :steps:
@@ -1662,6 +1666,8 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
         onthefly is disabled
 
     :id: 163b346c-03be-11eb-acb9-0c7a158cbff4
+
+    :customerscenario: true
 
     :Steps:
         1. Create authsource with onthefly disabled

@@ -1805,6 +1805,8 @@ class TestRepository:
 
         :parametrized: yes
 
+        :customerscenario: true
+
         :expectedresults: upload content is successful
 
         :BZ: 1343006, 1421298
@@ -1880,6 +1882,8 @@ class TestRepository:
         :id: 65792ae0-c5be-4a6c-9062-27dc03b83e10
 
         :parametrized: yes
+
+        :customerscenario: true
 
         :BZ: 1436209,1410916
 
@@ -2031,6 +2035,8 @@ class TestRepository:
         :id: 706dc3e2-dacb-4fdd-8eef-5715ce498888
 
         :parametrized: yes
+
+        :customerscenario: true
 
         :expectedresults: SRPM successfully uploaded and removed
 
@@ -2342,6 +2348,8 @@ class TestOstreeRepository:
         :id: a93c52e1-b32e-4590-981b-636ae8b8314d
 
         :parametrized: yes
+
+        :customerscenario: true
 
         :expectedresults: ostree repository is created
 

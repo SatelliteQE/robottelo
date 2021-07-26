@@ -64,6 +64,8 @@ def test_positive_list(module_org):
 
     :BZ: 1331875
 
+    :customerscenario: true
+
     :expectedresults: Returned list of host collections for the system
         contains at least one collection
 

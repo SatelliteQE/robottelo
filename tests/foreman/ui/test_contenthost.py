@@ -28,6 +28,7 @@ from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
+from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
 from robottelo.cli.factory import make_virt_who_config
 from robottelo.config import setting_is_set
@@ -249,6 +250,8 @@ def test_positive_end_to_end_bulk_update(session, vm):
 
     :id: d460ba30-82c7-11e9-9af5-54ee754f2151
 
+    :customerscenario: true
+
     :expectedresults: package installation and update to a later version
         are successful.
 
@@ -442,6 +445,8 @@ def test_actions_katello_host_package_update_timeout(session, vm):
     out if goferd does not respond while attempting to update a package.
 
     :id: 26f3ea2a-509a-4f3f-b5d7-d34b29ceb2cc
+
+    :customerscenario: true
 
     :BZ: 1651852
 
@@ -673,7 +678,6 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
         assert session.operatingsystem.search(expected_os)[0]['Title'] == expected_os
 
 
-@pytest.mark.skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
 # The content host has been moved to broker, but the test still depends on libvirt compute resource
 @pytest.mark.libvirt_discovery
 @pytest.mark.tier3
@@ -694,7 +698,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
            "Fully entitled" and represented by a green icon in content
            hosts list.
 
-    :BZ: 1336924
+    :BZ: 1336924, 1860928
 
     :CaseLevel: System
     """
@@ -725,20 +729,31 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     with session:
         session.organization.select(org.name)
         assert (
-            session.contenthost.search(virt_who_hypervisor_host['name'])[0]['Subscription Status']
+            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
             == 'yellow'
         )
-        chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
+        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
         assert chost['details']['subscription_status'] == 'Unsubscribed hypervisor'
-        session.contenthost.add_subscription(
-            virt_who_hypervisor_host['name'], VDC_SUBSCRIPTION_NAME
-        )
+        session.contenthost.add_subscription(virt_who_hypervisor_host.name, VDC_SUBSCRIPTION_NAME)
         assert (
-            session.contenthost.search(virt_who_hypervisor_host['name'])[0]['Subscription Status']
+            session.contenthost.search(virt_who_hypervisor_host.name)[0]['Subscription Status']
             == 'green'
         )
-        chost = session.contenthost.read(virt_who_hypervisor_host['name'], widget_names='details')
+        chost = session.contenthost.read(virt_who_hypervisor_host.name, widget_names='details')
         assert chost['details']['subscription_status'] == 'Fully entitled'
+        # for BZ#1860928
+        checkin_time1 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
+        result = rhel7_contenthost.run('service virt-who stop')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
+        result = rhel7_contenthost.run('virt-who --one-shot')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
+        result = rhel7_contenthost.run('service virt-who start')
+        if result.status != 0:
+            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
+        checkin_time2 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
+        assert checkin_time2 > checkin_time1
 
 
 @pytest.mark.upgrade
@@ -1313,6 +1328,8 @@ def test_pagination_multiple_hosts_multiple_pages(session, module_host_template)
 
     :id: e63e4872-5fcf-4468-ab66-63ac4f4f5dac
 
+    :customerscenario: true
+
     :BZ: 1642549
     """
     new_per_page_setting = 2
@@ -1362,6 +1379,8 @@ def test_search_for_virt_who_hypervisors(session):
     :expectedresults: Search with hypervisor=True and hypervisor=False gives the correct result.
 
     :BZ: 1653386
+
+    :customerscenario: true
 
     :CaseLevel: System
 

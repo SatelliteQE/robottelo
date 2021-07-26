@@ -300,3 +300,24 @@ class TestLocation:
         """
         default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         assert default_loc_id == 2
+
+    @pytest.mark.tier1
+    def test_positive_get_location_by_name(self, make_entities):
+        """test to search location by name
+
+        :id: 9721bd0c-df51-11eb-9353-b0a460e02491
+
+        :BZ: 1566630
+
+        :steps:
+            1. Make an API call to create a location
+            2. Search the location by name
+
+        :expectedresults: Location search by name returns success
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alphanumeric')
+        entities.Location(name=name).create()
+        loc_name = entities.Location().search(query={'search': f'name="{name}"'})[0].name
+        assert loc_name == name

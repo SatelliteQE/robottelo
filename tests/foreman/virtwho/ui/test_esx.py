@@ -609,6 +609,8 @@ class TestVirtwhoConfigforEsx:
 
         :CaseLevel: Integration
 
+        :customerscenario: true
+
         :CaseImportance: Medium
         """
         name = gen_string('alpha')
@@ -672,6 +674,8 @@ class TestVirtwhoConfigforEsx:
         :BZ: 1652323
 
         :CaseLevel: Integration
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """

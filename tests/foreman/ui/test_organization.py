@@ -183,6 +183,8 @@ def test_positive_create_with_all_users(session):
 
     :id: 5bfcbd10-750c-4ef6-87b6-a8eb2eae4ce7
 
+    :customerscenario: true
+
     :expectedresults: Organization and user entities assigned to each other
 
     :BZ: 1321543

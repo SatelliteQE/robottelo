@@ -45,15 +45,14 @@ from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.filter import Filter
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.org import Org
 from robottelo.cli.package import Package
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.task import Task
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DEFAULT_CV
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import FAKE_0_ERRATA_ID
@@ -84,6 +83,7 @@ from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_3_YUM_REPO
 from robottelo.constants.repos import FAKE_9_YUM_REPO
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10
@@ -395,7 +395,7 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
 @pytest.mark.tier3
 @pytest.mark.parametrize('filter_by_hc', ('id', 'name'), ids=('hc_id', 'hc_name'))
 @pytest.mark.parametrize(
-    'filter_by_org', ('id', 'name', 'label'), ids=('org_id', 'org_name', 'org_label')
+    'filter_by_org', ('id', 'name', 'title'), ids=('org_id', 'org_name', 'org_title')
 )
 def test_positive_install_by_host_collection_and_org(
     module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org
@@ -407,11 +407,14 @@ def test_positive_install_by_host_collection_and_org(
 
     :parametrized: yes
 
+    :customerscenario: true
+
     :Setup: Errata synced on satellite server.
 
-    :Steps: host-collection erratum install --errata <errata>
-        (--id <hc_id>|--name <hc_name>)
-        (--organization-id <org_id>|--organization <org_name>|--organization-label <org_label>)
+    :Steps: Use Job Invocation to install errata
+        job-invocation create --feature="katello_errata_install" \
+        --search-query="host_collection[-id] = <value>" --inputs="errata=<errata_id>" \
+        --organization[-id][-title]=<value>'
 
     :expectedresults: Erratum is installed.
 
@@ -419,22 +422,35 @@ def test_positive_install_by_host_collection_and_org(
 
     :BZ: 1457977
     """
-    param = {'errata': [REPO_WITH_ERRATA['errata'][0]['id']]}
+    errata_id = REPO_WITH_ERRATA['errata'][0]['id']
+
+    for host in errata_hosts:
+        add_remote_execution_ssh_key(host.hostname)
 
     if filter_by_hc == 'id':
-        param['id'] = host_collection['id']
+        host_collection_query = f'host_collection_id = {host_collection["id"]}'
     elif filter_by_hc == 'name':
-        param['name'] = host_collection['name']
+        host_collection_query = f'host_collection = {host_collection["name"]}'
 
-    if filter_by_org == 'id':
-        param['organization-id'] = module_org.id
-    elif filter_by_org == 'name':
-        param['organization'] = module_org.name
-    elif filter_by_org == 'label':
-        param['organization-label'] = module_org.label
+    if filter_by_org == "id":
+        organization_key = 'organization-id'
+        organization_value = module_org.id
+    elif filter_by_org == "name":
+        organization_key = 'organization'
+        organization_value = module_org.name
+    elif filter_by_org == "title":
+        organization_key = 'organization-title'
+        organization_value = module_org.title
 
-    install_task = HostCollection.erratum_install(param)
-    Task.progress({'id': install_task[0]['id']})
+    JobInvocation.create(
+        {
+            'feature': 'katello_errata_install',
+            'search-query': host_collection_query,
+            'inputs': f'errata=\'{errata_id}\'',
+            f'{organization_key}': f'{organization_value}',
+        }
+    )
+
     for host in errata_hosts:
         assert is_rpm_installed(host)
 
@@ -603,10 +619,14 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
 
     :Setup: Errata synced on satellite server, custom package installed on errata hosts.
 
+    :customerscenario: true
+
     :Steps:
         1. Remove packages from one host.
-        2. host-collection erratum install --errata <errata> --id <id>
-            --organization <org_name>
+        2. Use Job Invocation to install errata
+            job-invocation create --feature="katello_errata_install" \
+            --search-query="host_collection[-id] = <value>" \
+            --inputs="errata=<errata_id>" --organization[-id][-title]=<value>'
         3. Assert first host does not have the package.
         4. Assert second host does have the new package.
 
@@ -620,17 +640,18 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
     # Remove the package on first host to remove need for errata.
     result = errata_hosts[0].execute(f'yum erase -y {errata["package_name"]}')
     assert result.status == 0, f'Failed to erase the rpm: {result.stdout}'
-
-    # Apply errata to the host collection.
-    install_task = HostCollection.erratum_install(
+    # Add ssh keys
+    for host in errata_hosts:
+        add_remote_execution_ssh_key(host.hostname)
+    # Apply errata to the host collection using job invocation
+    JobInvocation.create(
         {
-            'id': host_collection['id'],
-            'organization': module_org.name,
-            'errata': [errata['id']],
+            'feature': 'katello_errata_install',
+            'search-query': f'host_collection_id = {host_collection["id"]}',
+            'inputs': f'errata=\"{errata["id"]}\"',
+            'organization-id': module_org.id,
         }
     )
-    Task.progress({'id': install_task[0]['id']})
-
     assert not is_rpm_installed(
         errata_hosts[0], rpm=errata['package_name']
     ), 'Package should not be installed on host.'
@@ -1260,6 +1281,8 @@ def test_positive_check_errata_dates(module_org):
 
     :expectedresults: Display errata date when using hammer erratum list
 
+    :customerscenario: true
+
     :CaseImportance: High
 
     :BZ: 1695163
@@ -1306,11 +1329,6 @@ def rh_repo_module_manifest(module_manifest_org):
 """Section for tests using RHEL7.7 Content Host.
    The applicability tests using Default Content View are related to the introduction of Pulp3.
    """
-
-
-@pytest.fixture(scope='module')
-def default_contentview(module_manifest_org):
-    return entities.ContentView(organization=module_manifest_org, name=DEFAULT_CV).search()
 
 
 @pytest.fixture(scope='module')

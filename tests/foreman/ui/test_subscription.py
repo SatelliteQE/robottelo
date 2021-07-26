@@ -446,6 +446,8 @@ def test_positive_subscription_status_disabled_golden_ticket(
 
     :expectedresults: subscription status is 'Disabled'
 
+    :customerscenario: true
+
     :BZ: 1789924
 
     :CaseImportance: Medium

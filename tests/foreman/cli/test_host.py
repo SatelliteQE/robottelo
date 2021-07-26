@@ -152,6 +152,161 @@ def function_user(function_host):
     user.delete()
 
 
+# -------------------------- HELP SCENARIOS --------------------------
+def parse_two_columns(content, options_start_with_dash=False):
+    """
+    Parse part of the help message which consist from two columns,
+    for example Options or Search / Order fields
+
+    Example:
+    >>> content = ['activation_key                  string']
+    >>> parse_two_columns(content)
+    >>> {'activation_key': 'string'}
+
+    or:
+    >>> content =  [
+    >>> ' --thin THIN                                   Only list thin and name of hosts',
+    >>> '                                               One of true/false, yes/no, 1/0.'
+    >>> ]
+    >>> parse_two_columns(content, True)
+    >>> {'--thin THIN': ' Only list thin and name of hosts One of true/false, yes/no, 1/0.'}
+
+
+    :param content: list of strings, item is equal to line in help message
+    :param options_start_with_dash: when line is starting with dash and line has only one column
+    and previous_line is not None, then line value is appended to the previous line
+    :return: options dictionary
+    """
+    options = {}
+    previous_line = None
+    for line in content:
+        # strip whitespaces and split for 2 or more whitespaces
+        line_lst = list(filter(None, line.strip().split('  ')))
+        if not line_lst:  # skip empty lines
+            continue
+        if len(line_lst) > 2:
+            raise ValueError(
+                'line is expected to have maximum of 2 fields, parameter and explanation, '
+                f'but has {len(line_lst), line_lst}'
+            )
+        # if line has len 1, append the value as an empty string
+        try:
+            if options_start_with_dash and line_lst[0].startswith('-'):
+                options[line_lst[0]] = line_lst[1]
+                previous_line = line_lst[0]
+            else:
+                options[line_lst[0]] = line_lst[1]
+        except IndexError:
+            if options_start_with_dash and previous_line is not None:
+                # append message to previous line value
+                options[previous_line] = options[previous_line] + ' ' + line_lst[0]
+            else:
+                options[line_lst[0]] = ''
+    return options
+
+
+def parse_field_sets_table(content):
+    """
+    Return all fields name in lower case, from Predefined field sets category in help message
+
+    :param content: list of strings, item is equal to line in help message
+    :return: list of options
+
+    Example:
+    >>> content = [
+    >>>  '-----------------------|-----|---------|-----',
+    >>>  'FIELDS                 | ALL | DEFAULT | THIN',
+    >>>  '-----------------------|-----|---------|-----',
+    >>>  'Id                     | x   | x       | x',
+    >>>  'Operating System       | x   | x       | x',
+    >>> ]
+    >>> parse_field_sets_table(content)
+    >>> ['id', 'operating-system']
+    """
+    options = []
+    for line in content:
+        line = line.strip()
+        if line.startswith('-'):  # skip over table lines
+            continue
+
+        # split table columns
+        line_lst = line.split('|')
+        # skip header
+        if line_lst[0].isupper():
+            continue
+        options.append(line_lst[0].strip())
+    return options
+
+
+def parse_cli_entity_list_help_message(help_message):
+    """
+    Parse cli help message for entitiy list,
+    for now, only Search / Order fields: are parsed,
+    can be extended so all parts are parsed
+
+    example: hammer host list --help
+
+    :param help_message: string
+    :return: dictionary with parsed csv
+    """
+    categories = help_message.split('\n\n')
+    parsed_dict = {}
+    for category in categories:
+        name, *content = category.split('\n')
+        name = name[:-1]  # remove colon from name
+        if 'Usage' in name:
+            continue
+        elif 'Options' in name:
+            # used together with previous_line when line (message) is appended to previous line
+            options = parse_two_columns(content, options_start_with_dash=True)
+        elif 'field sets' in name:
+            options = parse_field_sets_table(content)
+        else:
+            options = parse_two_columns(content)
+
+        parsed_dict[name] = options
+    return parsed_dict
+
+
+def test_positive_search_all_field_sets():
+    """All fields in predefined field sets from hammer host list --help message are shown
+    when specified as --fields in hammer host list command
+    Note: host was created, so we there will always be at least 1 host
+    and will be always created with same approach
+
+    :id: 307585ce-d4f3-11eb-8949-98fa9b6ecd5a
+
+    :steps:
+        1. create fake host
+        2. parse hammer host list --help message, obtain all fields from predefined field sets
+        3. hammer list --fields=all fields
+        4. identify the host that was created from the list
+        5. verify that the host contains all the fields
+
+
+    :expectedresults: all fields are shown in hammer list --fields
+
+    :BZ: 1913311
+
+    :customerscenario: true
+    """
+    new_host = make_fake_host()
+    host_help = Host.list(options={'help': ''})
+    parsed_dict = parse_cli_entity_list_help_message(host_help[0]['message'])
+    help_field_sets = parsed_dict['Predefined field sets']
+    output_field_sets = Host.list(options={'fields': ','.join(help_field_sets)})
+
+    # get list index of the created host in the output_field_sets
+    [host_idx] = [idx for idx, host in enumerate(output_field_sets) if new_host['id'] == host['id']]
+
+    help_field_sets = [field.lower().replace(' ', '-') for field in help_field_sets]
+    ignore_fields = ['trace-status']
+    for field in help_field_sets:
+        if field in ignore_fields:
+            continue
+        assert field in list(output_field_sets[host_idx].keys())
+
+
 # -------------------------- CREATE SCENARIOS -------------------------
 @pytest.mark.host_create
 @pytest.mark.tier1
@@ -301,6 +456,8 @@ def test_negative_update_content_source(
 
     :BZ: 1260697, 1483252, 1313056
 
+    :customerscenario: true
+
     :expectedresults: Host was not updated. Content source remains the same
         as it was before update
 
@@ -446,6 +603,8 @@ def test_positive_katello_and_openscap_loaded():
         (note: help is generated dynamically based on apipie cache)
 
     :CaseLevel: System
+
+    :customerscenario: true
 
     :CaseImportance: Medium
 
@@ -695,6 +854,8 @@ def test_positive_create_inherit_nested_hostgroup():
 
     :CaseLevel: System
 
+    :customerscenario: true
+
     :BZ: 1436162
     """
     options = entities.Host()
@@ -840,6 +1001,8 @@ def test_positive_update_parameters_by_name(function_host, module_architecture, 
         matches
 
     :BZ: 1343392, 1679300
+
+    :customerscenario: true
 
     :CaseImportance: Critical
     """
@@ -1646,14 +1809,11 @@ def test_positive_package_applicability(katello_host_tools_client):
 
 
 @pytest.mark.katello_host_tools
-@pytest.mark.skip_if_open("BZ:1740790")
 @pytest.mark.tier3
 def test_positive_erratum_applicability(katello_host_tools_client):
     """Ensure erratum applicability is functioning properly
 
     :id: 139de508-916e-4c91-88ad-b4973a6fa104
-
-    :customerscenario: true
 
     :steps:
         1. register a host to activation key with content view that contain
@@ -1933,6 +2093,8 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
 
     :BZ: 1199515
 
+    :customerscenario: true
+
     :expectedresults: host successfully subscribed, subscription repository
         enabled, and repository package installed
 
@@ -1970,6 +2132,8 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
     :id: a362b959-9dde-4d1b-ae62-136c6ef943ba
 
     :BZ: 1199515
+
+    :customerscenario: true
 
     :expectedresults: host successfully subscribed, subscription
         repository enabled, and repository package installed
@@ -2324,7 +2488,7 @@ def test_positive_dump_enc_yaml():
 
     :customerscenario: true
 
-    :BZ: 1372731
+    :BZ: 1372731, 1392747
 
     :CaseImportance: Critical
     """

@@ -1563,6 +1563,8 @@ def test_positive_subscription_quantity_attached(module_org, rhel7_contenthost):
 
     :id: 6aee3be3-9b23-4de5-a942-897d6c811ba3
 
+    :customerscenario: true
+
     :steps:
         1. Create activation key
         2. add subscriptions to activation key

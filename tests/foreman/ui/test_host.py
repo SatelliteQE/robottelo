@@ -806,13 +806,14 @@ def test_negative_delete_primary_interface(session, module_host_template):
         assert 'Interface Delete button is disabled' in str(context.value)
 
 
-@pytest.mark.skip_if_open("BZ:1801630")
 @pytest.mark.tier2
 def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
 
-    :BZ: 1642076
+    :BZ: 1642076, 1801630
+
+    :customerscenario: true
 
     :id: 19a07026-0550-11ea-bfdc-98fa9b6ecd5a
 
@@ -1208,6 +1209,8 @@ def test_positive_search_with_org_and_loc_context(session):
 
     :BZ: 1405496
 
+    :customerscenario: true
+
     :CaseLevel: Integration
     """
     org = entities.Organization().create()
@@ -1586,52 +1589,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
         )
         assert values['host']['puppet_environment'] == env_name
         assert values['host']['inherit_puppet_environment'] is False
-
-
-@pytest.mark.tier2
-def test_positive_reset_puppet_env_from_cv(session, module_org, module_loc):
-    """Content View puppet environment is inherited to host in create
-    procedure and can be rolled back to its value at any moment using
-    'Reset Puppet Environment to match selected Content View' button
-
-    :id: f8f35bd9-9e7c-418f-837a-ccec21c05d59
-
-    :customerscenario: true
-
-    :expectedresults: Expected puppet environment is inherited to the field
-
-    :BZ: 1336802
-
-    :CaseLevel: Integration
-    """
-    puppet_env = gen_string('alpha')
-    content_view = gen_string('alpha')
-    entities.Environment(name=puppet_env, organization=[module_org], location=[module_loc]).create()
-    entities.ContentView(name=content_view, organization=module_org).create()
-    with session:
-        session.contentview.update(content_view, {'details.force_puppet': True})
-        session.contentview.publish(content_view)
-        published_puppet_env = [
-            env.name
-            for env in entities.Environment().search(
-                query=dict(search=f'organization_id={module_org.id}', per_page='1000')
-            )
-            if content_view in env.name
-        ][0]
-        values = session.host.helper.read_create_view(
-            {'host.lce': ENVIRONMENT, 'host.content_view': content_view},
-            ['host.puppet_environment'],
-        )
-        assert values['host']['puppet_environment'] == published_puppet_env
-        values = session.host.helper.read_create_view(
-            {'host.puppet_environment': puppet_env}, ['host.puppet_environment']
-        )
-        assert values['host']['puppet_environment'] == puppet_env
-        # reset_puppet_environment
-        values = session.host.helper.read_create_view(
-            {'host.reset_puppet_environment': True}, ['host.puppet_environment']
-        )
-        assert values['host']['puppet_environment'] == published_puppet_env
 
 
 @pytest.mark.tier3

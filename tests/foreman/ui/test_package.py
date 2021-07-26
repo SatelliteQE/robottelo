@@ -140,6 +140,8 @@ def test_positive_check_package_details(session, module_org, module_yum_repo):
         expected values in details section
 
     :CaseLevel: Integration
+
+    :customerscenario: true
     """
     with session:
         session.organization.select(org_name=module_org.name)
@@ -180,6 +182,8 @@ def test_positive_check_custom_package_details(session, module_org, module_yum_r
         possible to view its details
 
     :CaseLevel: Integration
+
+    :customerscenario: true
 
     :BZ: 1387766, 1394390
     """

@@ -190,6 +190,8 @@ def test_positive_check_debug_log_levels():
 
     :expectedresults: Verify enabled debug log level
 
+    :customerscenario: true
+
     :CaseImportance: Medium
 
     :BZ: 1760773

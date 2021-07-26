@@ -305,6 +305,8 @@ def test_positive_create_product_with_limited_user_permission(
 
     :expectedresults: User successfully creates new product
 
+    :customerscenario: true
+
     :CaseLevel: Component
 
     :CaseImportance: High

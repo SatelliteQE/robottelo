@@ -60,7 +60,7 @@ class TestRenameHost:
                 resync repos, republish CVs and re-register hosts
             7. Create new entities (run end-to-end test from robottelo)
 
-        :BZ: 1469466, 1897360, 1901983, 1925616
+        :BZ: 1469466, 1897360, 1925616
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
@@ -136,6 +136,10 @@ class TestRenameHost:
             assert (
                 new_hostname in result.stdout['published-at']
             ), 'repository published path not updated correctly'
+
+            # check for any other occurences of old hostname
+            result = connection.run(f'grep " {old_hostname}" /etc/* -r')
+            assert result.return_code == 1, 'there are remaining instances of the old hostname'
 
         repo.sync()
         cv = entities.ContentView(organization=module_org).create()

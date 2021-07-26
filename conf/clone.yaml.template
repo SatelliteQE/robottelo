@@ -1,0 +1,19 @@
+CLONE:
+  # satellite restore using clone rpm
+  CLONE_RPM: false
+  # mount point of customers backup data
+  BACKUP_DIR: "/tmp/customer-dbs"
+  # customers database server
+  DB_SERVER:
+  # Restore selinux context across filesystem, applicable for specific database.
+  RESTORECON: false
+  # It is used when we perform db upgrade or migration using pulp data
+  INCLUDE_PULP_DATA: false
+  # customer name
+  CUSTOMER_NAME:
+  # satellite clone upstream branch
+  SATELLITE_CLONE_UPSTREAM_REPOS: "https://github.com/RedHatSatellite/satellite-clone.git"
+  # clone_dir for upstream satellite clone
+  UPSTREAM_CLONE_DIR: "/root/satellite-clone"
+  # clone_dir for downstream satellite clone
+  DOWNSTREAM_CLONE_DIR: "/usr/share/satellite-clone"

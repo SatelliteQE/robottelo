@@ -182,6 +182,8 @@ def test_product_list_with_default_settings(module_org):
 
     :BZ: 1745575
 
+    :customerscenario: true
+
     :expectedresults: product/reporsitory list should work as expected.
 
     """

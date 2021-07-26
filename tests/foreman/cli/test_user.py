@@ -24,9 +24,11 @@ When testing email validation [1] and [2] should be taken into consideration.
 """
 import datetime
 import random
+from time import sleep
 
 import paramiko
 import pytest
+from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 from nailgun import entities
 
@@ -231,6 +233,8 @@ class TestUser:
 
         :id: 967282d3-92d0-42ce-9ef3-e542d2883408
 
+        :customerscenario: true
+
         :expectedresults: last login should be updated for user after login using hammer
 
         :BZ: 1763816
@@ -386,14 +390,13 @@ class TestPersonalAccessToken:
     """Implement personal access token for the users"""
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
-    def test_personal_access_token_admin(self):
-        """Personal access token for admin
+    def test_personal_access_token_admin_user(self, default_sat):
+        """Personal access token for admin user
 
         :id: f2d3813f-e477-4b6b-8507-246b08fcb3b4
 
         :steps:
-            1. Edit ‘admin’ user to add personal access token
+            1. Create an admin user and add personal access token
             2. Use any api endpoint with the token
             3. Revoke the token and check for the result.
 
@@ -405,10 +408,23 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
+        user = make_user({'admin': '1'})
+        token_name = gen_alphanumeric()
+        result = User.access_token(
+            action="create", options={'name': token_name, 'user-id': user['id']}
+        )
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
+        )
+        command_output = default_sat.execute(curl_command)
+        assert user['login'] and user['email'] in command_output.stdout
+        User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
+        command_output = default_sat.execute(curl_command)
+        assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
-    def test_positive_personal_access_token_user_with_role(self):
+    def test_positive_personal_access_token_user_with_role(self, default_sat):
         """Personal access token for user with a role
 
         :id: b9fe7ddd-d1e4-4d76-9966-d223b02768ec
@@ -429,17 +445,33 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
+        user = make_user()
+        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        token_name = gen_alphanumeric()
+        result = User.access_token(
+            action="create", options={'name': token_name, 'user-id': user['id']}
+        )
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/hosts'
+        )
+        command_output = default_sat.execute(curl_command)
+        assert default_sat.hostname in command_output.stdout
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
+        )
+        command_output = default_sat.execute(curl_command)
+        assert 'Access denied' in command_output.stdout
 
     @pytest.mark.tier2
-    @pytest.mark.stubbed
-    def test_expired_personal_access_token(self):
+    def test_expired_personal_access_token(self, default_sat):
         """Personal access token expired for the user.
 
         :id: cb07b096-aba4-4a95-9a15-5413f32b597b
 
         :steps:
-            1. Set the expired time to 1 minute from the current time.
-            2. Wait 1 minute
+            1. Set the expired time to +x seconds from the current time.
+            2. Wait +x seconds
             3. Try using the token with any end point.
 
         :expectedresults: Authentication error
@@ -448,3 +480,26 @@ class TestPersonalAccessToken:
 
         :CaseImportance: Medium
         """
+        user = make_user()
+        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        token_name = gen_alphanumeric()
+        datetime_now = datetime.datetime.utcnow()
+        datetime_expire = datetime_now + datetime.timedelta(seconds=20)
+        datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
+        result = User.access_token(
+            action="create",
+            options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
+        )
+
+        token_value = result[0]['message'].split('\n')[-1]
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/hosts'
+        )
+        command_output = default_sat.execute(curl_command)
+        assert default_sat.hostname in command_output.stdout
+        sleep(20)
+        curl_command = (
+            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
+        )
+        command_output = default_sat.execute(curl_command)
+        assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
