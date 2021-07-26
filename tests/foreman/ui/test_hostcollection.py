@@ -99,8 +99,16 @@ def vm_content_hosts(request, module_loc, module_repos_collection):
     distro = module_repos_collection.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(client)
+            module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
+            add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
+        smart_proxy = (
+            entities.SmartProxy()
+            .search(query={'search': f'name={settings.server.hostname}'})[0]
+            .read()
+        )
+        smart_proxy.location.append(entities.Location(id=module_loc.id))
+        smart_proxy.update(['location'])
         yield clients
 
 
@@ -503,7 +511,9 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
     with session:
         session.organization.select(org_name=module_org.name)
         task_values = session.hostcollection.install_errata(
-            vm_host_collection.name, FAKE_2_ERRATA_ID
+            vm_host_collection.name,
+            FAKE_2_ERRATA_ID,
+            install_via='via remote execution',
         )
         assert task_values['result'] == 'success'
         assert _is_package_installed(vm_content_hosts, FAKE_2_CUSTOM_PACKAGE)
