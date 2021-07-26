@@ -407,6 +407,8 @@ def test_positive_install_by_host_collection_and_org(
 
     :parametrized: yes
 
+    :customerscenario: true
+
     :Setup: Errata synced on satellite server.
 
     :Steps: Use Job Invocation to install errata
@@ -616,6 +618,8 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
         the host collection
 
     :Setup: Errata synced on satellite server, custom package installed on errata hosts.
+
+    :customerscenario: true
 
     :Steps:
         1. Remove packages from one host.
@@ -1276,6 +1280,8 @@ def test_positive_check_errata_dates(module_org):
     :id: b19286ae-bdb4-4319-87d0-5d3ff06c5f38
 
     :expectedresults: Display errata date when using hammer erratum list
+
+    :customerscenario: true
 
     :CaseImportance: High
 

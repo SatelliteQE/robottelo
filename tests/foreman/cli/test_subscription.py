@@ -167,6 +167,8 @@ def test_positive_subscription_list(function_org, manifest_clone_upload):
 
     :expectedresults: subscription list contains the start and end date
 
+    :customerscenario: true
+
     :BZ: 1686916
 
     :CaseImportance: Medium
@@ -184,6 +186,8 @@ def test_positive_delete_manifest_as_another_user():
     :id: 4861bcbc-785a-436d-98cf-13cfef7d6907
 
     :expectedresults: manifest is refreshed
+
+    :customerscenario: true
 
     :BZ: 1669241
 
@@ -220,6 +224,8 @@ def test_positive_subscription_status_disabled_golden_ticket():
     :id: 42e10499-3a0d-48cd-ab71-022421a74add
 
     :expectedresults: subscription status is 'Disabled'
+
+    :customerscenario: true
 
     :BZ: 1789924
 
@@ -264,6 +270,8 @@ def test_positive_auto_attach_disabled_golden_ticket(
 
     :expectedresults: auto attaching a subscription is not allowed
         and returns an error message
+
+    :customerscenario: true
 
     :BZ: 1718954
 

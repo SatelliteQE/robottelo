@@ -351,6 +351,8 @@ class TestVirtWhoConfigforEsx:
 
         :CaseLevel: Integration
 
+        :customerscenario: true
+
         :CaseImportance: Medium
 
         :BZ: 1637042, 1769680
@@ -378,6 +380,8 @@ class TestVirtWhoConfigforEsx:
             the virt-who plugin can be deployed successfully
 
         :CaseLevel: Integration
+
+        :customerscenario: true
 
         :CaseImportance: Medium
 

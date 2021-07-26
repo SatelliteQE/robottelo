@@ -201,6 +201,8 @@ class TestSmartClassParameters:
 
         :BZ: 1830834
 
+        :customerscenario: true
+
         :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
@@ -230,6 +232,8 @@ class TestSmartClassParameters:
 
         :BZ: 1830834
 
+        :customerscenario: true
+
         :CaseImportance: Medium
         """
         sc_param_id = module_sc_params['ids'].pop()
@@ -250,6 +254,8 @@ class TestSmartClassParameters:
             4.  Submit the change.
 
         :expectedresults: Error raised for default value not in list.
+
+        :customerscenario: true
 
         :CaseImportance: Medium
         """
@@ -284,6 +290,8 @@ class TestSmartClassParameters:
             4.  Submit the change.
 
         :expectedresults: Error not raised for default value in list.
+
+        :customerscenario: true
 
         :BZ: 1830834
 

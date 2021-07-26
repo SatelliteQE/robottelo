@@ -103,6 +103,8 @@ class TestSatelliteContentManagement:
 
         :CaseLevel: Integration
 
+        :customerscenario: true
+
         :steps:
 
             1. Sync a kickstart repository.

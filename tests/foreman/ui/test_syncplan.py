@@ -82,6 +82,8 @@ def test_positive_end_to_end(session, module_org):
 
     :expectedresults: All CRUD actions for component finished successfully
 
+    :customerscenario: true
+
     :CaseLevel: Integration
 
     :BZ: 1693795

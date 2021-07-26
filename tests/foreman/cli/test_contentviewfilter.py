@@ -209,6 +209,8 @@ class TestContentViewFilter:
 
         :BZ: 1378018
 
+        :customerscenario: true
+
         :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')

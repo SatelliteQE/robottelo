@@ -2982,6 +2982,8 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
     :CaseImportance: High
 
     :BZ: 1625783
+
+    :customerscenario: true
     """
     repo_name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -3089,6 +3091,8 @@ def test_positive_mixed_content_end_to_end(session, module_org):
 
     :CaseImportance: High
 
+    :customerscenario: true
+
     :BZ: 1625783
     """
     cv_name = gen_string('alpha')
@@ -3147,6 +3151,8 @@ def test_positive_rh_mixed_content_end_to_end(session):
         other contents. Then version is removed successfully.
 
     :CaseLevel: System
+
+    :customerscenario: true
 
     :CaseImportance: High
     """

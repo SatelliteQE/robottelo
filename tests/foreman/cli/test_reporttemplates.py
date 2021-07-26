@@ -677,6 +677,8 @@ def test_positive_generate_with_name_and_org():
 
     :CaseImportance: Medium
 
+    :customerscenario: true
+
     :BZ: 1750924
     """
     host_name = gen_alpha()
@@ -766,6 +768,8 @@ def test_positive_generate_entitlements_report_multiple_formats(
                       regarding entitlements.
 
     :BZ: 1830289
+
+    :customerscenario: true
     """
     client = rhel7_contenthost
     client.install_katello_ca()

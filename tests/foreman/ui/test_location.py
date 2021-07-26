@@ -127,6 +127,8 @@ def test_positive_update_with_all_users(session):
 
     :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
 
+    :customerscenario: true
+
     :expectedresults: Location entity is assigned to user after checkbox
         was enabled and then disabled afterwards
 

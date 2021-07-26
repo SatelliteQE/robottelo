@@ -168,6 +168,8 @@ def test_positive_upload_to_satellite(
 
     :parametrized: yes
 
+    :customerscenario: true
+
     :expectedresults: Oscap reports from rhel6, rhel7 and rhel8 clients should be
         uploaded to Satellite and be searchable. Satellite should push updated
         content to Clients and satellite should get updated reports.
@@ -517,6 +519,8 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     :id: 375f8f08-9299-4d16-91f9-9426eeecb9c5
 
     :parametrized: yes
+
+    :customerscenario: true
 
     :setup: scap content, scap policy, host group
 

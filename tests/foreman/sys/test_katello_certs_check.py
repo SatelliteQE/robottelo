@@ -360,6 +360,8 @@ class TestKatelloCertsCheck:
 
         :expectedresults: Capsule certs are generated.
 
+        :customerscenario: true
+
         :BZ: 1466688, 1899108, 1857176
 
         :CaseAutomation: Automated
@@ -555,6 +557,8 @@ class TestCapsuleCertsCheckTestCase:
         """Check that Capsules cert handles additional proxy names.
 
         :id: 8b53fc3d-704f-44f4-899e-74654529bfcf
+
+        :customerscenario: true
 
         :steps:
 
