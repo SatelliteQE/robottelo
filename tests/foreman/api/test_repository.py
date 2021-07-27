@@ -2508,7 +2508,7 @@ class TestTokenAuthContainerRepository:
 
     :CaseComponent: ContainerManagement-Content
 
-    :Assignee: mshriver
+    :Assignee: spusater
     """
 
     @pytest.mark.tier2
