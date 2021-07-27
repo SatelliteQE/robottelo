@@ -1959,29 +1959,29 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         custom_repo_url = settings.repos.rhel7_os
     elif 'Satellite Capsule' in options.get('repository'):
         custom_repo_url = settings.repos.capsule_repo
-    # if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
-    #     return _setup_org_for_a_rh_repo(options)
-    # else:
-    options['url'] = custom_repo_url
-    result = setup_org_for_a_custom_repo(options)
-    if force_manifest_upload:
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        try:
-            Subscription.upload(
-                {'file': manifest.filename, 'organization-id': result.get('organization-id')}
+    if force_use_cdn or settings.robottelo.cdn or not custom_repo_url:
+        return _setup_org_for_a_rh_repo(options)
+    else:
+        options['url'] = custom_repo_url
+        result = setup_org_for_a_custom_repo(options)
+        if force_manifest_upload:
+            with manifests.clone() as manifest:
+                upload_file(manifest.content, manifest.filename)
+            try:
+                Subscription.upload(
+                    {'file': manifest.filename, 'organization-id': result.get('organization-id')}
+                )
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
+            # attach the default subscription to activation key
+            activationkey_add_subscription_to_repo(
+                {
+                    'activationkey-id': result['activationkey-id'],
+                    'organization-id': result['organization-id'],
+                    'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
+                }
             )
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')
-        # attach the default subscription to activation key
-        activationkey_add_subscription_to_repo(
-            {
-                'activationkey-id': result['activationkey-id'],
-                'organization-id': result['organization-id'],
-                'subscription': constants.DEFAULT_SUBSCRIPTION_NAME,
-            }
-        )
-    return result
+        return result
 
 
 def configure_env_for_provision(org=None, loc=None):
