@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
@@ -1302,8 +1302,6 @@ def test_positive_foreman_module():
         1. Check "foreman-selinux" package availability on satellite.
         2. Check SELinux foreman module on satellite.
 
-    :CaseImportance: Critical
-
     :CaseLevel: System
 
     :expectedresults: Foreman RPM and SELinux module versions match
@@ -1340,8 +1338,6 @@ def test_positive_check_installer_services(default_sat):
     :BZ: 1964394
 
     :expectedresults: All services are started
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
     """
@@ -1386,7 +1382,7 @@ def test_installer_options_and_sections(filter):
 
     :parametrized: yes
 
-    :Steps:
+    :steps:
         1. parse installer sections and options/flags
         2. compare with last saved data
 
@@ -1415,7 +1411,7 @@ def test_satellite_installation_on_ipv6():
 
     :id: 24fa5ef0-1673-427c-82ab-740758683cff
 
-    steps:
+    :steps:
         1. Install satellite on ipv6 machine.
 
     :expectedresults:
@@ -1424,8 +1420,6 @@ def test_satellite_installation_on_ipv6():
         3. Status of hammer ping should be ok.
         4: Satellite service restart should work.
         5: After system reboot all the services comes to up state.
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
 
@@ -1450,8 +1444,6 @@ def test_capsule_installation_on_ipv6():
         3. Satellite service restart should work.
         4. After system reboot all the services come to up state.
 
-    :CaseImportance: Critical
-
     :CaseLevel: System
 
     :CaseAutomation: NotAutomated
@@ -1466,7 +1458,7 @@ def test_installer_check_on_ipv6():
 
     :id: 411bbffb-027f-4df0-8566-1719d1d0651a
 
-    steps:
+    :steps:
         1. Install satellite on ipv6 machine
         2. Trigger the satellite-installer command with "--tuning medium" flag.
         3. Update the custom-hira.yaml file(add any supportable config parameter).
@@ -1475,8 +1467,6 @@ def test_installer_check_on_ipv6():
     :expectedresults:
         1. Tuning parameter set successfully for medium size.
         2. custom-hiera.yaml related changes should be successfully applied.
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
 
@@ -1491,7 +1481,7 @@ def test_installer_verbose_stdout():
 
     :id: 5d0fb30a-4a63-41b3-bc6f-c4057942ce3c
 
-    steps:
+    :steps:
         1. Install satellite package.
         2. Run Satellite installer
         3. Observe installer STDOUT.
@@ -1503,8 +1493,6 @@ def test_installer_verbose_stdout():
         3. Finally, Installer informs running satellite url, credentials,
             external capsule installation pre-requisite, upgrade capsule instruction,
             running internal capsule url, log file.
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
 
@@ -1519,15 +1507,13 @@ def test_installer_answers_file():
 
     :id: 5cb40e4b-1acb-49f9-a085-a7dead1664b5
 
-    steps:
+    :steps:
         1. Install satellte package
         2. Modify `/etc/foreman-installer/scenarios.d/satellite-answers.yaml` file to
             configure hook/plugin on satellite
         3. Run Satellite installer
 
     :expectedresults: Installer configures plugins and hooks in answers file.
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
 
@@ -1542,7 +1528,7 @@ def test_capsule_installer_verbose_stdout():
 
     :id: 323e85e3-2ad1-4018-aa35-1d51f1e7f5a2
 
-    steps:
+    :steps:
         1. Install capsule package.
         2. Run Satellite installer --scenario capsule
         3. Observe installer STDOUT.
@@ -1552,8 +1538,6 @@ def test_capsule_installer_verbose_stdout():
             pre_migrations, boot, init, pre_values, pre_validations, pre_commit, pre, post
         2. Installer STDOUTs system configuration completion.
         3. Finally, Installer informs running capsule url, log file.
-
-    :CaseImportance: Critical
 
     :CaseLevel: System
 
@@ -1568,7 +1552,7 @@ def test_installer_timestamp_logs():
 
     :id: 9b4d32f6-d471-4bdb-8a79-9bb20ecb86aa
 
-    steps:
+    :steps:
         1. Install satellite package.
         2. Run Satellite installer
         3. Observe installer log file `/var/log/foreman-installer/satellite.log`.
@@ -1577,8 +1561,103 @@ def test_installer_timestamp_logs():
         1. Installer logs satellite installation with timestamps in following format
             YYYY-MM-DD HH:MM:SS
 
+    :CaseLevel: System
 
-    :CaseImportance: Critical
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_capsule_installer_and_register():
+    """Verify the capsule installation and their registration with the satellite.
+
+    :id: efd03442-5a08-445d-b257-e4d346084379
+
+    :steps:
+        1. Install the satellite.
+        2. Add all the required cdn and custom repositories in satellite to
+           install the capsule.
+        3. Create life-cycle environment,content view and activation key.
+        4. Subscribe the capsule with created activation key.
+        5. Run 'yum update -y' on capsule.
+        6. Run 'yum install -y satellite-capsule' on capsule.
+        7. Create a certificate on satellite for new installed capsule.
+        8. Copy capsule certificate from satellite to capsule.
+        9. Run the satellite-installer(copy the satellite-installer command from step7'th
+            generated output) command on capsule to integrate the capsule with satellite.
+        10. Check the newly added capsule is reflected in the satellite or not.
+        11. Check the capsule sync.
+
+    :expectedresults:
+
+        1. Capsule integrate successfully with satellite.
+        2. Capsule sync should be worked properly.
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_satellite_installer_logfile_check():
+    """Verify the no ERROR or FATAL messages appears in the log file during the satellite
+    installation
+
+    :id: c2f10f43-c52e-4f32-b3e9-7bc4b07e3b00
+
+    :steps:
+        1. Configure all the repositories(custom and cdn) for satellite installation.
+        2. Run yum update -y
+        3. Run satellite-installer -y
+        4. Check all the relevant log-files for ERROR/FATAL
+
+    :expectedresults: No Unexpected ERROR/FATAL message should appear in the following log
+        files during the satellite-installation.
+
+        1. /var/log/messages,
+        2. /var/log/foreman/production.log
+        3. /var/log/foreman-installer/satellite.log
+        4. /var/log/httpd,
+        5. /var/log/candlepin
+
+    :CaseLevel: System
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+@pytest.mark.tier3
+def test_positive_capsule_installer_logfile_check():
+    """Verify the no ERROR or FATAL messages appears in the log file during the capsule
+        installation
+
+    :id: cd505a5e-141e-47eb-98d8-a05acd74c3b3
+
+    :steps:
+        1. Install the satellite.
+        2. Add all the required cdn and custom repositories in satellite to install
+            the capsule.
+        3. Create life-cycle environment,content view and activation key.
+        4. Subscribe the capsule with created activation key.
+        5. Run 'yum update -y' on capsule.
+        6. Run 'yum install -y satellite-capsule' on capsule.
+        7. Create a certificate on satellite for new installed capsule.
+        8. Copy capsule certificate from satellite to capsule.
+        9. Run the satellite-installer(copy the satellite-installer command from step-7'th
+            generated output) command on capsule to integrate the capsule with satellite.
+        10. Check all the relevant log-files for ERROR/FATAL
+
+    :expectedresults: No Unexpected ERROR/FATAL message should appear in the following log
+        files during the capsule-installation.
+
+        1. /var/log/messages
+        2. /var/log/foreman-installer/capsule.log
+        3. /var/log/httpd
+        4. /var/log/foreman-proxy
 
     :CaseLevel: System
 
