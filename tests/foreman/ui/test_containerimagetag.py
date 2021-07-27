@@ -8,7 +8,7 @@
 
 :CaseComponent: ContainerManagement-Content
 
-:Assignee: mzalewsk
+:Assignee: spusater
 
 :TestType: Functional
 
