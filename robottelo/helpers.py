@@ -349,7 +349,7 @@ def get_available_capsule_port(port_pool=None):
     if port_pool is None:
         port_pool_range = settings.fake_capsules.port_range
         if type(port_pool_range) is str:
-            port_pool_range = tuple(port_pool_range.split(', '))
+            port_pool_range = tuple(port_pool_range.split('-'))
         if type(port_pool_range) is tuple and len(port_pool_range) == 2:
             port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
         else:
