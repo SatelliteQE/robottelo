@@ -31,3 +31,4 @@ def proxy_port_range(default_sat):
     port_pool_range = settings.fake_capsules.port_range
     if default_sat.execute(f'semanage port -l | grep {port_pool_range}').status != 0:
         default_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
+        print("Test")
