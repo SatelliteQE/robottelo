@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 attrdict==2.0.1
-broker==0.1.20
+broker==0.1.21
 cryptography==3.4.7
 deepdiff==5.5.0
 dynaconf==3.1.4
@@ -21,16 +21,16 @@ pytest-reportportal==5.0.8
 pytest-xdist==2.3.0
 pytest-ibutsu==1.16
 PyYAML==5.4.1
-requests==2.25.1
+requests==2.26.0
 selenium==3.141.0
-tenacity==7.0.0
+tenacity==8.0.1
 testimony==2.2.0
 unittest2==1.1.0
-wait-for==1.1.5
+wait-for==1.1.6
 widgetastic.core==0.62
 widgetastic.patternfly==1.3.4
-widgetastic.patternfly4==0.22.1
-wrapanapi==3.5.9
+widgetastic.patternfly4==0.22.3
+wrapanapi==3.5.10
 
 # Get airgun, nailgun and upgrade from master
 git+https://github.com/SatelliteQE/airgun.git@6.9.z#egg=airgun
