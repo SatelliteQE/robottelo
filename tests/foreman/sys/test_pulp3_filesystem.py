@@ -60,6 +60,8 @@ def test_pulp_directory_exists(connection, directory):
 
     :id: 96a64932-9e89-4063-9d5b-55c811375361
 
+    :parametrized: yes
+
     :expectedresults: Directories are present
 
     """
