@@ -163,9 +163,8 @@ AZURERM_RHEL7_UD_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW-CI:7.6.2019072418'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://vm1-shared-image-20200514081407'
 AZURERM_RHEL7_FT_GALLERY_IMG_URN = 'gallery://RHEL77img'
-AZURERM_RG_DEFAULT = 'SATQE'
 AZURERM_PLATFORM_DEFAULT = 'Linux'
-AZURERM_VM_SIZE_DEFAULT = 'Standard_B2ms'
+AZURERM_VM_SIZE_DEFAULT = 'Standard_B1s'
 AZURERM_PREMIUM_OS_Disk = True
 AZURERM_FILE_URI = (
     'https://raw.githubusercontent.com/SatelliteQE/robottelo/master/tests/foreman/data/uri.sh'
