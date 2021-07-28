@@ -303,6 +303,8 @@ def test_negative_update_email_subject_prefix(setting_update):
 
     :id: 8a638596-248f-4196-af36-ad2982196382
 
+    :parametrized: yes
+
     :steps: provide invalid prefix, like string with more than 255 chars
 
     :expectedresults: email_subject_prefix is not updated

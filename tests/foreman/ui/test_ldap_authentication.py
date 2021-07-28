@@ -663,6 +663,8 @@ def test_positive_add_admin_role_with_org_loc(
 
     :id: 00841778-f89e-4445-a6c6-f1470b6da32e
 
+    :parametrized: yes
+
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
 
@@ -725,6 +727,8 @@ def test_positive_add_foreman_role_with_org_loc(
     [belonging to external User Group.]
 
     :id: b39d7b2a-6d78-4c35-969a-37c8317ce64f
+
+    :parametrized: yes
 
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
@@ -792,6 +796,8 @@ def test_positive_add_katello_role_with_org(
 
     :id: a2ebd4de-eb0a-47da-81e8-00942eedcbf6
 
+    :parametrized: yes
+
     :setup: LDAP Auth Source should be created with Organization associated.
 
     :Steps:
@@ -855,6 +861,8 @@ def test_positive_create_user_in_ldap_mode(
 
     :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
 
+    :parametrized: yes
+
     :expectedresults: User is created without specifying the password
     """
     auth_source_name = 'LDAP-' + auth_source.name
@@ -899,6 +907,8 @@ def test_positive_login_user_basic_roles(
     """Login with LDAP for user with roles/rights
 
     :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
+
+    :parametrized: yes
 
     :setup: assure properly functioning server for authentication
 
