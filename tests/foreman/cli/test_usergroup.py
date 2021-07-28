@@ -182,6 +182,8 @@ def test_positive_automate_bz1426957(ldap_auth_source, function_user_group):
 
     :id: 1c1209a6-5bb8-489c-a151-bb2fce4dbbfc
 
+    :parametrized: yes
+
     :expectedresults: Roles from usergroup is applied on AD user successfully.
 
     :CaseLevel: Integration
@@ -212,6 +214,8 @@ def test_negative_automate_bz1437578(ldap_auth_source, function_user_group):
     """Verify error message on usergroup create with 'Domain Users' on AD user.
 
     :id: d4caf33e-b9eb-4281-9e04-fbe1d5b035dc
+
+    :parametrized: yes
 
     :expectedresults: Error message as Domain Users is a special group in AD.
 
