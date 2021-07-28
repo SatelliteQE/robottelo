@@ -206,7 +206,7 @@ class TestCapsuleContentManagement:
         )[0]
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
         # Associate the lifecycle environment with the capsule
         capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
