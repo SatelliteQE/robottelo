@@ -24,7 +24,6 @@ from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
-from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_VM_SIZE_DEFAULT
 from robottelo.constants import COMPUTE_PROFILE_SMALL
 
@@ -45,7 +44,7 @@ def module_azure_cp_attrs(module_azurerm_cr, module_azurerm_finishimg):
         compute_profile=COMPUTE_PROFILE_SMALL,
         compute_resource=module_azurerm_cr,
         vm_attrs={
-            "resource_group": AZURERM_RG_DEFAULT,
+            "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
             "username": module_azurerm_finishimg.username,
             "password": settings.azurerm.password,
