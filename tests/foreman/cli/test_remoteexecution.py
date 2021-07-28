@@ -224,6 +224,60 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
 
+    @pytest.mark.destructive
+    @pytest.mark.parametrize(
+        'fixture_vmsetup',
+        [{'nick': 'rhel7'}],
+        ids=['rhel7'],
+        indirect=True,
+    )
+    def test_positive_use_alternate_directory(self, fixture_vmsetup, module_org):
+        """Use alternate working directory on client to execute rex jobs
+
+        :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
+
+        :expectedresults: Verify the job was successfully ran against the host
+
+        :customerscenario: true
+
+        :parametrized: yes
+        """
+        client = fixture_vmsetup
+        testdir = gen_string('alpha')
+        result = client.run(f'mkdir /{testdir}')
+        assert result.status == 0
+        result = client.run(f'chcon --reference=/var /{testdir}')
+        assert result.status == 0
+        result = ssh.command(
+            f"sed -i r's/^:remote_working_dir:.*/:remote_working_dir: \\/{testdir}/' \
+            /etc/foreman-proxy/settings.d/remote_execution_ssh.yml",
+        )
+        assert result.return_code == 0
+        result = ssh.command('systemctl restart foreman-proxy')
+        assert result.return_code == 0
+
+        command = f'echo {gen_string("alpha")}'
+        invocation_command = make_job_invocation(
+            {
+                'job-template': 'Run Command - SSH Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ~ {client.hostname}",
+            }
+        )
+
+        try:
+            assert invocation_command['success'] == '1'
+        except AssertionError:
+            output = ' '.join(
+                JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
+            )
+            result = f'host output: {output}'
+            raise AssertionError(result)
+
+        task = Task.list_tasks({"search": command})[0]
+        search = Task.list_tasks({"search": f'id={task["id"]}'})
+        assert search[0]["action"] == task["action"]
+
     @pytest.mark.tier3
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
