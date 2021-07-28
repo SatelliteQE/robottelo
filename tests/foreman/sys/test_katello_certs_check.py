@@ -259,6 +259,8 @@ class TestKatelloCertsCheck:
 
         :id: 37742f5e-598a-11eb-a349-d46d6dd3b5b2
 
+        :parametrized: yes
+
         :steps:
 
             1. Get invalid certs from generate_certs
