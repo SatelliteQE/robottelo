@@ -716,9 +716,7 @@ def test_positive_access_non_admin_user(session, test_name):
 
     # Create new user with a configured role
 
-    default_loc = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[
-        0
-    ]
+    default_loc = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})[0]
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
     entities.User(
