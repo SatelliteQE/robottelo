@@ -387,7 +387,7 @@ def test_positive_create_with_https(
     assert users[0].login == ldap_auth_source['ldap_user_name']
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPEN_LDAP'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_katello_role(
     test_name,
@@ -443,7 +443,6 @@ def test_positive_add_katello_role(
         assert ldap_auth_source['ldap_user_name'] in current_user
 
 
-@pytest.mark.skip_if_open('BZ:1851905')
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.upgrade
 @pytest.mark.tier2
@@ -495,8 +494,6 @@ def test_positive_update_external_roles(
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
-            if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script('window.history.go(-1)')
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ldap_auth_source['ldap_user_name'] in current_user
@@ -513,7 +510,6 @@ def test_positive_update_external_roles(
         assert ldap_auth_source['ldap_user_name'] in current_user
 
 
-@pytest.mark.skip_if_open('BZ:1851905')
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
@@ -561,8 +557,6 @@ def test_positive_delete_external_roles(
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
-            if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script('window.history.go(-1)')
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ldap_auth_source['ldap_user_name'] in current_user
@@ -576,7 +570,6 @@ def test_positive_delete_external_roles(
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
-@pytest.mark.skip_if_open('BZ:1851905')
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_positive_update_external_user_roles(
@@ -629,8 +622,6 @@ def test_positive_update_external_user_roles(
             test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
-            if is_open('BZ:1851905'):
-                ldapsession.browser.execute_script("window.history.go(-1)")
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
             current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
             assert ldap_auth_source['ldap_user_name'] in current_user
@@ -699,8 +690,6 @@ def test_positive_add_admin_role_with_org_loc(
         test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
     ) as session:
         session.location.create({'name': location_name})
-        if is_open('BZ:1851905'):
-            session.browser.execute_script('window.history.go(-1)')
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
         assert ldap_auth_source['ldap_user_name'] in location['current_user']
@@ -1878,7 +1867,6 @@ def test_positive_group_sync_open_ldap_authsource(
         assert user_name.capitalize() in current_user
 
 
-@pytest.mark.skip_if_open('BZ:1851905')
 @pytest.mark.tier2
 def test_verify_group_permissions(
     session, auth_source_ipa, multigroup_setting_cleanup, groups_teardown, ldap_tear_down
@@ -1921,8 +1909,6 @@ def test_verify_group_permissions(
     location_name = gen_string('alpha')
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
-        if is_open('BZ:1851905'):
-            ldapsession.browser.execute_script('window.history.go(-1)')
         assert ldapsession.location.search(location_name)[0]['Name'] == location_name
 
 
