@@ -38,6 +38,7 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]enable-foreman-compute-ovirt',
     '--[no-]enable-foreman-compute-vmware',
     '--[no-]enable-foreman-cli-kubevirt',
+    '--[no-]enable-foreman-cli-katello',
     '--[no-]enable-foreman-cli-remote-execution',
     '--[no-]enable-foreman-plugin-ansible',
     '--[no-]enable-foreman-plugin-bootdisk',
@@ -202,8 +203,11 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--foreman-proxy-content-pulpcore-allowed-content-checksums',
     '--foreman-proxy-content-pulpcore-api-service-worker-timeout',
     '--foreman-proxy-content-pulpcore-content-service-worker-timeout',
+    '--foreman-proxy-content-pulpcore-cache-enabled',
+    '--foreman-proxy-content-pulpcore-cache-expires-ttl',
     '--foreman-proxy-content-pulpcore-django-secret-key',
     '--foreman-proxy-content-pulpcore-mirror',
+    '--foreman-proxy-content-pulpcore-use-rq-tasking-system',
     '--foreman-proxy-content-pulpcore-postgresql-db-name',
     '--foreman-proxy-content-pulpcore-manage-postgresql',
     '--foreman-proxy-content-pulpcore-postgresql-host',
@@ -789,6 +793,9 @@ PREVIOUS_INSTALLER_OPTIONS = {
     '--reset-foreman-proxy-content-pulpcore-postgresql-ssl-root-ca',
     '--reset-foreman-proxy-content-pulpcore-postgresql-user',
     '--reset-foreman-proxy-content-pulpcore-worker-count',
+    '--reset-foreman-proxy-content-pulpcore-cache-enabled',
+    '--reset-foreman-proxy-content-pulpcore-cache-expires-ttl',
+    '--reset-foreman-proxy-content-pulpcore-use-rq-tasking-system',
     '--reset-foreman-proxy-content-puppet',
     '--reset-foreman-proxy-content-qpid-router-agent-addr',
     '--reset-foreman-proxy-content-qpid-router-agent-port',
@@ -1252,22 +1259,16 @@ LAST_SAVED_SECTIONS = {
 
 SATELLITE_SERVICES = {
     'dynflow-sidekiq@orchestrator',
-    'dynflow-sidekiq@worker',
-    'dynflow-sidekiq@worker-hosts-queue',
+    'dynflow-sidekiq@worker-1',
+    'dynflow-sidekiq@worker-hosts-queue-1',
     'foreman-proxy',
+    'foreman',
     'httpd',
-    'rh-mongodb34-mongod',
     'postgresql',
-    'pulp_celerybeat',
-    'pulp_resource_manager',
-    'pulp_streamer',
-    'pulp_workers',
-    'puppetserver',
-    'qdrouterd',
-    'qpidd',
+    'pulpcore-api',
+    'pulpcore-content',
     'rh-redis5-redis',
-    'smart_proxy_dynflow_core',
-    'squid',
+    'puppetserver',
 }
 
 
@@ -1299,6 +1300,14 @@ def test_positive_foreman_module():
 
     :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
 
+    :steps:
+        1. Check "foreman-selinux" package availability on satellite.
+        2. Check SELinux foreman module on satellite.
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
+
     :expectedresults: Foreman RPM and SELinux module versions match
     """
     rpm_result = ssh.command('rpm -q foreman-selinux')
@@ -1316,6 +1325,7 @@ def test_positive_foreman_module():
     assert rpm_version.replace('-', '.') == semodule_version
 
 
+@pytest.mark.skip_if_open('BZ:1987288')
 @pytest.mark.upgrade
 @pytest.mark.tier1
 def test_positive_check_installer_services():
@@ -1323,7 +1333,19 @@ def test_positive_check_installer_services():
 
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
+    :steps:
+        1. Run 'systemctl status <tomcat>' command to check tomcat service status on satellite.
+        2. Run 'foreman-maintain service status' command on satellite to check the satellite
+            services.
+        3. Run the 'hammer ping' command on satellite.
+
+    :BZ: 1987288
+
     :expectedresults: All services are started
+
+    :CaseImportance: Critical
+
+    :CaseLevel: System
     """
     major_version = get_host_info()[1]
     service_name = 'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat'
