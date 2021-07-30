@@ -34,7 +34,6 @@ GCE_SETTINGS = dict(
     client_email=settings.gce.client_email,
     cert_path=settings.gce.cert_path,
     zone=settings.gce.zone,
-    cert_url=settings.gce.cert_url,
 )
 
 

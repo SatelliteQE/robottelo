@@ -32,9 +32,7 @@ from robottelo.helpers import download_gce_cert
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('http_proxy', 'gce')
-def test_positive_default_end_to_end_with_custom_profile(
-    session, module_org, module_loc, module_gce_settings
-):
+def test_positive_default_end_to_end_with_custom_profile(session, module_org, module_loc):
     """Create GCE compute resource with default properties and apply it's basic functionality.
 
     :id: 59ffd83e-a984-4c22-b91b-cad055b4fbd7
