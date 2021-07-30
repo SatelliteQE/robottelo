@@ -1,6 +1,7 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import SatelliteHostError
 
 
 @pytest.fixture
@@ -32,3 +33,39 @@ def proxy_port_range(default_sat):
         port_pool_range = settings.fake_capsules.port_range
         if default_sat.execute(f'semanage port -l | grep {port_pool_range}').status != 0:
             default_sat.execute(f'semanage port -a -t websm_port_t -p tcp {port_pool_range}')
+
+
+@pytest.fixture
+def register_to_dogfood():
+    pass
+
+
+# TODO install from dogfood, path should be saved in conf/repos and in settings.repos.dogfood
+# settings.repos.dogfood_repo_host
+# yum -y localinstall <dogfood url>
+# TODO register satellite by command register_contenthost
+#  with org and activation key from command below
+# TODO parametrize it for each satellite version
+# subscription-manager register --org <dogfood org> --activationkey <dogfood act-key>
+# TODO after registration install cockpit plugin can be started
+
+# TODO BZ needs to be mentioned otherwise I would forget
+# instead of  'foreman-maintain packages install -y tfm-rubygem-foreman_remote_execution-cockpit'
+# 'foreman-installer --enable-foreman-plugin-remote-execution-cockpit' should be used
+
+
+@pytest.fixture
+def install_cockpit_plugin(default_sat, register_to_dogfood):
+    cmd_result = default_sat.execute(
+        'foreman-maintain packages install -y tfm-rubygem-foreman_remote_execution-cockpit'
+    )
+    if cmd_result.status != 0:
+        raise SatelliteHostError(
+            f'Error during cockpit installation, installation output: {cmd_result.stdout}'
+        )
+    cmd_result = default_sat.execute(
+        f'sshpass -p "{settings.server.ssh_password}" ssh-copy-id \
+        -i ~foreman-proxy/.ssh/id_rsa_foreman_proxy -o StrictHostKeyChecking=no localhost'
+    )
+    if cmd_result.status != 0:
+        raise SatelliteHostError(f'ssh-copy id finished with error: {cmd_result.stdout}')

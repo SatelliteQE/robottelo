@@ -2099,10 +2099,12 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             )
 
 
+@pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
+@pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
 def test_positive_cockpit(session):
-    """Test whether webconsole button and cockpit integration works
+    """Install cockpit plugin and test whether webconsole button and cockpit integration works
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
 
