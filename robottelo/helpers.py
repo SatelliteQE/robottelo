@@ -1,5 +1,6 @@
 """Several helper methods and functions."""
 import contextlib
+import json
 import os
 import random
 import re
@@ -702,7 +703,11 @@ def slugify_component(string, keep_hyphens=True):
 
 
 def download_gce_cert():
-    ssh.command(f'curl {settings.gce.cert_url} -o {settings.gce.cert_path}')
+    _, gce_cert = mkstemp(suffix='.json')
+    cert_json = json.loads(settings.gce.cert)
+    with open(gce_cert, 'w') as f:
+        json.dump(cert_json, f)
+    ssh.upload_file(gce_cert, settings.gce.cert_path)
     if ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code != 0:
         raise GCECertNotFoundError(
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
