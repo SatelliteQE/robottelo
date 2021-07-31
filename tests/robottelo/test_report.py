@@ -34,11 +34,15 @@ def test_junit_timestamps(exec_test, property_level):
         junit = xmltodict.parse(f)  # NOQA
     for path in property_level:
         prop = eval(f'junit{path}')
+        if not isinstance(prop, list):
+            prop = [prop]
         try:
-            assert prop['@name'] == 'start_time'
+            assert 'start_time' in [p['@name'] for p in prop]
         except KeyError as e:
             raise AssertionError(f'Missing property node: "start_time": {e}')
         try:
-            datetime.datetime.strptime(prop['@value'], XUNIT_TIME_FORMAT)
+            for p in prop:
+                if p['@name'] == 'start_time':
+                    datetime.datetime.strptime(p['@value'], XUNIT_TIME_FORMAT)
         except ValueError as e:
             raise AssertionError(f'Unable to parse datetime for "start_time" property node: {e}')
