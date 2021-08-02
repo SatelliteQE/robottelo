@@ -740,7 +740,8 @@ def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
         session.repository.delete(module_prod.name, new_repo_name)
         assert not session.repository.search(module_prod.name, new_repo_name)
 
-
+@pytest.mark.tier2
+@pytest.mark.upgrade
 def test_positive_sync_ansible_collection_gallaxy_repo(session, module_prod):
     """Sync ansible collection repository from ansible gallaxy
 
