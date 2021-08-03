@@ -168,6 +168,7 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo):
     """Install errata in a host-collection
 
@@ -212,6 +213,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
 
 
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_in_host(
     module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost
 ):
@@ -252,6 +254,7 @@ def test_positive_install_in_host(
 
 
 @pytest.mark.tier3
+@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost
 ):
