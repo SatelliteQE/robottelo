@@ -168,7 +168,6 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo):
     """Install errata in a host-collection
 
@@ -181,6 +180,8 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
     :expectedresults: errata is installed in the host-collection.
 
     :CaseLevel: System
+
+    :BZ: 1983043
     """
     with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
@@ -213,7 +214,6 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
 
 
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_in_host(
     module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost
 ):
@@ -228,6 +228,8 @@ def test_positive_install_in_host(
     :expectedresults: errata is installed in the host.
 
     :CaseLevel: System
+
+    :BZ: 1983043
     """
     rhel7_contenthost.install_katello_ca()
     rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
@@ -254,7 +256,6 @@ def test_positive_install_in_host(
 
 
 @pytest.mark.tier3
-@pytest.mark.skip_if_open("BZ:1983043")
 def test_positive_install_multiple_in_host(
     module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost
 ):
@@ -265,7 +266,7 @@ def test_positive_install_multiple_in_host(
 
     :customerscenario: true
 
-    :BZ: 1469800, 1528275
+    :BZ: 1469800, 1528275, 1983043
 
     :expectedresults: errata installation task succeeded, available errata
         counter decreased by one; it's possible to schedule another errata
