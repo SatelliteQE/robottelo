@@ -58,9 +58,7 @@ def test_cli_proxy_method_called(mocker, command_sub):
     assert execute.called_once_with(construct.return_value)
 
 
-@pytest.mark.parametrize(
-    'command_sub', ['export', 'synchronize', 'remove-content', 'upload-content']
-)
+@pytest.mark.parametrize('command_sub', ['synchronize', 'remove-content', 'upload-content'])
 def test_cli_repository_method_called(mocker, command_sub):
     """Check Repository methods are called and command_sub edited
     This is a parametrized test called by Pytest for each of Repository methods

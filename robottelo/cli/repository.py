@@ -12,7 +12,6 @@ Subcommands::
 
     create                        Create a repository
     delete                        Destroy a repository
-    export                        Export a repository
     info                          Show a repository
     list                          List of repositories
     remove-content                Remove content from the repository
@@ -42,12 +41,6 @@ class Repository(Base):
             cls.command_requires_org = True
 
         return result
-
-    @classmethod
-    def export(cls, options=None):
-        """Export a repository"""
-        cls.command_sub = 'export'
-        return cls.execute(cls._construct_command(options), output_format='csv', ignore_stderr=True)
 
     @classmethod
     def info(cls, options=None):
