@@ -420,7 +420,7 @@ def test_positive_install_by_host_collection_and_org(
 
     :CaseLevel: System
 
-    :BZ: 1457977
+    :BZ: 1457977, 1983043
     """
     errata_id = REPO_WITH_ERRATA['errata'][0]['id']
 
