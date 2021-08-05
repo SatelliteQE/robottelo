@@ -5,6 +5,8 @@ AZURERM:
   CLIENT_SECRET:
   # The subscription ID is a GUID that uniquely identifies your subscription to use Azure services.
   SUBSCRIPTION_ID:
+  # The resource group where the resources will be created under above subscription
+  RESOURCE_GROUP:
   # Tenant ID, the ID of the AAD directory in which you created the application
   TENANT_ID:
   # Azure Region

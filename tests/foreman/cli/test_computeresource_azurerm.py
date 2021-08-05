@@ -29,7 +29,6 @@ from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
 from robottelo.constants import AZURERM_PREMIUM_OS_Disk
-from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
@@ -259,7 +258,7 @@ class TestAzureRMComputeResourceTestCase:
             {
                 'compute-profile-id': int(profile['id']),
                 'compute-resource': module_azurerm_cr.name,
-                'compute-attributes': f'resource_group={AZURERM_RG_DEFAULT},'
+                'compute-attributes': f'resource_group={settings.azurerm.resource_group},'
                 f'vm_size={AZURERM_VM_SIZE_DEFAULT},'
                 f'username={username},'
                 f'password={password},'
@@ -279,7 +278,7 @@ class TestAzureRMComputeResourceTestCase:
         result_info = ComputeProfile.info({'name': cp_name})
         vm_attributes = result_info['compute-attributes'][0]['vm-attributes']
         assert module_azurerm_cr.name == result_info['compute-attributes'][0]['compute-resource']
-        assert AZURERM_RG_DEFAULT in vm_attributes
+        assert settings.azurerm.resource_group in vm_attributes
         assert AZURERM_VM_SIZE_DEFAULT in vm_attributes
         assert username in vm_attributes
         assert password in vm_attributes
@@ -299,7 +298,7 @@ class TestAzureRMFinishTemplateProvisioning:
         """
         request.cls.region = settings.azurerm.azure_region
         request.cls.rhel7_ft_img = AZURERM_RHEL7_FT_IMG_URN
-        request.cls.rg_default = AZURERM_RG_DEFAULT
+        request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
@@ -419,7 +418,7 @@ class TestAzureRMUserDataProvisioning:
         """
         request.cls.region = settings.azurerm.azure_region
         request.cls.rhel7_ft_img = AZURERM_RHEL7_UD_IMG_URN
-        request.cls.rg_default = AZURERM_RG_DEFAULT
+        request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
@@ -545,7 +544,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = (
-            f'resource_group={AZURERM_RG_DEFAULT},vm_size={AZURERM_VM_SIZE_DEFAULT}, '
+            f'resource_group={settings.azurerm.resource_group},vm_size={AZURERM_VM_SIZE_DEFAULT}, '
             f'username={module_azurerm_byos_finishimg.username}, '
             f'ssh_key_data={settings.azurerm.ssh_pub_key}, platform={AZURERM_PLATFORM_DEFAULT},'
             f'script_command={"touch /var/tmp/test.txt"}, script_uris={AZURERM_FILE_URI},'

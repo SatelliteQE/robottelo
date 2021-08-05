@@ -13,7 +13,6 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_BYOS_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
@@ -373,6 +372,7 @@ def azurerm_settings():
         'tenant': settings.azurerm.tenant_id,
         'app_ident': settings.azurerm.client_id,
         'sub_id': settings.azurerm.subscription_id,
+        'resource_group': settings.azurerm.resource_group,
         'secret': settings.azurerm.client_secret,
         'region': settings.azurerm.azure_region.lower().replace(' ', ''),
     }
@@ -476,7 +476,7 @@ def azurermclient(azurerm_settings):
         tenant_id=azurerm_settings['tenant'],
         subscription_id=azurerm_settings['sub_id'],
         provisioning={
-            "resource_group": AZURERM_RG_DEFAULT,
+            "resource_group": azurerm_settings['resource_group'],
             "template_container": None,
             "region_api": azurerm_settings['region'],
         },

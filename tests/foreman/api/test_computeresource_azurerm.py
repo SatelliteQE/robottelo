@@ -25,7 +25,6 @@ from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
 from robottelo.constants import AZURERM_PREMIUM_OS_Disk
-from robottelo.constants import AZURERM_RG_DEFAULT
 from robottelo.constants import AZURERM_RHEL7_FT_CUSTOM_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_GALLERY_IMG_URN
 from robottelo.constants import AZURERM_RHEL7_FT_IMG_URN
@@ -158,7 +157,7 @@ class TestAzureRMHostProvisioningTestCase:
         """
         request.cls.region = settings.azurerm.azure_region
         request.cls.rhel7_ft_img = AZURERM_RHEL7_FT_IMG_URN
-        request.cls.rg_default = AZURERM_RG_DEFAULT
+        request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
@@ -308,7 +307,7 @@ class TestAzureRMUserDataProvisioning:
 
         request.cls.region = settings.azurerm.azure_region
         request.cls.rhel7_ud_img = AZURERM_RHEL7_UD_IMG_URN
-        request.cls.rg_default = AZURERM_RG_DEFAULT
+        request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
@@ -470,7 +469,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = {
-            "resource_group": AZURERM_RG_DEFAULT,
+            "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
             "username": module_azurerm_gallery_finishimg.username,
             "password": settings.azurerm.password,
@@ -596,7 +595,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
 
         request.cls.compute_attrs = {
-            "resource_group": AZURERM_RG_DEFAULT,
+            "resource_group": settings.azurerm.resource_group,
             "vm_size": AZURERM_VM_SIZE_DEFAULT,
             "username": module_azurerm_custom_finishimg.username,
             "password": settings.azurerm.password,
