@@ -275,8 +275,8 @@ def test_positive_end_to_end_bulk_update(session, vm):
         )
         session.hostcollection.associate_host(hc_name, vm.hostname)
         # make a note of time for later CLI wait_for_tasks, and include
-        # 5 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M')
+        # 8 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
         # Update the package by name
         session.hostcollection.manage_packages(
             hc_name,
@@ -562,7 +562,7 @@ def test_positive_ensure_errata_applicability_with_host_reregistered(session, vm
 
 
 @pytest.mark.tier3
-def test_positive_host_re_registion_with_host_rename(session, module_org, repos_collection, vm):
+def test_positive_host_re_registration_with_host_rename(session, module_org, repos_collection, vm):
     """Ensure that content host should get re-registered after change in the hostname
 
     :id: c11f4e69-6ef5-45ab-aff5-00cf2d87f209
@@ -1006,7 +1006,7 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
 
 @pytest.mark.tier3
-def test_module_status_update_without_force_upload_package_profile(session, vm, vm_module_streams):
+def test_module_status_update_without_force_upload_package_profile(session, vm_module_streams):
     """Verify you do not have to run dnf upload-profile or restart rhsmcertd
     to update the module stream status to Satellite and that the web UI will also be updated.
 
@@ -1020,22 +1020,25 @@ def test_module_status_update_without_force_upload_package_profile(session, vm, 
     """
     with session:
         # Ensure content host is searchable
-        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        assert (
+            session.contenthost.search(vm_module_streams.hostname)[0]['Name']
+            == vm_module_streams.hostname
+        )
         module_name = 'walrus'
         stream_version = '0.71'
         profile = 'flipper'
         # reset walrus module streams
         run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
         # make a note of time for later CLI wait_for_tasks, and include
-        # 5 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M')
+        # 8 mins margin of safety.
+        timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
         # install walrus module stream with flipper profile
         run_remote_command_on_content_host(
             f'dnf module install {module_name}:{stream_version}/{profile} -y',
             vm_module_streams,
         )
         # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(query={'search': f'name={vm.hostname}'})
+        host = entities.Host().search(query={'search': f'name={vm_module_streams.hostname}'})
         wait_for_tasks(
             search_query='label = Actions::Katello::Host::UploadProfiles'
             f' and resource_id = {host[0].id}'
