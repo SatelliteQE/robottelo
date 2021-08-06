@@ -1560,7 +1560,7 @@ def make_template(options=None):
     # Assigning default values for attribute
     args = {
         'audit-comment': None,
-        'file': f'/tmp/{gen_alphanumeric()}',
+        'file': f'/root/{gen_alphanumeric()}',
         'location-ids': None,
         'locked': None,
         'name': gen_alphanumeric(6),
