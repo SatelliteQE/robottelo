@@ -73,3 +73,7 @@ tests/foreman/pytest.ini
 # but they are always there.
 full_upgrade
 upgrade_highlights
+
+#Robottelo artifact
+screenshots/
+tmp/
