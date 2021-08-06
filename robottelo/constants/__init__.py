@@ -968,6 +968,18 @@ PERMISSIONS = {
         'view_arf_reports',
         'destroy_arf_reports',
     ],
+    'ForemanOpenscap::OvalContent': [
+        'create_oval_contents',
+        'destroy_oval_contents',
+        'edit_oval_contents',
+        'view_oval_contents',
+    ],
+    'ForemanOpenscap::OvalPolicy': [
+        'create_oval_policies',
+        'destroy_oval_policies',
+        'edit_oval_policies',
+        'view_oval_policies',
+    ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
         'create_policies',
@@ -1114,6 +1126,19 @@ PERMISSIONS = {
     ],
     'Usergroup': ['view_usergroups', 'create_usergroups', 'edit_usergroups', 'destroy_usergroups'],
     'User': ['view_users', 'create_users', 'edit_users', 'destroy_users'],
+    'Webhook': [
+        'create_webhooks',
+        'destroy_webhooks',
+        'edit_webhooks',
+        'view_webhooks',
+    ],
+    'WebhookTemplate': [
+        'create_webhook_templates',
+        'destroy_webhook_templates',
+        'edit_webhook_templates',
+        'lock_webhook_templates',
+        'view_webhook_templates',
+    ],
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
@@ -1146,7 +1171,6 @@ PERMISSIONS = {
         'destroy_content_views',
         'publish_content_views',
         'promote_or_remove_content_views',
-        'export_content_views',
     ],
     'Katello::GpgKey': [
         'view_content_credentials',
