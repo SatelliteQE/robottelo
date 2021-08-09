@@ -29,7 +29,6 @@ from requests.exceptions import HTTPError
 from requests.exceptions import SSLError
 
 from robottelo import manifests
-from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
@@ -57,8 +56,6 @@ from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_7_PUPPET_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_DUPLICATE_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
-from robottelo.constants.repos import FEDORA26_OSTREE_REPO
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_http_credentials
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import invalid_values_list
@@ -69,6 +66,10 @@ from robottelo.datafactory import valid_http_credentials
 from robottelo.datafactory import valid_labels_list
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
+
+# from robottelo.api.utils import call_entity_method_with_timeout
+# from robottelo.constants.repos import FEDORA26_OSTREE_REPO
+# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 
 
 logger = logging.getLogger('robottelo')
@@ -2069,143 +2070,144 @@ class TestDockerRepository:
         assert repo.content_counts['docker_tag'] == 0
 
 
-class TestOstreeRepository:
-    """Tests specific to using ``OSTree`` repositories."""
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_ostree(self, repo_options, repo):
-        """Create ostree repository.
-
-        :id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
-
-        :parametrized: yes
-
-        :expectedresults: A repository is created and has ostree type.
-
-        :CaseImportance: Critical
-        """
-        assert repo.content_type == repo_options['content_type']
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_update_name(self, repo):
-        """Update ostree repository name.
-
-        :id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
-
-        :parametrized: yes
-
-        :expectedresults: The repository name is updated.
-
-        :CaseImportance: Critical
-        """
-        new_name = gen_string('alpha')
-        repo.name = new_name
-        repo = repo.update(['name'])
-        assert repo.name == new_name
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_update_url(self, repo):
-        """Update ostree repository url.
-
-        :id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
-
-        :parametrized: yes
-
-        :expectedresults: The repository url is updated.
-
-        :CaseImportance: Critical
-        """
-        new_url = FEDORA26_OSTREE_REPO
-        repo.url = new_url
-        repo = repo.update(['url'])
-        assert repo.url == new_url
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_delete_ostree(self, repo):
-        """Delete an ostree repository.
-
-        :id: 05db79ed-28c7-47fc-85f5-194a805d71ca
-
-        :parametrized: yes
-
-        :expectedresults: The ostree repository deleted successfully.
-
-        :CaseImportance: Critical
-        """
-        repo.delete()
-        with pytest.raises(HTTPError):
-            repo.read()
-
-    @pytest.mark.tier2
-    @pytest.mark.skip_if_open("BZ:1625783")
-    @pytest.mark.run_in_one_thread
-    @pytest.mark.skip_if_not_set('fake_manifest')
-    @pytest.mark.upgrade
-    def test_positive_sync_rh_atomic(self, module_org):
-        """Sync RH Atomic Ostree Repository.
-
-        :id: 38c8aeaa-5ad2-40cb-b1d2-f0ac604f9fdd
-
-        :expectedresults: Synced repo should fetch the data successfully.
-
-        :CaseLevel: Integration
-
-        :customerscenario: true
-
-        :BZ: 1625783
-        """
-        with manifests.clone() as manifest:
-            upload_manifest(module_org.id, manifest.content)
-        repo_id = enable_rhrepo_and_fetchid(
-            org_id=module_org.id,
-            product=PRDS['rhah'],
-            repo=REPOS['rhaht']['name'],
-            reposet=REPOSET['rhaht'],
-            releasever=None,
-            basearch=None,
-        )
-        call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
+# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# class TestOstreeRepository:
+#     """Tests specific to using ``OSTree`` repositories."""
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.skipif(
+#         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+#     )
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_create_ostree(self, repo_options, repo):
+#         """Create ostree repository.
+#
+#         :id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
+#
+#         :parametrized: yes
+#
+#         :expectedresults: A repository is created and has ostree type.
+#
+#         :CaseImportance: Critical
+#         """
+#         assert repo.content_type == repo_options['content_type']
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.skipif(
+#         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+#     )
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_update_name(self, repo):
+#         """Update ostree repository name.
+#
+#         :id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
+#
+#         :parametrized: yes
+#
+#         :expectedresults: The repository name is updated.
+#
+#         :CaseImportance: Critical
+#         """
+#         new_name = gen_string('alpha')
+#         repo.name = new_name
+#         repo = repo.update(['name'])
+#         assert repo.name == new_name
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.skipif(
+#         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+#     )
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_update_url(self, repo):
+#         """Update ostree repository url.
+#
+#         :id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
+#
+#         :parametrized: yes
+#
+#         :expectedresults: The repository url is updated.
+#
+#         :CaseImportance: Critical
+#         """
+#         new_url = FEDORA26_OSTREE_REPO
+#         repo.url = new_url
+#         repo = repo.update(['url'])
+#         assert repo.url == new_url
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.upgrade
+#     @pytest.mark.skipif(
+#         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+#     )
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_delete_ostree(self, repo):
+#         """Delete an ostree repository.
+#
+#         :id: 05db79ed-28c7-47fc-85f5-194a805d71ca
+#
+#         :parametrized: yes
+#
+#         :expectedresults: The ostree repository deleted successfully.
+#
+#         :CaseImportance: Critical
+#         """
+#         repo.delete()
+#         with pytest.raises(HTTPError):
+#             repo.read()
+#
+#     @pytest.mark.tier2
+#     @pytest.mark.skip_if_open("BZ:1625783")
+#     @pytest.mark.run_in_one_thread
+#     @pytest.mark.skip_if_not_set('fake_manifest')
+#     @pytest.mark.upgrade
+#     def test_positive_sync_rh_atomic(self, module_org):
+#         """Sync RH Atomic Ostree Repository.
+#
+#         :id: 38c8aeaa-5ad2-40cb-b1d2-f0ac604f9fdd
+#
+#         :expectedresults: Synced repo should fetch the data successfully.
+#
+#         :CaseLevel: Integration
+#
+#         :customerscenario: true
+#
+#         :BZ: 1625783
+#         """
+#         with manifests.clone() as manifest:
+#             upload_manifest(module_org.id, manifest.content)
+#         repo_id = enable_rhrepo_and_fetchid(
+#             org_id=module_org.id,
+#             product=PRDS['rhah'],
+#             repo=REPOS['rhaht']['name'],
+#             reposet=REPOSET['rhaht'],
+#             releasever=None,
+#             basearch=None,
+#         )
+#         call_entity_method_with_timeout(entities.Repository(id=repo_id).sync, timeout=1500)
 
 
 class TestSRPMRepository:

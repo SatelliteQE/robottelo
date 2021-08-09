@@ -76,7 +76,6 @@ from robottelo.constants.repos import FAKE_YUM_DRPM_REPO
 from robottelo.constants.repos import FAKE_YUM_MD5_REPO
 from robottelo.constants.repos import FAKE_YUM_MIXED_REPO
 from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_http_credentials
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -86,6 +85,8 @@ from robottelo.datafactory import valid_http_credentials
 from robottelo.helpers import get_data_file
 from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
+
+# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 
 
 YUM_REPOS = (FAKE_0_YUM_REPO, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, FAKE_3_YUM_REPO, FAKE_4_YUM_REPO)
@@ -2323,190 +2324,191 @@ class TestRepository:
         pass
 
 
-class TestOstreeRepository:
-    """Ostree Repository CLI tests."""
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'name': name,
-                    'content-type': 'ostree',
-                    'publish-via-http': 'false',
-                    'url': FEDORA27_OSTREE_REPO,
-                }
-                for name in valid_data_list().values()
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_ostree_repo(self, repo_options, repo):
-        """Create an ostree repository
-
-        :id: a93c52e1-b32e-4590-981b-636ae8b8314d
-
-        :parametrized: yes
-
-        :customerscenario: true
-
-        :expectedresults: ostree repository is created
-
-        :CaseImportance: Critical
-        """
-        assert repo['name'] == repo_options['name']
-        assert repo['content-type'] == 'ostree'
-
-    @pytest.mark.skip_if_open("BZ:1716429")
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'ostree',
-                    'checksum-type': checksum_type,
-                    'publish-via-http': 'false',
-                    'url': FEDORA27_OSTREE_REPO,
-                }
-                for checksum_type in ('sha1', 'sha256')
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_create_ostree_repo_with_checksum(self, repo_options):
-        """Create a ostree repository with checksum type
-
-        :id: a334e0f7-e1be-4add-bbf2-2fd9f0b982c4
-
-        :parametrized: yes
-
-        :expectedresults: Validation error is raised
-
-        :CaseImportance: Critical
-
-        :BZ: 1716429
-        """
-        with pytest.raises(
-            CLIFactoryError,
-            match='Validation failed: Checksum type cannot be set for non-yum repositories',
-        ):
-            make_repository(repo_options)
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'ostree',
-                    'publish-via-http': use_http,
-                    'url': FEDORA27_OSTREE_REPO,
-                }
-                for use_http in ('true', 'yes', '1')
-            ]
-        ),
-        indirect=True,
-    )
-    def test_negative_create_unprotected_ostree_repo(self, repo_options):
-        """Create a ostree repository and published via http
-
-        :id: 2b139560-65bb-4a40-9724-5cca57bd8d30
-
-        :parametrized: yes
-
-        :expectedresults: ostree repository is not created
-
-        :CaseImportance: Critical
-        """
-        with pytest.raises(
-            CLIFactoryError,
-            match='Validation failed: OSTree Repositories cannot be unprotected',
-        ):
-            make_repository(repo_options)
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skip_if_open("BZ:1625783")
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_ostree_repo(self, repo):
-        """Synchronize ostree repo
-
-        :id: 64fcae0a-44ae-46ae-9938-032bba1331e9
-
-        :parametrized: yes
-
-        :expectedresults: Ostree repository is created and synced
-
-        :CaseLevel: Integration
-
-        :BZ: 1625783
-        """
-        # Synchronize it
-        Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        repo = Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_delete_ostree_by_name(self, repo):
-        """Delete Ostree repository by name
-
-        :id: 0b545c22-acff-47b6-92ff-669b348f9fa6
-
-        :parametrized: yes
-
-        :expectedresults: Repository is deleted by name
-
-        :CaseImportance: Critical
-        """
-        Repository.delete(
-            {
-                'name': repo['name'],
-                'product': repo['product']['name'],
-                'organization': repo['organization'],
-            }
-        )
-        with pytest.raises(CLIReturnCodeError):
-            Repository.info({'name': repo['name']})
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
-        ),
-        indirect=True,
-    )
-    def test_positive_delete_ostree_by_id(self, repo):
-        """Delete Ostree repository by id
-
-        :id: 171917f5-1a1b-440f-90c7-b8418f1da132
-
-        :parametrized: yes
-
-        :expectedresults: Repository is deleted by id
-
-        :CaseImportance: Critical
-        """
-        Repository.delete({'id': repo['id']})
-        with pytest.raises(CLIReturnCodeError):
-            Repository.info({'id': repo['id']})
+# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# class TestOstreeRepository:
+#     """Ostree Repository CLI tests."""
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [
+#                 {
+#                     'name': name,
+#                     'content-type': 'ostree',
+#                     'publish-via-http': 'false',
+#                     'url': FEDORA27_OSTREE_REPO,
+#                 }
+#                 for name in valid_data_list().values()
+#             ]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_create_ostree_repo(self, repo_options, repo):
+#         """Create an ostree repository
+#
+#         :id: a93c52e1-b32e-4590-981b-636ae8b8314d
+#
+#         :parametrized: yes
+#
+#         :customerscenario: true
+#
+#         :expectedresults: ostree repository is created
+#
+#         :CaseImportance: Critical
+#         """
+#         assert repo['name'] == repo_options['name']
+#         assert repo['content-type'] == 'ostree'
+#
+#     @pytest.mark.skip_if_open("BZ:1716429")
+#     @pytest.mark.tier1
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [
+#                 {
+#                     'content-type': 'ostree',
+#                     'checksum-type': checksum_type,
+#                     'publish-via-http': 'false',
+#                     'url': FEDORA27_OSTREE_REPO,
+#                 }
+#                 for checksum_type in ('sha1', 'sha256')
+#             ]
+#         ),
+#         indirect=True,
+#     )
+#     def test_negative_create_ostree_repo_with_checksum(self, repo_options):
+#         """Create a ostree repository with checksum type
+#
+#         :id: a334e0f7-e1be-4add-bbf2-2fd9f0b982c4
+#
+#         :parametrized: yes
+#
+#         :expectedresults: Validation error is raised
+#
+#         :CaseImportance: Critical
+#
+#         :BZ: 1716429
+#         """
+#         with pytest.raises(
+#             CLIFactoryError,
+#             match='Validation failed: Checksum type cannot be set for non-yum repositories',
+#         ):
+#             make_repository(repo_options)
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [
+#                 {
+#                     'content-type': 'ostree',
+#                     'publish-via-http': use_http,
+#                     'url': FEDORA27_OSTREE_REPO,
+#                 }
+#                 for use_http in ('true', 'yes', '1')
+#             ]
+#         ),
+#         indirect=True,
+#     )
+#     def test_negative_create_unprotected_ostree_repo(self, repo_options):
+#         """Create a ostree repository and published via http
+#
+#         :id: 2b139560-65bb-4a40-9724-5cca57bd8d30
+#
+#         :parametrized: yes
+#
+#         :expectedresults: ostree repository is not created
+#
+#         :CaseImportance: Critical
+#         """
+#         with pytest.raises(
+#             CLIFactoryError,
+#             match='Validation failed: OSTree Repositories cannot be unprotected',
+#         ):
+#             make_repository(repo_options)
+#
+#     @pytest.mark.tier2
+#     @pytest.mark.upgrade
+#     @pytest.mark.skip_if_open("BZ:1625783")
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_synchronize_ostree_repo(self, repo):
+#         """Synchronize ostree repo
+#
+#         :id: 64fcae0a-44ae-46ae-9938-032bba1331e9
+#
+#         :parametrized: yes
+#
+#         :expectedresults: Ostree repository is created and synced
+#
+#         :CaseLevel: Integration
+#
+#         :BZ: 1625783
+#         """
+#         # Synchronize it
+#         Repository.synchronize({'id': repo['id']})
+#         # Verify it has finished
+#         repo = Repository.info({'id': repo['id']})
+#         assert repo['sync']['status'] == 'Success'
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_delete_ostree_by_name(self, repo):
+#         """Delete Ostree repository by name
+#
+#         :id: 0b545c22-acff-47b6-92ff-669b348f9fa6
+#
+#         :parametrized: yes
+#
+#         :expectedresults: Repository is deleted by name
+#
+#         :CaseImportance: Critical
+#         """
+#         Repository.delete(
+#             {
+#                 'name': repo['name'],
+#                 'product': repo['product']['name'],
+#                 'organization': repo['organization'],
+#             }
+#         )
+#         with pytest.raises(CLIReturnCodeError):
+#             Repository.info({'name': repo['name']})
+#
+#     @pytest.mark.tier1
+#     @pytest.mark.upgrade
+#     @pytest.mark.parametrize(
+#         'repo_options',
+#         **parametrized(
+#             [{'content-type': 'ostree', 'publish-via-http': 'false', 'url': FEDORA27_OSTREE_REPO}]
+#         ),
+#         indirect=True,
+#     )
+#     def test_positive_delete_ostree_by_id(self, repo):
+#         """Delete Ostree repository by id
+#
+#         :id: 171917f5-1a1b-440f-90c7-b8418f1da132
+#
+#         :parametrized: yes
+#
+#         :expectedresults: Repository is deleted by id
+#
+#         :CaseImportance: Critical
+#         """
+#         Repository.delete({'id': repo['id']})
+#         with pytest.raises(CLIReturnCodeError):
+#             Repository.info({'id': repo['id']})
 
 
 class TestSRPMRepository:

@@ -44,13 +44,14 @@ from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_8_PUPPET_REPO
-from robottelo.constants.repos import FEDORA26_OSTREE_REPO
-from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
 from robottelo.host_info import get_sat_version
 from robottelo.products import SatelliteToolsRepository
+
+# from robottelo.constants.repos import FEDORA26_OSTREE_REPO
+# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 
 
 @pytest.fixture(scope='module')
@@ -700,45 +701,47 @@ def test_positive_upstream_with_credentials(session, module_prod):
         assert not repo_values['repo_content']['upstream_authorization']
 
 
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
-    """Perform end to end testing for custom ostree repository
-
-    :id: 603372aa-60de-44a8-b6c9-3f84c3bbdf05
-
-    :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseLevel: Integration
-
-    :CaseImportance: High
-
-    :BZ: 1467722
-    """
-    repo_name = gen_string('alpha')
-    new_repo_name = gen_string('alphanumeric')
-    with session:
-        session.repository.create(
-            module_prod.name,
-            {
-                'name': repo_name,
-                'repo_type': REPO_TYPE['ostree'],
-                'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
-            },
-        )
-        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
-        session.repository.update(
-            module_prod.name,
-            repo_name,
-            {'name': new_repo_name, 'repo_content.upstream_url': FEDORA27_OSTREE_REPO},
-        )
-        assert not session.repository.search(module_prod.name, repo_name)
-        repo_values = session.repository.read(module_prod.name, new_repo_name)
-        assert repo_values['name'] == new_repo_name
-        assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
-        session.repository.delete(module_prod.name, new_repo_name)
-        assert not session.repository.search(module_prod.name, new_repo_name)
+# TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
+# @pytest.mark.tier2
+# @pytest.mark.upgrade
+# @pytest.mark.skipif(
+#   (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+# def test_positive_end_to_end_custom_ostree_crud(session, module_prod):
+#     """Perform end to end testing for custom ostree repository
+#
+#     :id: 603372aa-60de-44a8-b6c9-3f84c3bbdf05
+#
+#     :expectedresults: All expected CRUD actions finished successfully
+#
+#     :CaseLevel: Integration
+#
+#     :CaseImportance: High
+#
+#     :BZ: 1467722
+#     """
+#     repo_name = gen_string('alpha')
+#     new_repo_name = gen_string('alphanumeric')
+#     with session:
+#         session.repository.create(
+#             module_prod.name,
+#             {
+#                 'name': repo_name,
+#                 'repo_type': REPO_TYPE['ostree'],
+#                 'repo_content.upstream_url': FEDORA26_OSTREE_REPO,
+#             },
+#         )
+#         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+#         session.repository.update(
+#             module_prod.name,
+#             repo_name,
+#             {'name': new_repo_name, 'repo_content.upstream_url': FEDORA27_OSTREE_REPO},
+#         )
+#         assert not session.repository.search(module_prod.name, repo_name)
+#         repo_values = session.repository.read(module_prod.name, new_repo_name)
+#         assert repo_values['name'] == new_repo_name
+#         assert repo_values['repo_content']['upstream_url'] == FEDORA27_OSTREE_REPO
+#         session.repository.delete(module_prod.name, new_repo_name)
+#         assert not session.repository.search(module_prod.name, new_repo_name)
 
 
 @pytest.mark.tier2
