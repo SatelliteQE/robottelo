@@ -19,6 +19,7 @@
 import random
 
 import pytest
+from airgun.exceptions import DisabledWidgetError
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
@@ -252,3 +253,34 @@ def test_negative_delete_bookmark(random_entity, default_viewer_role, test_name)
         with pytest.raises(NoSuchElementException):
             non_admin_session.bookmark.delete(bookmark.name)
         assert non_admin_session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
+
+
+@pytest.mark.tier2
+def test_negative_create_with_duplicate_name(session, random_entity):
+    """Create bookmark with duplicate name
+
+    :id: 18168c9c-bdd1-4839-a506-cf9b06c4ab44
+
+    :Setup:
+
+        1. Create a bookmark of a random name with random query.
+
+    :Steps:
+
+        1. Create new bookmark with duplicate name.
+
+    :expectedresults: Bookmark can't be created, submit button is disabled
+
+    :BZ: 1920566, 1992652
+
+    :CaseLevel: Integration
+    """
+    query = gen_string('alphanumeric')
+    bookmark = entities.Bookmark(controller=random_entity['controller'], public=True).create()
+    with session:
+        assert session.bookmark.search(bookmark.name)[0]['Name'] == bookmark.name
+        ui_lib = getattr(session, random_entity['name'].lower())
+        with pytest.raises(DisabledWidgetError) as error:
+            ui_lib.create_bookmark({'name': bookmark.name, 'query': query, 'public': True})
+            assert error == 'name already exists'
+        assert len(session.bookmark.search(bookmark.name)) == 1
