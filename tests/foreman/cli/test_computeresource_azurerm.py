@@ -263,7 +263,7 @@ class TestAzureRMComputeResourceTestCase:
                 f'username={username},'
                 f'password={password},'
                 f'platform={AZURERM_PLATFORM_DEFAULT},'
-                f'script_command="{script_command}",'
+                f'script_command={script_command},'
                 f'script_uris={AZURERM_FILE_URI},'
                 f'premium_os_disk=1',
                 'interface': f'compute_network={nw_id},'
@@ -304,6 +304,7 @@ class TestAzureRMFinishTemplateProvisioning:
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = f'test-{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        script_command = 'touch /var/tmp/test.txt'
 
         request.cls.compute_attrs = (
             f'resource_group={self.rg_default},'
@@ -311,7 +312,7 @@ class TestAzureRMFinishTemplateProvisioning:
             f'username={module_azurerm_finishimg.username},'
             f'ssh_key_data={settings.azurerm.ssh_pub_key},'
             f'platform={self.platform},'
-            'script_command="touch /var/tmp/test.txt",'
+            f'script_command={script_command},'
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
@@ -424,6 +425,7 @@ class TestAzureRMUserDataProvisioning:
         request.cls.vm_size = AZURERM_VM_SIZE_DEFAULT
         request.cls.hostname = f'test-{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        script_command = 'touch /var/tmp/test.txt'
 
         request.cls.compute_attrs = (
             f'resource_group={self.rg_default},'
@@ -431,7 +433,7 @@ class TestAzureRMUserDataProvisioning:
             f'username={module_azurerm_cloudimg.username},'
             f'password={settings.azurerm.password},'
             f'platform={self.platform},'
-            f'script_command="touch /var/tmp/test.txt",'
+            f'script_command={script_command},'
             f'script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={self.premium_os_disk}'
         )
@@ -542,12 +544,13 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         request.cls.region = settings.azurerm.azure_region
         request.cls.hostname = f'test-{gen_string("alpha")}'
         request.cls.fullhostname = f'{self.hostname}.{module_domain.name}'.lower()
+        script_command = 'touch /var/tmp/test.txt'
 
         request.cls.compute_attrs = (
             f'resource_group={settings.azurerm.resource_group},vm_size={AZURERM_VM_SIZE_DEFAULT}, '
             f'username={module_azurerm_byos_finishimg.username}, '
             f'ssh_key_data={settings.azurerm.ssh_pub_key}, platform={AZURERM_PLATFORM_DEFAULT},'
-            f'script_command={"touch /var/tmp/test.txt"}, script_uris={AZURERM_FILE_URI},'
+            f'script_command={script_command}, script_uris={AZURERM_FILE_URI},'
             f'premium_os_disk={AZURERM_PREMIUM_OS_Disk}'
         )
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
