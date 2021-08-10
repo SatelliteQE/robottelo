@@ -3505,8 +3505,15 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
         # assert that the user can delete a content view
         session.contentview.delete(cv_copy_name)
         assert session.contentview.search(cv_copy_name)[0]['Name'] != cv_copy_name
+        session.contentview.update(cv_name, {'details.name': cv_new_name})
+        assert session.contentview.search(cv_new_name)[0]['Name'] == cv_new_name
+        # Publish and promote CV to next environment
+        result = session.contentview.publish(cv_new_name)
+        assert result['Version'] == VERSION
+        result = session.contentview.promote(cv_new_name, VERSION, lce.name)
+        assert f'Promoted to {lce.name}' in result['Status']
         # check that cv tabs are accessible
-        cv = session.contentview.read(cv_name)
+        cv = session.contentview.read(cv_new_name)
         for tab_name in [
             'details',
             'versions',
@@ -3517,13 +3524,6 @@ def test_positive_non_admin_user_actions(session, module_org, test_name):
             'ostree_content',
         ]:
             assert cv.get(tab_name) is not None
-        session.contentview.update(cv_name, {'details.name': cv_new_name})
-        assert session.contentview.search(cv_new_name)[0]['Name'] == cv_new_name
-        # Publish and promote CV to next environment
-        result = session.contentview.publish(cv_new_name)
-        assert result['Version'] == VERSION
-        result = session.contentview.promote(cv_new_name, VERSION, lce.name)
-        assert f'Promoted to {lce.name}' in result['Status']
 
 
 @pytest.mark.tier2
