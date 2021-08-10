@@ -29,7 +29,6 @@ from robottelo.api.utils import promote
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL7
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
@@ -182,7 +181,9 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
 
     :BZ: 1983043
     """
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2) as clients:
+    with VMBroker(
+        nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
+    ) as clients:
         for client in clients:
             client.install_katello_ca(default_sat)
             client.register_contenthost(module_org.label, activation_key.name)
@@ -925,3 +926,136 @@ def test_errata_installation_with_swidtags(
 
     # swidtags get updated based on package version
     assert before_errata_apply_result != after_errata_apply_result
+
+
+"""Section for tests using RHEL8 Content Host.
+   The applicability tests using Default Content View are related to the introduction of Pulp3.
+   """
+
+
+@pytest.fixture(scope='module')
+def rh_repo_module_manifest(module_manifest_org):
+    """Use module manifest org, creates tools repo, syncs and returns RH repo."""
+    # enable rhel repo and return its ID
+    rh_repo_id = enable_rhrepo_and_fetchid(
+        basearch=constants.DEFAULT_ARCHITECTURE,
+        org_id=module_manifest_org.id,
+        product=constants.PRDS['rhel8'],
+        repo=constants.REPOS['rhst8']['name'],
+        reposet=constants.REPOSET['rhst8'],
+        releasever='None',
+    )
+    # Sync step because repo is not synced by default
+    rh_repo = entities.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    return rh_repo
+
+
+@pytest.fixture(scope='module')
+def rhel8_custom_repo_cv(module_manifest_org):
+    """Create repo and publish CV so that packages are in Library"""
+    return setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.module_stream_1.url,
+            'organization-id': module_manifest_org.id,
+        }
+    )
+
+
+@pytest.fixture(scope='module')
+def rhel8_module_ak(
+    module_manifest_org, default_lce, rh_repo_module_manifest, rhel8_custom_repo_cv
+):
+    rhel8_module_ak = entities.ActivationKey(
+        content_view=module_manifest_org.default_content_view,
+        environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
+        organization=module_manifest_org,
+    ).create()
+    # Ensure tools repo is enabled in the activation key
+    rhel8_module_ak.content_override(
+        data={
+            'content_overrides': [{'content_label': constants.REPOS['rhst8']['id'], 'value': '1'}]
+        }
+    )
+    # Fetch available subscriptions
+    subs = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f'{constants.DEFAULT_SUBSCRIPTION_NAME}'}
+    )
+    assert subs
+    # Add default subscription to activation key
+    rhel8_module_ak.add_subscriptions(data={'subscription_id': subs[0].id})
+    # Add custom subscription to activation key
+    product = entities.Product(organization=module_manifest_org).search(
+        query={'search': "redhat=false"}
+    )
+    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+        query={'search': f"name={product[0].name}"}
+    )
+    rhel8_module_ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
+    return rhel8_module_ak
+
+
+@pytest.mark.tier2
+def test_apply_modular_errata_using_default_content_view(
+    module_manifest_org,
+    default_lce,
+    rhel8_contenthost,
+    rhel8_module_ak,
+    rhel8_custom_repo_cv,
+    default_sat,
+):
+    """
+    Registering a RHEL8 system to the default content view with no modules enabled results in
+    no modular errata or packages showing as applicable or installable
+
+    Enabling a module on a RHEL8 system assigned to the default content view and installing an
+    older package should result in the modular errata and package showing as applicable and
+    installable
+
+    :id: 030981dd-19ba-4f8b-9c24-0aee90aaa4c4
+
+    Steps:
+        1. Register host with AK, install tools
+        2. Assert no errata indicated
+        3. Install older version of stream
+        4. Assert errata is applicable
+        5. Update module stream
+        6. Assert errata is no longer applicable
+
+    :expectedresults:  Errata enumeration works with module streams when using default Content View
+
+    :CaseAutomation: Automated
+
+    :CaseLevel: System
+    """
+    module_name = 'duck'
+    stream = '0'
+    version = '20180704244205'
+
+    rhel8_contenthost.install_katello_ca(default_sat)
+    rhel8_contenthost.register_contenthost(module_manifest_org.label, rhel8_module_ak.name)
+    assert rhel8_contenthost.subscribed
+    host = rhel8_contenthost.nailgun_host
+    host = host.read()
+    # Assert no errata on host, no packages applicable or installable
+    errata = _fetch_available_errata(module_manifest_org, host, expected_amount=0)
+    assert len(errata) == 0
+    rhel8_contenthost.install_katello_host_tools()
+    # Install older version of module stream to generate the errata
+    result = rhel8_contenthost.execute(
+        f'yum -y module install {module_name}:{stream}:{version}',
+    )
+    assert result.status == 0
+    # Check that there is now two errata applicable
+    errata = _fetch_available_errata(module_manifest_org, host, 2)
+    assert len(errata) == 2
+    # Assert that errata package is required
+    assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']
+    # Update module
+    result = rhel8_contenthost.execute(
+        f'yum -y module update {module_name}:{stream}:{version}',
+    )
+    assert result.status == 0
+    # Check that there is now no errata applicable
+    errata = _fetch_available_errata(module_manifest_org, host, 0)
+    assert len(errata) == 0
