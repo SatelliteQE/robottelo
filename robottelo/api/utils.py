@@ -1,5 +1,6 @@
 """Module containing convenience functions for working with the API."""
 import time
+from contextlib import contextmanager
 
 from fauxfactory import gen_ipaddr
 from fauxfactory import gen_mac
@@ -823,6 +824,29 @@ class templateupdate:
         if not self.temp.locked:
             self.temp.locked = True
             self.temp.update(['locked'])
+
+
+@contextmanager
+def satellite_setting(key_val: str):
+    """Context Manager to update the satellite setting and revert on exit
+
+    :param key_val: The setting name and value in format `setting_name=new_value`
+    """
+    try:
+        name, value = key_val.split('=')
+        try:
+            setting = entities.Setting().search(query={'search': f'name={name.strip()}'})[0]
+        except IndexError:
+            raise KeyError(f'The setting {name} in not available in satellite.')
+        old_value = setting.value
+        setting.value = value.strip()
+        setting.update({'value'})
+        yield
+    except Exception:
+        raise
+    finally:
+        setting.value = old_value
+        setting.update({'value'})
 
 
 def update_provisioning_template(name=None, old=None, new=None):

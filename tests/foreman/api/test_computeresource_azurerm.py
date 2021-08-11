@@ -20,6 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import satellite_setting
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
@@ -140,7 +141,6 @@ class TestAzureRMComputeResourceTestCase:
 
         :CaseLevel: Integration
         """
-
         cr_nws = module_azurerm_cr.available_networks()
         portal_nws = azurermclient.list_network()
         assert len(portal_nws) == len(cr_nws['results'])
@@ -174,8 +174,8 @@ class TestAzureRMHostProvisioningTestCase:
             "script_uris": AZURERM_FILE_URI,
             "image_id": self.rhel7_ft_img,
         }
-
         nw_id = module_azurerm_cr.available_networks()['results'][-1]['id']
+
         request.cls.interfaces_attributes = {
             "0": {
                 "compute_attributes": {
@@ -226,7 +226,8 @@ class TestAzureRMHostProvisioningTestCase:
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        host.delete()
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
@@ -376,7 +377,8 @@ class TestAzureRMUserDataProvisioning:
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        host.delete()
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):
@@ -530,7 +532,8 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        host.delete()
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_gallery_ft):
@@ -656,7 +659,8 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         ).create()
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        host.delete()
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_custom_ft):
