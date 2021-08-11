@@ -57,12 +57,13 @@ def test_positive_update_hostname_prefix_without_value(setting_update):
 
     :parametrized: yes
 
-    :expectedresults: Hostname_prefix should be set without any text
+    :BZ: 1470083
+
+    :expectedresults: Error should be raised on setting empty value for discovery_prefix setting
 
     """
-    Settings.set({'name': "discovery_prefix", 'value': ""})
-    discovery_prefix = Settings.list({'search': 'name=discovery_prefix'})[0]
-    assert discovery_prefix['value'] == ''
+    with pytest.raises(CLIReturnCodeError):
+        Settings.set({'name': "discovery_prefix", 'value': ""})
 
 
 @pytest.mark.tier2

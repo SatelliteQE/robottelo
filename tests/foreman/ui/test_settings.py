@@ -165,28 +165,49 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
             assert is_valid_error_message(str(context.value))
 
 
-@pytest.mark.run_in_one_thread
+@pytest.mark.skip_if_open('BZ:1975713')
 @pytest.mark.tier2
-@pytest.mark.parametrize(
-    'setting_update',
-    ['host_dmi_uuid_duplicates', 'register_hostname_fact', 'content_view_solve_dependencies'],
-    indirect=True,
-)
+@pytest.mark.parametrize('setting_update', ['host_dmi_uuid_duplicates'], indirect=True)
 def test_positive_host_dmi_uuid_duplicates(session, setting_update):
-    """ "check the setting host_dmi_uuid_duplicates, register_hostname_fact &
-    content_view_solve_dependencies  value update.
+    """Check the setting host_dmi_uuid_duplicates value update.
 
     :id: 529ddd3a-1271-4043-9006-eac436b08b11
 
     :parametrized: yes
 
-    :expectedresults: Successfully add value to different selectors
+    :BZ: 1975713
+
+    :expectedresults: Value of host_dmi_uuid_duplicates should be updated successfully
+
+    :CaseImportance: High
+    """
+    property_value = f'[ {gen_string("alpha")} ]'
+    property_name = setting_update.name
+    with session:
+        session.settings.update(f'name = {setting_update.name}', property_value)
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == property_value
+
+
+@pytest.mark.tier2
+@pytest.mark.parametrize(
+    'setting_update', ['register_hostname_fact', 'content_view_solve_dependencies'], indirect=True
+)
+def test_positive_register_hostname_and_cvs_dependencies_update(session, setting_update):
+    """Check the settings of register_hostname_fact & content_view_solve_dependencies value
+       update.
+
+    :id: 3d50c163-6a6d-494a-b0f2-1e1dd8a5c476
+
+    :parametrized: yes
+
+    :expectedresults: Value of register_hostname_fact and content_view_solve_dependencies
+        should be updated successfully.
 
     :CaseImportance: High
     """
     property_dict = {
         "content_view_solve_dependencies": "Yes",
-        "host_dmi_uuid_duplicates": f'[ {gen_string("alpha")} ]',
         "register_hostname_fact": gen_string('alpha'),
     }
 
@@ -449,7 +470,6 @@ def test_positive_email_yaml_config_precedence():
     """
 
 
-@pytest.mark.skip_if_open("BZ:1470083")
 @pytest.mark.tier2
 @pytest.mark.parametrize('setting_update', ['discovery_hostname'], indirect=True)
 def test_negative_update_hostname_with_empty_fact(session, setting_update):
@@ -462,7 +482,11 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
         1. Goto settings ->Discovered tab -> Hostname_facts
         2. Set empty hostname_facts (without any value)
 
+    :BZ: 1470083
+
     :parametrized: yes
+
+    :CaseImportance: Medium
 
     :expectedresults: Error should be raised on setting empty value for
         hostname_facts setting
@@ -470,9 +494,9 @@ def test_negative_update_hostname_with_empty_fact(session, setting_update):
     """
     new_hostname = ""
     property_name = setting_update.name
-    with session:
-        response = session.settings.update(property_name, new_hostname)
-        assert response is not None, "Empty string accepted"
+    with pytest.raises(AssertionError) as context:
+        session.settings.update(f'name = {property_name}', new_hostname)
+        assert is_valid_error_message(str(context.value))
 
 
 @pytest.mark.run_in_one_thread

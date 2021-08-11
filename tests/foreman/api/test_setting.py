@@ -96,8 +96,8 @@ def test_negative_update_hostname_with_empty_fact(setting_update):
 
     :parametrized: yes
 
-    :expectedresults: Error should be raised on setting empty value for
-        hostname_facts setting
+    :expectedresults: Error should be raised on setting empty value for discovery_hostname
+        setting
     """
     setting_update.value = ""
     with pytest.raises(HTTPError):
@@ -113,12 +113,14 @@ def test_positive_update_hostname_prefix_without_value(setting_update):
 
     :parametrized: yes
 
-    :expectedresults: Hostname_prefix should be set without any text
+    :BZ: 1911228
+
+    :expectedresults: Error should be raised on setting empty value for discovery_prefix setting
 
     """
     setting_update.value = ""
-    setting_update = setting_update.update({'value'})
-    assert setting_update.value == ""
+    with pytest.raises(HTTPError):
+        setting_update.update({'value'})
 
 
 @pytest.mark.tier1
