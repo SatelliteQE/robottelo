@@ -1525,7 +1525,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
     ) as ldapsession:
         ldapsession.task.read_all()
     with session:
-        user_value = session.user.read(ipa_data['ldap_user_name'])
+        user_value = session.user.read(ipa_data['ldap_user_name'], widget_names='user')
         assert user_value['user']['mail'] == result
 
 
@@ -1537,10 +1537,9 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
 
     :steps:
         1. Create a new auth source with onthefly enabled
-        2. Create a new user in IDM and assigning a group to it.
-        3. Login to satellite to create the user
-        4. Delete the user from IDM
-        5. Try login to the satellite from the user
+        2. Login to satellite to create the user
+        3. Delete the user from IDM
+        4. Try login to the satellite from the user
 
     :expectedresults: User login fails
     """
@@ -1554,16 +1553,6 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
         f'={test_user} --last={test_user} --password'
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
-    assert result.return_code == 0
-    group = settings.ldap.grpbasedn.split(',')
-    for line in group:
-        if 'group' in line:
-            _, group = line.split('=')
-            break
-    result = ssh.command(
-        cmd=f'ipa group-add-member {group} --user={test_user}',
-        hostname=settings.ipa.hostname,
-    )
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         ldapsession.task.read_all()
