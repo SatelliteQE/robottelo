@@ -36,28 +36,26 @@ def proxy_port_range(default_sat):
 
 
 @pytest.fixture
-def register_to_dogfood():
-    pass
-
-
-# TODO install from dogfood, path should be saved in conf/repos and in settings.repos.dogfood
-# settings.repos.dogfood_repo_host
-# yum -y localinstall <dogfood url>
-# TODO register satellite by command register_contenthost
-#  with org and activation key from command below
-# TODO parametrize it for each satellite version
-# subscription-manager register --org <dogfood org> --activationkey <dogfood act-key>
-# TODO after registration install cockpit plugin can be started
-
-# TODO BZ needs to be mentioned otherwise I would forget
-# instead of  'foreman-maintain packages install -y tfm-rubygem-foreman_remote_execution-cockpit'
-# 'foreman-installer --enable-foreman-plugin-remote-execution-cockpit' should be used
+def register_to_dogfood(default_sat):
+    dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
+    # get hostname of dogfood machine
+    dig_result = default_sat.execute(f'dig +short {dogfood_canonical_hostname}')
+    # the host name finishes with a dot, so last character is removed
+    dogfood_hostname = dig_result.stdout.split()[0][:-1]
+    default_sat.install_katello_ca(sat_hostname=dogfood_hostname)
+    # satellite version consist from x.y.z, we need only x.y
+    sat_release = '.'.join(default_sat.version.split('.')[:-1])
+    cmd_result = default_sat.register_contenthost(
+        org='Sat6-CI', activation_key=f'satellite-{sat_release}-qa-rhel7'
+    )
+    if cmd_result.status != 0:
+        raise SatelliteHostError(f'Error during registration, command output: {cmd_result.stdout}')
 
 
 @pytest.fixture
 def install_cockpit_plugin(default_sat, register_to_dogfood):
     cmd_result = default_sat.execute(
-        'foreman-maintain packages install -y tfm-rubygem-foreman_remote_execution-cockpit'
+        'foreman-installer --enable-foreman-plugin-remote-execution-cockpit'
     )
     if cmd_result.status != 0:
         raise SatelliteHostError(
@@ -68,4 +66,4 @@ def install_cockpit_plugin(default_sat, register_to_dogfood):
         -i ~foreman-proxy/.ssh/id_rsa_foreman_proxy -o StrictHostKeyChecking=no localhost'
     )
     if cmd_result.status != 0:
-        raise SatelliteHostError(f'ssh-copy id finished with error: {cmd_result.stdout}')
+        raise SatelliteHostError(f'Error during ssh-copy-id, command output: {cmd_result.stdout}')
