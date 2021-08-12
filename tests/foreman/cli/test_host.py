@@ -152,6 +152,12 @@ def function_user(function_host):
     user.delete()
 
 
+def update_smart_proxy(location, smart_proxy):
+    if location.id not in [location.id for location in smart_proxy.location]:
+        smart_proxy.location.append(entities.Location(id=location.id))
+    smart_proxy.update(['location'])
+
+
 # -------------------------- HELP SCENARIOS --------------------------
 def parse_two_columns(content, options_start_with_dash=False):
     """
@@ -506,7 +512,7 @@ def test_positive_create_with_lce_and_cv(module_lce, module_org, module_promoted
 @pytest.mark.host_create
 @pytest.mark.tier1
 def test_positive_create_with_puppet_class_name(
-    module_env_search, module_location, module_org, module_puppet_classes
+    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
 ):
     """Check if host can be created with puppet class name
 
@@ -516,12 +522,15 @@ def test_positive_create_with_puppet_class_name(
 
     :CaseImportance: Critical
     """
+    update_smart_proxy(module_location, default_smart_proxy)
     host = make_fake_host(
         {
-            'puppet-classes': module_puppet_classes[0].name,
+            'puppet-class-ids': [module_puppet_classes[0].id],
             'environment': module_env_search.name,
             'organization-id': module_org.id,
             'location-id': module_location.id,
+            'puppet-ca-proxy-id': default_smart_proxy.id,
+            'puppet-proxy-id': default_smart_proxy.id,
         }
     )
     host_classes = Host.puppetclasses({'host': host['name']})
@@ -667,7 +676,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel7_contenthos
 @pytest.mark.host_create
 @pytest.mark.tier2
 def test_positive_list_scparams(
-    module_env_search, module_location, module_org, module_puppet_classes
+    module_env_search, module_location, module_org, module_puppet_classes, default_smart_proxy
 ):
     """List all smart class parameters using host id
 
@@ -678,13 +687,16 @@ def test_positive_list_scparams(
 
     :CaseLevel: Integration
     """
+    update_smart_proxy(module_location, default_smart_proxy)
     # Create hostgroup with associated puppet class
     host = make_fake_host(
         {
-            'puppet-classes': module_puppet_classes[0].name,
+            'puppet-class-ids': [module_puppet_classes[0].id],
             'environment': module_env_search.name,
             'organization-id': module_org.id,
             'location-id': module_location.id,
+            'puppet-ca-proxy-id': default_smart_proxy.id,
+            'puppet-proxy-id': default_smart_proxy.id,
         }
     )
 
@@ -1187,7 +1199,12 @@ def test_hammer_host_info_output(module_user):
 @pytest.mark.host_update
 @pytest.mark.tier2
 def test_positive_update_host_owner_and_verify_puppet_class_name(
-    module_env_search, module_org, module_location, module_puppet_classes, module_user
+    module_env_search,
+    module_org,
+    module_location,
+    module_puppet_classes,
+    module_user,
+    default_smart_proxy,
 ):
     """Update host owner and check puppet clases associated to the host
 
@@ -1200,12 +1217,15 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
     :BZ: 1851149, 1809952
     """
+    update_smart_proxy(module_location, default_smart_proxy)
     host = make_fake_host(
         {
-            'puppet-classes': module_puppet_classes[0].name,
+            'puppet-class-ids': [module_puppet_classes[0].id],
             'environment': module_env_search.name,
             'organization-id': module_org.id,
             'location-id': module_location.id,
+            'puppet-ca-proxy-id': default_smart_proxy.id,
+            'puppet-proxy-id': default_smart_proxy.id,
         }
     )
     host_classes = Host.puppetclasses({'host': host['name']})
@@ -1220,7 +1240,6 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
-# -------------------------- HOST PARAMETER SCENARIOS -------------------------
 @pytest.mark.host_parameter
 @pytest.mark.tier1
 def test_positive_parameter_crud(function_host):
@@ -1249,6 +1268,9 @@ def test_positive_parameter_crud(function_host):
     Host.delete_parameter({'host-id': host['id'], 'name': name})
     host = Host.info({'id': host['id']})
     assert name not in host['parameters'].keys()
+
+
+# -------------------------- HOST PARAMETER SCENARIOS -------------------------
 
 
 @pytest.mark.host_parameter
