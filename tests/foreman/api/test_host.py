@@ -43,6 +43,12 @@ from robottelo.datafactory import valid_hosts_list
 from robottelo.datafactory import valid_interfaces_list
 
 
+def update_smart_proxy(location, smart_proxy):
+    if location.id not in [location.id for location in smart_proxy.location]:
+        smart_proxy.location.append(entities.Location(id=location.id))
+    smart_proxy.update(['location'])
+
+
 @pytest.mark.tier1
 def test_positive_get_search():
     """GET ``api/v2/hosts`` and specify the ``search`` parameter.
@@ -358,7 +364,7 @@ def test_positive_create_with_puppet_ca_proxy():
 
 @pytest.mark.tier2
 def test_positive_end_to_end_with_puppet_class(
-    module_org, module_location, module_env_search, module_puppet_classes
+    module_org, module_location, module_env_search, module_puppet_classes, default_smart_proxy
 ):
     """Create a host with associated puppet classes then remove it and update the host
     with same associated puppet classes
@@ -368,21 +374,26 @@ def test_positive_end_to_end_with_puppet_class(
     :expectedresults: A host is created with expected puppet classes then puppet classes
         are removed and the host is updated with same puppet classes
     """
+    update_smart_proxy(module_location, default_smart_proxy)
     host = entities.Host(
         organization=module_org,
         location=module_location,
         environment=module_env_search,
         puppetclass=module_puppet_classes,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
     ).create()
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
     }
-    host.puppetclass = host.environment = []
-    host = host.update(['environment', 'puppetclass'])
+    host.puppetclass = host.environment = host.puppet_ca_proxy = host.puppet_proxy = []
+    host = host.update(['environment', 'puppetclass', 'puppet_ca_proxy', 'puppet_proxy'])
     assert len(host.puppetclass) == 0
     host.environment = module_env_search
     host.puppetclass = module_puppet_classes
-    host = host.update(['environment', 'puppetclass'])
+    host.puppet_ca_proxy = default_smart_proxy
+    host.puppet_proxy = default_smart_proxy
+    host = host.update(['environment', 'puppetclass', 'puppet_ca_proxy', 'puppet_proxy'])
     assert {puppet_class.id for puppet_class in host.puppetclass} == {
         puppet_class.id for puppet_class in module_puppet_classes
     }
@@ -1026,6 +1037,7 @@ def test_positive_read_enc_information(
     module_env_search,
     module_puppet_classes,
     module_lce_library,
+    default_smart_proxy,
     default_contentview,
 ):
     """Attempt to read host ENC information
@@ -1040,6 +1052,7 @@ def test_positive_read_enc_information(
 
     :CaseLevel: Integration
     """
+    update_smart_proxy(module_location, default_smart_proxy)
     # create 2 parameters
     host_parameters_attributes = []
     for _ in range(2):
@@ -1056,6 +1069,8 @@ def test_positive_read_enc_information(
             'lifecycle_environment_id': module_lce_library.id,
         },
         host_parameters_attributes=host_parameters_attributes,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
     ).create()
     host_enc_info = host.enc()
     assert {puppet_class.name for puppet_class in module_puppet_classes} == set(
