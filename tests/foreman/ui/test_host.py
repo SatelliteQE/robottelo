@@ -32,7 +32,6 @@ from widgetastic.exceptions import NoSuchElementException
 from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import promote
@@ -65,7 +64,7 @@ from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.helpers import download_server_file
+from robottelo.helpers import download_gce_cert
 from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
 
@@ -1844,12 +1843,7 @@ def gce_domain(module_org, module_loc):
 
 @pytest.fixture
 def download_cert():
-    ssh.command(f'curl {settings.gce.cert_url} -o {settings.gce.cert_path}')
-    if not ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code == 0:
-        raise FileNotFoundError(
-            f"The GCE certificate {settings.gce.cert_path} is not found in satellite."
-        )
-    return download_server_file('json', settings.gce.cert_url)
+    download_gce_cert()
 
 
 @pytest.fixture

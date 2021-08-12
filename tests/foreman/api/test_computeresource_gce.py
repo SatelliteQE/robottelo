@@ -27,6 +27,7 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
+from robottelo.helpers import download_gce_cert
 
 
 GCE_SETTINGS = dict(
@@ -115,6 +116,11 @@ def gce_hostgroup(
         ptable=default_partitiontable,
     ).create()
     return hgroup
+
+
+@pytest.fixture(scope='module', autouse=True)
+def download_cert():
+    download_gce_cert()
 
 
 class TestGCEComputeResourceTestCases:
