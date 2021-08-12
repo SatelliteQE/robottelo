@@ -8,7 +8,7 @@
 
 :CaseComponent: Provisioning
 
-:Assignee: rplevka
+:Assignee: ogajduse
 
 :TestType: Functional
 

@@ -9,7 +9,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :CaseComponent: ProvisioningTemplates
 
-:Assignee: rplevka
+:Assignee: ogajduse
 
 :TestType: Functional
 
