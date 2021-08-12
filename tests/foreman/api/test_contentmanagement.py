@@ -124,7 +124,7 @@ class TestSatelliteContentManagement:
         repo = entities.Repository(
             product=product, url=constants.repos.CUSTOM_KICKSTART_REPO
         ).create()
-        repo.sync()
+        repo.sync(timeout=1000)
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
         call_entity_method_with_timeout(repo.sync, timeout=600)
