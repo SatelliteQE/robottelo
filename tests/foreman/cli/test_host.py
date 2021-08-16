@@ -1271,8 +1271,6 @@ def test_positive_parameter_crud(function_host):
 
 
 # -------------------------- HOST PARAMETER SCENARIOS -------------------------
-
-
 @pytest.mark.host_parameter
 @pytest.mark.tier1
 def test_negative_add_parameter(function_host):
