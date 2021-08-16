@@ -10,7 +10,6 @@ from io import StringIO
 import paramiko
 
 from robottelo.cli import hammer
-from robottelo.config import settings
 from robottelo.logging import logger
 
 
@@ -98,6 +97,9 @@ def get_client(
     Processes ssh credentials in the order: password, key_filename, ssh_key
     Config validation enforces one of the three must be set in settings.server
     """
+    # temporary workaround due to import order.
+    from robottelo.config import settings
+
     hostname = hostname or settings.server.hostname
     username = username or settings.server.ssh_username
     password = password or settings.server.ssh_password
@@ -220,6 +222,8 @@ def add_authorized_key(
 
     :param key: either a file path, key string or a file-like obj to append.
     """
+    # temporary workaround due to import order.
+    from robottelo.config import settings
 
     if getattr(key, 'read', None):  # key is a file-like object
         key_content = key.read()  # pragma: no cover
@@ -361,6 +365,9 @@ def command(
     :param int timeout: Time to wait for the ssh command to finish.
     :param connection_timeout: Time to wait for establishing the connection.
     """
+    # temporary workaround due to import order.
+    from robottelo.config import settings
+
     hostname = hostname or settings.server.hostname
     timeout = timeout or settings.ssh_client.command_timeout
     connection_timeout = connection_timeout or settings.ssh_client.connection_timeout
@@ -386,6 +393,9 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
     :param connection_timeout: Time to wait for establishing the connection.
     :return: SSHCommandResult
     """
+    # temporary workaround due to import order.
+    from robottelo.config import settings
+
     if timeout is None:
         timeout = settings.ssh_client.command_timeout
     if connection_timeout is None:
