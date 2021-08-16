@@ -44,8 +44,14 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
+def module_loc(module_org, default_sat):
+    location = entities.Location(organization=[module_org]).create()
+    smart_proxy = (
+        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
+    )
+    smart_proxy.location.append(entities.Location(id=location.id))
+    smart_proxy.update(['location'])
+    return location
 
 
 @pytest.fixture(scope='module')
@@ -87,11 +93,6 @@ def vm_content_hosts(module_loc, module_repos_collection, default_sat):
             )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
-        smart_proxy = (
-            entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-        )
-        smart_proxy.location.append(entities.Location(id=module_loc.id))
-        smart_proxy.update(['location'])
         yield clients
 
 
@@ -105,11 +106,6 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
             )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
-        smart_proxy = (
-            entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-        )
-        smart_proxy.location.append(entities.Location(id=module_loc.id))
-        smart_proxy.update(['location'])
         yield clients
 
 
@@ -185,7 +181,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
             [
                 default_sat.url,
                 'pulp',
-                'repos',
+                'content',
                 repos_collection.organization["label"],
                 lce.name,
                 content_view.name,
@@ -205,7 +201,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
                     [
                         default_sat.url,
                         'pulp',
-                        'repos',
+                        'content',
                         repos_collection.organization["label"],
                         lce.name,
                         content_view.name,
@@ -213,7 +209,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
                         'dist',
                         'rhel',
                         'server',
-                        repo.distro_major_version,
+                        str(repo.distro_major_version),
                         f'{repo.distro_major_version}Server',
                         '$basearch',
                         'sat-tools',
@@ -384,7 +380,10 @@ def test_positive_install_package(session, module_org, vm_content_hosts, vm_host
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name, packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME, action='install'
+            vm_host_collection.name,
+            packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
+            action='install',
+            action_via='via remote execution',
         )
         assert _is_package_installed(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE_NAME)
 
@@ -405,7 +404,10 @@ def test_positive_remove_package(session, module_org, vm_content_hosts, vm_host_
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name, packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME, action='remove'
+            vm_host_collection.name,
+            packages=constants.FAKE_0_CUSTOM_PACKAGE_NAME,
+            action='remove',
+            action_via='via remote execution',
         )
         assert not _is_package_installed(
             vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE_NAME, expect_installed=False
@@ -427,7 +429,10 @@ def test_positive_upgrade_package(session, module_org, vm_content_hosts, vm_host
     with session:
         session.organization.select(org_name=module_org.name)
         session.hostcollection.manage_packages(
-            vm_host_collection.name, packages=constants.FAKE_1_CUSTOM_PACKAGE_NAME, action='update'
+            vm_host_collection.name,
+            packages=constants.FAKE_1_CUSTOM_PACKAGE_NAME,
+            action='update',
+            action_via='via remote execution',
         )
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
@@ -451,6 +456,7 @@ def test_positive_install_package_group(session, module_org, vm_content_hosts, v
             content_type='Package Group',
             packages=constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
             action='install',
+            action_via='via remote execution',
         )
         for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
             assert _is_package_installed(vm_content_hosts, package)
@@ -479,6 +485,7 @@ def test_positive_remove_package_group(session, module_org, vm_content_hosts, vm
             content_type='Package Group',
             packages=constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
             action='remove',
+            action_via='via remote execution',
         )
         for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
             assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
@@ -499,12 +506,14 @@ def test_positive_install_errata(session, module_org, vm_content_hosts, vm_host_
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
         session.organization.select(org_name=module_org.name)
-        task_values = session.hostcollection.install_errata(
+        result = session.hostcollection.install_errata(
             vm_host_collection.name,
             constants.FAKE_2_ERRATA_ID,
             install_via='via remote execution',
         )
-        assert task_values['result'] == 'success'
+        assert result['job_status'] == 'Success'
+        assert result['job_status_progress'] == '100%'
+        assert int(result['total_hosts']) == 2
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
@@ -534,7 +543,7 @@ def test_positive_change_assigned_content(
         4. Run "subscription-manager repos" command on each host to notice
            the repos urls current values
         5. Create a new life cycle environment
-        6. Create a copy of content view and publish/promote it to the new
+        6. Create a copy of content view and publish & promote it to the new
            life cycle environment
         7. Go to  Hosts => Hosts Collections and select the host collection
         8. under host collection details tab notice the Actions Area and
@@ -578,7 +587,7 @@ def test_positive_change_assigned_content(
     new_content_view_version.promote(data={'environment_ids': new_lce.id})
     # repository urls listed by command "subscription-manager repos" looks
     # like:
-    # Repo URL  : https://{host}/pulp/repos/{org}/{lce}/{cv}/custom
+    # Repo URL:  https://{host}/pulp/content/{org}/{lce}/{cv}/custom
     # /{product_name}/{repo_name}
     repo_line_start_with = 'Repo URL:  '
     expected_repo_urls = _get_content_repository_urls(
@@ -588,7 +597,9 @@ def test_positive_change_assigned_content(
         result = client.run("subscription-manager repos")
         assert result.status == 0
         client_repo_urls = [
-            line.split(' ')[-1] for line in result.stdout if line.startswith(repo_line_start_with)
+            line.split(' ')[-1]
+            for line in result.stdout.splitlines()
+            if line.startswith(repo_line_start_with)
         ]
         assert len(client_repo_urls)
         assert set(expected_repo_urls) == set(client_repo_urls)
@@ -609,7 +620,7 @@ def test_positive_change_assigned_content(
             assert result.status == 0
             client_repo_urls = [
                 line.split(' ')[-1]
-                for line in result.stdout
+                for line in result.stdout.splitlines()
                 if line.startswith(repo_line_start_with)
             ]
             assert len(client_repo_urls)
@@ -686,10 +697,8 @@ def test_positive_install_module_stream(
 
     :CaseLevel: System
     """
+    _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
-        _run_remote_command_on_content_hosts(
-            'dnf -y upload-profile', vm_content_hosts_module_stream
-        )
         result = session.hostcollection.manage_module_streams(
             vm_host_collection_module_stream.name,
             action_type="Install",
@@ -717,13 +726,20 @@ def test_positive_install_modular_errata(
         1. Generate modular errata by installing older version of module stream
         2. Run dnf upload-profile
         3. Install the modular errata by 'remote execution'
-        4. Verify that latest package get installed
+        4. Verify that latest package got installed
 
     :expectedresults: Modular Errata should get installed on all hosts in host
         collection.
 
     :CaseLevel: System
     """
+    stream = "0"
+    version = "20180704111719"
+    _module_install_command = 'dnf -y module install {}:{}:{}'.format(
+        constants.FAKE_4_CUSTOM_PACKAGE_NAME, stream, version
+    )
+    _run_remote_command_on_content_hosts(_module_install_command, vm_content_hosts_module_stream)
+    _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
         _run_remote_command_on_content_hosts(
             f'dnf -y module install {constants.FAKE_4_CUSTOM_PACKAGE_NAME}:0:20180704111719',
@@ -741,5 +757,5 @@ def test_positive_install_modular_errata(
         assert result['job_status_progress'] == '100%'
         assert int(result['total_hosts']) == 2
         assert _is_package_installed(
-            vm_content_hosts_module_stream, constants.FAKE_5_CUSTOM_PACKAGE
+            vm_content_hosts_module_stream, constants.FAKE_6_CUSTOM_PACKAGE
         )
