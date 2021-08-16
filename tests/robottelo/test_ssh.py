@@ -98,7 +98,7 @@ class MockSSHClient:
 class TestSSH:
     """Tests for module ``robottelo.ssh``."""
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_get_connection_key(self, settings):
         """Test method ``get_connection`` using key file to connect to the
         server.
@@ -132,7 +132,7 @@ class TestSSH:
         assert connection.connect_ == 1
         assert connection.close_ == 1
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_get_connection_pass(self, settings):
         """Test method ``get_connection`` using password of user to connect to
         the server
@@ -164,7 +164,7 @@ class TestSSH:
         assert connection.connect_ == 1
         assert connection.close_ == 1
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_get_connection_key_string(self, settings):
         """Test method ``get_connection`` using key file to connect to the
         server.
@@ -259,7 +259,7 @@ class TestSSH:
         with pytest.raises(ValueError):
             ssh.add_authorized_key({"invalid": "format"})
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_add_authorized_key(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -270,7 +270,7 @@ class TestSSH:
         settings.ssh_client.connection_timeout = 10
         ssh.add_authorized_key('ssh-rsa xxxx user@host')
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_execute_command(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -285,7 +285,7 @@ class TestSSH:
             assert ret.stdout == ['ls -la']
             assert isinstance(ret, ssh.SSHCommandResult)
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_execute_command_base_output(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -300,7 +300,7 @@ class TestSSH:
             assert ret.stdout == 'ls -la'
             assert isinstance(ret, ssh.SSHCommandResult)
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_command(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -314,7 +314,7 @@ class TestSSH:
         assert ret.stdout == ['ls -la']
         assert isinstance(ret, ssh.SSHCommandResult)
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_command_base_output(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -328,7 +328,7 @@ class TestSSH:
         assert ret.stdout == 'ls -la'
         assert isinstance(ret, ssh.SSHCommandResult)
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_parse_csv(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
@@ -342,7 +342,7 @@ class TestSSH:
         assert ret.stdout == [{'a': '1', 'b': '2', 'c': '3'}]
         assert isinstance(ret, ssh.SSHCommandResult)
 
-    @mock.patch('robottelo.ssh.settings')
+    @mock.patch('robottelo.config.settings')
     def test_parse_json(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient
         settings.server.hostname = 'example.com'
