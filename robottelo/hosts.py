@@ -7,6 +7,7 @@ from urllib.parse import urlunsplit
 from broker import VMBroker
 from broker.hosts import Host
 from fauxfactory import gen_alpha
+from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import TimedOutError
 from wait_for import wait_for
@@ -18,6 +19,9 @@ from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
 from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
+from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.helpers import install_katello_ca
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import remove_katello_ca
@@ -983,3 +987,37 @@ class Satellite(Capsule):
         settings.server.hostname = self.__old_hostname
         configure_nailgun()
         configure_airgun()
+
+    def create_custom_environment(self, repo='generic_1'):
+        """Download, install and import puppet module.
+        Return the environment name where the puppet module is installed.
+        This is workaround for 6.10, there is no longer content view.
+
+        :param repo: custom puppet module repository
+        :return: Puppet environment name,
+            environment name is likely to be searched in next steps of the test
+        """
+        repo_name = CUSTOM_PUPPET_MODULE_REPOS[repo]
+        if repo_name not in list(CUSTOM_PUPPET_MODULE_REPOS.values()):
+            raise ValueError(
+                f'Custom puppet module mismatch, actual custom puppet module repo: '
+                f'"{repo_name}", does not match any available puppet module: '
+                f'"{list(CUSTOM_PUPPET_MODULE_REPOS.values())}"'
+            )
+        env_name = gen_string('alpha')
+        custom_puppet_module_repo = f'{repo_name}{CUSTOM_PUPPET_MODULE_REPOS_VERSION}'
+        self.execute(
+            f'curl -O {settings.robottelo.repos_hosting_url}{CUSTOM_PUPPET_MODULE_REPOS_PATH}'
+            f'{custom_puppet_module_repo}',
+        )
+        self.execute(
+            f'puppet module install {custom_puppet_module_repo} '
+            f'--target-dir /etc/puppetlabs/code/environments/{env_name}/modules/'
+        )
+        smart_proxy = (
+            entities.SmartProxy()
+            .search(query={'search': f'name={settings.server.hostname}'})[0]
+            .read()
+        )
+        smart_proxy.import_puppetclasses()
+        return env_name

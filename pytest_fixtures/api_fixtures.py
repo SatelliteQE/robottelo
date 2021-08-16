@@ -9,7 +9,6 @@ from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
-from robottelo.api.utils import import_puppet_module
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
@@ -537,8 +536,13 @@ def module_ak_cv_lce(module_org, module_lce, module_published_cv):
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='module')
 def module_import_puppet_module(default_sat):
-    """Import puppet module"""
-    return import_puppet_module(sat=default_sat)
+    """Returns custom puppet environment name that contains imported puppet module
+    and puppet class name."""
+    puppet_class = 'generic_1'
+    return {
+        'puppet_class': puppet_class,
+        'env': default_sat.create_custom_environment(repo=puppet_class),
+    }
 
 
 @pytest.fixture(scope='session')
@@ -560,13 +564,12 @@ def module_env_search(module_org, module_location, module_import_puppet_module):
     """
     env = (
         entities.Environment()
-        .search(query={'search': f'name={module_import_puppet_module}'})[0]
+        .search(query={'search': f'name={module_import_puppet_module["env"]}'})[0]
         .read()
     )
-    env.organization = [module_org]
-    env.update(['organization'])
     env.location = [module_location]
-    env.update(['location'])
+    env.organization = [module_org]
+    env.update(['location', 'organization'])
     return env
 
 
@@ -581,13 +584,15 @@ def module_lce_library(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_puppet_classes(module_env_search):
+def module_puppet_classes(module_env_search, module_import_puppet_module):
     """Returns puppet class based on following criteria:
-    Puppet environment from module_env_search and puppet class name. The name was set inside
-    module_import_puppet_module.
+    Puppet environment from module_env_search and puppet class name.
     """
     return entities.PuppetClass().search(
-        query={'search': f'name ~ {"generic_1"} ' f'and environment = {module_env_search.name}'}
+        query={
+            'search': f'name ~ {module_import_puppet_module["puppet_class"]} '
+            f'and environment = {module_env_search.name}'
+        }
     )
 
 
