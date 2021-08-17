@@ -1,6 +1,5 @@
 """Several helper methods and functions."""
 import contextlib
-import json
 import os
 import random
 import re
@@ -17,7 +16,6 @@ from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
-from robottelo.errors import GCECertNotFoundError
 from robottelo.logging import logger
 
 
@@ -552,19 +550,6 @@ def slugify_component(string, keep_hyphens=True):
 
 
 # --- Issue based Pytest markers ---
-
-
-def download_gce_cert():
-    _, gce_cert = mkstemp(suffix='.json')
-    cert = json.loads(settings.gce.cert)
-    with open(gce_cert, 'w') as f:
-        json.dump(cert, f)
-    ssh.upload_file(gce_cert, settings.gce.cert_path)
-    if ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code != 0:
-        raise GCECertNotFoundError(
-            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
-        )
-    return download_server_file('json', settings.gce.cert_url)
 
 
 def idgen(val):

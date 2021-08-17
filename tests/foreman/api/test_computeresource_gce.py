@@ -27,16 +27,6 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import VALID_GCE_ZONES
-from robottelo.helpers import download_gce_cert
-
-
-GCE_SETTINGS = dict(
-    project_id=settings.gce.project_id,
-    client_email=settings.gce.client_email,
-    cert_path=settings.gce.cert_path,
-    zone=settings.gce.zone,
-)
-
 
 clouduser = gen_string('alpha')
 finishuser = gen_string('alpha')
@@ -118,16 +108,12 @@ def gce_hostgroup(
     return hgroup
 
 
-@pytest.fixture(scope='module', autouse=True)
-def download_cert():
-    download_gce_cert()
-
-
+@pytest.mark.skip_if_not_set('gce')
 class TestGCEComputeResourceTestCases:
     """Tests for ``api/v2/compute_resources``."""
 
     @pytest.mark.tier1
-    def test_positive_crud_gce_cr(self, module_org, module_location):
+    def test_positive_crud_gce_cr(self, module_org, module_location, gce_cert):
         """Create, Read, Update and Delete GCE compute resources
 
         :id: b324f8cd-d509-4d7a-b738-08aefafdc2b5
@@ -143,10 +129,10 @@ class TestGCEComputeResourceTestCases:
         compresource = entities.GCEComputeResource(
             name=cr_name,
             provider='GCE',
-            email=GCE_SETTINGS['client_email'],
-            key_path=GCE_SETTINGS['cert_path'],
-            project=GCE_SETTINGS['project_id'],
-            zone=GCE_SETTINGS['zone'],
+            email=gce_cert['client_email'],
+            key_path=settings.gce.cert_path,
+            project=gce_cert['project_id'],
+            zone=settings.gce.zone,
             organization=[module_org],
             location=[module_location],
         ).create()
@@ -168,7 +154,6 @@ class TestGCEComputeResourceTestCases:
         updated.delete()
         assert not entities.GCEComputeResource().search(query={'search': f'name={new_name}'})
 
-    @pytest.mark.skip_if_open("BZ:1794744")
     @pytest.mark.tier3
     def test_positive_check_available_images(self, module_gce_compute, googleclient):
         """Verify all the images from GCE are available to select from
@@ -198,7 +183,6 @@ class TestGCEComputeResourceTestCases:
         gcloudclient_networks = googleclient.list_network()
         assert sorted(satgce_networks) == sorted(gcloudclient_networks)
 
-    @pytest.mark.skip_if_open("BZ:1794744")
     @pytest.mark.tier3
     def test_positive_check_available_flavors(self, module_gce_compute):
         """Verify flavors from GCE are available to select
@@ -257,6 +241,7 @@ class TestGCEComputeResourceTestCases:
         assert module_gce_cloudimg.username == clouduser
 
 
+@pytest.mark.skip_if_not_set('gce')
 class TestGCEHostProvisioningTestCase:
     """GCE Host Provisioning Tests
 

@@ -29,7 +29,6 @@ from broker.broker import VMBroker
 from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
-from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
@@ -64,7 +63,6 @@ from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
-from robottelo.helpers import download_gce_cert
 from robottelo.hosts import ContentHost
 from robottelo.ui.utils import create_fake_host
 
@@ -1803,31 +1801,21 @@ def test_positive_delete_libvirt(
 
 
 @pytest.fixture
-def gce_client(download_cert):
-    return GoogleCloudSystem(
-        project=settings.gce.project_id,
-        zone=settings.gce.zone,
-        file_path=download_cert,
-        file_type='json',
-    )
-
-
-@pytest.fixture
-def gce_template(gce_client):
+def gce_template(googleclient):
     max_rhel7_template = max(
-        img.name for img in gce_client.list_templates(True) if str(img.name).startswith('rhel-7')
+        img.name for img in googleclient.list_templates(True) if str(img.name).startswith('rhel-7')
     )
-    return gce_client.get_template(max_rhel7_template, project='rhel-cloud').uuid
+    return googleclient.get_template(max_rhel7_template, project='rhel-cloud').uuid
 
 
 @pytest.fixture
-def gce_cloudinit_template(gce_client):
-    return gce_client.get_template('customcinit', project=settings.gce.project_id).uuid
+def gce_cloudinit_template(googleclient, gce_cert):
+    return googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
 
 
 @pytest.fixture
-def gce_domain(module_org, module_loc):
-    domain_name = f'{settings.gce.zone}.c.{settings.gce.project_id}.internal'
+def gce_domain(module_org, module_loc, gce_cert):
+    domain_name = f'{settings.gce.zone}.c.{gce_cert["project_id"]}.internal'
     domain = entities.Domain().search(query={'search': f'name={domain_name}'})
     if domain:
         domain = domain[0]
@@ -1842,15 +1830,10 @@ def gce_domain(module_org, module_loc):
 
 
 @pytest.fixture
-def download_cert():
-    download_gce_cert()
-
-
-@pytest.fixture
 def gce_resource_with_image(
     gce_template,
     gce_cloudinit_template,
-    download_cert,
+    gce_cert,
     default_architecture,
     module_os,
     module_loc,
@@ -1865,8 +1848,8 @@ def gce_resource_with_image(
             {
                 'name': cr_name,
                 'provider': FOREMAN_PROVIDERS['google'],
-                'provider_content.google_project_id': settings.gce.project_id,
-                'provider_content.client_email': settings.gce.client_email,
+                'provider_content.google_project_id': gce_cert['project_id'],
+                'provider_content.client_email': gce_cert['client_email'],
                 'provider_content.certificate_path': settings.gce.cert_path,
                 'provider_content.zone.value': settings.gce.zone,
                 'organizations.resources.assigned': [module_org.name],
@@ -1930,7 +1913,7 @@ def gce_hostgroup(
 @pytest.mark.tier4
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
-    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
+    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
 ):
     """Provision Host on GCE compute resource
 
@@ -1940,7 +1923,7 @@ def test_positive_gce_provision_end_to_end(
 
     :CaseLevel: System
     """
-    name = f'test{gen_string("alpha").lower()}'
+    name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     root_pwd = gen_string('alpha', 15)
@@ -1980,7 +1963,7 @@ def test_positive_gce_provision_end_to_end(
             assert session.host.search(hostname)[0]['Name'] == hostname
             assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
             # 1.2 GCE Backend Assertions
-            gceapi_vm = gce_client.get_vm(gceapi_vmname)
+            gceapi_vm = googleclient.get_vm(gceapi_vmname)
             assert gceapi_vm.is_running
             assert gceapi_vm
             assert gceapi_vm.name == gceapi_vmname
@@ -2005,7 +1988,6 @@ def test_positive_gce_provision_end_to_end(
                 gcehost[0].delete()
             raise error
         finally:
-            gce_client.disconnect()
             skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
 
 
@@ -2013,7 +1995,7 @@ def test_positive_gce_provision_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
-    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, gce_client
+    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
 ):
     """Provision Host on GCE compute resource
 
@@ -2023,7 +2005,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
     :CaseLevel: System
     """
-    name = f'test{gen_string("alpha").lower()}'
+    name = f'test{gen_string("alpha", 4).lower()}'
     hostname = f'{name}.{gce_domain.name}'
     gceapi_vmname = hostname.replace('.', '-')
     storage = [{'size': 20}]
@@ -2055,7 +2037,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 host_info['properties']['properties_table']['Build'] == 'Pending installation clear'
             )
             # 1.2 GCE Backend Assertions
-            gceapi_vm = gce_client.get_vm(gceapi_vmname)
+            gceapi_vm = googleclient.get_vm(gceapi_vmname)
             assert gceapi_vm
             assert gceapi_vm.is_running
             assert gceapi_vm.name == gceapi_vmname
@@ -2080,7 +2062,6 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 gcehost[0].delete()
             raise error
         finally:
-            gce_client.disconnect()
             skip_yum_update_during_provisioning(
                 template='Kickstart default user data', reverse=True
             )
