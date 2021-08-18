@@ -10,7 +10,7 @@ from robottelo.hosts import Satellite
 
 
 @pytest.fixture(scope='session')
-def default_sat():
+def default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
     if settings.server.hostname:
         return Satellite()
