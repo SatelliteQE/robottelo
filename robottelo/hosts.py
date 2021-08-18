@@ -853,7 +853,10 @@ class Capsule(ContentHost):
 
 class Satellite(Capsule):
     def __init__(self, hostname=None, **kwargs):
-        hostname = hostname or settings.server.hostname
+        from robottelo.config import settings
+
+        hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
+        self.port = kwargs.get('port', settings.server.port)
         super().__init__(hostname=hostname, **kwargs)
         self._init_nailgun()
         self._init_cli()
@@ -876,7 +879,7 @@ class Satellite(Capsule):
         # set the server configuration to point to this satellite
         self.nailgun_cfg = ServerConfig(
             auth=(settings.server.admin_username, settings.server.admin_password),
-            url=f'https://{self.hostname}',
+            url=f'{self.url}',
             verify=False,
         )
         # add each nailgun entity to self.api, injecting our server config
@@ -929,6 +932,10 @@ class Satellite(Capsule):
     @cached_property
     def version(self):
         return self.execute('rpm -q satellite').stdout.split('-')[1]
+
+    @cached_property
+    def url(self):
+        return f'https://{self.hostname}'
 
     def capsule_certs_generate(self, capsule, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""

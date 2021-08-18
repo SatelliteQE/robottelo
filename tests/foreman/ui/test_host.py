@@ -101,10 +101,10 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def module_loc(module_org):
+def module_loc(module_org, default_sat):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
+        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])
@@ -175,11 +175,9 @@ def os_path(module_os):
 
 
 @pytest.fixture(scope='module')
-def module_proxy(module_org, module_loc):
+def module_proxy(module_org, module_loc, default_sat):
     # Search for SmartProxy, and associate organization/location
-    proxy = (
-        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
-    )
+    proxy = entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
     return proxy
 
 
@@ -213,10 +211,10 @@ def module_libvirt_resource(module_org, module_loc):
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_domain(module_org, module_loc, module_proxy):
+def module_libvirt_domain(module_org, module_loc, module_proxy, default_sat):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
-    _, _, domain = settings.server.hostname.partition('.')
+    _, _, domain = default_sat.hostname.partition('.')
     domain = entities.Domain().search(query={'search': f'name="{domain}"'})
     if len(domain) > 0:
         domain = domain[0].read()
@@ -1245,7 +1243,7 @@ def test_positive_search_by_org(session, module_loc):
 
 
 @pytest.mark.tier2
-def test_positive_validate_inherited_cv_lce(session, module_host_template):
+def test_positive_validate_inherited_cv_lce(session, module_host_template, default_sat):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI.
@@ -1277,7 +1275,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
             'organization-ids': module_host_template.organization.id,
         }
     )
-    puppet_proxy = Proxy.list({'search': f'name = {settings.server.hostname}'})[0]
+    puppet_proxy = Proxy.list({'search': f'name = {default_sat.hostname}'})[0]
     host = make_host(
         {
             'architecture-id': module_host_template.architecture.id,
@@ -1300,7 +1298,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template):
 
 @pytest.mark.tier2
 def test_positive_global_registration_form(
-    session, module_activation_key, module_org, module_loc, module_os
+    session, module_activation_key, module_org, module_loc, module_os, default_sat
 ):
     """Host registration form produces a correct curl command for various inputs
 
@@ -1341,7 +1339,7 @@ def test_positive_global_registration_form(
         f'remote_execution_interface={iface}',
         f'setup_insights={"true" if insights_value else "false"}',
         f'setup_remote_execution={"true" if rex_value else "false"}',
-        f'{settings.server.hostname}',
+        f'{default_sat.hostname}',
         'insecure',
     ]
     for pair in expected_pairs:
@@ -2026,7 +2024,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_cockpit(session):
+def test_positive_cockpit(session, default_sat):
     """Test whether webconsole button and cockpit integration works
 
     :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
@@ -2040,10 +2038,10 @@ def test_positive_cockpit(session):
         session.organization.select(org_name='Default Organization')
         session.location.select(loc_name='Any Location')
         hostname_inside_cockpit = session.host.get_webconsole_content(
-            entity_name=settings.server.hostname
+            entity_name=default_sat.hostname
         )
         assert (
-            hostname_inside_cockpit == settings.server.hostname
+            hostname_inside_cockpit == default_sat.hostname
         ), 'cockpit page shows hostname {} instead of {}'.format(
-            hostname_inside_cockpit, settings.server.hostname
+            hostname_inside_cockpit, default_sat.hostname
         )

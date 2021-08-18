@@ -23,7 +23,6 @@ from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import get_credentials
-from robottelo.config import settings
 from robottelo.helpers import add_remote_execution_ssh_key
 
 
@@ -78,7 +77,7 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured):
 
 
 @pytest.mark.destructive
-def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
+def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org, default_sat):
     """Run Capsule Upgrade playbook against the Satellite itself
 
     :id: 99462a11-5133-415d-ba64-4354da539a34
@@ -92,14 +91,16 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
 
     :CaseImportance: Medium
     """
-    sat = entities.Host().search(query={'search': f'name={settings.server.hostname}'})[0].read()
+    sat = default_sat.nailgun_host
     template_id = (
-        entities.JobTemplate().search(query={'search': 'name="Capsule Upgrade Playbook"'})[0].id
+        default_sat.api.JobTemplate()
+        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
+        .id
     )
 
     add_remote_execution_ssh_key(sat.name)
     with pytest.raises(TaskFailedError) as error:
-        entities.JobInvocation().run(
+        default_sat.api.JobInvocation().run(
             data={
                 'job_template_id': template_id,
                 'inputs': {
@@ -111,11 +112,11 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org):
             }
         )
     assert 'A sub task failed' in error.value.args[0]
-    job = entities.JobInvocation().search(
+    job = default_sat.api.JobInvocation().search(
         query={'search': f'host={sat.name},status=failed,description="Capsule Upgrade Playbook"'}
     )[0]
     response = client.get(
-        f'https://{sat.name}/api/job_invocations/{job.id}/hosts/{sat.id}',
+        f'{default_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
         auth=get_credentials(),
         verify=False,
     )

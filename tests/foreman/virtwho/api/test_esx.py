@@ -37,7 +37,7 @@ def default_org():
 
 
 @pytest.fixture()
-def form_data(default_org):
+def form_data(default_org, default_sat):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -47,7 +47,7 @@ def form_data(default_org):
         'hypervisor_server': settings.virtwho.esx.hypervisor_server,
         'organization_id': default_org.id,
         'filtering_mode': 'none',
-        'satellite_url': settings.server.hostname,
+        'satellite_url': default_sat.hostname,
         'hypervisor_username': settings.virtwho.esx.hypervisor_username,
         'hypervisor_password': settings.virtwho.esx.hypervisor_password,
     }

@@ -23,7 +23,6 @@ from requests import HTTPError
 
 from robottelo.api.utils import one_to_many_names
 from robottelo.cleanup import capsule_cleanup
-from robottelo.config import settings
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import default_url_on_new_port
@@ -34,15 +33,13 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_proxy_attrs():
+def module_proxy_attrs(default_sat):
     """Find a ``SmartProxy``.
 
     Every Satellite has a built-in smart proxy, so searching for an
     existing smart proxy should always succeed.
     """
-    smart_proxy = entities.SmartProxy().search(
-        query={'search': f'url = https://{settings.server.hostname}:9090'}
-    )
+    smart_proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})
     # Check that proxy is found and unpack it from the list
     assert len(smart_proxy) > 0, "No smart proxy is found"
     smart_proxy = smart_proxy[0]

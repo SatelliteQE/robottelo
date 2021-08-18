@@ -80,9 +80,9 @@ def fetch_scap_and_profile_id(scap_name, scap_profile):
 
 
 @pytest.fixture(scope='module')
-def default_proxy():
-    """ Returns default capsule/proxy id"""
-    proxy = Proxy.list({'search': settings.server.hostname})[0]
+def default_proxy(default_sat):
+    """Returns default capsule/proxy id"""
+    proxy = Proxy.list({'search': default_sat.hostname})[0]
     p_features = set(proxy.get('features').split(', '))
     if {'Puppet', 'Ansible', 'Openscap'}.issubset(p_features):
         proxy_id = proxy.get('id')
@@ -160,6 +160,7 @@ def test_positive_upload_to_satellite(
     lifecycle_env,
     puppet_env,
     distro,
+    default_sat,
 ):
     """Perform end to end oscap test, and push the updated scap content via puppet
      after first run.
@@ -197,11 +198,11 @@ def test_positive_upload_to_satellite(
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': settings.server.hostname,
+            'content-source': default_sat.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': settings.server.hostname,
-            'puppet-proxy': settings.server.hostname,
+            'puppet-ca-proxy': default_sat.hostname,
+            'puppet-proxy': default_sat.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }
@@ -294,7 +295,7 @@ def test_positive_upload_to_satellite(
 @pytest.mark.upgrade
 @pytest.mark.tier4
 def test_positive_oscap_run_with_tailoring_file_and_capsule(
-    module_org, default_proxy, content_view, lifecycle_env, puppet_env
+    module_org, default_proxy, content_view, lifecycle_env, puppet_env, default_sat
 ):
     """End-to-End Oscap run with tailoring files and default capsule via puppet
 
@@ -324,16 +325,16 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     policy_name = gen_string('alpha')
     tailoring_file_name = gen_string('alpha')
     tailor_path = file_downloader(
-        file_url=settings.oscap.tailoring_path, hostname=settings.server.hostname
+        file_url=settings.oscap.tailoring_path, hostname=default_sat.hostname
     )[0]
     # Creates host_group.
     make_hostgroup(
         {
-            'content-source': settings.server.hostname,
+            'content-source': default_sat.hostname,
             'name': hgrp_name,
             'puppet-environment-id': puppet_env.id,
-            'puppet-ca-proxy': settings.server.hostname,
-            'puppet-proxy': settings.server.hostname,
+            'puppet-ca-proxy': default_sat.hostname,
+            'puppet-proxy': default_sat.hostname,
             'organizations': module_org.name,
             'puppet-classes': puppet_classes,
         }

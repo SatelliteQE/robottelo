@@ -1216,7 +1216,7 @@ class TestDockerClient:
     """
 
     @pytest.mark.tier3
-    def test_positive_pull_image(self, module_org, docker_host):
+    def test_positive_pull_image(self, module_org, docker_host, default_sat):
         """A Docker-enabled client can use ``docker pull`` to pull a
         Docker image off a Satellite 6 instance.
 
@@ -1236,7 +1236,7 @@ class TestDockerClient:
         try:
             result = docker_host.execute(
                 f'docker login -u {settings.server.admin_username}'
-                f' -p {settings.server.admin_password} {settings.server.hostname}'
+                f' -p {settings.server.admin_password} {default_sat.hostname}'
             )
             assert result.status == 0
 
@@ -1264,7 +1264,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
-    def test_positive_container_admin_end_to_end_search(self, module_org, docker_host):
+    def test_positive_container_admin_end_to_end_search(self, module_org, docker_host, default_sat):
         """Verify that docker command line can be used against
         Satellite server to search for container images stored
         on Satellite instance.
@@ -1315,14 +1315,12 @@ class TestDockerClient:
             }
         )
         docker_repo_uri = (
-            f' {settings.server.hostname}/{pattern_prefix}-{content_view["label"]}/'
+            f' {default_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
             f'{CONTAINER_UPSTREAM_NAME} '
         ).lower()
 
         # 3. Try to search for docker images on Satellite
-        remote_search_command = (
-            f'docker search {settings.server.hostname}/{CONTAINER_UPSTREAM_NAME}'
-        )
+        remote_search_command = f'docker search {default_sat.hostname}/{CONTAINER_UPSTREAM_NAME}'
         result = docker_host.execute(remote_search_command)
         assert result.status == 0
         assert docker_repo_uri not in result.stdout
@@ -1330,7 +1328,7 @@ class TestDockerClient:
         # 4. Use Docker client to login to Satellite docker hub
         result = docker_host.execute(
             f'docker login -u {settings.server.admin_username}'
-            f' -p {settings.server.admin_password} {settings.server.hostname}'
+            f' -p {settings.server.admin_password} {default_sat.hostname}'
         )
         assert result.status == 0
 
@@ -1340,7 +1338,7 @@ class TestDockerClient:
         assert docker_repo_uri in result.stdout
 
         # 6. Use Docker client to log out of Satellite docker hub
-        result = docker_host.execute(f'docker logout {settings.server.hostname}')
+        result = docker_host.execute(f'docker logout {default_sat.hostname}')
         assert result.status == 0
 
         # 7. Try to search for docker images
@@ -1364,7 +1362,7 @@ class TestDockerClient:
 
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
-    def test_positive_container_admin_end_to_end_pull(self, module_org, docker_host):
+    def test_positive_container_admin_end_to_end_pull(self, module_org, docker_host, default_sat):
         """Verify that docker command line can be used against
         Satellite server to pull in container images stored
         on Satellite instance.
@@ -1416,7 +1414,7 @@ class TestDockerClient:
             }
         )
         docker_repo_uri = (
-            f'{settings.server.hostname}/{pattern_prefix}-{content_view["label"]}/'
+            f'{default_sat.hostname}/{pattern_prefix}-{content_view["label"]}/'
             f'{docker_upstream_name}'
         ).lower()
 
@@ -1428,7 +1426,7 @@ class TestDockerClient:
         # 4. Use Docker client to login to Satellite docker hub
         result = docker_host.execute(
             f'docker login -u {settings.server.admin_username}'
-            f' -p {settings.server.admin_password} {settings.server.hostname}'
+            f' -p {settings.server.admin_password} {default_sat.hostname}'
         )
         assert result.status == 0
 
@@ -1444,7 +1442,7 @@ class TestDockerClient:
         assert result.status == 0
 
         # 6. Use Docker client to log out of Satellite docker hub
-        result = docker_host.execute(f'docker logout {settings.server.hostname}')
+        result = docker_host.execute(f'docker logout {default_sat.hostname}')
         assert result.status == 0
 
         # 7. Try to pull in docker image
@@ -1464,11 +1462,10 @@ class TestDockerClient:
         result = docker_host.execute(docker_pull_command)
         assert result.status == 0
 
-    @pytest.mark.stubbed
     @pytest.mark.skip_if_not_set('docker')
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_upload_image(self, module_org):
+    def test_positive_upload_image(self, module_org, default_sat):
         """A Docker-enabled client can create a new ``Dockerfile``
         pointing to an existing Docker image from a Satellite 6 and modify it.
         Then, using ``docker build`` generate a new image which can then be
@@ -1527,7 +1524,7 @@ class TestDockerClient:
             ssh.upload_file(
                 local_file=tar_file,
                 remote_file=f'/tmp/{tar_file}',
-                hostname=settings.server.hostname,
+                hostname=default_sat.hostname,
             )
 
             # Upload tarred repository
@@ -1537,7 +1534,7 @@ class TestDockerClient:
 
             # Verify repository was uploaded successfully
             repo = Repository.info({'id': repo['id']})
-            assert settings.server.hostname == repo['published-at']
+            assert default_sat.hostname == repo['published-at']
 
             repo_name = '-'.join((module_org.label, product['label'], repo['label'])).lower()
             assert repo_name in repo['published-at']

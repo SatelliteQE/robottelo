@@ -79,7 +79,7 @@ def module_user(module_org, module_location):
 
 
 @pytest.fixture(scope="function")
-def tftpboot(module_org):
+def tftpboot(module_org, default_sat):
     """This fixture removes the current deployed templates from TFTP, and sets up new ones.
     It manipulates the global defaults, so it shouldn't be used in concurrent environment
 
@@ -106,7 +106,7 @@ def tftpboot(module_org):
         },
         'ipxe': {
             'setting': 'global_iPXE',
-            'path': f'https://{settings.server.hostname}/unattended/iPXE?bootsrap=1',
+            'path': f'{default_sat.url}/unattended/iPXE?bootsrap=1',
             'kind': 'iPXE',
         },
     }
@@ -228,7 +228,7 @@ class TestProvisioningTemplate:
     @pytest.mark.tier2
     @pytest.mark.upgrade
     @pytest.mark.run_in_one_thread
-    def test_positive_build_pxe_default(self, tftpboot):
+    def test_positive_build_pxe_default(self, tftpboot, default_sat):
         """Call the "build_pxe_default" path.
 
         :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
@@ -258,5 +258,5 @@ class TestProvisioningTemplate:
                 rendered = ssh.command(f"cat {template['path']}").stdout[0]
             assert (
                 rendered == f"{settings.server.scheme}://"
-                f"{settings.server.hostname} {template['kind']}"
+                f"{default_sat.hostname} {template['kind']}"
             )

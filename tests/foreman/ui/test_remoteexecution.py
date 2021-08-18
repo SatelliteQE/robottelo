@@ -26,7 +26,6 @@ from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
 from robottelo.cli.host import Host
-from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
@@ -59,10 +58,10 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def module_loc(module_org):
+def module_loc(module_org, default_sat):
     location = entities.Location(organization=[module_org]).create()
     smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={settings.server.hostname}'})[0].read()
+        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
     )
     smart_proxy.location.append(entities.Location(id=location.id))
     smart_proxy.update(['location'])

@@ -32,15 +32,9 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
+from robottelo import datafactory
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
-from robottelo.config import settings
-from robottelo.datafactory import invalid_interfaces_list
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_hosts_list
-from robottelo.datafactory import valid_interfaces_list
 
 
 @pytest.mark.tier1
@@ -111,7 +105,7 @@ def test_positive_search_by_org_id():
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
+@pytest.mark.parametrize('owner_type', ['User', 'Usergroup'])
 def test_negative_create_with_owner_type(owner_type):
     """Create a host and specify only ``owner_type``.
 
@@ -129,7 +123,7 @@ def test_negative_create_with_owner_type(owner_type):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('owner_type', **parametrized(['User', 'Usergroup']))
+@pytest.mark.parametrize('owner_type', ['User', 'Usergroup'])
 def test_positive_update_owner_type(owner_type, module_org, module_location, module_user):
     """Update a host's ``owner_type``.
 
@@ -167,10 +161,10 @@ def test_positive_create_and_update_with_name():
 
     :CaseImportance: Critical
     """
-    name = gen_choice(valid_hosts_list())
+    name = gen_choice(datafactory.valid_hosts_list())
     host = entities.Host(name=name).create()
     assert host.name == f'{name}.{host.domain.read().name}'
-    new_name = gen_choice(valid_hosts_list())
+    new_name = gen_choice(datafactory.valid_hosts_list())
     host.name = new_name
     host = host.update(['name'])
     assert host.name == f'{new_name}.{host.domain.read().name}'
@@ -315,7 +309,7 @@ def test_positive_create_with_inherited_params(module_org, module_location):
 
 
 @pytest.mark.tier1
-def test_positive_create_and_update_with_puppet_proxy():
+def test_positive_create_and_update_with_puppet_proxy(default_sat):
     """Create a host with puppet proxy specified and then create new host without specified
     puppet proxy and update the new host with the same puppet proxy
 
@@ -325,19 +319,20 @@ def test_positive_create_and_update_with_puppet_proxy():
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(
-        query={'search': f'url = https://{settings.server.hostname}:9090'}
-    )[0]
-    host = entities.Host(puppet_proxy=proxy).create()
+    # TODO Define the default capsule/SP port + URL on hosts.Capsule
+    proxy = default_sat.api.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[
+        0
+    ]
+    host = default_sat.api.Host(puppet_proxy=proxy).create()
     assert host.puppet_proxy.read().name == proxy.name
-    new_host = entities.Host().create()
+    new_host = default_sat.api.Host().create()
     new_host.puppet_proxy = proxy
     new_host = new_host.update(['puppet_proxy'])
     assert new_host.puppet_proxy.read().name == proxy.name
 
 
 @pytest.mark.tier1
-def test_positive_create_with_puppet_ca_proxy():
+def test_positive_create_with_puppet_ca_proxy(default_sat):
     """Create a host with puppet CA proxy specified and then create new host without specified
      puppet CA proxy and update the new host with the same puppet CA proxy
 
@@ -347,9 +342,7 @@ def test_positive_create_with_puppet_ca_proxy():
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(
-        query={'search': f'url = https://{settings.server.hostname}:9090'}
-    )[0]
+    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
     host = entities.Host(puppet_ca_proxy=proxy).create()
     assert host.puppet_ca_proxy.read().name == proxy.name
     new_host = entities.Host().create()
@@ -502,7 +495,7 @@ def test_positive_create_and_update_with_usergroup(module_org, module_location, 
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('build', **parametrized([True, False]))
+@pytest.mark.parametrize('build', [True, False])
 def test_positive_create_and_update_with_build_parameter(build):
     """Create and update a host with 'build' parameter specified.
     Build parameter determines whether to enable the host for provisioning
@@ -524,7 +517,7 @@ def test_positive_create_and_update_with_build_parameter(build):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('enabled', **parametrized([True, False]))
+@pytest.mark.parametrize('enabled', [True, False], ids=['enabled', 'disabled'])
 def test_positive_create_and_update_with_enabled_parameter(enabled):
     """Create and update a host with 'enabled' parameter specified.
     Enabled parameter determines whether to include the host within
@@ -547,7 +540,7 @@ def test_positive_create_and_update_with_enabled_parameter(enabled):
 
 
 @pytest.mark.tier1
-@pytest.mark.parametrize('managed', **parametrized([True, False]))
+@pytest.mark.parametrize('managed', [True, False], ids=['managed', 'unmanaged'])
 def test_positive_create_and_update_with_managed_parameter(managed):
     """Create and update a host with managed parameter specified.
     Managed flag shows whether the host is managed or unmanaged and
@@ -579,10 +572,10 @@ def test_positive_create_and_update_with_comment():
 
     :CaseImportance: Critical
     """
-    comment = gen_choice(list(valid_data_list().values()))
+    comment = gen_choice(list(datafactory.valid_data_list().values()))
     host = entities.Host(comment=comment).create()
     assert host.comment == comment
-    new_comment = gen_choice(list(valid_data_list().values()))
+    new_comment = gen_choice(list(datafactory.valid_data_list().values()))
     host.comment = new_comment
     host = host.update(['comment'])
     assert host.comment == new_comment
@@ -708,7 +701,7 @@ def test_positive_end_to_end_with_image(
 
 @pytest.mark.tier1
 @pytest.mark.on_premises_provisioning
-@pytest.mark.parametrize('method', **parametrized(['build', 'image']))
+@pytest.mark.parametrize('method', ['build', 'image'])
 def test_positive_create_with_provision_method(
     method, module_org, module_location, module_cr_libvirt
 ):
@@ -873,7 +866,7 @@ def test_negative_update_name(module_host):
 
     :CaseImportance: Critical
     """
-    new_name = gen_choice(invalid_values_list())
+    new_name = gen_choice(datafactory.invalid_values_list())
     host = module_host
     host.name = new_name
     with pytest.raises(HTTPError):
@@ -891,7 +884,7 @@ def test_negative_update_mac(module_host):
 
     :CaseImportance: Critical
     """
-    new_mac = gen_choice(invalid_values_list())
+    new_mac = gen_choice(datafactory.invalid_values_list())
     host = module_host
     host.mac = new_mac
     with pytest.raises(HTTPError):
@@ -940,7 +933,7 @@ def test_negative_update_os():
 
 @pytest.mark.tier3
 def test_positive_read_content_source_id(
-    module_org, module_location, module_lce, module_published_cv
+    module_org, module_location, module_lce, module_published_cv, default_sat
 ):
     """Read the host content_source_id attribute from the read request
     response
@@ -956,11 +949,7 @@ def test_positive_read_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = (
-        entities.SmartProxy()
-        .search(query={'url': f'https://{settings.server.hostname}:9090'})[0]
-        .read()
-    )
+    proxy = entities.SmartProxy().search(query={'url': f'{default_sat.url}:9090'})[0].read()
     promote(module_published_cv.version[0], environment_id=module_lce.id)
     host = entities.Host(
         organization=module_org,
@@ -980,7 +969,7 @@ def test_positive_read_content_source_id(
 
 @pytest.mark.tier3
 def test_positive_update_content_source_id(
-    module_org, module_location, module_lce, module_published_cv
+    module_org, module_location, module_lce, module_published_cv, default_sat
 ):
     """Read the host content_source_id attribute from the update request
     response
@@ -996,11 +985,9 @@ def test_positive_update_content_source_id(
 
     :CaseLevel: System
     """
-    proxy = entities.SmartProxy().search(query={'url': f'https://{settings.server.hostname}:9090'})[
-        0
-    ]
+    proxy = default_sat.api.SmartProxy().search(query={'url': f'{default_sat.url}:9090'})[0]
     promote(module_published_cv.version[0], environment_id=module_lce.id)
-    host = entities.Host(
+    host = default_sat.api.Host(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
@@ -1317,7 +1304,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_proxy_name():
+def test_positive_read_puppet_proxy_name(default_sat):
     """Read a hostgroup created with puppet proxy and inspect server's
     response
 
@@ -1329,16 +1316,14 @@ def test_positive_read_puppet_proxy_name():
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(
-        query={'search': f'url = https://{settings.server.hostname}:9090'}
-    )[0]
+    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
     host = entities.Host(puppet_proxy=proxy).create().read_json()
     assert 'puppet_proxy_name' in host
     assert proxy.name == host['puppet_proxy_name']
 
 
 @pytest.mark.tier1
-def test_positive_read_puppet_ca_proxy_name():
+def test_positive_read_puppet_ca_proxy_name(default_sat):
     """Read a hostgroup created with puppet ca proxy and inspect server's
     response
 
@@ -1350,9 +1335,7 @@ def test_positive_read_puppet_ca_proxy_name():
 
     :CaseImportance: Critical
     """
-    proxy = entities.SmartProxy().search(
-        query={'search': f'url = https://{settings.server.hostname}:9090'}
-    )[0]
+    proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
     host = entities.Host(puppet_ca_proxy=proxy).create().read_json()
     assert 'puppet_ca_proxy_name' in host
     assert proxy.name == host['puppet_ca_proxy_name']
@@ -1372,10 +1355,10 @@ class TestHostInterface:
 
         :CaseImportance: Critical
         """
-        name = gen_choice(valid_interfaces_list())
+        name = gen_choice(datafactory.valid_interfaces_list())
         interface = entities.Interface(host=module_host, name=name).create()
         assert interface.name == name
-        new_name = gen_choice(valid_interfaces_list())
+        new_name = gen_choice(datafactory.valid_interfaces_list())
         interface.name = new_name
         interface = interface.update(['name'])
         assert interface.name == new_name
@@ -1395,7 +1378,7 @@ class TestHostInterface:
 
         :CaseImportance: Critical
         """
-        name = gen_choice(invalid_interfaces_list())
+        name = gen_choice(datafactory.invalid_interfaces_list())
         with pytest.raises(HTTPError) as error:
             entities.Interface(host=module_host, name=name).create()
         assert str(422) in str(error)
@@ -1460,7 +1443,7 @@ class TestHostBulkAction:
 
         host_ids = []
         for _ in range(3):
-            name = gen_choice(valid_hosts_list())
+            name = gen_choice(datafactory.valid_hosts_list())
             host = entities.Host(name=name, organization=module_org).create()
             host_ids.append(host.id)
 

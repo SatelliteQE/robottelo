@@ -82,9 +82,9 @@ def puppet_classes(env):
 
 
 @pytest.fixture(scope='module')
-def content_source():
+def content_source(default_sat):
     """Return the proxy."""
-    return Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[0]
+    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope='module')

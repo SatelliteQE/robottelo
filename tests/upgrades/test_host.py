@@ -66,11 +66,13 @@ class TestScenarioPositiveGCEHostComputeResource:
         download_gce_cert()
 
     @pytest.fixture(scope='class')
-    def arch_os_domain(self):
-        arch = entities.Architecture().search(query={'search': 'name=x86_64'})[0]
-        os = entities.OperatingSystem().search(query={'search': 'family=Redhat and major=7'})[0]
+    def arch_os_domain(self, default_sat):
+        arch = default_sat.api.Architecture().search(query={'search': 'name=x86_64'})[0]
+        os = default_sat.api.OperatingSystem().search(
+            query={'search': 'family=Redhat and major=7'}
+        )[0]
 
-        domain_name = settings.server.hostname.split('.', 1)[1]
+        domain_name = default_sat.hostname.split('.', 1)[1]
         return namedtuple('ArchOsDomain', ['arch', 'os', 'domain'])(arch, os, domain_name)
 
     @pytest.fixture(scope='class')
