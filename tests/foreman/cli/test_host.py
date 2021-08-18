@@ -71,9 +71,9 @@ from robottelo.hosts import ContentHostError
 
 
 @pytest.fixture(scope="module")
-def module_default_proxy():
+def module_default_proxy(default_sat):
     """Use the default installation smart proxy"""
-    return Proxy.list({'search': f'url = https://{settings.server.hostname}:9090'})[0]
+    return Proxy.list({'search': f'url = {default_sat.url}:9090'})[0]
 
 
 @pytest.fixture(scope="function")

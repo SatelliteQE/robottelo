@@ -258,7 +258,6 @@ class TestRenameHost:
         """
         # Save original hostname, get credentials, eventually will
         # end up in setUpClass
-        # original_name = settings.server.hostname
         username = settings.server.admin_username
         password = settings.server.admin_password
         # the rename part of the test, not necessary to run from robottelo
