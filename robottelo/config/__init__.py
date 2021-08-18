@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
-from dynaconf import LazySettings
+from dynaconf import base
 from dynaconf.validator import ValidationError
 
 from robottelo.config.validators import VALIDATORS
@@ -16,7 +16,27 @@ if not os.getenv('ROBOTTELO_DIR'):
     os.environ['ROBOTTELO_DIR'] = str(robottelo_root_dir)
 
 
-settings = LazySettings(
+class DelayedBox(base.DynaBox):
+    """This class allows settings.server.hostname to have like a property"""
+
+    def __getattribute__(self, name):
+        """Return `_hostname` instead of `hostname`"""
+        if name.lower() == 'hostname':
+            if (hostname := getattr(self, '_hostname', False)) is not False:
+                return hostname
+        return super().__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        """Set `_hostname` instead of `hostname`"""
+        if name.lower() == 'hostname':
+            if getattr(self, '_hostname', False) is not False:
+                name = '_hostname'
+        return super().__setattr__(name, value)
+
+
+base.DynaBox = DelayedBox
+
+settings = base.LazySettings(
     envvar_prefix="ROBOTTELO",
     core_loaders=["YAML"],
     settings_file="settings.yaml",
@@ -32,6 +52,7 @@ try:
 except ValidationError:
     logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
 
+settings.server._hostname = None
 
 if not os.getenv('BROKER_DIRECTORY'):
     # set the BROKER_DIRECTORY envar so broker knows where to operate from
