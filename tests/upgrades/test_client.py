@@ -1,5 +1,8 @@
 """Test for Client related Upgrade Scenario's
 
+content-host-d containers use SATHOST env var, which is passed through sat6-upgrade functions
+sat6-upgrade requires env.satellite_hostname to be set, this is required for these tests
+
 :Requirement: Upgraded Satellite
 
 :CaseAutomation: Automated
@@ -45,8 +48,6 @@ from robottelo.constants.repos import FAKE_9_YUM_REPO
 
 # host machine for containers
 docker_vm = settings.upgrade.docker_vm
-# script in container /tmp requires SATHOST
-SATHOST = settings.server.hostname
 
 
 @pytest.fixture(scope='module')
