@@ -29,11 +29,9 @@ from robottelo.api.utils import one_to_one_names
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
 from robottelo.config import settings
-from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_hostgroups_list
-from robottelo.helpers import get_data_file
 
 
 @pytest.fixture
@@ -46,7 +44,7 @@ class TestHostGroup:
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
-    def test_inherit_puppetclass(self):
+    def test_inherit_puppetclass(self, default_sat):
         """Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
         'all_puppetclasses' field
@@ -65,41 +63,25 @@ class TestHostGroup:
         # further in test
         org = entities.Organization(name=gen_string('alpha')).create()
         location = entities.Location(organization=[org]).create()
-        # Creating puppet repository with puppet module assigned to it
-        product = entities.Product(organization=org).create()
-        puppet_repo = entities.Repository(content_type='puppet', product=product).create()
-        # Working with 'ntp' module as we know for sure that it contains at
-        # least few puppet classes
-        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            puppet_repo.upload_content(files={'content': handle})
 
+        # Working with 'api_test_classparameters' module as we know for sure that it contains
+        # at least few puppet classes, the name of the repo is the same as the name of puppet_class
+        repo = puppet_class = 'api_test_classparameters'
+        env_name = default_sat.create_custom_environment(repo=repo)
         content_view = entities.ContentView(name=gen_string('alpha'), organization=org).create()
-
-        result = content_view.available_puppet_modules()['results']
-        assert len(result) == 1
-        entities.ContentViewPuppetModule(
-            author=result[0]['author'], name=result[0]['name'], content_view=content_view
-        ).create()
         content_view.publish()
         content_view = content_view.read()
         lc_env = entities.LifecycleEnvironment(name=gen_string('alpha'), organization=org).create()
         promote(content_view.version[0], lc_env.id)
         content_view = content_view.read()
         assert len(content_view.version) == 1
-        assert len(content_view.puppet_module) == 1
 
-        # Form environment name variable for our test
-        env_name = f'KT_{org.name}_{lc_env.name}_{content_view.name}_{content_view.id}'
-
-        # Get all environments for current organization.
-        # We have two environments (one created after publishing and one more
-        # was created after promotion), so we need to select promoted one
-        environments = entities.Environment().search(query={'organization_id': org.id})
-        assert len(environments) == 2
-        environments = [environment for environment in environments if environment.name == env_name]
-        assert len(environments) == 1
-        environment = environments[0].read()
+        # Get environments that contains chosen puppet module
+        environment = entities.Environment().search(query={'search': f'name={env_name}'})
+        assert len(environment) == 1
+        environment = environment[0]
         environment.location = [location]
+        environment.organization = [org]
         environment.update()
 
         # Create a host group and it dependencies.
@@ -133,7 +115,7 @@ class TestHostGroup:
         )
         response.raise_for_status()
         results = response.json()['results']
-        puppet_class_id = results['ntp'][0]['id']
+        puppet_class_id = results[puppet_class][0]['id']
 
         # Assign puppet class
         client.post(
@@ -144,7 +126,7 @@ class TestHostGroup:
         ).raise_for_status()
         hostgroup_attrs = hostgroup.read_json()
         assert len(hostgroup_attrs['all_puppetclasses']) == 1
-        assert hostgroup_attrs['all_puppetclasses'][0]['name'] == 'ntp'
+        assert hostgroup_attrs['all_puppetclasses'][0]['name'] == puppet_class
 
         # Create Host entity using HostGroup
         host = entities.Host(
@@ -162,7 +144,7 @@ class TestHostGroup:
         ).create(False)
         host_attrs = host.read_json()
         assert len(host_attrs['all_puppetclasses']) == 1
-        assert host_attrs['all_puppetclasses'][0]['name'] == 'ntp'
+        assert host_attrs['all_puppetclasses'][0]['name'] == puppet_class
 
     @pytest.mark.upgrade
     @pytest.mark.tier3
