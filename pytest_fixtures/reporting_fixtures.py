@@ -53,6 +53,6 @@ def record_testsuite_timestamp_xml(record_testsuite_property):
 
 
 @pytest.fixture(autouse=True, scope='function')
-def record_test_timestamp_xml(record_property):
+def record_test_timestamp_xml(request):
     now = datetime.datetime.utcnow()
-    record_property('start_time', now.strftime(FMT_XUNIT_TIME))
+    request.node.user_properties.append(('start_time', now.strftime(FMT_XUNIT_TIME)))
