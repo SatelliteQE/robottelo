@@ -32,9 +32,11 @@ from robottelo import manifests
 from robottelo import ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_REGISTRY_HUB
+from robottelo.constants import CONTAINER_UPSTREAM_NAME
+from robottelo.constants import REPO_TYPE
 from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -356,15 +358,18 @@ def test_positive_sync_several_repos(module_org):
     rpm_repo = entities.Repository(
         product=product, content_type='yum', url=FAKE_1_YUM_REPO
     ).create()
-    puppet_repo = entities.Repository(
-        product=product, content_type='puppet', url=FAKE_1_PUPPET_REPO
+    docker_repo = entities.Repository(
+        content_type=REPO_TYPE['docker'],
+        docker_upstream_name=CONTAINER_UPSTREAM_NAME,
+        product=product,
+        url=CONTAINER_REGISTRY_HUB,
     ).create()
     assert rpm_repo.read().content_counts['rpm'] == 0
-    assert puppet_repo.read().content_counts['puppet_module'] == 0
+    assert docker_repo.read().content_counts['docker_tag'] == 0
 
     product.sync()
     assert rpm_repo.read().content_counts['rpm'] >= 1
-    assert puppet_repo.read().content_counts['puppet_module'] >= 1
+    assert docker_repo.read().content_counts['docker_tag'] >= 1
 
 
 @pytest.mark.tier2
