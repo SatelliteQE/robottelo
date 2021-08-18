@@ -75,9 +75,9 @@ def module_gce_finishimg(
 
 
 @pytest.fixture(scope='class')
-def gce_domain(module_org, module_location, default_smart_proxy):
+def gce_domain(module_org, module_location, default_smart_proxy, default_sat):
     """Sets Domain for GCE Host Provisioning"""
-    _, _, dom = settings.server.hostname.partition('.')
+    _, _, dom = default_sat.hostname.partition('.')
     domain = entities.Domain().search(query={'search': f'name="{dom}"'})
     domain = domain[0].read()
     domain.location.append(module_location)

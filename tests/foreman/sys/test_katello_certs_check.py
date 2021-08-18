@@ -24,7 +24,6 @@ import pytest
 from fauxfactory import gen_string
 
 from robottelo import ssh
-from robottelo.config import settings
 from robottelo.helpers import get_data_file
 from robottelo.ssh import download_file
 from robottelo.ssh import get_connection
@@ -65,9 +64,9 @@ class TestKatelloCertsCheck:
     ]
 
     @pytest.fixture(scope="module")
-    def cert_data(self):
+    def cert_data(self, default_sat):
         """Get host name, scripts, and create working directory."""
-        sat6_hostname = settings.server.hostname
+        sat6_hostname = default_sat.hostname
         capsule_hostname = 'capsule.example.com'
         key_file_name = '{0}/{0}.key'.format(sat6_hostname)
         cert_file_name = '{0}/{0}.crt'.format(sat6_hostname)
@@ -113,7 +112,7 @@ class TestKatelloCertsCheck:
             assert result.return_code == 0
 
     @pytest.fixture()
-    def certs_cleanup(self):
+    def certs_cleanup(self, default_sat):
         """cleanup all cert configuration files"""
         yield
         files = [
@@ -125,7 +124,7 @@ class TestKatelloCertsCheck:
             'private',
             'serial*',
             'certs/*',
-            settings.server.hostname,
+            default_sat.hostname,
         ]
         with get_connection(timeout=300) as connection:
             files = " ".join(files)

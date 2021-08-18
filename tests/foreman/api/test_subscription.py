@@ -31,7 +31,6 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -183,7 +182,7 @@ def test_negative_upload():
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest_as_another_user(function_org):
+def test_positive_delete_manifest_as_another_user(function_org, default_sat):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
 
@@ -198,7 +197,7 @@ def test_positive_delete_manifest_as_another_user(function_org):
     :CaseImportance: Medium
     """
     user1_password = gen_string('alphanumeric')
-    user1 = entities.User(
+    user1 = default_sat.api.User(
         admin=True,
         password=user1_password,
         organization=[function_org],
@@ -206,11 +205,11 @@ def test_positive_delete_manifest_as_another_user(function_org):
     ).create()
     sc1 = ServerConfig(
         auth=(user1.login, user1_password),
-        url=f'https://{settings.server.hostname}',
+        url=default_sat.url,
         verify=False,
     )
     user2_password = gen_string('alphanumeric')
-    user2 = entities.User(
+    user2 = default_sat.api.User(
         admin=True,
         password=user2_password,
         organization=[function_org],
@@ -218,7 +217,7 @@ def test_positive_delete_manifest_as_another_user(function_org):
     ).create()
     sc2 = ServerConfig(
         auth=(user2.login, user2_password),
-        url=f'https://{settings.server.hostname}',
+        url=default_sat.url,
         verify=False,
     )
     # use the first admin to upload a manifest

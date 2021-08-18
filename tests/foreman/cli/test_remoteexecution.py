@@ -468,7 +468,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_run_receptor_installer(self):
+    def test_positive_run_receptor_installer(self, default_sat):
         """Run Receptor installer ("Configure Cloud Connector")
 
         :CaseComponent: RHCloud-CloudConnector
@@ -484,7 +484,7 @@ class TestRemoteExecution:
         # Set Host parameter source_display_name to something random.
         # To avoid 'name has already been taken' error when run multiple times
         # on a machine with the same hostname.
-        host_id = Host.info({'name': settings.server.hostname})['id']
+        host_id = Host.info({'name': default_sat.hostname})['id']
         Host.set_parameter(
             {'host-id': host_id, 'name': 'source_display_name', 'value': gen_string('alpha')}
         )
@@ -496,7 +496,7 @@ class TestRemoteExecution:
                 'job-template': template_name,
                 'inputs': f'satellite_user="{settings.server.admin_username}",\
                         satellite_password="{settings.server.admin_password}"',
-                'search-query': f'name ~ {settings.server.hostname}',
+                'search-query': f'name ~ {default_sat.hostname}',
             }
         )
         invocation_id = invocation['id']
@@ -509,7 +509,7 @@ class TestRemoteExecution:
         assert entities.JobInvocation(id=invocation_id).read().status == 0
 
         result = ' '.join(
-            JobInvocation.get_output({'id': invocation_id, 'host': settings.server.hostname})
+            JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
         )
         assert 'project-receptor.satellite_receptor_installer' in result
         assert 'Exit status: 0' in result

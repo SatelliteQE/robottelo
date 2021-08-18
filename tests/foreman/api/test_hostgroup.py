@@ -28,7 +28,6 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_one_names
 from robottelo.api.utils import promote
 from robottelo.config import get_credentials
-from robottelo.config import settings
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_hostgroups_list
@@ -61,23 +60,27 @@ class TestHostGroup:
         # Creating entities like organization, content view and lifecycle_env
         # with not utf-8 names for easier interaction with puppet environment
         # further in test
-        org = entities.Organization(name=gen_string('alpha')).create()
-        location = entities.Location(organization=[org]).create()
+        org = default_sat.api.Organization(name=gen_string('alpha')).create()
+        location = default_sat.api.Location(organization=[org]).create()
 
         # Working with 'api_test_classparameters' module as we know for sure that it contains
         # at least few puppet classes, the name of the repo is the same as the name of puppet_class
         repo = puppet_class = 'api_test_classparameters'
         env_name = default_sat.create_custom_environment(repo=repo)
-        content_view = entities.ContentView(name=gen_string('alpha'), organization=org).create()
+        content_view = default_sat.api.ContentView(
+            name=gen_string('alpha'), organization=org
+        ).create()
         content_view.publish()
         content_view = content_view.read()
-        lc_env = entities.LifecycleEnvironment(name=gen_string('alpha'), organization=org).create()
+        lc_env = default_sat.api.LifecycleEnvironment(
+            name=gen_string('alpha'), organization=org
+        ).create()
         promote(content_view.version[0], lc_env.id)
         content_view = content_view.read()
         assert len(content_view.version) == 1
 
         # Get environments that contains chosen puppet module
-        environment = entities.Environment().search(query={'search': f'name={env_name}'})
+        environment = default_sat.api.Environment().search(query={'search': f'name={env_name}'})
         assert len(environment) == 1
         environment = environment[0]
         environment.location = [location]
@@ -87,14 +90,14 @@ class TestHostGroup:
         # Create a host group and it dependencies.
         mac = entity_fields.MACAddressField().gen_value()
         root_pass = entity_fields.StringField(length=(8, 30)).gen_value()
-        domain = entities.Domain().create()
-        architecture = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        operatingsystem = entities.OperatingSystem(
+        domain = default_sat.api.Domain().create()
+        architecture = default_sat.api.Architecture().create()
+        ptable = default_sat.api.PartitionTable().create()
+        operatingsystem = default_sat.api.OperatingSystem(
             architecture=[architecture], ptable=[ptable]
         ).create()
-        medium = entities.Media(operatingsystem=[operatingsystem]).create()
-        hostgroup = entities.HostGroup(
+        medium = default_sat.api.Media(operatingsystem=[operatingsystem]).create()
+        hostgroup = default_sat.api.HostGroup(
             architecture=architecture,
             domain=domain,
             environment=environment,
@@ -129,7 +132,7 @@ class TestHostGroup:
         assert hostgroup_attrs['all_puppetclasses'][0]['name'] == puppet_class
 
         # Create Host entity using HostGroup
-        host = entities.Host(
+        host = default_sat.api.Host(
             hostgroup=hostgroup,
             mac=mac,
             root_pass=root_pass,
@@ -224,7 +227,7 @@ class TestHostGroup:
         assert hostgroup_cloned_reduced.items() <= hostgroup_origin.items()
 
     @pytest.mark.tier1
-    def test_positive_create_with_properties(self, module_org, module_location):
+    def test_positive_create_with_properties(self, module_org, module_location, default_sat):
         """Create a hostgroup with properties
 
         :id: 528afd01-356a-4082-9e88-a5b2a715a792
@@ -236,27 +239,33 @@ class TestHostGroup:
 
         :CaseImportance: High
         """
-        env = entities.Environment(location=[module_location], organization=[module_org]).create()
-        parent_hostgroup = entities.HostGroup(
+        env = default_sat.api.Environment(
             location=[module_location], organization=[module_org]
         ).create()
-        arch = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        os = entities.OperatingSystem(architecture=[arch], ptable=[ptable]).create()
-        media = entities.Media(
+        parent_hostgroup = default_sat.api.HostGroup(
+            location=[module_location], organization=[module_org]
+        ).create()
+        arch = default_sat.api.Architecture().create()
+        ptable = default_sat.api.PartitionTable().create()
+        os = default_sat.api.OperatingSystem(architecture=[arch], ptable=[ptable]).create()
+        media = default_sat.api.Media(
             operatingsystem=[os], location=[module_location], organization=[module_org]
         ).create()
-        proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
+        proxy = default_sat.api.SmartProxy().search(
+            query={'search': f'url = {default_sat.url}:9090'}
         )[0]
-        subnet = entities.Subnet(location=[module_location], organization=[module_org]).create()
-        domain = entities.Domain(location=[module_location], organization=[module_org]).create()
-        content_view = entities.ContentView(organization=module_org).create()
+        subnet = default_sat.api.Subnet(
+            location=[module_location], organization=[module_org]
+        ).create()
+        domain = default_sat.api.Domain(
+            location=[module_location], organization=[module_org]
+        ).create()
+        content_view = default_sat.api.ContentView(organization=module_org).create()
         content_view.publish()
         content_view = content_view.read()
-        lce = entities.LifecycleEnvironment(organization=module_org).create()
+        lce = default_sat.api.LifecycleEnvironment(organization=module_org).create()
         promote(content_view.version[0], lce.id)
-        hostgroup = entities.HostGroup(
+        hostgroup = default_sat.api.HostGroup(
             architecture=arch,
             content_source=proxy,
             content_view=content_view,
@@ -288,23 +297,26 @@ class TestHostGroup:
         assert hostgroup.lifecycle_environment.read().name == lce.name
 
         # create new properties for update
-        new_org = entities.Organization().create()
-        new_loc = entities.Location(organization=[new_org]).create()
-        new_arch = entities.Architecture().create()
-        new_ptable = entities.PartitionTable().create()
-        new_parent = entities.HostGroup(location=[new_loc], organization=[new_org]).create()
-        new_env = entities.Environment(location=[new_loc], organization=[new_org]).create()
-        new_os = entities.OperatingSystem(architecture=[new_arch], ptable=[new_ptable]).create()
-        new_subnet = entities.Subnet(location=[new_loc], organization=[new_org]).create()
-        new_domain = entities.Domain(location=[new_loc], organization=[new_org]).create()
-        new_cv = entities.ContentView(organization=new_org).create()
+        new_org = default_sat.api.Organization().create()
+        new_loc = default_sat.api.Location(organization=[new_org]).create()
+        new_arch = default_sat.api.Architecture().create()
+        new_ptable = default_sat.api.PartitionTable().create()
+        new_parent = default_sat.api.HostGroup(location=[new_loc], organization=[new_org]).create()
+        new_env = default_sat.api.Environment(location=[new_loc], organization=[new_org]).create()
+        new_os = default_sat.api.OperatingSystem(
+            architecture=[new_arch], ptable=[new_ptable]
+        ).create()
+        new_subnet = default_sat.api.Subnet(location=[new_loc], organization=[new_org]).create()
+        new_domain = default_sat.api.Domain(location=[new_loc], organization=[new_org]).create()
+        new_cv = default_sat.api.ContentView(organization=new_org).create()
         new_cv.publish()
         new_cv = new_cv.read()
-        new_lce = entities.LifecycleEnvironment(organization=new_org).create()
-        promote(new_cv.version[0], new_lce.id)
-        new_media = entities.Media(
+        new_lce = default_sat.api.LifecycleEnvironment(organization=new_org).create()
+        new_media = default_sat.api.Media(
             operatingsystem=[os], location=[new_loc], organization=[new_org]
         ).create()
+        promote(new_cv.version[0], new_lce.id)
+
         # update itself
         hostgroup.organization = [new_org]
         hostgroup.location = [new_loc]
@@ -354,7 +366,7 @@ class TestHostGroup:
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @pytest.mark.tier2
-    def test_positive_create_with_realm(self, module_org, module_location):
+    def test_positive_create_with_realm(self, module_org, module_location, default_sat):
         """Create a hostgroup with realm specified
 
         :id: 4f07ff8d-746f-4ab5-ae0b-03d629f6296c
@@ -367,7 +379,7 @@ class TestHostGroup:
             location=[module_location],
             organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
-                query={'search': f'url = https://{settings.server.hostname}:9090'}
+                query={'search': f'url = {default_sat.url}:9090'}
             )[0],
         ).create()
         hostgroup = entities.HostGroup(
@@ -423,7 +435,7 @@ class TestHostGroup:
         assert name == hostgroup.name
 
     @pytest.mark.tier2
-    def test_positive_update_puppet_ca_proxy(self, hostgroup):
+    def test_positive_update_puppet_ca_proxy(self, hostgroup, default_sat):
         """Update a hostgroup with a new puppet CA proxy
 
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
@@ -432,16 +444,16 @@ class TestHostGroup:
 
         :CaseLevel: Integration
         """
-        new_proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
-        )[0]
+        new_proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[
+            0
+        ]
         hostgroup.puppet_ca_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_ca_proxy'])
         assert hostgroup.puppet_ca_proxy.read().name == new_proxy.name
 
     @pytest.mark.stubbed('Remove stub once proper infrastructure will be created')
     @pytest.mark.tier2
-    def test_positive_update_realm(self, module_org, module_location):
+    def test_positive_update_realm(self, module_org, module_location, default_sat):
         """Update a hostgroup with a new realm
 
         :id: fd9d141f-7a71-4439-92c7-1dbc1eea4772
@@ -454,7 +466,7 @@ class TestHostGroup:
             location=[module_location],
             organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
-                query={'search': f'url = https://{settings.server.hostname}:9090'}
+                query={'search': f'url = {default_sat.url}:9090'}
             )[0],
         ).create()
         hostgroup = entities.HostGroup(
@@ -464,7 +476,7 @@ class TestHostGroup:
             location=[module_location],
             organization=[module_org],
             realm_proxy=entities.SmartProxy().search(
-                query={'search': f'url = https://{settings.server.hostname}:9090'}
+                query={'search': f'url = {default_sat.url}:9090'}
             )[0],
         ).create()
         hostgroup.realm = new_realm
@@ -472,7 +484,7 @@ class TestHostGroup:
         assert hostgroup.realm.read().name == new_realm.name
 
     @pytest.mark.tier2
-    def test_positive_update_puppet_proxy(self, hostgroup):
+    def test_positive_update_puppet_proxy(self, hostgroup, default_sat):
         """Update a hostgroup with a new puppet proxy
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
@@ -481,15 +493,15 @@ class TestHostGroup:
 
         :CaseLevel: Integration
         """
-        new_proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
-        )[0]
+        new_proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[
+            0
+        ]
         hostgroup.puppet_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_proxy'])
         assert hostgroup.puppet_proxy.read().name == new_proxy.name
 
     @pytest.mark.tier2
-    def test_positive_update_content_source(self, hostgroup):
+    def test_positive_update_content_source(self, hostgroup, default_sat):
         """Update a hostgroup with a new puppet proxy
 
         :id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
@@ -499,7 +511,7 @@ class TestHostGroup:
         :CaseLevel: Integration
         """
         new_content_source = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
+            query={'search': f'url = {default_sat.url}:9090'}
         )[0]
         hostgroup.content_source = new_content_source
         hostgroup = hostgroup.update(['content_source'])
@@ -657,7 +669,7 @@ class TestHostGroupMissingAttr:
         ), f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
 
     @pytest.mark.tier2
-    def test_positive_read_puppet_proxy_name(self):
+    def test_positive_read_puppet_proxy_name(self, default_sat):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
 
@@ -669,15 +681,13 @@ class TestHostGroupMissingAttr:
 
         :CaseLevel: Integration
         """
-        proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
-        )[0]
+        proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
         hg = entities.HostGroup(puppet_proxy=proxy).create().read_json()
         assert 'puppet_proxy_name' in hg
         assert proxy.name == hg['puppet_proxy_name']
 
     @pytest.mark.tier2
-    def test_positive_read_puppet_ca_proxy_name(self):
+    def test_positive_read_puppet_ca_proxy_name(self, default_sat):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response
 
@@ -689,9 +699,7 @@ class TestHostGroupMissingAttr:
 
         :CaseLevel: Integration
         """
-        proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
-        )[0]
+        proxy = entities.SmartProxy().search(query={'search': f'url = {default_sat.url}:9090'})[0]
         hg = entities.HostGroup(puppet_ca_proxy=proxy).create().read_json()
         assert 'puppet_ca_proxy_name' in hg
         assert proxy.name == hg['puppet_ca_proxy_name']

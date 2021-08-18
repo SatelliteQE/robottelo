@@ -75,10 +75,9 @@ def set_default_scope(value):
 
 def _get_default_scope():
     # this is the default locking scope
-    if LOCK_DEFAULT_SCOPE is None:
-        return settings.server.hostname
-    else:
-        return LOCK_DEFAULT_SCOPE
+    from robottelo.config import settings
+
+    return LOCK_DEFAULT_SCOPE or settings.server.hostname
 
 
 def get_temp_dir():

@@ -355,7 +355,7 @@ def test_negative_update_email_delivery_method_smtp():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_update_email_delivery_method_sendmail(session):
+def test_positive_update_email_delivery_method_sendmail(session, default_sat):
     """Updating Sendmail params on Email tab
 
     :id: c774e713-9640-402d-8987-c3509e918eb6
@@ -394,7 +394,7 @@ def test_positive_update_email_delivery_method_sendmail(session):
     }
     mail_config_new_params = {
         "delivery_method": "Sendmail",
-        "email_reply_address": f"root@{ssh.settings.server.hostname}",
+        "email_reply_address": f"root@{default_sat.hostname}",
         "email_subject_prefix": [gen_string('alpha')],
         "sendmail_location": "/usr/sbin/sendmail",
         "send_welcome_email": "Yes",

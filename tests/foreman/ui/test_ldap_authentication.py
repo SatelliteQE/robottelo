@@ -53,7 +53,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 EXTERNAL_GROUP_NAME = 'foobargroup'
 
 
-def set_certificate_in_satellite(server_type, hostname=None):
+def set_certificate_in_satellite(server_type, default_sat, hostname=None):
     """update the cert settings in satellite based on type of ldap server"""
     if server_type == 'IPA':
         idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
@@ -61,9 +61,10 @@ def set_certificate_in_satellite(server_type, hostname=None):
             file_url=idm_cert_path_url,
             local_path=CERT_PATH,
             file_name='ipa.crt',
-            hostname=settings.server.hostname,
+            hostname=default_sat.hostname,
         )
     elif server_type == 'AD':
+        assert hostname is not None
         ssh.command('yum -y --disableplugin=foreman-protector install cifs-utils')
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
         ssh.command(command.format(settings.ldap.password, hostname))
@@ -320,7 +321,7 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
 @pytest.mark.parametrize('ldap_auth_source', ['AD_2016', 'AD_2019', 'IPA'], indirect=True)
 @pytest.mark.destructive
 def test_positive_create_with_https(
-    session, subscribe_satellite, test_name, ldap_auth_source, ldap_tear_down
+    session, subscribe_satellite, test_name, ldap_auth_source, ldap_tear_down, default_sat
 ):
     """Create LDAP auth_source for IDM with HTTPS.
 
@@ -342,10 +343,12 @@ def test_positive_create_with_https(
     :parametrized: yes
     """
     if ldap_auth_source['auth_type'] == 'ipa':
-        set_certificate_in_satellite(server_type='IPA')
+        set_certificate_in_satellite(server_type='IPA', default_sat=default_sat)
         username = settings.ipa.user
     else:
-        set_certificate_in_satellite(server_type='AD', hostname=ldap_auth_source['ldap_hostname'])
+        set_certificate_in_satellite(
+            server_type='AD', default_sat=default_sat, hostname=ldap_auth_source['ldap_hostname']
+        )
         username = settings.ldap.username
     org = entities.Organization().create()
     loc = entities.Location().create()
@@ -976,7 +979,7 @@ def test_negative_login_user_with_invalid_password_otp(
 
 @pytest.mark.destructive
 def test_single_sign_on_ldap_ipa_server(
-    subscribe_satellite, enroll_idm_and_configure_external_auth, ldap_tear_down
+    subscribe_satellite, enroll_idm_and_configure_external_auth, ldap_tear_down, default_sat
 ):
     """Verify the single sign-on functionality with external authentication
 
@@ -995,28 +998,24 @@ def test_single_sign_on_ldap_ipa_server(
         run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
         run_command('foreman-maintain service restart', timeout=300)
         if is_open('BZ:1941997'):
-            curl_command = (
-                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin'
-            )
+            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
         else:
-            curl_command = (
-                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin/'
-            )
+            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
         result = run_command(curl_command)
         result = ''.join(result)
         assert 'redirected' in result
-        assert f'https://{settings.server.hostname}/hosts' in result
+        assert f'{default_sat.url}/hosts' in result
         assert 'You are being' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
         run_command('foreman-maintain service restart', timeout=300)
         run_command(
-            cmd=f'ipa service-del HTTP/{settings.server.hostname}',
+            cmd=f'ipa service-del HTTP/{default_sat.hostname}',
             hostname=settings.ipa.hostname,
         )
         run_command(
-            cmd=f'ipa host-del {settings.server.hostname}',
+            cmd=f'ipa host-del {default_sat.hostname}',
             hostname=settings.ipa.hostname,
         )
 
@@ -1025,7 +1024,9 @@ def test_single_sign_on_ldap_ipa_server(
     'enroll_ad_and_configure_external_auth', ['AD_2016', 'AD_2019'], indirect=True
 )
 @pytest.mark.destructive
-def test_single_sign_on_ldap_ad_server(subscribe_satellite, enroll_ad_and_configure_external_auth):
+def test_single_sign_on_ldap_ad_server(
+    subscribe_satellite, enroll_ad_and_configure_external_auth, default_sat
+):
     """Verify the single sign-on functionality with external authentication
 
     :id: 3c233aa4-c817-11ea-b105-d46d6dd3b5b2
@@ -1055,17 +1056,13 @@ def test_single_sign_on_ldap_ad_server(subscribe_satellite, enroll_ad_and_config
         # create the kerberos ticket for authentication
         run_command(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
         if is_open('BZ:1941997'):
-            curl_command = (
-                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin'
-            )
+            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
         else:
-            curl_command = (
-                f'curl -k -u : --negotiate https://{settings.server.hostname}/users/extlogin/'
-            )
+            curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
         result = run_command(curl_command)
         result = ''.join(result)
         assert 'redirected' in result
-        assert f'https://{settings.server.hostname}/hosts' in result
+        assert f'{default_sat.url}/hosts' in result
     finally:
         # resetting the settings to default for external auth
         run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)

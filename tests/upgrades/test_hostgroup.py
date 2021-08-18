@@ -17,11 +17,8 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
-
-from robottelo.config import settings
 
 
 class TestHostgroup:
@@ -30,7 +27,7 @@ class TestHostgroup:
     """
 
     @pre_upgrade
-    def test_pre_create_hostgroup(self, request):
+    def test_pre_create_hostgroup(self, request, default_sat):
         """Hostgroup with different data type are created
 
         :id: preupgrade-79958754-94b6-4bfe-af12-7d4031cd2dd2
@@ -40,29 +37,31 @@ class TestHostgroup:
         :expectedresults: Hostgroup should be create successfully.
         """
 
-        proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
+        proxy = default_sat.api.SmartProxy().search(
+            query={'search': f'url = {default_sat.url}:9090'}
         )[0]
         test_name = request.node.name
-        org = entities.Organization(name=f"{test_name}_org").create()
-        loc = entities.Location(organization=[org], name=f"{test_name}_loc").create()
-        parent_hostgroup = entities.HostGroup(
+        org = default_sat.api.Organization(name=f"{test_name}_org").create()
+        loc = default_sat.api.Location(organization=[org], name=f"{test_name}_loc").create()
+        parent_hostgroup = default_sat.api.HostGroup(
             location=[loc.id], organization=[org.id], name=f'{test_name}_parent_host_grp'
         ).create()
-        lc_env = entities.LifecycleEnvironment(name=f"{test_name}_lce", organization=org).create()
+        lc_env = default_sat.api.LifecycleEnvironment(
+            name=f"{test_name}_lce", organization=org
+        ).create()
 
-        domain = entities.Domain(name=f"{test_name}_domain").create()
-        architecture = entities.Architecture().create()
-        ptable = entities.PartitionTable().create()
-        operatingsystem = entities.OperatingSystem(
+        domain = default_sat.api.Domain(name=f"{test_name}_domain").create()
+        architecture = default_sat.api.Architecture().create()
+        ptable = default_sat.api.PartitionTable().create()
+        operatingsystem = default_sat.api.OperatingSystem(
             architecture=[architecture], ptable=[ptable], name=f"{test_name}_os"
         ).create()
-        medium = entities.Media(operatingsystem=[operatingsystem]).create()
-        subnet = entities.Subnet(
+        medium = default_sat.api.Media(operatingsystem=[operatingsystem]).create()
+        subnet = default_sat.api.Subnet(
             location=[loc], organization=[org], name=f"{test_name}_subnet"
         ).create()
 
-        host_group = entities.HostGroup(
+        host_group = default_sat.api.HostGroup(
             architecture=architecture,
             domain=domain,
             location=[loc.id],
@@ -82,7 +81,7 @@ class TestHostgroup:
         assert host_group.name == f"{test_name}_host_grp"
 
     @post_upgrade(depend_on=test_pre_create_hostgroup)
-    def test_post_crud_hostgroup(self, request, dependent_scenario_name):
+    def test_post_crud_hostgroup(self, request, dependent_scenario_name, default_sat):
         """After upgrade, Update, delete and clone should work on existing hostgroup(created before
         upgrade)
 
@@ -105,34 +104,44 @@ class TestHostgroup:
         """
         pre_test_name = dependent_scenario_name
         # verify host-group is intact after upgrade
-        org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]
-        request.addfinalizer(org.delete)
-        loc = entities.Location().search(query={'search': f'name="{pre_test_name}_loc"'})[0]
-        request.addfinalizer(loc.delete)
-        proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
+        org = default_sat.api.Organization().search(
+            query={'search': f'name="{pre_test_name}_org"'}
         )[0]
-        hostgrp = entities.HostGroup().search(query={'search': f'name={pre_test_name}_host_grp'})[0]
+        request.addfinalizer(org.delete)
+        loc = default_sat.api.Location().search(query={'search': f'name="{pre_test_name}_loc"'})[0]
+        request.addfinalizer(loc.delete)
+        proxy = default_sat.api.SmartProxy().search(
+            query={'search': f'url = {default_sat.url}:9090'}
+        )[0]
+        hostgrp = default_sat.api.HostGroup().search(
+            query={'search': f'name={pre_test_name}_host_grp'}
+        )[0]
         request.addfinalizer(hostgrp.parent.delete)
         request.addfinalizer(hostgrp.delete)
         assert f"{pre_test_name}_host_grp" == hostgrp.name
         assert proxy.id == hostgrp.puppet_proxy.id
         assert proxy.id == hostgrp.puppet_ca_proxy.id
 
-        domain = entities.Domain().search(query={'search': f'name={pre_test_name}_domain'})[0]
+        domain = default_sat.api.Domain().search(query={'search': f'name={pre_test_name}_domain'})[
+            0
+        ]
         assert domain.id == hostgrp.domain.id
         request.addfinalizer(domain.delete)
 
-        subnet = entities.Subnet().search(query={'search': f'name={pre_test_name}_subnet'})[0]
+        subnet = default_sat.api.Subnet().search(query={'search': f'name={pre_test_name}_subnet'})[
+            0
+        ]
         assert subnet.id == hostgrp.subnet.id
         request.addfinalizer(subnet.delete)
 
-        parent = entities.HostGroup().search(
+        parent = default_sat.api.HostGroup().search(
             query={'search': f'name={pre_test_name}_parent_host_grp'}
         )[0]
         assert parent.id == hostgrp.parent.id
 
-        os = entities.OperatingSystem().search(query={'search': f'name={pre_test_name}_os'})[0]
+        os = default_sat.api.OperatingSystem().search(query={'search': f'name={pre_test_name}_os'})[
+            0
+        ]
         assert os.id == hostgrp.operatingsystem.id
         request.addfinalizer(os.delete)
 
@@ -142,27 +151,27 @@ class TestHostgroup:
         hostgrp.update(['name'])
         assert new_name == hostgrp.name
 
-        new_subnet = entities.Subnet().create()
+        new_subnet = default_sat.api.Subnet().create()
         hostgrp.subnet = new_subnet
         hostgrp.update(['subnet'])
         assert new_subnet.id == hostgrp.subnet.id
 
-        new_domain = entities.Domain().create()
+        new_domain = default_sat.api.Domain().create()
         hostgrp.domain = new_domain
         hostgrp.update(['domain'])
         assert new_domain.id == hostgrp.domain.id
 
-        new_os = entities.OperatingSystem().create()
+        new_os = default_sat.api.OperatingSystem().create()
         hostgrp.operatingsystem = new_os
         hostgrp.update(['operatingsystem'])
         assert new_os.id == hostgrp.operatingsystem.id
 
         # clone hostgroup
         hostgroup_cloned_name = gen_string('alpha')
-        hostgroup_cloned = entities.HostGroup(id=hostgrp.id).clone(
+        hostgroup_cloned = default_sat.api.HostGroup(id=hostgrp.id).clone(
             data={'name': hostgroup_cloned_name}
         )
-        hostgroup_search = entities.HostGroup().search(
+        hostgroup_search = default_sat.api.HostGroup().search(
             query={'search': f'name={hostgroup_cloned_name}'}
         )
         assert len(hostgroup_search) == 1
@@ -176,7 +185,6 @@ class TestHostgroup:
             del hostgroup_cloned[key]
 
         # remove unique values before comparison
-        uniqe_keys = ('updated_at', 'created_at', 'title', 'id', 'name')
-        for key in uniqe_keys:
+        for key in ('updated_at', 'created_at', 'title', 'id', 'name'):
             del hostgroup_cloned[key]
         assert hostgroup_cloned.items() <= hostgroup_origin.items()

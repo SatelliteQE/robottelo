@@ -660,7 +660,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_on_demand_sync(self, capsule_configured):
+    def test_positive_on_demand_sync(self, capsule_configured, default_sat):
         """Create a repository with 'on_demand' sync, add it to lifecycle
         environment with a capsule, sync repository, examine existing packages
         on capsule, download any package, examine packages once more
@@ -775,8 +775,9 @@ class TestCapsuleContentManagement:
         assert broken_links == links
 
         # Download package from satellite and get its md5 checksum
+        # Not using default_sat.url as it uses https
         published_repo_url = 'http://{}{}/pulp/{}/'.format(
-            settings.server.hostname,
+            default_sat.hostname,
             f':{settings.server.port}' if settings.server.port else '',
             lce_repo_path.split('http/')[1],
         )

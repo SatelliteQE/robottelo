@@ -30,23 +30,12 @@ from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.datafactory import gen_string
 from robottelo.ui.utils import create_fake_host
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
 
 
 @pytest.fixture(scope='module')
@@ -394,7 +383,7 @@ def test_positive_autocomplete(session):
 
 
 @pytest.mark.tier2
-def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc):
+def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc, default_sat):
     """Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67
@@ -438,7 +427,7 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
         f'expect "&"\n'
         f'send "q\\r"\n'
     )
-    ssh.command(f'expect -c \'{expect_script}\'', hostname=settings.server.hostname)
+    ssh.command(f'expect -c \'{expect_script}\'', hostname=default_sat.hostname)
     ssh.download_file(gzip_path)
     os.system(f'gunzip {gzip_path}')
     with open(file_path) as json_file:

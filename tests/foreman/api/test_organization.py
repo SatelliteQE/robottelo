@@ -32,7 +32,6 @@ from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.config import get_credentials
-from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_values_list
@@ -306,7 +305,7 @@ class TestOrganizationUpdate:
 
     @pytest.mark.upgrade
     @pytest.mark.tier2
-    def test_positive_add_and_remove_smart_proxy(self):
+    def test_positive_add_and_remove_smart_proxy(self, default_sat):
         """Add a smart proxy to an organization
 
         :id: e21de720-3fa2-429b-bd8e-b6a48a13146d
@@ -318,15 +317,15 @@ class TestOrganizationUpdate:
         :CaseLevel: Integration
         """
         # Every Satellite has a built-in smart proxy, so let's find it
-        smart_proxy = entities.SmartProxy().search(
-            query={'search': f'url = https://{settings.server.hostname}:9090'}
+        smart_proxy = default_sat.api.SmartProxy().search(
+            query={'search': f'url = {default_sat.url}:9090'}
         )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0
         smart_proxy = smart_proxy[0]
         # By default, newly created organization uses built-in smart proxy,
         # so we need to remove it first
-        org = entities.Organization().create()
+        org = default_sat.api.Organization().create()
         org.smart_proxy = []
         org = org.update(['smart_proxy'])
         # Verify smart proxy was actually removed

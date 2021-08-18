@@ -18,15 +18,13 @@
 """
 import pytest
 from broker.broker import VMBroker
-from nailgun import entities
 
-from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
 
 @pytest.mark.tier1
 def test_positive_register(
-    module_org, module_location, module_lce, module_ak_cv_lce, module_published_cv
+    module_org, module_location, module_lce, module_ak_cv_lce, module_published_cv, default_sat
 ):
     """System is registered
 
@@ -46,17 +44,17 @@ def test_positive_register(
 
     :CaseImportance: Critical
     """
-    hg = entities.HostGroup(location=[module_location], organization=[module_org]).create()
+    hg = default_sat.api.HostGroup(location=[module_location], organization=[module_org]).create()
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         # assure system is not registered
         result = vm.execute('subscription-manager identity')
         # result will be 1 if not registered
         assert result.status == 1
         assert vm.execute(
-            f'curl -o /root/bootstrap.py "http://{settings.server.hostname}/pub/bootstrap.py" '
+            f'curl -o /root/bootstrap.py "http://{default_sat.hostname}/pub/bootstrap.py" '
         )
         assert vm.execute(
-            f'python /root/bootstrap.py -s {settings.server.hostname} -o {module_org.name}'
+            f'python /root/bootstrap.py -s {default_sat.hostname} -o {module_org.name}'
             f' -L {module_location.name} -a {module_ak_cv_lce.name} --hostgroup={hg.name}'
             ' --skip puppet --skip foreman'
         )
@@ -66,7 +64,7 @@ def test_positive_register(
         assert result.status == 0
         # register system once again
         assert vm.execute(
-            f'python /root/bootstrap.py -s "{settings.server.hostname}" -o {module_org.name} '
+            f'python /root/bootstrap.py -s "{default_sat.hostname}" -o {module_org.name} '
             f'-L {module_location.name} -a {module_ak_cv_lce.name} --hostgroup={hg.name}'
             '--skip puppet --skip foreman '
         )
