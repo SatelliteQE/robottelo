@@ -273,7 +273,12 @@ def test_negative_settings_access_to_non_admin():
     entities.User(admin=False, login=login, password=password).create()
     try:
         with Session(user=login, password=password) as session:
-            assert session.settings.robottelo.browser.title == 'Permission denied'
+            result = session.settings.permission_denied()
+            assert (
+                result == 'Permission denied You are not authorized to perform this action. '
+                'Please request one of the required permissions listed below '
+                'from a Satellite administrator: view_settings Back'
+            )
     finally:
         User.delete({'login': login})
 
