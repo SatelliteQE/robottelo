@@ -30,7 +30,6 @@ from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_gpg_key
 from robottelo.cli.factory import make_lifecycle_environment
-from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
@@ -40,7 +39,6 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
-from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
@@ -231,27 +229,6 @@ class TestRepository:
         :parametrized: yes
 
         :expectedresults: YUM repository is created
-
-        :CaseImportance: Critical
-        """
-        for key in 'url', 'content-type':
-            assert repo.get(key) == repo_options[key]
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'puppet', 'url': url} for url in PUPPET_REPOS]),
-        indirect=True,
-    )
-    def test_positive_create_with_puppet_repo(self, repo_options, repo):
-        """Create Puppet repository
-
-        :id: 75c309ba-fbc9-419d-8427-7a61b063ec13
-
-        :parametrized: yes
-
-        :expectedresults: Puppet repository is created
 
         :CaseImportance: Critical
         """
@@ -505,34 +482,6 @@ class TestRepository:
         assert result['download-policy'] == 'on_demand'
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'puppet',
-                    'url': FAKE_7_PUPPET_REPO.format(cred['login'], cred['pass']),
-                }
-                for cred in valid_http_credentials(url_encoded=True)
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_with_auth_puppet_repo(self, repo_options, repo):
-        """Create Puppet repository with basic HTTP authentication
-
-        :id: b13f8ae2-60ab-47e6-a096-d3f368e5cab3
-
-        :parametrized: yes
-
-        :expectedresults: Puppet repository is created
-
-        :CaseImportance: Critical
-        """
-        for key in 'url', 'content-type':
-            assert repo.get(key) == repo_options[key]
-
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_create_with_gpg_key_by_id(self, repo_options, gpg_key):
         """Check if repository can be created with gpg key ID
@@ -700,42 +649,6 @@ class TestRepository:
         """
         for key in 'url', 'content-type', 'name':
             assert repo.get(key) == repo_options[key]
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content-type': 'puppet', 'url': 'https://omaciel.fedorapeople.org/b3502064/'}]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_puppet_repo_same_url_different_orgs(self, repo_options, repo):
-        """Create two repos with the same URL in two different organizations.
-
-        :id: b3502064-f400-4e60-a11f-b3772bd23a98
-
-        :parametrized: yes
-
-        :expectedresults: Repositories are created and puppet modules are
-            visible from different organizations.
-
-        :CaseLevel: Integration
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['content-counts']['puppet-modules'] == '1'
-
-        # Create the repo in another org.
-        org_2 = make_org()
-        product_2 = make_product({'organization-id': org_2['id']})
-        repo_options_2 = repo_options.copy()
-        repo_options_2['organization-id'] = org_2['id']
-        repo_options_2['product-id'] = product_2['id']
-        repo_2 = make_repository(repo_options_2)
-
-        Repository.synchronize({'id': repo_2['id']})
-        repo_2 = Repository.info({'id': repo_2['id']})
-        assert repo_2['content-counts']['puppet-modules'] == '1'
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1027,43 +940,6 @@ class TestRepository:
         **parametrized(
             [
                 {
-                    'content-type': 'puppet',
-                    'url': FAKE_7_PUPPET_REPO.format(cred['login'], cred['pass']),
-                }
-                for cred in valid_http_credentials(url_encoded=True)
-                if cred['http_valid']
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_auth_puppet_repo(self, repo):
-        """Check if secured puppet repository can be created and synced
-
-        :id: 1d2604fc-8a18-4cbe-bf4c-5c7d9fbdb82c
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and synced
-
-        :BZ: 1405503
-
-        :CaseLevel: Integration
-        """
-        # Assertion that repo is not yet synced
-        assert repo['sync']['status'] == 'Not Synced'
-        # Synchronize it
-        Repository.synchronize({'id': repo['id']})
-        # Verify it has finished
-        new_repo = Repository.info({'id': repo['id']})
-        assert new_repo['sync']['status'] == 'Success'
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
                     'content-type': 'docker',
                     'docker-upstream-name': CONTAINER_UPSTREAM_NAME,
                     'name': valid_docker_repository_names()[0],
@@ -1266,41 +1142,6 @@ class TestRepository:
         repo = Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['packages'] == '32'
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_resynchronize_puppet_repo(self, repo):
-        """Check that repository content is resynced after puppet modules
-        were removed from repository
-
-        :id: 9e28f0ae-3875-4c1e-ad8b-d068f4409fe3
-
-        :parametrized: yes
-
-        :expectedresults: Repository has updated non-zero puppet modules count
-
-        :BZ: 1459845, 1318004
-
-        :CaseLevel: Integration
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['puppet-modules'] == '2'
-        # Find repo packages and remove them
-        modules = PuppetModule.list({'repository-id': repo['id']})
-        Repository.remove_content({'id': repo['id'], 'ids': [module['id'] for module in modules]})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['content-counts']['puppet-modules'] == '0'
-        # Re-synchronize repository
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['puppet-modules'] == '2'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -1654,34 +1495,6 @@ class TestRepository:
             Repository.info({'id': repo['id']})
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_delete_puppet(self, repo):
-        """Check if puppet repository with puppet modules can be deleted.
-
-        :id: 83d92454-11b7-4f9a-952d-650ffe5135e4
-
-        :parametrized: yes
-
-        :expectedresults: Repository is deleted.
-
-        :BZ: 1316681
-
-        :CaseImportance: Critical
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        # Check that there is at least one puppet module
-        assert int(repo['content-counts']['puppet-modules']) > 0
-        Repository.delete({'id': repo['id']})
-        with pytest.raises(CLIReturnCodeError):
-            Repository.info({'id': repo['id']})
-
-    @pytest.mark.tier1
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
@@ -1767,36 +1580,6 @@ class TestRepository:
         )
         repo = Repository.info({'id': repo['id']})
         assert repo['content-counts']['packages'] == '0'
-
-    @pytest.mark.tier1
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_remove_content_puppet(self, repo):
-        """Synchronize repository and remove puppet content from it
-
-        :id: b025ccd0-9beb-4ac0-9fbf-21340c90650e
-
-        :parametrized: yes
-
-        :expectedresults: Content Counts shows zero puppet modules
-
-        :BZ: 1459845
-
-        :CaseImportance: Critical
-        """
-        Repository.synchronize({'id': repo['id']})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['sync']['status'] == 'Success'
-        assert repo['content-counts']['puppet-modules'] == '2'
-        # Find puppet modules and remove them from repository
-        modules = PuppetModule.list({'repository-id': repo['id']})
-        Repository.remove_content({'id': repo['id'], 'ids': [module['id'] for module in modules]})
-        repo = Repository.info({'id': repo['id']})
-        assert repo['content-counts']['puppet-modules'] == '0'
 
     @pytest.mark.tier1
     def test_positive_upload_content(self, repo):
