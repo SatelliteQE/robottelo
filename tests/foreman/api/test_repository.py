@@ -48,9 +48,7 @@ from robottelo.constants import VALID_GPG_KEY_BETA_FILE
 from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
 from robottelo.constants.repos import FAKE_5_YUM_REPO
 from robottelo.constants.repos import FAKE_7_PUPPET_REPO
@@ -219,28 +217,6 @@ class TestRepository:
         """
         for k in 'content_type', 'url':
             assert getattr(repo, k) == repo_options[k]
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_create_puppet(self, repo_options, repo):
-        """Create puppet repository.
-
-        :id: daa10ded-6de3-44b3-9707-9f0ac983d2ea
-
-        :parametrized: yes
-
-        :expectedresults: A repository is created and has puppet type.
-
-        :CaseImportance: Critical
-        """
-        assert repo.content_type == repo_options['content_type']
 
     @pytest.mark.tier1
     @pytest.mark.skipif(
@@ -454,37 +430,6 @@ class TestRepository:
         assert repo.download_policy == 'on_demand'
 
     @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content_type': 'puppet',
-                    'url': FAKE_7_PUPPET_REPO.format(creds['login'], creds['pass']),
-                }
-                for creds in valid_http_credentials(url_encoded=True)
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_with_auth_puppet_repo(self, repo_options, repo):
-        """Create Puppet repository with basic HTTP authentication
-
-        :id: af9e4f0f-d128-43d2-a680-0a62c7dab266
-
-        :parametrized: yes
-
-        :expectedresults: Puppet repository is created
-
-        :CaseImportance: Critical
-        """
-        assert repo.content_type == repo_options['content_type']
-        assert repo.url == repo_options['url']
-
-    @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
         **parametrized(
@@ -585,39 +530,6 @@ class TestRepository:
         product_2 = entities.Product(organization=org_2).create()
         repo_2 = entities.Repository(product=product_2, name=repo.name).create()
         assert repo_2.name == repo.name
-
-    @pytest.mark.tier2
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [{'content_type': 'puppet', 'url': 'https://omaciel.fedorapeople.org/7c74c2b8/'}]
-        ),
-        indirect=True,
-    )
-    def test_positive_create_puppet_repo_same_url_different_orgs(self, repo_options, repo):
-        """Create two repos with the same URL in two different organizations.
-
-        :id: 7c74c2b8-732a-4c47-8ad9-697121db05be
-
-        :parametrized: yes
-
-        :expectedresults: Repositories are created and puppet modules are
-            visible from different organizations.
-
-        :CaseLevel: Integration
-        """
-        repo.sync()
-        assert repo.read().content_counts['puppet_module'] >= 1
-
-        # Create new org, product, and repo
-        org_2 = entities.Organization().create()
-        product_2 = entities.Product(organization=org_2).create()
-        repo_options_2 = repo_options.copy()
-        repo_options_2['organization'] = org_2
-        repo_options_2['product'] = product_2
-        repo_2 = entities.Repository(**repo_options_2).create()
-        repo_2.sync()
-        assert repo_2.read().content_counts['puppet_module'] >= 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1273,43 +1185,6 @@ class TestRepository:
             repo.sync()
 
     @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            [
-                {
-                    'content_type': 'puppet',
-                    'url': FAKE_7_PUPPET_REPO.format(creds['login'], creds['pass']),
-                }
-                for creds in valid_http_credentials(url_encoded=True)
-                if creds['http_valid']
-            ]
-        ),
-        indirect=True,
-    )
-    def test_positive_synchronize_auth_puppet_repo(self, repo):
-        """Check if secured puppet repository can be created and synced
-
-        :id: a1e25d36-baae-46cb-aa3b-5cb9fca4f059
-
-        :parametrized: yes
-
-        :expectedresults: Repository is created and synced
-
-        :CaseLevel: Integration
-        """
-        # Verify that repo is not yet synced
-        assert repo.content_counts['puppet_module'] == 0
-        # Synchronize it
-        repo.sync()
-        # Verify it has finished
-        assert repo.read().content_counts['puppet_module'] == 1
-
-    @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -1342,40 +1217,6 @@ class TestRepository:
         # Re-synchronize repository
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
-
-    @pytest.mark.tier2
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content_type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_resynchronize_puppet_repo(self, repo):
-        """Check that repository content is resynced after puppet modules
-        were removed from repository
-
-        :id: db50beb0-de73-4783-abc8-57e61188b6c7
-
-        :parametrized: yes
-
-        :expectedresults: Repository has updated non-zero puppet modules count
-
-        :CaseLevel: Integration
-
-        :BZ: 1318004
-        """
-        # Synchronize it
-        repo.sync()
-        assert repo.read().content_counts['puppet_module'] >= 1
-        # Find repo packages and remove them
-        modules = entities.PuppetModule(repository=[repo]).search(query={'per_page': '1000'})
-        repo.remove_content(data={'ids': [module.id for module in modules]})
-        assert repo.read().content_counts['puppet_module'] == 0
-        # Re-synchronize repository
-        repo.sync()
-        assert repo.read().content_counts['puppet_module'] >= 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
@@ -1425,78 +1266,6 @@ class TestRepository:
         repo.delete()
         with pytest.raises(HTTPError):
             repo.read()
-
-    @pytest.mark.tier2
-    @pytest.mark.upgrade
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content_type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-        indirect=True,
-    )
-    def test_positive_delete_puppet(self, repo):
-        """Check if puppet repository with puppet modules can be deleted.
-
-        :id: 5c60b0ab-ef50-41a3-8578-bfdb5cb228ea
-
-        :parametrized: yes
-
-        :expectedresults: The repository deleted successfully.
-
-        :CaseLevel: Integration
-
-        :BZ: 1316681
-        """
-        repo.sync()
-        # Check that there is at least one puppet module
-        assert repo.read().content_counts['puppet_module'] >= 1
-        repo.delete()
-        with pytest.raises(HTTPError):
-            repo.read()
-
-    @pytest.mark.tier1
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content_type': 'puppet', 'url': FAKE_0_PUPPET_REPO}]),
-        indirect=True,
-    )
-    @pytest.mark.parametrize(
-        'repo_options_2',
-        **parametrized([{'content_type': 'puppet', 'url': FAKE_1_PUPPET_REPO}]),
-    )
-    def test_positive_list_puppet_modules_with_multiple_repos(
-        self, repo, repo_options_2, module_org, module_product
-    ):
-        """Verify that puppet modules list for specific repo is correct
-        and does not affected by other repositories.
-
-        :id: e9e16ac2-a58d-4d49-b378-59e4f5b3a3ec
-
-        :parametrized: yes
-
-        :expectedresults: Number of modules has no changed after a second repo
-            was synced.
-
-        :CaseImportance: Critical
-        """
-        # Sync first repo
-        repo.sync()
-        # Verify that number of synced modules is correct
-        content_count = repo.read().content_counts['puppet_module']
-        modules_num = len(repo.puppet_modules()['results'])
-        assert content_count == modules_num
-
-        # Create and sync second repo
-        repo_2 = entities.Repository(product=module_product, **repo_options_2).create()
-        repo_2.sync()
-
-        # Verify that number of modules from the first repo has not changed
-        assert len(repo.puppet_modules()['results']) == modules_num
 
     @pytest.mark.tier2
     @pytest.mark.upgrade
