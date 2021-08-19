@@ -20,6 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import satellite_setting
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
@@ -147,7 +148,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
             # Host Delete
-            session.host.delete(fqdn)
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                session.host.delete(fqdn)
             assert not session.host.search(fqdn)
 
             # AzureRm Cloud assertion
@@ -157,6 +159,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
+            if azurecloud_vm.exists:
+                azurecloud_vm.delete()
             raise error
 
         finally:
@@ -229,4 +233,5 @@ def test_positive_azurerm_host_provision_ud(
             )
             azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
-                azure_vm[0].delete(synchronous=False)
+                with satellite_setting('destroy_vm_on_host_delete=True'):
+                    azure_vm[0].delete(synchronous=False)
