@@ -36,7 +36,6 @@ from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import promote
-from robottelo.api.utils import publish_puppet_module
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
@@ -65,7 +64,6 @@ from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.helpers import download_server_file
 from robottelo.hosts import ContentHost
@@ -581,7 +579,9 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_with_puppet_class(session, module_host_template, module_org, module_loc):
+def test_positive_create_with_puppet_class(
+    session, module_host_template, module_org, module_loc, default_sat
+):
     """Create new Host with puppet class assigned to it
 
     :id: d883f169-1105-435c-8422-a7160055734a
@@ -591,19 +591,13 @@ def test_positive_create_with_puppet_class(session, module_host_template, module
     :CaseLevel: System
     """
     pc_name = 'generic_1'
-    cv = publish_puppet_module(
-        [{'author': 'robottelo', 'name': pc_name}],
-        CUSTOM_PUPPET_REPO,
-        organization_id=module_org.id,
-    )
-    env = (
-        entities.Environment()
-        .search(query={'search': f'content_view="{cv.name}" and organization_id={module_org.id}'})[
-            0
-        ]
-        .read()
-    )
-    env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
+    env_name = default_sat.create_custom_environment(repo=pc_name)
+    env = entities.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env = entities.Environment(
+        id=env.id,
+        location=[module_loc],
+        organization=[module_org],
+    ).update(['location', 'organization'])
     with session:
         host_name = create_fake_host(
             session,
@@ -842,6 +836,7 @@ def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_l
         assert content_host['breadcrumb'] == created_host.name
 
 
+@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Remove a host parameter as a non-admin user with enough permissions

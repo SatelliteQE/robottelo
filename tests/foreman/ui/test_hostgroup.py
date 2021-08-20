@@ -20,11 +20,9 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 
 
 @pytest.fixture(scope='module')
@@ -139,7 +137,7 @@ def test_create_with_config_group(session, module_org, module_loc):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_create_with_puppet_class(session, module_org, module_loc):
+def test_create_with_puppet_class(session, module_org, module_loc, default_sat):
     """Create new host group with assigned puppet class to it
 
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
@@ -148,18 +146,13 @@ def test_create_with_puppet_class(session, module_org, module_loc):
     """
     name = gen_string('alpha')
     pc_name = 'generic_1'
-    cv = publish_puppet_module(
-        [{'author': 'robottelo', 'name': pc_name}],
-        CUSTOM_PUPPET_REPO,
-        organization_id=module_org.id,
-    )
-    env = (
-        entities.Environment()
-        .search(query={'search': f'content_view="{cv.name}" and organization_id={module_org.id}'})[
-            0
-        ]
-        .read()
-    )
+    env_name = default_sat.create_custom_environment(repo=pc_name)
+    env = entities.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env = entities.Environment(
+        id=env.id,
+        location=[module_loc],
+        organization=[module_org],
+    ).update(['location', 'organization'])
     env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
     with session:
         # Create host group with puppet class
