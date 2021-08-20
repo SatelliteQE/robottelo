@@ -20,6 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import satellite_setting
 from robottelo.api.utils import set_hammer_api_timeout
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.computeprofile import ComputeProfile
@@ -359,7 +360,8 @@ class TestAzureRMFinishTemplateProvisioning:
         )
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        Host.delete({'name': self.fullhostname}, timeout=1800)
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            Host.delete({'name': self.fullhostname}, timeout=1800)
         set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
@@ -477,7 +479,8 @@ class TestAzureRMUserDataProvisioning:
         )
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default user data', reverse=True)
-        Host.delete({'name': self.fullhostname}, timeout=1800)
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            Host.delete({'name': self.fullhostname}, timeout=1800)
         set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
@@ -595,7 +598,8 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         )
         yield host
         skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        Host.delete({'name': self.fullhostname}, timeout=1800)
+        with satellite_setting('destroy_vm_on_host_delete=True'):
+            Host.delete({'name': self.fullhostname}, timeout=1800)
         set_hammer_api_timeout(reverse=True)
 
     @pytest.fixture(scope='class')
@@ -603,7 +607,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         """Returns the AzureRM Client Host object to perform the assertions"""
         return azurermclient.get_vm(name=class_byos_ft_host['name'].split('.')[0])
 
-    @pytest.mark.skip_if_open("BZ:1850934")
+    @pytest.mark.skip_if_open('BZ:1937960')
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_azurerm_byosft_host_provisioned(
@@ -634,7 +638,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
             7. The host Name and Platform should be same on Azure Cloud as provided during
                provisioning.
 
-        :BZ: 1850934
+        :BZ: 1850934, 1937960
         """
 
         assert class_byos_ft_host['name'] == self.fullhostname
