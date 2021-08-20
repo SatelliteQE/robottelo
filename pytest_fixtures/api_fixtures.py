@@ -138,6 +138,14 @@ def module_compute_profile():
     return entities.ComputeProfile().create()
 
 
+@pytest.fixture(scope='module')
+def module_update_default_smart_proxy(module_location, default_smart_proxy):
+    if module_location.id not in [location.id for location in default_smart_proxy.location]:
+        default_smart_proxy.location.append(entities.Location(id=module_location.id))
+    default_smart_proxy.update(['location'])
+    return default_smart_proxy
+
+
 @pytest.fixture(scope='session')
 def default_domain(default_smart_proxy):
     domain_name = settings.server.hostname.partition('.')[-1]
