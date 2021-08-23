@@ -120,6 +120,7 @@ def get_client(
         timeout=timeout,
         port=port,
         allow_agent=False if password else True,
+        look_for_keys=False if password else True,
     )
     client._id = hex(id(client))
     return client
