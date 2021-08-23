@@ -103,22 +103,26 @@ def attach_subscription(module_org, activation_key):
 
 
 @pytest.fixture
-def vm(activation_key, module_org):
+def vm(activation_key, module_org, default_sat):
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
         vm.configure_rhai_client(
-            activation_key=activation_key.name, org=module_org.label, rhel_distro=DISTRO_RHEL7
+            satellite=default_sat,
+            activation_key=activation_key.name,
+            org=module_org.label,
+            rhel_distro=DISTRO_RHEL7,
         )
         yield vm
 
 
 @pytest.fixture
-def vm_rhel8(activation_key, module_org):
+def vm_rhel8(activation_key, module_org, default_sat):
     with VMBroker(nick='rhel8', host_classes={'host': ContentHost}) as vm:
         vm.configure_rhai_client(
+            satellite=default_sat,
             activation_key=activation_key.name,
             org=module_org.label,
             rhel_distro=DISTRO_RHEL8,
-            register=False,
+            register_insights=False,
         )
         add_remote_execution_ssh_key(vm.ip_addr)
         yield vm

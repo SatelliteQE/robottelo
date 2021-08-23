@@ -22,9 +22,7 @@ import pytest
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.helpers import get_host_info
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]colors',
@@ -1325,10 +1323,10 @@ def test_positive_foreman_module():
     assert rpm_version.replace('-', '.') == semodule_version
 
 
-@pytest.mark.skip_if_open('BZ:1987288')
+@pytest.mark.skip_if_open('BZ:1964394')
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_check_installer_services():
+def test_positive_check_installer_services(default_sat):
     """Check if services start correctly
 
     :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
@@ -1339,7 +1337,7 @@ def test_positive_check_installer_services():
             services.
         3. Run the 'hammer ping' command on satellite.
 
-    :BZ: 1987288
+    :BZ: 1964394
 
     :expectedresults: All services are started
 
@@ -1347,23 +1345,23 @@ def test_positive_check_installer_services():
 
     :CaseLevel: System
     """
-    major_version = get_host_info()[1]
-    service_name = 'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat'
-    SATELLITE_SERVICES.add(service_name)
-    if major_version >= RHEL_7_MAJOR_VERSION:
+    if default_sat.os_version.major >= RHEL_7_MAJOR_VERSION:
+        service_name = 'tomcat'
         status_format = "systemctl status {0}"
     else:
+        service_name = 'tomcat6'
         status_format = "service {0} status"
+    SATELLITE_SERVICES.add(service_name)
 
     for service in SATELLITE_SERVICES:
-        result = ssh.command(status_format.format(service))
-        assert result.return_code == 0
+        result = default_sat.execute(status_format.format(service))
+        assert result.status == 0
         assert len(result.stderr) == 0
 
     # check status reported by hammer ping command
     username = settings.server.admin_username
     password = settings.server.admin_password
-    result = ssh.command(f'hammer -u {username} -p {password} ping')
+    result = default_sat.execute(f'hammer -u {username} -p {password} ping')
 
     result_output = [
         service.strip() for service in result.stdout if not re.search(r'message:', service)

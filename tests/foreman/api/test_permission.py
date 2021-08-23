@@ -34,18 +34,17 @@ from robottelo import ssh
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
-from robottelo.helpers import get_server_software
 
 
 class TestPermission:
     """Tests for the ``permissions`` path."""
 
     @pytest.fixture(scope='class', autouse=True)
-    def create_permissions(self):
+    def create_permissions(self, default_sat):
         # workaround for setting class variables
         cls = type(self)
         cls.permissions = PERMISSIONS.copy()
-        if get_server_software() == 'upstream':
+        if default_sat.is_upstream:
             cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
             cls.permissions[None].remove('app_root')
             cls.permissions[None].remove('attachments')
