@@ -91,7 +91,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self):
+    def test_positive_sync_kickstart_repo(self, default_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -126,10 +126,10 @@ class TestSatelliteContentManagement:
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
         call_entity_method_with_timeout(repo.sync, timeout=600)
-        result = ssh.command(
+        result = default_sat.execute(
             'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
         )
-        assert result.return_code == 1
+        assert result.status == 1
         assert not result.stdout
         repo = repo.read()
         assert repo.content_counts['package'] > 0
@@ -202,7 +202,7 @@ class TestCapsuleContentManagement:
         )[0]
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
         # Associate the lifecycle environment with the capsule
         capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
@@ -674,7 +674,7 @@ class TestCapsuleContentManagement:
         """
         repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
-        package = constants.YUM_REPO_RPMS[0]
+        package = constants.FAKE_1_YUM_REPO_RPMS[0]
         # Create organization, product, repository in satellite, and lifecycle
         # environment
         org = entities.Organization().create()
@@ -783,7 +783,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_mirror_on_sync(self, capsule_configured, rhel7_contenthost):
+    def test_positive_mirror_on_sync(self, capsule_configured, rhel7_contenthost, default_sat):
         """Create 2 repositories with 'on_demand' download policy and mirror on
         sync option, associate them with capsule, sync first repo, move package
         from first repo to second one, sync it, attempt to install package on
@@ -859,10 +859,14 @@ class TestCapsuleContentManagement:
         ssh.command(
             'mv {} {}'.format(
                 os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH, repo1_name, constants.YUM_REPO_RPMS[2]
+                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
+                    repo1_name,
+                    constants.FAKE_1_YUM_REPO_RPMS[2],
                 ),
                 os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH, repo2_name, constants.YUM_REPO_RPMS[2]
+                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
+                    repo2_name,
+                    constants.FAKE_1_YUM_REPO_RPMS[2],
                 ),
             )
         )
@@ -911,10 +915,10 @@ class TestCapsuleContentManagement:
         )[0]
         activation_key.add_subscriptions(data={'subscription_id': subscription.id})
         # Subscribe a host with activation key
-        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(org.label, activation_key.name)
         # Install the package
-        package_name = constants.YUM_REPO_RPMS[2].rstrip('.rpm')
+        package_name = constants.FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
         result = rhel7_contenthost.run(f'yum install -y {package_name}')
         assert result.status == 0
 
@@ -926,7 +930,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_update_with_immediate_sync(self, request, capsule_configured):
+    def test_positive_update_with_immediate_sync(self, request, capsule_configured, default_sat):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
         more.
@@ -1034,7 +1038,7 @@ class TestCapsuleContentManagement:
         cvv_repo_path = form_repo_path(
             org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
         )
-        result = ssh.command(f'find {cvv_repo_path}/ -type l')
+        result = default_sat.execute(f'find {cvv_repo_path}/ -type l')
         assert result.status == 0
 
         links = {link for link in result.stdout if link}
@@ -1043,7 +1047,9 @@ class TestCapsuleContentManagement:
 
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # satellite
-        result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
+        result = default_sat.execute(
+            f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print'
+        )
 
         assert result.status == 0
 

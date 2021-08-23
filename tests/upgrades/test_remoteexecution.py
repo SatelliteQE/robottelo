@@ -167,7 +167,7 @@ class TestScenarioREXSatellite:
 
     @pre_upgrade
     def test_pre_scenario_remoteexecution_satellite(
-        self, request, compute_resource_setup, default_location, rhel7_contenthost
+        self, request, compute_resource_setup, default_location, rhel7_contenthost, default_sat
     ):
         """Run REX job on client registered with Satellite
 
@@ -194,7 +194,7 @@ class TestScenarioREXSatellite:
             organization=[self.org.id],
             remote_execution_proxy=[entities.SmartProxy(id=1)],
         ).create()
-        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(org=self.org.label, lce='Library')
         add_remote_execution_ssh_key(hostname=rhel7_contenthost.ip_addr)
         host = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})

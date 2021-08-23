@@ -1,3 +1,4 @@
+import re
 import time
 from functools import cached_property
 from pathlib import Path
@@ -8,17 +9,17 @@ from broker import VMBroker
 from broker.hosts import Host
 from fauxfactory import gen_alpha
 from nailgun import entities
+from packaging.version import Version
 from wait_for import TimedOutError
 from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo import ssh
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import settings
-from robottelo.helpers import install_katello_ca
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import InstallerCommand
-from robottelo.helpers import remove_katello_ca
+
 
 POWER_WORKFLOW_KEYS = {
     VmState.RUNNING: 'power_on',
@@ -100,6 +101,34 @@ class ContentHost(Host):
     def ip_addr(self):
         ipv4, ipv6 = self.execute('hostname -I').stdout.split()
         return ipv4
+
+    @cached_property
+    def _redhat_release(self):
+        """Process redhat-release file for distro and version information"""
+        result = self.execute('cat /etc/redhat-release')
+        if result.status != 0:
+            raise ContentHostError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
+        match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout)
+        if match is None:
+            raise ContentHostError(f'Not able to parse release string "{result.stdout}"')
+        return match.groupdict()
+
+    @cached_property
+    def os_distro(self):
+        """Get host's distro information"""
+        groups = self._redhat_release
+        return groups['distro']
+
+    @cached_property
+    def os_version(self):
+        """Get host's OS version information
+
+        :returns: A ``packaging.version.Version`` instance
+        """
+        groups = self._redhat_release
+        minor_version = '' if groups['minor'] is None else f'.{groups["minor"]}'
+        version_string = f'{groups["major"]}{minor_version}'
+        return Version(version=version_string)
 
     def setup(self):
         self.remove_katello_ca()
@@ -237,21 +266,39 @@ class ContentHost(Host):
         if result.status != 0:
             raise ContentHostError('Failed to install katello-host-tools')
 
-    def install_katello_ca(self, sat_hostname=None):
-        """Downloads and installs katello-ca rpm on the broker virtual machine.
+    def install_katello_ca(self, satellite):
+        """Downloads and installs katello-ca rpm on the content host.
 
-        Uses common helper `install_katello_ca(hostname=None)`, but passes
-        `self.hostname` instead of the hostname as we are using fake hostnames
-        for broker virtual machines.
+        :param satellite: robottelo.hosts.Satellite instance
 
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't
             installed.
         """
-        try:
-            install_katello_ca(hostname=self.hostname, sat_hostname=sat_hostname)
-        except AssertionError:
-            raise ContentHostError('Failed to download and install the katello-ca rpm')
+        self.execute(f'rpm -Uvh {satellite.url_katello_ca_rpm}')
+        # Not checking the return_code here, as rpm could be installed before
+        # and installation may fail
+        result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
+        # Checking the return_code here to verify katello-ca rpm is actually
+        # present in the system
+        if result.status != 0:
+            ContentHostError('Failed to download and install the katello-ca rpm')
+
+    def remove_katello_ca(self):
+        """Removes katello-ca rpm from the broker virtual machine.
+
+        :return: None.
+        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
+        """
+        # Not checking the return_code here, as rpm can be not even installed
+        # and deleting may fail
+        self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
+        # Checking the return_code here to verify katello-ca rpm is actually
+        # not present in the system
+        result = self.execute('rpm -qa |grep katello-ca-consumer')
+        if result.status == 0:
+            raise ContentHostError(f'katello-ca rpm(s) are still installed: {result.stdout}')
+        self.execute('subscription-manager clean')
 
     def install_capsule_katello_ca(self, capsule=None):
         """Downloads and installs katello-ca rpm on the broker virtual machine.
@@ -328,19 +375,6 @@ class ContentHost(Host):
         if force:
             cmd += ' --force'
         return self.execute(cmd)
-
-    def remove_katello_ca(self, capsule=None):
-        """Removes katello-ca rpm from the broker virtual machine.
-
-        :param: str capsule: (optional) Capsule hostname
-        :return: None.
-        :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
-        """
-        hostname = capsule or self.hostname
-        try:
-            remove_katello_ca(hostname=hostname)
-        except AssertionError:
-            raise ContentHostError('Failed to remove the katello-ca rpm')
 
     def unregister(self):
         """Run subscription-manager unregister.
@@ -445,7 +479,8 @@ class ContentHost(Host):
         # sat6 under the capsule --> certifcates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('puppet agent -t')
-        ssh.command(cmd='puppetserver ca sign --all', hostname=proxy_hostname)
+        proxy_host = Host(proxy_hostname)
+        proxy_host.execute(cmd='puppetserver ca sign --all')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
@@ -467,11 +502,40 @@ class ContentHost(Host):
         if result.status != 0:
             raise ContentHostError('Failed to execute foreman_scap_client run.')
 
-    def configure_rhai_client(self, activation_key, org, rhel_distro, register=True):
+    def configure_rex(self, satellite, org, subnet_id=None, by_ip=True, register=True):
+        """Setup a VM host for remote execution.
+
+        :param Satellite satellite: a hosts.Satellite instance
+        :param str org: The organization entity, label attr is used
+        :param int subnet: (Optional) Nailgun subnet entity id, to be used by the vm_client host.
+        :param bool by_ip: Whether remote execution will use ip or host name to access server.
+        :param bool register: Whether to register to the Satellite. Keyexchange done regardless
+        """
+        if register:
+            self.install_katello_ca(satellite)
+            self.register_contenthost(org.label, lce='Library')
+            assert self.subscribed
+        add_remote_execution_ssh_key(self.ip_addr, proxy_hostname=satellite.hostname)
+        if register and subnet_id is not None:
+            host = self.nailgun_host.read()
+            host.name = self.hostname
+            host.subnet_id = int(subnet_id)
+            host.update(['name', 'subnet_id'])
+        if register and by_ip:
+            # connect to host by ip
+            host = self.nailgun_host.read()
+            host_parameters = [{'name': 'remote_execution_connect_by_ip', 'value': 'True'}]
+            host.host_parameters_attributes = host_parameters
+            host.update(['host_parameters_attributes'])
+
+    def configure_rhai_client(
+        self, satellite, activation_key, org, rhel_distro, register_insights=True, register=True
+    ):
         """Configures a Red Hat Access Insights service on the system by
         installing the redhat-access-insights package and registering to the
         service.
 
+        :param satellite: A Capsule/Satellite instance
         :param activation_key: Activation key to be used to register the
             system to satellite
         :param org: The org to which the system is required to be registered
@@ -479,9 +543,10 @@ class ContentHost(Host):
         :param register: Whether to register client to insights
         :return: None
         """
-        # Install Satellite CA rpm
-        self.install_katello_ca()
-        self.register_contenthost(org, activation_key)
+        if register:
+            # Install Satellite CA rpm
+            self.install_katello_ca(satellite)
+            self.register_contenthost(org, activation_key)
 
         # Red Hat Insights requires RHEL 6/7/8 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
@@ -498,17 +563,13 @@ class ContentHost(Host):
         self.configure_rhel_repo(rhel_repo)
 
         # Install insights-client rpm
-        result = self.execute('yum install -y insights-client')
-        if result.status != 0:
+        if self.execute('yum install -y insights-client').status != 0:
             raise ContentHostError('Unable to install insights-client rpm')
 
-        if not register:
-            return
-
-        # Register client
-        result = self.execute('insights-client --register')
-        if result.status != 0:
-            raise ContentHostError('Unable to register client to Insights through Satellite')
+        if register_insights:
+            # Register client
+            if self.execute('insights-client --register').status != 0:
+                raise ContentHostError('Unable to register client to Insights through Satellite')
 
     def unregister_insights(self):
         """Unregister insights client.
@@ -549,6 +610,7 @@ class ContentHost(Host):
     # What the heck to call this function?
     def contenthost_setup(
         self,
+        satellite,
         org_label,
         rh_repo_ids=None,
         repo_labels=None,
@@ -561,6 +623,7 @@ class ContentHost(Host):
         """
         Setup a Content Host with basic components and tasks.
 
+        :param satellite: A Capsule/Satellite instance
         :param str org_label: The Organization label.
         :param list rh_repo_ids: a list of RH repositories ids to enable.
         :param list repo_labels: a list of custom repositories labels to enable.
@@ -572,7 +635,7 @@ class ContentHost(Host):
         """
         rh_repo_ids = rh_repo_ids or []
         repo_labels = repo_labels or []
-        self.install_katello_ca()
+        self.install_katello_ca(satellite)
         self.register_contenthost(org_label, activation_key=activation_key, lce=lce)
         if not self.subscribed:
             raise CLIFactoryError('Virtual machine failed subscription')
@@ -596,6 +659,7 @@ class ContentHost(Host):
 
     def virt_who_hypervisor_config(
         self,
+        satellite,
         config_id,
         org_id=None,
         lce_id=None,
@@ -610,6 +674,7 @@ class ContentHost(Host):
         """
         Configure virtual machine as hypervisor virt-who service
 
+        :param satellite: A Capsule/Satellite instance
         :param int config_id: virt-who config id
         :param int org_id: the organization id
         :param int lce_id: the lifecycle environment id to use
@@ -656,6 +721,7 @@ class ContentHost(Host):
         activation_key = content_setup_data['activation_key']
         content_view = content_setup_data['content_view']
         self.contenthost_setup(
+            satellite=satellite,
             org_label=org['label'],
             activation_key=activation_key['name'],
             patch_os_release_distro=constants.DISTRO_RHEL7,
@@ -783,6 +849,15 @@ class Capsule(ContentHost):
         from nailgun.entities import Capsule as NailgunCapsule
 
         return NailgunCapsule().search(query={'search': f'name={self.hostname}'})[0]
+
+    @cached_property
+    def is_upstream(self):
+        """Figure out which product distribution is installed on the server.
+
+        :return: True if no downstream satellite RPMS are installed
+        :rtype: bool
+        """
+        return self.execute('rpm -q satellite &>/dev/null').status != 0
 
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
@@ -931,11 +1006,20 @@ class Satellite(Capsule):
 
     @cached_property
     def version(self):
-        return self.execute('rpm -q satellite').stdout.split('-')[1]
+        if not self.is_upstream:
+            return self.execute('rpm -q satellite').stdout.split('-')[1]
+        else:
+            return 'upstream'
 
     @cached_property
     def url(self):
         return f'https://{self.hostname}'
+
+    @cached_property
+    def url_katello_ca_rpm(self):
+        """Return the Katello cert RPM URL"""
+        pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
+        return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
     def capsule_certs_generate(self, capsule, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""

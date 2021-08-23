@@ -1,7 +1,6 @@
 import logging
 import os
 from pathlib import Path
-from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
 from dynaconf import LazySettings
@@ -74,17 +73,6 @@ def get_url():
         hostname = f"{hostname}:{port}"
 
     return urlunsplit((scheme, hostname, '', '', ''))
-
-
-def get_cert_rpm_url():
-    """Return the Katello cert RPM URL of the server being tested.
-    The following values from the config file are used to build the URL:
-    * ``main.server.hostname`` (required)
-    :return: The Katello cert RPM URL.
-    :rtype: str
-    """
-    pub_url = urlunsplit(('http', settings.server.get('hostname'), 'pub/', '', ''))
-    return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
 
 def setting_is_set(option):

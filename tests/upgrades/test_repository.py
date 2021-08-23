@@ -168,7 +168,7 @@ class TestScenarioCustomRepoCheck:
             f'|grep {RPM1_NAME}'
         )
 
-        assert result.return_code == 0
+        assert result.status == 0
         assert len(result.stdout) >= 1
 
         subscription = default_sat.api.Subscription(organization=org).search(
@@ -251,6 +251,6 @@ class TestScenarioCustomRepoCheck:
                 org_label, lce_name, content_view.label, prod_label, repo.label, RPM2_NAME
             )
         )
-        assert result.return_code == 0
+        assert result.status == 0
         assert len(result.stdout)
         install_or_update_package(client_hostname=client_container_id, package=RPM2_NAME)

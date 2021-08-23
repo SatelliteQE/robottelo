@@ -24,7 +24,7 @@ from robottelo.constants import DISTRO_RHEL8
 
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
-def test_positive_connection_option(rhel7_contenthost, module_org, activation_key):
+def test_positive_connection_option(rhel7_contenthost, module_org, activation_key, default_sat):
     """Verify that 'insights-client --test-connection' successfully tests the proxy connection via
     the Satellite.
 
@@ -32,7 +32,9 @@ def test_positive_connection_option(rhel7_contenthost, module_org, activation_ke
 
     :expectedresults: 'insights-client --test-connection' should return 0.
     """
-    rhel7_contenthost.configure_rhai_client(activation_key.name, module_org.label, DISTRO_RHEL7)
+    rhel7_contenthost.configure_rhai_client(
+        default_sat, activation_key.name, module_org.label, DISTRO_RHEL7
+    )
     result = rhel7_contenthost.execute('insights-client --test-connection')
     assert result.status == 0, (
         'insights-client --test-connection failed.\n'
@@ -44,7 +46,9 @@ def test_positive_connection_option(rhel7_contenthost, module_org, activation_ke
 
 @pytest.mark.tier4
 @pytest.mark.run_in_one_thread
-def test_positive_connection_option_non_rhel7(rhel8_contenthost, module_org, activation_key):
+def test_positive_connection_option_non_rhel7(
+    rhel8_contenthost, module_org, activation_key, default_sat
+):
     """Verify that 'insights-client --test-connection' successfully tests the proxy connection via
     the Satellite.
 
@@ -58,7 +62,9 @@ def test_positive_connection_option_non_rhel7(rhel8_contenthost, module_org, act
 
     :expectedresults: 'insights-client --test-connection' should return 0.
     """
-    rhel8_contenthost.configure_rhai_client(activation_key.name, module_org.label, DISTRO_RHEL8)
+    rhel8_contenthost.configure_rhai_client(
+        default_sat, activation_key.name, module_org.label, DISTRO_RHEL8
+    )
     result = rhel8_contenthost.execute('insights-client --test-connection')
     assert result.status == 0, (
         'insights-client --test-connection failed.\n'
