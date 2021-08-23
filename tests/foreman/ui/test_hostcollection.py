@@ -78,11 +78,13 @@ def module_repos_collection_module_stream(module_org, module_lce):
 
 
 @pytest.fixture
-def vm_content_hosts(request, module_loc, module_repos_collection, default_sat):
+def vm_content_hosts(module_loc, module_repos_collection, default_sat):
     distro = module_repos_collection.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(client, install_katello_agent=False)
+            module_repos_collection.setup_virtual_machine(
+                client, default_sat, install_katello_agent=False
+            )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)
         smart_proxy = (
@@ -99,7 +101,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
             module_repos_collection_module_stream.setup_virtual_machine(
-                client, install_katello_agent=False
+                client, default_sat, install_katello_agent=False
             )
             add_remote_execution_ssh_key(client.ip_addr)
             update_vm_host_location(client, module_loc.id)

@@ -2803,7 +2803,7 @@ def test_positive_publish_promote_with_custom_puppet_module(session, module_org)
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost):
+def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthost, default_sat):
     """Attempt to subscribe a host to content view with custom repository
 
     :id: 715db997-707b-4868-b7cc-b6977fd6ac04
@@ -2823,7 +2823,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
         repositories=[SatelliteToolsRepository(), YumRepository(url=FAKE_0_YUM_REPO)],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -2837,7 +2837,7 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthost):
+def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthost, default_sat):
     """Attempt to subscribe a host to content view with puppet modules
 
     :id: c57fbdca-31e8-43f1-844d-b82b13c0c4de
@@ -2864,7 +2864,7 @@ def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthos
         ],
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     assert rhel7_contenthost.subscribed
     with session:
         session.organization.select(org.name)
@@ -3261,7 +3261,7 @@ def test_positive_errata_inc_update_list_package(session):
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_composite_child_inc_update(session, rhel7_contenthost):
+def test_positive_composite_child_inc_update(session, rhel7_contenthost, default_sat):
     """Incremental update with a new errata on a child content view should
     trigger incremental update of parent composite content view
 
@@ -3325,7 +3325,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost):
     entities.ActivationKey(
         id=content_data['activation_key']['id'], content_view=composite_cv
     ).update(['content_view'])
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     result = rhel7_contenthost.run(
         'yum -y install {}'.format(FAKE_0_INC_UPD_OLD_PACKAGE.rstrip('.rpm'))
     )

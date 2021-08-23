@@ -22,8 +22,6 @@ import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
 
-from .utils import AK_CONTENT_LABEL
-from .utils import ClientProvisioningMixin
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
@@ -53,6 +51,9 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.constants.repos import FAKE_0_PUPPET_REPO
+
+
+AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
 @pytest.fixture(scope='module')
@@ -100,12 +101,10 @@ def test_positive_cli_find_admin_user():
     assert result['admin'] == 'yes'
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
 @pytest.mark.tier4
-@pytest.mark.on_premises_provisioning
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(fake_manifest_is_set):
+def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, default_sat):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -129,7 +128,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set):
         17. Create a new subnet
         18. Create a new domain
         19. Create a new hostgroup and associate previous entities to it
-        20. Provision a client
+        20. Provision a client  ** NOT CURRENTLY PROVISIONING
 
     :id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
 
@@ -363,7 +362,19 @@ def test_positive_cli_end_to_end(fake_manifest_is_set):
     )
 
     # step 2.20: Provision a client
-    ClientProvisioningMixin().client_provisioning(activation_key['name'], org['label'])
+    # TODO this isn't provisioning through satellite as intended
+    # Note it wasn't well before the change that added this todo
+    rhel6_contenthost.install_katello_ca(default_sat)
+    # Register client with foreman server using act keys
+    rhel6_contenthost.register_contenthost(org['label'], activation_key['name'])
+    assert rhel6_contenthost.subscribed
+    # Install rpm on client
+    package_name = 'python-kitchen'
+    result = rhel6_contenthost.execute(f'yum install -y {package_name}')
+    assert result.status == 0
+    # Verify that the package is installed by querying it
+    result = rhel6_contenthost.run(f'rpm -q {package_name}')
+    assert result.status == 0
 
 
 def _create(user, entity, attrs):

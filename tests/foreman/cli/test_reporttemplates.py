@@ -751,7 +751,7 @@ def test_positive_generate_ansible_template():
 
 @pytest.mark.tier3
 def test_positive_generate_entitlements_report_multiple_formats(
-    local_org, local_ak, local_subscription, rhel7_contenthost
+    local_org, local_ak, local_subscription, rhel7_contenthost, default_sat
 ):
     """Generate an report using the Subscription - Entitlement Report template
     in html, yaml, and csv format.
@@ -772,7 +772,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
     :customerscenario: true
     """
     client = rhel7_contenthost
-    client.install_katello_ca()
+    client.install_katello_ca(default_sat)
     client.register_contenthost(local_org['label'], local_ak['name'])
     assert client.subscribed
     result_html = ReportTemplate.generate(
@@ -814,7 +814,7 @@ def test_positive_generate_entitlements_report_multiple_formats(
 
 @pytest.mark.tier3
 def test_positive_schedule_entitlements_report(
-    local_org, local_ak, local_subscription, rhel7_contenthost
+    local_org, local_ak, local_subscription, rhel7_contenthost, default_sat
 ):
     """Schedule an report using the Subscription - Entitlement Report template in csv format.
 
@@ -832,7 +832,7 @@ def test_positive_schedule_entitlements_report(
                       regarding entitlements.
     """
     client = rhel7_contenthost
-    client.install_katello_ca()
+    client.install_katello_ca(default_sat)
     client.register_contenthost(local_org['label'], local_ak['name'])
     assert client.subscribed
     scheduled_csv = ReportTemplate.schedule(
@@ -855,7 +855,7 @@ def test_positive_schedule_entitlements_report(
 
 @pytest.mark.tier3
 def test_positive_generate_hostpkgcompare(
-    local_org, local_ak, local_content_view, local_environment
+    local_org, local_ak, local_content_view, local_environment, default_sat
 ):
     """Generate 'Host - compare content hosts packages' report
 
@@ -901,7 +901,7 @@ def test_positive_generate_hostpkgcompare(
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         for client in hosts:
             # Create RHEL hosts via broker and register content host
-            client.install_katello_ca()
+            client.install_katello_ca(default_sat)
             # Register content host, install katello-agent
             client.register_contenthost(local_org['label'], local_ak['name'])
             assert client.subscribed

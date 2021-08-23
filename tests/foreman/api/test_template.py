@@ -106,7 +106,7 @@ def tftpboot(module_org, default_sat):
         },
         'ipxe': {
             'setting': 'global_iPXE',
-            'path': f'{default_sat.url}/unattended/iPXE?bootsrap=1',
+            'path': f'{default_sat.url}/unattended/iPXE?bootstrap=1',
             'kind': 'iPXE',
         },
     }

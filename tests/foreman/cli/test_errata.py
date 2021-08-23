@@ -218,10 +218,10 @@ def hosts(request):
 
 
 @pytest.fixture(scope='module')
-def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo):
+def register_hosts(hosts, module_org, module_ak_cv_lce, rh_repo, custom_repo, default_sat):
     """Register hosts to Satellite and install katello-agent rpm."""
     for host in hosts:
-        host.install_katello_ca()
+        host.install_katello_ca(default_sat)
         host.register_contenthost(module_org.name, module_ak_cv_lce.name)
         host.enable_repo(REPOS['rhst7']['id'])
         host.install_katello_agent()
@@ -1353,11 +1353,11 @@ def new_module_ak(module_manifest_org, rh_repo_module_manifest, default_lce):
 
 
 @pytest.fixture
-def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak):
+def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak, default_sat):
     """A RHEL77 Content Host that has applicable errata and registered to Library"""
     # python-psutil is obsoleted by python2-psutil, so get older python2-psutil for errata test
     rhel77_contenthost_module.run(f'rpm -Uvh {EPEL_REPO}/{PSUTIL_RPM}')
-    rhel77_contenthost_module.install_katello_ca()
+    rhel77_contenthost_module.install_katello_ca(default_sat)
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel77_contenthost_module.install_katello_host_tools()
@@ -1365,9 +1365,9 @@ def errata_host(module_manifest_org, rhel77_contenthost_module, new_module_ak):
 
 
 @pytest.fixture
-def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak):
+def chost(module_manifest_org, rhel77_contenthost_module, new_module_ak, default_sat):
     """A RHEL77 Content Host registered to Library that does not have applicable errata"""
-    rhel77_contenthost_module.install_katello_ca()
+    rhel77_contenthost_module.install_katello_ca(default_sat)
     rhel77_contenthost_module.register_contenthost(module_manifest_org.label, new_module_ak.name)
     assert rhel77_contenthost_module.nailgun_host.read_json()['subscription_status'] == 0
     rhel77_contenthost_module.install_katello_host_tools()

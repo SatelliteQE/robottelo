@@ -233,7 +233,9 @@ def test_positive_delete_manifest_as_another_user(function_org, default_sat):
 
 
 @pytest.mark.tier2
-def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, module_org):
+def test_positive_subscription_status_disabled(
+    module_ak, rhel_contenthost, module_org, default_sat
+):
     """Verify that Content host Subscription status is set to 'Disabled'
      for a golden ticket manifest
 
@@ -247,7 +249,7 @@ def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, modu
 
     :CaseImportance: Medium
     """
-    rhel_contenthost.install_katello_ca()
+    rhel_contenthost.install_katello_ca(default_sat)
     rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
     assert rhel_contenthost.subscribed
     host_content = entities.Host(id=rhel_contenthost.nailgun_host.id).read_raw().content
@@ -255,7 +257,7 @@ def test_positive_subscription_status_disabled(module_ak, rhel_contenthost, modu
 
 
 @pytest.mark.tier2
-def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom_repo):
+def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom_repo, default_sat):
     """Perform end to end testing for Simple Content Access Mode
 
     :id: c6c4b68c-a506-46c9-bd1d-22e4c1926ef8
@@ -267,7 +269,7 @@ def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom
 
     :CaseImportance: Critical
     """
-    rhel_contenthost.install_katello_ca()
+    rhel_contenthost.install_katello_ca(default_sat)
     rhel_contenthost.register_contenthost(module_org.label, module_ak.name)
     assert rhel_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
@@ -304,7 +306,7 @@ def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom
 
 
 @pytest.mark.tier2
-def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, function_org):
+def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, function_org, default_sat):
     """Verify that Candlepin events are being read and processed by
         attaching subscriptions, validating host subscriptions status,
         and viewing processed and failed Candlepin events
@@ -339,7 +341,7 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
         environment=entities.LifecycleEnvironment(id=function_org.library.id),
         auto_attach=True,
     ).create()
-    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.install_katello_ca(default_sat)
     rhel7_contenthost.register_contenthost(function_org.name, ak.name)
     host = entities.Host().search(query={'search': f'name={rhel7_contenthost.hostname}'})
     host_id = host[0].id
@@ -360,7 +362,7 @@ def test_positive_candlepin_events_processed_by_stomp(rhel7_contenthost, functio
     assert '0 Failed' in response['message']
 
 
-def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost):
+def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, default_sat):
     """Verify that a content host with an expired SCA cert can
         re-register successfully
 
@@ -396,7 +398,7 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost):
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content
-    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.install_katello_ca(default_sat)
     rhel7_contenthost.register_contenthost(org=module_org.label, activation_key=ak.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.unregister()

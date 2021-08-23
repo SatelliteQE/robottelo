@@ -109,17 +109,17 @@ def repos_collection_for_module_streams(module_org):
 
 
 @pytest.fixture
-def vm(repos_collection, rhel7_contenthost):
+def vm(repos_collection, rhel7_contenthost, default_sat):
     """Virtual machine registered in satellite with katello-agent installed"""
-    repos_collection.setup_virtual_machine(rhel7_contenthost)
+    repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     yield rhel7_contenthost
 
 
 @pytest.fixture
-def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost):
+def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost, default_sat):
     """Virtual machine registered in satellite without katello-agent installed"""
     repos_collection_for_module_streams.setup_virtual_machine(
-        rhel8_contenthost, install_katello_agent=True
+        rhel8_contenthost, default_sat, install_katello_agent=True
     )
     add_remote_execution_ssh_key(rhel8_contenthost.ip_addr)
     yield rhel8_contenthost
@@ -682,7 +682,7 @@ def test_positive_check_ignore_facts_os_setting(session, vm, module_org, request
 @pytest.mark.libvirt_discovery
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_contenthost):
+def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_contenthost, default_sat):
     """Check that virt-who hypervisor shows the right subscription status
     without and with attached subscription.
 
@@ -719,6 +719,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     # configure virtual machine and setup virt-who service
     # do not supply subscription to attach to virt_who hypervisor
     virt_who_data = rhel7_contenthost.virt_who_hypervisor_config(
+        default_sat,
         virt_who_config['general-information']['id'],
         org_id=org.id,
         lce_id=lce.id,
@@ -1406,7 +1407,9 @@ def test_search_for_virt_who_hypervisors(session):
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
-def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_contenthost):
+def test_content_access_after_stopped_foreman(
+    foreman_service_teardown, rhel7_contenthost, default_sat
+):
     """Install a package even after foreman service is stopped
 
     :id: 71ae6a56-30bb-11eb-8489-d46d6dd3b5b2
@@ -1439,7 +1442,7 @@ def test_content_access_after_stopped_foreman(foreman_service_teardown, rhel7_co
             ],
         )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
-        repos_collection.setup_virtual_machine(rhel7_contenthost)
+        repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
     run_command('systemctl stop foreman')

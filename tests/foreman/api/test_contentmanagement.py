@@ -93,7 +93,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self):
+    def test_positive_sync_kickstart_repo(self, default_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -130,10 +130,10 @@ class TestSatelliteContentManagement:
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
         call_entity_method_with_timeout(repo.sync, timeout=600)
-        result = ssh.command(
+        result = default_sat.execute(
             'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
         )
-        assert result.return_code == 1
+        assert result.status == 1
         assert not result.stdout
         repo = repo.read()
         assert repo.content_counts['package'] > 0
@@ -789,7 +789,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_mirror_on_sync(self, capsule_configured, rhel7_contenthost):
+    def test_positive_mirror_on_sync(self, capsule_configured, rhel7_contenthost, default_sat):
         """Create 2 repositories with 'on_demand' download policy and mirror on
         sync option, associate them with capsule, sync first repo, move package
         from first repo to second one, sync it, attempt to install package on
@@ -919,7 +919,7 @@ class TestCapsuleContentManagement:
         )[0]
         activation_key.add_subscriptions(data={'subscription_id': subscription.id})
         # Subscribe a host with activation key
-        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(org.label, activation_key.name)
         # Install the package
         package_name = constants.YUM_REPO_RPMS[2].rstrip('.rpm')

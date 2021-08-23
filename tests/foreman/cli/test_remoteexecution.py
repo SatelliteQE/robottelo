@@ -26,7 +26,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
-from robottelo import ssh
 from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_job_template
 from robottelo.cli.globalparam import GlobalParameter
@@ -36,12 +35,11 @@ from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.cli.task import Task
 from robottelo.config import settings
 from robottelo.constants.repos import FAKE_0_YUM_REPO
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 
 
 @pytest.fixture()
-def fixture_vmsetup(request, module_org):
+def fixture_vmsetup(request, module_org, default_sat):
     """Create VM and register content host"""
     if '_count' in request.param.keys():
         with VMBroker(
@@ -50,27 +48,12 @@ def fixture_vmsetup(request, module_org):
             _count=request.param['_count'],
         ) as clients:
             for client in clients:
-                _setup_host(client, module_org.label)
+                client.configure_rex(satellite=default_sat, org=module_org)
             yield clients
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
-            _setup_host(client, module_org.label)
+            client.configure_rex(satellite=default_sat, org=module_org)
             yield client
-
-
-def _setup_host(client, org_label):
-    """Set up host for remote execution"""
-    client.install_katello_ca()
-    client.register_contenthost(org=org_label, lce='Library')
-    assert client.subscribed
-    add_remote_execution_ssh_key(client.ip_addr)
-    Host.set_parameter(
-        {
-            'host': client.hostname,
-            'name': 'remote_execution_connect_by_ip',
-            'value': 'True',
-        }
-    )
 
 
 class TestRemoteExecution:
@@ -174,9 +157,8 @@ class TestRemoteExecution:
             )
             raise AssertionError(result)
         # check the file owner
-        result = ssh.command(
+        result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
-            hostname=client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0]
@@ -188,7 +170,7 @@ class TestRemoteExecution:
         ids=['rhel7', 'rhel7_fips', 'rhel8', 'rhel8_fips'],
         indirect=True,
     )
-    def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org):
+    def test_positive_run_custom_job_template_by_ip(self, fixture_vmsetup, module_org, default_sat):
         """Run custom template on host connected by ip
 
         :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
@@ -204,7 +186,7 @@ class TestRemoteExecution:
         self.org = module_org
         client = fixture_vmsetup
         template_file = 'template_file.txt'
-        ssh.command(f'echo "echo Enforcing" > {template_file}')
+        default_sat.execute(f'echo "echo Enforcing" > {template_file}')
         template_name = gen_string('alpha', 7)
         make_job_template(
             {'organizations': self.org.name, 'name': template_name, 'file': template_file}
@@ -231,7 +213,7 @@ class TestRemoteExecution:
         ids=['rhel7'],
         indirect=True,
     )
-    def test_positive_use_alternate_directory(self, fixture_vmsetup, module_org):
+    def test_positive_use_alternate_directory(self, fixture_vmsetup, module_org, default_sat):
         """Use alternate working directory on client to execute rex jobs
 
         :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
@@ -248,13 +230,13 @@ class TestRemoteExecution:
         assert result.status == 0
         result = client.run(f'chcon --reference=/var /{testdir}')
         assert result.status == 0
-        result = ssh.command(
+        result = default_sat.execute(
             f"sed -i r's/^:remote_working_dir:.*/:remote_working_dir: \\/{testdir}/' \
             /etc/foreman-proxy/settings.d/remote_execution_ssh.yml",
         )
-        assert result.return_code == 0
-        result = ssh.command('systemctl restart foreman-proxy')
-        assert result.return_code == 0
+        assert result.status == 0
+        result = default_sat.execute('systemctl restart foreman-proxy')
+        assert result.status == 0
 
         command = f'echo {gen_string("alpha")}'
         invocation_command = make_job_invocation(
@@ -418,7 +400,7 @@ class TestRemoteExecution:
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup):
+    def test_positive_run_scheduled_job_template_by_ip(self, fixture_vmsetup, default_sat):
         """Schedule a job to be ran against a host
 
         :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
@@ -429,7 +411,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         client = fixture_vmsetup
-        system_current_time = ssh.command('date --utc +"%b %d %Y %I:%M%p"').stdout[0]
+        system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout[0]
         current_time_object = datetime.strptime(system_current_time, '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
         Host.set_parameter(
@@ -515,9 +497,9 @@ class TestRemoteExecution:
         assert 'Exit status: 0' in result
         # check that there is one receptor conf file and it's only readable
         # by the receptor user and root
-        result = ssh.command('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
+        result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
         assert result.stdout[0] == '400:foreman-proxy'
-        result = ssh.command('ls -l /etc/receptor/*/receptor.conf | wc -l')
+        result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
         assert result.stdout[0] == '1'
 
 
@@ -591,9 +573,8 @@ class TestAnsibleREX:
             )
             raise AssertionError(result)
         # check the file owner
-        result = ssh.command(
+        result = client.execute(
             f'''stat -c '%U' /home/{username}/{filename}''',
-            hostname=client.ip_addr,
         )
         # assert the file is owned by the effective user
         assert username == result.stdout[0], "file ownership mismatch"
@@ -788,9 +769,8 @@ class TestAnsibleREX:
 
         # start a service
         service = "postfix"
-        ssh.command(
+        client.execute(
             "sed -i 's/^inet_protocols.*/inet_protocols = ipv4/' /etc/postfix/main.cf",
-            hostname=client.ip_addr,
         )
         invocation_command = make_job_invocation(
             {
@@ -810,5 +790,5 @@ class TestAnsibleREX:
                 )
             )
             raise AssertionError(result)
-        result = ssh.command(f"systemctl status {service}", hostname=client.ip_addr)
-        assert result.return_code == 0
+        result = client.execute(f"systemctl status {service}")
+        assert result.status == 0

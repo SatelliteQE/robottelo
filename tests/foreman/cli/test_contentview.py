@@ -2616,7 +2616,7 @@ class TestContentView:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
-        self, module_org, rhel7_contenthost
+        self, module_org, rhel7_contenthost, default_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         custom location.
@@ -2760,7 +2760,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce=f'{env["name"]}/{content_view["name"]}',
@@ -2775,7 +2775,7 @@ class TestContentView:
 
     @pytest.mark.tier3
     def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
-        self, module_org, rhel7_contenthost
+        self, module_org, rhel7_contenthost, default_sat
     ):
         """Attempt to subscribe a host with restricted user permissions and
         default location.
@@ -2915,7 +2915,7 @@ class TestContentView:
         # assert that this is the same content view
         assert content_view['name'] == user_content_view['name']
         # create a client host and register it with the created user
-        rhel7_contenthost.install_katello_ca()
+        rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(
             org['label'],
             lce='/'.join([env['name'], content_view['name']]),

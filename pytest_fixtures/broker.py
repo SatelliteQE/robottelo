@@ -164,9 +164,9 @@ def capsule_latest(default_sat):
 
 
 @pytest.fixture
-def capsule_configured(capsule_latest):
+def capsule_configured(capsule_latest, default_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    capsule_latest.install_katello_ca()
+    capsule_latest.install_katello_ca(default_sat)
     capsule_latest.register_contenthost()
     capsule_latest.capsule_setup()
     yield capsule_latest
@@ -181,11 +181,11 @@ def content_hosts():
 
 
 @pytest.fixture(scope='module')
-def registered_hosts(organization_ak_setup, content_hosts):
+def registered_hosts(organization_ak_setup, content_hosts, default_sat):
     """Fixture that registers content hosts to Satellite."""
     org, ak = organization_ak_setup
     for vm in content_hosts:
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         vm.register_contenthost(org.label, ak.name)
         assert vm.subscribed
     return content_hosts

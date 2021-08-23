@@ -80,8 +80,8 @@ def katello_agent_repos(module_ak, module_cv, module_lce, module_org):
 
 
 @pytest.fixture
-def katello_agent_client(katello_agent_repos, rhel7_contenthost):
-    rhel7_contenthost.install_katello_ca()
+def katello_agent_client(katello_agent_repos, rhel7_contenthost, default_sat):
+    rhel7_contenthost.install_katello_ca(default_sat)
     # Register content host and install katello-agent
     rhel7_contenthost.register_contenthost(
         katello_agent_repos['org'].label,
@@ -282,7 +282,7 @@ def test_negative_unregister_and_pull_content(katello_agent_client):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_register_host_ak_with_host_collection(
-    katello_agent_client, module_cv, module_lce, module_org, rhel7_contenthost
+    katello_agent_client, module_cv, module_lce, module_org, rhel7_contenthost, default_sat
 ):
     """Attempt to register a host using activation key with host collection
 
@@ -319,7 +319,7 @@ def test_positive_register_host_ak_with_host_collection(
     )
 
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as vm:
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         # register the client host with the current activation key
         vm.register_contenthost(module_org.name, activation_key=activation_key['name'])
         assert vm.subscribed

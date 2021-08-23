@@ -202,7 +202,6 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.helpers import get_host_info
 
 REPO_TYPE_YUM = constants.REPO_TYPE['yum']
 REPO_TYPE_DOCKER = constants.REPO_TYPE['docker']
@@ -247,14 +246,6 @@ class RepositoryAlreadyCreated(Exception):
 class ReposContentSetupWasNotPerformed(Exception):
     """Raised when trying to setup a VM but the repositories content was not
     setup"""
-
-
-def get_server_distro():  # type: () -> str
-    global _server_distro
-    if _server_distro is None:
-        _, major, _ = get_host_info()
-        _server_distro = constants.MAJOR_VERSION_DISTRO[major]
-    return _server_distro
 
 
 class BaseRepository:
@@ -640,7 +631,7 @@ class SatelliteCapsuleRepository(GenericRHRepository):
 
     @property
     def url(self):
-        if self.distro == get_server_distro():
+        if int(self.distro) == constants.SATELLITE_OS_VERSION:
             return settings.repos.capsule_repo
         return None
 
@@ -932,6 +923,7 @@ class RepositoryCollection:
     def setup_virtual_machine(
         self,
         vm,
+        satellite,
         patch_os_release=False,
         install_katello_agent=True,
         enable_rh_repos=True,
@@ -967,6 +959,7 @@ class RepositoryCollection:
             ]
 
         vm.contenthost_setup(
+            satellite,
             self.organization['label'],
             rh_repo_ids=rh_repo_ids,
             repo_labels=repo_labels,

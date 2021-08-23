@@ -396,7 +396,7 @@ def test_negative_create_with_invalid_name(module_org, name):
 
 
 @pytest.mark.tier1
-def test_positive_add_remove_subscription(module_org, module_ak_cv_lce):
+def test_positive_add_remove_subscription(module_org, module_ak_cv_lce, default_sat):
     """Try to bulk add and remove a subscription to members of a host collection.
 
     :id: c4ec5727-eb25-452e-a91f-87cafb16666b
@@ -430,7 +430,7 @@ def test_positive_add_remove_subscription(module_org, module_ak_cv_lce):
     # Create and register VMs as members of Host Collection
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
         for client in hosts:
-            client.install_katello_ca()
+            client.install_katello_ca(default_sat)
             client.register_contenthost(module_org.label, module_ak_cv_lce.name)
         # Read host_collection back from Satellite to get host_ids
         host_collection = module_ak_cv_lce.host_collection[0].read()

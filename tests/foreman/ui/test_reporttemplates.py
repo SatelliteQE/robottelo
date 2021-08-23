@@ -477,7 +477,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
 
 @pytest.mark.tier3
 def test_positive_gen_entitlements_reports_multiple_formats(
-    session, setup_content, rhel7_contenthost
+    session, setup_content, rhel7_contenthost, default_sat
 ):
     """Generate reports using the Entitlements template in html, yaml, json, and csv format.
 
@@ -499,7 +499,7 @@ def test_positive_gen_entitlements_reports_multiple_formats(
     :CaseImportance: High
     """
     client = rhel7_contenthost
-    client.install_katello_ca()
+    client.install_katello_ca(default_sat)
     module_org, ak = setup_content
     client.register_contenthost(module_org.label, ak.name)
     assert client.subscribed
