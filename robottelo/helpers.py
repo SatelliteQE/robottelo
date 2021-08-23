@@ -130,19 +130,6 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     return [f'{local_path}{file_name}', file_name]
 
 
-def line_count(file, host):
-    """Get number of lines in a file."""
-    return host.execute(f'wc -l < {file}').stdout.strip('\n')
-
-
-def cut_lines(start_line, end_line, source_file, out_file, host):
-    """Given start and end line numbers, cut lines from source file
-    and put them in out file."""
-    return host.execute(
-        f'sed -n "{start_line},{end_line} p" {source_file} < {source_file} > {out_file}'
-    )
-
-
 def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 

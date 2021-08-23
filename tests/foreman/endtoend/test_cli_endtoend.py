@@ -51,6 +51,9 @@ from robottelo.constants.repos import CUSTOM_RPM_REPO
 AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
+AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
+
+
 @pytest.fixture(scope='module')
 def fake_manifest_is_set():
     return setting_is_set('fake_manifest')

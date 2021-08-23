@@ -1,8 +1,6 @@
 """Tests for module ``robottelo.helpers``."""
 from unittest import mock
 
-import pytest
-
 from robottelo.helpers import escape_search
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import slugify_component
