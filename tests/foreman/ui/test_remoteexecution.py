@@ -25,36 +25,8 @@ from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
-from robottelo.cli.host import Host
 from robottelo.datafactory import gen_string
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
-
-
-def _setup_vm_client_host(vm_client, org_label, subnet_id=None, by_ip=True):
-    """Setup a VM host for remote execution.
-
-    :param VMBroker vm_client: where vm_client is VMBroker instance.
-    :param str org_label: The organization label.
-    :param int subnet: (Optional) Nailgun subnet entity id, to be used by the vm_client host.
-    :param bool by_ip: Whether remote execution will use ip or host name to access server.
-    """
-    vm_client.install_katello_ca()
-    vm_client.register_contenthost(org_label, lce='Library')
-    assert vm_client.subscribed
-    add_remote_execution_ssh_key(vm_client.ip_addr)
-    if subnet_id is not None:
-        Host.update({'name': vm_client.hostname, 'subnet-id': subnet_id})
-    if by_ip:
-        # connect to host by ip
-        Host.set_parameter(
-            {'host': vm_client.hostname, 'name': 'remote_execution_connect_by_ip', 'value': 'True'}
-        )
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
 
 
 @pytest.fixture(scope='module')
@@ -69,9 +41,9 @@ def module_loc(module_org, default_sat):
 
 
 @pytest.fixture
-def module_vm_client_by_ip(rhel7_contenthost, module_org, module_loc):
+def module_vm_client_by_ip(rhel7_contenthost, module_org, module_loc, default_sat):
     """Setup a VM client to be used in remote execution by ip"""
-    _setup_vm_client_host(rhel7_contenthost, module_org.label)
+    rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
     update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
     yield rhel7_contenthost
 
@@ -163,7 +135,9 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, module_loc):
+def test_positive_run_job_template_multiple_hosts_by_ip(
+    session, module_org, module_loc, default_sat
+):
     """Run a job template against multiple hosts by ip
 
     :id: c4439ec0-bb80-47f6-bc31-fa7193bfbeeb
@@ -183,10 +157,11 @@ def test_positive_run_job_template_multiple_hosts_by_ip(session, module_org, mod
     :CaseLevel: System
     """
     with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
-        host_names = [client.hostname for client in hosts]
-        for client in hosts:
-            _setup_vm_client_host(client, module_org.label)
-            update_vm_host_location(client, location_id=module_loc.id)
+        host_names = []
+        for host in hosts:
+            host_names.append(host.hostname)
+            host.configure_rex(satellite=default_sat, org=module_org)
+            update_vm_host_location(host, location_id=module_loc.id)
         with session:
             hosts = session.host.search(
                 ' or '.join([f'name="{hostname}"' for hostname in host_names])

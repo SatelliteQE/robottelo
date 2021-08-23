@@ -1,13 +1,8 @@
 """Tests for module ``robottelo.helpers``."""
 from unittest import mock
 
-import pytest
-
 from robottelo.helpers import escape_search
 from robottelo.helpers import get_available_capsule_port
-from robottelo.helpers import get_host_info
-from robottelo.helpers import get_server_version
-from robottelo.helpers import HostInfoError
 from robottelo.helpers import slugify_component
 from robottelo.helpers import Storage
 
@@ -17,60 +12,6 @@ class FakeSSHResult:
         self.stdout = stdout
         self.stderr = stderr
         self.return_code = return_code
-
-
-class TestGetServerVersion:
-    """Tests for method ``get_server_version``."""
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_return_version(self, ssh):
-        """get_server_version returns a proper version.
-
-        When the version.rb file is present.
-        """
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(['"6.1.4"'], 0))
-        assert get_server_version() == '6.1.4'
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_return_none(self, ssh):
-        """get_server_version returns None.
-
-        When the versions.rb file is not present.
-        """
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 0))
-        assert get_server_version() is None
-
-
-class TestGetHostInfo:
-    """Tests for method ``get_host_credentials``."""
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_fedora_info(self, ssh):
-        ssh.command = mock.MagicMock(
-            return_value=FakeSSHResult(['Fedora release 20 (Heisenbug)'], 0)
-        )
-        assert get_host_info() == ('Fedora', 20, None)
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_rhel_info(self, ssh):
-        ssh.command = mock.MagicMock(
-            return_value=FakeSSHResult(['Red Hat Enterprise Linux Server release 7.1 (Maipo)'], 0)
-        )
-        assert get_host_info() == ('Red Hat Enterprise Linux Server', 7, 1)
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_cat_fail(self, ssh):
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult([], 1, 'stderr'))
-        with pytest.raises(
-            HostInfoError, match=r'.*Not able to cat /etc/redhat-release "stderr".*'
-        ):
-            get_host_info()
-
-    @mock.patch('robottelo.helpers.ssh')
-    def test_release_parse_fail(self, ssh):
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
-        with pytest.raises(HostInfoError, match=r'.*Not able to parse release string "".*'):
-            get_host_info()
 
 
 class TestEscapeSearch:

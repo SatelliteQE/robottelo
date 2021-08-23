@@ -21,35 +21,7 @@ from inflection import camelize
 from nailgun import entities
 
 from robottelo.api.utils import update_vm_host_location
-from robottelo.cli.host import Host
 from robottelo.datafactory import gen_string
-from robottelo.helpers import add_remote_execution_ssh_key
-
-
-def _setup_host_client(client, org_label, subnet_id=None, by_ip=True):
-    """Setup a broker host for remote execution.
-
-    :param Broker rhel client: where client is broker instance.
-    :param str org_label: The organization label.
-    :param int subnet: (Optional) Nailgun subnet entity id, to be used by the host client.
-    :param bool by_ip: Whether remote execution will use ip or host name to access server.
-    """
-    client.install_katello_ca()
-    client.register_contenthost(org_label, lce='Library')
-    assert client.subscribed
-    add_remote_execution_ssh_key(client.ip_addr)
-    if subnet_id is not None:
-        Host.update({'name': client.hostname, 'subnet-id': subnet_id})
-    if by_ip:
-        # connect to host by ip
-        Host.set_parameter(
-            {'host': client.hostname, 'name': 'remote_execution_connect_by_ip', 'value': 'True'}
-        )
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
 
 
 @pytest.fixture(scope='module')
@@ -64,9 +36,9 @@ def module_loc(module_org, default_sat):
 
 
 @pytest.fixture
-def module_rhel_client_by_ip(module_org, module_loc, rhel7_contenthost):
+def module_rhel_client_by_ip(module_org, module_loc, rhel7_contenthost, default_sat):
     """Setup a broker rhel client to be used in remote execution by ip"""
-    _setup_host_client(rhel7_contenthost, module_org.label)
+    rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
     update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
     yield rhel7_contenthost
 

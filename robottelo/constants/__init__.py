@@ -3,6 +3,7 @@ from nailgun import entities
 
 # This should be updated after each version branch
 SATELLITE_VERSION = "6.9"
+SATELLITE_OS_VERSION = "7"
 
 LOCALES = (
     'ca',

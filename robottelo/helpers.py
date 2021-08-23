@@ -12,22 +12,15 @@ from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import get_cert_rpm_url
 from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
-from robottelo.constants import RHEL_6_MAJOR_VERSION
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.logging import logger
 
 
 class DataFileError(Exception):
     """Indicates any issue when reading a data file."""
-
-
-class HostInfoError(Exception):
-    """Indicates any issue when getting host info."""
 
 
 class ProvisioningCheckError(Exception):
@@ -118,61 +111,6 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     return [f'{local_path}{file_name}', file_name]
 
 
-def get_server_software():
-    """Figure out which product distribution is installed on the server.
-
-    :return: Either 'upstream' or 'downstream'.
-    :rtype: str
-
-    """
-    if ssh.command('rpm -q satellite &>/dev/null').return_code == 0:
-        return 'downstream'
-    return 'upstream'
-
-
-def get_server_version():
-    """Read Satellite version.
-
-    Inspect server /usr/share/foreman/lib/satellite/version.rb in
-    order to get the installed Satellite version.
-
-    :return: Either a string containing the Satellite version or
-        ``None`` if the version.rb file is not present.
-    """
-    result = ''.join(
-        ssh.command(
-            "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | awk '{print $3}'"
-        ).stdout
-    )
-    result = result.replace('"', '').strip()
-    if len(result) == 0:
-        return None
-    return result
-
-
-def get_host_info(hostname=None):
-    """Get remote host's distribution information
-
-    :param str hostname: Hostname or IP address of the remote host. If ``None``
-        the hostname will be get from ``main.server.hostname`` config.
-    :returns: A tuple in the form ``(distro, major, minor)``. ``major`` and
-        ``minor`` are integers. ``minor`` can be ``None`` if not available.
-
-    """
-    result = ssh.command('cat /etc/redhat-release', hostname)
-    if result.return_code != 0:
-        raise HostInfoError(f'Not able to cat /etc/redhat-release "{result.stderr}"')
-    match = re.match(r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?', result.stdout[0])
-    if match is None:
-        raise HostInfoError(f'Not able to parse release string "{result.stdout[0]}"')
-    groups = match.groupdict()
-    return (
-        groups['distro'],
-        int(groups['major']),
-        groups['minor'] if groups['minor'] is None else int(groups['minor']),
-    )
-
-
 def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 
@@ -230,60 +168,6 @@ def read_data_file(filename):
     absolute_file_path = get_data_file(filename)
     with open(absolute_file_path) as file_contents:
         return file_contents.read()
-
-
-def install_katello_ca(hostname=None, sat_hostname=None):
-    """Downloads and installs katello-ca rpm
-
-    :param str hostname: Hostname or IP address of the remote host. If
-     ``None`` the hostname will be get from ``main.server.hostname`` config
-    :return: None.
-    :raises: AssertionError: If katello-ca wasn't installed.
-
-    """
-    if sat_hostname:
-        cert_rpm_url = f'http://{sat_hostname}/pub/katello-ca-consumer-latest.noarch.rpm'
-    else:
-        sat_hostname = settings.server.hostname
-        cert_rpm_url = get_cert_rpm_url()
-    ssh.command(f'rpm -Uvh {cert_rpm_url}', hostname)
-    # Not checking the return_code here, as rpm could be installed before
-    # and installation may fail
-    result = ssh.command(f'rpm -q katello-ca-consumer-{sat_hostname}', hostname)
-    # Checking the return_code here to verify katello-ca rpm is actually
-    # present in the system
-    if result.return_code != 0:
-        raise AssertionError('Failed to install the katello-ca rpm')
-
-
-def remove_katello_ca(hostname=None):
-    """Removes katello-ca rpm
-
-    :param str hostname: Hostname or IP address of the remote host. If
-     ``None`` the hostname will be get from ``main.server.hostname`` config
-    :return: None.
-    :raises: AssertionError: If katello-ca wasn't removed.
-
-    """
-    # Not checking the return_code here, as rpm can be not even installed
-    # and deleting may fail
-    ssh.command('yum erase -y $(rpm -qa |grep katello-ca-consumer)', hostname)
-    # Checking the return_code here to verify katello-ca rpm is actually
-    # not present in the system
-    result = ssh.command(f'rpm -q katello-ca-consumer-{settings.server.hostname}', hostname)
-    if result.return_code == 0:
-        raise AssertionError('Failed to remove the katello-ca rpm')
-    # Resetting rhsm.conf to point to cdn
-    rhsm_updates = [
-        's/^hostname.*/hostname=subscription.rhn.redhat.com/',
-        's|^prefix.*|prefix=/subscription|',
-        's|^baseurl.*|baseurl=https://cdn.redhat.com|',
-        's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
-    ]
-    for command in rhsm_updates:
-        result = ssh.command(f'sed -i -e "{command}" /etc/rhsm/rhsm.conf', hostname)
-        if result.return_code != 0:
-            raise AssertionError('Failed to reset the rhsm.conf')
 
 
 def md5_by_url(url, hostname=None):
@@ -449,38 +333,6 @@ def get_func_name(func, test_item=None):
 
     names.append(func.__name__)
     return '.'.join(names)
-
-
-def get_services_status():
-    """Check if core services are running"""
-    major_version = get_host_info()[1]
-    services = (
-        'foreman-proxy',
-        'foreman-tasks',
-        'httpd',
-        'mongod',
-        'postgresql',
-        'pulp_celerybeat',
-        'pulp_resource_manager',
-        'pulp_streamer',
-        'pulp_workers',
-        'qdrouterd',
-        'qpidd',
-        'smart_proxy_dynflow_core',
-        'squid',
-        'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
-    )
-
-    # check `services` status using service command
-    if major_version >= RHEL_7_MAJOR_VERSION:
-        status_format = '''(for i in {0}; do systemctl is-active $i -q; rc=$?;
-        if [[ $rc != 0 ]]; then systemctl status $i; exit $rc; fi; done);'''
-    else:
-        status_format = '''(for i in {0}; do service $i status &>/dev/null; rc=$?;
-        if [[ $rc != 0 ]]; then service $i status; exit $rc; fi; done);'''
-
-    result = ssh.command(status_format.format(' '.join(services)))
-    return [result.return_code, result.stdout]
 
 
 def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, capsule=False):

@@ -76,10 +76,10 @@ def _content_view(repo_id, org_id):
 
 
 @pytest.fixture
-def docker_host(rhel7_contenthost):
+def docker_host(rhel7_contenthost, default_sat):
     """Instantiate and set up a docker host VM. Destroy VM when done."""
     logger.info('Installing katello-ca on the external docker host')
-    rhel7_contenthost.install_katello_ca()
+    rhel7_contenthost.install_katello_ca(default_sat)
 
     repos = {
         'server': settings.repos.rhel7_os,

@@ -49,7 +49,7 @@ def lce(org):
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('cdn', [True, False], ids=['cdn', 'no_cdn'])
 @pytest.mark.parametrize('distro', DISTROS_SUPPORTED)
-def test_vm_install_package(org, lce, distro, cdn):
+def test_vm_install_package(org, lce, distro, cdn, default_sat):
     """Install a package with all supported distros and cdn / non-cdn variants
 
     :id: b2a6065a-69f6-4805-a28b-eaaa812e0f4b
@@ -77,7 +77,7 @@ def test_vm_install_package(org, lce, distro, cdn):
     with VMBroker(nick=distro, host_classes={'host': ContentHost}) as host:
         # install katello-agent
         repos_collection.setup_virtual_machine(
-            host, enable_custom_repos=True, install_katello_agent=False
+            host, default_sat, enable_custom_repos=True, install_katello_agent=False
         )
         # install a package from custom repo
         result = host.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')

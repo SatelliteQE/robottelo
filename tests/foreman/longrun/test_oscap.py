@@ -224,7 +224,7 @@ def test_positive_upload_to_satellite(
     # Creates vm's and runs openscap scan and uploads report to satellite6.
     with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
         assert vm.subscribed
         Host.update(
@@ -370,7 +370,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     # Creates vm's and runs openscap scan and uploads report to satellite6.
     with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
         assert vm.subscribed
         Host.update(
@@ -401,7 +401,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', [DISTRO_RHEL8, DISTRO_RHEL7])
 def test_positive_oscap_run_via_ansible(
-    module_org, default_proxy, content_view, lifecycle_env, distro
+    module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -464,7 +464,7 @@ def test_positive_oscap_run_via_ansible(
     )
     with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
         assert vm.subscribed
         Host.set_parameter(
@@ -511,7 +511,7 @@ def test_positive_oscap_run_via_ansible(
 
 @pytest.mark.tier4
 def test_positive_oscap_run_via_ansible_bz_1814988(
-    module_org, default_proxy, content_view, lifecycle_env
+    module_org, default_proxy, content_view, lifecycle_env, default_sat
 ):
     """End-to-End Oscap run via ansible
 
@@ -570,7 +570,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     )
     with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
-        vm.install_katello_ca()
+        vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
         assert vm.subscribed
         Host.set_parameter(

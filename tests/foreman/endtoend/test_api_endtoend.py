@@ -27,8 +27,6 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 
-from .utils import AK_CONTENT_LABEL
-from .utils import ClientProvisioningMixin
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
@@ -46,6 +44,10 @@ from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
+
+
+AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
+
 
 API_PATHS = {
     # flake8:noqa (line-too-long)
@@ -992,7 +994,7 @@ class TestAvailableURLs:
         assert api_diff == {}, f'API path mismatch (expected first): \n{pformat(api_diff)}'
 
 
-class TestEndToEnd(ClientProvisioningMixin):
+class TestEndToEnd:
     """End-to-end tests using the ``API`` path."""
 
     pytestmark = [pytest.mark.tier1, pytest.mark.upgrade]
@@ -1064,12 +1066,11 @@ class TestEndToEnd(ClientProvisioningMixin):
 
     @pytest.mark.skip_if_not_set('compute_resources')
     @pytest.mark.tier4
-    @pytest.mark.on_premises_provisioning
     @pytest.mark.upgrade
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, fake_manifest_is_set):
+    def test_positive_end_to_end(self, fake_manifest_is_set, default_sat, rhel6_contenthost):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1093,7 +1094,7 @@ class TestEndToEnd(ClientProvisioningMixin):
             17. Create a new subnet
             18. Create a new domain
             19. Create a new hostgroup and associate previous entities to it
-            20. Provision a client
+            20. Provision a client  **  NOT CURRENTLY PROVISIONING
 
         :id: b2f73740-d3ce-4e6e-abc7-b23e5562bac1
 
@@ -1232,4 +1233,16 @@ class TestEndToEnd(ClientProvisioningMixin):
         entities.HostGroup(server_config, domain=domain, subnet=subnet).create()
 
         # step 2.20: Provision a client
-        self.client_provisioning(activation_key_name, org.label)
+        # TODO this isn't provisioning through satellite as intended
+        # Note it wasn't well before the change that added this todo
+        rhel6_contenthost.install_katello_ca(default_sat)
+        # Register client with foreman server using act keys
+        rhel6_contenthost.register_contenthost(org.label, activation_key_name)
+        assert rhel6_contenthost.subscribed
+        # Install rpm on client
+        package_name = 'python-kitchen'
+        result = rhel6_contenthost.execute(f'yum install -y {package_name}')
+        assert result.status == 0
+        # Verify that the package is installed by querying it
+        result = rhel6_contenthost.run(f'rpm -q {package_name}')
+        assert result.status == 0
