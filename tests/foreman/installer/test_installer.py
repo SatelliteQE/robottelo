@@ -1663,3 +1663,110 @@ def test_positive_capsule_installer_logfile_check():
 
     :CaseAutomation: NotAutomated
     """
+
+
+@pytest.mark.destructive
+def test_installer_sat_pub_directory_accessibility(destructive_sat):
+    """Verify the public directory accessibility from satellite url after disabling it from
+    the custom-hiera
+
+    :id: 2ef78840-098c-4be2-a9e5-db60f16bb803
+
+    :steps:
+        1. Check the public directory accessibility from http and https satellite url
+        2. Add the foreman_proxy_content::pub_dir::pub_dir_options:"+FollowSymLinks -Indexes"
+            in custom-hiera.yaml file.
+        3. Run the satellite-installer.
+        4. Check the public directory accessibility from http and https satellite url
+
+    :expectedresults: Public directory accessibility from http and https satellite url.
+        1. It should be accessible if accessibility is enabled(by default it is enabled).
+        2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
+
+    :CaseImportance: High
+
+    :CaseLevel: System
+
+    :BZ: 1960801
+
+    :customerscenario: true
+    """
+    custom_hiera_location = '/etc/foreman-installer/custom-hiera.yaml'
+    custom_hiera_settings = (
+        'foreman_proxy_content::pub_dir::pub_dir_options: "+FollowSymLinks -Indexes"'
+    )
+    http_curl_command = f'curl -i {destructive_sat.url.replace("https", "http")}/pub/ -k'
+    https_curl_command = f'curl -i {destructive_sat.url}/pub/ -k'
+    for command in [http_curl_command, https_curl_command]:
+        accessibility_check = destructive_sat.execute(command)
+        assert 'HTTP/1.1 200 OK' in accessibility_check.stdout.split('\r\n')
+    destructive_sat.get(
+        local_path='custom-hiera-satellite.yaml',
+        remote_path=f'{custom_hiera_location}',
+    )
+    _ = destructive_sat.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
+    command_output = destructive_sat.execute('satellite-installer')
+    assert 'Success!' in command_output.stdout
+    for command in [http_curl_command, https_curl_command]:
+        accessibility_check = destructive_sat.execute(command)
+        assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout.split('\r\n')
+    destructive_sat.put(
+        local_path='custom-hiera-satellite.yaml',
+        remote_path=f'{custom_hiera_location}',
+    )
+    command_output = destructive_sat.execute('satellite-installer')
+    assert 'Success!' in command_output.stdout
+
+
+@pytest.mark.tier3
+def test_installer_cap_pub_directory_accessibility(capsule_configured):
+    """Verify the public directory accessibility from capsule url after disabling it from the
+    custom-hiera
+
+    :id: b5ca742b-24be-47b3-9bd9-bc5f079409ca
+
+    :steps:
+        1. Prepare the satellite and capsule and integrate them.
+        2. Check the public directory accessibility from http and https capsule url
+        3. Add the 'foreman_proxy_content::pub_dir::pub_dir_options:"+FollowSymLinks -Indexes"'
+            in custom-hiera.yaml file on capsule.
+        4. Run the satellite-installer on capsule.
+        5. Check the public directory accessibility from http and https capsule url.
+
+    :expectedresults: Public directory accessibility from http and https capsule url
+        1. It should be accessible if accessibility is enabled(by default it is enabled).
+        2. It should not be accessible if accessibility is disabled in custom_hiera.yaml file.
+
+    :CaseImportance: High
+
+    :CaseLevel: System
+
+    :BZ: 1860519
+
+    :customerscenario: true
+    """
+    custom_hiera_location = '/etc/foreman-installer/custom-hiera.yaml'
+    custom_hiera_settings = (
+        'foreman_proxy_content::pub_dir::pub_dir_options: "+FollowSymLinks -Indexes"'
+    )
+    http_curl_command = f'curl -i {capsule_configured.url.replace("https", "http")}/pub/ -k'
+    https_curl_command = f'curl -i {capsule_configured.url}/pub/ -k'
+    for command in [http_curl_command, https_curl_command]:
+        accessibility_check = capsule_configured.execute(command)
+        assert 'HTTP/1.1 200 OK' in accessibility_check.stdout.split('\r\n')
+    capsule_configured.get(
+        local_path='custom-hiera-capsule.yaml',
+        remote_path=f'{custom_hiera_location}',
+    )
+    _ = capsule_configured.execute(f'echo {custom_hiera_settings} >> {custom_hiera_location}')
+    command_output = capsule_configured.execute('satellite-installer')
+    assert 'Success!' in command_output.stdout
+    for command in [http_curl_command, https_curl_command]:
+        accessibility_check = capsule_configured.execute(command)
+        assert 'HTTP/1.1 200 OK' not in accessibility_check.stdout.split('\r\n')
+    capsule_configured.put(
+        local_path='custom-hiera-capsule.yaml',
+        remote_path=f'{custom_hiera_location}',
+    )
+    command_output = capsule_configured.execute('satellite-installer')
+    assert 'Success!' in command_output.stdout
