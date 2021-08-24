@@ -876,6 +876,10 @@ class Capsule(ContentHost):
         """
         return self.execute('rpm -q satellite &>/dev/null').status != 0
 
+    @cached_property
+    def url(self):
+        return f'https://{self.hostname}'
+
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
         result = self.execute('foreman-maintain service restart')
@@ -1045,10 +1049,6 @@ class Satellite(Capsule):
             return self.execute('rpm -q satellite').stdout.split('-')[1]
         else:
             return 'upstream'
-
-    @cached_property
-    def url(self):
-        return f'https://{self.hostname}'
 
     @cached_property
     def url_katello_ca_rpm(self):
