@@ -39,11 +39,8 @@ from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
-from robottelo.constants.repos import FAKE_1_PUPPET_REPO
 from robottelo.constants.repos import FAKE_1_YUM_REPO
 from robottelo.constants.repos import FAKE_2_YUM_REPO
-from robottelo.constants.repos import FAKE_8_PUPPET_REPO
 from robottelo.constants.repos import REPO_DISCOVERY_URL
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
@@ -156,38 +153,37 @@ def test_positive_create_as_non_admin_user(module_org, test_name):
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_create_puppet_repo_same_url_different_orgs(session, module_prod):
+def test_positive_create_yum_repo_same_url_different_orgs(session, module_prod):
     """Create two repos with the same URL in two different organizations.
 
     :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
 
-    :expectedresults: Repositories are created and have correct number of
-        puppet modules synced
+    :expectedresults: Repositories are created and have equal number of packages.
 
     :CaseLevel: Integration
     """
     # Create first repository
-    repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO, product=module_prod, content_type=REPO_TYPE['puppet']
-    ).create()
+    repo = entities.Repository(product=module_prod, url=FAKE_2_YUM_REPO).create()
     repo.sync()
     # Create second repository
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
-    new_repo = entities.Repository(
-        url=FAKE_8_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
-    ).create()
+    new_repo = entities.Repository(product=product, url=FAKE_2_YUM_REPO).create()
     new_repo.sync()
     with session:
         # Check packages number in first repository
         assert session.repository.search(module_prod.name, repo.name)[0]['Name'] == repo.name
         repo = session.repository.read(module_prod.name, repo.name)
-        assert repo['content_counts']['Puppet Modules'] == '1'
+        repo_packages_count = repo['content_counts']['Packages']
+        assert int(repo_packages_count) >= int('1')
+
         # Check packages number in first repository
         session.organization.select(org.name)
         assert session.repository.search(product.name, new_repo.name)[0]['Name'] == new_repo.name
         new_repo = session.repository.read(product.name, new_repo.name)
-        assert new_repo['content_counts']['Puppet Modules'] == '1'
+        new_repo_packages_count = new_repo['content_counts']['Packages']
+        assert int(new_repo_packages_count) >= int('1')
+        assert repo_packages_count == new_repo_packages_count
 
 
 @pytest.mark.tier2
@@ -390,28 +386,6 @@ def test_positive_sync_custom_repo_yum(session, module_org):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_sync_custom_repo_puppet(session, module_org):
-    """Create Custom puppet repos and sync it via the repos page.
-
-    :id: 135176cc-7664-41ee-8c41-b77e193f2f22
-
-    :expectedresults: Sync procedure for specific puppet repository is
-        successful
-
-    :CaseLevel: Integration
-    """
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(
-        url=FAKE_0_PUPPET_REPO, product=product, content_type=REPO_TYPE['puppet']
-    ).create()
-    with session:
-        result = session.repository.synchronize(product.name, repo.name)
-        assert result['result'] == 'success'
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
 def test_positive_sync_custom_repo_docker(session, module_org):
     """Create Custom docker repos and sync it via the repos page.
 
@@ -498,41 +472,6 @@ def test_positive_resynchronize_rpm_repo(session, module_prod):
         # Check packages number
         repo_values = session.repository.read(module_prod.name, repo.name)
         assert int(repo_values['content_counts']['Packages']) >= 1
-
-
-@pytest.mark.tier2
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_resynchronize_puppet_repo(session, module_prod):
-    """Check that repository content is resynced after packages were removed
-    from repository
-
-    :id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
-
-    :expectedresults: Repository has updated non-zero package count
-
-    :CaseLevel: Integration
-
-    :BZ: 1318004
-    """
-    repo = entities.Repository(
-        url=FAKE_1_PUPPET_REPO, content_type=REPO_TYPE['puppet'], product=module_prod
-    ).create()
-    with session:
-        result = session.repository.synchronize(module_prod.name, repo.name)
-        assert result['result'] == 'success'
-        # Check puppet modules count
-        repo_values = session.repository.read(module_prod.name, repo.name)
-        assert int(repo_values['content_counts']['Puppet Modules']) >= 1
-        # Remove puppet modules
-        session.repository.remove_all_puppet_modules(module_prod.name, repo.name)
-        repo_values = session.repository.read(module_prod.name, repo.name)
-        assert repo_values['content_counts']['Puppet Modules'] == '0'
-        # Sync it again
-        result = session.repository.synchronize(module_prod.name, repo.name)
-        assert result['result'] == 'success'
-        # Check puppet modules number
-        repo_values = session.repository.read(module_prod.name, repo.name)
-        assert int(repo_values['content_counts']['Puppet Modules']) >= 1
 
 
 @pytest.mark.tier2
