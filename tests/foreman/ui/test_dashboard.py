@@ -130,7 +130,7 @@ def test_positive_host_configuration_chart(session):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
-        assert dashboard_values['chart'][''] == '100%'
+        assert '100%' in dashboard_values['chart'].values()
 
 
 @pytest.mark.upgrade
@@ -158,10 +158,10 @@ def test_positive_task_status(session):
 
     :CaseLevel: Integration
     """
-    url = 'http://www.non_existent_repo_url.org/repos'
+    url = 'www.non_existent_repo_url.org'
     org = entities.Organization().create()
     product = entities.Product(organization=org).create()
-    repo = entities.Repository(url=url, product=product, content_type='puppet').create()
+    repo = entities.Repository(url=f'http://{url}', product=product, content_type='yum').create()
     with pytest.raises(TaskFailedError):
         repo.sync()
     with session:
@@ -184,7 +184,10 @@ def test_positive_task_status(session):
         session.dashboard.action({'LatestFailedTasks': {'name': 'Synchronize'}})
         values = session.task.read(task_name)
         assert values['task']['result'] == 'warning'
-        assert values['task']['errors'] == 'PLP0000: Importer indicated a failed response'
+        assert (
+            values['task']['errors']
+            == f'Cannot connect to host {url}:80 ssl:default [Name or service not known]'
+        )
 
 
 @pytest.mark.upgrade
