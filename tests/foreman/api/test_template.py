@@ -19,6 +19,7 @@ http://theforeman.org/api/apidoc/v2/provisioning_templates.html
 
 :Upstream: No
 """
+from copy import deepcopy
 from random import choice
 
 import pytest
@@ -32,7 +33,6 @@ from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
 
 
 @pytest.fixture(scope="module")
@@ -151,7 +151,7 @@ class TestProvisioningTemplate:
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
-    def test_positive_end_to_end_crud(self, module_org, module_location, module_user):
+    def test_positive_end_to_end_crud(self, module_org, module_location, module_user, default_sat):
         """Create a new provisioning template with several attributes, update them,
         clone the provisioning template and then delete it
 
@@ -162,7 +162,7 @@ class TestProvisioningTemplate:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         cfg.auth = (module_user[1], module_user[2])
         name = gen_string('alpha')
         new_name = gen_string('alpha')

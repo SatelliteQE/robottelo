@@ -22,6 +22,7 @@ http://<satellite-host>/apidoc/v2/permissions.html
 """
 import json
 import re
+from copy import deepcopy
 from itertools import chain
 
 import pytest
@@ -32,7 +33,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import parametrized
-from robottelo.helpers import get_nailgun_config
 
 
 class TestPermission:
@@ -196,9 +196,9 @@ class TestUserRole:
     """Give a user various permissions and see if they are enforced."""
 
     @pytest.fixture(autouse=True)
-    def create_user(self, class_org, class_location):
+    def create_user(self, class_org, class_location, default_sat):
         """Create a set of credentials and a user."""
-        self.cfg = get_nailgun_config()
+        self.cfg = deepcopy(default_sat.nailgun_cfg)
         self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
         self.user = entities.User(
             login=self.cfg.auth[0],

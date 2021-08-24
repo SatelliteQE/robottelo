@@ -19,6 +19,7 @@
 import http
 import random
 from collections import defaultdict
+from copy import deepcopy
 from pprint import pformat
 
 import pytest
@@ -42,7 +43,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -1087,10 +1087,10 @@ class TestEndToEnd:
         # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')
         password = gen_string('alphanumeric')
-        entities.User(admin=True, login=login, password=password).create()
+        default_sat.api.User(admin=True, login=login, password=password).create()
 
         # step 2.1: Create a new organization
-        server_config = get_nailgun_config()
+        server_config = deepcopy(default_sat.nailgun_cfg)
         server_config.auth = (login, password)
         org = entities.Organization(server_config).create()
 
@@ -1114,7 +1114,7 @@ class TestEndToEnd:
 
         # step 2.6: Enable a Red Hat repository
         if fake_manifest_is_set:
-            repo3 = entities.Repository(
+            repo3 = default_sat.api.Repository(
                 id=enable_rhrepo_and_fetchid(
                     basearch='x86_64',
                     org_id=org.id,
@@ -1154,12 +1154,12 @@ class TestEndToEnd:
 
         # step 2.12: Create a new activation key
         activation_key_name = gen_string('alpha')
-        activation_key = entities.ActivationKey(
+        activation_key = default_sat.api.ActivationKey(
             name=activation_key_name, environment=le1, organization=org, content_view=content_view
         ).create()
 
-        # step 2.13: Add the products to the activation key
-        for sub in entities.Subscription(organization=org).search():
+        # step 2.15: Add the products to the activation key
+        for sub in default_sat.api.Subscription(organization=org).search():
             if sub.name == DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
@@ -1171,7 +1171,7 @@ class TestEndToEnd:
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
-        content_host = entities.Host(
+        content_host = default_sat.api.Host(
             content_facet_attributes={
                 'content_view_id': content_view.id,
                 'lifecycle_environment_id': le1.id,

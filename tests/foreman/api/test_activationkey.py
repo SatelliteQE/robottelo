@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import http
+from copy import deepcopy
 
 import pytest
 from fauxfactory import gen_integer
@@ -36,7 +37,6 @@ from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
 
 
 @filtered_datapoint
@@ -412,7 +412,7 @@ def test_positive_delete(name):
 
 
 @pytest.mark.tier2
-def test_positive_remove_user():
+def test_positive_remove_user(default_sat):
     """Delete any user who has previously created an activation key
     and check that activation key still exists
 
@@ -424,7 +424,7 @@ def test_positive_remove_user():
     """
     password = gen_string('alpha')
     user = entities.User(password=password, login=gen_string('alpha'), admin=True).create()
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (user.login, password)
     ak = entities.ActivationKey(cfg).create()
     user.delete()

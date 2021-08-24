@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import random
+from copy import deepcopy
 
 import pytest
 from airgun.exceptions import DisabledWidgetError
@@ -26,7 +27,6 @@ from nailgun import entities
 from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.constants import BOOKMARK_ENTITIES
-from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -150,7 +150,7 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
 
 @pytest.mark.tier2
 def test_positive_update_bookmark_public(
-    session, random_entity, default_viewer_role, module_user, test_name
+    session, random_entity, default_viewer_role, module_user, test_name, default_sat
 ):
     """Update and save a bookmark public state
 
@@ -192,7 +192,7 @@ def test_positive_update_bookmark_public(
     """
     public_name = gen_string('alphanumeric')
     nonpublic_name = gen_string('alphanumeric')
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (module_user.login, module_user.password)
     for name in (public_name, nonpublic_name):
         entities.Bookmark(

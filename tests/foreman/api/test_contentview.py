@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import random
+from copy import deepcopy
 
 import pytest
 from fauxfactory import gen_integer
@@ -42,7 +43,6 @@ from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting
@@ -995,7 +995,9 @@ class TestContentViewRedHatContent:
 
 
 @pytest.mark.tier2
-def test_positive_admin_user_actions(content_view, function_role, module_org, module_lce):
+def test_positive_admin_user_actions(
+    content_view, function_role, module_org, module_lce, default_sat
+):
     """Attempt to manage content views
 
     :id: 75b638af-d132-4b5e-b034-a373565c72b4
@@ -1030,7 +1032,7 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (user_login, user_password)
     # Check that we cannot create random entity due permission restriction
     with pytest.raises(HTTPError):
@@ -1054,7 +1056,7 @@ def test_positive_admin_user_actions(content_view, function_role, module_org, mo
 
 
 @pytest.mark.tier2
-def test_positive_readonly_user_actions(function_role, content_view, module_org):
+def test_positive_readonly_user_actions(function_role, content_view, module_org, default_sat):
     """Attempt to view content views
 
     :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
@@ -1106,7 +1108,7 @@ def test_positive_readonly_user_actions(function_role, content_view, module_org)
     content_view.repository = [yum_repo]
     content_view = content_view.update(['repository'])
     assert len(content_view.repository) == 1
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (user_login, user_password)
     # Check that we can read content view repository information using user
     # with read only permissions
@@ -1116,7 +1118,9 @@ def test_positive_readonly_user_actions(function_role, content_view, module_org)
 
 
 @pytest.mark.tier2
-def test_negative_readonly_user_actions(function_role, content_view, module_org, module_lce):
+def test_negative_readonly_user_actions(
+    function_role, content_view, module_org, module_lce, default_sat
+):
     """Attempt to manage content views
 
     :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
@@ -1163,7 +1167,7 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (user_login, user_password)
     # Check that we cannot create content view due read-only permission
     with pytest.raises(HTTPError):
@@ -1198,7 +1202,7 @@ def test_negative_readonly_user_actions(function_role, content_view, module_org,
 
 
 @pytest.mark.tier2
-def test_negative_non_readonly_user_actions(content_view, function_role, module_org):
+def test_negative_non_readonly_user_actions(content_view, function_role, module_org, default_sat):
     """Attempt to view content views
 
     :id: b0a53c38-72f1-4731-881e-192134df6ef3
@@ -1237,7 +1241,7 @@ def test_negative_non_readonly_user_actions(content_view, function_role, module_
         login=user_login,
         password=user_password,
     ).create()
-    cfg = get_nailgun_config()
+    cfg = deepcopy(default_sat.nailgun_cfg)
     cfg.auth = (user_login, user_password)
     # Check that we cannot read our content view with custom user
     with pytest.raises(HTTPError):

@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import http
+from copy import deepcopy
 
 import pytest
 from nailgun import client
@@ -25,7 +26,6 @@ from nailgun import entity_fields
 
 from robottelo.config import get_credentials
 from robottelo.datafactory import parametrized
-from robottelo.helpers import get_nailgun_config
 from robottelo.logging import logger
 
 
@@ -192,7 +192,7 @@ class TestEntity:
         'entity_cls',
         **parametrized(get_entities_for_unauthorized(VALID_ENTITIES, {entities.TemplateKind})),
     )
-    def test_negative_post_unauthorized(self, entity_cls):
+    def test_negative_post_unauthorized(self, entity_cls, default_sat):
         """POST to an entity-dependent path without credentials.
 
         :id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
@@ -204,7 +204,7 @@ class TestEntity:
         :BZ: 1122257
 
         """
-        server_cfg = get_nailgun_config()
+        server_cfg = deepcopy(default_sat.nailgun_cfg)
         server_cfg.auth = ()
         return_code = entity_cls(server_cfg).create_raw(create_missing=False).status_code
         assert http.client.UNAUTHORIZED == return_code

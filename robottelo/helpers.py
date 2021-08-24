@@ -11,13 +11,10 @@ import requests
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from nailgun.config import ServerConfig
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
-from robottelo.config import get_credentials
-from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
 from robottelo.logging import logger
@@ -128,20 +125,6 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
         if result.status != 0:
             raise DownloadFileError(f'Unable to download {file_name}')
     return [f'{local_path}{file_name}', file_name]
-
-
-def get_nailgun_config(user=None):
-    """Return a NailGun configuration file constructed from default values.
-
-    :param user: The ```nailgun.entities.User``` object of an user with additional passwd
-        property/attribute
-
-    :return: ``nailgun.config.ServerConfig`` object, populated from user parameter object else
-        with values from ``robottelo.config.settings``
-
-    """
-    creds = (user.login, user.passwd) if user else get_credentials()
-    return ServerConfig(get_url(), creds, verify=False)
 
 
 def escape_search(term):

@@ -16,6 +16,7 @@
 """
 import re
 from copy import copy
+from copy import deepcopy
 
 import pytest
 import simplejson
@@ -30,7 +31,6 @@ from wait_for import wait_for
 
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
-from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
@@ -377,7 +377,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -442,7 +442,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Critical
         """
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -554,7 +554,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Medium
         """
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -608,7 +608,7 @@ class TestLibvirtHostDiscovery:
 
         :CaseImportance: Medium
         """
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         if _module_user:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
@@ -690,7 +690,7 @@ class TestLibvirtHostDiscovery:
         # Same time, calculating dhcp confs new `to` range
         new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
-        cfg = get_nailgun_config()
+        cfg = deepcopy(default_sat.nailgun_cfg)
         with default_sat.session.shell() as shell:
             shell.send('foreman-tail')
             try:
