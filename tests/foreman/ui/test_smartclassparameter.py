@@ -29,7 +29,7 @@ from robottelo.datafactory import gen_string
 
 PM_NAME = 'generic_1'
 
-pytestmark = [pytest.mark.run_in_one_thread]
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_open("BZ:1996035")]
 
 
 @pytest.fixture(scope='module')
@@ -56,7 +56,7 @@ def module_host(
     module_loc,
     module_env_search,
     module_puppet_classes,
-    module_update_default_smart_proxy,
+    default_smart_proxy,
 ):
     lce = entities.LifecycleEnvironment().search(
         query={'search': f'organization_id="{module_org.id}" and name="{ENVIRONMENT}"'}
@@ -69,8 +69,8 @@ def module_host(
         },
         environment=module_env_search,
         puppetclass=module_puppet_classes,
-        puppet_proxy=module_update_default_smart_proxy,
-        puppet_ca_proxy=module_update_default_smart_proxy,
+        puppet_proxy=default_smart_proxy,
+        puppet_ca_proxy=default_smart_proxy,
     ).create()
     return host
 
@@ -80,7 +80,6 @@ def domain(module_host):
     return entities.Domain(id=module_host.domain.id).read()
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
     """Perform end to end testing for smart class parameter component
@@ -181,7 +180,6 @@ def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
         )
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_create_matcher_attribute_priority(session, sc_params_list, module_host, domain):
     """Matcher Value set on Attribute Priority for Host.
@@ -268,7 +266,6 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
         assert output_scp == str([domain.name, module_host.mac])
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
@@ -344,7 +341,6 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
         assert output_scp == [20, 80, 90, 100]
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_update_matcher_from_attribute(session, sc_params_list, module_host):
     """Impact on parameter on editing the parameter value from attribute.
@@ -411,7 +407,6 @@ def test_positive_update_matcher_from_attribute(session, sc_params_list, module_
         assert property_matcher['Value']['value'] == new_override_value
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_impact_parameter_delete_attribute(
     session, sc_params_list, module_env_search, module_puppet_classes
@@ -471,7 +466,6 @@ def test_positive_impact_parameter_delete_attribute(
         assert session.sc_parameter.search(sc_param.parameter)[0]['Number of Overrides'] == '0'
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier2
 def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host):
     """Update the hidden default value of parameter in attribute. Then unhide.

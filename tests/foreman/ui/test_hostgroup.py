@@ -147,7 +147,7 @@ def test_create_with_puppet_class(session, module_org, module_loc, default_sat):
     name = gen_string('alpha')
     pc_name = 'generic_1'
     env_name = default_sat.create_custom_environment(repo=pc_name)
-    env = entities.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env = entities.Environment(
         id=env.id,
         location=[module_loc],
