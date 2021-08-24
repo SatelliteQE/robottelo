@@ -48,6 +48,12 @@ jobs:
           pytest --collect-only --disable-pytest-warnings -m pre_upgrade tests/upgrades/
           pytest --collect-only --disable-pytest-warnings -m post_upgrade tests/upgrades/
 
+      - name: Collect Tests with xdist
+        run: |
+          pytest --collect-only --disable-pytest-warnings -n 2 tests/foreman/ tests/robottelo/
+          pytest --collect-only --disable-pytest-warnings -n 2 -m pre_upgrade tests/upgrades/
+          pytest --collect-only --disable-pytest-warnings -n 2 -m post_upgrade tests/upgrades/
+
       - name: Test Robottelo Coverage
         run: pytest --cov --cov-config=.coveragerc --cov-report=xml tests/robottelo
 
