@@ -30,9 +30,7 @@ from robottelo.constants import FAKE_1_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_1_CUSTOM_PACKAGE_NAME
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_3_CUSTOM_PACKAGE_NAME
-from robottelo.constants import REPO_TYPE
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.constants.repos import FAKE_0_YUM_REPO
 from robottelo.datafactory import gen_string
 
@@ -101,45 +99,6 @@ def test_positive_create_chain(session):
         lce_values = session.lifecycleenvironment.read_all()
         assert lce_name in lce_values['lce']
         assert lce_path_name in lce_values['lce'][lce_name]
-
-
-@pytest.mark.tier2
-@pytest.mark.upgrade
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_add_puppet_module(session, module_org):
-    """Promote content view with puppet module to a new environment
-
-    :id: 12bed99d-8f96-48ca-843a-b77e123e8e2e
-
-    :steps:
-        1. Create Product/puppet repo and sync it
-        2. Create CV and add puppet module from created repo
-        3. Publish and promote CV to new environment
-
-    :expectedresults: Puppet modules can be listed successfully from lifecycle
-        environment interface
-
-    :BZ: 1408264
-
-    :CaseLevel: Integration
-    """
-    puppet_module = 'httpd'
-    product = entities.Product(organization=module_org).create()
-    repo = entities.Repository(
-        product=product, content_type=REPO_TYPE['puppet'], url=FAKE_0_PUPPET_REPO
-    ).create()
-    repo.sync()
-    lce = entities.LifecycleEnvironment(organization=module_org).create()
-    cv = entities.ContentView(organization=module_org).create()
-    with session:
-        session.contentview.add_puppet_module(cv.name, puppet_module)
-        session.contentview.publish(cv.name)
-        result = session.contentview.promote(cv.name, 'Version 1.0', lce.name)
-        assert f'Promoted to {lce.name}' in result['Status']
-        lce = session.lifecycleenvironment.search_puppet_module(
-            lce.name, puppet_module, cv_name=cv.name
-        )
-        assert lce[0]['Name'] == puppet_module
 
 
 @pytest.mark.tier3
