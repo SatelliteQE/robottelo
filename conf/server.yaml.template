@@ -45,8 +45,8 @@ SERVER:
   # Admin password when accessing API and UI
   ADMIN_PASSWORD: changeme
 
-SSH_CLIENT:
-  # Time to wait for the ssh command to finish, in seconds
-  COMMAND_TIMEOUT: 300
-  # Time to wait for establishing the ssh connection, in seconds
-  CONNECTION_TIMEOUT: 10
+  SSH_CLIENT:
+    # Time to wait for the ssh command to finish, in seconds
+    COMMAND_TIMEOUT: 300
+    # Time to wait for establishing the ssh connection, in seconds
+    CONNECTION_TIMEOUT: 60
