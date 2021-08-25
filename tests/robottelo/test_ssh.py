@@ -117,8 +117,8 @@ class TestSSH:
         settings.server.ssh_password = None
         settings.server.ssh_key = key_filename
         settings.server.ssh_key_string = None
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:
             assert connection.set_missing_host_key_policy_ == 1
             assert connection.connect_ == 1
@@ -149,8 +149,8 @@ class TestSSH:
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
         settings.server.ssh_key_string = None
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:
             assert connection.set_missing_host_key_policy_ == 1
             assert connection.connect_ == 1
@@ -184,8 +184,8 @@ class TestSSH:
         settings.server.ssh_password = None
         settings.server.ssh_key = None
         settings.server.ssh_key_string = key_string.getvalue()  # resolve StringIO stream
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:
             assert connection.set_missing_host_key_policy_ == 1
             assert connection.connect_ == 1
@@ -266,8 +266,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
         ssh.add_authorized_key('ssh-rsa xxxx user@host')
 
     @mock.patch('robottelo.config.settings')
@@ -277,8 +277,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         with ssh.get_connection() as connection:
             ret = ssh.execute_command('ls -la', connection)
@@ -292,8 +292,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         with ssh.get_connection() as connection:
             ret = ssh.execute_command('ls -la', connection, output_format='base')
@@ -307,8 +307,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la')
         assert ret.stdout == ['ls -la']
@@ -321,8 +321,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la', output_format='base')
         assert ret.stdout == 'ls -la'
@@ -335,8 +335,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         ret = ssh.command('a,b,c\n1,2,3', output_format='csv')
         assert ret.stdout == [{'a': '1', 'b': '2', 'c': '3'}]
@@ -349,8 +349,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.ssh_client.command_timeout = 300
-        settings.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300
+        settings.server.ssh_client.connection_timeout = 10
 
         ret = ssh.command('{"a": 1, "b": true}', output_format='json')
         assert ret.stdout == {'a': '1', 'b': True}
