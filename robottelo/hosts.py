@@ -24,6 +24,7 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 
 
@@ -1056,18 +1057,55 @@ class Satellite(Capsule):
         pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
         return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
-    def capsule_certs_generate(self, capsule, **extra_kwargs):
+    def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path and the installer command args"""
         command = InstallerCommand(
             command='capsule-certs-generate',
             foreman_proxy_fqdn=capsule.hostname,
-            certs_tar=f'/root/{capsule.hostname}-certs.tar',
+            certs_tar=cert_path or f'/root/{capsule.hostname}-certs.tar',
             **extra_kwargs,
         )
         result = self.execute(command.get_command())
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
         return install_cmd
+
+    def custom_cert_generate(self, capsule_hostname):
+        """copy all configuration files to satellite host for generating custom certs"""
+        self.execute(f'mkdir ssl-build/{capsule_hostname}')
+        for file in [
+            'generate-ca.sh',
+            'generate-crt.sh',
+            'openssl.cnf',
+            'certs.sh',
+            'extensions.txt',
+        ]:
+            self.session.sftp_write(get_data_file(file), f'/root/{file}')
+        self.execute('echo 100001 > serial')
+        self.execute('bash generate-ca.sh')
+        result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
+        assert result.status == 0
+        result = self.execute('bash certs.sh')
+        assert result.status == 0
+
+    def custom_certs_cleanup(self):
+        """cleanup all cert configuration files"""
+        files = [
+            'cacert.crt',
+            'cacert.crt',
+            'certindex*',
+            'generate-*.sh',
+            'capsule_cert',
+            'openssl.cnf',
+            'private',
+            'serial*',
+            'certs/*',
+            'extensions.txt',
+            'certs',
+            'certs.sh',
+            self.hostname,
+        ]
+        self.execute(f'cd /root && rm -rf {" ".join(files)}')
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
