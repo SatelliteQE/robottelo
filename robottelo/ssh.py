@@ -108,7 +108,7 @@ def get_client(
     if password is None and key_filename is None:
         key_string = key_string or settings.server.ssh_key_string
         key_string = paramiko.rsakey.RSAKey.from_private_key(StringIO(str(key_string)))
-    timeout = timeout or settings.ssh_client.connection_timeout
+    timeout = timeout or settings.server.ssh_client.connection_timeout
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
@@ -370,8 +370,8 @@ def command(
     from robottelo.config import settings
 
     hostname = hostname or settings.server.hostname
-    timeout = timeout or settings.ssh_client.command_timeout
-    connection_timeout = connection_timeout or settings.ssh_client.connection_timeout
+    timeout = timeout or settings.server.ssh_client.command_timeout
+    connection_timeout = connection_timeout or settings.server.ssh_client.connection_timeout
     with get_connection(
         hostname=hostname,
         username=username,
@@ -398,9 +398,9 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
     from robottelo.config import settings
 
     if timeout is None:
-        timeout = settings.ssh_client.command_timeout
+        timeout = settings.server.ssh_client.command_timeout
     if connection_timeout is None:
-        connection_timeout = settings.ssh_client.connection_timeout
+        connection_timeout = settings.server.ssh_client.connection_timeout
     logger.info('>>> %s', cmd)
     _, stdout, stderr = connection.exec_command(cmd, timeout=connection_timeout)
     if timeout:
