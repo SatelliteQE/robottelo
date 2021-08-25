@@ -10,7 +10,6 @@ from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.logging import logger
 
@@ -124,7 +123,7 @@ def vm_rhel8(activation_key, module_org, default_sat):
             rhel_distro=DISTRO_RHEL8,
             register_insights=False,
         )
-        add_remote_execution_ssh_key(vm.ip_addr)
+        vm.add_rex_key(satellite=default_sat)
         yield vm
 
 

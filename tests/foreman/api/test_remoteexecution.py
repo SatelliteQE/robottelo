@@ -18,19 +18,16 @@
 """
 import pytest
 from nailgun import client
-from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 
 from robottelo.api.utils import wait_for_tasks
-from robottelo.config import get_credentials
-from robottelo.helpers import add_remote_execution_ssh_key
 
 
 CAPSULE_TARGET_VERSION = '6.9.z'
 
 
 @pytest.mark.tier4
-def test_positive_run_capsule_upgrade_playbook(capsule_configured):
+def test_positive_run_capsule_upgrade_playbook(capsule_configured, default_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
     :id: 9ec6903d-2bb7-46a5-8002-afc74f06d83b
@@ -44,11 +41,13 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured):
     :CaseImportance: Medium
     """
     template_id = (
-        entities.JobTemplate().search(query={'search': 'name="Capsule Upgrade Playbook"'})[0].id
+        default_sat.api.JobTemplate()
+        .search(query={'search': 'name="Capsule Upgrade Playbook"'})[0]
+        .id
     )
 
-    add_remote_execution_ssh_key(capsule_configured.ip_addr)
-    job = entities.JobInvocation().run(
+    capsule_configured.add_rex_key(satellite=default_sat)
+    job = default_sat.api.JobInvocation().run(
         synchronous=False,
         data={
             'job_template_id': template_id,
@@ -61,23 +60,23 @@ def test_positive_run_capsule_upgrade_playbook(capsule_configured):
         },
     )
     wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = entities.JobInvocation(id=job['id']).read()
+    result = default_sat.api.JobInvocation(id=job['id']).read()
     assert result.succeeded == 1
 
-    result = capsule_configured.run('foreman-maintain health check')
+    result = default_sat.execute('foreman-maintain health check')
     assert result.status == 0
     for line in result.stdout:
         assert 'FAIL' not in line
 
-    result = entities.SmartProxy(
-        id=entities.SmartProxy(name=capsule_configured.hostname).search()[0].id
+    result = default_sat.api.SmartProxy(
+        id=default_sat.api.SmartProxy(name=default_sat.hostname).search()[0].id
     ).refresh()
     feature_list = [feat['name'] for feat in result['features']]
     assert {'Discovery', 'Dynflow', 'Ansible', 'SSH', 'Logs', 'Pulp'}.issubset(feature_list)
 
 
 @pytest.mark.destructive
-def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org, default_sat):
+def test_negative_run_capsule_upgrade_playbook_on_satellite(default_sat):
     """Run Capsule Upgrade playbook against the Satellite itself
 
     :id: 99462a11-5133-415d-ba64-4354da539a34
@@ -98,7 +97,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org, default
         .id
     )
 
-    add_remote_execution_ssh_key(sat.name)
+    default_sat.add_rex_key(satellite=default_sat)
     with pytest.raises(TaskFailedError) as error:
         default_sat.api.JobInvocation().run(
             data={
@@ -117,7 +116,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(default_org, default
     )[0]
     response = client.get(
         f'{default_sat.url}/api/job_invocations/{job.id}/hosts/{sat.id}',
-        auth=get_credentials(),
+        auth=(default_sat.username, default_sat.password),
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text

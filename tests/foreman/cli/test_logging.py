@@ -17,43 +17,27 @@
 :Upstream: No
 """
 import re
+from tempfile import NamedTemporaryFile
 
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
+from robottelo.config import robottelo_tmp_dir
 from robottelo.constants.repos import FAKE_0_YUM_REPO
+from robottelo.helpers import cut_lines
+from robottelo.helpers import line_count
 from robottelo.logging import logger
-from robottelo.ssh import upload_file
-
-
-def line_count(file, connection=None):
-    """Get number of lines in a file."""
-    connection = connection or ssh.get_connection()
-    result = connection.run(f'wc -l < {file}', output_format='plain')
-    count = result.stdout.strip('\n')
-    return count
-
-
-def cut_lines(start_line, end_line, source_file, out_file, connection=None):
-    """Given start and end line numbers, cut lines from source file
-    and put them in out file."""
-    connection = connection or ssh.get_connection()
-    result = connection.run(
-        'sed -n "{0},{1} p" {2} < {2} > {3}'.format(start_line, end_line, source_file, out_file)
-    )
-    return result
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_foreman_core():
+def test_positive_logging_from_foreman_core(default_sat):
     """Check that GET command to Hosts API is logged and has request ID.
 
     :id: 0785260d-cb81-4351-a7cb-d7841335e2de
@@ -66,18 +50,17 @@ def test_positive_logging_from_foreman_core():
     GET_line_found = False
     source_log = '/var/log/foreman/production.log'
     test_logfile = '/var/tmp/logfile_from_foreman_core'
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source log before the test
-        line_count_start = line_count(source_log, connection)
-        # hammer command for this test
-        result = connection.run('hammer host list')
-        assert result.return_code == 0, "BASH command error?"
-        # get the number of lines in the source log after the test
-        line_count_end = line_count(source_log, connection)
-        # get the log lines of interest, put them in test_logfile
-        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
+    # get the number of lines in the source log before the test
+    line_count_start = line_count(source_log, default_sat)
+    # hammer command for this test
+    result = default_sat.execute('hammer host list')
+    assert result.status == 0, f'Non-zero status for host list: {result.stderr}'
+    # get the number of lines in the source log after the test
+    line_count_end = line_count(source_log, default_sat)
+    # get the log lines of interest, put them in test_logfile
+    cut_lines(line_count_start, line_count_end, source_log, test_logfile, default_sat)
     # use same location on remote and local for log file extract
-    ssh.download_file(test_logfile)
+    default_sat.get(remote_path=test_logfile)
     # search the log file extract for the line with GET to host API
     with open(test_logfile) as logfile:
         for line in logfile:
@@ -93,7 +76,7 @@ def test_positive_logging_from_foreman_core():
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_foreman_proxy():
+def test_positive_logging_from_foreman_proxy(default_sat):
     """Check PUT to Smart Proxy API to refresh the features is logged and has request ID.
 
     :id: 0ecd8406-6cf1-4520-b8b6-8a164a1e60c2
@@ -109,24 +92,23 @@ def test_positive_logging_from_foreman_proxy():
     test_logfile_1 = '/var/tmp/logfile_1_from_proxy'
     source_log_2 = '/var/log/foreman-proxy/proxy.log'
     test_logfile_2 = '/var/tmp/logfile_2_from_proxy'
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source logs before the test
-        line_count_start_1 = line_count(source_log_1, connection)
-        line_count_start_2 = line_count(source_log_2, connection)
-        # hammer command for this test
-        result = connection.run('hammer proxy refresh-features --id 1')
-        assert result.return_code == 0, "BASH command error?"
-        # get the number of lines in the source logs after the test
-        line_count_end_1 = line_count(source_log_1, connection)
-        line_count_end_2 = line_count(source_log_2, connection)
-        # get the log lines of interest, put them in test_logfile_1
-        cut_lines(line_count_start_1, line_count_end_1, source_log_1, test_logfile_1, connection)
-        # get the log lines of interest, put them in test_logfile_2
-        cut_lines(line_count_start_2, line_count_end_2, source_log_2, test_logfile_2, connection)
+    # get the number of lines in the source logs before the test
+    line_count_start_1 = line_count(source_log_1, default_sat)
+    line_count_start_2 = line_count(source_log_2, default_sat)
+    # hammer command for this test
+    result = default_sat.execute('hammer proxy refresh-features --id 1')
+    assert result.status == 0, f'Non-zero status for host list: {result.stderr}'
+    # get the number of lines in the source logs after the test
+    line_count_end_1 = line_count(source_log_1, default_sat)
+    line_count_end_2 = line_count(source_log_2, default_sat)
+    # get the log lines of interest, put them in test_logfile_1
+    cut_lines(line_count_start_1, line_count_end_1, source_log_1, test_logfile_1, default_sat)
+    # get the log lines of interest, put them in test_logfile_2
+    cut_lines(line_count_start_2, line_count_end_2, source_log_2, test_logfile_2, default_sat)
     # use same location on remote and local for log file extract
-    ssh.download_file(test_logfile_1)
+    default_sat.get(remote_path=test_logfile_1)
     # use same location on remote and local for log file extract
-    ssh.download_file(test_logfile_2)
+    default_sat.get(remote_path=test_logfile_2)
     # search the log file extract for the line with PUT to host API
     with open(test_logfile_1) as logfile:
         for line in logfile:
@@ -153,7 +135,7 @@ def test_positive_logging_from_foreman_proxy():
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_candlepin(module_org):
+def test_positive_logging_from_candlepin(module_org, default_sat):
     """Check logging after manifest upload.
 
     :id: 8c06e501-52d7-4baf-903e-7de9caffb066
@@ -168,19 +150,21 @@ def test_positive_logging_from_candlepin(module_org):
     test_logfile = '/var/tmp/logfile_from_candlepin'
     # regex for a version 4 UUID (8-4-4-12 format)
     regex = r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b"
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source log before the test
-        line_count_start = line_count(source_log, connection)
-        # command for this test
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-            Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
-        # get the number of lines in the source log after the test
-        line_count_end = line_count(source_log, connection)
-        # get the log lines of interest, put them in test_logfile
-        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
+    # get the number of lines in the source log before the test
+    line_count_start = line_count(source_log, default_sat)
+    # command for this test
+    with manifests.clone() as manifest:
+        with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+            content_file.write(manifest.content.read())
+            content_file.seek(0)
+            default_sat.put(local_path=content_file.name, remote_path=manifest.filename)
+        Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
+    # get the number of lines in the source log after the test
+    line_count_end = line_count(source_log, default_sat)
+    # get the log lines of interest, put them in test_logfile
+    cut_lines(line_count_start, line_count_end, source_log, test_logfile, default_sat)
     # use same location on remote and local for log file extract
-    ssh.download_file(test_logfile)
+    default_sat.get(remote_path=test_logfile)
     # search the log file extract for the line with POST to candlepin API
     with open(test_logfile) as logfile:
         for line in logfile:
@@ -196,7 +180,7 @@ def test_positive_logging_from_candlepin(module_org):
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_dynflow(module_org):
+def test_positive_logging_from_dynflow(module_org, default_sat):
     """Check POST to repositories API is logged while enabling a repo \
         and it has the request ID.
 
@@ -212,18 +196,17 @@ def test_positive_logging_from_dynflow(module_org):
     test_logfile = '/var/tmp/logfile_dynflow'
     product = entities.Product(organization=module_org).create()
     repo_name = gen_string('alpha')
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source log before the test
-        line_count_start = line_count(source_log, connection)
-        # command for this test
-        new_repo = entities.Repository(name=repo_name, product=product).create()
-        logger.info(f'Created Repo {new_repo.name} for dynflow log test')
-        # get the number of lines in the source log after the test
-        line_count_end = line_count(source_log, connection)
-        # get the log lines of interest, put them in test_logfile
-        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
+    # get the number of lines in the source log before the test
+    line_count_start = line_count(source_log, default_sat)
+    # command for this test
+    new_repo = entities.Repository(name=repo_name, product=product).create()
+    logger.info(f'Created Repo {new_repo.name} for dynflow log test')
+    # get the number of lines in the source log after the test
+    line_count_end = line_count(source_log, default_sat)
+    # get the log lines of interest, put them in test_logfile
+    cut_lines(line_count_start, line_count_end, source_log, test_logfile, default_sat)
     # use same location on remote and local for log file extract
-    ssh.download_file(test_logfile)
+    default_sat.get(remote_path=test_logfile)
     # search the log file extract for the line with POST to to repositories API
     with open(test_logfile) as logfile:
         for line in logfile:
@@ -238,7 +221,7 @@ def test_positive_logging_from_dynflow(module_org):
 
 
 @pytest.mark.tier4
-def test_positive_logging_from_pulp3(module_org):
+def test_positive_logging_from_pulp3(module_org, default_sat):
     """
     Verify Pulp3 logs are getting captured using pulp3 correlation ID
 
@@ -270,12 +253,12 @@ def test_positive_logging_from_pulp3(module_org):
     Product.synchronize({'id': product['id'], 'organization-id': module_org.id})
     Repository.synchronize({'id': repo['id']})
     # Get the id of repository sync from task
-    task_out = ssh.command(
+    task_out = default_sat.execute(
         "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"
-    ).stdout[0][:8]
-    prod_log_out = ssh.command(f'grep  {task_out} {source_log}').stdout[0]
+    ).stdout.split('\n')[0][:8]
+    prod_log_out = default_sat.execute(f'grep {task_out} {source_log}').stdout
     # Get correlation id of pulp from production logs
     pulp_correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
     # verify pulp correlation id in message
-    message_log = ssh.command(f'cat {test_logfile} | grep {pulp_correlation_id}')
-    assert message_log.return_code == 0
+    message_log = default_sat.execute(f'cat {test_logfile} | grep {pulp_correlation_id}')
+    assert message_log.status == 0

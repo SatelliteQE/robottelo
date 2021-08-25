@@ -18,13 +18,15 @@
 """
 import pytest
 
-from robottelo import ssh
+from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 
 @pytest.mark.tier3
-def test_positive_inventory_generate_upload_cli(organization_ak_setup, registered_hosts):
+def test_positive_inventory_generate_upload_cli(
+    organization_ak_setup, registered_hosts, default_sat
+):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
 
@@ -62,18 +64,18 @@ def test_positive_inventory_generate_upload_cli(organization_ak_setup, registere
 
     :CaseLevel: System
     """
-    org, ak = organization_ak_setup
+    org, _ = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
-    upload_success_msg = f'Generated and uploaded inventory report for organization \'{org.name}\''
-    result = ssh.command(cmd)
-    assert result.return_code == 0
-    assert result.stdout[0] == upload_success_msg
+    upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
+    result = default_sat.execute(cmd)
+    assert result.status == 0
+    assert upload_success_msg in result.stdout
 
-    local_report_path = f'/tmp/report_for_{org.id}.tar.xz'
+    local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
-    ssh.download_file(remote_report_path, local_report_path)
+    default_sat.get(remote_path=remote_report_path, local_path=local_report_path)
     local_file_data = get_local_file_data(local_report_path)
     assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
     assert local_file_data['size'] > 0

@@ -39,6 +39,7 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
+from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
@@ -1461,7 +1462,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier1
     def test_positive_exported_cvv_json_contents(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Export the CV version and verify export metadata json fields
 
@@ -1507,10 +1508,10 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}'
             f'-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
         assert result.return_code == 0
         # Updating the json in exported tar
-        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
+        default_sat.execute(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         extracted_directory_name = (
             f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}'
         )
@@ -1518,10 +1519,9 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/{extracted_directory_name}/'
             f'{extracted_directory_name}.json'
         )
-        json_path_local = f'/tmp/{extracted_directory_name}.json'
-        ssh.download_file(json_path_server, json_path_local)
-        with open(json_path_local) as metafile:
-            metadata = json.load(metafile)
+        json_path_local = robottelo_tmp_dir.joinpath(f'{extracted_directory_name}.json')
+        default_sat.get(remote_path=json_path_server, local_path=json_path_local)
+        metadata = json.load(json_path_local.read_text())
         assert metadata.get('name') == class_export_entities['exporting_cv_name']
         assert str(metadata.get('major')) == exporting_cv['versions'][0]['version'].split('.')[0]
         assert str(metadata.get('minor')) == exporting_cv['versions'][0]['version'].split('.')[1]
