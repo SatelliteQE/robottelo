@@ -43,7 +43,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REAL_0_RH_PACKAGE
 from robottelo.constants import REAL_4_ERRATA_CVES
 from robottelo.constants import REAL_4_ERRATA_ID
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.manifests import upload_manifest_locked
 from robottelo.products import RepositoryCollection
@@ -306,8 +305,7 @@ def test_content_host_errata_page_pagination(session, org, lce, default_sat):
     )
     repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
     with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
-        # add_remote_execution_ssh_key for REX
-        add_remote_execution_ssh_key(client.ip_addr)
+        client.add_rex_key(satellite=default_sat)
         # Add repo and install packages that need errata
         repos_collection.setup_virtual_machine(client, default_sat)
         assert _install_client_package(client, pkgs)

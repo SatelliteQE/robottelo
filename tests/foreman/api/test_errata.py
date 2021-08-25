@@ -29,7 +29,6 @@ from robottelo.api.utils import promote
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.config import settings
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
@@ -189,7 +188,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
             client.register_contenthost(module_org.label, activation_key.name)
             assert client.subscribed
             client.enable_repo(constants.REPOS['rhst7']['id'])
-            add_remote_execution_ssh_key(client.hostname)
+            client.add_rex_key(satellite=default_sat)
         host_ids = [client.nailgun_host.id for client in clients]
         _install_package(
             module_org,
@@ -197,11 +196,11 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
             host_ids=host_ids,
             package_name=constants.FAKE_1_CUSTOM_PACKAGE,
         )
-        host_collection = entities.HostCollection(organization=module_org).create()
+        host_collection = default_sat.api.HostCollection(organization=module_org).create()
         host_ids = [client.nailgun_host.id for client in clients]
         host_collection.host_ids = host_ids
         host_collection = host_collection.update(['host_ids'])
-        entities.JobInvocation().run(
+        default_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
@@ -242,8 +241,8 @@ def test_positive_install_in_host(
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
-    add_remote_execution_ssh_key(rhel7_contenthost.hostname)
-    entities.JobInvocation().run(
+    rhel7_contenthost.add_rex_key(satellite=default_sat)
+    default_sat.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
@@ -286,9 +285,9 @@ def test_positive_install_multiple_in_host(
     host = host.read()
     applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
     assert applicable_errata_count > 1
-    add_remote_execution_ssh_key(rhel7_contenthost.hostname)
+    rhel7_contenthost.add_rex_key(satellite=default_sat)
     for errata in settings.repos.yum_9.errata[:2]:
-        entities.JobInvocation().run(
+        default_sat.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': f'{errata}'},
@@ -304,7 +303,7 @@ def test_positive_install_multiple_in_host(
 
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(module_org, custom_repo):
+def test_positive_list(module_org, custom_repo, default_sat):
     """View all errata specific to repository
 
     :id: 1efceabf-9821-4804-bacf-2213ac0c7550
@@ -318,9 +317,9 @@ def test_positive_list(module_org, custom_repo):
 
     :CaseLevel: System
     """
-    repo1 = entities.Repository(id=custom_repo['repository-id']).read()
-    repo2 = entities.Repository(
-        product=entities.Product().create(), url=settings.repos.yum_3.url
+    repo1 = default_sat.api.Repository(id=custom_repo['repository-id']).read()
+    repo2 = default_sat.api.Repository(
+        product=default_sat.api.Product().create(), url=settings.repos.yum_3.url
     ).create()
     repo2.sync()
     repo1_errata_ids = [
@@ -338,7 +337,7 @@ def test_positive_list(module_org, custom_repo):
 
 
 @pytest.mark.tier3
-def test_positive_list_updated(module_org):
+def test_positive_list_updated(module_org, default_sat):
     """View all errata in an Org sorted by Updated
 
     :id: 560d6584-70bd-4d1b-993a-cc7665a9e600
@@ -351,7 +350,7 @@ def test_positive_list_updated(module_org):
 
     :CaseLevel: System
     """
-    repo = entities.Repository(name=constants.REPOS['rhva6']['name']).search(
+    repo = default_sat.api.Repository(name=constants.REPOS['rhva6']['name']).search(
         query={'organization_id': module_org.id}
     )
     if repo:
@@ -367,9 +366,9 @@ def test_positive_list_updated(module_org):
                 'basearch': constants.DEFAULT_ARCHITECTURE,
             }
         )
-        repo = entities.Repository(id=result['repository-id'])
+        repo = default_sat.api.Repository(id=result['repository-id'])
     assert repo.sync()['result'] == 'success'
-    erratum_list = entities.Errata(repository=repo).search(
+    erratum_list = default_sat.api.Errata(repository=repo).search(
         query={'order': 'updated ASC', 'per_page': '1000'}
     )
     updated = [errata.updated for errata in erratum_list]
@@ -377,7 +376,7 @@ def test_positive_list_updated(module_org):
 
 
 @pytest.mark.tier3
-def test_positive_filter_by_cve(module_org):
+def test_positive_filter_by_cve(module_org, default_sat):
     """Filter errata by CVE
 
     :id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
@@ -390,7 +389,7 @@ def test_positive_filter_by_cve(module_org):
 
     :CaseLevel: System
     """
-    repo = entities.Repository(name=constants.REPOS['rhva6']['name']).search(
+    repo = default_sat.api.Repository(name=constants.REPOS['rhva6']['name']).search(
         query={'organization_id': module_org.id}
     )
     if repo:
@@ -406,9 +405,9 @@ def test_positive_filter_by_cve(module_org):
                 'basearch': constants.DEFAULT_ARCHITECTURE,
             }
         )
-        repo = entities.Repository(id=result['repository-id'])
+        repo = default_sat.api.Repository(id=result['repository-id'])
     assert repo.sync()['result'] == 'success'
-    erratum_list = entities.Errata(repository=repo).search(
+    erratum_list = default_sat.api.Errata(repository=repo).search(
         query={'order': 'cve DESC', 'per_page': '1000'}
     )
     # Most of Errata don't have any CVEs. Removing empty CVEs from results
@@ -890,7 +889,7 @@ def test_errata_installation_with_swidtags(
     )
 
     # install older module stream
-    add_remote_execution_ssh_key(rhel8_contenthost.ip_addr)
+    rhel8_contenthost.add_rex_key(satellite=default_sat)
     _set_prerequisites_for_swid_repos(module_org, vm=rhel8_contenthost)
     _run_remote_command_on_content_host(
         module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost

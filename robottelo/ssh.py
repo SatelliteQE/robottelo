@@ -1,5 +1,4 @@
 """Utility module to handle the shared ssh connection."""
-import base64
 import os
 import re
 import time
@@ -206,68 +205,6 @@ def get_sftp_session(
             sftp.close()
 
 
-def add_authorized_key(
-    key,
-    hostname=None,
-    username=None,
-    password=None,
-    key_filename=None,
-    key_string=None,
-    timeout=None,
-):
-    """Appends a local public ssh key to remote authorized keys
-
-    refer to: remote_execution_ssh_keys provisioning template
-
-    kwargs are passed through to get_client
-
-    :param key: either a file path, key string or a file-like obj to append.
-    """
-    # temporary workaround due to import order.
-    from robottelo.config import settings
-
-    if getattr(key, 'read', None):  # key is a file-like object
-        key_content = key.read()  # pragma: no cover
-    elif is_ssh_pub_key(key):  # key is a valid key-string
-        key_content = key
-    elif os.path.exists(key):  # key is a path to a pub key-file
-        with open(key) as key_file:  # pragma: no cover
-            key_content = key_file.read()
-    else:
-        raise AttributeError('Invalid key')
-
-    key_content = key_content.strip()
-    ssh_path = '~/.ssh'
-    auth_file = os.path.join(ssh_path, 'authorized_keys')
-
-    with get_connection(
-        hostname=hostname,
-        username=username,
-        password=password,
-        key_filename=key_filename,
-        timeout=timeout,
-    ) as con:
-
-        # ensure ssh directory exists
-        execute_command('mkdir -p %s' % ssh_path, con)
-
-        # append the key if doesn't exists
-        add_key = "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
-            key=key_content, dest=auth_file
-        )
-        execute_command(add_key, con)
-
-        # set proper permissions
-        execute_command('chmod 700 %s' % ssh_path, con)
-        execute_command('chmod 600 %s' % auth_file, con)
-        ssh_user = username or settings.server.ssh_username
-        execute_command(f'chown -R {ssh_user} {ssh_path}', con)
-
-        # Restore SELinux context with restorecon, if it's available:
-        cmd = 'command -v restorecon && restorecon -RvF %s || true' % ssh_path
-        execute_command(cmd, con)
-
-
 def upload_file(local_file, remote_file, key_filename=None, key_string=None, hostname=None):
     """Upload a local file to a remote machine
 
@@ -449,29 +386,3 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
         stdout = ''.join(stdout).split('\n')
         stdout = [regex.sub('', line) for line in stdout if not line.startswith('[')]
     return SSHCommandResult(stdout, stderr, errorcode, output_format)
-
-
-def is_ssh_pub_key(key):
-    """Validates if a string is in valid ssh pub key format
-
-    :param key: A string containing a ssh public key encoded in base64
-    :return: Boolean
-    """
-
-    if not isinstance(key, str):
-        raise ValueError(f"Key should be a string type, received: {type(key)}")
-
-    # 1) a valid pub key has 3 parts separated by space
-    try:
-        key_type, key_string, comment = key.split()
-    except ValueError:  # need more than one value to unpack
-        return False
-
-    # 2) The second part (key string) should be a valid base64
-    try:
-        base64.decodebytes(key_string.encode('ascii'))
-    except base64.binascii.Error:
-        return False
-
-    # 3) The first part, the type, should be one of below
-    return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')

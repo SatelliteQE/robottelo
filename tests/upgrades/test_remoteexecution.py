@@ -24,7 +24,7 @@ from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.config import settings
-from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.hosts import Capsule
 
 
 @pytest.fixture(scope='class')
@@ -97,9 +97,8 @@ class TestScenarioREXCapsule:
         ).create()
         rhel7_contenthost.install_capsule_katello_ca(capsule=self.proxy_name)
         rhel7_contenthost.register_contenthost(org=self.org.label, lce='Library')
-        add_remote_execution_ssh_key(
-            hostname=rhel7_contenthost.ip_addr, proxy_hostname=self.proxy_name
-        )
+        capsule = Capsule(self.proxy_name)
+        rhel7_contenthost.add_rex_key(satellite=capsule)
         host = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
         host[0].subnet = sn
         host[0].update(['subnet'])
@@ -194,10 +193,8 @@ class TestScenarioREXSatellite:
             organization=[self.org.id],
             remote_execution_proxy=[entities.SmartProxy(id=1)],
         ).create()
-        rhel7_contenthost.install_katello_ca(default_sat)
-        rhel7_contenthost.register_contenthost(org=self.org.label, lce='Library')
-        add_remote_execution_ssh_key(hostname=rhel7_contenthost.ip_addr)
-        host = entities.Host().search(query={'search': f'name="{rhel7_contenthost.hostname}"'})
+        rhel7_contenthost.configure_rex(satellite=default_sat, org=self.org, by_ip=False)
+        host = rhel7_contenthost.nailgun_host
         host[0].subnet = sn
         host[0].update(['subnet'])
         job = entities.JobInvocation().run(
