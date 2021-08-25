@@ -20,7 +20,6 @@ from fauxfactory import gen_string
 from fauxfactory import gen_url
 from wait_for import wait_for
 
-from robottelo import ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -1520,17 +1519,16 @@ class TestDockerClient:
             assert result.status == 0
 
             tar_file = f'{repo_name}.tar'
-            ssh.download_file(tar_file, hostname=docker_host.ip_addr)
-            ssh.upload_file(
-                local_file=tar_file,
-                remote_file=f'/tmp/{tar_file}',
-                hostname=default_sat.hostname,
+            docker_host.get(remote_path=tar_file)
+            default_sat.put(
+                local_path=tar_file,
+                remote_path=f'/tmp/{tar_file}',
             )
 
             # Upload tarred repository
             product = make_product_wait({'organization-id': module_org.id})
             repo = _repo(product['id'])
-            Repository.upload_content({'id': repo['id'], 'path': f'/tmp/{repo_name}.tar'})
+            Repository.upload_content({'id': repo['id'], 'path': f'/tmp/{tar_file}'})
 
             # Verify repository was uploaded successfully
             repo = Repository.info({'id': repo['id']})
@@ -1540,4 +1538,4 @@ class TestDockerClient:
             assert repo_name in repo['published-at']
         finally:
             # Remove the archive
-            ssh.command(f'rm -f /tmp/{repo_name}.tar')
+            default_sat.execute(f'rm -f /tmp/{tar_file}')

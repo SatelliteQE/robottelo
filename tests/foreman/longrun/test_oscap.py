@@ -45,7 +45,6 @@ from robottelo.constants import OSCAP_PROFILE
 from robottelo.constants import OSCAP_TARGET_CORES
 from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
 from robottelo.helpers import ProxyError
 from robottelo.hosts import ContentHost
@@ -507,7 +506,7 @@ def test_positive_oscap_run_via_ansible(
             }
         )
         vm.configure_rhel_repo(rhel_repo)
-        add_remote_execution_ssh_key(vm.ip_addr)
+        vm.add_rex_key(satellite=default_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
@@ -627,7 +626,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             '--fetch-remote-resources --results-arf results.xml '
             '/usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml',
         )
-        add_remote_execution_ssh_key(vm.ip_addr)
+        vm.add_rex_key(satellite=default_sat)
         Host.update(
             {
                 'name': vm.hostname.lower(),
