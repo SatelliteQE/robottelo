@@ -27,7 +27,6 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
@@ -92,7 +91,7 @@ def vm_content_hosts(module_loc, module_repos_collection, default_sat):
             module_repos_collection.setup_virtual_machine(
                 client, default_sat, install_katello_agent=False
             )
-            add_remote_execution_ssh_key(client.ip_addr)
+            client.add_rex_key(satellite=default_sat)
             update_vm_host_location(client, module_loc.id)
         yield clients
 
@@ -105,7 +104,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
             module_repos_collection_module_stream.setup_virtual_machine(
                 client, default_sat, install_katello_agent=False
             )
-            add_remote_execution_ssh_key(client.ip_addr)
+            client.add_rex_key(satellite=default_sat)
             update_vm_host_location(client, module_loc.id)
         yield clients
 

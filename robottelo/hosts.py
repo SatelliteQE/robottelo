@@ -3,6 +3,7 @@ import time
 from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
+from pathlib import PurePath
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -26,9 +27,9 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
+from robottelo.helpers import validate_ssh_pub_key
 
 
 POWER_OPERATIONS = {
@@ -413,14 +414,63 @@ class ContentHost(Host):
         """Copy ssh key to virtual machine ssh path and ensure proper permission is
         set
 
-        :param source_key_path: The ssh key file path to copy to vm
-        :param destination_key_name: The ssh key file name when copied to vm
+        Args:
+            source_key_path: The ssh key file path to copy to vm
+            destination_key_name: The ssh key file name when copied to vm
         """
         destination_key_path = f'/root/.ssh/{destination_key_name}'
         self.put(local_path=source_key_path, remote_path=destination_key_path)
         result = self.run(f'chmod 600 {destination_key_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
+
+    def add_authorized_key(self, pub_key):
+        """Inject a public key into the authorized keys file
+
+        Args:
+            pub_key: public key string, file-like object, or path string
+        Raises:
+            ValueError: if the pub_key isn't valid or found
+        """
+        if getattr(pub_key, 'read', False):  # key is a file-like object
+            key_content = pub_key.read()
+        elif validate_ssh_pub_key(pub_key):  # key is a valid key-string
+            key_content = pub_key
+        # use expanduser here to handle relative paths with ~ resolving locally
+        elif Path(pub_key).expanduser().exists():  # key is a path to a pub key-file
+            key_content = Path(pub_key).expanduser().read_text()
+        else:
+            raise ValueError('Invalid key')
+        key_content = key_content.strip()
+        ssh_path = PurePath('~/.ssh')
+        auth_file = ssh_path.joinpath('authorized_keys')
+        # ensure ssh directory exists
+        self.execute(f'mkdir -p {ssh_path}')
+        # append the key if doesn't exists
+        self.execute(
+            "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
+                key=key_content, dest=auth_file
+            )
+        )
+        # set proper permissions
+        self.execute(f'chmod 700 {ssh_path}')
+        self.execute(f'chmod 600 {auth_file}')
+        self.execute(f'chown -R {self.username} {ssh_path}')
+        # Restore SELinux context with restorecon, if it's available:
+        self.execute(f'command -v restorecon && restorecon -RvF {ssh_path} || true')
+
+    def add_rex_key(self, satellite, key_path=None):
+        """Read a public key from the passed Satellite, and add it to authorized_keys
+
+        Args:
+            satellite: ``Capsule`` or ``Satellite`` instance
+            key_path: optional path to the key on the satellite
+        """
+        if key_path is not None:
+            sat_key = satellite.execute(f'cat {key_path}').stdout.strip()
+        else:
+            sat_key = satellite.rex_pub_key
+        self.add_authorized_key(pub_key=sat_key)
 
     def update_known_hosts(self, ssh_key_name, host, user=None):
         """Create host entry in vm ssh config and known_hosts files to allow vm
@@ -539,7 +589,7 @@ class ContentHost(Host):
             self.install_katello_ca(satellite)
             self.register_contenthost(org.label, lce='Library')
             assert self.subscribed
-        add_remote_execution_ssh_key(self.ip_addr, proxy_hostname=satellite.hostname)
+        self.add_rex_key(satellite=satellite)
         if register and subnet_id is not None:
             host = self.nailgun_host.read()
             host.name = self.hostname
@@ -902,6 +952,8 @@ class ContentHost(Host):
 
 
 class Capsule(ContentHost):
+    rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
+
     @property
     def nailgun_capsule(self):
         from nailgun.entities import Capsule as NailgunCapsule
@@ -920,6 +972,10 @@ class Capsule(ContentHost):
     @cached_property
     def url(self):
         return f'https://{self.hostname}'
+
+    @property
+    def rex_pub_key(self):
+        return self.execute(f'cat {self.rex_key_path}').stdout.strip()
 
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""

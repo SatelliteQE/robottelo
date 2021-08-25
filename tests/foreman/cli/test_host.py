@@ -1968,12 +1968,6 @@ class HostSubscription:
         self.subscription_name = host_subscription['subscription_name']
         self.client = None
 
-    def set_client(self, client):
-        self.client = client
-
-    def get_client(self):
-        return self.client
-
     def _register_client(
         self,
         activation_key=None,
@@ -1993,8 +1987,7 @@ class HostSubscription:
             command is launched
         :return: the registration result
         """
-        if activation_key is None:
-            activation_key = self.ak
+        activation_key = activation_key or self.ak
 
         if lce:
             result = self.client.register_contenthost(
@@ -2076,7 +2069,7 @@ def test_positive_register(request, module_host_subscription, host_subscription_
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     activation_key = module_host_subscription._make_activation_key(add_subscription=False)
     hosts = Host.list(
         {
@@ -2124,7 +2117,7 @@ def test_positive_attach(request, module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     # create an activation key without subscriptions
     activation_key = module_host_subscription._make_activation_key(add_subscription=False)
     # register the client host
@@ -2164,7 +2157,7 @@ def test_positive_attach_with_lce(module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     module_host_subscription._register_client(lce=True, auto_attach=True)
     assert module_host_subscription.client.subscribed
     host = Host.info({'name': module_host_subscription.client.hostname})
@@ -2196,7 +2189,7 @@ def test_negative_without_attach(request, module_host_subscription, host_subscri
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
     module_host_subscription.client.register_contenthost(
@@ -2226,7 +2219,7 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
     :CaseLevel: System
     """
     # Setup as in host_subscription
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
@@ -2284,7 +2277,7 @@ def test_positive_remove(request, module_host_subscription, host_subscription_cl
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     activation_key = module_host_subscription._make_activation_key(add_subscription=True)
     module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
@@ -2346,7 +2339,7 @@ def test_positive_auto_attach(request, module_host_subscription, host_subscripti
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     activation_key = module_host_subscription._make_activation_key(add_subscription=True)
     module_host_subscription._host_subscription_register(request)
     host = Host.info({'name': module_host_subscription.client.hostname})
@@ -2372,7 +2365,7 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     # register the host client
     activation_key = module_host_subscription._make_activation_key(add_subscription=True)
     module_host_subscription._register_client(
@@ -2413,7 +2406,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
     :CaseLevel: System
     """
-    module_host_subscription.set_client(host_subscription_client)
+    module_host_subscription.client = host_subscription_client
     # Create an activation key with test values
     purpose_addons = "test-addon1, test-addon2"
     activation_key = entities.ActivationKey(
