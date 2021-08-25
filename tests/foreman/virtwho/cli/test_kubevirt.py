@@ -32,7 +32,7 @@ from robottelo.virtwho_utils import get_configure_option
 
 
 @pytest.fixture()
-def form_data():
+def form_data(default_sat):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -41,7 +41,7 @@ def form_data():
         'hypervisor-type': settings.virtwho.kubevirt.hypervisor_type,
         'organization-id': 1,
         'filtering-mode': 'none',
-        'satellite-url': settings.server.hostname,
+        'satellite-url': default_sat.hostname,
         'kubeconfig': settings.virtwho.kubevirt.hypervisor_config_file,
     }
     return form

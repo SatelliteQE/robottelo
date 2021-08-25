@@ -843,12 +843,11 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'checksum_type': checksum_type, 'download_policy': 'on_demand'}
-                for checksum_type in ('sha1', 'sha256')
-            ]
-        ),
+        [
+            {'checksum_type': checksum_type, 'download_policy': 'on_demand'}
+            for checksum_type in ('sha1', 'sha256')
+        ],
+        ids=['sha1', 'sha256'],
         indirect=True,
     )
     def test_negative_create_checksum_with_on_demand_policy(self, repo_options):
@@ -954,7 +953,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'unprotected': False}]), indirect=True
+        'repo_options', [{'unprotected': False}], ids=['protected'], indirect=True
     )
     def test_positive_update_unprotected(self, repo):
         """Update repository unprotected flag to another valid one.
@@ -967,6 +966,7 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
+        assert repo.unprotected is False
         repo.unprotected = True
         repo = repo.update(['unprotected'])
         assert repo.unprotected is True
@@ -1044,7 +1044,7 @@ class TestRepository:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
+        'repo_options', [{'url': FAKE_YUM_SRPM_REPO}], ids=['yum_fake'], indirect=True
     )
     def test_positive_create_delete_srpm_repo(self, repo):
         """Create a repository, sync SRPM contents and remove repo
@@ -1070,7 +1070,8 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
+        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        ids=['yum_fake_2'],
         indirect=True,
     )
     def test_positive_remove_contents(self, repo):
@@ -1312,7 +1313,8 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
+        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        ids=['yum_fake_2'],
         indirect=True,
     )
     def test_positive_resynchronize_rpm_repo(self, repo):
@@ -1402,7 +1404,8 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}]),
+        [{'content_type': 'yum', 'url': FAKE_2_YUM_REPO}],
+        ids=['yum_fake_2'],
         indirect=True,
     )
     def test_positive_delete_rpm(self, repo):
@@ -1505,7 +1508,7 @@ class TestRepository:
         **parametrized([{'content_type': 'yum', 'unprotected': False, 'url': FAKE_2_YUM_REPO}]),
         indirect=True,
     )
-    def test_positive_access_protected_repository(self, module_org, repo):
+    def test_positive_access_protected_repository(self, module_org, repo, default_sat):
         """Access protected/https repository data file URL using organization
         debug certificate
 
@@ -1526,7 +1529,7 @@ class TestRepository:
         repo.sync()
         repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
-        assert repo_data_file_url.startswith(f'https://{settings.server.hostname}')
+        assert repo_data_file_url.startswith(default_sat.url)
         # try to access repository data without organization debug certificate
         with pytest.raises(SSLError):
             client.get(repo_data_file_url, verify=False)
@@ -1547,9 +1550,8 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [{'content_type': 'yum', 'unprotected': False, 'url': CUSTOM_MODULE_STREAM_REPO_2}]
-        ),
+        [{'content_type': 'yum', 'unprotected': False, 'url': CUSTOM_MODULE_STREAM_REPO_2}],
+        ids=['protected_yum'],
         indirect=True,
     )
     def test_module_stream_repository_crud_operations(self, repo):
@@ -1611,7 +1613,8 @@ class TestRepositorySync:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': FAKE_0_YUM_REPO_STRING_BASED_VERSIONS}]),
+        [{'content_type': 'yum', 'url': FAKE_0_YUM_REPO_STRING_BASED_VERSIONS}],
+        ids=['yum_repo'],
         indirect=True,
     )
     def test_positive_sync_yum_with_string_based_version(self, repo):
@@ -1903,7 +1906,9 @@ class TestDockerRepository:
         ),
         indirect=True,
     )
-    def test_negative_synchronize_private_registry_no_passwd(self, repo_options, module_product):
+    def test_negative_synchronize_private_registry_no_passwd(
+        self, repo_options, module_product, default_sat
+    ):
         """Create and try to sync a Docker-type repository from a private
         registry providing empty password and the sync must fail with
         reasonable error message.
@@ -1921,11 +1926,11 @@ class TestDockerRepository:
 
         :CaseLevel: Integration
         """
-        msg = (
-            '422 Client Error: Unprocessable Entity for url: '
-            f'https://{settings.server.hostname}/katello/api/v2/repositories'
-        )
-        with pytest.raises(HTTPError, match=msg):
+        with pytest.raises(
+            HTTPError,
+            match='422 Client Error: Unprocessable Entity for url: '
+            f'{default_sat.url}/katello/api/v2/repositories',
+        ):
             entities.Repository(**repo_options).create()
 
     @pytest.mark.tier2

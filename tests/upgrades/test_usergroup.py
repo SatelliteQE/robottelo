@@ -34,7 +34,7 @@ class TestUserGroupMembership:
     """
 
     @pre_upgrade
-    def test_pre_create_usergroup_with_ldap_user(self, request):
+    def test_pre_create_usergroup_with_ldap_user(self, request, default_sat):
         """Create Usergroup in preupgrade version.
 
         :id: preupgrade-4b11d883-f523-4f38-b65a-650ecd90335c
@@ -46,7 +46,7 @@ class TestUserGroupMembership:
 
         :expectedresults: The usergroup, with ldap user as member, should be created successfully.
         """
-        authsource = entities.AuthSourceLDAP(
+        authsource = default_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=settings.ldap.username,
             account_password=settings.ldap.password,
@@ -65,14 +65,14 @@ class TestUserGroupMembership:
         assert authsource.name == request.node.name + "_server"
         sc = ServerConfig(
             auth=(settings.ldap.username, settings.ldap.password),
-            url=f'https://{settings.server.hostname}',
+            url=default_sat.url,
             verify=False,
         )
 
         with pytest.raises(HTTPError):
             entities.User(sc).search()
-        user_group = entities.UserGroup(name=request.node.name + "_user_group").create()
-        user = entities.User().search(query={'search': f'login={settings.ldap.username}'})[0]
+        user_group = default_sat.api.UserGroup(name=request.node.name + "_user_group").create()
+        user = default_sat.api.User().search(query={'search': f'login={settings.ldap.username}'})[0]
         user_group.user = [user]
         user_group = user_group.update(['user'])
         assert user.login == user_group.user[0].read().login

@@ -20,7 +20,6 @@ import os
 
 from fabric.api import execute
 from fabric.api import run
-from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
@@ -30,7 +29,6 @@ from upgrade_tests.helpers.scenarios import get_entity_data
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
-from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.api.utils import promote
 from robottelo.config import settings
@@ -44,7 +42,6 @@ from robottelo.upgrade_utility import publish_content_view
 UPSTREAM_USERNAME = 'rTtest123'
 DOCKER_VM = settings.upgrade.docker_vm
 FILE_PATH = '/var/www/html/pub/custom_repo/'
-CUSTOM_REPO = f'https://{settings.server.hostname}/pub/custom_repo'
 _, RPM1_NAME = os.path.split(rpm1)
 _, RPM2_NAME = os.path.split(rpm2)
 
@@ -62,7 +59,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
     """
 
     @pre_upgrade
-    def test_pre_repository_scenario_upstream_authorization(self):
+    def test_pre_repository_scenario_upstream_authorization(self, default_sat):
         """Create a custom repository and set the upstream username on it.
 
         :id: preupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
@@ -77,7 +74,7 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         :BZ: 1641785
         """
 
-        org = entities.Organization().create()
+        org = default_sat.api.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
         rake_repo = f'repo = Katello::Repository.find_by_id({custom_repo})'
         rake_username = f'; repo.root.upstream_username = "{UPSTREAM_USERNAME}"'
@@ -132,7 +129,7 @@ class TestScenarioCustomRepoCheck:
     """
 
     @pre_upgrade
-    def test_pre_scenario_custom_repo_check(self):
+    def test_pre_scenario_custom_repo_check(self, default_sat):
         """This is pre-upgrade scenario test to verify if we can create a
          custom repository and consume it via content host.
 
@@ -151,32 +148,33 @@ class TestScenarioCustomRepoCheck:
             2. Package is installed on Content host.
 
         """
-        org = entities.Organization().create()
-        loc = entities.Location(organization=[org]).create()
-        lce = entities.LifecycleEnvironment(organization=org).create()
+        org = default_sat.api.Organization().create()
+        loc = default_sat.api.Location(organization=[org]).create()
+        lce = default_sat.api.LifecycleEnvironment(organization=org).create()
 
-        product = entities.Product(organization=org).create()
+        product = default_sat.api.Product(organization=org).create()
         create_repo(rpm1, FILE_PATH)
-        repo = entities.Repository(product=product.id, url=CUSTOM_REPO).create()
+        repo = default_sat.api.Repository(
+            product=product.id, url=f'{default_sat.url}/pub/custom_repo'
+        ).create()
         repo.sync()
 
         content_view = publish_content_view(org=org, repolist=repo)
         promote(content_view.version[0], lce.id)
 
-        result = ssh.command(
-            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
-            'Packages/b/|grep {}'.format(
-                org.label, lce.name, content_view.label, product.label, repo.label, RPM1_NAME
-            )
+        result = default_sat.execute(
+            f'ls /var/lib/pulp/published/yum/https/repos/{org.label}/{lce.name}/'
+            f'{content_view.label}/custom/{product.label}/{repo.label}/Packages/b/'
+            f'|grep {RPM1_NAME}'
         )
 
         assert result.return_code == 0
         assert len(result.stdout) >= 1
 
-        subscription = entities.Subscription(organization=org).search(
+        subscription = default_sat.api.Subscription(organization=org).search(
             query={'search': f'name={product.name}'}
         )[0]
-        ak = entities.ActivationKey(
+        ak = default_sat.api.ActivationKey(
             content_view=content_view, organization=org.id, environment=lce
         ).create()
         ak.add_subscriptions(data={'subscription_id': subscription.id})
@@ -211,7 +209,7 @@ class TestScenarioCustomRepoCheck:
         create_dict(scenario_dict)
 
     @post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
-    def test_post_scenario_custom_repo_check(self):
+    def test_post_scenario_custom_repo_check(self, default_sat):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
         the repo.
@@ -238,21 +236,21 @@ class TestScenarioCustomRepoCheck:
         repo_name = entity_data.get('repo_name')
 
         create_repo(rpm2, FILE_PATH, post_upgrade=True, other_rpm=rpm1)
-        repo = entities.Repository(name=repo_name).search()[0]
+        repo = default_sat.api.Repository(name=repo_name).search()[0]
         repo.sync()
 
-        content_view = entities.ContentView(name=content_view_name).search()[0]
+        content_view = default_sat.api.ContentView(name=content_view_name).search()[0]
         content_view.publish()
 
-        content_view = entities.ContentView(name=content_view_name).search()[0]
+        content_view = default_sat.api.ContentView(name=content_view_name).search()[0]
         promote(content_view.version[-1], lce_id)
 
-        result = ssh.command(
+        result = default_sat.execute(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             'Packages/c/| grep {}'.format(
                 org_label, lce_name, content_view.label, prod_label, repo.label, RPM2_NAME
             )
         )
         assert result.return_code == 0
-        assert len(result.stdout) >= 1
+        assert len(result.stdout)
         install_or_update_package(client_hostname=client_container_id, package=RPM2_NAME)

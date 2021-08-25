@@ -2876,7 +2876,7 @@ def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthos
 
 
 @pytest.mark.tier3
-def test_positive_delete_with_kickstart_repo_and_host_group(session):
+def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat):
     """Check that Content View associated with kickstart repository and
     which is used by a host group can be removed from the system
 
@@ -2893,7 +2893,7 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session):
     :CaseImportance: High
     """
     hg_name = gen_string('alpha')
-    sat_hostname = settings.server.hostname
+    sat_hostname = default_sat.hostname
     org = entities.Organization().create()
     # Create a new Lifecycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()

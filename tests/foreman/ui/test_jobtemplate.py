@@ -18,18 +18,10 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
-
-from robottelo.config import settings
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location, default_sat):
     """Perform end to end testing for Job Template component.
 
     :id: 2e0e31c5-e557-4151-83f9-21820c9cb1be
@@ -105,7 +97,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'job.foreign_input_sets': job_foreign_input_sets,
                 'type.snippet': True,
                 'organizations.resources.assigned': [module_org.name, "Default Organization"],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         template = session.jobtemplate.read(template_name, editor_view_option='Editor')
@@ -122,7 +114,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert template['job']['overridable'] is False
         assert template['type']['snippet']
         assert module_org.name in template['organizations']['resources']['assigned']
-        assert module_loc.name in template['locations']['resources']['assigned']
+        assert module_location.name in template['locations']['resources']['assigned']
         assert len(template['inputs']) == 3
         assert template['inputs'][0]['name'] == template_inputs[0]['name']
         assert template['inputs'][0]['required'] == template_inputs[0]['required']
@@ -215,7 +207,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             editor_view_option='Preview',
             widget_names='template.template_editor.editor',
         )
-        assert settings.server.hostname in template_values['template']['template_editor']['editor']
+        assert default_sat.hostname in template_values['template']['template_editor']['editor']
         session.jobtemplate.clone(template_new_name, {'template.name': template_clone_name})
         assert session.jobtemplate.search(template_clone_name)[0]['Name'] == template_clone_name
         for name in (template_new_name, template_clone_name):

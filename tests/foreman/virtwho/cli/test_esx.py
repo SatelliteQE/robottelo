@@ -42,7 +42,7 @@ from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
 @pytest.fixture()
-def form_data():
+def form_data(default_sat):
     form = {
         'name': gen_string('alpha'),
         'debug': 1,
@@ -52,7 +52,7 @@ def form_data():
         'hypervisor-server': settings.virtwho.esx.hypervisor_server,
         'organization-id': 1,
         'filtering-mode': 'none',
-        'satellite-url': settings.server.hostname,
+        'satellite-url': default_sat.hostname,
         'hypervisor-username': settings.virtwho.esx.hypervisor_username,
         'hypervisor-password': settings.virtwho.esx.hypervisor_password,
     }
@@ -317,7 +317,7 @@ class TestVirtWhoConfigforEsx:
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_rhsm_option(self, form_data, virtwho_config):
+    def test_positive_rhsm_option(self, form_data, virtwho_config, default_sat):
         """Verify rhsm options in the configure file"
 
         :id: b5b93d4d-e780-41c0-9eaa-2407cc1dcc9b
@@ -335,13 +335,13 @@ class TestVirtWhoConfigforEsx:
         deploy_configure_by_command(command, form_data['hypervisor-type'])
         rhsm_username = get_configure_option('rhsm_username', config_file)
         assert not User.exists(search=('login', rhsm_username))
-        assert get_configure_option('rhsm_hostname', config_file) == settings.server.hostname
+        assert get_configure_option('rhsm_hostname', config_file) == default_sat.hostname
         assert get_configure_option('rhsm_prefix', config_file) == '/rhsm'
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
     @pytest.mark.tier2
-    def test_positive_post_hypervisors(self):
+    def test_positive_post_hypervisors(self, default_sat):
         """Post large json file to /rhsm/hypervisors"
 
         :id: e344c9d2-3538-4432-9a74-b025e9ef852d
@@ -357,7 +357,7 @@ class TestVirtWhoConfigforEsx:
         """
         org = Org.info({'name': DEFAULT_ORG})
         data = hypervisor_json_create(hypervisors=100, guests=10)
-        url = f"https://{settings.server.hostname}/rhsm/hypervisors/{org['label']}"
+        url = f"{default_sat.url}/rhsm/hypervisors/{org['label']}"
         auth = (settings.server.admin_username, settings.server.admin_password)
         result = requests.post(url, auth=auth, verify=False, json=data)
         if result.status_code != 200:
