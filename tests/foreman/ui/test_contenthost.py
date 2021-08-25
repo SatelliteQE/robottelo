@@ -26,7 +26,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_fake_host
@@ -46,12 +45,12 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.helpers import add_remote_execution_ssh_key
+from robottelo.helpers import cut_lines
+from robottelo.helpers import line_count
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
-from robottelo.rhsso_utils import run_command
 from robottelo.virtwho_utils import create_fake_hypervisor_content
 
 if not setting_is_set('clients') or not setting_is_set('fake_manifest'):
@@ -117,7 +116,7 @@ def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost, de
     repos_collection_for_module_streams.setup_virtual_machine(
         rhel8_contenthost, default_sat, install_katello_agent=False
     )
-    add_remote_execution_ssh_key(rhel8_contenthost.ip_addr)
+    rhel8_contenthost.add_rex_key(satellite=default_sat)
     yield rhel8_contenthost
 
 
@@ -133,24 +132,6 @@ def set_ignore_facts_for_os(value=False):
 def run_remote_command_on_content_host(command, vm_module_streams):
     result = vm_module_streams.run(command)
     assert result.status == 0
-    return result
-
-
-def line_count(file, connection=None):
-    """Get number of lines in a file."""
-    connection = connection or ssh.get_connection()
-    result = connection.run(f'wc -l < {file}', output_format='plain')
-    count = result.stdout.strip('\n')
-    return count
-
-
-def cut_lines(start_line, end_line, source_file, out_file, connection=None):
-    """Given start and end line numbers, cut lines from source file
-    and put them in out file."""
-    connection = connection or ssh.get_connection()
-    result = connection.run(
-        f'sed -n "{start_line},{end_line} p" {source_file} < {source_file} > {out_file}'
-    )
     return result
 
 
@@ -1380,10 +1361,10 @@ def test_content_access_after_stopped_foreman(
         )
         repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
         repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
-    result = rhel7_contenthost.run(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
+    result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    run_command('systemctl stop foreman')
-    result = ssh.command('foreman-maintain service status --only=foreman')
-    assert result.return_code == 1
-    result = rhel7_contenthost.run(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
+    assert default_sat.execute('systemctl stop foreman').status == 0
+    result = default_sat.execute('foreman-maintain service status --only=foreman')
+    assert result.status == 1
+    result = rhel7_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0

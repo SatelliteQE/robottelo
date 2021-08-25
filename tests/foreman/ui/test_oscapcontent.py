@@ -19,25 +19,25 @@
 import os
 
 import pytest
-from nailgun import entities
 
-from robottelo import ssh
+from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def oscap_content_path():
+def oscap_content_path(default_sat):
     _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = f"/tmp/{file_name}"
-    ssh.download_file(settings.oscap.content_path, local_file)
+
+    local_file = robottelo_tmp_dir.joinpath(file_name)
+    default_sat.get(remote_path=settings.oscap.content_path, local_path=local_file)
     return local_file
 
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, oscap_content_path):
+def test_positive_end_to_end(session, oscap_content_path, default_sat):
     """Perform end to end testing for openscap content component
 
     :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
@@ -55,8 +55,8 @@ def test_positive_end_to_end(session, oscap_content_path):
     """
     title = gen_string('alpha')
     new_title = gen_string('alpha')
-    org = entities.Organization().create()
-    loc = entities.Location().create()
+    org = default_sat.api.Organization().create()
+    loc = default_sat.api.Location().create()
     with session:
         session.oscapcontent.create(
             {

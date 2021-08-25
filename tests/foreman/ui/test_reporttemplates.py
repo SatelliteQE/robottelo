@@ -19,6 +19,7 @@
 import csv
 import json
 import os
+from pathlib import PurePath
 
 import pytest
 import yaml
@@ -26,10 +27,10 @@ from lxml import etree
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
+from robottelo.config import robottelo_tmp_dir
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
@@ -411,8 +412,9 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
                 'email_to': 'root@localhost',
             },
         )
-    file_path = '/tmp/{}.json'.format(gen_string('alpha'))
-    gzip_path = f'{file_path}.gz'
+    file_path = PurePath('/tmp/').joinpath(f'{gen_string("alpha")}.json')
+    gzip_path = PurePath(f'{file_path}.gz')
+    local_gzip_file = robottelo_tmp_dir.joinpath(gzip_path.name)
     expect_script = (
         f'#!/usr/bin/env expect\n'
         f'spawn mail\n'
@@ -427,12 +429,14 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
         f'expect "&"\n'
         f'send "q\\r"\n'
     )
-    ssh.command(f'expect -c \'{expect_script}\'', hostname=default_sat.hostname)
-    ssh.download_file(gzip_path)
-    os.system(f'gunzip {gzip_path}')
-    with open(file_path) as json_file:
-        data = json.load(json_file)
-    assert len(data) >= len(entities.Subscription(organization=module_org).search()) > 0
+
+    
+    default_sat.execute(f"expect -c '{expect_script}'")
+    default_sat.get(remote_path=gzip_path, local_path=local_gzip_file)
+    os.system(f'gunzip {local_gzip_file}')
+    data = json.load(local_gzip_file.read_text())
+    subscription_search = default_sat.api.Subscription(organization=module_org).search()
+    assert len(data) >= len(subscription_search) > 0
     keys_expected = [
         'Account number',
         'Available',

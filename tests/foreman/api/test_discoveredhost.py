@@ -28,12 +28,12 @@ from nailgun import entity_mixins
 from wait_for import TimedOutError
 from wait_for import wait_for
 
-from robottelo import ssh
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
+from robottelo.ssh import get_client
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -192,7 +192,7 @@ def _module_user(request, module_org, module_location):
 
 
 @pytest.fixture(scope="module")
-def discovery_settings(module_org, module_location):
+def discovery_settings(module_org, module_location, default_sat):
     """Steps to Configure foreman discovery
 
     1. Build PXE default template
@@ -205,10 +205,10 @@ def discovery_settings(module_org, module_location):
     # Build PXE default template to get default PXE file
     entities.ProvisioningTemplate().build_pxe_default()
     # let's just modify the timeouts to speed things up
-    ssh.command(
+    default_sat.execute(
         "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
     )
-    ssh.command(
+    default_sat.execute(
         "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1 fdi.ssh=1 fdi.rootpw=changeme/' "
         "/var/lib/tftpboot/pxelinux.cfg/default"
     )
@@ -389,8 +389,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
+        with get_client().invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -449,8 +448,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
+        with get_client().invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -560,8 +558,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
+        with get_client().invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -610,7 +607,7 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open ssh channels and attach them to foreman-tail output
-        channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
+        channel_1, channel_2 = get_client().invoke_shell(), get_client().invoke_shell()
         channel_1.send('foreman-tail\r')
         channel_2.send('foreman-tail\r')
 
@@ -647,7 +644,9 @@ class TestLibvirtHostDiscovery:
 
     @pytest.mark.destructive
     @pytest.mark.skip_if_not_set('vlan_networking')
-    def test_positive_provision_pxe_host_dhcp_change(self, discovery_settings, provisioning_env):
+    def test_positive_provision_pxe_host_dhcp_change(
+        self, discovery_settings, provisioning_env, default_sat
+    ):
         """Discovered host is provisioned in dhcp range defined in subnet entity
 
         :id: 7ab654de-16dd-4a8b-946d-f6adde310340
@@ -686,14 +685,13 @@ class TestLibvirtHostDiscovery:
         new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
         cfg = get_nailgun_config()
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
+        with get_client().invoke_shell() as channel:
             channel.send('foreman-tail\r')
             try:
                 # updating the ranges in component and in dhcp.conf
                 subnet.from_ = new_subnet_from
                 subnet.update(['from_'])
-                ssh_client.exec_command(
+                default_sat.execute(
                     f'cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd_backup.conf && '
                     f'sed -ie \'s/{subnet.to}/{new_dhcp_conf_to}/\' /etc/dhcp/dhcpd.conf && '
                     f'systemctl restart dhcpd'
@@ -728,6 +726,6 @@ class TestLibvirtHostDiscovery:
             finally:
                 subnet.from_ = old_sub_from
                 subnet.update(['from_'])
-                ssh_client.exec_command(
+                default_sat.execute(
                     'mv /etc/dhcp/dhcpd_backup.conf /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf'
                 )
