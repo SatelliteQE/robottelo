@@ -1,4 +1,5 @@
 """Several helper methods and functions."""
+import base64
 import contextlib
 import os
 import random
@@ -111,6 +112,19 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     return [f'{local_path}{file_name}', file_name]
 
 
+def line_count(file, host):
+    """Get number of lines in a file."""
+    return host.execute(f'wc -l < {file}').stdout.strip('\n')
+
+
+def cut_lines(start_line, end_line, source_file, out_file, host):
+    """Given start and end line numbers, cut lines from source file
+    and put them in out file."""
+    return host.execute(
+        f'sed -n "{start_line},{end_line} p" {source_file} < {source_file} > {out_file}'
+    )
+
+
 def get_nailgun_config(user=None):
     """Return a NailGun configuration file constructed from default values.
 
@@ -192,27 +206,24 @@ def md5_by_url(url, hostname=None):
     return result.stdout[0]
 
 
-def add_remote_execution_ssh_key(hostname, key_path=None, proxy_hostname=None, **kwargs):
-    """Add remote execution keys to the client
+def validate_ssh_pub_key(key):
+    """Validates if a string is in valid ssh pub key format
 
-    :param str proxy_hostname: external capsule hostname
-    :param str hostname: The client hostname
-    :param str key: Path to a key on the satellite server
-    :param dict kwargs: directly passed to `ssh.add_authorized_key`
+    :param key: A string containing a ssh public key encoded in base64
+    :return: Boolean
     """
 
-    # get satellite box ssh-key or defaults to foreman-proxy
-    key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
-    # This connection defaults to settings.server
-    server_key = ssh.command(
-        cmd='cat %s' % key_path, output_format='base', hostname=proxy_hostname
-    ).stdout
-    # Sometimes stdout contains extra empty string. Skipping it
-    if isinstance(server_key, list):
-        server_key = server_key[0]
+    if not isinstance(key, str):
+        raise ValueError(f"Key should be a string type, received: {type(key)}")
 
-    # add that key to the client using hostname and kwargs for connection
-    ssh.add_authorized_key(server_key, hostname=hostname, **kwargs)
+    # 1) a valid pub key has 3 parts separated by space
+    # 2) The second part (key string) should be a valid base64
+    try:
+        key_type, key_string, _ = key.split()  # need more than one value to unpack
+        base64.decodebytes(key_string.encode('ascii'))
+        return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
+    except (ValueError, base64.binascii.Error):
+        return False
 
 
 def get_available_capsule_port(port_pool=None):

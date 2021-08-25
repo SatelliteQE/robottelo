@@ -23,7 +23,6 @@ import pytest
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
-from robottelo import ssh
 
 DEFAULT_CUSTOM_HIERA_DATA = [
     "---",
@@ -188,7 +187,7 @@ class TestScenarioPerformanceTuning:
 
     @staticmethod
     def _data_creation_of_set_tune_params(
-        tune_size_data, tune_params_collection_regex, tune_params_group
+        tune_size_data, tune_params_collection_regex, tune_params_group, satellite
     ):
         """
         This method is used to create the key(tune-param)-value(set value) pair of applied
@@ -205,23 +204,23 @@ class TestScenarioPerformanceTuning:
         mapped_tune_param = dict()
         for tune_data in tune_size_data:
             tune_data = tune_data.replace("::", "").strip()
-            if len(tune_data) > 0:
+            if len(tune_data):
                 tune_data = tune_data.split(':')
                 if tune_data[1].strip():
                     tune_param[tune_data[0]] = tune_data[1].strip()
 
         for tune_name, tune_cmd in tune_params_collection_regex.items():
-            tune_cmd_output = ssh.command(f'{tune_cmd}').stdout
+            tune_cmd_output = satellite.execute(f'{tune_cmd}').stdout
             tune_module = {
                 key: value.strip()
-                for key, value in zip(tune_params_group[tune_name], tune_cmd_output)
+                for key, value in zip(tune_params_group[tune_name], tune_cmd_output.split('\n'))
             }
             mapped_tune_param.update(tune_module)
         mapped_tune_param.pop("_")
         return tune_param, mapped_tune_param
 
     @pre_upgrade
-    def test_pre_performance_tuning_apply(self):
+    def test_pre_performance_tuning_apply(self, default_sat):
         """In preupgrade scenario we apply the medium tuning size.
 
         :id: preupgrade-83404326-20b7-11ea-a370-48f17f1fc2e1
@@ -242,41 +241,41 @@ class TestScenarioPerformanceTuning:
             'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
             '/etc/foreman-installer/custom-hiera.yaml'
         )
-        mongodb_type = ssh.command(cmd).return_code
+        mongodb_type = default_sat.execute(cmd).status
         self._create_custom_hiera_file(mongodb_type, "medium")
         try:
-            ssh.upload_file(
-                local_file='custom-hiera.yaml',
-                remote_file='/etc/foreman-installer/custom-hiera.yaml',
+            default_sat.put(
+                local_path='custom-hiera.yaml',
+                remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
-            command_output = ssh.command(
+            command_output = default_sat.execute(
                 'satellite-installer -s --disable-system-checks', timeout=1000
             )
-            command_status = [status.strip() for status in command_output.stdout]
-            assert 'Success!' in command_status
+            assert 'Success!' in command_output.stdout
 
             expected_tune_size, actual_tune_size = self._data_creation_of_set_tune_params(
-                MEDIUM_TUNING_DATA, TUNE_DATA_COLLECTION_REGEX, MEDIUM_TUNE_PARAM_GROUPS
+                MEDIUM_TUNING_DATA,
+                TUNE_DATA_COLLECTION_REGEX,
+                MEDIUM_TUNE_PARAM_GROUPS,
+                default_sat,
             )
 
-            for key, value in actual_tune_size.items():
-                assert expected_tune_size[key] == value
+            assert actual_tune_size == expected_tune_size
 
         except Exception:
             self._create_custom_hiera_file(mongodb_type, "default")
-            ssh.upload_file(
-                local_file='custom-hiera.yaml',
-                remote_file='/etc/foreman-installer/custom-hiera.yaml',
+            default_sat.put(
+                local_path='custom-hiera.yaml',
+                remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
-            command_output = ssh.command(
+            command_output = default_sat.execute(
                 'satellite-installer -s --disable-system-checks', timeout=1000
             )
-            command_status = [status.strip() for status in command_output.stdout]
-            assert 'Success!' in command_status
+            assert 'Success!' in command_output.stdout
             raise
 
     @post_upgrade(depend_on=test_pre_performance_tuning_apply)
-    def test_post_performance_tuning_apply(self):
+    def test_post_performance_tuning_apply(self, default_sat):
         """In postupgrade scenario, we verify the set tuning parameters and custom-hiera.yaml
         file's content.
 
@@ -300,46 +299,45 @@ class TestScenarioPerformanceTuning:
             'grep "mongodb::server::storage_engine: \'wiredTiger\'" '
             '/etc/foreman-installer/custom-hiera.yaml'
         )
-        mongodb_type = ssh.command(cmd).return_code
+        mongodb_type = default_sat.execute(cmd).status
         try:
             self._create_custom_hiera_file(mongodb_type, "medium")
-            ssh.download_file(
-                local_file="custom-hiera-after-upgrade.yaml",
-                remote_file="/etc/foreman-installer/custom-hiera.yaml",
+            default_sat.get(
+                local_path="custom-hiera-after-upgrade.yaml",
+                remote_path="/etc/foreman-installer/custom-hiera.yaml",
             )
             assert filecmp.cmp("custom-hiera.yaml", "custom-hiera-after-upgrade.yaml")
 
             cmd = 'grep "tuning: default" /etc/foreman-installer/scenarios.d/satellite.yaml'
-            tuning_state_after_upgrade = ssh.command(cmd).return_code
-            assert tuning_state_after_upgrade == 0
+            assert default_sat.execute(cmd).status == 0
 
             expected_tune_size, actual_tune_size = self._data_creation_of_set_tune_params(
-                MEDIUM_TUNING_DATA, TUNE_DATA_COLLECTION_REGEX, MEDIUM_TUNE_PARAM_GROUPS
+                MEDIUM_TUNING_DATA,
+                TUNE_DATA_COLLECTION_REGEX,
+                MEDIUM_TUNE_PARAM_GROUPS,
+                default_sat,
             )
 
-            for key, value in actual_tune_size.items():
-                assert expected_tune_size[key] == value
+            assert actual_tune_size == expected_tune_size
 
             self._create_custom_hiera_file(mongodb_type)
-            ssh.upload_file(
-                local_file='custom-hiera.yaml',
-                remote_file='/etc/foreman-installer/custom-hiera.yaml',
+            default_sat.put(
+                local_path='custom-hiera.yaml',
+                remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
-            command_output = ssh.command(
+            command_output = default_sat.execute(
                 'satellite-installer --tuning default -s --disable-system-checks',
                 timeout=1000,
             )
-            command_status = [status.strip() for status in command_output.stdout]
-            assert 'Success!' in command_status
+            assert 'Success!' in command_output.stdout
         finally:
             self._create_custom_hiera_file(mongodb_type)
-            ssh.upload_file(
-                local_file='custom-hiera.yaml',
-                remote_file='/etc/foreman-installer/custom-hiera.yaml',
+            default_sat.put(
+                local_path='custom-hiera.yaml',
+                remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
             os.remove("custom-hiera.yaml")
-            command_output = ssh.command(
+            command_output = default_sat.execute(
                 'satellite-installer -s --disable-system-checks', timeout=1000
             )
-            command_status = [status.strip() for status in command_output.stdout]
-            assert 'Success!' in command_status
+            assert 'Success!' in command_output.stdout

@@ -1,11 +1,11 @@
-import os
+from pathlib import PurePath
 
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.cli.factory import make_scapcontent
+from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.helpers import file_downloader
@@ -22,11 +22,10 @@ def tailoring_file_path():
 
 
 @pytest.fixture(scope="session")
-def oscap_content_path():
+def oscap_content_path(default_sat):
     """Download scap content from satellite and return local path of it."""
-    _, file_name = os.path.split(settings.oscap.content_path)
-    local_file = f"/tmp/{file_name}"
-    ssh.download_file(settings.oscap.content_path, local_file)
+    local_file = robottelo_tmp_dir.joinpath(PurePath(settings.oscap.content_path).name)
+    default_sat.download(remote_path=settings.oscap.content_path, local_path=local_file)
     return local_file
 
 

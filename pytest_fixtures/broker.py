@@ -151,7 +151,8 @@ def satellite_latest(default_sat):
 def capsule_latest(default_sat):
     """A fixture that provides an unconfigured latest Capsule"""
     version_args = dict(
-        deploy_sat_version=default_sat.version or settings.server.version.get('release', ''),
+        deploy_sat_version=getattr(default_sat, 'version', None)
+        or settings.server.version.get('release', ''),
         deploy_snap_version=settings.server.version.get('snap', ''),
     )
 
