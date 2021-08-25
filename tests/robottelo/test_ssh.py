@@ -4,7 +4,6 @@ from io import StringIO
 from unittest import mock
 
 import paramiko
-import pytest
 
 from robottelo import ssh
 
@@ -198,77 +197,6 @@ class TestSSH:
         assert connection.set_missing_host_key_policy_ == 1
         assert connection.connect_ == 1
         assert connection.close_ == 1
-
-    def test_valid_ssh_pub_keys(self):
-        valid_keys = (
-            (
-                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDuMCPmX7iBXAxH5oLznswA5cc"
-                "fV/FABwIWnYl0OYRkDhv3mu9Eogk4H6sCguq4deJtRkwg2C3yEmsNYfBWYu4y5Rk"
-                "I4TH/k3N161wn91nBxs/+wqoN3g9tUuWrf98PG4NnYvmZU67RuiSUNXpgLEPfo8j"
-                "MKkJ5veKu++DmHdpfqFB9ljWEfWz+kAAKgwo251VRDaKwFsb91LbLFpqn9rfMJUB"
-                "hOn+Uebfd0TrHzw08gbVmvfAn61isvFVhvIJBTjNSWsBIm8SuCvhH+inYOwttfE8"
-                "FGeR1KSp9Xl0PCYDK0BwvQO3qwD+nehsEUR/FJUXm1IZPc8fi17ieGgPOnrgf"
-                " user@new-host"
-            ),
-            (
-                "ssh-dss AAAAB3NzaC1kc3MAAACBAMzXU0Jl0fRCKy5B7R8KVKMLJYuhVPagBSi7"
-                "UxRAiVHOHzscQzt5wrgRqknuQ9/xIAVAMUVy3ND5zBLkqKwGm9DKGeYEv7xxDi6Z"
-                "z5QjsI9oSSqFSMauDxgl+foC4QPrIlUvb9ez5bVg6aJHKJEngDo+lvfVROgQOvTx"
-                "I9IXn7oLAAAAFQCz4jDBOnTjkWXgw8sT46HM1jK4SwAAAIAS2BvUlEevY+2YOiqD"
-                "SRy9Dhr+/bWLuLl7oUTEnxPhCyo8paaU0fJO1w3BUsbO3Rg4sBgXChRNyg7iKriB"
-                "WbPH6EK1e6IcYv8wUdobB3wg+RJlYU2cq7V8HcPJh+hfAGfMD6UnTDLg+P5SCEW7"
-                "Ag+knZNwfKv9IAtd0W86EFdVWwAAAIEAkj5boIRqLiUGbRipEzWzZbWMis2S8Ji2"
-                "oR6fUD/h6bZ5ta8nEWApri5OQExK7upelTjSR+MHEDRmeepchkTX0LOjBkZgsPyb"
-                "6nEpQUQUJAuns8yAnhsKuEuZmlAGwXOSKiD/KRyJu4KjbbV4oyKXU1fF70zPLmOT"
-                "fyvserP5qyo= user@new-host"
-            ),
-            (
-                "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAy"
-                "NTYAAABBBPWuLEsYvplkL6XR5wbxzXyzw8tLE/JjLXlzUgxv4LhJN4iufXLPSOvj"
-                "sk0ek1TE059poyy5ps+GU2DkisSUVYA= user@new-host"
-            ),
-        )
-        for key in valid_keys:
-            assert ssh.is_ssh_pub_key(key)
-
-    def test_invalid_ssh_pub_keys(self):
-        invalid_keys = (
-            "ssh-rsa1 xxxxxx user@host",  # rsa1 is unsafe
-            "foo bar blaz",  # not a valid type
-            "ssh-rsa /gfdgdf/fsdfsdfsdf/@ user@host",  # not valid base64 data
-            "sdhsfbghjsbgjhbg user@host",  # not a valid format
-        )
-        for key in invalid_keys:
-            assert not ssh.is_ssh_pub_key(key)
-
-    def test_add_authorized_key_raises_invalid_key(self):
-        with pytest.raises(AttributeError):
-            ssh.add_authorized_key('sfsdfsdfsdf')
-        with pytest.raises(AttributeError):
-            ssh.add_authorized_key('sdhsfbghjsbgjhbg user@host')
-        with pytest.raises(AttributeError):
-            ssh.add_authorized_key('ssh-rsa /gfdgdf/fsdfsdfsdf/@ user@host')
-
-    def test_fails_with_invalid_key_format(self):
-        with pytest.raises(ValueError):
-            ssh.add_authorized_key([])
-        with pytest.raises(ValueError):
-            ssh.add_authorized_key(123456)
-        with pytest.raises(ValueError):
-            ssh.add_authorized_key(9999.456789)
-        with pytest.raises(ValueError):
-            ssh.add_authorized_key({"invalid": "format"})
-
-    @mock.patch('robottelo.config.settings')
-    def test_add_authorized_key(self, settings):
-        ssh._call_paramiko_sshclient = MockSSHClient
-        settings.server.hostname = 'example.com'
-        settings.server.ssh_username = 'nobody'
-        settings.server.ssh_key = None
-        settings.server.ssh_password = 'test_password'
-        settings.server.ssh_client.command_timeout = 300
-        settings.server.ssh_client.connection_timeout = 10
-        ssh.add_authorized_key('ssh-rsa xxxx user@host')
 
     @mock.patch('robottelo.config.settings')
     def test_execute_command(self, settings):

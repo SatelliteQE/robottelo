@@ -68,7 +68,6 @@ from robottelo.constants import REAL_4_ERRATA_ID
 from robottelo.constants import REAL_RHEL7_0_2_PACKAGE_NAME
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.hosts import ContentHost
 
 PER_PAGE = 10
@@ -383,7 +382,7 @@ def cv_filter_cleanup(filter_id, cv, org, lce):
     'filter_by_org', ('id', 'name', 'title'), ids=('org_id', 'org_name', 'org_title')
 )
 def test_positive_install_by_host_collection_and_org(
-    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org
+    module_org, host_collection, errata_hosts, filter_by_hc, filter_by_org, default_sat
 ):
     """Use host collection id or name and org id, name, or label to install an update on the host
     collection.
@@ -410,7 +409,7 @@ def test_positive_install_by_host_collection_and_org(
     errata_id = REPO_WITH_ERRATA['errata'][0]['id']
 
     for host in errata_hosts:
-        add_remote_execution_ssh_key(host.hostname)
+        host.add_rex_key(satellite=default_sat)
 
     if filter_by_hc == 'id':
         host_collection_query = f'host_collection_id = {host_collection["id"]}'
@@ -594,7 +593,7 @@ def test_positive_list_affected_chosts(module_org, errata_hosts):
 
 
 @pytest.mark.tier3
-def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
+def test_install_errata_to_one_host(module_org, errata_hosts, host_collection, default_sat):
     """Install an erratum to one of the hosts in a host collection.
 
     :id: bfcee2de-3448-497e-a696-fcd30cea9d33
@@ -627,7 +626,7 @@ def test_install_errata_to_one_host(module_org, errata_hosts, host_collection):
     assert result.status == 0, f'Failed to erase the rpm: {result.stdout}'
     # Add ssh keys
     for host in errata_hosts:
-        add_remote_execution_ssh_key(host.hostname)
+        host.add_rex_key(satellite=default_sat)
     # Apply errata to the host collection using job invocation
     JobInvocation.create(
         {

@@ -44,7 +44,6 @@ from robottelo.constants import LOCALES
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
-from robottelo.ssh import get_connection
 
 
 class TestUser:
@@ -365,7 +364,7 @@ class TestSshKeyInUser:
         assert ssh_name not in [i['name'] for i in result]
 
     @pytest.mark.tier1
-    def test_positive_create_ssh_key_super_admin_from_file(self, ssh_key):
+    def test_positive_create_ssh_key_super_admin_from_file(self, ssh_key, default_sat):
         """SSH Key can be added to Super Admin user from file
 
         :id: b865d0ae-6317-475c-a6da-600615b71eeb
@@ -376,9 +375,8 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        with get_connection() as connection:
-            result = connection.run(f'''echo '{ssh_key}' > test_key.pub''')
-        assert result.return_code == 0, 'key file not created'
+        result = default_sat.execute(f'''echo '{ssh_key}' > test_key.pub''')
+        assert result.status == 0, 'key file not created'
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})
         assert ssh_name in [i['name'] for i in result]
@@ -414,11 +412,10 @@ class TestPersonalAccessToken:
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split('\n')[-1]
-        curl_command = (
-            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
-        )
+        curl_command = f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
         command_output = default_sat.execute(curl_command)
-        assert user['login'] and user['email'] in command_output.stdout
+        assert user['login'] in command_output.stdout
+        assert user['email'] in command_output.stdout
         User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
         command_output = default_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
@@ -452,15 +449,13 @@ class TestPersonalAccessToken:
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split('\n')[-1]
-        curl_command = (
-            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/hosts'
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/hosts'
         )
-        command_output = default_sat.execute(curl_command)
         assert default_sat.hostname in command_output.stdout
-        curl_command = (
-            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
         )
-        command_output = default_sat.execute(curl_command)
         assert 'Access denied' in command_output.stdout
 
     @pytest.mark.tier2
@@ -492,14 +487,12 @@ class TestPersonalAccessToken:
         )
 
         token_value = result[0]['message'].split('\n')[-1]
-        curl_command = (
-            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/hosts'
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/hosts'
         )
-        command_output = default_sat.execute(curl_command)
         assert default_sat.hostname in command_output.stdout
         sleep(20)
-        curl_command = (
-            f'curl -k -u {user["login"]}:{token_value} https://{default_sat.hostname}/api/v2/users'
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
         )
-        command_output = default_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
