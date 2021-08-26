@@ -386,20 +386,6 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
         validate_task_status(repo['id'], module_org.id, max_tries=2)
 
 
-@pytest.mark.stubbed
-@pytest.mark.tier4
-@pytest.mark.upgrade
-def test_positive_synchronize_custom_product_custom_cron(module_org):
-    """Create a sync plan with custom cron with 1 min interval, add a
-    custom product and verify the product gets synchronized on the next
-    sync occurrence
-
-    :id: 5f398103-7c36-4524-a1cb-c258d97cecba
-
-    :expectedresults: Product is synchronized successfully.
-    """
-
-
 @pytest.mark.tier4
 @pytest.mark.upgrade
 def test_positive_synchronize_custom_product_past_sync_date(module_org):
