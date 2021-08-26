@@ -59,6 +59,6 @@ def record_test_timestamp_xml(request):
 
 
 @pytest.fixture(autouse=True, scope='function')
-def record_test_markers_xml(request, record_property):
+def record_test_markers_xml(request):
     for marker in request.node.iter_markers():
         request.node.user_properties.append((marker.name, next(iter(marker.args), None)))
