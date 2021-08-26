@@ -42,7 +42,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
 
@@ -275,19 +274,10 @@ API_PATHS = {
         '/katello/api/content_views/:content_view_id/filters/:id',
         '/katello/api/content_views/:content_view_id/filters/:id',
     ),
-    'content_view_puppet_modules': (
-        '/katello/api/content_views/:content_view_id/content_view_puppet_modules',
-        '/katello/api/content_views/:content_view_id/content_view_puppet_modules',
-        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
-        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
-        '/katello/api/content_views/:content_view_id/content_view_puppet_modules/:id',
-    ),
     'content_views': (
         '/katello/api/content_views/:id',
         '/katello/api/content_views/:id',
         '/katello/api/content_views/:id',
-        '/katello/api/content_views/:id/available_puppet_module_names',
-        '/katello/api/content_views/:id/available_puppet_modules',
         '/katello/api/content_views/:id/copy',
         '/katello/api/content_views/:id/environments/:environment_id',
         '/katello/api/content_views/:id/publish',
@@ -708,10 +698,6 @@ API_PATHS = {
         '/api/puppetclasses/:id',
         '/api/puppetclasses/:id',
     ),
-    'puppet_modules': (
-        '/katello/api/puppet_modules/compare',
-        '/katello/api/puppet_modules/:id',
-    ),
     'realms': (
         '/api/realms',
         '/api/realms',
@@ -969,7 +955,6 @@ class TestAvailableURLs:
         #
         #     {'content_views': {
         #          '…': '/katello/api/content_views/:id',
-        #          '…': '/katello/api/content_views/:id/available_puppet_modules',
         #          '…': '/katello/api/organizations/:organization_id/content_views',
         #          '…': '/katello/api/organizations/:organization_id/content_views',
         #     }, …}
@@ -979,7 +964,6 @@ class TestAvailableURLs:
         #
         #     {'content_views': [
         #          '/katello/api/content_views/:id',
-        #          '/katello/api/content_views/:id/available_puppet_modules',
         #          '/katello/api/organizations/:organization_id/content_views',
         #          '/katello/api/organizations/:organization_id/content_views',
         #     ], …}
@@ -1065,7 +1049,7 @@ class TestEndToEnd:
             [service['status'] == 'ok' for service in services.values()]
         ), 'Not all services seem to be up and running!'
 
-    @pytest.mark.skip_if_not_set('compute_resources')
+    @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
     @pytest.mark.upgrade
     @pytest.mark.skipif(
@@ -1081,21 +1065,19 @@ class TestEndToEnd:
             3. Create a new lifecycle environment
             4. Create a custom product
             5. Create a custom YUM repository
-            6. Create a custom PUPPET repository
-            7. Enable a Red Hat repository
-            8. Synchronize the three repositories
-            9. Create a new content view
-            10. Associate the YUM and Red Hat repositories to new content view
-            11. Add a PUPPET module to new content view
-            12. Publish content view
-            13. Promote content view to the lifecycle environment
-            14. Create a new activation key
-            15. Add the products to the activation key
-            16. Create a new libvirt compute resource
-            17. Create a new subnet
-            18. Create a new domain
-            19. Create a new hostgroup and associate previous entities to it
-            20. Provision a client  **  NOT CURRENTLY PROVISIONING
+            6. Enable a Red Hat repository
+            7. Synchronize the three repositories
+            8. Create a new content view
+            9. Associate the YUM and Red Hat repositories to new content view
+            10. Publish content view
+            11. Promote content view to the lifecycle environment
+            12. Create a new activation key
+            13. Add the products to the activation key
+            14. Create a new libvirt compute resource
+            15. Create a new subnet
+            16. Create a new domain
+            17. Create a new hostgroup and associate previous entities to it
+            18. Provision a client  **  NOT CURRENTLY PROVISIONING
 
         :id: b2f73740-d3ce-4e6e-abc7-b23e5562bac1
 
@@ -1130,13 +1112,7 @@ class TestEndToEnd:
         ).create()
         repositories.append(repo1)
 
-        # step 2.6: Create custom PUPPET repository
-        repo2 = entities.Repository(
-            server_config, product=prod, content_type='puppet', url=FAKE_0_PUPPET_REPO
-        ).create()
-        repositories.append(repo2)
-
-        # step 2.7: Enable a Red Hat repository
+        # step 2.6: Enable a Red Hat repository
         if fake_manifest_is_set:
             repo3 = entities.Repository(
                 id=enable_rhrepo_and_fetchid(
@@ -1150,32 +1126,22 @@ class TestEndToEnd:
             )
             repositories.append(repo3)
 
-        # step 2.8: Synchronize the three repositories
+        # step 2.7: Synchronize the three repositories
         for repo in repositories:
             repo.sync()
 
-        # step 2.9: Create content view
+        # step 2.8: Create content view
         content_view = entities.ContentView(server_config, organization=org).create()
 
-        # step 2.10: Associate the YUM and Red Hat repositories to new content
+        # step 2.9: Associate the YUM and Red Hat repositories to new content
         # view
-        repositories.remove(repo2)
         content_view.repository = repositories
         content_view = content_view.update(['repository'])
 
-        # step 2.11: Add a PUPPET module to new content view
-        puppet_mods = content_view.available_puppet_modules()
-        assert len(puppet_mods['results']), 'Available puppet modules should be greater than zero'
-        puppet_module = random.choice(puppet_mods['results'])
-        puppet = entities.ContentViewPuppetModule(
-            author=puppet_module['author'], content_view=content_view, name=puppet_module['name']
-        ).create()
-        assert puppet.name == puppet_module['name']
-
-        # step 2.12: Publish content view
+        # step 2.10: Publish content view
         content_view.publish()
 
-        # step 2.13: Promote content view to the lifecycle environment
+        # step 2.11: Promote content view to the lifecycle environment
         content_view = content_view.read()
         assert len(content_view.version) == 1
         cv_version = content_view.version[0].read()
@@ -1186,18 +1152,18 @@ class TestEndToEnd:
         assert len(content_view.version) == 1
         cv_version = cv_version.read()
 
-        # step 2.14: Create a new activation key
+        # step 2.12: Create a new activation key
         activation_key_name = gen_string('alpha')
         activation_key = entities.ActivationKey(
             name=activation_key_name, environment=le1, organization=org, content_view=content_view
         ).create()
 
-        # step 2.15: Add the products to the activation key
+        # step 2.13: Add the products to the activation key
         for sub in entities.Subscription(organization=org).search():
             if sub.name == DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
-        # step 2.15.1: Enable product content
+        # step 2.13.1: Enable product content
         if fake_manifest_is_set:
             activation_key.content_override(
                 data={'content_overrides': [{'content_label': AK_CONTENT_LABEL, 'value': '1'}]}
@@ -1217,23 +1183,23 @@ class TestEndToEnd:
         # check that lifecycle environment matches
         assert content_host.content_facet_attributes['lifecycle_environment_id'] == le1.id
 
-        # step 2.16: Create a new libvirt compute resource
+        # step 2.14: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url=f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+            url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         ).create()
 
-        # step 2.17: Create a new subnet
+        # step 2.15: Create a new subnet
         subnet = entities.Subnet(server_config).create()
 
-        # step 2.18: Create a new domain
+        # step 2.16: Create a new domain
         domain = entities.Domain(server_config).create()
 
-        # step 2.19: Create a new hostgroup and associate previous entities to
+        # step 2.17: Create a new hostgroup and associate previous entities to
         # it
         entities.HostGroup(server_config, domain=domain, subnet=subnet).create()
 
-        # step 2.20: Provision a client
+        # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
         rhel6_contenthost.install_katello_ca(default_sat)

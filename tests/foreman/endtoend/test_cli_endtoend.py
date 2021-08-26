@@ -16,8 +16,6 @@
 
 :Upstream: No
 """
-import random
-
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_ipaddr
@@ -35,7 +33,6 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
-from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subnet import Subnet
@@ -50,7 +47,6 @@ from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.constants.repos import FAKE_0_PUPPET_REPO
 
 
 AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
@@ -101,6 +97,7 @@ def test_positive_cli_find_admin_user():
     assert result['admin'] == 'yes'
 
 
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -114,21 +111,19 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         3. Create a new lifecycle environment
         4. Create a custom product
         5. Create a custom YUM repository
-        6. Create a custom PUPPET repository
-        7. Enable a Red Hat repository
-        8. Synchronize the three repositories
-        9. Create a new content view
-        10. Associate the YUM and Red Hat repositories to new content view
-        11. Add a PUPPET module to new content view
-        12. Publish content view
-        13. Promote content view to the lifecycle environment
-        14. Create a new activation key
-        15. Add the products to the activation key
-        16. Create a new libvirt compute resource
-        17. Create a new subnet
-        18. Create a new domain
-        19. Create a new hostgroup and associate previous entities to it
-        20. Provision a client  ** NOT CURRENTLY PROVISIONING
+        6. Enable a Red Hat repository
+        7. Synchronize the three repositories
+        8. Create a new content view
+        9. Associate the YUM and Red Hat repositories to new content view
+        10. Publish content view
+        11. Promote content view to the lifecycle environment
+        12. Create a new activation key
+        13. Add the products to the activation key
+        14. Create a new libvirt compute resource
+        15. Create a new subnet
+        16. Create a new domain
+        17. Create a new hostgroup and associate previous entities to it
+        18. Provision a client  ** NOT CURRENTLY PROVISIONING
 
     :id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
 
@@ -174,21 +169,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     )
     repositories.append(yum_repo)
 
-    # step 2.6: Create custom PUPPET repository
-    puppet_repo = _create(
-        user,
-        Repository,
-        {
-            'content-type': 'puppet',
-            'name': gen_alphanumeric(),
-            'product-id': product['id'],
-            'publish-via-http': 'true',
-            'url': FAKE_0_PUPPET_REPO,
-        },
-    )
-    repositories.append(puppet_repo)
-
-    # step 2.7: Enable a Red Hat repository
+    # step 2.6: Enable a Red Hat repository
     if fake_manifest_is_set:
         RepositorySet.enable(
             {
@@ -208,17 +189,16 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         )
         repositories.append(rhel_repo)
 
-    # step 2.8: Synchronize the three repositories
+    # step 2.7: Synchronize the three repositories
     for repo in repositories:
         Repository.with_user(user['login'], user['password']).synchronize({'id': repo['id']})
 
-    # step 2.9: Create content view
+    # step 2.8: Create content view
     content_view = _create(
         user, ContentView, {'name': gen_alphanumeric(), 'organization-id': org['id']}
     )
 
-    # step 2.10: Associate the YUM and Red Hat repositories to new content view
-    repositories.remove(puppet_repo)
+    # step 2.9: Associate the YUM and Red Hat repositories to new content view
     for repo in repositories:
         ContentView.add_repository(
             {
@@ -228,18 +208,10 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
             }
         )
 
-    # step 2.11: Add a PUPPET module to new content view
-    result = PuppetModule.with_user(user['login'], user['password']).list(
-        {'repository-id': puppet_repo['id'], 'per-page': False}
-    )
-    ContentView.with_user(user['login'], user['password']).puppet_module_add(
-        {'content-view-id': content_view['id'], 'id': random.choice(result)['id']}
-    )
-
-    # step 2.12: Publish content view
+    # step 2.10: Publish content view
     ContentView.with_user(user['login'], user['password']).publish({'id': content_view['id']})
 
-    # step 2.13: Promote content view to the lifecycle environment
+    # step 2.11: Promote content view to the lifecycle environment
     content_view = ContentView.with_user(user['login'], user['password']).info(
         {'id': content_view['id']}
     )
@@ -262,7 +234,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     assert len(cv_version['lifecycle-environments']) == 2
     assert cv_version['lifecycle-environments'][-1]['id'] == lifecycle_environment['id']
 
-    # step 2.14: Create a new activation key
+    # step 2.12: Create a new activation key
     activation_key = _create(
         user,
         ActivationKey,
@@ -274,7 +246,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         },
     )
 
-    # step 2.15: Add the products to the activation key
+    # step 2.13: Add the products to the activation key
     subscription_list = Subscription.with_user(user['login'], user['password']).list(
         {'organization-id': org['id']}, per_page=False
     )
@@ -288,7 +260,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
                 }
             )
 
-    # step 2.15.1: Enable product content
+    # step 2.13.1: Enable product content
     if fake_manifest_is_set:
         ActivationKey.with_user(user['login'], user['password']).content_override(
             {
@@ -321,18 +293,18 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         == lifecycle_environment['name']
     )
 
-    # step 2.16: Create a new libvirt compute resource
+    # step 2.14: Create a new libvirt compute resource
     _create(
         user,
         ComputeResource,
         {
             'name': gen_alphanumeric(),
             'provider': 'Libvirt',
-            'url': f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+            'url': f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         },
     )
 
-    # step 2.17: Create a new subnet
+    # step 2.15: Create a new subnet
     subnet = _create(
         user,
         Subnet,
@@ -343,10 +315,10 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         },
     )
 
-    # step 2.18: Create a new domain
+    # step 2.16: Create a new domain
     domain = _create(user, Domain, {'name': gen_alphanumeric()})
 
-    # step 2.19: Create a new hostgroup and associate previous entities to it
+    # step 2.17: Create a new hostgroup and associate previous entities to it
     host_group = _create(
         user,
         HostGroup,
@@ -361,7 +333,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         }
     )
 
-    # step 2.20: Provision a client
+    # step 2.18: Provision a client
     # TODO this isn't provisioning through satellite as intended
     # Note it wasn't well before the change that added this todo
     rhel6_contenthost.install_katello_ca(default_sat)
