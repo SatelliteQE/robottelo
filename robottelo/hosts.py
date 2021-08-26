@@ -510,9 +510,17 @@ class ContentHost(Host):
                 'awk -F "/" \'/download_path/ {print $4}\' /etc/foreman_scap_client/config.yaml'
             )
             policy_id = result.stdout[0]
-        result = self.execute(f'foreman_scap_client {policy_id}')
+        result = self.execute(f'foreman_scap_client ds {policy_id}')
         if result.status != 0:
-            raise ContentHostError('Failed to execute foreman_scap_client run.')
+            data = self.execute(
+                'rpm -qa |grep scap; yum repolist;cat /etc/foreman_scap_client/config.yaml; '
+                'cat /etc/cron.d/foreman_scap_client_cron'
+            )
+            raise ContentHostError(
+                f'Failed to execute foreman_scap_client run. '
+                f'Command exited with code: {result.status}, stderr: {result.stderr}, '
+                f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
+            )
 
     def configure_rex(self, satellite, org, subnet_id=None, by_ip=True, register=True):
         """Setup a VM host for remote execution.
