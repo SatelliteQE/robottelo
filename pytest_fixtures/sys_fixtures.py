@@ -1,6 +1,7 @@
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import Satellite
 from robottelo.hosts import SatelliteHostError
 
 
@@ -42,7 +43,8 @@ def register_to_dogfood(default_sat):
     dig_result = default_sat.execute(f'dig +short {dogfood_canonical_hostname}')
     # the host name finishes with a dot, so last character is removed
     dogfood_hostname = dig_result.stdout.split()[0][:-1]
-    default_sat.install_katello_ca(sat_hostname=dogfood_hostname)
+    dogfood = Satellite(dogfood_hostname)
+    default_sat.install_katello_ca(satellite=dogfood)
     # satellite version consist from x.y.z, we need only x.y
     sat_release = '.'.join(default_sat.version.split('.')[:-1])
     cmd_result = default_sat.register_contenthost(
