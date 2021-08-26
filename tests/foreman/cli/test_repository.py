@@ -54,6 +54,7 @@ from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.constants import REPO_TYPE
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.constants import SRPM_TO_UPLOAD
+from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_1
 from robottelo.constants.repos import CUSTOM_MODULE_STREAM_REPO_2
@@ -2378,6 +2379,43 @@ class TestSRPMRepository:
         )
         assert result.return_code == 0
         assert len(result.stdout) >= 1
+
+
+class TestAnsibleCollectionRepository:
+    """Ansible Collections repository tests"""
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'ansible_collection',
+                    'url': ANSIBLE_GALAXY,
+                    'ansible-collection-requirements': '{collections: [ \
+                            { name: theforeman.foreman, version: "2.1.0" }, \
+                            { name: theforeman.operations, version: "0.1.0"} ]}',
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync_ansible_collecion_from_gallaxy(self, repo, module_org, module_product):
+        """Sync ansible collection repository from ansible gallaxy
+
+        :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
+
+        :expectedresults: All content synced successfully
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+
+        """
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
 
 
 class TestMD5Repository:

@@ -620,6 +620,8 @@ def make_repository_with_credentials(options=None, credentials=None):
         'http-proxy': None,
         'http-proxy-id': None,
         'http-proxy-policy': None,
+        'ansible-collection-requirements': None,
+        'ansible-collection-requirements-file': None,
         'url': constants.repos.FAKE_1_YUM_REPO,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)
