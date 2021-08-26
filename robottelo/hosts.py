@@ -1065,16 +1065,21 @@ class Satellite(Capsule):
         """Satellite objects can be used as a context manager to temporarily force everything
         to use the Satellite object's hostname.
         """
-        self.__old_hostname = settings.server.hostname
-        settings.server.hostname = self.hostname
-        configure_nailgun()
-        configure_airgun()
+        self._revert = False
+        # if the hostname is the same, don't make a change
+        if self.hostname != settings.server.hostname:
+            self._revert = True
+            self._old_hostname = settings.server.hostname
+            settings.server.hostname = self.hostname
+            configure_nailgun()
+            configure_airgun()
         return self
 
     def __exit__(self, *err_args):
-        settings.server.hostname = self.__old_hostname
-        configure_nailgun()
-        configure_airgun()
+        if self._revert:
+            settings.server.hostname = self._old_hostname
+            configure_nailgun()
+            configure_airgun()
 
     def create_custom_environment(self, repo='generic_1'):
         """Download, install and import puppet module.
