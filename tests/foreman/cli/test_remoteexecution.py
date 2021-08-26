@@ -161,7 +161,7 @@ class TestRemoteExecution:
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
         # assert the file is owned by the effective user
-        assert username == result.stdout[0]
+        assert username == result.stdout
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
@@ -411,7 +411,7 @@ class TestRemoteExecution:
         :parametrized: yes
         """
         client = fixture_vmsetup
-        system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout[0]
+        system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
         current_time_object = datetime.strptime(system_current_time, '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
         Host.set_parameter(
@@ -498,9 +498,9 @@ class TestRemoteExecution:
         # check that there is one receptor conf file and it's only readable
         # by the receptor user and root
         result = default_sat.execute('stat /etc/receptor/*/receptor.conf --format "%a:%U"')
-        assert result.stdout[0] == '400:foreman-proxy'
+        assert result.stdout == '400:foreman-proxy'
         result = default_sat.execute('ls -l /etc/receptor/*/receptor.conf | wc -l')
-        assert result.stdout[0] == '1'
+        assert result.stdout == '1'
 
 
 class TestAnsibleREX:
@@ -577,7 +577,7 @@ class TestAnsibleREX:
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
         # assert the file is owned by the effective user
-        assert username == result.stdout[0], "file ownership mismatch"
+        assert username == result.stdout, "file ownership mismatch"
 
     @pytest.mark.tier3
     @pytest.mark.upgrade

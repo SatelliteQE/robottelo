@@ -409,7 +409,7 @@ class TestCapsuleContentManagement:
         repo_name = gen_string('alphanumeric')
         # Create and publish custom repository with 2 packages in it
         repo_url = create_repo(
-            repo_name, constants.repos.FAKE_1_YUM_REPO, constants.YUM_REPO_RPMS[0:2]
+            repo_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[0:2]
         )
         # Create organization, product, repository in satellite, and lifecycle
         # environment
@@ -538,7 +538,7 @@ class TestCapsuleContentManagement:
         assert lce_revision_capsule == new_lce_revision_capsule
 
         # Update a repository with 1 new rpm
-        create_repo(repo_name, constants.repos.FAKE_1_YUM_REPO, constants.YUM_REPO_RPMS[-1:])
+        create_repo(repo_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[-1:])
         # Sync, publish and promote the repository
         repo.sync()
         repo = repo.read()
@@ -680,7 +680,7 @@ class TestCapsuleContentManagement:
         """
         repo_url = constants.repos.FAKE_3_YUM_REPO
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
-        package = constants.YUM_REPO_RPMS[0]
+        package = constants.FAKE_1_YUM_REPO_RPMS[0]
         # Create organization, product, repository in satellite, and lifecycle
         # environment
         org = entities.Organization().create()
@@ -808,7 +808,7 @@ class TestCapsuleContentManagement:
         repo2_name = gen_string('alphanumeric')
         # Create and publish first custom repository with 2 packages in it
         repo1_url = create_repo(
-            repo1_name, constants.repos.FAKE_1_YUM_REPO, constants.YUM_REPO_RPMS[1:3]
+            repo1_name, constants.repos.FAKE_1_YUM_REPO, constants.FAKE_1_YUM_REPO_RPMS[1:3]
         )
         # Create and publish second repo with no packages in it
         repo2_url = create_repo(repo2_name)
@@ -867,10 +867,14 @@ class TestCapsuleContentManagement:
         ssh.command(
             'mv {} {}'.format(
                 os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH, repo1_name, constants.YUM_REPO_RPMS[2]
+                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
+                    repo1_name,
+                    constants.FAKE_1_YUM_REPO_RPMS[2],
                 ),
                 os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH, repo2_name, constants.YUM_REPO_RPMS[2]
+                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
+                    repo2_name,
+                    constants.FAKE_1_YUM_REPO_RPMS[2],
                 ),
             )
         )
@@ -922,7 +926,7 @@ class TestCapsuleContentManagement:
         rhel7_contenthost.install_katello_ca(default_sat)
         rhel7_contenthost.register_contenthost(org.label, activation_key.name)
         # Install the package
-        package_name = constants.YUM_REPO_RPMS[2].rstrip('.rpm')
+        package_name = constants.FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
         result = rhel7_contenthost.run(f'yum install -y {package_name}')
         assert result.status == 0
 
@@ -934,7 +938,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_update_with_immediate_sync(self, request, capsule_configured):
+    def test_positive_update_with_immediate_sync(self, request, capsule_configured, default_sat):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
         more.
@@ -1042,7 +1046,7 @@ class TestCapsuleContentManagement:
         cvv_repo_path = form_repo_path(
             org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
         )
-        result = ssh.command(f'find {cvv_repo_path}/ -type l')
+        result = default_sat.execute(f'find {cvv_repo_path}/ -type l')
         assert result.status == 0
 
         links = {link for link in result.stdout if link}
@@ -1051,7 +1055,9 @@ class TestCapsuleContentManagement:
 
         # Ensure there're no broken symlinks (pointing to nonexistent files) on
         # satellite
-        result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
+        result = default_sat.execute(
+            f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print'
+        )
 
         assert result.status == 0
 
