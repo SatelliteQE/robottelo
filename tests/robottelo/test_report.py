@@ -5,10 +5,11 @@ import xmltodict
 
 XUNIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 dummy_test_count = 2
-dummy_test = f'''import pytest
+dummy_test_name = 'test_junit_dummy'
+dummy_test_body = f'''import pytest
 
 @pytest.mark.parametrize('param', list(range(0, {dummy_test_count})))
-def test_dummy(param):
+def {dummy_test_name}(param):
     """A dummy test used by test_junit_timestamps.
     Not to be run as a standalone test
     """
@@ -27,7 +28,12 @@ property_paths = [
 
 @pytest.mark.parametrize('property_level', property_paths, ids=['testsuite', 'testcase'])
 @pytest.mark.parametrize('exec_test', ['-n2', '-n0'], ids=['xdist', 'non_xdist'], indirect=True)
-@pytest.mark.parametrize('dummy_test', [dummy_test], ids=['dummy_test'], indirect=True)
+@pytest.mark.parametrize(
+    'dummy_test',
+    [{'name': dummy_test_name, 'body': dummy_test_body}],
+    ids=['dummy_test'],
+    indirect=True,
+)
 def test_junit_timestamps(exec_test, property_level):
     """Asserts the 'start_time' property nodes existence in the junit-xml test report"""
     with open(exec_test, 'rb') as f:
