@@ -75,7 +75,7 @@ def set_default_scope(value):
 
 def _get_default_scope():
     # this is the default locking scope
-    return LOCK_DEFAULT_SCOPE or os.getpid()
+    return LOCK_DEFAULT_SCOPE or str(os.getpid())
 
 
 def get_temp_dir():
