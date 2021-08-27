@@ -22,7 +22,6 @@ from nailgun import entities
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import ENVIRONMENT
@@ -203,48 +202,6 @@ def test_positive_noapply_api(module_manifest_org, module_cv, custom_repo, host,
                 }
             ],
             'add_content': {'errata_ids': [errata_list[0].id]},
-        }
-    )
-    # Re-read the content view to get the latest versions
-    module_cv = module_cv.read()
-    assert len(module_cv.version) > len(cv_versions)
-
-
-@pytest.mark.tier4
-@pytest.mark.upgrade
-def test_positive_noapply_cli(module_manifest_org, module_cv, custom_repo, host, qe_lce):
-    """Check if cli incremental update can be done without
-    actually applying it
-
-    :id: f25b0919-74cb-4e2c-829e-482558990b3c
-
-    :expectedresults: Incremental update completed with no errors and
-        Content view has a newer version
-
-    :CaseLevel: System
-    """
-    # Promote CV to new LCE
-    versions = sorted(module_cv.read().version, key=lambda ver: ver.id)
-    cvv = versions[-1].read()
-    promote(cvv, qe_lce.id)
-    # Read CV to pick up LCE ID and next_version
-    module_cv = module_cv.read()
-
-    # Get the content view versions and use the recent one. API should
-    # return the versions in ascending order so assume the
-    # last one in the list is the most recent
-    cv_versions = module_cv.version
-
-    # Get the applicable errata
-    errata_list = get_applicable_errata(custom_repo)
-    assert len(errata_list) > 0
-
-    # Apply incremental update using the first applicable errata
-    ContentViewCLI.version_incremental_update(
-        {
-            'content-view-version-id': cv_versions[-1].id,
-            'lifecycle-environment-ids': qe_lce.id,
-            'errata-ids': errata_list[0].id,
         }
     )
     # Re-read the content view to get the latest versions
