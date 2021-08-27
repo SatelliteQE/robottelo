@@ -50,15 +50,3 @@ def pytest_sessionstart(session):
 def record_testsuite_timestamp_xml(record_testsuite_property):
     now = datetime.datetime.utcnow()
     record_testsuite_property('start_time', now.strftime(FMT_XUNIT_TIME))
-
-
-@pytest.fixture(autouse=True, scope='function')
-def record_test_timestamp_xml(request):
-    now = datetime.datetime.utcnow()
-    request.node.user_properties.append(('start_time', now.strftime(FMT_XUNIT_TIME)))
-
-
-@pytest.fixture(autouse=True, scope='function')
-def record_test_markers_xml(request):
-    for marker in request.node.iter_markers():
-        request.node.user_properties.append((marker.name, next(iter(marker.args), None)))
