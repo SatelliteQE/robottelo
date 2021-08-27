@@ -939,42 +939,42 @@ def create_org_admin_user(orgs, locs):
     return user
 
 
-def skip_yum_update_during_provisioning(template=None, reverse=False):
+@contextmanager
+def skip_yum_update_during_provisioning(template=None):
     """Hides the yum update command with echo text
 
     :param str template: The template name where the yum update will be hidden
-    :param bool reverse: Reverses the echo text to yum update
-    :return: Boolean True on success else exception
     """
     old = 'yum -t -y update'
     new = 'echo "Yum update skipped for faster automation testing"'
-    if not reverse:
-        return update_provisioning_template(name=template, old=old, new=new)
-    else:
-        return update_provisioning_template(name=template, old=new, new=old)
+    update_provisioning_template(name=template, old=old, new=new)
+    yield
+    update_provisioning_template(name=template, old=new, new=old)
 
 
-def set_hammer_api_timeout(timeout=-1, reverse=False):
+@contextmanager
+def hammer_api_timeout(timeout=-1):
     """Set hammer API request timeout on Satellite
 
     :param int timeout: request timeout in seconds
-    :param bool reverse: Reverses the request timeout
-    :return: ssh.command
     """
-    default_timeout = f':request_timeout: {120}'
     new_timeout = f':request_timeout: {timeout}'
-    if not reverse:
-        return ssh.command(
-            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
-                default_timeout, new_timeout
-            )
-        )
+    cli_conf = "~/.hammer/cli.modules.d/foreman.yml"
+
+    if ssh.command(f"grep -i 'request_timeout' {cli_conf}").return_code != 0:
+        ssh.command(f"echo '  {new_timeout}' >> {cli_conf}")
+        revert_method = 'remove'
     else:
-        return ssh.command(
-            "sed -ie 's/{}/{}/' ~/.hammer/cli.modules.d/foreman.yml".format(
-                new_timeout, default_timeout
-            )
-        )
+        old_timeout = ssh.command(f"sed -ne '/:request_timeout.*/p' {cli_conf}").stdout[0]
+        ssh.command(f"sed -ir 's/{old_timeout.strip()}/{new_timeout}/' {cli_conf}")
+        revert_method = 'replace'
+
+    yield
+
+    if revert_method == 'remove':
+        ssh.command(f"sed -i '/{new_timeout}/d' {cli_conf}")
+    else:
+        ssh.command(f"sed -ie 's/{new_timeout}/{old_timeout.strip()}/' {cli_conf}")
 
 
 def update_rhsso_settings_in_satellite(revert=False):

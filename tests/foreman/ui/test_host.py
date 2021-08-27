@@ -2006,62 +2006,62 @@ def test_positive_gce_provision_end_to_end(
         session.location.select(loc_name=module_loc.name)
         # Provision GCE Host
         try:
-            skip_yum_update_during_provisioning(template='Kickstart default finish')
-            session.host.create(
-                {
-                    'host.name': name,
-                    'host.hostgroup': gce_hostgroup.name,
-                    'provider_content.virtual_machine.machine_type': 'g1-small',
-                    'provider_content.virtual_machine.external_ip': True,
-                    'provider_content.virtual_machine.network': 'default',
-                    'provider_content.virtual_machine.storage': storage,
-                    'operating_system.operating_system': module_os.title,
-                    'operating_system.image': 'autogce_img',
-                    'operating_system.root_password': root_pwd,
-                }
-            )
-            wait_for(
-                lambda: entities.Host()
-                .search(query={'search': f'name={hostname}'})[0]
-                .build_status_label
-                != 'Pending installation',
-                timeout=600,
-                delay=15,
-                silent_failure=True,
-                handle_exception=True,
-            )
-            # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host.get_details(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
-            # 1.2 GCE Backend Assertions
-            gceapi_vm = googleclient.get_vm(gceapi_vmname)
-            assert gceapi_vm.is_running
-            assert gceapi_vm
-            assert gceapi_vm.name == gceapi_vmname
-            assert gceapi_vm.zone == settings.gce.zone
-            assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
-            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
-            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
-            # 2. Host Deletion Assertions
-            message = session.host.delete(hostname)
-            # 2.1 UI based Assertions
-            assert (
-                'Are you sure you want to delete host {}? This will delete the VM and '
-                'its disks, and is irreversible. This behavior can be changed via '
-                'global setting "Destroy associated VM on host delete".'.format(hostname)
-            ) == message
-            assert not session.host.search(hostname)
-            # 2.2 GCE Backend Assertions
-            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+                session.host.create(
+                    {
+                        'host.name': name,
+                        'host.hostgroup': gce_hostgroup.name,
+                        'provider_content.virtual_machine.machine_type': 'g1-small',
+                        'provider_content.virtual_machine.external_ip': True,
+                        'provider_content.virtual_machine.network': 'default',
+                        'provider_content.virtual_machine.storage': storage,
+                        'operating_system.operating_system': module_os.title,
+                        'operating_system.image': 'autogce_img',
+                        'operating_system.root_password': root_pwd,
+                    }
+                )
+                wait_for(
+                    lambda: entities.Host()
+                    .search(query={'search': f'name={hostname}'})[0]
+                    .build_status_label
+                    != 'Pending installation',
+                    timeout=600,
+                    delay=15,
+                    silent_failure=True,
+                    handle_exception=True,
+                )
+                # 1. Host Creation Assertions
+                # 1.1 UI based Assertions
+                host_info = session.host.get_details(hostname)
+                assert session.host.search(hostname)[0]['Name'] == hostname
+                assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
+                # 1.2 GCE Backend Assertions
+                gceapi_vm = gce_client.get_vm(gceapi_vmname)
+                assert gceapi_vm.is_running
+                assert gceapi_vm
+                assert gceapi_vm.name == gceapi_vmname
+                assert gceapi_vm.zone == settings.gce.zone
+                assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+                assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+                # 2. Host Deletion Assertions
+                message = session.host.delete(hostname)
+                # 2.1 UI based Assertions
+                assert (
+                    'Are you sure you want to delete host {}? This will delete the VM and '
+                    'its disks, and is irreversible. This behavior can be changed via '
+                    'global setting "Destroy associated VM on host delete".'.format(hostname)
+                ) == message
+                assert not session.host.search(hostname)
+                # 2.2 GCE Backend Assertions
+                assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
             gcehost = entities.Host().search(query={'search': f'name={hostname}'})
             if gcehost:
                 gcehost[0].delete()
             raise error
         finally:
-            skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
+            gce_client.disconnect()
 
 
 @pytest.mark.tier4
@@ -2088,56 +2088,55 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         session.location.select(loc_name=module_loc.name)
         # Provision GCE Host
         try:
-            skip_yum_update_during_provisioning(template='Kickstart default user data')
-            session.host.create(
-                {
-                    'host.name': name,
-                    'host.hostgroup': gce_hostgroup.name,
-                    'provider_content.virtual_machine.machine_type': 'g1-small',
-                    'provider_content.virtual_machine.external_ip': True,
-                    'provider_content.virtual_machine.network': 'default',
-                    'provider_content.virtual_machine.storage': storage,
-                    'operating_system.operating_system': module_os.title,
-                    'operating_system.image': 'autogce_img_cinit',
-                    'operating_system.root_password': root_pwd,
-                }
-            )
-            # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host.get_details(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            assert (
-                host_info['properties']['properties_table']['Build'] == 'Pending installation clear'
-            )
-            # 1.2 GCE Backend Assertions
-            gceapi_vm = googleclient.get_vm(gceapi_vmname)
-            assert gceapi_vm
-            assert gceapi_vm.is_running
-            assert gceapi_vm.name == gceapi_vmname
-            assert gceapi_vm.zone == settings.gce.zone
-            assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
-            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
-            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
-            # 2. Host Deletion Assertions
-            message = session.host.delete(hostname)
-            # 2.1 UI based Assertions
-            assert (
-                'Are you sure you want to delete host {}? This will delete the VM and '
-                'its disks, and is irreversible. This behavior can be changed via '
-                'global setting "Destroy associated VM on host delete".'.format(hostname)
-            ) == message
-            assert not session.host.search(hostname)
-            # 2.2 GCE Backend Assertions
-            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+            with skip_yum_update_during_provisioning(template='Kickstart default user data'):
+                session.host.create(
+                    {
+                        'host.name': name,
+                        'host.hostgroup': gce_hostgroup.name,
+                        'provider_content.virtual_machine.machine_type': 'g1-small',
+                        'provider_content.virtual_machine.external_ip': True,
+                        'provider_content.virtual_machine.network': 'default',
+                        'provider_content.virtual_machine.storage': storage,
+                        'operating_system.operating_system': module_os.title,
+                        'operating_system.image': 'autogce_img_cinit',
+                        'operating_system.root_password': root_pwd,
+                    }
+                )
+                # 1. Host Creation Assertions
+                # 1.1 UI based Assertions
+                host_info = session.host.get_details(hostname)
+                assert session.host.search(hostname)[0]['Name'] == hostname
+                assert (
+                    host_info['properties']['properties_table']['Build']
+                    == 'Pending installation clear'
+                )
+                # 1.2 GCE Backend Assertions
+                gceapi_vm = gce_client.get_vm(gceapi_vmname)
+                assert gceapi_vm
+                assert gceapi_vm.is_running
+                assert gceapi_vm.name == gceapi_vmname
+                assert gceapi_vm.zone == settings.gce.zone
+                assert gceapi_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+                assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+                # 2. Host Deletion Assertions
+                message = session.host.delete(hostname)
+                # 2.1 UI based Assertions
+                assert (
+                    'Are you sure you want to delete host {}? This will delete the VM and '
+                    'its disks, and is irreversible. This behavior can be changed via '
+                    'global setting "Destroy associated VM on host delete".'.format(hostname)
+                ) == message
+                assert not session.host.search(hostname)
+                # 2.2 GCE Backend Assertions
+                assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
             gcehost = entities.Host().search(query={'search': f'name={hostname}'})
             if gcehost:
                 gcehost[0].delete()
             raise error
         finally:
-            skip_yum_update_during_provisioning(
-                template='Kickstart default user data', reverse=True
-            )
+            gce_client.disconnect()
 
 
 @pytest.mark.run_in_one_thread

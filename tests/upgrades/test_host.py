@@ -130,8 +130,7 @@ class TestScenarioPositiveGCEHostComputeResource:
             'image_id': LATEST_RHEL7_GCE_IMG_UUID,
         }
         # Host Provisioning Tests
-        try:
-            skip_yum_update_during_provisioning(template='Kickstart default finish')
+        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
             gce_hst = entities.Host(
                 name=hostname,
                 organization=org,
@@ -144,8 +143,6 @@ class TestScenarioPositiveGCEHostComputeResource:
                 operatingsystem=os,
                 provision_method='image',
             ).create()
-        finally:
-            skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
         wait_for(
             lambda: entities.Host()
             .search(query={'search': f'name={self.fullhost}'})[0]
