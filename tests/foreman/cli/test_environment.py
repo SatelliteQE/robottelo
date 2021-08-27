@@ -25,11 +25,8 @@ from nailgun import entities
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment
-from robottelo.cli.factory import publish_puppet_module
-from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
@@ -38,15 +35,6 @@ from robottelo.datafactory import parametrized
 @pytest.fixture(scope='module')
 def module_locs():
     return [entities.Location().create(), entities.Location().create()]
-
-
-@pytest.fixture(scope='module')
-def module_puppet(module_org, module_locs):
-    puppet_modules = [{'author': 'robottelo', 'name': 'generic_1'}]
-    cv = publish_puppet_module(puppet_modules, CUSTOM_PUPPET_REPO, module_org.id)
-    env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
-    puppet_class = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
-    return {'env': env, 'puppet_class': puppet_class}
 
 
 @pytest.mark.tier2
@@ -194,10 +182,10 @@ def test_negative_update_name(new_name):
 
 @pytest.mark.tier1
 @pytest.mark.skipif(
-    not settings.robottelo.REPOS_HOSTING_URL,
-    reason="repos_hosting_url is not defined in robottelo.properties",
+    not settings.robottelo.repos_hosting_url,
+    reason='Missing repos_hosting_url',
 )
-def test_positive_sc_params(module_puppet):
+def test_positive_sc_params(module_import_puppet_module):
     """Check if environment sc-param subcommand works passing
     an environment id
 
@@ -209,12 +197,12 @@ def test_positive_sc_params(module_puppet):
     # Override one of the sc-params from puppet class
     sc_params_list = SmartClassParameter.list(
         {
-            'environment': module_puppet['env']['name'],
-            'search': f'puppetclass="{module_puppet["puppet_class"]["name"]}"',
+            'environment': module_import_puppet_module['env'],
+            'search': f'puppetclass="{module_import_puppet_module["puppet_class"]}"',
         }
     )
     scp_id = choice(sc_params_list)['id']
     SmartClassParameter.update({'id': scp_id, 'override': 1})
     # Verify that affected sc-param is listed
-    env_scparams = Environment.sc_params({'environment-id': module_puppet['env']['id']})
+    env_scparams = Environment.sc_params({'environment': module_import_puppet_module['env']})
     assert scp_id in [scp['id'] for scp in env_scparams]
