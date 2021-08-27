@@ -31,9 +31,9 @@ def exec_test(request, dummy_test):
     pytest_args.append(f'--junit-xml={report_file}')
     with NamedTemporaryFile(dir=test_dir, mode='w', prefix='test_', suffix='.py') as f:
         f.seek(0)
-        f.write(dummy_test)
+        f.write(dummy_test['body'])
         f.flush()
-        pytest_args.append(f'{f.name}::test_dummy')
+        pytest_args.append(f'{f.name}::{dummy_test["name"]}')
         pytest.main(pytest_args)
     yield report_file
     for logfile in glob.glob('robottelo*.log'):

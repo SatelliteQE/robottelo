@@ -1,3 +1,4 @@
+import datetime
 import inspect
 import re
 
@@ -5,6 +6,7 @@ import pytest
 
 from robottelo.logging import collection_logger as logger
 
+FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
 IMPORTANCE_LEVELS = []
 
 
@@ -66,7 +68,7 @@ def pytest_collection_modifyitems(session, items, config):
     deselected = []
     logger.info('Processing test items to add testimony token markers')
     for item in items:
-        if item.nodeid.startswith('tests/robottelo/'):
+        if item.nodeid.startswith('tests/robottelo/') and 'test_junit' not in item.nodeid:
             # Unit test, no testimony markers
             continue
 
@@ -90,6 +92,13 @@ def pytest_collection_modifyitems(session, items, config):
             doc_assignee = assignee_regex.findall(docstring)
             if doc_assignee and 'assignee' not in item_mark_names:
                 item.add_marker(pytest.mark.assignee(doc_assignee[0]))
+
+        # add markers as user_properties so they are recorded in XML properties of the report
+        for marker in item.iter_markers():
+            item.user_properties.append((marker.name, next(iter(marker.args), None)))
+        item.user_properties.append(
+            ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
+        )
 
         # exit early if no filters were passed
         if importance or component or assignee:
