@@ -20,8 +20,8 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
+from robottelo.api.utils import hammer_api_timeout
 from robottelo.api.utils import satellite_setting
-from robottelo.api.utils import set_hammer_api_timeout
 from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.computeprofile import ComputeProfile
 from robottelo.cli.computeresource import ComputeResource
@@ -340,29 +340,27 @@ class TestAzureRMFinishTemplateProvisioning:
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
         """
-        set_hammer_api_timeout()
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = Host.create(
-            {
-                'name': self.hostname,
-                'compute-resource': module_azurerm_cr.name,
-                'compute-attributes': self.compute_attrs,
-                'interface': self.interfaces_attributes,
-                'location-id': module_location.id,
-                'organization-id': module_org.id,
-                'domain-id': module_domain.id,
-                'architecture-id': default_architecture.id,
-                'operatingsystem-id': default_os.id,
-                'root-password': gen_string('alpha'),
-                'image': module_azurerm_finishimg.name,
-            },
-            timeout=1800,
-        )
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            Host.delete({'name': self.fullhostname}, timeout=1800)
-        set_hammer_api_timeout(reverse=True)
+        with hammer_api_timeout():
+            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+                host = Host.create(
+                    {
+                        'name': self.hostname,
+                        'compute-resource': module_azurerm_cr.name,
+                        'compute-attributes': self.compute_attrs,
+                        'interface': self.interfaces_attributes,
+                        'location-id': module_location.id,
+                        'organization-id': module_org.id,
+                        'domain-id': module_domain.id,
+                        'architecture-id': default_architecture.id,
+                        'operatingsystem-id': default_os.id,
+                        'root-password': gen_string('alpha'),
+                        'image': module_azurerm_finishimg.name,
+                    },
+                    timeout=1800,
+                )
+                yield host
+                with satellite_setting('destroy_vm_on_host_delete=True'):
+                    Host.delete({'name': self.fullhostname}, timeout=1800)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
@@ -463,26 +461,24 @@ class TestAzureRMUserDataProvisioning:
         Provisions the host on AzureRM using UserData template
         Later in tests this host will be used to perform assertions
         """
-        set_hammer_api_timeout()
-        skip_yum_update_during_provisioning(template='Kickstart default user data')
-        host = Host.create(
-            {
-                'name': self.hostname,
-                'compute-attributes': self.compute_attrs,
-                'interface': self.interfaces_attributes,
-                'image': module_azurerm_cloudimg.name,
-                'hostgroup': azurerm_hostgroup.name,
-                'location': module_location.name,
-                'organization': module_org.name,
-                'operatingsystem-id': default_os.id,
-            },
-            timeout=1800,
-        )
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default user data', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            Host.delete({'name': self.fullhostname}, timeout=1800)
-        set_hammer_api_timeout(reverse=True)
+        with hammer_api_timeout():
+            with skip_yum_update_during_provisioning(template='Kickstart default user data'):
+                host = Host.create(
+                    {
+                        'name': self.hostname,
+                        'compute-attributes': self.compute_attrs,
+                        'interface': self.interfaces_attributes,
+                        'image': module_azurerm_cloudimg.name,
+                        'hostgroup': azurerm_hostgroup.name,
+                        'location': module_location.name,
+                        'organization': module_org.name,
+                        'operatingsystem-id': default_os.id,
+                    },
+                    timeout=1800,
+                )
+                yield host
+                with satellite_setting('destroy_vm_on_host_delete=True'):
+                    Host.delete({'name': self.fullhostname}, timeout=1800)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):
@@ -579,30 +575,28 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         Provisions the host on AzureRM with BYOS Image
         Later in tests this host will be used to perform assertions
         """
-        set_hammer_api_timeout()
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = Host.create(
-            {
-                'name': self.hostname,
-                'compute-resource': module_azurerm_cr.name,
-                'compute-attributes': self.compute_attrs,
-                'interface': self.interfaces_attributes,
-                'location-id': module_location.id,
-                'organization-id': module_org.id,
-                'domain-id': module_domain.id,
-                'architecture-id': default_architecture.id,
-                'operatingsystem-id': default_os.id,
-                'root-password': gen_string('alpha'),
-                'image': module_azurerm_byos_finishimg.name,
-                'volume': "disk_size_gb=5",
-            },
-            timeout=1800,
-        )
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            Host.delete({'name': self.fullhostname}, timeout=1800)
-        set_hammer_api_timeout(reverse=True)
+        with hammer_api_timeout():
+            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+                host = Host.create(
+                    {
+                        'name': self.hostname,
+                        'compute-resource': module_azurerm_cr.name,
+                        'compute-attributes': self.compute_attrs,
+                        'interface': self.interfaces_attributes,
+                        'location-id': module_location.id,
+                        'organization-id': module_org.id,
+                        'domain-id': module_domain.id,
+                        'architecture-id': default_architecture.id,
+                        'operatingsystem-id': default_os.id,
+                        'root-password': gen_string('alpha'),
+                        'image': module_azurerm_byos_finishimg.name,
+                        'volume': "disk_size_gb=5",
+                    },
+                    timeout=1800,
+                )
+                yield host
+                with satellite_setting('destroy_vm_on_host_delete=True'):
+                    Host.delete({'name': self.fullhostname}, timeout=1800)
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_byos_ft_host):

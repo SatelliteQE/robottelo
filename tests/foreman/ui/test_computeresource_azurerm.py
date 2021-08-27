@@ -125,35 +125,38 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
         # Provision Host
         try:
-            skip_yum_update_during_provisioning(template='Kickstart default finish')
-            session.host.create(
-                {
-                    'host.name': hostname,
-                    'host.hostgroup': module_azure_hg.name,
-                    'provider_content.operating_system.root_password': gen_string('alpha'),
-                    'provider_content.operating_system.image': module_azurerm_finishimg.name,
-                }
-            )
+            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+                session.host.create(
+                    {
+                        'host.name': hostname,
+                        'host.hostgroup': module_azure_hg.name,
+                        'provider_content.operating_system.root_password': gen_string('alpha'),
+                        'provider_content.operating_system.image': module_azurerm_finishimg.name,
+                    }
+                )
 
-            host_info = session.host.get_details(fqdn)
-            assert 'Installed' in host_info['properties']['properties_table']['Build']
-            assert host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
+                host_info = session.host.get_details(fqdn)
+                assert 'Installed' in host_info['properties']['properties_table']['Build']
+                assert (
+                    host_info['properties']['properties_table']['Host group']
+                    == module_azure_hg.name
+                )
 
-            # AzureRm Cloud assertion
-            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-            assert azurecloud_vm
-            assert azurecloud_vm.is_running
-            assert azurecloud_vm.name == hostname.lower()
-            assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
-            assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
+                # AzureRm Cloud assertion
+                azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
+                assert azurecloud_vm
+                assert azurecloud_vm.is_running
+                assert azurecloud_vm.name == hostname.lower()
+                assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
-            # Host Delete
-            with satellite_setting('destroy_vm_on_host_delete=True'):
-                session.host.delete(fqdn)
-            assert not session.host.search(fqdn)
+                # Host Delete
+                with satellite_setting('destroy_vm_on_host_delete=True'):
+                    session.host.delete(fqdn)
+                assert not session.host.search(fqdn)
 
-            # AzureRm Cloud assertion
-            assert not azurecloud_vm.exists
+                # AzureRm Cloud assertion
+                assert not azurecloud_vm.exists
 
         except Exception as error:
             azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
@@ -162,9 +165,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
             if azurecloud_vm.exists:
                 azurecloud_vm.delete()
             raise error
-
-        finally:
-            skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
 
 
 @pytest.mark.skip_if_open("BZ:1850934")
@@ -205,32 +205,34 @@ def test_positive_azurerm_host_provision_ud(
 
         # Provision Host
         try:
-            skip_yum_update_during_provisioning(template='Kickstart default user data')
-            session.host.create(
-                {
-                    'host.name': hostname,
-                    'host.hostgroup': module_azure_hg.name,
-                    'provider_content.operating_system.root_password': gen_string('alpha'),
-                    'provider_content.operating_system.image': module_azurerm_cloudimg.name,
-                }
-            )
+            with skip_yum_update_during_provisioning(template='Kickstart default user data'):
+                session.host.create(
+                    {
+                        'host.name': hostname,
+                        'host.hostgroup': module_azure_hg.name,
+                        'provider_content.operating_system.root_password': gen_string('alpha'),
+                        'provider_content.operating_system.image': module_azurerm_cloudimg.name,
+                    }
+                )
 
-            host_info = session.host.get_details(fqdn)
-            assert 'Pending installation' in host_info['properties']['properties_table']['Build']
-            assert host_info['properties']['properties_table']['Host group'] == module_azure_hg.name
+                host_info = session.host.get_details(fqdn)
+                assert (
+                    'Pending installation' in host_info['properties']['properties_table']['Build']
+                )
+                assert (
+                    host_info['properties']['properties_table']['Host group']
+                    == module_azure_hg.name
+                )
 
-            # AzureRm Cloud assertion
-            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-            assert azurecloud_vm
-            assert azurecloud_vm.is_running
-            assert azurecloud_vm.name == hostname.lower()
-            assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
-            assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
+                # AzureRm Cloud assertion
+                azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
+                assert azurecloud_vm
+                assert azurecloud_vm.is_running
+                assert azurecloud_vm.name == hostname.lower()
+                assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
         finally:
-            skip_yum_update_during_provisioning(
-                template='Kickstart default user data', reverse=True
-            )
             azure_vm = entities.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 with satellite_setting('destroy_vm_on_host_delete=True'):

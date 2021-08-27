@@ -238,29 +238,28 @@ class TestAzureRMHostProvisioningTestCase:
         Later in tests this host will be used to perform assertions
         """
 
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = entities.Host(
-            architecture=default_architecture,
-            build=True,
-            compute_resource=module_azurerm_cr,
-            compute_attributes=self.compute_attrs,
-            interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
-            organization=module_org,
-            operatingsystem=default_os,
-            location=module_location,
-            name=self.hostname,
-            provision_method='image',
-            image=module_azurerm_finishimg,
-            root_pass=gen_string('alphanumeric'),
-            environment=module_puppet_environment,
-            puppet_proxy=default_smart_proxy,
-            puppet_ca_proxy=default_smart_proxy,
-        ).create()
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            host.delete()
+        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+            host = entities.Host(
+                architecture=default_architecture,
+                build=True,
+                compute_resource=module_azurerm_cr,
+                compute_attributes=self.compute_attrs,
+                interfaces_attributes=self.interfaces_attributes,
+                domain=module_domain,
+                organization=module_org,
+                operatingsystem=default_os,
+                location=module_location,
+                name=self.hostname,
+                provision_method='image',
+                image=module_azurerm_finishimg,
+                root_pass=gen_string('alphanumeric'),
+                environment=module_puppet_environment,
+                puppet_proxy=default_smart_proxy,
+                puppet_ca_proxy=default_smart_proxy,
+            ).create()
+            yield host
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ft):
@@ -389,29 +388,28 @@ class TestAzureRMUserDataProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = entities.Host(
-            architecture=default_architecture,
-            build=True,
-            compute_resource=module_azurerm_cr,
-            compute_attributes=self.compute_attrs,
-            interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
-            organization=module_org,
-            operatingsystem=default_os,
-            location=module_location,
-            name=self.hostname,
-            provision_method='image',
-            image=module_azurerm_cloudimg,
-            root_pass=gen_string('alphanumeric'),
-            environment=module_puppet_environment,
-            puppet_proxy=default_smart_proxy,
-            puppet_ca_proxy=default_smart_proxy,
-        ).create()
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            host.delete()
+        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+            host = entities.Host(
+                architecture=default_architecture,
+                build=True,
+                compute_resource=module_azurerm_cr,
+                compute_attributes=self.compute_attrs,
+                interfaces_attributes=self.interfaces_attributes,
+                domain=module_domain,
+                organization=module_org,
+                operatingsystem=default_os,
+                location=module_location,
+                name=self.hostname,
+                provision_method='image',
+                image=module_azurerm_cloudimg,
+                root_pass=gen_string('alphanumeric'),
+                environment=module_puppet_environment,
+                puppet_proxy=default_smart_proxy,
+                puppet_ca_proxy=default_smart_proxy,
+            ).create()
+            yield host
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_ud):
@@ -544,29 +542,28 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = entities.Host(
-            architecture=default_architecture,
-            build=True,
-            compute_resource=module_azurerm_cr,
-            compute_attributes=self.compute_attrs,
-            interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
-            organization=module_org,
-            operatingsystem=default_os,
-            location=module_location,
-            name=self.hostname,
-            provision_method='image',
-            image=module_azurerm_gallery_finishimg,
-            root_pass=gen_string('alphanumeric'),
-            environment=module_puppet_environment,
-            puppet_proxy=default_smart_proxy,
-            puppet_ca_proxy=default_smart_proxy,
-        ).create()
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            host.delete()
+        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+            host = entities.Host(
+                architecture=default_architecture,
+                build=True,
+                compute_resource=module_azurerm_cr,
+                compute_attributes=self.compute_attrs,
+                interfaces_attributes=self.interfaces_attributes,
+                domain=module_domain,
+                organization=module_org,
+                operatingsystem=default_os,
+                location=module_location,
+                name=self.hostname,
+                provision_method='image',
+                image=module_azurerm_gallery_finishimg,
+                root_pass=gen_string('alphanumeric'),
+                environment=module_puppet_environment,
+                puppet_proxy=default_smart_proxy,
+                puppet_ca_proxy=default_smart_proxy,
+            ).create()
+            yield host
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_gallery_ft):
@@ -671,29 +668,28 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        skip_yum_update_during_provisioning(template='Kickstart default finish')
-        host = entities.Host(
-            architecture=default_architecture,
-            build=True,
-            compute_resource=module_azurerm_cr,
-            compute_attributes=self.compute_attrs,
-            interfaces_attributes=self.interfaces_attributes,
-            domain=module_domain,
-            organization=module_org,
-            operatingsystem=default_os,
-            location=module_location,
-            name=self.hostname,
-            provision_method='image',
-            image=module_azurerm_custom_finishimg,
-            root_pass=gen_string('alphanumeric'),
-            environment=module_puppet_environment,
-            puppet_proxy=default_smart_proxy,
-            puppet_ca_proxy=default_smart_proxy,
-        ).create()
-        yield host
-        skip_yum_update_during_provisioning(template='Kickstart default finish', reverse=True)
-        with satellite_setting('destroy_vm_on_host_delete=True'):
-            host.delete()
+        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+            host = entities.Host(
+                architecture=default_architecture,
+                build=True,
+                compute_resource=module_azurerm_cr,
+                compute_attributes=self.compute_attrs,
+                interfaces_attributes=self.interfaces_attributes,
+                domain=module_domain,
+                organization=module_org,
+                operatingsystem=default_os,
+                location=module_location,
+                name=self.hostname,
+                provision_method='image',
+                image=module_azurerm_custom_finishimg,
+                root_pass=gen_string('alphanumeric'),
+                environment=module_puppet_environment,
+                puppet_proxy=default_smart_proxy,
+                puppet_ca_proxy=default_smart_proxy,
+            ).create()
+            yield host
+            with satellite_setting('destroy_vm_on_host_delete=True'):
+                host.delete()
 
     @pytest.fixture(scope='class')
     def azureclient_host(self, azurermclient, class_host_custom_ft):
