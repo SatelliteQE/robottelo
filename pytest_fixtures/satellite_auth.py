@@ -1,16 +1,19 @@
 import copy
+import socket
 
 import pytest
 from attrdict import AttrDict
 from nailgun import entities
 
 from robottelo.api.utils import update_rhsso_settings_in_satellite
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.config import settings
 from robottelo.constants import AUDIENCE_MAPPER
 from robottelo.constants import GROUP_MEMBERSHIP_MAPPER
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import LDAP_SERVER_TYPE
 from robottelo.datafactory import gen_string
+from robottelo.hosts import ContentHost
 from robottelo.rhsso_utils import create_mapper
 from robottelo.rhsso_utils import get_rhsso_client_id
 from robottelo.rhsso_utils import run_command
@@ -248,48 +251,64 @@ def enroll_configure_rhsso_external_auth():
 
 
 @pytest.fixture(scope='session')
-def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth):
+def enable_external_auth_rhsso(enroll_configure_rhsso_external_auth, default_sat):
     """register the satellite with RH-SSO Server for single sign-on"""
     client_id = get_rhsso_client_id()
     create_mapper(GROUP_MEMBERSHIP_MAPPER, client_id)
     audience_mapper = copy.deepcopy(AUDIENCE_MAPPER)
     audience_mapper['config']['included.client.audience'] = audience_mapper['config'][
         'included.client.audience'
-    ].format(rhsso_host=settings.server.hostname)
+    ].format(rhsso_host=default_sat)
     create_mapper(audience_mapper, client_id)
     set_the_redirect_uri()
 
 
 @pytest.mark.external_auth
 @pytest.fixture(scope='session')
-def enroll_idm_and_configure_external_auth():
+def enroll_idm_and_configure_external_auth(default_sat):
     """Enroll the Satellite6 Server to an IDM Server."""
-    run_command(cmd='yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools')
+    ipa_host = ContentHost(settings.ipa.hostname)
+    default_sat.execute(
+        'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
+    )
+    ipa_host.execute(f'echo {settings.ipa.password} | kinit admin')
+    output = default_sat.execute(f'ipa host-find {default_sat.hostname}')
+    if output.status != 0:
+        result = ipa_host.execute(f'ipa host-add --random {default_sat.hostname}')
+        for line in result.stdout.splitlines():
+            if 'Random password' in line:
+                _, password = line.split(': ', 2)
+                break
+        ipa_host.execute(f'ipa service-add HTTP/{default_sat.hostname}')
+        _, domain = settings.ipa.hostname.split('.', 1)
+        result = default_sat.execute(
+            f"ipa-client-install --password '{password}' "
+            f'--domain {domain} '
+            f'--server {settings.ipa.hostname} '
+            f'--realm {domain.upper()} -U'
+        )
+        if result.status not in [0, 3]:
+            CLIReturnCodeError(
+                result.status,
+                result.stderr,
+            )
 
-    run_command(
-        cmd=f'echo {settings.ipa.password} | kinit admin',
-        hostname=settings.ipa.hostname,
-    )
-    result = run_command(
-        cmd=f'ipa host-add --random {settings.server.hostname}',
-        hostname=settings.ipa.hostname,
-    )
 
-    for line in result:
-        if 'Random password' in line:
-            _, password = line.split(': ', 2)
-            break
+@pytest.fixture(scope='session')
+def configure_realm():
+    """Configure realm"""
+    realm = settings.upgrade.vm_domain.upper()
+    run_command(cmd=f'wget -O /root/freeipa.keytab {settings.ipa.keytab_url}')
+    run_command(cmd='mv /root/freeipa.keytab /etc/foreman-proxy')
+    run_command(cmd='chown foreman-proxy:foreman-proxy /etc/foreman-proxy/freeipa.keytab')
     run_command(
-        cmd=f'ipa service-add HTTP/{settings.server.hostname}',
-        hostname=settings.ipa.hostname,
+        cmd='satellite-installer --foreman-proxy-realm true '
+        f'--foreman-proxy-realm-principal realm-proxy@{realm} '
+        f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(settings.ipa.hostname)}'
     )
-    _, domain = settings.ipa.hostname.split('.', 1)
-    run_command(
-        cmd=f"ipa-client-install --password '{password}' "
-        f'--domain {domain} '
-        f'--server {settings.ipa.hostname} '
-        f'--realm {domain.upper()} -U'
-    )
+    run_command(cmd='cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
+    run_command(cmd='update-ca-trust enable ; update-ca-trust')
+    run_command(cmd='service foreman-proxy restart')
 
 
 @pytest.fixture()

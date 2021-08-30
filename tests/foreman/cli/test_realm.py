@@ -32,7 +32,10 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.mark.tier1
-def test_positive_delete_by_name(module_fake_proxy):
+@pytest.mark.destructive
+def test_positive_delete_by_name(
+    subscribe_satellite, enroll_idm_and_configure_external_auth, configure_realm, module_fake_proxy
+):
     """Realm deletion by realm name
 
     :id: ef3967e6-d53d-4dec-b74f-c20448d5fc6d
@@ -46,7 +49,10 @@ def test_positive_delete_by_name(module_fake_proxy):
 
 
 @pytest.mark.tier1
-def test_positive_delete_by_id(module_fake_proxy):
+@pytest.mark.destructive
+def test_positive_delete_by_id(
+    subscribe_satellite, enroll_idm_and_configure_external_auth, configure_realm, module_fake_proxy
+):
     """Realm deletion by realm ID
 
     :id: 7c1aca0e-9724-40de-b38f-9189bdae0514
@@ -60,7 +66,14 @@ def test_positive_delete_by_id(module_fake_proxy):
 
 
 @pytest.mark.tier1
-def test_positive_realm_info_name(module_fake_proxy, request):
+@pytest.mark.destructive
+def test_positive_realm_info_name(
+    subscribe_satellite,
+    enroll_idm_and_configure_external_auth,
+    configure_realm,
+    module_fake_proxy,
+    request,
+):
     """Test realm info functionality
 
     :id: 2e3e92df-61f3-4c6b-98b9-dc9c2f8d140c
@@ -82,7 +95,14 @@ def test_positive_realm_info_name(module_fake_proxy, request):
 
 
 @pytest.mark.tier1
-def test_positive_realm_info_id(module_fake_proxy, request):
+@pytest.mark.destructive
+def test_positive_realm_info_id(
+    subscribe_satellite,
+    enroll_idm_and_configure_external_auth,
+    configure_realm,
+    module_fake_proxy,
+    request,
+):
     """Test realm info functionality
 
     :id: 1ae7b3af-221e-4480-9e93-d05d573456b4
@@ -105,7 +125,14 @@ def test_positive_realm_info_id(module_fake_proxy, request):
 
 
 @pytest.mark.tier2
-def test_positive_realm_update_name(module_fake_proxy, request):
+@pytest.mark.destructive
+def test_positive_realm_update_name(
+    subscribe_satellite,
+    enroll_idm_and_configure_external_auth,
+    configure_realm,
+    module_fake_proxy,
+    request,
+):
     """Test updating realm name
 
     :id: c09e6599-c77a-4290-ac93-311d06e3d860
@@ -131,7 +158,14 @@ def test_positive_realm_update_name(module_fake_proxy, request):
 
 
 @pytest.mark.tier1
-def test_negative_realm_update_invalid_type(module_fake_proxy, request):
+@pytest.mark.destructive
+def test_negative_realm_update_invalid_type(
+    subscribe_satellite,
+    enroll_idm_and_configure_external_auth,
+    configure_realm,
+    module_fake_proxy,
+    request,
+):
     """Test updating realm with an invalid type
 
     :id: 3097f8e5-9152-4d8d-9991-969bdfc9c4d4
