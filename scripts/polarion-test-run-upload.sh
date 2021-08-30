@@ -65,7 +65,7 @@ fi
 
 TOKEN_PREFIX=""
 POLARION_SELECTOR="name=Satellite 6"
-TEST_RUN_GROUP_ID="$(echo ${TEST_RUN_ID} | cut -d' ' -f2)"
+TEST_RUN_GROUP_ID="$(echo ${TEST_RUN_ID} | cut -d' ' -f2 | cut -d'-' -f1)"
 
 set -x
 betelgeuse ${TOKEN_PREFIX} test-run \
