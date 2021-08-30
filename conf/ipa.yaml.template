@@ -15,3 +15,4 @@ IPA:
   GROUPS:
     - satadmins
     - satusers
+  KEYTAB_URL:

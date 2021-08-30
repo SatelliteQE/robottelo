@@ -35,7 +35,6 @@ from robottelo.config import settings
 from robottelo.constants import CERT_PATH
 from robottelo.constants import LDAP_ATTR
 from robottelo.constants import PERMISSIONS
-from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
 from robottelo.helpers import file_downloader
 from robottelo.rhsso_utils import create_group
@@ -79,55 +78,6 @@ def set_certificate_in_satellite(server_type, default_sat, hostname=None):
     result = default_sat.execute('systemctl restart httpd')
     if result.status != 0:
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
-
-
-def unsubscribe():
-    """unregisters a machine from cdn"""
-    run_command('subscription-manager unregister')
-    run_command('subscription-manager clean')
-
-
-@pytest.fixture(scope='module')
-def clean_rhsm():
-    """removes pre-existing candlepin certs and resets RHSM."""
-    # removing the katello-ca-consumer
-    run_command('rpm -qa | grep katello-ca-consumer | xargs -r rpm -e')
-
-    # resetting rhsm.conf to point to cdn.
-    run_command(
-        "sed -i -e 's/^hostname.*/hostname=subscription.rhsm.redhat.com/' " "/etc/rhsm/rhsm.conf"
-    )
-    run_command("sed -i -e 's|^prefix.*|prefix=/subscription|' /etc/rhsm/rhsm.conf")
-    run_command("sed -i -e 's|^baseurl.*|baseurl=https://cdn.redhat.com|' " "/etc/rhsm/rhsm.conf")
-    run_command(
-        "sed -i -e "
-        "'s/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/' "
-        "/etc/rhsm/rhsm.conf"
-    )
-
-
-@pytest.fixture(scope='module')
-def subscribe_satellite(clean_rhsm):
-    """subscribe satellite to cdn"""
-    run_command(
-        'subscription-manager register --force --user={} --password={} {}'.format(
-            settings.subscription.rhn_username,
-            settings.subscription.rhn_password,
-            # set release to "7Server" currently with this scope
-            f'--release="{RHEL_7_MAJOR_VERSION}Server"',
-        )
-    )
-    has_success_msg = 'Successfully attached a subscription'
-    attach_cmd = f'subscription-manager attach --pool={settings.subscription.rhn_poolid}'
-    result = run_command(attach_cmd)
-    if has_success_msg in result:
-        run_command(
-            f'subscription-manager repos --enable "rhel-{RHEL_7_MAJOR_VERSION}-server-extras-rpms"'
-        )
-        yield
-    else:
-        pytest.fail("Failed to attach system to pool. Aborting Test!.")
-    unsubscribe()
 
 
 @pytest.fixture()

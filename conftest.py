@@ -25,6 +25,7 @@ pytest_plugins = [
     'pytest_fixtures.rh_cloud',
     'pytest_fixtures.satellite_auth',
     'pytest_fixtures.sys_fixtures',
+    'pytest_fixtures.subscription_fixtures',
     'pytest_fixtures.smartproxy_fixtures',
     'pytest_fixtures.templatesync_fixtures',
     'pytest_fixtures.user_fixtures',
