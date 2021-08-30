@@ -84,9 +84,9 @@ class TestRemoteExecution:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -145,8 +145,9 @@ class TestRemoteExecution:
                 'effective-user': f'{username}',
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -194,8 +195,9 @@ class TestRemoteExecution:
         invocation_command = make_job_invocation(
             {'job-template': template_name, 'search-query': f"name ~ {client.hostname}"}
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -246,9 +248,9 @@ class TestRemoteExecution:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             output = ' '.join(
                 JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
@@ -297,7 +299,8 @@ class TestRemoteExecution:
                     ),
                 )
             )
-        assert invocation_command['success'] == '2', output_msgs
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '2', output_msgs
 
     @pytest.mark.tier3
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
@@ -343,8 +346,9 @@ class TestRemoteExecution:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -380,9 +384,9 @@ class TestRemoteExecution:
             }
         )
 
-        JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['status'] == 'queued'
+            assert result['status'] == 'queued'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -482,14 +486,12 @@ class TestRemoteExecution:
             }
         )
         invocation_id = invocation['id']
-
         wait_for(
             lambda: entities.JobInvocation(id=invocation_id).read().status_label
             in ["succeeded", "failed"],
             timeout="1500s",
         )
         assert entities.JobInvocation(id=invocation_id).read().status == 0
-
         result = ' '.join(
             JobInvocation.get_output({'id': invocation_id, 'host': default_sat.hostname})
         )
@@ -543,8 +545,9 @@ class TestAnsibleREX:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
+        result = JobInvocation.info({'id': make_user_job['id']})
         try:
-            assert make_user_job['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -561,8 +564,9 @@ class TestAnsibleREX:
                 'effective-user': f'{username}',
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -613,9 +617,9 @@ class TestAnsibleREX:
                 'max-iteration': 2,  # just two runs
             }
         )
-        JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['status'] == 'queued'
+            assert result['status'] == 'queued'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -626,7 +630,7 @@ class TestAnsibleREX:
             )
             raise AssertionError(result)
         sleep(150)
-        rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
+        rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
@@ -680,7 +684,8 @@ class TestAnsibleREX:
                     ),
                 )
             )
-        assert invocation_command['success'] == '2', output_msgs
+        result = JobInvocation.info({'id': invocation_command['id']})
+        assert result['success'] == '2', output_msgs
         GlobalParameter().delete({'name': param_name})
         assert len(GlobalParameter().list({'search': param_name})) == 0
 
@@ -753,8 +758,9 @@ class TestAnsibleREX:
                 'search-query': f'name ~ {client.hostname}',
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
@@ -779,8 +785,9 @@ class TestAnsibleREX:
                 'search-query': f"name ~ {client.hostname}",
             }
         )
+        result = JobInvocation.info({'id': invocation_command['id']})
         try:
-            assert invocation_command['success'] == '1'
+            assert result['success'] == '1'
         except AssertionError:
             result = 'host output: {}'.format(
                 ' '.join(
