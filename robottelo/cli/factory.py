@@ -1063,6 +1063,7 @@ def make_user(options=None):
         'mail': f'{login}@example.com',
         'organization-ids': None,
         'password': gen_alphanumeric(),
+        'timezone': None,
     }
     logger.debug(
         'User "{}" password not provided {} was generated'.format(args['login'], args['password'])

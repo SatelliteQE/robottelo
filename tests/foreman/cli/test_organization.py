@@ -654,3 +654,44 @@ def test_negative_update_name(new_name, module_org):
     """
     with pytest.raises(CLIReturnCodeError):
         Org.update({'id': module_org.id, 'new-name': new_name})
+
+
+@pytest.mark.tier2
+def test_positive_create_user_with_timezone(module_org):
+    """Create and remove user with valid timezone in an organization
+
+    :id: b9b92c00-ee99-4da2-84c5-0a576a862100
+
+    :customerscenario: true
+
+    :BZ: 1733269
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+
+    :steps:
+        1. Add user from organization with valid timezone
+        2. Validate user's timezone
+        3. Remove user from organization and validate
+
+    :expectedresults: User created and removed successfully with valid timezone
+
+    """
+    users_timezones = [
+        'Pacific Time (US & Canada)',
+        'International Date Line West',
+        'American Samoa',
+        'Tokyo',
+        'Samoa',
+    ]
+    for timezone in users_timezones:
+        user = make_user({'timezone': timezone, 'admin': '1'})
+        Org.add_user({'name': module_org.name, 'user': user['login']})
+
+        org_info = Org.info({'name': module_org.name})
+        assert user['login'] in org_info['users']
+        assert user['timezone'] == timezone
+        Org.remove_user({'id': module_org.id, 'user-id': user['id']})
+        org_info = Org.info({'name': module_org.name})
+        assert user['login'] not in org_info['users']
