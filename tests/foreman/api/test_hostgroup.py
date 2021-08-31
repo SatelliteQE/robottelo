@@ -355,12 +355,8 @@ class TestHostGroup:
         assert hostgroup.domain.read().name == new_domain.name
         assert hostgroup.content_view.read().name == new_cv.name
         assert hostgroup.lifecycle_environment.read().name == new_lce.name
-        assert hostgroup.location[0].read().name == new_loc.name
-        for organization in hostgroup.organization:
-            if organization.read().name == new_org.name:
-                break
-        else:
-            pytest.fail('failed to update the organization')
+        assert new_loc.name in [location.read().name for location in hostgroup.location]
+        assert new_org.name in [org.read().name for org in hostgroup.organization]
         assert hostgroup.medium.read().name == new_media.name
 
         # delete
