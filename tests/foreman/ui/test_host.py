@@ -1414,7 +1414,9 @@ def test_positive_global_registration_end_to_end(
         result = ' '.join(
             JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
         )
-        assert invocation_command['success'] == '1', result
+        assert (
+            invocation_command['message'] == f'Job invocation {invocation_command["id"]} created'
+        ), result
         assert 'Insights API confirms registration' in result
         # check rex interface is set
         host = Host.info({'name': client.hostname})
@@ -1494,10 +1496,10 @@ def test_global_registration_with_gpg_repo_and_default_package(
         6. check gpg repo is exist in registered host
     """
     client = rhel7_contenthost
+    repo_name = 'foreman_register'
+    repo_url = settings.repos.gr_yum_repo.url
+    repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
     with session:
-        repo_name = 'foreman_register'
-        repo_url = settings.repos.gr_yum_repo.url
-        repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
         cmd = session.host.get_register_command(
             {
                 'general.capsule': module_proxy.name,
@@ -1557,18 +1559,20 @@ def test_global_re_registration_host_with_force_ignore_error_options(
                 'advanced.ignore_error': True,
             }
         )
-    result = client.execute(cmd)
+    client.execute(cmd)
+    result = client.execute(f'rpm -qa | grep "katello-ca-consumer-{module_proxy.name}"')
+    assert result.status == 0
+    result = client.execute('subscription-manager identity')
     assert result.status == 0
     # rerun the register command
-    result = client.execute(cmd)
-    assert result.status == 0
+    client.execute(cmd)
     result = client.execute('subscription-manager identity')
     assert result.status == 0
 
 
 @pytest.mark.tier2
 def test_global_registration_token_restriction(
-    session, module_activation_key, rhel7_contenthost, module_os, module_proxy
+    session, module_activation_key, rhel7_contenthost, module_os, module_proxy, default_sat
 ):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
@@ -1600,12 +1604,8 @@ def test_global_registration_token_restriction(
     auth_header = re.search(pattern, cmd).group()
 
     # build curl
-    curl_users = (
-        f'curl -X GET -k -H {auth_header} -i https://{settings.server.hostname}/api/users/'
-    )
-    curl_hosts = (
-        f'curl -X GET -k -H {auth_header} -i https://{settings.server.hostname}/api/hosts/'
-    )
+    curl_users = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/users/'
+    curl_hosts = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/hosts/'
     for curl_cmd in (curl_users, curl_hosts):
         result = client.execute(curl_cmd)
         assert result.status == 0
