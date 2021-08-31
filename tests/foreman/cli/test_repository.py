@@ -2402,7 +2402,7 @@ class TestAnsibleCollectionRepository:
         indirect=True,
     )
     def test_positive_sync_ansible_collecion_from_gallaxy(self, repo, module_org, module_product):
-        """Sync ansible collection repository from ansible gallaxy
+        """Sync ansible collection repository from Ansible Galaxy
 
         :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
 
