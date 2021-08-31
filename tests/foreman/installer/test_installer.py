@@ -23,6 +23,7 @@ import pytest
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_7_MAJOR_VERSION
+from robottelo.helpers import InstallerCommand
 
 PREVIOUS_INSTALLER_OPTIONS = {
     '--[no-]colors',
@@ -1770,3 +1771,84 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     )
     command_output = capsule_configured.execute('satellite-installer')
     assert 'Success!' in command_output.stdout
+
+
+@pytest.mark.destructive
+def test_installer_inventory_plugin_update(destructive_sat):
+    """DB consistency should not break after enabling the inventory plugin flags
+
+    :id: a2b66d38-e819-428f-9529-23bed398c916
+
+    :steps:
+        1. Enable the cloud inventory plugin flag
+
+    :expectedresults: inventory flag should be updated successfully without any db consistency
+        error.
+
+    :CaseImportance: High
+
+    :CaseLevel: System
+
+    :BZ: 1863597
+
+    :customerscenario: true
+
+    """
+    destructive_sat.create_custom_repos(rhel7=settings.repos.rhel7_repo)
+    installer_obj = InstallerCommand(
+        'enable-foreman-plugin-rh-cloud',
+        foreman_proxy_plugin_remote_execution_ssh_install_key=['true'],
+    )
+    command_output = destructive_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    installer_obj = InstallerCommand(
+        help='|grep "\'foreman_plugin_rh_cloud\' puppet module (default: true)"'
+    )
+    updated_cloud_flags = destructive_sat.execute(installer_obj.get_command())
+    assert 'true' in updated_cloud_flags.stdout
+    installer_obj = InstallerCommand(
+        help='|grep -A1 "foreman-proxy-plugin-remote-execution-ssh-install-key"'
+    )
+    update_proxy_plugin_output = destructive_sat.execute(installer_obj.get_command())
+    assert 'true' in update_proxy_plugin_output.stdout
+
+
+@pytest.mark.destructive
+def test_installer_puppet_overload(destructive_sat):
+    """Check the puppet server tuning parameter update
+
+    :id: 70458b3a-1215-49ad-9c94-a115888c8dbd
+
+    :steps:
+        1. Set the new puppet server tuning parameter(puppet_server_jvm_param) in the puppet.
+        2. Set the value in array and it should be updated successfully.
+
+    :expectedresults: Puppet server tuning parameters should be reflected in the puppet-server
+        service
+
+    :CaseImportance: Medium
+
+    :CaseLevel: System
+
+    :BZ: 1920072
+
+    :customerscenario: true
+    """
+    puppet_server_jvm_param_1 = '-Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger'
+    puppet_server_jvm_param_2 = '-XX:ReservedCodeCacheSize=1024m'
+    installer_obj = InstallerCommand(puppet_server_jvm_extra_args=f'{puppet_server_jvm_param_1}')
+    command_output = destructive_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    puppet_service_output = destructive_sat.execute('systemctl status puppetserver')
+    assert puppet_server_jvm_param_1 in puppet_service_output.stdout
+    installer_obj = InstallerCommand(
+        puppet_server_jvm_extra_args=[
+            f'{puppet_server_jvm_param_1}',
+            f'{puppet_server_jvm_param_2}',
+        ]
+    )
+    command_output = destructive_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    puppet_service_output = destructive_sat.execute('systemctl status puppetserver')
+    assert puppet_server_jvm_param_1 in puppet_service_output.stdout
+    assert puppet_server_jvm_param_2 in puppet_service_output.stdout
