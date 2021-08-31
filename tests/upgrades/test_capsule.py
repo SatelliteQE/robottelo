@@ -27,7 +27,6 @@ from upgrade_tests.helpers.scenarios import rpm2
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants.repos import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import gen_string
 from robottelo.upgrade_utility import create_repo
 
@@ -219,53 +218,3 @@ class TestCapsuleSyncNewRepo:
             host=cap_host,
         )[cap_host]
         assert '0' == result
-
-    @post_upgrade
-    def test_post_user_scenario_capsule_sync_puppet_repo(self, request, default_sat, default_org):
-        """Post-upgrade scenario that creates and sync repository with
-        puppet modules, sync capsule with satellite and verifies it's status.
-
-        :id: postupgrade-7c597e9d-8db9-455e-bd19-acb5efa990a7
-
-        :steps:
-            1. Post Upgrade , Sync a puppet repo, Add to C.V. in Satellite.
-            2. Run Capsule sync.
-            3. Check Capsule sync status.
-
-        :expectedresults: Capsule sync should complete successfully with puppet repo content.
-
-        """
-        request.addfinalizer(lambda: cleanup(content_view, repo, product))
-        cap_host = settings.upgrade.capsule_hostname
-        lc_env = default_sat.api.LifecycleEnvironment(organization=default_org).search(
-            query={'search': 'name="{}"'.format('Dev')}
-        )[0]
-
-        product = default_sat.api.Product(organization=default_org).create()
-        repo = default_sat.api.Repository(
-            product=product, content_type='puppet', url=CUSTOM_PUPPET_REPO
-        ).create()
-        repo.sync()
-        module = repo.puppet_modules()
-        content_view = default_sat.api.ContentView(organization=default_org).create()
-        default_sat.api.ContentViewPuppetModule(
-            author=module['results'][0]['author'],
-            name=module['results'][0]['name'],
-            content_view=content_view,
-        ).create()
-        default_sat.api.ContentViewPuppetModule(
-            author=module['results'][1]['author'],
-            name=module['results'][1]['name'],
-            content_view=content_view,
-        ).create()
-        content_view.publish()
-        promote(content_view.read().version[0], lc_env.id)
-
-        # Run a Capsule sync
-        capsule = default_sat.api.SmartProxy().search(query={'search': f'name={cap_host}'})[0]
-        call_entity_method_with_timeout(
-            default_sat.api.Capsule(id=capsule.id).content_sync, timeout=3600
-        )
-        sync_status = default_sat.api.Capsule(id=capsule.id).content_get_sync()
-        assert sync_status['active_sync_tasks']
-        assert sync_status['last_failed_sync_tasks']
