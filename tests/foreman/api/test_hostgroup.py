@@ -355,8 +355,8 @@ class TestHostGroup:
         assert hostgroup.domain.read().name == new_domain.name
         assert hostgroup.content_view.read().name == new_cv.name
         assert hostgroup.lifecycle_environment.read().name == new_lce.name
-        assert hostgroup.location[0].read().name == new_loc.name
-        assert hostgroup.organization[0].read().name == new_org.name
+        assert new_loc.name in [location.read().name for location in hostgroup.location]
+        assert new_org.name in [org.read().name for org in hostgroup.organization]
         assert hostgroup.medium.read().name == new_media.name
 
         # delete
