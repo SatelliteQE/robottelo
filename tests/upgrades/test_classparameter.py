@@ -26,8 +26,6 @@ from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
 from robottelo.api.utils import delete_puppet_class
-from robottelo.api.utils import publish_puppet_module
-from robottelo.config import settings
 
 
 def _valid_sc_parameters_data():
@@ -62,24 +60,17 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
     """
 
     @pytest.fixture(scope="class")
-    def _setup_scenario(self):
+    def _setup_scenario(self, default_sat):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
         be able to work with unique entity for each specific test.
         """
-        self.puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
         self.org = entities.Organization().create()
-        cv = publish_puppet_module(self.puppet_modules, settings.repos.custom_puppet.url, self.org)
-        self.env = (
-            entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
-        )
+        repo = 'api_test_classparameters'
+        env_name = default_sat.create_custom_environment(repo=repo)
         self.puppet_class = entities.PuppetClass().search(
-            query={
-                'search': 'name = "{}" and environment = "{}"'.format(
-                    self.puppet_modules[0]['name'], self.env.name
-                )
-            }
+            query={'search': f'name = "{repo}" and environment = "{env_name}"'}
         )[0]
         self.sc_params_list = entities.SmartClassParameters().search(
             query={'search': f'puppetclass="{self.puppet_class.name}"', 'per_page': 1000}
