@@ -5,7 +5,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from wrapanapi import AzureSystem
-from wrapanapi import GoogleCloudSystem
 
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -30,7 +29,6 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
-from robottelo.helpers import download_gce_cert
 from robottelo.logging import logger
 
 
@@ -321,18 +319,6 @@ def module_libvirt_image(module_cr_libvirt):
 
 
 @pytest.fixture(scope='session')
-def googleclient():
-    gceclient = GoogleCloudSystem(
-        project=settings.gce.project_id,
-        zone=settings.gce.zone,
-        file_path=download_gce_cert(),
-        file_type='json',
-    )
-    yield gceclient
-    gceclient.disconnect()
-
-
-@pytest.fixture(scope='session')
 def gce_latest_rhel_uuid(googleclient):
     template_names = [img.name for img in googleclient.list_templates(True)]
     latest_rhel7_template = max(name for name in template_names if name.startswith('rhel-7'))
@@ -341,19 +327,19 @@ def gce_latest_rhel_uuid(googleclient):
 
 
 @pytest.fixture(scope='session')
-def gce_custom_cloudinit_uuid(googleclient):
-    cloudinit_uuid = googleclient.get_template('customcinit', project=settings.gce.project_id).uuid
+def gce_custom_cloudinit_uuid(googleclient, gce_cert):
+    cloudinit_uuid = googleclient.get_template('customcinit', project=gce_cert['project_id']).uuid
     return cloudinit_uuid
 
 
 @pytest.fixture(scope='module')
-def module_gce_compute(module_org, module_location):
+def module_gce_compute(module_org, module_location, gce_cert):
     gce_cr = entities.GCEComputeResource(
         name=gen_string('alphanumeric'),
         provider='GCE',
-        email=settings.gce.client_email,
+        email=gce_cert['client_email'],
         key_path=settings.gce.cert_path,
-        project=settings.gce.project_id,
+        project=gce_cert['project_id'],
         zone=settings.gce.zone,
         organization=[module_org],
         location=[module_location],
