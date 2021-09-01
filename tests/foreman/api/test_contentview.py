@@ -42,7 +42,6 @@ from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_nailgun_config
 
 # Some tests repeatedly publish content views or promote content view versions.
@@ -684,7 +683,7 @@ class TestContentViewPublishPromote:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_composite_content_view_with_same_repos(self, module_org):
+    def test_composite_content_view_with_same_repos(self, module_org, default_sat):
         """Create a Composite Content View with content views having same yum repo.
         Add filter on the content views and check the package count for composite content view
         should not be changed.
@@ -1253,7 +1252,6 @@ def test_negative_non_readonly_user_actions(content_view, function_role, module_
 class TestOstreeContentView:
     """Tests for ostree contents in content views."""
 
-    @skip_if_os('RHEL6')
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -1366,7 +1364,6 @@ class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""
 
     @pytest.mark.run_in_one_thread
-    @skip_if_os('RHEL6')
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.fixture(scope='class', autouse=True)
     def initiate_testclass(self, request, module_org):

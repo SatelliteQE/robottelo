@@ -306,7 +306,7 @@ class TestScenarioPerformanceTuning:
                 local_path="custom-hiera-after-upgrade.yaml",
                 remote_path="/etc/foreman-installer/custom-hiera.yaml",
             )
-            assert filecmp.cmp("custom-hiera.yaml", "custom-hiera-after-upgrade.yaml")
+            assert filecmp.cmp('custom-hiera.yaml', 'custom-hiera-after-upgrade.yaml')
 
             cmd = 'grep "tuning: default" /etc/foreman-installer/scenarios.d/satellite.yaml'
             assert default_sat.execute(cmd).status == 0

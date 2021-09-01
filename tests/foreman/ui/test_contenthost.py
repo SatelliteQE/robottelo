@@ -669,13 +669,13 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
         checkin_time1 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
         result = rhel7_contenthost.run('service virt-who stop')
         if result.status != 0:
-            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
+            raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr[1]}')
         result = rhel7_contenthost.run('virt-who --one-shot')
         if result.status != 0:
-            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr}')
+            raise CLIFactoryError(f'Failed when executing virt-who --one-shot:\n{result.stderr[1]}')
         result = rhel7_contenthost.run('service virt-who start')
         if result.status != 0:
-            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
+            raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr[1]}')
         checkin_time2 = session.contenthost.search(provisioning_server)[0]['Last Checkin']
         assert checkin_time2 > checkin_time1
 

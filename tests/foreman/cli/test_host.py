@@ -30,7 +30,6 @@ from fauxfactory import gen_mac
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cli.activationkey import ActivationKey
@@ -1462,7 +1461,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
     response = Host.info(
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
-    assert response.return_code == 0
+    assert response.status == 0
     yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
     host_initial_params = yaml_content.get('Parameters')
     # set parameter
@@ -1470,7 +1469,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
     response = Host.info(
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
-    assert response.return_code == 0
+    assert response.status == 0
     yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
     host_parameters = yaml_content.get('Parameters')
     # check that number of params increased by one
@@ -2478,7 +2477,7 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
 # -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_errata_list_of_sat_server():
+def test_positive_errata_list_of_sat_server(default_sat):
     """Check if errata list doesn't raise exception. Check BZ for details.
 
     :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
@@ -2489,14 +2488,14 @@ def test_positive_errata_list_of_sat_server():
 
     :CaseImportance: Critical
     """
-    hostname = ssh.command('hostname').stdout[0]
+    hostname = default_sat.execute('hostname').stdout.strip()
     host = Host.info({'name': hostname})
     assert isinstance(Host.errata_list({'host-id': host['id']}), list)
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.tier1
-def test_positive_dump_enc_yaml():
+def test_positive_dump_enc_yaml(default_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
     :id: 50bf2530-788c-4710-a382-d034d73d5d4d
@@ -2509,5 +2508,5 @@ def test_positive_dump_enc_yaml():
 
     :CaseImportance: Critical
     """
-    hostname = ssh.command('hostname').stdout[0]
+    hostname = default_sat.execute('hostname').stdout.strip()
     assert isinstance(Host.enc_dump({'name': hostname}), list)

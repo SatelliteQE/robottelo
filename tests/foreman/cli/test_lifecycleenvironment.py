@@ -175,7 +175,7 @@ def test_positve_list_paths(module_org):
     result = LifecycleEnvironment.paths(
         {'organization-id': module_org.id, 'permission-type': 'readable'}
     )
-    assert f"Library >> {lc_env['name']}" in ''.join(result)
+    assert f"Library >> {lc_env['name']}" in result
 
 
 class LifeCycleEnvironmentPaginationTestCase:

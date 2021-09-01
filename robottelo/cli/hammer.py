@@ -1,33 +1,7 @@
 """Helpers to interact with hammer command line utility."""
 import csv
-import io
 import json
 import re
-
-
-def _csv_reader(output):
-    """An unicode CSV reader which processes unicode strings and return unicode
-    strings data.
-
-    This is needed because the builtin module does not support unicode strings,
-    from Python 2 docs::
-
-        Note: This version of the csv module doesn't support Unicode input.
-        Also, there are currently some issues regarding ASCII NUL characters.
-        Accordingly, all input should be UTF-8 or printable ASCII to be safe;"
-
-    On Python 3 this generator is not needed because the default string type is
-    unicode.
-
-    :param output: can be any object which supports the iterator protocol and
-        returns a unicode string each time its next() method is called.
-    :return: generator that will yield a list of unicode string values.
-
-    """
-    data = '\n'.join(output)
-    handler = io.StringIO(data)
-
-    yield from csv.reader(handler)
 
 
 def _normalize(header):
@@ -62,14 +36,9 @@ def _normalize_obj(obj):
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
-    try:
-        warning_index = output.index(
-            'Puppet and OSTree will no longer be supported in Katello 3.16'
-        )
-        output = output[warning_index + 1 :]  # noqa: E203
-    except ValueError:
-        pass
-    reader = _csv_reader(output)
+    # ignore warning about puppet and ostree deprecation
+    output.replace('Puppet and OSTree will no longer be supported in Katello 3.16\n', '')
+    reader = csv.reader(output.splitlines())
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [_normalize(header) for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
@@ -93,7 +62,7 @@ def parse_help(output):
     )
     subcommand_regex = re.compile(r'^ (?P<name>[\w-]+)?(, [\w-]+)?\s+(?P<description>.*)$')
 
-    for line in output:
+    for line in output.splitlines():
         if len(line.strip()) == 0:
             continue
         if line.startswith('Subcommands:'):
@@ -202,7 +171,7 @@ def parse_info(output):
     sub_num = None  # is not None when list of properties
     second_level_key = None  # is set when a possible second level is detected
 
-    for line in output:
+    for line in output.splitlines():
         # skip empty lines and dividers
         if line == '' or line == '---':
             continue
