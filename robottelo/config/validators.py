@@ -123,11 +123,9 @@ VALIDATORS = dict(
     ],
     gce=[
         Validator(
-            'gce.project_id',
-            'gce.client_email',
             'gce.cert_path',
             'gce.zone',
-            'gce.cert_url',
+            'gce.cert',
             must_exist=True,
         ),
         Validator('gce.cert_path', startswith='/usr/share/foreman/'),
