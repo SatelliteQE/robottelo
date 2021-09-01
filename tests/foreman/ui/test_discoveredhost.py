@@ -104,9 +104,9 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
         cmd.format(retries, host, operator, iteration_sleep), connection_timeout=30
     )
     if expect_reachable:
-        return not result.return_code
+        return not result.status
     else:
-        return bool(result.return_code)
+        return bool(result.status)
 
 
 @pytest.mark.skip_if_not_set('compute_resources', 'vlan_networking')

@@ -26,7 +26,6 @@ from fauxfactory import gen_choice
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
 
-from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.content_credentials import ContentCredential
 from robottelo.cli.factory import CLIFactoryError
@@ -272,7 +271,7 @@ def test_positive_update_name(new_name, module_org):
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.tier1
-def test_positive_update_key(name, module_org):
+def test_positive_update_key(name, module_org, default_sat):
     """Create gpg key with valid name and valid gpg key via file
     import then update its gpg key file
 
@@ -289,8 +288,8 @@ def test_positive_update_key(name, module_org):
     assert gpg_key['content'] != content
     local_key = create_gpg_key_file(content)
     assert gpg_key, 'GPG Key file must be created'
-    key = '/tmp/%s' % gen_alphanumeric()
-    ssh.upload_file(local_file=local_key, remote_file=key)
+    key = f'/tmp/{gen_alphanumeric()}'
+    default_sat.put(local_key, key)
     ContentCredential.update(
         {'path': key, 'name': gpg_key['name'], 'organization-id': module_org.id}
     )

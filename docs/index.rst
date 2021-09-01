@@ -6,7 +6,7 @@ automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
 
 * UI tests, which rely on Selenium's `WebDriver`_.
-* CLI tests, which rely on `Paramiko`_.
+* CLI tests, which rely on `ssh2-python`_.
 * API tests, which rely on `Requests`_.
 
 .. contents::
@@ -17,13 +17,12 @@ Quickstart
 The following is only a brief setup guide for `Robottelo`_. The section on
 `Running the Tests`_ provides a more comprehensive guide to using Robottelo.
 
-Robottelo requires SSH access to the Satellite 6 system under test, and this
-SSH access is implemented by Paramiko. Install the headers for the following to
-ensure that Paramiko's dependencies build correctly:
+Robottelo requires SSH access to the Satellite system under test, and this
+SSH access is implemented by ssh2-python. Install the headers for the following to
+ensure that ssh2-python's dependencies build correctly:
 
 * OpenSSL
 * Python development headers
-* libffi
 
 
 Recommendation: Create a virtual python environment for the following setup.
@@ -40,9 +39,6 @@ On Fedora, you can install these with the following command:
 For python3.x::
 dnf install -y gcc git libffi-devel openssl-devel python38-devel \
 redhat-rpm-config libcurl-devel libxml2-devel
-
-For more information, see `Paramiko: Installing
-<http://www.paramiko.org/installing.html>`_.
 
 Get the source code and install dependencies::
 
@@ -289,7 +285,7 @@ The design and development for this software is led by `Og Maciel`_.
 .. _graphviz: http://graphviz.org/
 .. _nose: https://nose.readthedocs.org/en/latest/index.html
 .. _Og Maciel: http://www.ogmaciel.com
-.. _Paramiko: http://www.paramiko.org/
+.. _ssh2-python: https://pypi.org/project/ssh2-python/
 .. _Pytest: https://docs.pytest.org/en/latest/contents.html
 .. _Requests: http://docs.python-requests.org/en/latest/
 .. _Robottelo: https://github.com/SatelliteQE/robottelo

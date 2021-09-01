@@ -28,7 +28,6 @@ from nailgun import client
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.config import get_credentials
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list
@@ -115,7 +114,7 @@ def tftpboot(module_org, default_sat):
     kinds = entities.TemplateKind().search(query={"search": "name ~ PXE"})
 
     # clean the already-deployed default pxe configs
-    ssh.command('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    default_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
 
     # create custom Templates per kind
     for template in default_templates.values():
@@ -136,7 +135,7 @@ def tftpboot(module_org, default_sat):
     yield default_templates
 
     # delete the deployed tftp files
-    ssh.command('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
+    default_sat.execute('rm {}'.format(' '.join([i['path'] for i in default_templates.values()])))
     # set the settings back to defaults
     for setting in default_settings:
         if setting.value is None:
@@ -255,7 +254,7 @@ class TestProvisioningTemplate:
                 r.raise_for_status()
                 rendered = r.text
             else:
-                rendered = ssh.command(f"cat {template['path']}").stdout[0]
+                rendered = default_sat.execute(f'cat {template["path"]}').stdout.splitlines()[0]
             assert (
                 rendered == f"{settings.server.scheme}://"
                 f"{default_sat.hostname} {template['kind']}"

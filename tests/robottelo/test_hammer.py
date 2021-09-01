@@ -6,13 +6,15 @@ class TestParseCSV:
     """Tests for parsing CSV hammer output"""
 
     def test_parse_csv(self):
-        output_lines = [
-            'Header,Header 2',
-            'header value 1,header with spaces value',
-            'MixEd CaSe ValUe,ALL CAPS VALUE',
-            '"""double quote escaped value""","," escaped value',
-            'unicode,chårs',
-        ]
+        output_lines = '\n'.join(
+            [
+                'Header,Header 2',
+                'header value 1,header with spaces value',
+                'MixEd CaSe ValUe,ALL CAPS VALUE',
+                '"""double quote escaped value""","," escaped value',
+                'unicode,chårs',
+            ]
+        )
         assert hammer.parse_csv(output_lines) == [
             {'header': 'header value 1', 'header-2': 'header with spaces value'},
             {'header': 'MixEd CaSe ValUe', 'header-2': 'ALL CAPS VALUE'},
@@ -100,10 +102,12 @@ class TestParseJSON:
         }
         """
 
-        csv_ouput_lines = [
-            "ID,Name,Organization,Content",
-            "160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U",
-        ]
+        csv_ouput_lines = '\n'.join(
+            [
+                "ID,Name,Organization,Content",
+                "160,QUWTHo0WzF,ANtbiU,qJxB1FX1UrssYiGGhRcZDF9eY8U",
+            ]
+        )
 
         assert hammer.parse_json(json_output) == hammer.parse_csv(csv_ouput_lines)[0]
 
@@ -114,46 +118,48 @@ class TestParseHelp:
     def test_parse_help(self):
         """Can parse hammer help output"""
         self.maxDiff = None
-        output = [
-            'Usage:',
-            '    hammer [OPTIONS] SUBCOMMAND [ARG] ...',
-            '',
-            'Parameters:',
-            'SUBCOMMAND                    subcommand',
-            '[ARG] ...                     subcommand arguments',
-            '',
-            'Subcommands:',
-            ' activation-key                Manipulate activation keys.',
-            ' capsule                       Manipulate capsule',
-            ' compute-resource              Manipulate compute resources.',
-            ' content-host                  Manipulate content hosts on the',
-            '                               server',
-            ' gpg                           Manipulate GPG Key actions on the',
-            '                               server',
-            ' list, index                   List all architectures',
-            'Options:',
-            ' --autocomplete LINE           Get list of possible endings',
-            ' --name, --deprecation-name    An option with a deprecation name',
-            ' --csv                         Output as CSV (same as',
-            '                               --output=csv)',
-            ' --csv-separator SEPARATOR     Character to separate the values',
-            ' --output ADAPTER              Set output format. One of [base,',
-            '                               table, silent, csv, yaml, json]',
-            ' -p, --password PASSWORD       password to access the remote',
-            '                               system',
-            ' -r, --reload-cache            force reload of Apipie cache',
-            ' -v, --[no-]verbose            Be verbose (or not). True by default',
-            (
-                ' --location[-id|-title]        Set the current location context for'
-                ' the request. Name/Title/Id can be used'
-            ),
-            ' --location[s|-ids|-titles]    REPLACE locations with given Names/Titles/Ids',
-            '                               Comma separated list of values.',
-            (
-                ' --lifecycle-environment[-id]  Set the current environment context'
-                ' for the request. Name/Id can be used'
-            ),
-        ]
+        output = '\n'.join(
+            [
+                'Usage:',
+                '    hammer [OPTIONS] SUBCOMMAND [ARG] ...',
+                '',
+                'Parameters:',
+                'SUBCOMMAND                    subcommand',
+                '[ARG] ...                     subcommand arguments',
+                '',
+                'Subcommands:',
+                ' activation-key                Manipulate activation keys.',
+                ' capsule                       Manipulate capsule',
+                ' compute-resource              Manipulate compute resources.',
+                ' content-host                  Manipulate content hosts on the',
+                '                               server',
+                ' gpg                           Manipulate GPG Key actions on the',
+                '                               server',
+                ' list, index                   List all architectures',
+                'Options:',
+                ' --autocomplete LINE           Get list of possible endings',
+                ' --name, --deprecation-name    An option with a deprecation name',
+                ' --csv                         Output as CSV (same as',
+                '                               --output=csv)',
+                ' --csv-separator SEPARATOR     Character to separate the values',
+                ' --output ADAPTER              Set output format. One of [base,',
+                '                               table, silent, csv, yaml, json]',
+                ' -p, --password PASSWORD       password to access the remote',
+                '                               system',
+                ' -r, --reload-cache            force reload of Apipie cache',
+                ' -v, --[no-]verbose            Be verbose (or not). True by default',
+                (
+                    ' --location[-id|-title]        Set the current location context for'
+                    ' the request. Name/Title/Id can be used'
+                ),
+                ' --location[s|-ids|-titles]    REPLACE locations with given Names/Titles/Ids',
+                '                               Comma separated list of values.',
+                (
+                    ' --lifecycle-environment[-id]  Set the current environment context'
+                    ' for the request. Name/Id can be used'
+                ),
+            ]
+        )
         assert hammer.parse_help(output) == {
             'subcommands': [
                 {'name': 'activation-key', 'description': 'Manipulate activation keys.'},
@@ -296,16 +302,18 @@ class TestParseInfo:
 
     def test_parse_simple(self):
         """Can parse a simple info output"""
-        output = [
-            'Id:                 19',
-            'Full name:          4iv01o2u 10.5',
-            'Release name:',
-            '',
-            'Family:',
-            'Name:               4iv01o2u',
-            'Major version:      10',
-            'Minor version:      5',
-        ]
+        output = '\n'.join(
+            [
+                'Id:                 19',
+                'Full name:          4iv01o2u 10.5',
+                'Release name:',
+                '',
+                'Family:',
+                'Name:               4iv01o2u',
+                'Major version:      10',
+                'Minor version:      5',
+            ]
+        )
         assert hammer.parse_info(output) == {
             'id': '19',
             'full-name': '4iv01o2u 10.5',
@@ -318,27 +326,31 @@ class TestParseInfo:
 
     def test_parse_numbered_list_attributes(self):
         """Can parse numbered list attributes"""
-        output = ['Partition tables:', ' 1) ptable1', ' 2) ptable2', ' 3) ptable3', ' 4) ptable4']
+        output = '\n'.join(
+            ['Partition tables:', ' 1) ptable1', ' 2) ptable2', ' 3) ptable3', ' 4) ptable4']
+        )
         assert hammer.parse_info(output) == {
             'partition-tables': ['ptable1', 'ptable2', 'ptable3', 'ptable4']
         }
 
     def test_parse_list_attributes(self):
         """Can parse list attributes"""
-        output = ['Partition tables:', ' ptable1', ' ptable2', ' ptable3', ' ptable4']
+        output = '\n'.join(['Partition tables:', ' ptable1', ' ptable2', ' ptable3', ' ptable4'])
         assert hammer.parse_info(output) == {
             'partition-tables': ['ptable1', 'ptable2', 'ptable3', 'ptable4']
         }
 
     def test_parse_dict_attributes(self):
         """Can parse dict attributes"""
-        output = [
-            'Content:',
-            ' 1) Repo Name: repo1',
-            '    URL:       /custom/url1',
-            ' 2) Repo Name: repo2',
-            '    URL:       /custom/url2',
-        ]
+        output = '\n'.join(
+            [
+                'Content:',
+                ' 1) Repo Name: repo1',
+                '    URL:       /custom/url1',
+                ' 2) Repo Name: repo2',
+                '    URL:       /custom/url2',
+            ]
+        )
         assert hammer.parse_info(output) == {
             'content': [
                 {'repo-name': 'repo1', 'url': '/custom/url1'},
@@ -348,26 +360,28 @@ class TestParseInfo:
 
     def test_parse_info(self):
         """Can parse info output"""
-        output = [
-            'Sync State:   not_synced',
-            'Sync Plan ID:',
-            'GPG:',
-            '    GPG Key ID: 1',
-            '    GPG Key: key name',
-            'Organizations:',
-            '    1) Org 1',
-            '    2) Org 2',
-            'Locations:',
-            '    Loc 1',
-            '    Loc 2',
-            'Repositories:',
-            ' 1) Repo Name: repo1',
-            '    Repo ID:   10',
-            ' 2) Repo Name: repo2',
-            '    Repo ID:   20',
-            ' 3) Repo Name => repo3',
-            '    Repo ID =>   30',
-        ]
+        output = '\n'.join(
+            [
+                'Sync State:   not_synced',
+                'Sync Plan ID:',
+                'GPG:',
+                '    GPG Key ID: 1',
+                '    GPG Key: key name',
+                'Organizations:',
+                '    1) Org 1',
+                '    2) Org 2',
+                'Locations:',
+                '    Loc 1',
+                '    Loc 2',
+                'Repositories:',
+                ' 1) Repo Name: repo1',
+                '    Repo ID:   10',
+                ' 2) Repo Name: repo2',
+                '    Repo ID:   20',
+                ' 3) Repo Name => repo3',
+                '    Repo ID =>   30',
+            ]
+        )
         assert hammer.parse_info(output) == {
             'sync-state': 'not_synced',
             'sync-plan-id': {},
@@ -383,81 +397,83 @@ class TestParseInfo:
 
     def test_parse(self):
         """Can parse actual host info"""
-        output = [
-            'Id: 31',
-            'Name: name1',
-            'Organization: org1',
-            'Location: Default Location',
-            'Cert name: cert name',
-            'Managed: no',
-            'Installed at:',
-            'Last report:',
-            'Uptime (seconds): 67',
-            'Status:',
-            '    Global Status: Error',
-            'Network:',
-            '    IPv4 address: ip1',
-            '    MAC: mac1',
-            '    Domain: domain1',
-            'Network interfaces:',
-            ' 1) Id: 34',
-            '    Identifier: ens3',
-            '    Type: interface (primary, provision)',
-            '    MAC address: mac2',
-            '    IPv4 address: ip2',
-            '    FQDN: name1.domain',
-            'Operating system:',
-            '    Architecture: x86_64',
-            '    Operating System: os1',
-            '    Build: no',
-            '    Custom partition table:',
-            'Parameters:',
-            '',
-            'All parameters:',
-            '    enable-puppet5 => true',
-            '    enable-epel => false',
-            'Additional info:',
-            '    Owner: Anonymous Admin',
-            '    Owner Type: User',
-            '    Enabled: yes',
-            '    Model: Standard PC (i440FX + PIIX, 1996)',
-            '    Comment:',
-            'OpenSCAP Proxy:',
-            'Content Information:',
-            '    Content View:',
-            '        ID: 38',
-            '        Name: content view1',
-            '    Lifecycle Environment:',
-            '        ID: 40',
-            '        Name: lifecycle environment1',
-            '    Content Source:',
-            '        ID:',
-            '        Name:',
-            '    Kickstart Repository:',
-            '        ID:',
-            '        Name:',
-            '    Applicable Packages: 0',
-            '    Upgradable Packages: 0',
-            '    Applicable Errata:',
-            '        Enhancement: 0',
-            '        Bug Fix: 0',
-            '        Security: 0',
-            'Subscription Information:',
-            '    UUID: uuid1',
-            '    Last Checkin: 2019-12-13 00:00:00 UTC',
-            '    Release Version:',
-            '    Autoheal: true',
-            '    Registered To: tier3',
-            '    Registered At: 2019-12-13 00:00:00 UTC',
-            '    Registered by Activation Keys:',
-            '     1) ak1',
-            '    System Purpose:',
-            '        Service Level:',
-            '        Purpose Usage:',
-            '        Purpose Role:',
-            '        Purpose Addons:',
-            'Host Collections:',
-        ]
+        output = '\n'.join(
+            [
+                'Id: 31',
+                'Name: name1',
+                'Organization: org1',
+                'Location: Default Location',
+                'Cert name: cert name',
+                'Managed: no',
+                'Installed at:',
+                'Last report:',
+                'Uptime (seconds): 67',
+                'Status:',
+                '    Global Status: Error',
+                'Network:',
+                '    IPv4 address: ip1',
+                '    MAC: mac1',
+                '    Domain: domain1',
+                'Network interfaces:',
+                ' 1) Id: 34',
+                '    Identifier: ens3',
+                '    Type: interface (primary, provision)',
+                '    MAC address: mac2',
+                '    IPv4 address: ip2',
+                '    FQDN: name1.domain',
+                'Operating system:',
+                '    Architecture: x86_64',
+                '    Operating System: os1',
+                '    Build: no',
+                '    Custom partition table:',
+                'Parameters:',
+                '',
+                'All parameters:',
+                '    enable-puppet5 => true',
+                '    enable-epel => false',
+                'Additional info:',
+                '    Owner: Anonymous Admin',
+                '    Owner Type: User',
+                '    Enabled: yes',
+                '    Model: Standard PC (i440FX + PIIX, 1996)',
+                '    Comment:',
+                'OpenSCAP Proxy:',
+                'Content Information:',
+                '    Content View:',
+                '        ID: 38',
+                '        Name: content view1',
+                '    Lifecycle Environment:',
+                '        ID: 40',
+                '        Name: lifecycle environment1',
+                '    Content Source:',
+                '        ID:',
+                '        Name:',
+                '    Kickstart Repository:',
+                '        ID:',
+                '        Name:',
+                '    Applicable Packages: 0',
+                '    Upgradable Packages: 0',
+                '    Applicable Errata:',
+                '        Enhancement: 0',
+                '        Bug Fix: 0',
+                '        Security: 0',
+                'Subscription Information:',
+                '    UUID: uuid1',
+                '    Last Checkin: 2019-12-13 00:00:00 UTC',
+                '    Release Version:',
+                '    Autoheal: true',
+                '    Registered To: tier3',
+                '    Registered At: 2019-12-13 00:00:00 UTC',
+                '    Registered by Activation Keys:',
+                '     1) ak1',
+                '    System Purpose:',
+                '        Service Level:',
+                '        Purpose Usage:',
+                '        Purpose Role:',
+                '        Purpose Addons:',
+                'Host Collections:',
+            ]
+        )
         assert hammer.parse_info(output) == {
             'id': '31',
             'name': 'name1',

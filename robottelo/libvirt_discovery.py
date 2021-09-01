@@ -162,7 +162,7 @@ class LibvirtGuest:
 
         result = ssh.command(command, self.libvirt_server)
 
-        if result.return_code != 0:
+        if result.status != 0:
             raise LibvirtGuestError(f'Failed to run virt-install: {result.stderr}')
 
         self._created = True
@@ -203,7 +203,7 @@ class LibvirtGuest:
 
         result = ssh.command(command, self.libvirt_server)
 
-        if result.return_code != 0:
+        if result.status != 0:
             raise LibvirtGuestError(f'Failed to run virsh attach-interface: {result.stderr}')
 
     def __enter__(self):

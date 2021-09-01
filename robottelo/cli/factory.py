@@ -75,7 +75,6 @@ from robottelo.helpers import default_url_on_new_port
 from robottelo.helpers import get_available_capsule_port
 from robottelo.helpers import update_dictionary
 from robottelo.logging import logger
-from robottelo.ssh import upload_file
 
 
 ORG_KEYS = ['organization', 'organization-id', 'organization-label']
@@ -365,7 +364,7 @@ def make_gpg_key(options=None):
     }
 
     # Upload file to server
-    ssh.upload_file(local_file=key_filename, remote_file=args['key'])
+    ssh.get_client().put(key_filename, args['key'])
 
     return create_object(GPGKey, args, options)
 
@@ -405,7 +404,7 @@ def make_content_credential(options=None):
     }
 
     # Upload file to server
-    ssh.upload_file(local_file=key_filename, remote_file=args['path'])
+    ssh.get_client().put(key_filename, args['path'])
 
     return create_object(ContentCredential, args, options)
 
@@ -489,7 +488,7 @@ def make_partition_table(options=None):
     }
 
     # Upload file to server
-    ssh.upload_file(local_file=layout, remote_file=args['file'])
+    ssh.get_client().put(layout, args['file'])
 
     return create_object(PartitionTable, args, options)
 
@@ -1586,7 +1585,7 @@ def make_template(options=None):
     with open(layout, 'w') as ptable:
         ptable.write(content)
     # Upload file to server
-    ssh.upload_file(local_file=layout, remote_file=args['file'])
+    ssh.get_client().put(layout, args['file'])
     # End - Special handling for template factory
 
     return create_object(Template, args, options)
@@ -1833,7 +1832,7 @@ def _setup_org_for_a_rh_repo(options=None):
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        ssh.get_client().put(manifest.content, manifest.filename)
     try:
         Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
     except CLIReturnCodeError as err:
@@ -1971,7 +1970,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         result = setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
             with manifests.clone() as manifest:
-                upload_file(manifest.content, manifest.filename)
+                ssh.get_client().put(manifest.content, manifest.filename)
             try:
                 Subscription.upload(
                     {'file': manifest.filename, 'organization-id': result.get('organization-id')}

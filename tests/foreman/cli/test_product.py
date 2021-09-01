@@ -22,7 +22,6 @@ from fauxfactory import gen_integer
 from fauxfactory import gen_string
 from fauxfactory import gen_url
 
-from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
@@ -175,7 +174,7 @@ def test_negative_create_with_label(label, module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_product_list_with_default_settings(module_org):
+def test_product_list_with_default_settings(module_org, default_sat):
     """Listing product of an organization apart from default organization using hammer
      does not return output if a defaults settings are applied on org.
 
@@ -206,14 +205,15 @@ def test_product_list_with_default_settings(module_org):
         )
 
     Defaults.add({'param-name': 'organization_id', 'param-value': org_id})
-    result = ssh.command('hammer defaults list')
-    assert org_id in "".join(result.stdout)
+    result = default_sat.cli.Defaults.list(per_page=False)
+    assert any([res['value'] == org_id for res in result if res['parameter'] == 'organization_id'])
+
     try:
         # Verify --organization-id is not required to pass if defaults are set
-        result = ssh.command('hammer product list')
-        assert default_product_name in "".join(result.stdout)
-        result = ssh.command('hammer repository list')
-        assert default_product_name in "".join(result.stdout)
+        result = default_sat.cli.Product.list()
+        assert any([res['name'] == default_product_name for res in result])
+        result = default_sat.cli.Repository.list()
+        assert any([res['product'] == default_product_name for res in result])
 
         # verify that defaults setting should not affect other entities
         product_list = Product.list({'organization-id': non_default_org['id']})
@@ -223,8 +223,8 @@ def test_product_list_with_default_settings(module_org):
 
     finally:
         Defaults.delete({'param-name': 'organization_id'})
-        result = ssh.command('hammer defaults list')
-        assert org_id not in "".join(result.stdout)
+        result = default_sat.cli.Defaults.list(per_page=False)
+        assert not [res for res in result if res['parameter'] == 'organization_id']
 
 
 @pytest.mark.tier2

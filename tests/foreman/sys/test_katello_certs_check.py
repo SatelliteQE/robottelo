@@ -147,7 +147,7 @@ class TestKatelloCertsCheck:
         assert set(options) == expected_result
 
     @pytest.mark.tier1
-    def test_positive_validate_katello_certs_check_output(self, cert_setup_teardown):
+    def test_positive_validate_katello_certs_check_output(self, cert_setup_teardown, default_sat):
         """Validate that katello-certs-check generates correct output.
 
         :id: 4c9e4c6e-8d8e-4953-87a1-09cb55df3adf
