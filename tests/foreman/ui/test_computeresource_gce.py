@@ -26,13 +26,12 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import GCE_EXTERNAL_IP_DEFAULT
 from robottelo.constants import GCE_MACHINE_TYPE_DEFAULT
 from robottelo.constants import GCE_NETWORK_DEFAULT
-from robottelo.helpers import download_gce_cert
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('http_proxy', 'gce')
-def test_positive_default_end_to_end_with_custom_profile(session, module_org, module_loc):
+def test_positive_default_end_to_end_with_custom_profile(session, module_org, module_loc, gce_cert):
     """Create GCE compute resource with default properties and apply it's basic functionality.
 
     :id: 59ffd83e-a984-4c22-b91b-cad055b4fbd7
@@ -56,7 +55,6 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
     cr_description = gen_string('alpha')
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
-    download_gce_cert()
     http_proxy = entities.HTTPProxy(
         name=gen_string('alpha', 15),
         url=settings.http_proxy.auth_proxy_url,
@@ -73,8 +71,8 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['google'],
                 'provider_content.http_proxy.value': http_proxy.name,
-                'provider_content.google_project_id': settings.gce.project_id,
-                'provider_content.client_email': settings.gce.client_email,
+                'provider_content.google_project_id': gce_cert['project_id'],
+                'provider_content.client_email': gce_cert['client_email'],
                 'provider_content.certificate_path': settings.gce.cert_path,
                 'provider_content.zone.value': settings.gce.zone,
                 'organizations.resources.assigned': [module_org.name],
@@ -87,8 +85,8 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
         assert cr_values['provider_content']['http_proxy']['value'] == http_proxy.name
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
         assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
-        assert cr_values['provider_content']['google_project_id'] == settings.gce.project_id
-        assert cr_values['provider_content']['client_email'] == settings.gce.client_email
+        assert cr_values['provider_content']['google_project_id'] == gce_cert['project_id']
+        assert cr_values['provider_content']['client_email'] == gce_cert['client_email']
         # Compute Resource Edit/Updates and Assertions
         session.computeresource.edit(
             cr_name,

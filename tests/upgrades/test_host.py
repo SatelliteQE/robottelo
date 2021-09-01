@@ -34,15 +34,6 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LATEST_RHEL7_GCE_IMG_UUID
 from robottelo.constants import VALID_GCE_ZONES
-from robottelo.helpers import download_gce_cert
-
-GCE_SETTINGS = dict(
-    project_id=settings.gce.project_id,
-    client_email=settings.gce.client_email,
-    cert_path=settings.gce.cert_path,
-    zone=settings.gce.zone,
-    cert_url=settings.gce.cert_url,
-)
 
 
 class TestScenarioPositiveGCEHostComputeResource:
@@ -60,10 +51,6 @@ class TestScenarioPositiveGCEHostComputeResource:
         1. The host should be provisioned on GCE CR created in previous version
         2. The GCE CR attributes should be manipulated
     """
-
-    @pytest.fixture(scope='class', autouse=True)
-    def get_gce_cert(self):
-        download_gce_cert()
 
     @pytest.fixture(scope='class')
     def arch_os_domain(self, default_sat):
@@ -83,7 +70,7 @@ class TestScenarioPositiveGCEHostComputeResource:
                 entities.Host(id=host[0].id).delete()
 
     @pre_upgrade
-    def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org):
+    def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org, gce_cert):
         """"""
         arch, os, domain_name = arch_os_domain
         cr_name = gen_string('alpha')
@@ -94,10 +81,10 @@ class TestScenarioPositiveGCEHostComputeResource:
                 {
                     'name': cr_name,
                     'provider': FOREMAN_PROVIDERS['google'],
-                    'provider_content.google_project_id': GCE_SETTINGS['project_id'],
-                    'provider_content.client_email': GCE_SETTINGS['client_email'],
-                    'provider_content.certificate_path': GCE_SETTINGS['cert_path'],
-                    'provider_content.zone.value': GCE_SETTINGS['zone'],
+                    'provider_content.google_project_id': gce_cert['project_id'],
+                    'provider_content.client_email': gce_cert['client_email'],
+                    'provider_content.certificate_path': settings.gce.cert_path,
+                    'provider_content.zone.value': settings.gce.zone,
                     'organizations.resources.assigned': [function_org.name],
                     'locations.resources.assigned': [loc.name],
                 }
