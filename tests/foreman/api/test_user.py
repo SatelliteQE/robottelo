@@ -23,7 +23,6 @@ http://<satellite-host>/apidoc/v2/users.html
 import json
 import re
 
-import paramiko
 import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
@@ -41,6 +40,7 @@ from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
+from robottelo.helpers import gen_ssh_keypairs
 from robottelo.helpers import read_data_file
 
 
@@ -453,13 +453,6 @@ class TestUserRole:
 class TestSshKeyInUser:
     """Implements the SSH Key in User Tests"""
 
-    def gen_ssh_rsakey(self):
-        """Generates RSA type ssh key using ssh module
-
-        :return: string type well formatted RSA key
-        """
-        return f'ssh-rsa {paramiko.RSAKey.generate(2048).get_base64()}'
-
     @pytest.fixture(scope='class')
     def create_user(self):
         """Create an user and import different keys from data json file"""
@@ -486,7 +479,7 @@ class TestSshKeyInUser:
         """
         user = entities.User().create()
         ssh_name = gen_string('alpha')
-        ssh_key = self.gen_ssh_rsakey()
+        ssh_key = gen_ssh_keypairs[1]
         user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
         assert ssh_name == user_sshkey.name
         assert ssh_key == user_sshkey.key
@@ -565,7 +558,7 @@ class TestSshKeyInUser:
         invalid_ssh_key_name = gen_string('alpha', length=300)
         with pytest.raises(HTTPError) as context:
             entities.SSHKey(
-                user=create_user['user'], name=invalid_ssh_key_name, key=self.gen_ssh_rsakey()
+                user=create_user['user'], name=invalid_ssh_key_name, key=gen_ssh_keypairs[1]
             ).create()
         assert re.search("Name is too long", context.value.response.text)
 
@@ -584,7 +577,7 @@ class TestSshKeyInUser:
         :expectedresults: Multiple types of supported ssh keys can be added to
             user
         """
-        rsa = self.gen_ssh_rsakey()
+        rsa = gen_ssh_keypairs[1]
         dsa = create_user['data_keys']['ssh_keys']['dsa']
         ecdsa = create_user['data_keys']['ssh_keys']['ecdsa']
         ed = create_user['data_keys']['ssh_keys']['ed']
@@ -615,7 +608,7 @@ class TestSshKeyInUser:
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         user = entities.User(organization=[org], location=[loc]).create()
-        ssh_key = self.gen_ssh_rsakey()
+        ssh_key = gen_ssh_keypairs[1]
         entities.SSHKey(user=user, name=gen_string('alpha'), key=ssh_key).create()
         host = entities.Host(owner=user, owner_type='User', organization=org, location=loc).create()
         sshkey_updated_for_host = f'{ssh_key} {user.login}@{default_sat.hostname}'

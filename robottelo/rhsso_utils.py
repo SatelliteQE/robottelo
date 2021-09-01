@@ -24,9 +24,9 @@ def run_command(cmd, hostname=None, timeout=None):
         result = ssh.command(cmd=cmd, hostname=hostname, timeout=timeout)
     else:
         result = ssh.command(cmd=cmd, hostname=hostname)
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIReturnCodeError(
-            result.return_code,
+            result.status,
             result.stderr,
             f"Failed to run the command : {cmd}",
         )
@@ -53,10 +53,10 @@ def get_rhsso_client_id():
     )
 
     result = run_command(
-        cmd=f"{KEY_CLOAK_CLI} get clients --fields id,clientId",
+        cmd=f'{KEY_CLOAK_CLI} get clients --fields id,clientId',
         hostname=settings.rhsso.host_name,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f'[{{{result}')
     client_id = None
     for client in result_json:
         if client_name in client['clientId']:
@@ -71,7 +71,7 @@ def get_rhsso_user_details(username):
         cmd=f"{KEY_CLOAK_CLI} get users -r {settings.rhsso.realm} -q username={username}",
         hostname=settings.rhsso.host_name,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f'[{{{result}')
     return result_json[0]
 
 
@@ -81,7 +81,7 @@ def get_rhsso_groups_details(group_name):
         cmd=f"{KEY_CLOAK_CLI} get groups -r {settings.rhsso.realm} -q group_name={group_name}",
         hostname=settings.rhsso.host_name,
     )
-    result_json = json.loads("[{{{0}".format("".join(result)))
+    result_json = json.loads(f'[{{{result}')
     return result_json[0]
 
 
@@ -89,7 +89,7 @@ def upload_rhsso_entity(json_content, entity_name):
     """Helper method upload the entity json request as file on RHSSO Server"""
     with open(entity_name, "w") as file:
         json.dump(json_content, file)
-    ssh.upload_file(entity_name, entity_name, hostname=settings.rhsso.host_name)
+    ssh.get_client(hostname=settings.rhsso.host_name).put(entity_name)
 
 
 def create_mapper(json_content, client_id):

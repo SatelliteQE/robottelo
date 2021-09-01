@@ -20,7 +20,6 @@ from nailgun import entities
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
-from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.helpers import get_data_file
@@ -32,7 +31,7 @@ class TestContentView:
     """
 
     @pre_upgrade
-    def test_cv_preupgrade_scenario(self, request):
+    def test_cv_preupgrade_scenario(self, request, default_sat):
         """Pre-upgrade scenario that creates content-view with various repositories.
 
         :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
@@ -58,7 +57,7 @@ class TestContentView:
 
         remote_file_path = f"/tmp/{RPM_TO_UPLOAD}"
 
-        ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD), remote_file=remote_file_path)
+        default_sat.put(get_data_file(RPM_TO_UPLOAD), remote_file_path)
         with open(f'{get_data_file(RPM_TO_UPLOAD)}', "rb") as content:
             file_repository.upload_content(files={'content': content})
         assert RPM_TO_UPLOAD in file_repository.files()["results"][0]['name']

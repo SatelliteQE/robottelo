@@ -65,19 +65,19 @@ def set_certificate_in_satellite(server_type, default_sat, hostname=None):
         )
     elif server_type == 'AD':
         assert hostname is not None
-        ssh.command('yum -y --disableplugin=foreman-protector install cifs-utils')
+        default_sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
         command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
-        ssh.command(command.format(settings.ldap.password, hostname))
-        result = ssh.command(
+        default_sat.execute(command.format(settings.ldap.password, hostname))
+        result = default_sat.execute(
             f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
         )
-        if result.return_code != 0:
+        if result.status != 0:
             raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = ssh.command(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
-    if result.return_code != 0:
+    result = default_sat.execute(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
+    if result.status != 0:
         raise AssertionError('Failed to update and trust the certificate')
-    result = ssh.command('systemctl restart httpd')
-    if result.return_code != 0:
+    result = default_sat.execute('systemctl restart httpd')
+    if result.status != 0:
         raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
@@ -120,7 +120,7 @@ def subscribe_satellite(clean_rhsm):
     has_success_msg = 'Successfully attached a subscription'
     attach_cmd = f'subscription-manager attach --pool={settings.subscription.rhn_poolid}'
     result = run_command(attach_cmd)
-    if has_success_msg in ''.join(result):
+    if has_success_msg in result:
         run_command(
             f'subscription-manager repos --enable "rhel-{RHEL_7_MAJOR_VERSION}-server-extras-rpms"'
         )
@@ -199,18 +199,18 @@ def ipa_add_user():
     result = ssh.command(
         cmd=f'echo {settings.ipa.password} | kinit admin', hostname=settings.ipa.hostname
     )
-    assert result.return_code == 0
+    assert result.status == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
         f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
-    assert result.return_code == 0
+    assert result.status == 0
     yield test_user
 
     result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
-    assert result.return_code == 0
+    assert result.status == 0
 
 
 def generate_otp(secret):
@@ -974,7 +974,6 @@ def test_single_sign_on_ldap_ipa_server(
         else:
             curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
         result = run_command(curl_command)
-        result = ''.join(result)
         assert 'redirected' in result
         assert f'{default_sat.url}/hosts' in result
         assert 'You are being' in result
@@ -1032,7 +1031,6 @@ def test_single_sign_on_ldap_ad_server(
         else:
             curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin/'
         result = run_command(curl_command)
-        result = ''.join(result)
         assert 'redirected' in result
         assert f'{default_sat.url}/hosts' in result
     finally:
@@ -1515,18 +1513,18 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
     result = ssh.command(
         cmd=f"echo {settings.ipa.password} | kinit admin", hostname=settings.ipa.hostname
     )
-    assert result.return_code == 0
+    assert result.status == 0
     test_user = gen_string('alpha')
     add_user_cmd = (
         f'echo {settings.ipa.password} | ipa user-add {test_user} --first'
         f'={test_user} --last={test_user} --password'
     )
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
-    assert result.return_code == 0
+    assert result.status == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         ldapsession.bookmark.search('controller = hosts')
     result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
-    assert result.return_code == 0
+    assert result.status == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')

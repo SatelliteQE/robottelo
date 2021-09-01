@@ -30,7 +30,6 @@ from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants.repos import OSTREE_REPO
-from robottelo.decorators.host import skip_if_os
 
 pytestmark = [
     pytest.mark.skipif(
@@ -75,7 +74,6 @@ def ostree_repo_with_user(ostree_user_credentials):
     return {'cv': cv, 'org': org, 'ostree_repo': ostree_repo, 'product': product}
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skip_if_open("BZ:1625783")
 def test_positive_list(ostree_user_credentials, ostree_repo_with_user):
     """List Ostree Branches
@@ -88,7 +86,6 @@ def test_positive_list(ostree_user_credentials, ostree_repo_with_user):
     assert len(result) > 0
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.upgrade
 def test_positive_list_by_repo_id(ostree_repo_with_user, ostree_user_credentials):
     """List Ostree branches by repo id
@@ -104,7 +101,6 @@ def test_positive_list_by_repo_id(ostree_repo_with_user, ostree_user_credentials
     assert len(result) > 0
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skip_if_open("BZ:1625783")
 def test_positive_list_by_product_id(ostree_repo_with_user, ostree_user_credentials):
     """List Ostree branches by product id
@@ -119,7 +115,6 @@ def test_positive_list_by_product_id(ostree_repo_with_user, ostree_user_credenti
     assert len(result) > 0
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skip_if_open("BZ:1625783")
 def test_positive_list_by_org_id(ostree_repo_with_user, ostree_user_credentials):
     """List Ostree branches by org id
@@ -134,7 +129,6 @@ def test_positive_list_by_org_id(ostree_repo_with_user, ostree_user_credentials)
     assert len(result) > 0
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skip_if_open("BZ:1625783")
 def test_positive_list_by_cv_id(ostree_repo_with_user, ostree_user_credentials):
     """List Ostree branches by cv id
@@ -150,7 +144,6 @@ def test_positive_list_by_cv_id(ostree_repo_with_user, ostree_user_credentials):
     assert len(result) > 0
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skip_if_open("BZ:1625783")
 def test_positive_info_by_id(ostree_user_credentials, ostree_repo_with_user):
     """Get info for Ostree branch by id

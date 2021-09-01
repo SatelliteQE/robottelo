@@ -28,12 +28,12 @@ from nailgun import entity_mixins
 from wait_for import TimedOutError
 from wait_for import wait_for
 
+from robottelo import ssh
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.logging import logger
-from robottelo.ssh import get_client
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -389,7 +389,9 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with get_client().invoke_shell() as channel:
+        # TODO!!
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -448,7 +450,9 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with get_client().invoke_shell() as channel:
+        # TODO!!
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -558,7 +562,9 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        with get_client().invoke_shell() as channel:
+        # TODO!!
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
             channel.send('foreman-tail\r')
 
             with LibvirtGuest() as pxe_host:
@@ -607,7 +613,8 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open ssh channels and attach them to foreman-tail output
-        channel_1, channel_2 = get_client().invoke_shell(), get_client().invoke_shell()
+        # TODO!!
+        channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
         channel_1.send('foreman-tail\r')
         channel_2.send('foreman-tail\r')
 
@@ -685,7 +692,9 @@ class TestLibvirtHostDiscovery:
         new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
         cfg = get_nailgun_config()
-        with get_client().invoke_shell() as channel:
+        # TODO!!
+        ssh_client = ssh.get_client()
+        with ssh_client.invoke_shell() as channel:
             channel.send('foreman-tail\r')
             try:
                 # updating the ranges in component and in dhcp.conf

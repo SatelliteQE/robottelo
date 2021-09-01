@@ -20,7 +20,6 @@ from nailgun import entities
 from requests import get
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
@@ -29,7 +28,7 @@ from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 
 class TestTemplateSyncTestCase:
     @pytest.fixture(scope='module', autouse=True)
-    def setUpClass(self):
+    def setUpClass(self, default_sat):
         """Setup for TemplateSync functional testing
 
         :setup:
@@ -50,11 +49,11 @@ class TestTemplateSyncTestCase:
             raise HTTPError('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
-        ssh.command(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
+        default_sat.execute(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
 
     @pytest.mark.tier2
     def test_positive_import_force_locked_template(
-        self, module_org, create_import_export_local_dir
+        self, module_org, create_import_export_local_dir, default_sat
     ):
         """Assure locked templates are updated from repository when `force` is
         specified.
@@ -87,7 +86,7 @@ class TestTemplateSyncTestCase:
         if ptemplate:
             assert ptemplate[0].read().locked
             update_txt = 'updated a little'
-            ssh.command(f"echo {update_txt} >> {dir_path}/example_template.erb")
+            default_sat.execute(f"echo {update_txt} >> {dir_path}/example_template.erb")
             TemplateSync.imports(
                 {'repo': dir_path, 'prefix': prefix, 'organization-id': module_org.id}
             )
@@ -125,7 +124,7 @@ class TestTemplateSyncTestCase:
         """
 
     @pytest.mark.tier2
-    def test_positive_export_filtered_templates_to_temp_dir(self, module_org):
+    def test_positive_export_filtered_templates_to_temp_dir(self, module_org, default_sat):
         """Assure templates can be exported to /tmp directory without right permissions
 
         :id: e0427ee8-698e-4868-952f-5f4723ccee87
@@ -144,5 +143,5 @@ class TestTemplateSyncTestCase:
         )
         exported_count = [row == 'Exported: true' for row in output].count(True)
         assert exported_count == int(
-            ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0]
+            default_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
         )

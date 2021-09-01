@@ -30,7 +30,6 @@ from nailgun import entities
 from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import parametrized
 from robottelo.helpers import get_nailgun_config
@@ -53,15 +52,15 @@ class TestPermission:
             cls.permissions[None].remove('view_cases')
             cls.permissions[None].remove('view_log_viewer')
 
-        result = ssh.command('rpm -qa | grep rubygem-foreman_openscap')
-        if result.return_code != 0:
+        result = default_sat.execute('rpm -qa | grep rubygem-foreman_openscap')
+        if result.status != 0:
             cls.permissions.pop('ForemanOpenscap::Policy')
             cls.permissions.pop('ForemanOpenscap::ScapContent')
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
-        result = ssh.command('rpm -qa | grep rubygem-foreman_remote_execution')
-        if result.return_code != 0:
+        result = default_sat.execute('rpm -qa | grep rubygem-foreman_remote_execution')
+        if result.status != 0:
             cls.permissions.pop('JobInvocation')
             cls.permissions.pop('JobTemplate')
             cls.permissions.pop('RemoteExecutionFeature')

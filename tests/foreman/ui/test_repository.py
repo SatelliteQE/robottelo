@@ -39,7 +39,7 @@ from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.constants.repos import ANSIBLE_GALAXY
 from robottelo.datafactory import gen_string
 from robottelo.helpers import read_data_file
-from robottelo.host_info import get_sat_version
+from robottelo.hosts import get_sat_version
 from robottelo.products import SatelliteToolsRepository
 
 # from robottelo.constants.repos import FEDORA26_OSTREE_REPO
