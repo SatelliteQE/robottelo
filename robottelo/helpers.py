@@ -8,6 +8,9 @@ from tempfile import mkstemp
 from urllib.parse import urljoin  # noqa
 
 import requests
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from nailgun.config import ServerConfig
 
 from robottelo import ssh
@@ -18,6 +21,21 @@ from robottelo.config import get_url
 from robottelo.config import settings
 from robottelo.constants import PULP_PUBLISHED_YUM_REPOS_PATH
 from robottelo.logging import logger
+
+
+def gen_ssh_keypairs():
+    key = rsa.generate_private_key(
+        backend=crypto_default_backend(), public_exponent=65537, key_size=2048
+    )
+    private = key.private_bytes(
+        crypto_serialization.Encoding.PEM,
+        crypto_serialization.PrivateFormat.TraditionalOpenSSL,
+        crypto_serialization.NoEncryption(),
+    )
+    public = key.public_key().public_bytes(
+        crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
+    )
+    return private.decode('utf-8'), public.decode('utf-8')
 
 
 class DataFileError(Exception):
@@ -107,7 +125,7 @@ def file_downloader(file_url, local_path=None, file_name=None, hostname=None):
     # download on any server.
     else:
         result = ssh.command(f'wget -O {local_path}{file_name} {file_url}', hostname=hostname)
-        if result.return_code != 0:
+        if result.status != 0:
             raise DownloadFileError(f'Unable to download {file_name}')
     return [f'{local_path}{file_name}', file_name]
 
@@ -201,9 +219,9 @@ def md5_by_url(url, hostname=None):
         f'wget -qO - {url} | tee {filename} | md5sum | awk \'{{print $1}}\'',
         hostname=hostname,
     )
-    if result.return_code != 0:
+    if result.status != 0:
         raise AssertionError(f'Failed to calculate md5 checksum of {filename}')
-    return result.stdout[0]
+    return result.stdout
 
 
 def validate_ssh_pub_key(key):
@@ -263,11 +281,13 @@ def get_available_capsule_port(port_pool=None):
     # converts a List of strings to a List of integers
     try:
         print(ss_cmd)
-        used_ports = map(int, [val for val in ss_cmd.stdout[:-1] if val != 'Cannot stat file '])
+        used_ports = map(
+            int, [val for val in ss_cmd.stdout.splitlines()[:-1] if val != 'Cannot stat file ']
+        )
 
     except ValueError:
         raise CapsuleTunnelError(
-            f'Failed parsing the port numbers from stdout: {ss_cmd.stdout[:-1]}'
+            f'Failed parsing the port numbers from stdout: {ss_cmd.stdout.splitlines()[:-1]}'
         )
     try:
         # take the list of available ports and return randomly selected one
@@ -287,6 +307,7 @@ def default_url_on_new_port(oldport, newport):
     :rtype: str
 
     """
+    # TODO!!!
     domain = settings.server.hostname
 
     with ssh.get_connection() as connection:
@@ -392,8 +413,8 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
     """
     repo_path = f'{PULP_PUBLISHED_YUM_REPOS_PATH}/{name}'
     result = ssh.command(f'sudo -u apache mkdir -p {repo_path}', hostname=hostname)
-    if result.return_code != 0:
-        raise CLIReturnCodeError(result.return_code, result.stderr, 'Unable to create repo dir')
+    if result.status != 0:
+        raise CLIReturnCodeError(result.status, result.stderr, 'Unable to create repo dir')
     if repo_fetch_url:
         # Add trailing slash if it's not there already
         if not repo_fetch_url.endswith('/'):
@@ -403,22 +424,22 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, h
                 f'wget -P {repo_path} {urljoin(repo_fetch_url, package)}',
                 hostname=hostname,
             )
-            if result.return_code != 0:
+            if result.status != 0:
                 raise CLIReturnCodeError(
-                    result.return_code,
+                    result.status,
                     result.stderr,
                     f'Unable to download package {package}',
                 )
     if wipe_repodata:
         result = ssh.command(f'rm -rf {repo_path}/repodata/', hostname=hostname)
-        if result.return_code != 0:
+        if result.status != 0:
             raise CLIReturnCodeError(
-                result.return_code, result.stderr, 'Unable to delete repodata folder'
+                result.status, result.stderr, 'Unable to delete repodata folder'
             )
     result = ssh.command(f'createrepo {repo_path}', hostname=hostname)
-    if result.return_code != 0:
+    if result.status != 0:
         raise CLIReturnCodeError(
-            result.return_code,
+            result.status,
             result.stderr,
             f'Unable to create repository. stderr contains following info:\n{result.stderr}',
         )
@@ -448,54 +469,25 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     updatefile_path = f'{repo_path}/{updatefile}'
     if updateinfo_url:
         result = ssh.command(f'find {updatefile_path}', hostname=hostname)
-        if result.return_code == 0 and updatefile in result.stdout[0]:
+        if result.status == 0 and updatefile in result.stdout:
             result = ssh.command(
                 f'mv -f {updatefile_path} {updatefile_path}.bak', hostname=hostname
             )
-            if result.return_code != 0:
+            if result.status != 0:
                 raise CLIReturnCodeError(
-                    result.return_code,
+                    result.status,
                     result.stderr,
                     f'Unable to backup existing {updatefile}',
                 )
         result = ssh.command(f'wget -O {updatefile_path} {updateinfo_url}', hostname=hostname)
-        if result.return_code != 0:
+        if result.status != 0:
             raise CLIReturnCodeError(
-                result.return_code, result.stderr, f'Unable to download {updateinfo_url}'
+                result.status, result.stderr, f'Unable to download {updateinfo_url}'
             )
 
     result = ssh.command(f'modifyrepo {updatefile_path} {repo_path}/repodata/')
 
     return result
-
-
-def extract_capsule_satellite_installer_command(text):
-    """Extract satellite installer command from capsule-certs-generate command
-    output
-    """
-    cmd_start_with = 'satellite-installer'
-    cmd_lines = []
-    if text:
-        if isinstance(text, (list, tuple)):
-            lines = text
-        else:
-            lines = text.split('\n')
-        cmd_start_found = False
-        cmd_end_found = False
-        for line in lines:
-            if line.lstrip().startswith(cmd_start_with):
-                cmd_start_found = True
-            if cmd_start_found and not cmd_end_found:
-                cmd_lines.append(line.strip('\\'))
-                if not line.endswith('\\'):
-                    cmd_end_found = True
-    if cmd_lines:
-        cmd = ' '.join(cmd_lines)
-        # remove empty spaces
-        while '  ' in cmd:
-            cmd = cmd.replace('  ', ' ')
-        return cmd
-    return None
 
 
 def extract_ui_token(input):
@@ -540,7 +532,7 @@ def host_provisioning_check(ip_addr):
     result = ssh.command(
         f'for i in {{1..60}}; do ping -c1 {ip_addr} && exit 0; sleep 20; done; exit 1'
     )
-    if result.return_code != 0:
+    if result.status != 0:
         raise ProvisioningCheckError(f'Failed to ping virtual machine Error:{result.stdout}')
 
 

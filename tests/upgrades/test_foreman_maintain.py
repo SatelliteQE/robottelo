@@ -19,8 +19,6 @@
 from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 
-from robottelo import ssh
-
 
 class TestForemanMaintain:
     """The test class contains pre-upgrade and post-upgrade scenarios to test
@@ -34,7 +32,7 @@ class TestForemanMaintain:
     """
 
     @staticmethod
-    def satellite_upgradable_version_list():
+    def satellite_upgradable_version_list(sat_obj):
         """
         This function is used to collect the details of satellite version  and upgradable
         version list.
@@ -43,12 +41,13 @@ class TestForemanMaintain:
         """
 
         cmd = "rpm -q satellite > /dev/null && rpm -q satellite --queryformat=%{VERSION}"
-        satellite_version = ssh.command(cmd)
-        if satellite_version.return_code == 0:
+        # leaving this section as-is for now but this could be refactored to use sat_obj.version
+        satellite_version = sat_obj.execute(cmd)
+        if satellite_version.status == 0:
             satellite_version = satellite_version.stdout
         else:
             return [], [], None, None
-        forman_maintain_version = ssh.command(
+        forman_maintain_version = sat_obj.execute(
             "foreman-maintain upgrade list-versions --disable-self-upgrade"
         )
         upgradeable_version = [
@@ -99,7 +98,7 @@ class TestForemanMaintain:
         return zstream_version, next_version
 
     @pre_upgrade
-    def test_pre_foreman_maintain_upgrade_list_versions(self):
+    def test_pre_foreman_maintain_upgrade_list_versions(self, default_sat):
         """Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
@@ -116,7 +115,7 @@ class TestForemanMaintain:
             upgradable_version,
             major_version_change,
             y_version,
-        ) = self.satellite_upgradable_version_list()
+        ) = self.satellite_upgradable_version_list(default_sat)
         if satellite_version:
             # In future If foreman-maintain packages update add before
             # pre-upgrade test case execution then next version kind of
@@ -129,7 +128,7 @@ class TestForemanMaintain:
         assert zstream_version in upgradable_version
 
     @post_upgrade
-    def test_post_foreman_maintain_upgrade_list_versions(self):
+    def test_post_foreman_maintain_upgrade_list_versions(self, default_sat):
         """Post-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
 
@@ -146,7 +145,7 @@ class TestForemanMaintain:
             upgradable_version,
             major_version_change,
             y_version,
-        ) = self.satellite_upgradable_version_list()
+        ) = self.satellite_upgradable_version_list(default_sat)
         if satellite_version:
             zstream_version, next_version = self.version_details(
                 satellite_version[0], major_version_change, y_version, upgrade_stage="post-upgrade"

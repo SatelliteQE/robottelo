@@ -67,7 +67,6 @@ from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.constants.repos import FEDORA27_OSTREE_REPO
 from robottelo.datafactory import gen_string
-from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
 from robottelo.helpers import repo_add_updateinfo
@@ -2950,7 +2949,6 @@ def test_positive_delete_with_kickstart_repo_and_host_group(session, default_sat
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
-@skip_if_os('RHEL6')
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_custom_ostree_end_to_end(session, module_org):
@@ -3008,7 +3006,6 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
-@skip_if_os('RHEL6')
 @pytest.mark.tier3
 def test_positive_rh_ostree_end_to_end(session):
     """Create content view with RH ostree contents, publish and promote it
@@ -3066,7 +3063,6 @@ def test_positive_rh_ostree_end_to_end(session):
 
 
 @pytest.mark.skip_if_open("BZ:1625783")
-@skip_if_os('RHEL6')
 @pytest.mark.upgrade
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -3133,7 +3129,6 @@ def test_positive_mixed_content_end_to_end(session, module_org):
         assert session.contentview.search_version(cv_name, VERSION)[0]['Version'] != VERSION
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_rh_mixed_content_end_to_end(session):
@@ -3214,7 +3209,7 @@ def test_positive_errata_inc_update_list_package(session):
     result = repo_add_updateinfo(
         repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
     )
-    assert result.return_code == 0
+    assert result.status == 0
     # Create org, product, repo, sync & publish it
     org = entities.Organization().create()
     custom_repo_id = create_sync_custom_repo(org.id, repo_url=repo_url)
@@ -3231,7 +3226,7 @@ def test_positive_errata_inc_update_list_package(session):
     result = repo_add_updateinfo(
         repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
     )
-    assert result.return_code == 0
+    assert result.status == 0
     # Sync the repo
     entities.Repository(id=custom_repo_id).sync()
     # Publish new CVV with the new errata
@@ -3311,7 +3306,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
     result = repo_add_updateinfo(
         repo_name, f'{settings.repos.inc_upd.url}{FAKE_0_INC_UPD_OLD_UPDATEFILE}'
     )
-    assert result.return_code == 0
+    assert result.status == 0
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     repos_collection = RepositoryCollection(
@@ -3339,7 +3334,7 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
     result = repo_add_updateinfo(
         repo_name, f'{settings.repos.settings.repos.inc_upd.url.url}{FAKE_0_INC_UPD_NEW_UPDATEFILE}'
     )
-    assert result.return_code == 0
+    assert result.status == 0
     entities.Repository(id=repos_collection.custom_repos_info[-1]['id']).sync()
     with session:
         session.organization.select(org.name)

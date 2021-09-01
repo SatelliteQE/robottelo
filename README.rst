@@ -25,7 +25,7 @@ automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
 
 * UI tests, which rely on Selenium's `WebDriver`_ through `airgun`_.
-* CLI tests, which currently rely on `Paramiko`_ , but are being converted to use `ssh2-python`_.
+* CLI tests, which rely on `ssh2-python`_.
 * API tests, which rely on `Requests`_ through `nailgun`_.
 
 The `full documentation
@@ -37,7 +37,6 @@ ReadTheDocs. It can also be generated locally::
     make docs
 
 .. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
-.. _Paramiko: http://www.paramiko.org/
 .. _ssh2-python: https://pypi.org/project/ssh2-python/
 .. _Requests: http://docs.python-requests.org/en/latest/
 .. _Robottelo: https://github.com/SatelliteQE/robottelo

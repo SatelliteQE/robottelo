@@ -42,17 +42,17 @@ password = gen_string('alpha')
 def configure_sessions(enable=True, add_default_creds=False):
     """Enables the `use_sessions` option in hammer config"""
     result = ssh.command(
-        '''sed -i -e '/username/d;/password/d;/use_sessions/d' {0};\
-        echo '  :use_sessions: {1}' >> {0}'''.format(
+        "sed -i -e '/username/d;/password/d;/use_sessions/d' {0};\
+        echo '  :use_sessions: {1}' >> {0}".format(
             HAMMER_CONFIG, 'true' if enable else 'false'
         )
     )
-    if result.return_code == 0 and add_default_creds:
+    if result.status == 0 and add_default_creds:
         result = ssh.command(
             f'''{{ echo '  :username: "{settings.server.admin_username}"';\
             echo '  :password: "{settings.server.admin_password}"'; }} >> {HAMMER_CONFIG}'''
         )
-    return result.return_code
+    return result.status
 
 
 @pytest.fixture(scope='module')
@@ -202,7 +202,7 @@ def test_positive_change_session(admin_user, non_admin_user):
 
 
 @pytest.mark.tier1
-def test_positive_session_survives_unauthenticated_call(admin_user):
+def test_positive_session_survives_unauthenticated_call(admin_user, default_sat):
     """Check if session stays up after unauthenticated call
 
     :id: 8bc304a0-70ea-489c-9c3f-ea8343c5284c
@@ -224,8 +224,8 @@ def test_positive_session_survives_unauthenticated_call(admin_user):
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     # list organizations without supplying credentials
     Org.with_user().list()
-    result = ssh.command('hammer ping')
-    assert result.return_code == 0, 'Failed to run hammer ping'
+    result = default_sat.execute('hammer ping')
+    assert result.status == 0, 'Failed to run hammer ping'
     result = Auth.with_user().status()
     assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
     Org.with_user().list()

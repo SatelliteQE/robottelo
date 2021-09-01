@@ -384,7 +384,7 @@ def test_positive_os_list_with_default_organization_set(satellite_latest):
         )
         result = satellite_latest.execute('hammer defaults list')
         assert result.status == 0
-        assert DEFAULT_ORG in "".join(result.stdout)
+        assert DEFAULT_ORG in result.stdout
         os_list_after_default = satellite_latest.cli.OperatingSys.list()
         assert len(os_list_after_default) > 0
 
@@ -392,4 +392,4 @@ def test_positive_os_list_with_default_organization_set(satellite_latest):
         satellite_latest.cli.Defaults.delete({'param-name': 'organization'})
         result = satellite_latest.execute('hammer defaults list')
         assert result.status == 0
-        assert DEFAULT_ORG not in "".join(result.stdout)
+        assert DEFAULT_ORG not in result.stdout

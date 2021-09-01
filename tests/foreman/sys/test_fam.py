@@ -18,14 +18,13 @@
 """
 import pytest
 
-from robottelo import ssh
 from robottelo.constants import FAM_MODULE_PATH
 from robottelo.constants import FOREMAN_ANSIBLE_MODULES
 
 
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
-def test_positive_ansible_modules_installation():
+def test_positive_ansible_modules_installation(default_sat):
     """Foreman ansible modules installation test
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
@@ -34,19 +33,19 @@ def test_positive_ansible_modules_installation():
         available and supported modules are contained
 
     """
-    result = ssh.command(
+    result = default_sat.execute(
         'yum install -y ansible-collection-redhat-satellite --disableplugin=foreman-protector'
     )
-    assert result.return_code == 0
+    assert result.status == 0
     # list installed modules
-    result = ssh.command(f'ls {FAM_MODULE_PATH} |  sed "s/.[^.]*$//"')
-    assert result.return_code == 0
+    result = default_sat.execute(f'ls {FAM_MODULE_PATH} |  sed "s/.[^.]*$//"')
+    assert result.status == 0
     installed_modules = result.stdout
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
-        result = ssh.command(f'ansible-doc redhat.satellite.{module_name} -s')
-        assert result.return_code == 0
+        result = default_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
+        assert result.status == 0
         doc_name = result.stdout[1].lstrip()[:-1]
         assert doc_name == module_name
     # check installed modules against the expected list
