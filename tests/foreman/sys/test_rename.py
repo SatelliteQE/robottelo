@@ -147,7 +147,7 @@ class TestRenameHost:
         """
         username = settings.server.admin_username
         password = settings.server.admin_password
-        original_name = destructive_sat.execute('hostname').stdout
+        original_name = destructive_sat.hostname
         hostname = gen_string('alpha')
         result = destructive_sat.execute(
             f'satellite-change-hostname -y {hostname} -u {username} -p {password}'
@@ -171,7 +171,7 @@ class TestRenameHost:
 
         :CaseAutomation: Automated
         """
-        original_name = destructive_sat.execute('hostname').stdout
+        original_name = destructive_sat.hostname
         hostname = gen_string('alpha')
         result = destructive_sat.execute(f'satellite-change-hostname -y {hostname}')
         assert result.status == 1
@@ -195,7 +195,7 @@ class TestRenameHost:
         :CaseAutomation: Automated
         """
         username = settings.server.admin_username
-        original_name = destructive_sat.execute('hostname').stdout
+        original_name = destructive_sat.hostname
         new_hostname = f'new-{original_name}'
         password = gen_string('alpha')
         result = destructive_sat.execute(

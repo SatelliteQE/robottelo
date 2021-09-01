@@ -23,7 +23,6 @@ import re
 import pytest
 from fauxfactory import gen_string
 
-from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.cli.admin import Admin
 from robottelo.cli.defaults import Defaults
@@ -83,13 +82,18 @@ def format_commands_diff(commands_diff):
     return output_value
 
 
-def traverse_command_tree():
-    """Walk through the hammer commands tree and assert that the expected
-    options are present.
+@pytest.mark.upgrade
+def test_positive_all_options(default_sat):
+    """check all provided options for every hammer command
 
+    :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
+
+    :expectedresults: All expected options are present
+
+    :CaseImportance: Critical
     """
     differences = {}
-    raw_output = ssh.command('hammer full-help', output_format='plain').stdout
+    raw_output = default_sat.execute('hammer full-help').stdout
     commands = re.split(r'.*\n(?=hammer.*\n^[-]+)', raw_output, flags=re.M)
     commands.pop(0)  # remove "Hammer CLI help" line
     for raw_command in commands:
@@ -122,27 +126,13 @@ def traverse_command_tree():
                 diff['removed_subcommands'] = removed_subcommands
             differences[command] = diff
 
-    return differences
-
-
-@pytest.mark.upgrade
-def test_positive_all_options():
-    """check all provided options for every hammer command
-
-    :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
-
-    :expectedresults: All expected options are present
-
-    :CaseImportance: Critical
-    """
-    diff = traverse_command_tree()
-    if diff:
+    if differences:
         pytest.fail(format_commands_diff(diff))
 
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-def test_positive_disable_hammer_defaults():
+def test_positive_disable_hammer_defaults(default_sat):
     """Verify hammer disable defaults command.
 
     :id: d0b65f36-b91f-4f2f-aaf8-8afda3e23708
@@ -164,26 +154,26 @@ def test_positive_disable_hammer_defaults():
     try:
         Defaults.add({'param-name': 'organization_id', 'param-value': default_org['id']})
         # list templates for BZ#1368173
-        result = ssh.command('hammer job-template list')
-        assert result.return_code == 0
+        result = default_sat.execute('hammer job-template list')
+        assert result.status == 0
         # Verify --organization-id is not required to pass if defaults are set
-        result = ssh.command('hammer product list')
-        assert result.return_code == 0
+        result = default_sat.execute('hammer product list')
+        assert result.status == 0
         # Verify product list fail without using defaults
-        result = ssh.command('hammer --no-use-defaults product list')
-        assert result.return_code != 0
-        assert default_product_name not in "".join(result.stdout)
+        result = default_sat.execute('hammer --no-use-defaults product list')
+        assert result.status != 0
+        assert default_product_name not in result.stdout
         # Verify --organization-id is not required to pass if defaults are set
-        result = ssh.command('hammer --use-defaults product list')
-        assert result.return_code == 0
-        assert default_product_name in ''.join(result.stdout)
+        result = default_sat.execute('hammer --use-defaults product list')
+        assert result.status == 0
+        assert default_product_name in result.stdout
     finally:
         Defaults.delete({'param-name': 'organization_id'})
-        result = ssh.command('hammer defaults list')
-        assert default_org['id'] not in ''.join(result.stdout)
+        result = default_sat.execute('hammer defaults list')
+        assert default_org['id'] not in result.stdout
 
 
-def test_positive_check_debug_log_levels():
+def test_positive_check_debug_log_levels(default_sat):
     """Enabling debug log level in candlepin via hammer logging
 
     :id: 029c80f1-2bc5-494e-a04a-7d6beb0f769a
@@ -198,12 +188,12 @@ def test_positive_check_debug_log_levels():
     """
     Admin.logging({'all': True, 'level-debug': True})
     # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
-    result = ssh.command('grep DEBUG /etc/candlepin/candlepin.conf')
-    assert result.return_code == 0
+    result = default_sat.execute('grep DEBUG /etc/candlepin/candlepin.conf')
+    assert result.status == 0
     assert 'log4j.logger.org.candlepin = DEBUG' in result.stdout
 
     Admin.logging({"all": True, "level-production": True})
     # Verify value of `log4j.logger.org.candlepin` as `WARN`
-    result = ssh.command('grep WARN /etc/candlepin/candlepin.conf')
-    assert result.return_code == 0
+    result = default_sat.execute('grep WARN /etc/candlepin/candlepin.conf')
+    assert result.status == 0
     assert 'log4j.logger.org.candlepin = WARN' in result.stdout

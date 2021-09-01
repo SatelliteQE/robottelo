@@ -44,7 +44,6 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.logging import logger
-from robottelo.ssh import upload_file
 
 SYNC_DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
@@ -556,7 +555,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_past_sync_date():
+def test_positive_synchronize_rh_product_past_sync_date(default_sat):
     """Create a sync plan with past datetime as a sync date, add a
     RH product and verify the product gets synchronized on the next sync
     occurrence
@@ -573,7 +572,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
     delay = 2 * 60
     org = make_org()
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {
@@ -624,7 +623,7 @@ def test_positive_synchronize_rh_product_past_sync_date():
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_synchronize_rh_product_future_sync_date():
+def test_positive_synchronize_rh_product_future_sync_date(default_sat):
     """Create a sync plan with sync date in a future and sync one RH
     product with it automatically.
 
@@ -639,7 +638,7 @@ def test_positive_synchronize_rh_product_future_sync_date():
     delay = 2 * 60  # delay for sync date in seconds
     org = make_org()
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {

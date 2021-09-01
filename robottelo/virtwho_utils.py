@@ -84,9 +84,7 @@ def runcmd(cmd, system=None, timeout=600, output_format='base'):
     """
     system = system or get_system('satellite')
     result = ssh.command(cmd, **system, timeout=timeout, output_format=output_format)
-    ret = result.return_code
-    stdout = result.stdout.strip()
-    return ret, stdout
+    return result.status, result.stdout.strip()
 
 
 def register_system(system, activation_key=None, org='Default_Organization', env='Library'):
@@ -288,7 +286,7 @@ def deploy_configure_by_script(script_content, hypervisor_type, debug=False):
     register_system(get_system(hypervisor_type))
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
-    ssh.upload_file(script_filename, script_filename)
+    ssh.get_client().put(script_filename)
     ret, stdout = runcmd(f'sh {script_filename}')
     if ret != 0 or 'Finished successfully' not in stdout:
         raise VirtWhoError(f"Failed to deploy configure by {script_filename}")

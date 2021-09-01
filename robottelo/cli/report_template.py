@@ -69,7 +69,7 @@ class ReportTemplate(Base):
                 file_data = file.read()
             with open(layout, 'w') as rt:
                 rt.write(file_data)
-        ssh.upload_file(local_file=layout, remote_file=layout)
+        ssh.get_client().put(layout, layout)
         # -------------------------------------- #
 
         options['file'] = layout

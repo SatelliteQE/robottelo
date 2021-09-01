@@ -79,7 +79,7 @@ def get_remote_report_checksum(org_id):
 
     for path in remote_paths:
         result = ssh.command(f'sha256sum {path}', output_format='plain')
-        if result.return_code != 0:
+        if result.status != 0:
             continue
         checksum, _ = result.stdout.split(maxsplit=1)
         return checksum

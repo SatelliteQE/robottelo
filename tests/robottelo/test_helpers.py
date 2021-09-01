@@ -11,10 +11,10 @@ from robottelo.helpers import validate_ssh_pub_key
 
 
 class FakeSSHResult:
-    def __init__(self, stdout=None, return_code=None, stderr=None):
+    def __init__(self, stdout=None, status=None, stderr=None):
         self.stdout = stdout
         self.stderr = stderr
-        self.return_code = return_code
+        self.status = status
 
 
 class TestPubKey:
@@ -121,6 +121,6 @@ class TestGetAvailableCapsulePort:
     @mock.patch('robottelo.helpers.ssh')
     def test_return_port(self, ssh):
         """get_available_capsule_port returns a port number."""
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult(['""'], 0))
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult('""', 0))
         port = get_available_capsule_port()
         assert port, "No available capsule port found."

@@ -335,10 +335,9 @@ def enroll_ad_and_configure_external_auth(request, ad_data):
 
     # update the AD name server
     run_command(cmd='chattr -i /etc/resolv.conf')
-    result = run_command(
+    line_number = run_command(
         cmd="awk -v search='nameserver' '$0~search{print NR; exit}' /etc/resolv.conf"
     )
-    line_number = int(''.join(result))
     run_command(cmd=f'sed -i "{line_number}i nameserver {ad_data.nameserver}" /etc/resolv.conf')
     run_command(cmd='chattr +i /etc/resolv.conf')
 
@@ -350,7 +349,7 @@ def enroll_ad_and_configure_external_auth(request, ad_data):
 
     # gather the apache id
     result = run_command(cmd='id -u apache')
-    id_apache = "".join(result)
+    id_apache = result
     http_conf_content = (
         f'[service/HTTP]\nmechs = krb5\ncred_store = keytab:/etc/krb5.keytab'
         f'\ncred_store = ccache:/var/lib/gssproxy/clients/krb5cc_%U'

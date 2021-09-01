@@ -33,7 +33,6 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
-from robottelo.ssh import upload_file
 
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -179,7 +178,7 @@ def test_positive_subscription_list(function_org, manifest_clone_upload):
 
 
 @pytest.mark.tier2
-def test_positive_delete_manifest_as_another_user():
+def test_positive_delete_manifest_as_another_user(default_sat):
     """Verify that uploaded manifest if visible and deletable
         by a different user than the one who uploaded it
 
@@ -204,7 +203,7 @@ def test_positive_delete_manifest_as_another_user():
     ).create()
     # use the first admin to upload a manifest
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     Subscription.with_user(username=user1.login, password=user1_password).upload(
         {'file': manifest.filename, 'organization-id': org.id}
     )

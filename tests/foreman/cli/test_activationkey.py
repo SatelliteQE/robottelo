@@ -54,7 +54,6 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_data_list
 from robottelo.hosts import ContentHost
-from robottelo.ssh import upload_file
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -1204,7 +1203,7 @@ def test_update_ak_with_syspurpose_values(module_org, module_manifest_org):
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
-def test_positive_add_subscription_by_id(module_org):
+def test_positive_add_subscription_by_id(module_org, default_sat):
     """Test that subscription can be added to activation key
 
     :id: b884be1c-b35d-440a-9a9d-c854c83e10a7
@@ -1224,7 +1223,7 @@ def test_positive_add_subscription_by_id(module_org):
     :BZ: 1463685
     """
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     org_id = make_org()['id']
     ackey_id = make_activation_key({'organization-id': org_id})['id']
     Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
@@ -1293,7 +1292,7 @@ def test_negative_copy_with_same_name(module_org):
                 'organization-id': module_org.id,
             }
         )
-    assert raise_ctx.value.return_code == 65
+    assert raise_ctx.value.status == 65
     assert "Validation failed: Name has already been taken" in raise_ctx.value.message
 
 

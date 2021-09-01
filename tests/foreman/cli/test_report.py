@@ -20,18 +20,17 @@ import random
 
 import pytest
 
-from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.report import Report
 
 
 @pytest.fixture(scope='module', autouse=True)
-def run_puppet_agent():
+def run_puppet_agent(default_sat):
     """Retrieves the client configuration from the puppet master and
     applies it to the local host. This is required to make sure
     that we have reports available.
     """
-    ssh.command('puppet agent -t')
+    default_sat.execute('puppet agent -t')
 
 
 @pytest.mark.tier1

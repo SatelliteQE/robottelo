@@ -23,7 +23,6 @@ from airgun.session import Session
 from fauxfactory import gen_url
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.cleanup import setting_cleanup
 from robottelo.cli.user import User
 from robottelo.datafactory import filtered_datapoint
@@ -407,7 +406,7 @@ def test_positive_update_email_delivery_method_sendmail(session, default_sat):
                 session.settings.update(mail_content, mail_content_value)
             test_mail_response = session.settings.send_test_mail(property_name)[0]
             assert test_mail_response == "Email was sent successfully"
-            assert ssh.command(command).return_code == 0
+            assert default_sat.execute(command).status == 0
         finally:
             for key, value in mail_config_default_param.items():
                 setting_cleanup(setting_name=key, setting_value=value.value)

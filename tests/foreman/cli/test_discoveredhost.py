@@ -18,7 +18,6 @@ from time import sleep
 
 import pytest
 
-from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
 from robottelo.cli.factory import configure_env_for_provision
@@ -33,7 +32,7 @@ from robottelo.libvirt_discovery import LibvirtGuest
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
-def _assertdiscoveredhost(self, hostname):
+def _assertdiscoveredhost(hostname):
     """Check if host is discovered and information about it can be
     retrieved back
 
@@ -51,7 +50,7 @@ def _assertdiscoveredhost(self, hostname):
 
 @pytest.mark.skip_if_not_set('vlan_networking')
 @pytest.fixture(scope='class')
-def foreman_discovery(self):
+def foreman_discovery(default_sat):
     """Steps to Configure foreman discovery
 
     1. Build PXE default template
@@ -64,11 +63,11 @@ def foreman_discovery(self):
     # Build PXE default template to get default PXE file
     Template.build_pxe_default()
     # let's just modify the timeouts to speed things up
-    ssh.command(
-        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' " "/var/lib/tftpboot/pxelinux.cfg/default"
+    default_sat.execute(
+        "sed -ie 's/TIMEOUT [[:digit:]]\\+/TIMEOUT 1/g' /var/lib/tftpboot/pxelinux.cfg/default"
     )
-    ssh.command(
-        "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' " "/var/lib/tftpboot/pxelinux.cfg/default"
+    default_sat.execute(
+        "sed -ie '/APPEND initrd/s/$/ fdi.countdown=1/' /var/lib/tftpboot/pxelinux.cfg/default"
     )
 
     # Create Org and location
@@ -104,7 +103,7 @@ def foreman_discovery(self):
 
 @pytest.mark.libvirt_discovery
 @pytest.mark.tier3
-def test_positive_pxe_based_discovery(self):
+def test_positive_pxe_based_discovery():
     """Discover a host via PXE boot by setting "proxy.type=proxy" in
     PXE default
 
@@ -122,14 +121,14 @@ def test_positive_pxe_based_discovery(self):
     """
     with LibvirtGuest() as pxe_host:
         hostname = pxe_host.guest_name
-        host = self._assertdiscoveredhost(hostname)
+        host = _assertdiscoveredhost(hostname)
         assert host is not None
 
 
 @pytest.mark.tier3
 @pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
-def test_positive_provision_pxeless_bios_syslinux(self, foreman_discovery):
+def test_positive_provision_pxeless_bios_syslinux(foreman_discovery):
     """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
     loader
 
@@ -166,7 +165,7 @@ def test_positive_provision_pxeless_bios_syslinux(self, foreman_discovery):
     with LibvirtGuest(boot_iso=True) as pxe_host:
         hostname = pxe_host.guest_name
         # fixme: assertion #1
-        discovered_host = self._assertdiscoveredhost(hostname)
+        discovered_host = _assertdiscoveredhost(hostname)
         assert discovered_host is not None
         # Provision just discovered host
         DiscoveredHost.provision(
@@ -206,7 +205,7 @@ def test_positive_provision_pxeless_bios_syslinux(self, foreman_discovery):
 @pytest.mark.tier3
 @pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
-def test_positive_provision_pxe_host_with_bios_syslinux(self, foreman_discovery):
+def test_positive_provision_pxe_host_with_bios_syslinux(foreman_discovery):
     """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
     loader
 
@@ -258,7 +257,7 @@ def test_positive_provision_pxe_host_with_bios_syslinux(self, foreman_discovery)
         hostname = pxe_host.guest_name
         # fixme: assertion #2-3
         # assertion #4
-        discovered_host = self._assertdiscoveredhost(hostname)
+        discovered_host = _assertdiscoveredhost(hostname)
         assert discovered_host is not None
         # Provision just discovered host
         DiscoveredHost.provision(
@@ -297,7 +296,7 @@ def test_positive_provision_pxe_host_with_bios_syslinux(self, foreman_discovery)
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_provision_pxe_host_with_uefi_grub2(self):
+def test_positive_provision_pxe_host_with_uefi_grub2():
     """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
     loader
 
@@ -348,7 +347,7 @@ def test_positive_provision_pxe_host_with_uefi_grub2(self):
 
 @pytest.mark.tier3
 @pytest.mark.libvirt_discovery
-def test_positive_delete(self):
+def test_positive_delete():
     """Delete the selected discovered host
 
     :id: c4103de8-145c-4a7d-b837-a1dec97231a2
@@ -361,7 +360,7 @@ def test_positive_delete(self):
     """
     with LibvirtGuest() as pxe_host:
         hostname = pxe_host.guest_name
-        host = self._assertdiscoveredhost(hostname)
+        host = _assertdiscoveredhost(hostname)
         assert host is not None
     DiscoveredHost.delete({'id': host['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -370,7 +369,7 @@ def test_positive_delete(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_refresh_facts_pxe_host(self):
+def test_positive_refresh_facts_pxe_host():
     """Refresh the facts of pxe based discovered hosts by adding a new NIC
 
     :id: 410eaa5d-cc6a-44f7-8c6f-e8cfa81610f0
@@ -387,7 +386,7 @@ def test_positive_refresh_facts_pxe_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_refresh_facts_of_pxeless_host(self):
+def test_positive_refresh_facts_of_pxeless_host():
     """Refresh the facts of pxeless discovered hosts by adding a new NIC
 
     :id: 2e199eaa-9651-47b1-a2fd-622778dfe68e
@@ -404,7 +403,7 @@ def test_positive_refresh_facts_of_pxeless_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_reboot_pxe_host(self):
+def test_positive_reboot_pxe_host():
     """Reboot pxe based discovered hosts
 
     :id: 9cc17742-f810-4be7-b410-a6c68e6cc64a
@@ -421,7 +420,7 @@ def test_positive_reboot_pxe_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_reboot_pxeless_host(self):
+def test_positive_reboot_pxeless_host():
     """Reboot pxe-less discovered hosts
 
     :id: e72e1607-8778-45b6-b8b9-8215514546f0
@@ -438,7 +437,7 @@ def test_positive_reboot_pxeless_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_auto_provision_pxe_host(self):
+def test_positive_auto_provision_pxe_host():
     """Discover a pxe based host and auto-provision it with
     discovery rule and by enabling auto-provision flag
 
@@ -454,7 +453,7 @@ def test_positive_auto_provision_pxe_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_auto_provision_pxeless_host(self):
+def test_positive_auto_provision_pxeless_host():
     """Discover a pxe-less host and auto-provision it with
     discovery rule and by enabling auto-provision flag
 
@@ -470,7 +469,7 @@ def test_positive_auto_provision_pxeless_host(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_assign_discovery_manager_role(self):
+def test_positive_assign_discovery_manager_role():
     """Assign 'Discovery_Manager' role to a normal user
 
     :id: f694c361-5fbb-4c3a-b2ff-6dfe6ea14820
@@ -486,7 +485,7 @@ def test_positive_assign_discovery_manager_role(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_assign_discovery_role(self):
+def test_positive_assign_discovery_role():
     """Assign 'Discovery" role to a normal user
 
     :id: 873e8411-563d-4bf9-84ce-62e522410cfe
@@ -502,7 +501,7 @@ def test_positive_assign_discovery_role(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_update_discover_hostname_settings(self):
+def test_positive_update_discover_hostname_settings():
     """Update the hostname_prefix and Hostname_facts settings and
     discover a host.
 
@@ -518,7 +517,7 @@ def test_positive_update_discover_hostname_settings(self):
 
 @pytest.mark.stubbed
 @pytest.mark.tier3
-def test_positive_list_facts(self):
+def test_positive_list_facts():
     """Check if defined facts of a discovered host are
     correctly displayed under host's facts
 

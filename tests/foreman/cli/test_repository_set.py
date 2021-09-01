@@ -25,7 +25,6 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS
 from robottelo.constants import REPOSET
-from robottelo.ssh import upload_file
 
 pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.tier1]
 
@@ -119,10 +118,10 @@ def org():
 
 
 @pytest.fixture
-def manifest_org(org):
+def manifest_org(org, default_sat):
     """Upload a manifest to the organization."""
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     return org
 

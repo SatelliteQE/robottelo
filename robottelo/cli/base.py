@@ -17,30 +17,30 @@ class CLIBaseError(Exception):
     """Indicates that a CLI command has finished with return code different
     from zero.
 
-    :param return_code: CLI command return code
+    :param status: CLI command return code
     :param stderr: contents of the ``stderr``
     :param msg: explanation of the error
 
     """
 
-    def __init__(self, return_code, stderr, msg):
-        self.return_code = return_code
+    def __init__(self, status, stderr, msg):
+        self.status = status
         self.stderr = stderr
         self.msg = msg
         super().__init__(msg)
         self.message = msg
 
     def __str__(self):
-        """Include class name, return_code, stderr and msg to string repr so
+        """Include class name, status, stderr and msg to string repr so
         assertRaisesRegexp can be used to assert error present on any
         attribute
         """
         return repr(self)
 
     def __repr__(self):
-        """Include class name return_code, stderr and msg to improve logging"""
-        return '{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
-            type(self).__name__, self.return_code, self.stderr, self.msg
+        """Include class name status, stderr and msg to improve logging"""
+        return '{}(status={!r}, stderr={!r}, msg={!r}'.format(
+            type(self).__name__, self.status, self.stderr, self.msg
         )
 
 
@@ -73,25 +73,30 @@ class Base:
 
     @classmethod
     def _handle_response(cls, response, ignore_stderr=None):
-        """Verify ``return_code`` of the CLI command.
+        """Verify ``status`` of the CLI command.
 
         Check for a non-zero return code or any stderr contents.
 
-        :param response: a ``SSHCommandResult`` object, returned by
-            :mod:`robottelo.ssh.command`.
+        :param response: a result object, returned by :mod:`robottelo.ssh.command`.
         :param ignore_stderr: indicates whether to throw a warning in logs if
             ``stderr`` is not empty.
         :returns: contents of ``stdout``.
         :raises robottelo.cli.base.CLIReturnCodeError: If return code is
             different from zero.
         """
-        if response.return_code != 0:
+        if isinstance(response.stderr, tuple):
+            # the current contents of response.stderr is a tuple with the following properties
+            # (<len(message)>,<message>).
+            # This behavior could (and maybe should) change in the near future.
+            # In the meantime, we don't need it here so we just use the message itself
+            response.stderr = response.stderr[1]
+        if response.status != 0:
             full_msg = (
                 f'Command "{cls.command_base} {cls.command_sub}" '
-                f'finished with return_code {response.return_code}\n'
+                f'finished with status {response.status}\n'
                 f'stderr contains:\n{response.stderr}'
             )
-            error_data = (response.return_code, response.stderr, full_msg)
+            error_data = (response.status, response.stderr, full_msg)
             if cls._db_error_regex.search(full_msg):
                 raise CLIDataBaseError(*error_data)
             raise CLIReturnCodeError(*error_data)
@@ -107,9 +112,7 @@ class Base:
 
         cls.command_sub = 'add-operatingsystem'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def create(cls, options=None, timeout=None):
@@ -222,13 +225,10 @@ class Base:
         timeout=None,
         ignore_stderr=None,
         return_raw_response=None,
-        connection_timeout=None,
     ):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
-        time_hammer = False
-        if settings.performance:
-            time_hammer = settings.performance.time_hammer
+        time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
         cmd = 'LANG={} {} hammer -v {} {} {} {}'.format(
@@ -244,7 +244,6 @@ class Base:
             hostname=hostname or cls.hostname,
             output_format=output_format,
             timeout=timeout,
-            connection_timeout=connection_timeout,
         )
         if return_raw_response:
             return response
@@ -310,12 +309,13 @@ class Base:
         if 'per-page' not in options and per_page:
             options['per-page'] = 10000
 
-        if cls.command_requires_org and 'organization-id' not in options:
-            raise CLIError(f'organization-id option is required for {cls.__name__}.list')
+        # With the introduction of hammer defaults, a default organization can be set
+        # this makes getting around this check awkward.
+        # should we completely remove this or implement a workaround?
+        # if cls.command_requires_org and 'organization-id' not in options:
+        #     raise CLIError(f'organization-id option is required for {cls.__name__}.list')
 
-        result = cls.execute(cls._construct_command(options), output_format=output_format)
-
-        return result
+        return cls.execute(cls._construct_command(options), output_format=output_format)
 
     @classmethod
     def puppetclasses(cls, options=None):
@@ -325,9 +325,7 @@ class Base:
 
         cls.command_sub = 'puppet-classes'
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
-
-        return result
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def remove_operating_system(cls, options=None):
@@ -337,9 +335,7 @@ class Base:
 
         cls.command_sub = 'remove-operatingsystem'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def sc_params(cls, options=None):
@@ -349,9 +345,7 @@ class Base:
 
         cls.command_sub = 'sc-params'
 
-        result = cls.execute(cls._construct_command(options), output_format='csv')
-
-        return result
+        return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
     def set_parameter(cls, options=None):
@@ -361,9 +355,7 @@ class Base:
 
         cls.command_sub = 'set-parameter'
 
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def update(cls, options=None, return_raw_response=None):
@@ -373,13 +365,11 @@ class Base:
 
         cls.command_sub = 'update'
 
-        result = cls.execute(
+        return cls.execute(
             cls._construct_command(options),
             output_format='csv',
             return_raw_response=return_raw_response,
         )
-
-        return result
 
     @classmethod
     def with_user(cls, username=None, password=None):
