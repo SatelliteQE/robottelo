@@ -25,7 +25,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_content_view
@@ -49,33 +48,35 @@ from robottelo.constants import REPOSET
 
 
 @pytest.fixture(scope='class')
-def class_export_directory():
+def class_export_directory(default_sat):
     """Create a directory for export, configure permissions and satellite settings,
     at the end remove the export directory with all exported repository archives"""
     export_dir = gen_string('alphanumeric')
 
     # Create a new 'export' directory on the Satellite system
-    result = ssh.command(f'mkdir /mnt/{export_dir}')
-    assert result.return_code == 0
+    result = default_sat.execute(f'mkdir /mnt/{export_dir}')
+    assert result.status == 0
 
-    result = ssh.command(f'chown foreman.foreman /mnt/{export_dir}')
-    assert result.return_code == 0
+    result = default_sat.execute(f'chown foreman.foreman /mnt/{export_dir}')
+    assert result.status == 0
 
-    result = ssh.command(f'ls -Z /mnt/ | grep {export_dir}')
-    assert result.return_code == 0
+    result = default_sat.execute(f'ls -Z /mnt/ | grep {export_dir}')
+    assert result.status == 0
     assert len(result.stdout) >= 1
     assert 'unconfined_u:object_r:mnt_t:s0' in result.stdout[0]
 
     # Fix SELinux policy for new directory
-    result = ssh.command(f'semanage fcontext -a -t foreman_var_run_t "/mnt/{export_dir}(/.*)?"')
-    assert result.return_code == 0
+    result = default_sat.execute(
+        f'semanage fcontext -a -t foreman_var_run_t "/mnt/{export_dir}(/.*)?"'
+    )
+    assert result.status == 0
 
-    result = ssh.command(f'restorecon -Rv /mnt/{export_dir}')
-    assert result.return_code == 0
+    result = default_sat.execute(f'restorecon -Rv /mnt/{export_dir}')
+    assert result.status == 0
 
     # Assert that we have the correct policy
-    result = ssh.command(f'ls -Z /mnt/ | grep {export_dir}')
-    assert result.return_code == 0
+    result = default_sat.execute(f'ls -Z /mnt/ | grep {export_dir}')
+    assert result.status == 0
     assert len(result.stdout) >= 1
     assert 'unconfined_u:object_r:foreman_var_run_t:s0' in result.stdout[0]
 
@@ -83,7 +84,7 @@ def class_export_directory():
     Settings.set({'name': 'pulp_export_destination', 'value': f'/mnt/{export_dir}'})
     # Create an organization to reuse in tests
     yield export_dir
-    ssh.command(f'rm -rf /mnt/{export_dir}')
+    default_sat.execute(f'rm -rf /mnt/{export_dir}')
 
 
 class ExportDirectoryNotSet(Exception):
@@ -95,7 +96,7 @@ class TestRepositoryExport:
     """Tests for exporting a repository via CLI"""
 
     @pytest.mark.tier3
-    def test_positive_export_custom_product(self, class_export_directory, module_org):
+    def test_positive_export_custom_product(self, class_export_directory, module_org, default_sat):
         """Export a repository from the custom product
 
         :id: 9c855866-b9b1-4e32-b3eb-7342fdaa7116
@@ -124,7 +125,7 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
+        result = default_sat.execute(f'find {repo_export_dir} -name "*.rpm"')
         assert len(result.stdout) == 0
 
         # Synchronize the repository
@@ -134,14 +135,14 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
-        assert result.return_code == 0
+        result = default_sat.execute(f'find {repo_export_dir} -name "*.rpm"')
+        assert result.status == 0
         assert len(result.stdout) >= 1
 
     @pytest.mark.skip_if_not_set('fake_manifest')
     @pytest.mark.tier3
     @pytest.mark.upgrade
-    def test_positive_export_rh_product(self, class_export_directory, module_org):
+    def test_positive_export_rh_product(self, class_export_directory, module_org, default_sat):
         """Export a repository from the Red Hat product
 
         :id: e17898db-ca92-4121-a723-0d4b3cf120eb
@@ -153,7 +154,7 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         with manifests.clone() as manifest:
-            ssh.upload_file(manifest.content, manifest.filename)
+            default_sat.put(manifest.content, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
         RepositorySet.enable(
             {
@@ -184,7 +185,7 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
+        result = default_sat.execute(f'find {repo_export_dir} -name "*.rpm"')
         assert len(result.stdout) == 0
 
         # Synchronize the repository
@@ -194,15 +195,15 @@ class TestRepositoryExport:
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command(f'find {repo_export_dir} -name "*.rpm"')
-        assert result.return_code == 0
+        result = default_sat.execute(f'find {repo_export_dir} -name "*.rpm"')
+        assert result.status == 0
         assert len(result.stdout) >= 1
 
 
 @pytest.fixture(scope='class')
-def class_export_entities():
+def class_export_entities(default_sat):
     """Create Directory for all CV Sync Tests in export_base directory"""
-    if ssh.command(f'[ -d {get_export_base()} ]').return_code == 1:
+    if default_sat.execute(f'[ -d {get_export_base()} ]').status == 1:
         raise ExportDirectoryNotSet(f'Export Directory "{get_export_base()}" is not set/found.')
     exporting_org = make_org()
     exporting_prod_name = gen_string('alpha')
@@ -231,13 +232,13 @@ def class_export_entities():
 
 
 @pytest.fixture(scope='function')
-def function_export_cv_directory():
+def function_export_cv_directory(default_sat):
     """Create directory for CV export and at the end remove it"""
     export_dir = f'{get_export_base()}/{gen_string("alpha")}'
-    ssh.command(f'mkdir {export_dir}')
+    default_sat.execute(f'mkdir {export_dir}')
     yield export_dir
     # Deletes directory created for CV export Test
-    ssh.command(f'rm -rf {export_dir}')
+    default_sat.execute(f'rm -rf {export_dir}')
 
 
 def get_export_base():
@@ -310,7 +311,7 @@ def _enable_rhel_content(organization, repo_name, releasever=None, product=None,
     return repo
 
 
-def _update_json(json_path):
+def _update_json(json_path, host_obj):
     """Updates the major and minor version in the exported json file
 
     :param json_path: json file path on server
@@ -318,22 +319,22 @@ def _update_json(json_path):
     """
     new_major = gen_integer(2, 1000)
     new_minor = gen_integer(2, 1000)
-    result = ssh.command(f'[ -f {json_path} ]')
-    if result.return_code == 0:
-        ssh.command(f'sed -i \'s/\"major\": [0-9]\\+/\"major\": {new_major}/\' {json_path}')
-        ssh.command(f'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {new_minor}/\' {json_path}')
+    result = host_obj.execute(f'[ -f {json_path} ]')
+    if result.status == 0:
+        host_obj.execute(f'sed -i \'s/\"major\": [0-9]\\+/\"major\": {new_major}/\' {json_path}')
+        host_obj.execute(f'sed -i \'s/\"minor\": [0-9]\\+/\"minor\": {new_minor}/\' {json_path}')
         return new_major, new_minor
     raise OSError(f'Json File {json_path} not found to alternate the major/minor versions')
 
 
-def _assert_exported_cvv_exists(export_dir, content_view_name, content_view_version):
+def _assert_exported_cvv_exists(export_dir, content_view_name, content_view_version, host_obj):
     """Verify an exported tar exists
 
     :return: The path to the tar (if it exists).
     """
     exported_tar = f'{export_dir}/export-{content_view_name}-{content_view_version}.tar'
-    result = ssh.command(f'[ -f {exported_tar} ]')
-    assert result.return_code == 0
+    result = host_obj.execute(f'[ -f {exported_tar} ]')
+    assert result.status == 0
     return exported_tar
 
 
@@ -383,7 +384,7 @@ class TestContentViewSync:
     @pytest.mark.upgrade
     @pytest.mark.tier3
     def test_positive_export_import_default_org_view(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Export Default Organization View version contents in directory and Import them.
 
@@ -432,8 +433,8 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{cview_label}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list({'content-view-version-id': default_cvv_id})
         assert len(exported_packages) > 0
         # importing
@@ -465,7 +466,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_positive_export_import_filtered_cvv(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """CV Version with filtered contents only can be exported and imported.
 
@@ -531,8 +532,8 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-'
             f'{exporting_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) == 1
         imported_entities = _import_entities(
@@ -554,7 +555,9 @@ class TestContentViewSync:
         assert len(imported_packages) == 1
 
     @pytest.mark.tier3
-    def test_positive_export_import_cv(self, class_export_entities, function_export_cv_directory):
+    def test_positive_export_import_cv(
+        self, class_export_entities, function_export_cv_directory, default_sat
+    ):
         """Export CV version contents in directory and Import them.
 
         :id: b4fb9386-9b6a-4fc5-a8bf-96d7c80af93e
@@ -593,8 +596,8 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
             f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list(
             {'content-view-version-id': class_export_entities['exporting_cvv_id']}
         )
@@ -621,7 +624,7 @@ class TestContentViewSync:
     @pytest.mark.tier3
     @pytest.mark.upgrade
     def test_positive_export_import_redhat_cv(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Export CV version redhat contents in directory and Import them
 
@@ -669,8 +672,8 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{rhva_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) > 0
         Subscription.delete_manifest(
@@ -691,7 +694,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier4
     def test_positive_export_import_redhat_cv_with_huge_contents(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Export CV version redhat contents in directory and Import them
 
@@ -739,8 +742,8 @@ class TestContentViewSync:
         exported_tar = (
             f'{function_export_cv_directory}/export-{rhel_cv_name}-{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(exported_packages) > 0
         Subscription.delete_manifest(
@@ -761,7 +764,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier2
     def test_positive_exported_cv_tar_contents(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Exported CV version contents in export directory are same as CVv contents
 
@@ -792,9 +795,9 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
             f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
-        result = ssh.command(f'tar -t -f {exported_tar}')
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
+        result = default_sat.execute(f'tar -t -f {exported_tar}')
         contents_tar = (
             f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}/export-'
             f'{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}-repos.tar'
@@ -804,8 +807,8 @@ class TestContentViewSync:
             {'content-view-version-id': class_export_entities['exporting_cvv_id']}
         )
         assert len(cvv_packages) > 0
-        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
-        exported_packages = ssh.command(
+        default_sat.execute(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
+        exported_packages = default_sat.execute(
             f'tar -tf {function_export_cv_directory}/{contents_tar} | grep .rpm | wc -l'
         )
         assert len(cvv_packages) == int(exported_packages.stdout[0])
@@ -813,7 +816,7 @@ class TestContentViewSync:
     @pytest.mark.tier1
     @pytest.mark.upgrade
     def test_positive_export_import_promoted_cv(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Export promoted CV version contents in directory and Import them.
 
@@ -856,8 +859,8 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
             f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         exported_packages = Package.list({'content-view-version-id': promoted_cvv_id})
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
@@ -933,7 +936,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier2
     def test_negative_reimport_cv_with_same_major_minor(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Reimport CV version with same major and minor fails
 
@@ -965,8 +968,8 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
             f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
             class_export_entities['exporting_repo_name'],
@@ -1324,7 +1327,7 @@ class TestContentViewSync:
 
     @pytest.mark.tier3
     def test_postive_export_cv_with_mixed_content_repos(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Exporting CV version having yum and non-yum(puppet) is successful
 
@@ -1397,12 +1400,15 @@ class TestContentViewSync:
             {'export-dir': f'{function_export_cv_directory}', 'id': export_cvv_info['id']}
         )
         _assert_exported_cvv_exists(
-            function_export_cv_directory, content_view['name'], export_cvv_info['version']
+            function_export_cv_directory,
+            content_view['name'],
+            export_cvv_info['version'],
+            default_sat,
         )
 
     @pytest.mark.tier2
     def test_positive_import_cv_with_customized_major_minor(
-        self, class_export_entities, function_export_cv_directory
+        self, class_export_entities, function_export_cv_directory, default_sat
     ):
         """Import the CV version with customized major and minor
 
@@ -1435,15 +1441,15 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/export-{class_export_entities["exporting_cv_name"]}-'
             f'{exporting_cvv_version}.tar'
         )
-        result = ssh.command(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        result = default_sat.execute(f'[ -f {exported_tar} ]')
+        assert result.status == 0
         imported_entities = _import_entities(
             class_export_entities['exporting_prod_name'],
             class_export_entities['exporting_repo_name'],
             class_export_entities['exporting_cv_name'],
         )
         # Updating the json in exported tar
-        ssh.command(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
+        default_sat.execute(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         extracted_directory_name = (
             f'export-{class_export_entities["exporting_cv_name"]}-{exporting_cvv_version}'
         )
@@ -1451,9 +1457,9 @@ class TestContentViewSync:
             f'{function_export_cv_directory}/{extracted_directory_name}/'
             f'{extracted_directory_name}.json'
         )
-        new_major, new_minor = _update_json(json_path)
+        new_major, new_minor = _update_json(json_path, default_sat)
         custom_cvv_tar = f'{function_export_cv_directory}/{extracted_directory_name}.tar'
-        ssh.command(
+        default_sat.execute(
             f'tar -cvf {custom_cvv_tar} {function_export_cv_directory}/{extracted_directory_name}'
         )
         # Importing the updated tar
@@ -1516,7 +1522,7 @@ class TestContentViewSync:
             f'-{exporting_cvv_version}.tar'
         )
         result = default_sat.execute(f'[ -f {exported_tar} ]')
-        assert result.return_code == 0
+        assert result.status == 0
         # Updating the json in exported tar
         default_sat.execute(f'tar -xf {exported_tar} -C {function_export_cv_directory}')
         extracted_directory_name = (

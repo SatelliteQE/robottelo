@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import os
 import random
 
 import pytest
@@ -26,7 +25,6 @@ from nailgun import entities
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
-from robottelo import ssh
 from robottelo.api.utils import create_sync_custom_repo
 from robottelo.cli import factory as cli_factory
 from robottelo.cli.activationkey import ActivationKey
@@ -49,7 +47,6 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.datafactory import invalid_names_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_names_list
-from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import create_repo
 from robottelo.helpers import get_data_file
 from robottelo.helpers import repo_add_updateinfo
@@ -82,7 +79,6 @@ def module_rhel_content(module_manifest_org):
     return repo
 
 
-@skip_if_os('RHEL6')
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.fixture(scope='class')
 def all_content_type(module_org):
@@ -3752,7 +3748,7 @@ class TestContentView:
             repo_name,
             f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_OLD_UPDATEFILE}',
         )
-        assert result.return_code == 0
+        assert result.status == 0
         repo = cli_factory.make_repository({'product-id': module_product.id, 'url': repo_url})
         Repository.synchronize({'id': repo['id']})
         content_view = cli_factory.make_content_view(
@@ -3772,7 +3768,7 @@ class TestContentView:
             repo_name,
             f'{settings.repos.inc_upd.url}{constants.FAKE_0_INC_UPD_NEW_UPDATEFILE}',
         )
-        assert result.return_code == 0
+        assert result.status == 0
         Repository.synchronize({'id': repo['id']})
         result = ContentView.version_incremental_update(
             {'content-view-version-id': cvv['id'], 'errata-ids': constants.FAKE_0_INC_UPD_ERRATA}
@@ -4097,24 +4093,18 @@ class TestContentViewFileRepo:
     arbitrary files
     """
 
-    def make_file_repository_upload_contents(self, module_org, module_product, options=None):
+    def make_file_repository_upload_contents(
+        self, module_org, module_product, satellite, options=None
+    ):
         """Makes a new File repository, Upload File/Multiple Files
         and asserts its success"""
-
         if options is None:
             options = {'product-id': module_product.id, 'content-type': 'file'}
         if not options.get('content-type'):
             raise cli_factory.CLIFactoryError('Please provide a valid Content Type.')
         new_repo = cli_factory.make_repository(options)
         remote_path = f'/tmp/{constants.RPM_TO_UPLOAD}'
-        if 'multi_upload' not in options or not options['multi_upload']:
-            ssh.upload_file(
-                local_file=get_data_file(constants.RPM_TO_UPLOAD), remote_file=remote_path
-            )
-        else:
-            remote_path = f'/tmp/{gen_string("alpha")}/'
-            ssh.upload_files(local_dir=f'{os.getcwd()}/../data/', remote_dir=remote_path)
-
+        satellite.put(get_data_file(constants.RPM_TO_UPLOAD), remote_path)
         Repository.upload_content(
             {
                 'name': new_repo['name'],
@@ -4129,7 +4119,7 @@ class TestContentViewFileRepo:
 
     @pytest.mark.skip_if_open('BZ:1610309')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product):
+    def test_positive_arbitrary_file_repo_addition(self, module_org, module_product, default_sat):
         """Check a File Repository with Arbitrary File can be added to a
         Content View
 
@@ -4153,7 +4143,9 @@ class TestContentViewFileRepo:
 
         :BZ: 1610309, 1908465
         """
-        repo = self.make_file_repository_upload_contents(module_org, module_product)
+        repo = self.make_file_repository_upload_contents(
+            module_org, module_product, satellite=default_sat
+        )
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
         # Associate repo to CV with names.
         ContentView.add_repository(
@@ -4219,7 +4211,7 @@ class TestContentViewFileRepo:
         """
 
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product):
+    def test_positive_arbitrary_file_repo_promotion(self, module_org, module_product, default_sat):
         """Check arbitrary files availability for Content view version after
         content-view promotion.
 
@@ -4246,7 +4238,9 @@ class TestContentViewFileRepo:
         """
 
         cv = cli_factory.make_content_view({'organization-id': module_org.id})
-        repo = self.make_file_repository_upload_contents(module_product, module_product)
+        repo = self.make_file_repository_upload_contents(
+            module_product, module_product, satellite=default_sat
+        )
         ContentView.add_repository(
             {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
         )
@@ -4268,7 +4262,7 @@ class TestContentViewFileRepo:
         assert repo['name'] in expected_repo
 
     @pytest.mark.tier3
-    def test_positive_katello_repo_rpms_max_int(self):
+    def test_positive_katello_repo_rpms_max_int(self, default_sat):
         """Checking that datatype for katello_repository_rpms table is a
         bigint for id for a closed loop bz.
 
@@ -4282,5 +4276,7 @@ class TestContentViewFileRepo:
 
         :BZ: 1793701
         """
-        result = ssh.command('sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"')
-        assert 'id|bigint' in result.stdout[3].replace(' ', '')
+        result = default_sat.execute(
+            'sudo -u postgres psql -d foreman -c "\\d katello_repository_rpms"'
+        )
+        assert 'id|bigint' in result.stdout.splitlines()[3].replace(' ', '')

@@ -255,8 +255,8 @@ def test_positive_logging_from_pulp3(module_org, default_sat):
     # Get the id of repository sync from task
     task_out = default_sat.execute(
         "hammer task list | grep -F \'Synchronize repository {\"text\"=>\"repository\'"
-    ).stdout.split('\n')[0][:8]
-    prod_log_out = default_sat.execute(f'grep {task_out} {source_log}').stdout
+    ).stdout.splitlines()[0][:8]
+    prod_log_out = default_sat.execute(f'grep  {task_out} {source_log}').stdout.splitlines()[0]
     # Get correlation id of pulp from production logs
     pulp_correlation_id = re.search(r'\[I\|bac\|\w{8}\]', prod_log_out).group()[7:15]
     # verify pulp correlation id in message

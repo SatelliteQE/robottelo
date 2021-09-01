@@ -177,25 +177,21 @@ class TestIPAAuthSource:
     """Implements FreeIPA ldap auth feature tests in CLI"""
 
     def _add_user_in_IPA_usergroup(self, member_username, member_group):
-        ssh.command(
+        self.ipa_host.execute(
             f'echo {self.ldap_ipa_user_passwd} | kinit admin',
-            hostname=self.ldap_ipa_hostname,
         )
-        ssh.command(
+        self.ipa_host.execute(
             f'ipa group-add-member {member_group} --users={member_username}',
-            hostname=self.ldap_ipa_hostname,
         )
 
     def _remove_user_in_IPA_usergroup(self, member_username, member_group):
-        ssh.command(
+        self.ipa_host.execute(
             f'echo {self.ldap_ipa_user_passwd} | kinit admin',
-            hostname=self.ldap_ipa_hostname,
         )
-        result = ssh.command(
+        result = self.ipa_host.execute(
             f'ipa group-remove-member {member_group} --users={member_username}',
-            hostname=self.ldap_ipa_hostname,
         )
-        if result.return_code != 0:
+        if result.status != 0:
             raise AssertionError('failed to remove the user from user-group')
 
     def _clean_up_previous_ldap(self):
@@ -264,7 +260,7 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ldap_ipa_hostname = ipa_data['ldap_hostname']
+        self.ipa_host = ssh.get_client(hostname=ipa_data['ldap_hostname'])
         self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
         ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'
@@ -340,7 +336,7 @@ class TestIPAAuthSource:
         :CaseImportance: Medium
         """
         self._clean_up_previous_ldap()
-        self.ldap_ipa_hostname = ipa_data['ldap_hostname']
+        self.ipa_host = ssh.get_client(hostname=ipa_data['ldap_hostname'])
         self.ldap_ipa_user_passwd = ipa_data['ldap_user_passwd']
         ipa_group_base_dn = ipa_data['group_base_dn'].replace('foobargroup', 'foreman_group')
         member_username = 'foreman_test'

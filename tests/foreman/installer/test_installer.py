@@ -1280,7 +1280,7 @@ def extract_help(filter='params'):
     :return: generator with params or sections depends on filter parameter
     """
     stdout = ssh.command('satellite-installer --full-help').stdout
-    for line in stdout or []:
+    for line in stdout.splitlines() or []:
         line = line.strip()
         if filter == 'sections':
             if line.startswith('= '):
@@ -1294,7 +1294,7 @@ def extract_help(filter='params'):
 
 @pytest.mark.upgrade
 @pytest.mark.tier1
-def test_positive_foreman_module():
+def test_positive_foreman_module(default_sat):
     """Check if SELinux foreman module has the right version
 
     :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
@@ -1307,17 +1307,17 @@ def test_positive_foreman_module():
 
     :expectedresults: Foreman RPM and SELinux module versions match
     """
-    rpm_result = ssh.command('rpm -q foreman-selinux')
-    assert rpm_result.return_code == 0
+    rpm_result = default_sat.execute('rpm -q foreman-selinux')
+    assert rpm_result.status == 0
 
-    semodule_result = ssh.command('semodule -l | grep foreman')
-    assert semodule_result.return_code == 0
+    semodule_result = default_sat.execute('semodule -l | grep foreman')
+    assert semodule_result.status == 0
 
     # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
     version_regex = re.compile(r'((\d\.?)+[-.]\d)')
-    rpm_version = version_regex.search(''.join(rpm_result.stdout)).group(1)
+    rpm_version = version_regex.search(rpm_result.stdout).group(1)
     # Sample semodule output: foreman        1.7.2.8
-    semodule_version = version_regex.search(''.join(semodule_result.stdout)).group(1)
+    semodule_version = version_regex.search(semodule_result.stdout).group(1)
     rpm_version = rpm_version[:-2]
     assert rpm_version.replace('-', '.') == semodule_version
 

@@ -22,7 +22,6 @@ from nailgun import entities
 from requests import get
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
@@ -35,7 +34,7 @@ class TestTemplateSyncTestCase:
     """
 
     @pytest.fixture(scope='module', autouse=True)
-    def setUpClass(self):
+    def setUpClass(self, default_sat):
         """Setup for TemplateSync functional testing
 
         :setup:
@@ -55,7 +54,7 @@ class TestTemplateSyncTestCase:
             raise HTTPError('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
-        ssh.command(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
+        default_sat.execute(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
 
     @pytest.mark.tier2
     def test_positive_import_filtered_templates_from_git(self, module_org, module_location):
@@ -192,6 +191,7 @@ class TestTemplateSyncTestCase:
         module_org,
         default_org,
         default_location,
+        default_sat,
     ):
         """Assure imported templates are associated/not_associated with taxonomies based on
         `associate` option and templates metadata.
@@ -254,7 +254,7 @@ class TestTemplateSyncTestCase:
         )
         assert not ptemplate
         # Associate New
-        ssh.command(
+        default_sat.execute(
             f'cp {dir_path}/example_template.erb {dir_path}/another_template.erb && '
             f'sed -ie "s/name: .*/name: another_template/" {dir_path}/another_template.erb'
         )
@@ -359,7 +359,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_localdir(
-        self, module_org, create_import_export_local_dir
+        self, module_org, create_import_export_local_dir, default_sat
     ):
         """Assure only templates with a given filter regex are pushed to
         local directory (new templates are created, existing updated).
@@ -391,12 +391,12 @@ class TestTemplateSyncTestCase:
             template['exported'] for template in exported_temps['message']['templates']
         ].count(True)
         assert exported_count == int(
-            ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0]
+            default_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
         )
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_negate(
-        self, module_org, create_import_export_local_dir
+        self, module_org, create_import_export_local_dir, default_sat
     ):
         """Assure templates with a given filter regex are not exported.
 
@@ -423,12 +423,15 @@ class TestTemplateSyncTestCase:
                 'negate': True,
             }
         )
-        assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '0'
-        assert ssh.command(f'find {dir_path} -type f | wc -l').stdout[0] != '0'
+        assert (
+            default_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
+            == '0'
+        )
+        assert default_sat.execute(f'find {dir_path} -type f | wc -l').stdout.strip() != '0'
 
     @pytest.mark.tier2
     def test_positive_export_and_import_with_metadata(
-        self, create_import_export_local_dir, module_org, module_location
+        self, create_import_export_local_dir, module_org, module_location, default_sat
     ):
         """Assure exported template contains metadata.
 
@@ -470,10 +473,10 @@ class TestTemplateSyncTestCase:
                 'filter': prefix,
             }
         )
-        result = ssh.command(
+        result = default_sat.execute(
             f'grep {module_org.name} {dir_path}/provisioning_templates/user_data/{export_file}'
         )
-        assert result.return_code == 0
+        assert result.status == 0
         # Export same template to local dir with keeping metadata
         entities.Template().exports(
             data={
@@ -484,10 +487,10 @@ class TestTemplateSyncTestCase:
                 'filter': prefix,
             }
         )
-        result = ssh.command(
+        result = default_sat.execute(
             f'grep {module_org.name} {dir_path}/provisioning_templates/user_data/{export_file}'
         )
-        assert result.return_code == 1
+        assert result.status == 1
         # Export same template to local dir with removed metadata
         entities.Template().exports(
             data={
@@ -498,10 +501,10 @@ class TestTemplateSyncTestCase:
                 'filter': prefix,
             }
         )
-        result = ssh.command(
+        result = default_sat.execute(
             f'grep organizations: {dir_path}/provisioning_templates/user_data/{export_file}'
         )
-        assert result.return_code == 1
+        assert result.status == 1
 
     # Take Templates out of Tech Preview Feature Tests
     @pytest.mark.tier3
@@ -599,7 +602,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_changed_key_true(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, default_sat
     ):
         """Assert template imports output `changed` key returns `True` when
         template data gets updated
@@ -627,7 +630,7 @@ class TestTemplateSyncTestCase:
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
         assert bool(pre_template['message']['templates'][0]['imported'])
-        ssh.command(f'echo " Updating Template data." >> {dir_path}/example_template.erb')
+        default_sat.execute(f'echo " Updating Template data." >> {dir_path}/example_template.erb')
         post_template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'prefix': prefix}
         )
@@ -668,7 +671,9 @@ class TestTemplateSyncTestCase:
         assert not bool(post_template['message']['templates'][0]['changed'])
 
     @pytest.mark.tier2
-    def test_positive_import_json_output_name_key(self, create_import_export_local_dir, module_org):
+    def test_positive_import_json_output_name_key(
+        self, create_import_export_local_dir, module_org, default_sat
+    ):
         """Assert template imports output `name` key returns correct name
 
         :id: a5639368-3d23-4a37-974a-889e2ec0916e
@@ -687,7 +692,9 @@ class TestTemplateSyncTestCase:
         """
         template_name = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
-        ssh.command(f'sed -ie "s/name: .*/name: {template_name}/" {dir_path}/example_template.erb')
+        default_sat.execute(
+            f'sed -ie "s/name: .*/name: {template_name}/" {dir_path}/example_template.erb'
+        )
         template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
@@ -748,7 +755,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_corrupted_metadata(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, default_sat
     ):
         """Assert template imports output returns corrupted metadata error for
         incorrect metadata in template
@@ -770,7 +777,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         _, dir_path = create_import_export_local_dir
-        ssh.command(f'sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {dir_path}/example_template.erb')
+        default_sat.execute(f'sed -ie "s/<%#/$#$#@%^$^@@RT$$/" {dir_path}/example_template.erb')
         template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
@@ -818,7 +825,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_no_name_error(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, default_sat
     ):
         """Assert template imports output returns no name error for template
         without name
@@ -840,7 +847,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         _, dir_path = create_import_export_local_dir
-        ssh.command(f'sed -ie "s/name: .*/name: /" {dir_path}/example_template.erb')
+        default_sat.execute(f'sed -ie "s/name: .*/name: /" {dir_path}/example_template.erb')
         template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
@@ -852,7 +859,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_no_model_error(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, default_sat
     ):
         """Assert template imports output returns no model error for template
         without model
@@ -874,7 +881,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         _, dir_path = create_import_export_local_dir
-        ssh.command(f'sed -ie "/model: .*/d" {dir_path}/example_template.erb')
+        default_sat.execute(f'sed -ie "/model: .*/d" {dir_path}/example_template.erb')
         template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
@@ -886,7 +893,7 @@ class TestTemplateSyncTestCase:
 
     @pytest.mark.tier2
     def test_positive_import_json_output_blank_model_error(
-        self, create_import_export_local_dir, module_org
+        self, create_import_export_local_dir, module_org, default_sat
     ):
         """Assert template imports output returns blank model name error for
         template without template name
@@ -908,7 +915,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Low
         """
         _, dir_path = create_import_export_local_dir
-        ssh.command(f'sed -ie "s/model: .*/model: /" {dir_path}/example_template.erb')
+        default_sat.execute(f'sed -ie "s/model: .*/model: /" {dir_path}/example_template.erb')
         template = entities.Template().imports(
             data={'repo': dir_path, 'organization_ids': [module_org.id]}
         )
@@ -919,7 +926,9 @@ class TestTemplateSyncTestCase:
         )
 
     @pytest.mark.tier2
-    def test_positive_export_json_output(self, create_import_export_local_dir, module_org):
+    def test_positive_export_json_output(
+        self, create_import_export_local_dir, module_org, default_sat
+    ):
         """Assert template export output returns template names
 
         :id: 141b893d-72a3-47c2-bb03-004c757bcfc9
@@ -961,17 +970,17 @@ class TestTemplateSyncTestCase:
         assert exported_count == 18
         assert 'name' in exported_templates['message']['templates'][0].keys()
         assert (
-            ssh.command(
+            default_sat.execute(
                 f'[ -d {dir_path}/job_templates ] && '
                 f'[ -d {dir_path}/partition_tables_templates ] && '
                 f'[ -d {dir_path}/provisioning_templates ] && '
                 f'[ -d {dir_path}/report_templates ]'
-            ).return_code
+            ).status
             == 0
         )
 
     @pytest.mark.tier3
-    def test_positive_import_log_to_production(self, module_org):
+    def test_positive_import_log_to_production(self, module_org, default_sat):
         """Assert template import logs are logged to production logs
 
         :id: 19ed0e6a-ee77-4e28-86c9-49db1adec479
@@ -998,13 +1007,18 @@ class TestTemplateSyncTestCase:
             }
         )
         time.sleep(5)
-        result = ssh.command(
-            'grep -i \'Started POST "/api/v2/templates/import"\' /var/log/foreman/production.log'
+        assert (
+            default_sat.execute(
+                'grep -i \'Started POST "/api/v2/templates/import"\''
+                ' /var/log/foreman/production.log'
+            ).status
+            == 0
         )
-        assert result.return_code == 0
 
     @pytest.mark.tier3
-    def test_positive_export_log_to_production(self, create_import_export_local_dir, module_org):
+    def test_positive_export_log_to_production(
+        self, create_import_export_local_dir, module_org, default_sat
+    ):
         """Assert template export logs are logged to production logs
 
         :id: 8ae370b1-84e8-436e-a7d7-99cd0b8f45b1
@@ -1035,7 +1049,10 @@ class TestTemplateSyncTestCase:
             data={'repo': dir_path, 'organization_ids': [module_org.id], 'filter': 'empty'}
         )
         time.sleep(5)
-        result = ssh.command(
-            'grep -i \'Started POST "/api/v2/templates/export"\' /var/log/foreman/production.log'
+        assert (
+            default_sat.execute(
+                'grep -i \'Started POST "/api/v2/templates/export"\''
+                ' /var/log/foreman/production.log'
+            ).status
+            == 0
         )
-        assert result.return_code == 0

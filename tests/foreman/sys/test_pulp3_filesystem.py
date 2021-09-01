@@ -73,13 +73,13 @@ def test_pulp_service_definitions(default_sat):
     # check pulpcore settings
     result = default_sat.execute('systemctl cat pulpcore-content.socket')
     assert result.status == 0
-    assert 'ListenStream=/run/pulpcore-content.sock' in result.stdout.split('\n')
+    assert 'ListenStream=/run/pulpcore-content.sock' in result.stdout
     result = default_sat.execute('systemctl cat pulpcore-content.service')
     assert result.status == 0
-    assert 'Requires=pulpcore-content.socket' in result.stdout.split('\n')
+    assert 'Requires=pulpcore-content.socket' in result.stdout
     result = default_sat.execute('systemctl cat pulpcore-api.service')
     assert result.status == 0
-    assert 'Requires=pulpcore-api.socket' in result.stdout.split('\n')
+    assert 'Requires=pulpcore-api.socket' in result.stdout
     # check pulp3 configuration file present
     result = default_sat.execute('test -f /etc/pulp/settings.py')
     assert result.status == 0
