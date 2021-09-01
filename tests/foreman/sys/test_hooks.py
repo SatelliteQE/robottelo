@@ -21,7 +21,6 @@ from fauxfactory import gen_ipaddr
 from nailgun import entities
 from requests.exceptions import HTTPError
 
-from robottelo import ssh
 from robottelo.datafactory import valid_hostgroups_list
 from robottelo.datafactory import valid_hosts_list
 
@@ -34,21 +33,21 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.destructive]
 
 
 @pytest.fixture(scope='function')
-def logger_hook(default_org):
+def logger_hook(default_org, default_sat):
     """Create logger script to be executed via hooks"""
-    ssh.command(
+    default_sat.execute(
         '''printf '#!/bin/sh\necho "$(date): Executed $1 hook'''
         + f''' on object $2" > {LOGS_DIR}' > {SCRIPT_PATH}'''
     )
-    ssh.command(f'chmod 774 {SCRIPT_PATH}')
-    ssh.command(f'chown foreman:foreman {SCRIPT_PATH}')
-    ssh.command(f'restorecon -RvF {HOOKS_DIR}')
+    default_sat.execute(f'chmod 774 {SCRIPT_PATH}')
+    default_sat.execute(f'chown foreman:foreman {SCRIPT_PATH}')
+    default_sat.execute(f'restorecon -RvF {HOOKS_DIR}')
     yield
 
-    ssh.command(f'rm -rf {HOOKS_DIR}/*')
+    default_sat.execute(f'rm -rf {HOOKS_DIR}/*')
 
 
-def test_positive_host_hooks(logger_hook):
+def test_positive_host_hooks(logger_hook, default_sat):
     """Create hooks to be executed on host create, update and destroy
 
     :id: 4fe35fda-1524-44f7-9221-96d1aeafc75c
@@ -70,37 +69,37 @@ def test_positive_host_hooks(logger_hook):
     destroy_event = 'destroy'
     for event in [create_event, destroy_event, update_event]:
         hook_dir = f'{HOOKS_DIR}/host/managed/{event}'
-        ssh.command(f'mkdir -p {hook_dir}')
-        ssh.command(f'ln -sf {SCRIPT_PATH} {hook_dir}/')
-    result = ssh.command('systemctl restart httpd')
-    assert result.return_code == 0
+        default_sat.execute(f'mkdir -p {hook_dir}')
+        default_sat.execute(f'ln -sf {SCRIPT_PATH} {hook_dir}/')
+    result = default_sat.execute('systemctl restart httpd')
+    assert result.status == 0
 
     # delete host, check logs for hook activity
     host = entities.Host(name=host_name).create()
     assert host.name == f'{host_name}.{host.domain.read().name}'
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(create_event, host_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(create_event, host_name) in result.stdout
 
     # update host, check logs for hook activity
     new_ip = gen_ipaddr()
     host.ip = new_ip
     host = host.update(['ip'])
     assert host.ip == new_ip
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(update_event, host_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(update_event, host_name) in result.stdout
 
     # delete host, check logs for hook activity
     host.delete()
     with pytest.raises(HTTPError):
         host.read()
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(destroy_event, host_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(destroy_event, host_name) in result.stdout
 
 
-def test_positive_hostgroup_hooks(logger_hook, default_org):
+def test_positive_hostgroup_hooks(logger_hook, default_org, default_sat):
     """Create hooks to be executed on hostgroup create, udpdate and destroy
 
     :id: 7e935dec-e4fe-47d8-be02-8c687a99ae7a
@@ -123,31 +122,31 @@ def test_positive_hostgroup_hooks(logger_hook, default_org):
     destroy_event = 'before_destroy'
     for event in [create_event, update_event, destroy_event]:
         hook_dir = f'{HOOKS_DIR}/hostgroup/{event}'
-        ssh.command(f'mkdir -p {hook_dir}')
-        ssh.command(f'ln -sf {SCRIPT_PATH} {hook_dir}/')
-    result = ssh.command('systemctl restart httpd')
-    assert result.return_code == 0
+        default_sat.execute(f'mkdir -p {hook_dir}')
+        default_sat.execute(f'ln -sf {SCRIPT_PATH} {hook_dir}/')
+    result = default_sat.execute('systemctl restart httpd')
+    assert result.status == 0
 
     # create hg, check logs for hook activity
     hg = entities.HostGroup(name=hg_name, organization=[default_org.id]).create()
     assert hg.name == hg_name
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(create_event, hg_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(create_event, hg_name) in result.stdout
 
     # update hg, check logs for hook activity
     new_arch = entities.Architecture().create()
     hg.architecture = new_arch
     hg = hg.update(['architecture'])
     assert hg.architecture.read().name == new_arch.name
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(update_event, hg_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(update_event, hg_name) in result.stdout
 
     # delete hg, check logs for hook activity
     hg.delete()
     with pytest.raises(HTTPError):
         hg.read()
-    result = ssh.command(f'cat {LOGS_DIR}')
-    assert result.return_code == 0
-    assert expected_msg.format(destroy_event, hg_name) in result.stdout[0]
+    result = default_sat.execute(f'cat {LOGS_DIR}')
+    assert result.status == 0
+    assert expected_msg.format(destroy_event, hg_name) in result.stdout

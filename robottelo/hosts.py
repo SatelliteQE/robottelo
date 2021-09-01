@@ -13,6 +13,7 @@ from fauxfactory import gen_alpha
 from fauxfactory import gen_string
 from nailgun import entities
 from packaging.version import Version
+from ssh2.exceptions import AuthenticationError
 from wait_for import TimedOutError
 from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
@@ -27,6 +28,7 @@ from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
 from robottelo.constants import HAMMER_CONFIG
+from robottelo.constants import SATELLITE_VERSION
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
 from robottelo.helpers import validate_ssh_pub_key
@@ -38,6 +40,22 @@ POWER_OPERATIONS = {
     'reboot': 'reboot'
     # TODO paused, suspended, shelved?
 }
+
+
+def get_sat_version():
+    """Try to read sat_version from envvar SATELLITE_VERSION
+    if not available fallback to ssh connection to get it."""
+
+    try:
+        sat_version = Satellite().version
+    except (AuthenticationError, ContentHostError):
+        if hasattr(settings.server.version, 'release'):
+            sat_version = str(settings.server.version.release)
+        elif hasattr(settings.robottelo, 'satellite_version'):
+            sat_version = settings.robottelo.satellite_version
+        else:
+            sat_version = SATELLITE_VERSION
+    return Version('9999' if 'nightly' in sat_version else sat_version)
 
 
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
@@ -293,10 +311,10 @@ class ContentHost(Host):
             installed.
         """
         self.execute(f'rpm -Uvh {satellite.url_katello_ca_rpm}')
-        # Not checking the return_code here, as rpm could be installed before
+        # Not checking the status here, as rpm could be installed before
         # and installation may fail
         result = self.execute(f'rpm -q katello-ca-consumer-{satellite.hostname}')
-        # Checking the return_code here to verify katello-ca rpm is actually
+        # Checking the status here to verify katello-ca rpm is actually
         # present in the system
         if result.status != 0:
             ContentHostError('Failed to download and install the katello-ca rpm')
@@ -307,10 +325,10 @@ class ContentHost(Host):
         :return: None.
         :raises robottelo.hosts.ContentHostError: If katello-ca wasn't removed.
         """
-        # Not checking the return_code here, as rpm can be not even installed
+        # Not checking the status here, as rpm can be not even installed
         # and deleting may fail
         self.execute('yum erase -y $(rpm -qa |grep katello-ca-consumer)')
-        # Checking the return_code here to verify katello-ca rpm is actually
+        # Checking the status here to verify katello-ca rpm is actually
         # not present in the system
         result = self.execute('rpm -qa |grep katello-ca-consumer')
         if result.status == 0:

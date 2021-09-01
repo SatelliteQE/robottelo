@@ -465,4 +465,4 @@ def test_positive_assign_http_proxy_to_products():
 
     # Verify that proxy FQDN appears in log during sync.
     result = ssh.command(f'grep -F {proxy_fqdn} /var/log/messages')
-    assert result.return_code == 0
+    assert result.status == 0

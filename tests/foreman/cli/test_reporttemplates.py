@@ -64,15 +64,14 @@ from robottelo.constants import REPORT_TEMPLATE_FILE
 from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
-from robottelo.ssh import upload_file
 
 
 @pytest.fixture(scope='module')
-def local_org():
+def local_org(default_sat):
     """Create org with CLI factory and upload cloned manifest"""
     org = make_org()
     with manifests.clone() as manifest:
-        upload_file(manifest.content, manifest.filename)
+        default_sat.put(manifest.content, manifest.filename)
     return org
 
 

@@ -12,12 +12,12 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from nailgun import entities
 
+from robottelo import ssh
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import INTERFACE_API
 from robottelo.constants import INTERFACE_CLI
 from robottelo.decorators.func_locker import lock_function
-from robottelo.ssh import upload_file
 
 
 class ManifestCloner:
@@ -241,7 +241,7 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
     else:
         # interface is INTERFACE_CLI
         with manifest:
-            upload_file(manifest.content, manifest.filename)
+            ssh.get_client().put(manifest.content, manifest.filename)
 
         result = Subscription.upload(
             {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout

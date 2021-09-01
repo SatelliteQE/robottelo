@@ -12,7 +12,7 @@ from robottelo.config import settings
 from robottelo.constants import CLOSED_STATUSES
 from robottelo.constants import OPEN_STATUSES
 from robottelo.constants import WONTFIX_RESOLUTIONS
-from robottelo.host_info import get_sat_version
+from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 
 

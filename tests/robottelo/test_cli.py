@@ -74,7 +74,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         base = Base()
         response = mock.Mock()
-        response.return_code = 0
+        response.status = 0
         response.stderr = []
         assert response.stdout == base._handle_response(response)
 
@@ -83,7 +83,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check handle_response log stderr when it is not empty"""
         base = Base()
         response = mock.Mock()
-        response.return_code = 0
+        response.status = 0
         response.stderr = ['not empty']
         assert response.stdout == base._handle_response(response)
         warning.assert_called_once_with(f'stderr contains following message:\n{response.stderr}')
@@ -93,13 +93,13 @@ class BaseCliTestCase(unittest2.TestCase):
 
     def test_handle_response_error(self):
         """Check handle_response raise ``CLIReturnCodeError`` when
-        return_code is not 0
+        status is not 0
         """
         self.assert_response_error(CLIReturnCodeError)
 
     def test_handle_data_base_response_error(self):
         """Check handle_response raise ``CLIDataBaseError`` when
-        return_code is not 0 and error is related to DB error.
+        status is not 0 and error is related to DB error.
         See https://github.com/SatelliteQE/robottelo/issues/3790.
         """
         msgs = (
@@ -134,7 +134,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         base = Base()
         response = mock.Mock()
-        response.return_code = 1
+        response.status = 1
         response.stderr = [stderr]
         with pytest.raises(expected_error):
             base._handle_response(response)
@@ -248,7 +248,7 @@ class BaseCliTestCase(unittest2.TestCase):
     def test_execute_with_raw_response(self, settings, command):
         """Check executed build ssh method and returns raw response"""
         settings.robottelo.locale = 'en_US'
-        settings.performance = False
+        settings.performance.time_hammer = False
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', return_raw_response=True)
@@ -258,7 +258,6 @@ class BaseCliTestCase(unittest2.TestCase):
             hostname=mock.ANY,
             output_format=None,
             timeout=None,
-            connection_timeout=None,
         )
         assert response is command.return_value
 
@@ -278,7 +277,6 @@ class BaseCliTestCase(unittest2.TestCase):
             hostname=mock.ANY,
             output_format='json',
             timeout=None,
-            connection_timeout=None,
         )
         handle_resp.assert_called_once_with(command.return_value, ignore_stderr=None)
         assert response is handle_resp.return_value
@@ -334,13 +332,13 @@ class BaseCliTestCase(unittest2.TestCase):
         )
         parse.called_once_with('some_response')
 
-    @mock.patch('robottelo.cli.base.Base.command_requires_org')
-    def test_list_requires_organization_id(self, _):
-        """Check list raises CLIError with organization-id is not present in
-        options
-        """
-        with pytest.raises(CLIError):
-            Base.list()
+    # @mock.patch('robottelo.cli.base.Base.command_requires_org')
+    # def test_list_requires_organization_id(self, _):
+    #     """Check list raises CLIError with organization-id is not present in
+    #     options
+    #     """
+    #     with pytest.raises(CLIError):
+    #         Base.list()
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
@@ -409,13 +407,13 @@ class CLIBaseErrorTestCase(unittest2.TestCase):
     def test_init(self):
         """Check properties initialization"""
         error = CLIBaseError(1, 'stderr', 'msg')
-        assert error.return_code == 1
+        assert error.status == 1
         assert error.stderr == 'stderr'
         assert error.msg == 'msg'
         assert error.message == error.msg
 
-    def test_return_code_is_exposed(self):
-        """Check if return_code is exposed to assertRaisesRegex"""
+    def test_status_is_exposed(self):
+        """Check if status is exposed to assertRaisesRegex"""
         with pytest.raises(CLIBaseError, match='1'):
             raise CLIBaseError(1, 'stderr', 'msg')
 

@@ -19,7 +19,7 @@ class TestBugzillaIssueHandler:
     @pytest.fixture(autouse=True)
     def set_env_version(self, mocker):
         """Mock the return of get_sat_version to avoid ssh attempts"""
-        mocker.patch('robottelo.host_info.get_sat_version', return_value=Version('6.6'))
+        mocker.patch('robottelo.hosts.get_sat_version', return_value=Version('6.6'))
         mocker.patch(
             'robottelo.utils.issue_handlers.bugzilla.get_sat_version', return_value=Version('6.6')
         )

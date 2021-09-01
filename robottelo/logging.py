@@ -42,7 +42,6 @@ def configure_third_party_logging():
         'broker',
         'easyprocess',
         'nailgun',
-        'paramiko',
         'requests.packages.urllib3.connectionpool',
         'robozilla',
         'selenium.webdriver.remote.remote_connection',

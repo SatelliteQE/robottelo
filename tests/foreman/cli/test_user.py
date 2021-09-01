@@ -26,7 +26,6 @@ import datetime
 import random
 from time import sleep
 
-import paramiko
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -329,14 +328,6 @@ class TestUser:
 class TestSshKeyInUser:
     """Implements the SSH Key in User Tests"""
 
-    @pytest.fixture(scope='function')
-    def ssh_key(self):
-        """Generates RSA type ssh key using ssh module
-
-        :return: string type well formatted RSA key
-        """
-        return f'ssh-rsa {paramiko.RSAKey.generate(2048).get_base64()}'
-
     @pytest.fixture(scope='module')
     def module_user(self):
         """Create an user"""
@@ -375,7 +366,7 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        result = default_sat.execute(f'''echo '{ssh_key}' > test_key.pub''')
+        result = default_sat.execute(f"echo '{ssh_key}' > test_key.pub")
         assert result.status == 0, 'key file not created'
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})

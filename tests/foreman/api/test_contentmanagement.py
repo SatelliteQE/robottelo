@@ -32,12 +32,12 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
+from robottelo.content_info import get_repo_files
+from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
 from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
-from robottelo.host_info import get_repo_files
-from robottelo.host_info import get_repomd_revision
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -375,7 +375,7 @@ class TestCapsuleContentManagement:
             f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{REPOMD_PATH}',
         )
 
-        assert result.return_code == 0
+        assert result.status == 0
         assert len(result.stdout) > 0
 
     @pytest.mark.tier4
@@ -726,7 +726,7 @@ class TestCapsuleContentManagement:
             org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
         )
         result = ssh.command(f'find {cvv_repo_path}/ -type l')
-        assert result.return_code == 0
+        assert result.status == 0
 
         links = {link for link in result.stdout if link}
 
@@ -736,7 +736,7 @@ class TestCapsuleContentManagement:
         # nonexistent files)
         result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
 
-        assert result.return_code == 0
+        assert result.status == 0
 
         broken_links = {link for link in result.stdout if link}
 

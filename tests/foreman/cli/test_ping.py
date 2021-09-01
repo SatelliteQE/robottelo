@@ -18,12 +18,10 @@
 """
 import pytest
 
-from robottelo import ssh
-
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_ping():
+def test_positive_ping(default_sat):
     """hammer ping return code
 
     :id: dfa3ab4f-a64f-4a96-8c7f-d940df22b8bf
@@ -35,13 +33,13 @@ def test_positive_ping():
 
     :expectedresults: hammer ping returns a right return code
     """
-    result = ssh.command('hammer ping')
-    assert result.stderr.decode() == ''
+    result = default_sat.execute('hammer ping')
+    assert result.stderr[1].decode() == ''
 
     status_count = 0
     ok_count = 0
     # Exclude message from stdout for services candlepin_events and katello_events
-    result.stdout = [line for line in result.stdout if 'message' not in line]
+    result.stdout = [line for line in result.stdout.splitlines() if 'message' not in line]
 
     # iterate over the lines grouping every 3 lines
     # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
@@ -53,9 +51,9 @@ def test_positive_ping():
             ok_count += 1
 
     if status_count == ok_count:
-        assert result.return_code == 0, 'Return code should be 0 if all services are ok'
+        assert result.status == 0, 'Return code should be 0 if all services are ok'
     else:
-        assert result.return_code != 0, 'Return code should not be 0 if any service is not ok'
+        assert result.status != 0, 'Return code should not be 0 if any service is not ok'
 
 
 @pytest.mark.destructive

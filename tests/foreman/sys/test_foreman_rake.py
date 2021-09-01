@@ -14,13 +14,11 @@
 """
 import pytest
 
-from robottelo import ssh
-
 
 @pytest.mark.destructive
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_positive_katello_reimport():
+def test_positive_katello_reimport(destructive_sat):
     """Close loop bug for running katello:reimport.  Making sure
     that katello:reimport works and doesn't throw an error.
 
@@ -39,6 +37,6 @@ def test_positive_katello_reimport():
     :customerscenario: true
     """
 
-    result = ssh.command('foreman-rake katello:reimport')
+    result = destructive_sat.execute('foreman-rake katello:reimport')
     assert 'NoMethodError:' not in result.stdout
     assert 'rake aborted!' not in result.stdout
