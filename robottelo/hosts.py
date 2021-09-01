@@ -860,6 +860,43 @@ class ContentHost(Host):
             'virt_who_hypervisor_host': virt_who_hypervisor_host,
         }
 
+    def custom_cert_generate(self, capsule_hostname):
+        """copy all configuration files to satellite host for generating custom certs"""
+        self.execute(f'mkdir ssl-build/{capsule_hostname}')
+        for file in [
+            'generate-ca.sh',
+            'generate-crt.sh',
+            'openssl.cnf',
+            'certs.sh',
+            'extensions.txt',
+        ]:
+            self.session.sftp_write(get_data_file(file), f'/root/{file}')
+        self.execute('echo 100001 > serial')
+        self.execute('bash generate-ca.sh')
+        result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
+        assert result.status == 0
+        result = self.execute('bash certs.sh')
+        assert result.status == 0
+
+    def custom_certs_cleanup(self):
+        """cleanup all cert configuration files"""
+        files = [
+            'cacert.crt',
+            'cacert.crt',
+            'certindex*',
+            'generate-*.sh',
+            'capsule_cert',
+            'openssl.cnf',
+            'private',
+            'serial*',
+            'certs/*',
+            'extensions.txt',
+            'certs',
+            'certs.sh',
+            self.hostname,
+        ]
+        self.execute(f'cd /root && rm -rf {" ".join(files)}')
+
 
 class Capsule(ContentHost):
     @property
@@ -1069,43 +1106,6 @@ class Satellite(Capsule):
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         install_cmd.opts['certs-tar-file'] = f'/root/{capsule.hostname}-certs.tar'
         return install_cmd
-
-    def custom_cert_generate(self, capsule_hostname):
-        """copy all configuration files to satellite host for generating custom certs"""
-        self.execute(f'mkdir ssl-build/{capsule_hostname}')
-        for file in [
-            'generate-ca.sh',
-            'generate-crt.sh',
-            'openssl.cnf',
-            'certs.sh',
-            'extensions.txt',
-        ]:
-            self.session.sftp_write(get_data_file(file), f'/root/{file}')
-        self.execute('echo 100001 > serial')
-        self.execute('bash generate-ca.sh')
-        result = self.execute(f'yes | bash generate-crt.sh {self.hostname}')
-        assert result.status == 0
-        result = self.execute('bash certs.sh')
-        assert result.status == 0
-
-    def custom_certs_cleanup(self):
-        """cleanup all cert configuration files"""
-        files = [
-            'cacert.crt',
-            'cacert.crt',
-            'certindex*',
-            'generate-*.sh',
-            'capsule_cert',
-            'openssl.cnf',
-            'private',
-            'serial*',
-            'certs/*',
-            'extensions.txt',
-            'certs',
-            'certs.sh',
-            self.hostname,
-        ]
-        self.execute(f'cd /root && rm -rf {" ".join(files)}')
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything
