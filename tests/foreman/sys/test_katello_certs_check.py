@@ -22,8 +22,11 @@ from pathlib import Path
 
 import pytest
 from attrdict import AttrDict
+from broker.broker import VMBroker
 from fauxfactory import gen_string
 
+from robottelo.config import settings
+from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -59,39 +62,50 @@ class TestKatelloCertsCheck:
         ),
     ]
 
-    @pytest.fixture
-    def cert_setup_destructive_teardown(self, destructive_sat):
-        """Get host name, scripts, and create working directory."""
-        sat_hostname = destructive_sat.hostname
+    @pytest.fixture(scope='module')
+    def cert_data(self):
+        """common data is used across the fixtures"""
         capsule_hostname = 'capsule.example.com'
-        key_file_name = f'{sat_hostname}/{sat_hostname}.key'
-        cert_file_name = f'{sat_hostname}/{sat_hostname}.crt'
+        ca_bundle_file_name = 'cacert.crt'
+        success_message = "Validation succeeded"
         cert_data = {
             'capsule_hostname': capsule_hostname,
-            'key_file_name': key_file_name,
-            'cert_file_name': cert_file_name,
-            'ca_bundle_file_name': 'cacert.crt',
-            'success_message': 'Validation succeeded',
+            'ca_bundle_file_name': ca_bundle_file_name,
+            'success_message': success_message,
         }
-        destructive_sat.custom_cert_generate(capsule_hostname)
+        return cert_data
+
+    @pytest.fixture()
+    def vm_setup(self, request, cert_data):
+        """Create VM and register content host"""
+        target_cores = request.param.get('target_cores', 1)
+        target_memory = request.param.get('target_memory', '1GiB')
+        with VMBroker(
+            nick=request.param['nick'],
+            host_classes={'host': ContentHost},
+            target_cores=target_cores,
+            target_memory=target_memory,
+        ) as host:
+            cert_data['key_file_name'] = f'{host.hostname}/{host.hostname}.key'
+            cert_data['cert_file_name'] = f'{host.hostname}/{host.hostname}.crt'
+            host.custom_cert_generate(cert_data['capsule_hostname'])
+            yield cert_data, host
+
+    @pytest.fixture
+    def cert_setup_destructive_teardown(self, destructive_sat, cert_data):
+        """Get host name, scripts, and create working directory."""
+        cert_data['key_file_name'] = f'{destructive_sat.hostname}/{destructive_sat.hostname}.key'
+        cert_data['cert_file_name'] = f'{destructive_sat.hostname}/{destructive_sat.hostname}.crt'
+        destructive_sat.custom_cert_generate(cert_data['capsule_hostname'])
         yield cert_data, destructive_sat
         destructive_sat.custom_certs_cleanup()
 
     @pytest.fixture(scope='module')
-    def cert_setup_teardown(self, default_sat):
+    def cert_setup_teardown(self, default_sat, cert_data):
         """Get host name, scripts, and create working directory."""
-        sat_hostname = default_sat.hostname
-        capsule_hostname = 'capsule.example.com'
-        key_file_name = f'{sat_hostname}/{sat_hostname}.key'
-        cert_file_name = f'{sat_hostname}/{sat_hostname}.crt'
-        cert_data = {
-            'capsule_hostname': capsule_hostname,
-            'key_file_name': key_file_name,
-            'cert_file_name': cert_file_name,
-            'ca_bundle_file_name': 'cacert.crt',
-            'success_message': 'Validation succeeded',
-        }
-        default_sat.custom_cert_generate(capsule_hostname)
+        cert_data['key_file_name'] = f'{default_sat.hostname}/{default_sat.hostname}.key'
+        cert_data['cert_file_name'] = f'{default_sat.hostname}/{default_sat.hostname}.crt'
+        default_sat.custom_cert_generate(cert_data['capsule_hostname'])
         yield cert_data, default_sat
         default_sat.custom_certs_cleanup()
 
@@ -271,6 +285,58 @@ class TestKatelloCertsCheck:
             # assert all services are running
             result = satellite.execute('foreman-maintain health check --label services-up -y')
             assert result.status == 0, 'Not all services are running'
+
+    @pytest.mark.destructive
+    @pytest.mark.parametrize(
+        'vm_setup',
+        [{'nick': 'rhel7', 'target_memory': '20GiB', 'target_cores': 4}],
+        ids=['rhel7'],
+        indirect=True,
+    )
+    def test_positive_install_sat_with_katello_certs(self, vm_setup):
+        """Update certificates on a currently running satellite instance.
+
+        :id: 47e3a57f-d7a2-40d2-bbc7-d1bb3d79a7e1
+
+        :steps:
+
+            1. Generate the custom certs on RHEL 7 machine
+            2. Install satellite with custom certs
+            3. Assert output does not report SSL certificate error
+            4. Assert all services are running
+
+
+        :expectedresults: Satellite should be installed using the custom certs.
+
+        :CaseAutomation: Automated
+        """
+        cert_data, rhel_vm = vm_setup
+        rhel_vm.execute(
+            f'yum -y localinstall {settings.repos.dogfood_repo_host}'
+            f'/pub/katello-ca-consumer-latest.noarch.rpm'
+        )
+        rhel_vm.execute(
+            f'subscription-manager register --org {settings.subscription.dogfood_org} '
+            f'--activationkey "{settings.subscription.dogfood_activationkey}" '
+        )
+        rhel_vm.execute('yum -y update')
+        result = rhel_vm.execute('yum -y install satellite')
+        assert result.status == 0
+        command = (
+            'satellite-installer --scenario satellite '
+            f'--certs-server-cert "/root/{cert_data["cert_file_name"]}" '
+            f'--certs-server-key "/root/{cert_data["key_file_name"]}" '
+            f'--certs-server-ca-cert "/root/{cert_data["ca_bundle_file_name"]}" '
+        )
+        result = rhel_vm.execute(command, timeout=2200)
+        assert result.status == 0
+        # assert no hammer ping SSL cert error
+        result = rhel_vm.execute('hammer ping')
+        assert 'SSL certificate verification failed' not in result.stdout
+        assert result.stdout.count('ok') == 7
+        # assert all services are running
+        result = rhel_vm.execute('foreman-maintain health check --label services-up -y')
+        assert result.status == 0, 'Not all services are running'
 
     @pytest.mark.destructive
     def test_positive_generate_capsule_certs_using_absolute_path(
