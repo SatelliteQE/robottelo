@@ -2139,38 +2139,6 @@ def configure_env_for_provision(org=None, loc=None):
     return {'hostgroup': hostgroup, 'subnet': subnet, 'domain': domain, 'ptable': ptable, 'os': os}
 
 
-def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
-    """Creates puppet repo, sync it via provided url and publish using
-    Content View publishing mechanism. It makes puppet class available
-    via Puppet Environment created by Content View and returns Content
-    View entity.
-
-    :param puppet_modules: List of dictionaries with module 'author'
-        and module 'name' fields.
-    :param str repo_url: Url of the repo that can be synced using pulp:
-        pulp repo or puppet forge.
-    :param organization_id: Organization id that is shared between created
-        entities.
-    :return: Content View entity.
-    """
-    if not organization_id:
-        organization_id = make_org()['id']
-    product = make_product({'organization-id': organization_id})
-    repo = make_repository({'product-id': product['id'], 'content-type': 'puppet', 'url': repo_url})
-    # Synchronize repo via provided URL
-    Repository.synchronize({'id': repo['id']})
-    # Add selected module to Content View
-    cv = make_content_view({'organization-id': organization_id})
-    for module in puppet_modules:
-        ContentView.puppet_module_add(
-            {'author': module['author'], 'name': module['name'], 'content-view-id': cv['id']}
-        )
-    # CV publishing will automatically create Environment and
-    # Puppet Class entities
-    ContentView.publish({'id': cv['id']})
-    return ContentView.info({'id': cv['id']})
-
-
 def _get_capsule_vm_distro_repos(distro):
     """Return the right RH repos info for the capsule setup"""
     rh_repos = []

@@ -97,39 +97,6 @@ def upload_manifest(organization_id, manifest):
     )
 
 
-def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
-    """Creates puppet repo, sync it via provided url and publish using
-    Content View publishing mechanism. It makes puppet class available
-    via Puppet Environment created by Content View and returns Content
-    View entity.
-
-    :param puppet_modules: List of dictionaries with module 'author' and
-        module 'name' fields.
-    :param str repo_url: Url of the repo that can be synced using pulp:
-        pulp repo or puppet forge.
-    :param organization_id: Organization id that is shared between
-        created entities.
-    :return: `nailgun.entities.ContentView` entity.
-    """
-    if not organization_id:
-        organization_id = entities.Organization().create().id
-    # Create product and puppet modules repository
-    product = entities.Product(organization=organization_id).create()
-    repo = entities.Repository(product=product, content_type='puppet', url=repo_url).create()
-    # Synchronize repo via provided URL
-    repo.sync()
-    # Add selected module to Content View
-    cv = entities.ContentView(organization=organization_id).create()
-    for module in puppet_modules:
-        entities.ContentViewPuppetModule(
-            author=module['author'], name=module['name'], content_view=cv
-        ).create()
-    # CV publishing will automatically create Environment and
-    # Puppet Class entities
-    cv.publish()
-    return cv.read()
-
-
 def delete_puppet_class(
     puppetclass_name, puppet_module=None, proxy_hostname=None, environment_name=None
 ):
