@@ -105,8 +105,9 @@ def repos_collection_for_module_streams(module_org):
 
 @pytest.fixture
 def vm(repos_collection, rhel7_contenthost, default_sat):
-    """Virtual machine registered in satellite with katello-agent installed"""
+    """Virtual machine registered in satellite"""
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
+    add_remote_execution_ssh_key(rhel7_contenthost.ip_addr)
     yield rhel7_contenthost
 
 
@@ -114,7 +115,7 @@ def vm(repos_collection, rhel7_contenthost, default_sat):
 def vm_module_streams(repos_collection_for_module_streams, rhel8_contenthost, default_sat):
     """Virtual machine registered in satellite without katello-agent installed"""
     repos_collection_for_module_streams.setup_virtual_machine(
-        rhel8_contenthost, default_sat, install_katello_agent=True
+        rhel8_contenthost, default_sat, install_katello_agent=False
     )
     add_remote_execution_ssh_key(rhel8_contenthost.ip_addr)
     yield rhel8_contenthost
@@ -219,13 +220,13 @@ def test_positive_end_to_end(session, repos_collection, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', FAKE_0_CUSTOM_PACKAGE_NAME
         )
-        assert result['result'] == 'success'
+        assert result['overview']['job_status'] == 'Success'
         # Ensure package installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_0_CUSTOM_PACKAGE
         # Install errata
         result = session.errata.install(settings.repos.yum_6.errata[2], vm.hostname)
-        assert result['result'] == 'success'
+        assert result['overview']['job_status'] == 'Success'
         # Ensure errata installed
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE_NAME)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
@@ -281,6 +282,7 @@ def test_positive_end_to_end_bulk_update(session, vm):
             content_type='Package',
             packages=FAKE_1_CUSTOM_PACKAGE_NAME,
             action='update_all',
+            action_via='via remote execution',
         )
         # Wait for upload profile event (in case Satellite system slow)
         host = entities.Host().search(query={'search': f'name={vm.hostname}'})
@@ -349,7 +351,7 @@ def test_negative_install_package(session, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Install', gen_string('alphanumeric')
         )
-        assert result['result'] == 'warning'
+        assert result['overview']['job_status'] == 'Failed'
 
 
 @pytest.mark.tier3
@@ -368,7 +370,7 @@ def test_positive_remove_package(session, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Remove', FAKE_0_CUSTOM_PACKAGE_NAME
         )
-        assert result['result'] == 'success'
+        assert result['overview']['job_status'] == 'Success'
         packages = session.contenthost.search_package(vm.hostname, FAKE_0_CUSTOM_PACKAGE_NAME)
         assert not packages
 
@@ -388,7 +390,7 @@ def test_positive_upgrade_package(session, vm):
         result = session.contenthost.execute_package_action(
             vm.hostname, 'Package Update', FAKE_1_CUSTOM_PACKAGE_NAME
         )
-        assert result['result'] == 'success'
+        assert result['overview']['job_status'] == 'Success'
         packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
         assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
 
@@ -406,9 +408,11 @@ def test_positive_install_package_group(session, vm):
     """
     with session:
         result = session.contenthost.execute_package_action(
-            vm.hostname, 'Group Install', FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
+            vm.hostname,
+            'Group Install (Deprecated)',
+            FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
         )
-        assert result['result'] == 'success'
+        assert result['overview']['job_status'] == 'Success'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             packages = session.contenthost.search_package(vm.hostname, package)
             assert packages[0]['Installed Package'] == package
@@ -425,76 +429,13 @@ def test_positive_remove_package_group(session, vm):
     :CaseLevel: System
     """
     with session:
-        for action in ('Group Install', 'Group Remove'):
+        for action in ('Group Install (Deprecated)', 'Group Remove (Deprecated)'):
             result = session.contenthost.execute_package_action(
                 vm.hostname, action, FAKE_0_CUSTOM_PACKAGE_GROUP_NAME
             )
-            assert result['result'] == 'success'
+            assert result['overview']['job_status'] == 'Success'
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             assert not session.contenthost.search_package(vm.hostname, package)
-
-
-@pytest.mark.tier3
-def test_actions_katello_host_package_update_timeout(session, vm):
-    """Check that Actions::Katello::Host::Package::Update task will time
-    out if goferd does not respond while attempting to update a package.
-
-    :id: 26f3ea2a-509a-4f3f-b5d7-d34b29ceb2cc
-
-    :customerscenario: true
-
-    :BZ: 1651852
-
-    :expectedresults: Update task times out and error message is displayed.
-
-    :CaseLevel: System
-    """
-    error_line_found = False
-    source_log = '/var/log/foreman/production.log'
-    test_logfile = '/var/tmp/logfile_package_update_timeout'
-    # Install fake package with older version
-    vm.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
-    # Remove gofer to break communications on package status
-    vm.run('rpm -e --nodeps gofer')
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source log before the test
-        line_count_start = line_count(source_log, connection)
-    # Attempt to update fake package, check for warning
-    with session:
-        result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Update',
-            FAKE_1_CUSTOM_PACKAGE_NAME,
-        )
-        assert result['result'] == 'warning'
-        # Install gofer using CLI
-        vm.run('yum install gofer -y && systemctl restart goferd')
-        # Try again to update fake package, check for success
-        result = session.contenthost.execute_package_action(
-            vm.hostname,
-            'Package Update',
-            FAKE_1_CUSTOM_PACKAGE_NAME,
-        )
-        assert result['result'] == 'success'
-        packages = session.contenthost.search_package(vm.hostname, FAKE_2_CUSTOM_PACKAGE)
-        assert packages[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
-    # Get the log extract to check for the expected error message
-    with ssh.get_connection() as connection:
-        # get the number of lines in the source log after the test
-        line_count_end = line_count(source_log, connection)
-        # get the log lines of interest, put them in test_logfile
-        cut_lines(line_count_start, line_count_end, source_log, test_logfile, connection)
-    # Use same location on remote and local for log file extract
-    ssh.download_file(test_logfile)
-    # Search the log file extract for the line with error message
-    with open(test_logfile) as logfile:
-        for line in logfile:
-            if re.search(
-                r'Host did not respond within 20 seconds. The task has been cancelled.', line
-            ):
-                error_line_found = True
-                break
-    assert error_line_found, 'The expected time out error was not found in logs.'
 
 
 @pytest.mark.tier3
@@ -773,10 +714,10 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
     """
     stream_version = '5.21'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
+    entities.Parameter(
+        name='remote_execution_connect_by_ip', value='Yes', host=vm_module_streams.hostname
+    )
     with session:
-        entities.Parameter(
-            name='remote_execution_connect_by_ip', value='Yes', host=vm_module_streams.hostname
-        )
         # install Module Stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
@@ -874,17 +815,16 @@ def test_module_streams_customize_action(session, vm_module_streams):
 
     :CaseImportance: Medium
     """
+    search_stream_version = '5.21'
+    install_stream_version = '0.71'
+    run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
+    run_remote_command_on_content_host(
+        f'dnf module reset {FAKE_2_CUSTOM_PACKAGE_NAME} -y', vm_module_streams
+    )
+    run_remote_command_on_content_host(
+        f'dnf module reset {FAKE_2_CUSTOM_PACKAGE_NAME}', vm_module_streams
+    )
     with session:
-        search_stream_version = '5.21'
-        install_stream_version = '0.71'
-        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
-        run_remote_command_on_content_host(
-            f'dnf module reset {FAKE_2_CUSTOM_PACKAGE_NAME} -y', vm_module_streams
-        )
-        run_remote_command_on_content_host(
-            f'dnf module reset {FAKE_2_CUSTOM_PACKAGE_NAME}', vm_module_streams
-        )
-
         # installing walrus:0.71 version
         customize_values = {
             'template_content.module_spec': (
@@ -922,10 +862,10 @@ def test_install_modular_errata(session, vm_module_streams):
 
     :CaseLevel: System
     """
+    stream_version = '0'
+    module_name = 'kangaroo'
+    run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
     with session:
-        stream_version = '0'
-        module_name = 'kangaroo'
-        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
             action_type='Install',
@@ -964,13 +904,6 @@ def test_install_modular_errata(session, vm_module_streams):
             stream_version=stream_version,
         )
 
-        run_remote_command_on_content_host(f'dnf downgrade {module_name} -y', vm_module_streams)
-        # Install errata using Katello Agent
-        result = session.contenthost.install_errata(
-            vm_module_streams.hostname,
-            settings.repos.module_stream_0.errata[2],
-            install_via='katello',
-        )
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             module_name,
@@ -990,21 +923,20 @@ def test_module_status_update_from_content_host_to_satellite(session, vm_module_
 
     :CaseLevel: System
     """
+    module_name = 'walrus'
+    stream_version = '0.71'
+    profile = 'flipper'
+    run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
+
+    # reset walrus module streams
+    run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
+
+    # install walrus module stream with flipper profile
+    run_remote_command_on_content_host(
+        f'dnf module install {module_name}:{stream_version}/{profile} -y',
+        vm_module_streams,
+    )
     with session:
-        module_name = 'walrus'
-        stream_version = '0.71'
-        profile = 'flipper'
-        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
-
-        # reset walrus module streams
-        run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
-
-        # install walrus module stream with flipper profile
-        run_remote_command_on_content_host(
-            f'dnf module install {module_name}:{stream_version}/{profile} -y',
-            vm_module_streams,
-        )
-
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
             FAKE_2_CUSTOM_PACKAGE_NAME,
@@ -1041,34 +973,35 @@ def test_module_status_update_without_force_upload_package_profile(session, vm_m
 
     :CaseImportance: Medium
     """
+    module_name = 'walrus'
+    stream_version = '0.71'
+    profile = 'flipper'
+    # reset walrus module streams
+    run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
+    # make a note of time for later CLI wait_for_tasks, and include
+    # 8 mins margin of safety.
+    timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
+    # install walrus module stream with flipper profile
+    run_remote_command_on_content_host(
+        f'dnf module install {module_name}:{stream_version}/{profile} -y',
+        vm_module_streams,
+    )
+    # Wait for upload profile event (in case Satellite system slow)
+    host = entities.Host().search(query={'search': f'name={vm_module_streams.hostname}'})
+    wait_for_tasks(
+        search_query='label = Actions::Katello::Host::UploadProfiles'
+        f' and resource_id = {host[0].id}'
+        f' and started_at >= "{timestamp}"',
+        search_rate=15,
+        max_tries=10,
+    )
     with session:
         # Ensure content host is searchable
         assert (
             session.contenthost.search(vm_module_streams.hostname)[0]['Name']
             == vm_module_streams.hostname
         )
-        module_name = 'walrus'
-        stream_version = '0.71'
-        profile = 'flipper'
-        # reset walrus module streams
-        run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
-        # make a note of time for later CLI wait_for_tasks, and include
-        # 8 mins margin of safety.
-        timestamp = (datetime.utcnow() - timedelta(minutes=8)).strftime('%Y-%m-%d %H:%M')
-        # install walrus module stream with flipper profile
-        run_remote_command_on_content_host(
-            f'dnf module install {module_name}:{stream_version}/{profile} -y',
-            vm_module_streams,
-        )
-        # Wait for upload profile event (in case Satellite system slow)
-        host = entities.Host().search(query={'search': f'name={vm_module_streams.hostname}'})
-        wait_for_tasks(
-            search_query='label = Actions::Katello::Host::UploadProfiles'
-            f' and resource_id = {host[0].id}'
-            f' and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
-        )
+
         # Check web UI for the new module stream version
         module_stream = session.contenthost.search_module_stream(
             vm_module_streams.hostname,
@@ -1104,13 +1037,12 @@ def test_module_stream_update_from_satellite(session, vm_module_streams):
 
     :CaseLevel: System
     """
+    module_name = 'duck'
+    stream_version = '0'
+    run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
+    # reset duck module
+    run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
     with session:
-        module_name = 'duck'
-        stream_version = '0'
-        run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
-        # reset duck module
-        run_remote_command_on_content_host(f'dnf module reset {module_name} -y', vm_module_streams)
-
         # enable duck module stream
         result = session.contenthost.execute_module_stream_action(
             vm_module_streams.hostname,
