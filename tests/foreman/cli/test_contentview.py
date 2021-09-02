@@ -3306,7 +3306,7 @@ class TestContentView:
         :Steps:
 
             1. Create a content view cv1
-            2. Add a yum repo and a puppet module to the content view
+            2. Add a yum repo to the content view
             3. Publish the content view
             4. Promote the content view to multiple environment Library -> DEV
                -> QE
@@ -3345,7 +3345,7 @@ class TestContentView:
         :Steps:
 
             1. Create two content view cv1 and cv2
-            2. Add a yum repo and a puppet module to both content views
+            2. Add a yum repo to both content views
             3. Publish the content views
             4. Promote the content views to multiple environment Library -> DEV
                -> QE

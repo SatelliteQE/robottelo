@@ -43,8 +43,6 @@ class TestParseJSON:
           },
           "OSTree Repositories": {
           },
-          "Puppet Modules": {
-          },
           "Lifecycle Environments": {
             "1": {
               "ID": 1,
@@ -65,7 +63,6 @@ class TestParseJSON:
         }"""
 
         assert hammer.parse_json(output) == {
-            'puppet-modules': {},
             'description': None,
             'versions': {
                 '1': {'version': '1.0', 'id': '1', 'published': '2016-07-05 17:35:33 UTC'}

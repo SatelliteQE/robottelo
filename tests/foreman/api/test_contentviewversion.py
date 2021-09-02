@@ -724,7 +724,7 @@ def test_positive_remove_cv_version_from_env_with_host_registered():
     :Steps:
 
         1. Create a content view cv1
-        2. Add a yum repo and a puppet module to the content view
+        2. Add a yum repo to the content view
         3. Publish the content view
         4. Promote the content view to multiple environment Library -> DEV
            -> QE
@@ -764,7 +764,7 @@ def test_positive_delete_cv_multi_env_promoted_with_host_registered():
     :Steps:
 
         1. Create two content views, cv1 and cv2
-        2. Add a yum repo and a puppet module to both content views
+        2. Add a yum repo to both content views
         3. Publish the content views
         4. Promote the content views to multiple environment Library -> DEV
            -> QE

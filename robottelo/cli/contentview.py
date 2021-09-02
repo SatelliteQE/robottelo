@@ -20,7 +20,6 @@ Subcommands::
     info                          Show a content view
     list                          List content views
     publish                       Publish a content view
-    puppet-module                 View and manage puppet modules
     remove                        Remove versions and/or environments from a
                                   content view and reassign systems and keys
     remove-from-environment       Remove a content view from an environment
@@ -133,24 +132,6 @@ class ContentView(Base):
         cls.command_sub = 'version incremental-update'
         if options is None:
             options = {}
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def puppet_module_add(cls, options):
-        """Associate puppet_module to selected CV"""
-        cls.command_sub = 'puppet-module add'
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def puppet_module_list(cls, options):
-        """List content view puppet modules"""
-        cls.command_sub = 'puppet-module list'
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def puppet_module_remove(cls, options):
-        """Remove a puppet module from the content view"""
-        cls.command_sub = 'puppet-module remove'
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod

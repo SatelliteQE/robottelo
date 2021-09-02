@@ -120,7 +120,7 @@ def validate_repo_content(repo, content_types, after_sync=True):
 
     :param repo: Repository instance to be validated
     :param content_types: List of repository content entities that should
-        be validated (e.g. package, erratum, puppet_module)
+        be validated (e.g. package, erratum)
     :param bool after_sync: Specify whether you perform validation before
         synchronization procedure is happened or after
     """

@@ -2913,35 +2913,6 @@ class TestGitPuppetMirror:
 
     @pytest.mark.stubbed
     @pytest.mark.tier2
-    @pytest.mark.upgrade
-    def test_positive_git_sync_with_content_change(self):
-        """Sync repository with changes in git puppet mirror.
-        If module changes in GIT mirror but the version in manifest
-        does not change, content still pulled.
-
-        :id: 7d9519ca-8660-4014-8e0e-836594891c0c
-
-        :CaseLevel: Integration
-
-        :Setup: Assure remote GIT puppet has been created and found by pulp
-
-        :Steps:
-            1.  Sync a git repo and observe the contents/checksum etc. of an
-                existing puppet module
-            2.  Assure a puppet module in git repo has changed but the manifest
-                version for this module does not change.
-            3.  Using pulp script, update repo mirror and re-sync within
-                satellite
-            4.  View contents/details of same puppet module
-
-        :expectedresults: Puppet module has been updated in our content, even
-            though the module's version number has not changed.
-
-        :CaseAutomation: NotAutomated
-        """
-
-    @pytest.mark.stubbed
-    @pytest.mark.tier2
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
 

@@ -279,7 +279,7 @@ def test_positive_consume_content():
 
         1. attempt to subscribe a system to a content type variation, via a
            proxy-enabled capsule
-        2. Attempt to install content (RPMs, puppet modules) via
+        2. Attempt to install content RPMs via
            proxy-enabled capsule
 
     :expectedresults: system successfully consume content

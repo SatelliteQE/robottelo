@@ -373,30 +373,6 @@ class DockerRepository(BaseRepository):
         return repo_info
 
 
-class PuppetRepository(BaseRepository):
-    """Custom Puppet repository"""
-
-    _type = REPO_TYPE_PUPPET  # type: str
-
-    def __init__(self, url=None, distro=None, modules=None):
-        # type: (str, Optional[str], List[Dict[str, str]]) -> None
-        self._puppet_modules = modules
-        super().__init__(url=url, distro=distro)
-
-    @property
-    def puppet_modules(self):
-        return self._puppet_modules
-
-    def add_to_content_view(self, organization_id, content_view_id):
-        # type: (int, int) -> None
-        """Associate repository content to content-view"""
-        options = {'content-view-id': content_view_id, 'organization-id': organization_id}
-        for puppet_module in self.puppet_modules:
-            module_options = options.copy()
-            module_options.update(puppet_module)
-            ContentView.puppet_module_add(module_options)
-
-
 class OSTreeRepository(BaseRepository):
     """Custom OSTree repository"""
 

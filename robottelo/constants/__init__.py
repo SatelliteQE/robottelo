@@ -819,11 +819,6 @@ FAKE_11_YUM_ENHANCEMENT_ERRATUM = [
 ]
 FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT = len(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
-PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
-
-PUPPET_MODULE_CUSTOM_FILE_NAME = 'puppet_custom_selinux-0.3.1.tar.gz'
-PUPPET_MODULE_CUSTOM_NAME = 'selinux'
-
 FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'cockateel-3.1-1.noarch',
     'duck-0.6-1.noarch',
@@ -837,7 +832,6 @@ FAKE_3_YUM_REPO_RPMS = [
     'monkey-7.2.3-1.noarch.rpm',
     'seal-1.0.10-1.noarch.rpm',
 ]
-FAKE_0_PUPPET_MODULE = 'httpd'
 FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS = {'rpm': 35, 'package_group': 2, 'erratum': 4}
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'

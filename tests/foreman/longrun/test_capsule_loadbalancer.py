@@ -31,7 +31,6 @@ def initial_setup():
         2. Make sure the subscriptions for required repositories are enabled.
         3. Sync the repositories.
         4. Create lifecycle environment, content view and activation key for capsules and client.
-            4.1 Add a puppet module to client(for bootstrap.py).
         5. Install and register 2 capsules.
             5.1 Add the respective lifecycle environment to capsule and sync.
             5.2 Setup the puppetCA and puppet agent amongst the capsules accordingly.
