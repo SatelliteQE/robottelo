@@ -25,7 +25,6 @@ from nailgun import entities
 from requests import HTTPError
 
 from robottelo.api.utils import delete_puppet_class
-from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint
 from robottelo.datafactory import parametrized
@@ -61,17 +60,16 @@ def invalid_sc_parameters_data():
 
 
 @pytest.fixture(scope='module')
-def module_puppet():
-    puppet_modules = [{'author': 'robottelo', 'name': 'api_test_classparameters'}]
-    org = entities.Organization().create()
-    cv = publish_puppet_module(puppet_modules, settings.repos.custom_puppet.url, org)
-    env = entities.Environment().search(query={'search': f'content_view="{cv.name}"'})[0].read()
+def module_puppet(default_sat):
+    puppet_class = 'api_test_classparameters'
+    env_name = default_sat.create_custom_environment(repo=puppet_class)
     puppet_class = entities.PuppetClass().search(
-        query={'search': f'name = "{puppet_modules[0]["name"]}" and environment = "{env.name}"'}
+        query={'search': f'name = "{puppet_class}" and environment = "{env_name}"'}
     )[0]
     sc_params_list = entities.SmartClassParameters().search(
         query={'search': f'puppetclass="{puppet_class.name}"', 'per_page': '1000'}
     )
+    env = entities.Environment().search(query={'search': f'name="{env_name}"'})[0].read()
     yield {'env': env, 'class': puppet_class, 'sc_params': sc_params_list}
     delete_puppet_class(puppet_class.name)
 

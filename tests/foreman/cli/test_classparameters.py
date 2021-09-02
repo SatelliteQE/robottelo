@@ -24,7 +24,6 @@ from robottelo.cli.factory import add_role_permissions
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
-from robottelo.cli.factory import publish_puppet_module
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
@@ -33,19 +32,19 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_puppet(module_org, module_location):
-    puppet_modules = [{'author': 'robottelo', 'name': 'cli_test_classparameters'}]
-    cv = publish_puppet_module(puppet_modules, settings.repos.custom_puppet.url, module_org.id)
-    env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
+def module_puppet(default_sat, module_org, module_location):
+    puppet_class = 'cli_test_classparameters'
+    env_name = default_sat.create_custom_environment(repo=puppet_class)
     Environment.update(
         {
-            'name': env['name'],
+            'name': env_name,
             'organization-ids': module_org.id,
             'location-ids': module_location.id,
         }
     )
-    puppet_class = Puppet.info({'name': puppet_modules[0]['name'], 'environment': env['name']})
-    yield {'modules': puppet_modules, 'env': env, 'class': puppet_class}
+    puppet_class = Puppet.info({'name': puppet_class, 'environment': env_name})
+    env = entities.Environment().search(query={'search': f'name="{env_name}"'})[0].read()
+    yield {'env': env, 'class': puppet_class}
     delete_puppet_class(puppet_class['name'])
 
 
@@ -53,7 +52,7 @@ def module_puppet(module_org, module_location):
 def module_sc_params(module_puppet):
     sc_params_list = SmartClassParameter.list(
         {
-            'environment': module_puppet['env']['name'],
+            'environment': module_puppet['env'].name,
             'search': f'puppetclass="{module_puppet["class"]["name"]}"',
         }
     )
@@ -83,19 +82,19 @@ class TestSmartClassParameters:
         host = entities.Host(
             organization=module_org.id,
             location=module_location.id,
-            environment=module_puppet['env']['name'],
+            environment=module_puppet['env'].name,
         ).create()
         host.add_puppetclass(data={'puppetclass_id': module_puppet['class']['id']})
         hostgroup = make_hostgroup(
             {
-                'environment-id': module_puppet['env']['id'],
+                'environment-id': module_puppet['env'].id,
                 'puppet-class-ids': module_puppet['class']['id'],
             }
         )
 
         list_queries = [
-            {'environment': module_puppet['env']['name']},
-            {'environment-id': module_puppet['env']['id']},
+            {'environment': module_puppet['env'].name},
+            {'environment-id': module_puppet['env'].id},
             {'host': host.name},
             {'host-id': host.id},
             {'hostgroup': hostgroup["name"]},
@@ -152,33 +151,6 @@ class TestSmartClassParameters:
         User.add_role({'id': user['id'], 'role-id': role['id']})
         sc_params = SmartClassParameter.with_user(user['login'], password).list(
             {'puppet-class-id': module_puppet['class']['id']}
-        )
-        assert len(sc_params) > 0
-        # Check that only unique results are returned
-        assert len(sc_params) == len({scp['id'] for scp in sc_params})
-
-    @pytest.mark.tier1
-    def test_positive_import_twice_list_by_puppetclass_id(self, module_org, module_puppet):
-        """Import same puppet class twice (e.g. into different Content Views)
-        but list class parameters only for specific puppet class.
-
-        :id: 79a33641-54af-4e04-89ff-3b7f9a4e3ec2
-
-        :expectedresults: Parameters listed for specific Puppet class.
-
-        BZ: 1385351
-
-        :CaseImportance: Low
-        """
-        cv = publish_puppet_module(
-            module_puppet['modules'], settings.repos.custom_puppet.url, module_org.id
-        )
-        env = Environment.list({'search': f'content_view="{cv["name"]}"'})[0]
-        puppet_class = Puppet.info(
-            {'name': module_puppet['modules'][0]['name'], 'environment': env['name']}
-        )
-        sc_params = SmartClassParameter.list(
-            {'environment': env['name'], 'puppet-class-id': puppet_class['id'], 'per-page': 1000}
         )
         assert len(sc_params) > 0
         # Check that only unique results are returned
