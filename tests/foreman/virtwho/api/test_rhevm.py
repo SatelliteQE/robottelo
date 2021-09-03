@@ -19,9 +19,11 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from wait_for import wait_for
 
+from robottelo.cli.host import Host
+from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ORG
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
 from robottelo.virtwho_utils import get_configure_command
@@ -58,23 +60,6 @@ def virtwho_config(form_data):
 
 
 class TestVirtWhoConfigforRhevm:
-    def _try_to_get_guest_bonus(self, hypervisor_name, sku):
-        subscriptions = entities.Subscription().search(query={'search': sku})
-        for item in subscriptions:
-            item = item.read_json()
-            if hypervisor_name.lower() in item['hypervisor']['name']:
-                return item['id']
-
-    def _get_guest_bonus(self, hypervisor_name, sku):
-        vdc_id, time = wait_for(
-            self._try_to_get_guest_bonus,
-            func_args=(hypervisor_name, sku),
-            fail_condition=None,
-            timeout=15,
-            delay=1,
-        )
-        return vdc_id
-
     @pytest.mark.tier2
     def test_positive_deploy_configure_by_id(self, form_data, virtwho_config):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
@@ -109,19 +94,15 @@ class TestVirtWhoConfigforRhevm:
             ),
         ]
         for hostname, sku in hosts:
-            if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription().search(query={'search': sku})
-                vdc_id = subscriptions[0].id
+            host = Host.list({'search': hostname})[0]
+            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
-                vdc_id = self._get_guest_bonus(hypervisor_name, sku)
-            host, time = wait_for(
-                entities.Host().search,
-                func_args=(None, {'search': hostname}),
-                fail_condition=[],
-                timeout=5,
-                delay=1,
-            )
-            entities.HostSubscription(host=host[0].id).add_subscriptions(
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
+            entities.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
             result = entities.Host().search(query={'search': hostname})[0].read_json()
@@ -165,19 +146,15 @@ class TestVirtWhoConfigforRhevm:
             ),
         ]
         for hostname, sku in hosts:
-            if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription().search(query={'search': sku})
-                vdc_id = subscriptions[0].id
+            host = Host.list({'search': hostname})[0]
+            subscriptions = Subscription.list({'organization': DEFAULT_ORG, 'search': sku})
+            vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
-                vdc_id = self._get_guest_bonus(hypervisor_name, sku)
-            host, time = wait_for(
-                entities.Host().search,
-                func_args=(None, {'search': hostname}),
-                fail_condition=[],
-                timeout=5,
-                delay=1,
-            )
-            entities.HostSubscription(host=host[0].id).add_subscriptions(
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
+            entities.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
             result = entities.Host().search(query={'search': hostname})[0].read_json()
