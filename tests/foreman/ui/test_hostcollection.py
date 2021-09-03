@@ -209,7 +209,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
                         'dist',
                         'rhel',
                         'server',
-                        repo.distro_major_version,
+                        str(repo.distro_major_version),
                         f'{repo.distro_major_version}Server',
                         '$basearch',
                         'sat-tools',
@@ -582,7 +582,9 @@ def test_positive_change_assigned_content(
         result = client.run("subscription-manager repos")
         assert result.status == 0
         client_repo_urls = [
-            line.split(' ')[-1] for line in result.stdout if line.startswith(repo_line_start_with)
+            line.split(' ')[-1]
+            for line in result.stdout.splitlines()
+            if line.startswith(repo_line_start_with)
         ]
         assert len(client_repo_urls)
         assert set(expected_repo_urls) == set(client_repo_urls)
@@ -603,7 +605,7 @@ def test_positive_change_assigned_content(
             assert result.status == 0
             client_repo_urls = [
                 line.split(' ')[-1]
-                for line in result.stdout
+                for line in result.stdout.splitlines()
                 if line.startswith(repo_line_start_with)
             ]
             assert len(client_repo_urls)
