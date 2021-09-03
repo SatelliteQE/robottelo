@@ -735,5 +735,5 @@ def test_positive_install_modular_errata(
         assert result['job_status_progress'] == '100%'
         assert int(result['total_hosts']) == 2
         assert _is_package_installed(
-            vm_content_hosts_module_stream, constants.FAKE_5_CUSTOM_PACKAGE
+            vm_content_hosts_module_stream, constants.FAKE_6_CUSTOM_PACKAGE
         )
