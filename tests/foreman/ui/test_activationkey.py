@@ -696,7 +696,7 @@ def test_positive_access_non_admin_user(session, test_name):
     # Create new role
     role = entities.Role().create()
     # Create filter with predefined activation keys search criteria
-    envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
+    envs_condition = ' or '.join([f'environment = {s}' for s in envs_list])
     entities.Filter(
         organization=[org],
         permission=entities.Permission(name='view_activation_keys').search(),
@@ -1009,7 +1009,7 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel6_contenth
             assert product_name in subscriptions
         # Create VM
         rhel6_contenthost.install_katello_ca(default_sat)
-        rhel6_contenthost.register_contenthost(module_org.label, ','.join(key_1_name, key_2_name))
+        rhel6_contenthost.register_contenthost(module_org.label, ','.join([key_1_name, key_2_name]))
         assert rhel6_contenthost.subscribed
         # Assert the content-host association with activation keys
         for key_name in [key_1_name, key_2_name]:
@@ -1122,7 +1122,7 @@ def test_positive_service_level_subscription_with_custom_product(
     assert rhel7_contenthost.subscribed
     result = rhel7_contenthost.run('subscription-manager list --consumed')
     assert result.status == 0
-    assert f'Subscription Name:   {product.name}' in '\n'.join(result.stdout)
+    assert f'Subscription Name:   {product.name}' in result.stdout
     with session:
         session.organization.select(org.name)
         chost = session.contenthost.read(rhel7_contenthost.hostname, widget_names='subscriptions')
