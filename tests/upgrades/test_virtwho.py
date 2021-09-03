@@ -23,10 +23,11 @@ from upgrade_tests import post_upgrade
 from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
-from wait_for import wait_for
 
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
+from robottelo.cli.host import Host
+from robottelo.cli.subscription import Subscription
 from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
@@ -107,24 +108,15 @@ class TestScenarioPositiveVirtWho:
             (guest_name, f'product_id={settings.virtwho.sku.vdc_physical} and type=STACK_DERIVED'),
         ]
         for hostname, sku in hosts:
-            if 'type=NORMAL' in sku:
-                subscriptions = entities.Subscription(organization=org.id).search(
-                    query={'search': sku}
-                )
-                vdc_id = subscriptions[0].id
+            host = Host.list({'search': hostname})[0]
+            subscriptions = Subscription.list({'organization-id': org.id, 'search': sku})
+            vdc_id = subscriptions[0]['id']
             if 'type=STACK_DERIVED' in sku:
-                subscriptions = entities.Subscription(organization=org.id).search(
-                    query={'search': sku}
-                )
-                vdc_id = subscriptions[0].id
-            host, time = wait_for(
-                entities.Host(organization=org.id).search,
-                func_args=(None, {'search': hostname}),
-                fail_condition=[],
-                timeout=5,
-                delay=1,
-            )
-            entities.HostSubscription(host=host[0].id).add_subscriptions(
+                for item in subscriptions:
+                    if hypervisor_name.lower() in item['type']:
+                        vdc_id = item['id']
+                        break
+            entities.HostSubscription(host=host['id']).add_subscriptions(
                 data={'subscriptions': [{'id': vdc_id, 'quantity': 1}]}
             )
             result = (
