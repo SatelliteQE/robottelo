@@ -38,22 +38,38 @@ from robottelo.cli.factory import make_proxy
 from robottelo.cli.factory import make_subnet
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
 from robottelo.datafactory import invalid_id_list
 from robottelo.datafactory import invalid_values_list
 from robottelo.datafactory import parametrized
 from robottelo.datafactory import valid_hostgroups_list
 
-
 pytestmark = [
     pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
 ]
-PUPPET_MODULES = [
-    {'author': 'robottelo', 'name': 'generic_1'},
-    {'author': 'robottelo', 'name': 'generic_2'},
-]
+
+pc_name = 'generic_1'
+
+
+@pytest.fixture(scope='module')
+def env(module_org, module_location, default_sat):
+    """Return the puppet environment."""
+
+    env_name = default_sat.create_custom_environment(repo=pc_name)
+    env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
+    env.location = [module_location]
+    env.organization = [module_org]
+    env.update(['location', 'organization'])
+    return env
+
+
+@pytest.fixture(scope='module')
+def puppet_classes(env):
+    """Return puppet classes."""
+    return [Puppet.info({'name': pc_name, 'puppet-environment': env.name})]
 
 
 @pytest.fixture(scope='module')
@@ -87,7 +103,9 @@ def test_negative_create_with_name(name):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_create_with_multiple_entities_and_delete(module_org, content_source):
+def test_positive_create_with_multiple_entities_and_delete(
+    module_org, content_source, puppet_classes
+):
     """Check if hostgroup with multiple options can be created and deleted
 
     :id: a3ef4f0e-971d-4307-8d0a-35103dff6586
@@ -148,6 +166,7 @@ def test_positive_create_with_multiple_entities_and_delete(module_org, content_s
         'partition-table': ptable['name'],
         'medium': media['name'],
         'operatingsystem': os_full_name,
+        'puppet-classes': puppet_classes[0]['name'],
         'query-organization': org_2.name,
     }
     hostgroup = make_hostgroup(make_hostgroup_params)
@@ -166,6 +185,7 @@ def test_positive_create_with_multiple_entities_and_delete(module_org, content_s
     assert cv['name'] == hostgroup['content-view']['name']
     assert lce['name'] == hostgroup['lifecycle-environment']['name']
     assert content_source['name'] == hostgroup['content-source']['name']
+    assert puppet_classes[0]['name'] in hostgroup['puppetclasses']
     # delete hostgroup
     HostGroup.delete({'id': hostgroup['id']})
     with pytest.raises(CLIReturnCodeError):
@@ -195,8 +215,8 @@ def test_negative_create_with_content_source(module_org):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_update_hostgroup(request, module_org, content_source):
-    """Update hostgroup's content source and name
+def test_positive_update_hostgroup(request, module_org, env, content_source, puppet_classes):
+    """Update hostgroup's content source, name and puppet classes
 
     :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
 
@@ -205,7 +225,7 @@ def test_positive_update_hostgroup(request, module_org, content_source):
     :BZ: 1260697, 1313056
 
     :expectedresults: Hostgroup was successfully updated with new content
-        source and name
+        source, name and puppet classes
 
     :CaseLevel: Integration
     """
@@ -213,6 +233,7 @@ def test_positive_update_hostgroup(request, module_org, content_source):
         {
             'content-source-id': content_source['id'],
             'organization-ids': module_org.id,
+            'environment-id': env.id,
             'query-organization-id': module_org.id,
         }
     )
@@ -225,16 +246,20 @@ def test_positive_update_hostgroup(request, module_org, content_source):
 
     assert len(hostgroup['puppetclasses']) == 0
     new_name = valid_hostgroups_list()[0]
+    puppet_class_names = [puppet['name'] for puppet in puppet_classes]
     HostGroup.update(
         {
             'new-name': new_name,
             'id': hostgroup['id'],
             'content-source-id': new_content_source['id'],
+            'puppet-classes': puppet_class_names,
         }
     )
     hostgroup = HostGroup.info({'id': hostgroup['id']})
     assert hostgroup['name'] == new_name
     assert hostgroup['content-source']['name'] == new_content_source['name']
+    for puppet_class_name in puppet_class_names:
+        assert puppet_class_name in hostgroup['puppetclasses']
 
 
 @pytest.mark.tier2
@@ -327,8 +352,7 @@ def test_positive_nested_hostgroup_info():
            .  my_class_3
            [...]
 
-    expectedresults: Puppet environment, classes, and parameters visible for both parent and
+    :expectedresults: Puppet environment, classes, and parameters visible for both parent and
         nested hostgroups.
-
     """
     pass
