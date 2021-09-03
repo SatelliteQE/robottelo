@@ -304,13 +304,15 @@ class TestOperatingSystem:
         """
         template = make_template()
         os = make_os()
+        default_template_name = os['default-templates'][0]
         OperatingSys.add_provisioning_template(
             {'provisioning-template': template['name'], 'id': os['id']}
         )
         os = OperatingSys.info({'id': os['id']})
-        assert len(os['templates']) == 1
-        template_name = os['templates'][0]
-        assert template_name.startswith(template['name'])
+        assert len(os['templates']) == 2
+        provision_template_name = f"{template['name']} ({template['type']})"
+        assert default_template_name in os['templates']
+        assert provision_template_name in os['templates']
 
     @pytest.mark.tier2
     def test_positive_add_ptable(self):
