@@ -209,9 +209,9 @@ def test_positive_update_email_delivery_method_smtp():
     """
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_positive_update_email_delivery_method_sendmail():
+@pytest.mark.parametrize('setting_update', ['delivery_method'], indirect=True)
+def test_positive_update_email_delivery_method_sendmail(setting_update):
     """Check Updating Sendmail params through settings subcommand
 
     :id: 578de898-fde2-4957-b39a-9dd059f490bf
@@ -226,8 +226,17 @@ def test_positive_update_email_delivery_method_sendmail():
 
     :CaseImportance: Low
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    sendmail_argument_value = gen_string('alphanumeric')
+    sendmail_config_params = {
+        'delivery_method': 'sendmail',
+        'sendmail_arguments': f'{sendmail_argument_value}',
+        'sendmail_location': '/usr/sbin/sendmail',
+    }
+    for key, value in sendmail_config_params.items():
+        Settings.set({'name': f'{key}', 'value': f'{value}'})
+        assert Settings.list({'search': f'name={key}'})[0]['value'] == value
 
 
 @pytest.mark.tier2
