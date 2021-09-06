@@ -18,7 +18,9 @@
 """
 import pytest
 from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_integer
 from fauxfactory import gen_string
+from fauxfactory import gen_url
 
 from robottelo import ssh
 from robottelo.api.utils import wait_for_tasks
@@ -318,14 +320,14 @@ def test_positive_assign_http_proxy_to_products(module_org):
         assert r['http-proxy']['http-proxy-policy'] == 'none'
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_positive_product_sync_state():
+@pytest.mark.skip_if_open('BZ:1999541')
+def test_positive_product_sync_state(module_org):
     """hammer product info shows correct sync state.
 
     :id: 58af6239-85d7-4b8b-bd2d-ab4cd4f29840
 
-    :BZ: 1803207
+    :BZ: 1803207,1999541
 
     :customerscenario: true
 
@@ -335,6 +337,36 @@ def test_positive_product_sync_state():
         3. Successfully sync another repository under the same product.
         4. Run `hammer product info --product-id <id>` again.
 
+
     :expectedresults: hammer should show 'Sync Incomplete' in both cases.
     """
-    pass
+    product = make_product({'organization-id': module_org.id})
+    repo_a1 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product['id'],
+            'name': gen_string('alpha'),
+            'url': f'{gen_url(scheme="https")}:{gen_integer(min_value=10, max_value=9999)}',
+        }
+    )
+
+    with pytest.raises(CLIReturnCodeError):
+        Repository.synchronize({'id': repo_a1['id']})
+
+    product_info = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product_list = Product.list({'organization-id': module_org.id})
+    assert product_info['sync-state-(last)'] in [p.get('sync-state') for p in product_list]
+
+    repo_a2 = make_repository(
+        {
+            'organization-id': module_org.id,
+            'product-id': product['id'],
+            'name': gen_string('alpha'),
+            'url': settings.repos.yum_0.url,
+        },
+    )
+
+    Repository.synchronize({'id': repo_a2['id']})
+    product_info = Product.info({'id': product['id'], 'organization-id': module_org.id})
+    product_list = Product.list({'organization-id': module_org.id})
+    assert product_info['sync-state-(last)'] in [p.get('sync-state') for p in product_list]
