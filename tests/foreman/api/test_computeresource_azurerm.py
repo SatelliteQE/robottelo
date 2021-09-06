@@ -21,7 +21,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import satellite_setting
-from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
 from robottelo.constants import AZURERM_FILE_URI
 from robottelo.constants import AZURERM_PLATFORM_DEFAULT
@@ -222,6 +221,7 @@ class TestAzureRMHostProvisioningTestCase:
     @pytest.fixture(scope='class')
     def class_host_ft(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
@@ -238,7 +238,7 @@ class TestAzureRMHostProvisioningTestCase:
         Later in tests this host will be used to perform assertions
         """
 
-        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -372,6 +372,7 @@ class TestAzureRMUserDataProvisioning:
     @pytest.fixture(scope='class')
     def class_host_ud(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
@@ -388,7 +389,7 @@ class TestAzureRMUserDataProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -526,6 +527,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_gallery_ft(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_gallery_finishimg,
         module_azurerm_cr,
@@ -542,7 +544,7 @@ class TestAzureRMSharedGalleryFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,
@@ -652,6 +654,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_custom_ft(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_custom_finishimg,
         module_azurerm_cr,
@@ -668,7 +671,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         Later in tests this host will be used to perform assertions
         """
 
-        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             host = entities.Host(
                 architecture=default_architecture,
                 build=True,

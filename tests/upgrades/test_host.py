@@ -29,7 +29,6 @@ from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
 
-from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LATEST_RHEL7_GCE_IMG_UUID
@@ -111,7 +110,7 @@ class TestScenarioPositiveGCEHostComputeResource:
         assert gce_img.name == 'autoupgrade_gce_img'
 
     @post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
-    def test_post_create_gce_cr_and_host(self, arch_os_domain, delete_host):
+    def test_post_create_gce_cr_and_host(self, default_sat, arch_os_domain, delete_host):
         """"""
         arch, os, domain_name = arch_os_domain
         hostname = gen_string('alpha')
@@ -130,7 +129,7 @@ class TestScenarioPositiveGCEHostComputeResource:
             'image_id': LATEST_RHEL7_GCE_IMG_UUID,
         }
         # Host Provisioning Tests
-        with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.skip_yum_update_during_provisioning(template='Kickstart default finish'):
             gce_hst = entities.Host(
                 name=hostname,
                 organization=org,

@@ -34,7 +34,6 @@ from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
 from robottelo.api.utils import promote
-from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.api.utils import upload_manifest
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_content_view
@@ -1913,7 +1912,7 @@ def gce_hostgroup(
 @pytest.mark.tier4
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
-    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
+    session, default_sat, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
 ):
     """Provision Host on GCE compute resource
 
@@ -1933,7 +1932,9 @@ def test_positive_gce_provision_end_to_end(
         session.location.select(loc_name=module_loc.name)
         # Provision GCE Host
         try:
-            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+            with default_sat.skip_yum_update_during_provisioning(
+                template='Kickstart default finish'
+            ):
                 session.host.create(
                     {
                         'host.name': name,
@@ -1963,7 +1964,7 @@ def test_positive_gce_provision_end_to_end(
                 assert session.host.search(hostname)[0]['Name'] == hostname
                 assert host_info['properties']['properties_table']['Build'] == 'Installed clear'
                 # 1.2 GCE Backend Assertions
-                gceapi_vm = gce_client.get_vm(gceapi_vmname)
+                gceapi_vm = googleclient.get_vm(gceapi_vmname)
                 assert gceapi_vm.is_running
                 assert gceapi_vm
                 assert gceapi_vm.name == gceapi_vmname
@@ -1988,14 +1989,14 @@ def test_positive_gce_provision_end_to_end(
                 gcehost[0].delete()
             raise error
         finally:
-            gce_client.disconnect()
+            googleclient.disconnect()
 
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
-    session, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
+    session, default_sat, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
 ):
     """Provision Host on GCE compute resource
 
@@ -2015,7 +2016,9 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         session.location.select(loc_name=module_loc.name)
         # Provision GCE Host
         try:
-            with skip_yum_update_during_provisioning(template='Kickstart default user data'):
+            with default_sat.skip_yum_update_during_provisioning(
+                template='Kickstart default user data'
+            ):
                 session.host.create(
                     {
                         'host.name': name,
@@ -2038,7 +2041,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                     == 'Pending installation clear'
                 )
                 # 1.2 GCE Backend Assertions
-                gceapi_vm = gce_client.get_vm(gceapi_vmname)
+                gceapi_vm = googleclient.get_vm(gceapi_vmname)
                 assert gceapi_vm
                 assert gceapi_vm.is_running
                 assert gceapi_vm.name == gceapi_vmname
@@ -2063,7 +2066,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 gcehost[0].delete()
             raise error
         finally:
-            gce_client.disconnect()
+            googleclient.disconnect()
 
 
 @pytest.mark.run_in_one_thread
