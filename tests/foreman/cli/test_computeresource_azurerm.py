@@ -20,9 +20,7 @@ import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 
-from robottelo.api.utils import hammer_api_timeout
 from robottelo.api.utils import satellite_setting
-from robottelo.api.utils import skip_yum_update_during_provisioning
 from robottelo.cli.computeprofile import ComputeProfile
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.host import Host
@@ -325,6 +323,7 @@ class TestAzureRMFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_host_ft(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_finishimg,
         module_azurerm_cr,
@@ -340,8 +339,10 @@ class TestAzureRMFinishTemplateProvisioning:
         Provisions the host on AzureRM using Finish template
         Later in tests this host will be used to perform assertions
         """
-        with hammer_api_timeout():
-            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.hammer_api_timeout():
+            with default_sat.skip_yum_update_during_provisioning(
+                template='Kickstart default finish'
+            ):
                 host = Host.create(
                     {
                         'name': self.hostname,
@@ -445,6 +446,7 @@ class TestAzureRMUserDataProvisioning:
     @pytest.fixture(scope='class')
     def class_host_ud(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_cloudimg,
         module_azurerm_cr,
@@ -461,8 +463,10 @@ class TestAzureRMUserDataProvisioning:
         Provisions the host on AzureRM using UserData template
         Later in tests this host will be used to perform assertions
         """
-        with hammer_api_timeout():
-            with skip_yum_update_during_provisioning(template='Kickstart default user data'):
+        with default_sat.hammer_api_timeout():
+            with default_sat.skip_yum_update_during_provisioning(
+                template='Kickstart default user data'
+            ):
                 host = Host.create(
                     {
                         'name': self.hostname,
@@ -560,6 +564,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
     @pytest.fixture(scope='class')
     def class_byos_ft_host(
         self,
+        default_sat,
         azurermclient,
         module_azurerm_byos_finishimg,
         module_azurerm_cr,
@@ -575,8 +580,10 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
         Provisions the host on AzureRM with BYOS Image
         Later in tests this host will be used to perform assertions
         """
-        with hammer_api_timeout():
-            with skip_yum_update_during_provisioning(template='Kickstart default finish'):
+        with default_sat.hammer_api_timeout():
+            with default_sat.skip_yum_update_during_provisioning(
+                template='Kickstart default finish'
+            ):
                 host = Host.create(
                     {
                         'name': self.hostname,

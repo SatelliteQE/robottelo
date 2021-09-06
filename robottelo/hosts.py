@@ -1,5 +1,6 @@
 import re
 import time
+from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
 from urllib.parse import urljoin
@@ -16,6 +17,7 @@ from wait_for import wait_for
 from wrapanapi.entities.vm import VmState
 
 from robottelo import constants
+from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
@@ -23,6 +25,7 @@ from robottelo.config import settings
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_VERSION
+from robottelo.constants import HAMMER_CONFIG
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import get_data_file
 from robottelo.helpers import InstallerCommand
@@ -1160,3 +1163,35 @@ class Satellite(Capsule):
         )
         smart_proxy.import_puppetclasses()
         return env_name
+
+    @contextmanager
+    def hammer_api_timeout(self, timeout=-1):
+        """Set hammer API request timeout on Satellite
+
+        :param int timeout: request timeout in seconds
+        """
+        new_timeout = f':request_timeout: {timeout}'
+        if self.execute(f"grep -i 'request_timeout' {HAMMER_CONFIG}").status != 0:
+            self.execute(f"echo '  {new_timeout}' >> {HAMMER_CONFIG}")
+            revert_method = 'remove'
+        else:
+            old_timeout = self.execute(f"sed -ne '/:request_timeout.*/p' {HAMMER_CONFIG}").stdout
+            self.execute(f"sed -ir 's/{old_timeout.strip()}/{new_timeout}/' {HAMMER_CONFIG}")
+            revert_method = 'replace'
+        yield
+        if revert_method == 'remove':
+            self.execute(f"sed -i '/{new_timeout}/d' {HAMMER_CONFIG}")
+        else:
+            self.execute(f"sed -ie 's/{new_timeout}/{old_timeout.strip()}/' {HAMMER_CONFIG}")
+
+    @contextmanager
+    def skip_yum_update_during_provisioning(self, template=None):
+        """Hides the yum update command with echo text
+
+        :param str template: The template name where the yum update will be hidden
+        """
+        old = 'yum -t -y update'
+        new = 'echo "Yum update skipped for faster automation testing"'
+        update_provisioning_template(name=template, old=old, new=new)
+        yield
+        update_provisioning_template(name=template, old=new, new=old)

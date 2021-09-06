@@ -939,44 +939,6 @@ def create_org_admin_user(orgs, locs):
     return user
 
 
-@contextmanager
-def skip_yum_update_during_provisioning(template=None):
-    """Hides the yum update command with echo text
-
-    :param str template: The template name where the yum update will be hidden
-    """
-    old = 'yum -t -y update'
-    new = 'echo "Yum update skipped for faster automation testing"'
-    update_provisioning_template(name=template, old=old, new=new)
-    yield
-    update_provisioning_template(name=template, old=new, new=old)
-
-
-@contextmanager
-def hammer_api_timeout(timeout=-1):
-    """Set hammer API request timeout on Satellite
-
-    :param int timeout: request timeout in seconds
-    """
-    new_timeout = f':request_timeout: {timeout}'
-    cli_conf = "~/.hammer/cli.modules.d/foreman.yml"
-
-    if ssh.command(f"grep -i 'request_timeout' {cli_conf}").return_code != 0:
-        ssh.command(f"echo '  {new_timeout}' >> {cli_conf}")
-        revert_method = 'remove'
-    else:
-        old_timeout = ssh.command(f"sed -ne '/:request_timeout.*/p' {cli_conf}").stdout[0]
-        ssh.command(f"sed -ir 's/{old_timeout.strip()}/{new_timeout}/' {cli_conf}")
-        revert_method = 'replace'
-
-    yield
-
-    if revert_method == 'remove':
-        ssh.command(f"sed -i '/{new_timeout}/d' {cli_conf}")
-    else:
-        ssh.command(f"sed -ie 's/{new_timeout}/{old_timeout.strip()}/' {cli_conf}")
-
-
 def update_rhsso_settings_in_satellite(revert=False):
     """Update or Revert the RH-SSO settings in satellite"""
     rhhso_settings = {
