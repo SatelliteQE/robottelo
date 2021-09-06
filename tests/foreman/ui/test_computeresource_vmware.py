@@ -30,6 +30,9 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import VMWARE_CONSTANTS
 from robottelo.datafactory import gen_string
 
+from wait_for import TimedOutError
+from wait_for import wait_for
+
 pytestmark = [pytest.mark.skip_if_not_set('vmware')]
 
 
@@ -309,7 +312,17 @@ def test_positive_resource_vm_power_management(session, module_vmware_settings):
             session.computeresource.vm_poweroff(cr_name, vm_name)
         else:
             session.computeresource.vm_poweron(cr_name, vm_name)
-        assert session.computeresource.vm_status(cr_name, vm_name) is not power_status
+        try:
+            wait_for(
+                lambda: (
+                    session.browser.refresh(),
+                    session.computeresource.vm_status(cr_name, vm_name))[1]
+                is not power_status,
+                timeout=30,
+                delay=2,
+            )
+        except TimedOutError:
+            raise AssertionError('Timed out waiting for VM to toggle power state')
 
 
 @pytest.mark.on_premises_provisioning
