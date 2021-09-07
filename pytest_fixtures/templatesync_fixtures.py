@@ -22,7 +22,7 @@ def create_import_export_local_dir():
         f'mkdir -p {dir_path} && '
         f'chown foreman -R {root_dir} && '
         f'restorecon -R -v {root_dir} && '
-        f'semanage fcontext -a -t tmp_t {dir_path}'
+        f'chcon -t httpd_sys_rw_content_t {dir_path} -R'
     )
     # Copying the file to new directory to be modified by tests
     ssh.command(f'cp example_template.erb {dir_path}')

@@ -25,7 +25,6 @@ from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
-from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
 
 
 class TestTemplateSyncTestCase:
@@ -48,8 +47,6 @@ class TestTemplateSyncTestCase:
         """
         # Check all Downloadable templates exists
         if not get(FOREMAN_TEMPLATE_IMPORT_URL).status_code == 200:
-            raise HTTPError('The foreman templates git url is not accessible')
-        if not get(FOREMAN_TEMPLATES_COMMUNITY_URL).status_code == 200:
             raise HTTPError('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
@@ -142,7 +139,10 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         dir_path = '/tmp'
-        TemplateSync.exports(
+        output = TemplateSync.exports(
             {'repo': dir_path, 'organization-id': module_org.id, 'filter': 'ansible'}
         )
-        assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '23'
+        exported_count = [row == 'Exported: true' for row in output].count(True)
+        assert exported_count == int(
+            ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0]
+        )

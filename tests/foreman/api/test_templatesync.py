@@ -26,7 +26,6 @@ from robottelo import ssh
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
-from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
 
 
 class TestTemplateSyncTestCase:
@@ -41,8 +40,7 @@ class TestTemplateSyncTestCase:
 
         :setup:
 
-            1. Check if the the foreman templates custom repo and community templates repo is
-            accessible.
+            1. Check if the the foreman templates custom repo is accessible.
             2. Download the example template in test running root dir to be used by tests
 
         Information:
@@ -54,8 +52,6 @@ class TestTemplateSyncTestCase:
         """
         # Check all Downloadable templates exists
         if get(FOREMAN_TEMPLATE_IMPORT_URL).status_code != 200:
-            raise HTTPError('The foreman templates git url is not accessible')
-        if get(FOREMAN_TEMPLATES_COMMUNITY_URL).status_code != 200:
             raise HTTPError('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
@@ -348,7 +344,7 @@ class TestTemplateSyncTestCase:
             data={
                 'repo': FOREMAN_TEMPLATE_IMPORT_URL,
                 'branch': 'automation',
-                'dirname': 'from_dir/inside_dir',
+                'dirname': 'import/report_templates',
                 'organization_ids': [module_org.id],
                 'prefix': prefix,
             }
@@ -357,35 +353,7 @@ class TestTemplateSyncTestCase:
             template['imported'] for template in filtered_imported_templates['message']['templates']
         ].count(True)
         # check name of imported temp
-        assert imported_count == 1
-
-    @pytest.mark.tier2
-    def test_positive_import_community_templates_from_repo(self, module_org):
-        """Assure all community templates are imported if no filter is specified.
-
-        :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
-
-        :Steps:
-            1. Using nailgun or direct API call
-               import all community templates from repository (ensure filters are empty)
-
-        :expectedresults:
-            1. Assert result is {'message': 'success'}
-            2. Assert all community templates are imported.
-
-        :CaseImportance: Low
-        """
-        filtered_imported_templates = entities.Template().imports(
-            data={
-                'repo': FOREMAN_TEMPLATES_COMMUNITY_URL,
-                'associate': 'always',
-                'organization_ids': [module_org.id],
-            }
-        )
-        imported_count = [
-            template['imported'] for template in filtered_imported_templates['message']['templates']
-        ].count(True)
-        assert imported_count > 150
+        assert imported_count == 2
 
     # Export tests
 
@@ -422,8 +390,9 @@ class TestTemplateSyncTestCase:
         exported_count = [
             template['exported'] for template in exported_temps['message']['templates']
         ].count(True)
-        assert exported_count == 23
-        assert ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0] == '23'
+        assert exported_count == int(
+            ssh.command(f'find {dir_path} -type f -name *ansible* | wc -l').stdout[0]
+        )
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_negate(
@@ -445,7 +414,7 @@ class TestTemplateSyncTestCase:
         :CaseImportance: Medium
         """
         # Export some filtered templates to local dir
-        dir_name, dir_path = create_import_export_local_dir
+        _, dir_path = create_import_export_local_dir
         entities.Template().exports(
             data={
                 'repo': dir_path,
