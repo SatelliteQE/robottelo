@@ -967,8 +967,8 @@ def test_single_sign_on_ldap_ipa_server(
     # register the satellite with IPA for single sign-on and update external auth
     try:
         run_command(cmd='subscription-manager repos --enable rhel-7-server-optional-rpms')
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
-        run_command('foreman-maintain service restart', timeout=300)
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800000)
+        run_command('foreman-maintain service restart', timeout=300000)
         if is_open('BZ:1941997'):
             curl_command = f'curl -k -u : --negotiate {default_sat.url}/users/extlogin'
         else:
@@ -979,8 +979,8 @@ def test_single_sign_on_ldap_ipa_server(
         assert 'You are being' in result
     finally:
         # resetting the settings to default for external auth
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
-        run_command('foreman-maintain service restart', timeout=300)
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)
+        run_command('foreman-maintain service restart', timeout=300000)
         run_command(
             cmd=f'ipa service-del HTTP/{default_sat.hostname}',
             hostname=settings.ipa.hostname,
@@ -1013,7 +1013,7 @@ def test_single_sign_on_ldap_ad_server(
     # register the satellite with AD for single sign-on and update external auth
     try:
         # enable the foreman-ipa-authentication feature
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800)
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=true', timeout=800000)
         run_command('systemctl restart gssproxy.service')
         run_command('systemctl enable gssproxy.service')
 
@@ -1035,8 +1035,8 @@ def test_single_sign_on_ldap_ad_server(
         assert f'{default_sat.url}/hosts' in result
     finally:
         # resetting the settings to default for external auth
-        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800)
-        run_command('foreman-maintain service restart', timeout=300)
+        run_command(cmd='satellite-installer --foreman-ipa-authentication=false', timeout=800000)
+        run_command('foreman-maintain service restart', timeout=300000)
 
 
 @pytest.mark.destructive

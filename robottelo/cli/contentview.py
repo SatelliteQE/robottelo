@@ -109,7 +109,7 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def publish(cls, options, timeout=1500):
+    def publish(cls, options, timeout=1500000):
         """Publishes a new version of content-view."""
         cls.command_sub = 'publish'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
@@ -162,19 +162,19 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def version_promote(cls, options, timeout=600):
+    def version_promote(cls, options, timeout=600000):
         """Promotes content-view version to next env."""
         cls.command_sub = 'version promote'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
-    def version_export(cls, options, timeout=300):
+    def version_export(cls, options, timeout=300000):
         """Exports content-view version in given directory"""
         cls.command_sub = 'version export'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)
 
     @classmethod
-    def version_import(cls, options, timeout=300):
+    def version_import(cls, options, timeout=300000):
         """Imports content-view version from a given directory"""
         cls.command_sub = 'version import'
         return cls.execute(cls._construct_command(options), ignore_stderr=True, timeout=timeout)

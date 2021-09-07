@@ -102,7 +102,7 @@ def host_location_update(client_container_name=None, logger_obj=None, loc=None):
     if len(host_status(client_container_name=client_container_name)) == 0:
         wait_for(
             lambda: len(host_status(client_container_name=client_container_name)) > 0,
-            timeout=100,
+            timeout=100000,
             delay=2,
             logger=logger_obj,
         )
@@ -122,6 +122,6 @@ def publish_content_view(org=None, repolist=None):
     content_view = entities.ContentView(organization=org).create()
     content_view.repository = repolist if type(repolist) is list else [repolist]
     content_view = content_view.update(['repository'])
-    call_entity_method_with_timeout(content_view.publish, timeout=3400)
+    call_entity_method_with_timeout(content_view.publish, timeout=3400000)
     content_view = content_view.read()
     return content_view
