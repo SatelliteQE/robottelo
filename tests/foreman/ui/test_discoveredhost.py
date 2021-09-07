@@ -100,9 +100,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
     if not expect_reachable:
         operator = '||'
     cmd = 'for i in {{1..{0}}}; do ping -c1 {1} {2} exit 0; sleep {3}; done; exit 1'
-    result = ssh.command(
-        cmd.format(retries, host, operator, iteration_sleep), connection_timeout=30
-    )
+    result = ssh.command(cmd.format(retries, host, operator, iteration_sleep))
     if expect_reachable:
         return not result.status
     else:

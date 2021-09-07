@@ -357,7 +357,7 @@ class TestAzureRMFinishTemplateProvisioning:
                         'root-password': gen_string('alpha'),
                         'image': module_azurerm_finishimg.name,
                     },
-                    timeout=1800,
+                    timeout=1800000,
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):
@@ -478,7 +478,7 @@ class TestAzureRMUserDataProvisioning:
                         'organization': module_org.name,
                         'operatingsystem-id': default_os.id,
                     },
-                    timeout=1800,
+                    timeout=1800000,
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):
@@ -599,7 +599,7 @@ class TestAzureRMBYOSFinishTemplateProvisioning:
                         'image': module_azurerm_byos_finishimg.name,
                         'volume': "disk_size_gb=5",
                     },
-                    timeout=1800,
+                    timeout=1800000,
                 )
                 yield host
                 with satellite_setting('destroy_vm_on_host_delete=True'):

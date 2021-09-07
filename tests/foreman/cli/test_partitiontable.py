@@ -96,7 +96,7 @@ class TestPartitionTable:
         content = 'Fake ptable'
         ptable = make_partition_table({'content': content})
         ptable_content = PartitionTable().dump({'id': ptable['id']})
-        assert content in ptable_content[0]
+        assert content in ptable_content
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
@@ -112,7 +112,7 @@ class TestPartitionTable:
         content = gen_string('alpha', 5000)
         ptable = make_partition_table({'content': content})
         ptable_content = PartitionTable().dump({'id': ptable['id']})
-        assert content in ptable_content[0]
+        assert content in ptable_content
 
     @pytest.mark.tier1
     def test_positive_delete_by_id(self):

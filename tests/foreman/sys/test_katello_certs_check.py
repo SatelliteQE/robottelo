@@ -328,7 +328,7 @@ class TestKatelloCertsCheck:
             f'--certs-server-key "/root/{cert_data["key_file_name"]}" '
             f'--certs-server-ca-cert "/root/{cert_data["ca_bundle_file_name"]}" '
         )
-        result = rhel_vm.execute(command, timeout=2200)
+        result = rhel_vm.execute(command, timeout=2200000)
         assert result.status == 0
         # assert no hammer ping SSL cert error
         result = rhel_vm.execute('hammer ping')
