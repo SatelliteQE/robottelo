@@ -79,7 +79,7 @@ class TestRenameHost:
         repo = entities.Repository(product=module_product, name='testrepo').create()
         result = destructive_sat.execute(
             f'satellite-change-hostname {new_hostname} -y -u {username} -p {password}',
-            timeout=1200,
+            timeout=1200000,
         )
         assert result.status == 0, 'unsuccessful rename'
         assert BCK_MSG in result.stdout

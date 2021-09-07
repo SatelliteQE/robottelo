@@ -73,7 +73,7 @@ def get_guest_info(hypervisor_type):
     return guest_name, guest_uuid
 
 
-def runcmd(cmd, system=None, timeout=600, output_format='base'):
+def runcmd(cmd, system=None, timeout=600000, output_format='base'):
     """Return the retcode and stdout.
 
     :param str cmd: The command line will be executed in the target system.

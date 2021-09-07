@@ -121,7 +121,7 @@ def org():
 def manifest_org(org, default_sat):
     """Upload a manifest to the organization."""
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     return org
 

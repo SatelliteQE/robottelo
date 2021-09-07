@@ -45,8 +45,6 @@ from robottelo.constants import FAKE_2_CUSTOM_PACKAGE
 from robottelo.constants import FAKE_2_CUSTOM_PACKAGE_NAME
 from robottelo.constants import VDC_SUBSCRIPTION_NAME
 from robottelo.constants import VIRT_WHO_HYPERVISOR_TYPES
-from robottelo.helpers import cut_lines
-from robottelo.helpers import line_count
 from robottelo.products import RepositoryCollection
 from robottelo.products import RHELAnsibleEngineRepository
 from robottelo.products import SatelliteToolsRepository
@@ -106,7 +104,7 @@ def repos_collection_for_module_streams(module_org):
 def vm(repos_collection, rhel7_contenthost, default_sat):
     """Virtual machine registered in satellite"""
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
-    add_remote_execution_ssh_key(rhel7_contenthost.ip_addr)
+    rhel7_contenthost.add_rex_key(default_sat)
     yield rhel7_contenthost
 
 

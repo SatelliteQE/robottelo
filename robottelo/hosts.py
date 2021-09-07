@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
 from pathlib import PurePath
+from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin
 from urllib.parse import urlunsplit
 
@@ -23,6 +24,7 @@ from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
+from robottelo.config import robottelo_tmp_dir
 from robottelo.config import settings
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS
 from robottelo.constants import CUSTOM_PUPPET_MODULE_REPOS_PATH
@@ -425,8 +427,17 @@ class ContentHost(Host):
         self.session.sftp_read(source=remote_path, destination=local_path)
 
     def put(self, local_path, remote_path=None):
-        """Put a local file to the broker virtual machine."""
-        self.session.sftp_write(source=local_path, destination=remote_path)
+        """Put a local file to the broker virtual machine.
+        If local_path is a manifest object, write its contents to a temporary file
+        then continue with the upload.
+        """
+        if 'manifests.Manifest' in str(local_path):
+            with NamedTemporaryFile(dir=robottelo_tmp_dir) as content_file:
+                content_file.write(local_path.content.read())
+                content_file.seek(0)
+                self.session.sftp_write(source=content_file.name, destination=remote_path)
+        else:
+            self.session.sftp_write(source=local_path, destination=remote_path)
 
     def put_ssh_key(self, source_key_path, destination_key_name):
         """Copy ssh key to virtual machine ssh path and ensure proper permission is
@@ -564,7 +575,7 @@ class ContentHost(Host):
         # ca list", so that we sign it.
         self.execute('puppet agent -t')
         proxy_host = Host(proxy_hostname)
-        proxy_host.execute(cmd='puppetserver ca sign --all')
+        proxy_host.execute('puppetserver ca sign --all')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
@@ -581,7 +592,7 @@ class ContentHost(Host):
             result = self.execute(
                 'awk -F "/" \'/download_path/ {print $4}\' /etc/foreman_scap_client/config.yaml'
             )
-            policy_id = result.stdout[0]
+            policy_id = result.stdout.strip()
         result = self.execute(f'foreman_scap_client ds {policy_id}')
         if result.status != 0:
             data = self.execute(
@@ -869,7 +880,7 @@ class ContentHost(Host):
             result = self.run('service virt-who stop')
             if result.status != 0:
                 raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
-            result = self.run('virt-who --one-shot', timeout=900)
+            result = self.run('virt-who --one-shot', timeout=900000)
             if result.status != 0:
                 raise CLIFactoryError(
                     f'Failed when executing virt-who --one-shot:\n{result.stderr}'
@@ -1031,7 +1042,7 @@ class Capsule(ContentHost):
         self.execute('yum -y update')
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
-        # self.execute('yum -y install satellite-capsule', timeout=1200)
+        # self.execute('yum -y install satellite-capsule', timeout=1200000)
         result = self.execute('rpm -q satellite-capsule')
         if result.status != 0:
             raise CapsuleHostError(f'Failed to install satellite-capsule package\n{result.stderr}')
