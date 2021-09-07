@@ -325,7 +325,7 @@ class BaseRepository:
 
     def synchronize(self):
         """Synchronize the repository"""
-        Repository.synchronize({'id': self.repo_info['id']}, timeout=4800)
+        Repository.synchronize({'id': self.repo_info['id']}, timeout=4800000)
 
     def add_to_content_view(self, organization_id, content_view_id):
         # type: (int, int) -> None

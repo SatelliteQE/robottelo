@@ -144,7 +144,7 @@ class Base:
             if cls.command_base == 'organization':
                 new_obj, _ = wait_for(
                     lambda: cls.info(info_options),
-                    timeout=300,
+                    timeout=300000,
                     delay=5,
                     silent_failure=True,
                     handle_exception=True,

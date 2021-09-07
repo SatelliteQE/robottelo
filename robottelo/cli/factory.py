@@ -1832,7 +1832,7 @@ def _setup_org_for_a_rh_repo(options=None):
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
     with manifests.clone() as manifest:
-        ssh.get_client().put(manifest.content, manifest.filename)
+        ssh.get_client().put(manifest, manifest.filename)
     try:
         Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
     except CLIReturnCodeError as err:
@@ -1970,7 +1970,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False, force_use
         result = setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
             with manifests.clone() as manifest:
-                ssh.get_client().put(manifest.content, manifest.filename)
+                ssh.get_client().put(manifest, manifest.filename)
             try:
                 Subscription.upload(
                     {'file': manifest.filename, 'organization-id': result.get('organization-id')}
@@ -2363,7 +2363,7 @@ def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand'
     if synchronize:
         # Synchronize the repositories
         for repo_info in repos_info:
-            Repository.synchronize({'id': repo_info['id']}, timeout=4800)
+            Repository.synchronize({'id': repo_info['id']}, timeout=4800000)
     return custom_product, repos_info
 
 

@@ -1206,7 +1206,7 @@ def test_positive_add_subscription_by_id(module_org, default_sat):
     :BZ: 1463685
     """
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     org_id = make_org()['id']
     ackey_id = make_activation_key({'organization-id': org_id})['id']
     Subscription.upload({'file': manifest.filename, 'organization-id': org_id})
@@ -1233,7 +1233,7 @@ def test_positive_copy_by_parent_id(module_org, new_name):
     result = ActivationKey.copy(
         {'id': parent_ak['id'], 'new-name': new_name, 'organization-id': module_org.id}
     )
-    assert result[0] == 'Activation key copied.'
+    assert 'Activation key copied.' in result
 
 
 @pytest.mark.tier1
@@ -1254,7 +1254,7 @@ def test_positive_copy_by_parent_name(module_org):
             'organization-id': module_org.id,
         }
     )
-    assert result[0] == 'Activation key copied.'
+    assert 'Activation key copied.' in result
 
 
 @pytest.mark.tier1
@@ -1311,7 +1311,7 @@ def test_positive_copy_subscription(module_manifest_org):
     result = ActivationKey.copy(
         {'id': parent_ak['id'], 'new-name': new_name, 'organization-id': module_manifest_org.id}
     )
-    assert result[0] == 'Activation key copied.'
+    assert 'Activation key copied.' in result
     result = ActivationKey.subscriptions(
         {'name': new_name, 'organization-id': module_manifest_org.id}
     )

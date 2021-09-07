@@ -241,7 +241,7 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
     else:
         # interface is INTERFACE_CLI
         with manifest:
-            ssh.get_client().put(manifest.content, manifest.filename)
+            ssh.get_client().put(manifest, manifest.filename)
 
         result = Subscription.upload(
             {'file': manifest.filename, 'organization-id': org_id}, timeout=timeout

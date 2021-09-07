@@ -326,7 +326,7 @@ class TestCapsuleContentManagement:
             f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{REPOMD_PATH}',
         )
 
-        assert result.status != 0
+        assert result.status
         assert len(result.stdout) == 0
 
         result = capsule_configured.run(

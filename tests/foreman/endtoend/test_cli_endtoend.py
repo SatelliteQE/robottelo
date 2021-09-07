@@ -140,7 +140,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
     # step 2.2: Clone and upload manifest
     if fake_manifest_is_set:
         with manifests.clone() as manifest:
-            default_sat.put(manifest.content, manifest.filename)
+            default_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
 
     # step 2.3: Create a new lifecycle environment
