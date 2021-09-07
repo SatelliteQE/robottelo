@@ -632,7 +632,7 @@ def wait_for_syncplan_tasks(repo_backend_id=None, timeout=10, repo_name=None):
     # Fetch the Pulp password
     pulp_pass = ssh.command(
         'grep "^default_password" /etc/pulp/server.conf | awk \'{print $2}\''
-    ).stdout.splitlinies()[0]
+    ).stdout.splitlines()[0]
     # Set the Timeout value
     timeup = time.time() + int(timeout) * 60
     # Search Filter to filter out the task based on backend-id and sync action

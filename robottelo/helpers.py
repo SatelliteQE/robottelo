@@ -274,7 +274,7 @@ def get_available_capsule_port(port_pool=None):
         f"ss -tnaH sport ge {port_pool[0]} sport le {port_pool[-1]}"
         " | awk '{n=split($4, p, \":\"); print p[n]}' | sort -u"
     )
-    if ss_cmd.stderr:
+    if ss_cmd.stderr[1]:
         raise CapsuleTunnelError(
             f'Failed to create ssh tunnel: Error getting port status: {ss_cmd.stderr}'
         )

@@ -249,7 +249,7 @@ class TestScenarioPerformanceTuning:
                 remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
             command_output = default_sat.execute(
-                'satellite-installer -s --disable-system-checks', timeout=1000
+                'satellite-installer -s --disable-system-checks', timeout=1000000
             )
             assert 'Success!' in command_output.stdout
 
@@ -269,7 +269,7 @@ class TestScenarioPerformanceTuning:
                 remote_path='/etc/foreman-installer/custom-hiera.yaml',
             )
             command_output = default_sat.execute(
-                'satellite-installer -s --disable-system-checks', timeout=1000
+                'satellite-installer -s --disable-system-checks', timeout=1000000
             )
             assert 'Success!' in command_output.stdout
             raise
@@ -327,7 +327,7 @@ class TestScenarioPerformanceTuning:
             )
             command_output = default_sat.execute(
                 'satellite-installer --tuning default -s --disable-system-checks',
-                timeout=1000,
+                timeout=1000000,
             )
             assert 'Success!' in command_output.stdout
         finally:
@@ -338,6 +338,6 @@ class TestScenarioPerformanceTuning:
             )
             os.remove("custom-hiera.yaml")
             command_output = default_sat.execute(
-                'satellite-installer -s --disable-system-checks', timeout=1000
+                'satellite-installer -s --disable-system-checks', timeout=1000000
             )
             assert 'Success!' in command_output.stdout

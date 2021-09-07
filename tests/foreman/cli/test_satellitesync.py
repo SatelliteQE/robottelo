@@ -63,7 +63,7 @@ def class_export_directory(default_sat):
     result = default_sat.execute(f'ls -Z /mnt/ | grep {export_dir}')
     assert result.status == 0
     assert len(result.stdout) >= 1
-    assert 'unconfined_u:object_r:mnt_t:s0' in result.stdout[0]
+    assert 'unconfined_u:object_r:mnt_t:s0' in result.stdout
 
     # Fix SELinux policy for new directory
     result = default_sat.execute(
@@ -78,7 +78,7 @@ def class_export_directory(default_sat):
     result = default_sat.execute(f'ls -Z /mnt/ | grep {export_dir}')
     assert result.status == 0
     assert len(result.stdout) >= 1
-    assert 'unconfined_u:object_r:foreman_var_run_t:s0' in result.stdout[0]
+    assert 'unconfined_u:object_r:foreman_var_run_t:s0' in result.stdout
 
     # Update the 'pulp_export_destination' settings to new directory
     Settings.set({'name': 'pulp_export_destination', 'value': f'/mnt/{export_dir}'})
@@ -154,7 +154,7 @@ class TestRepositoryExport:
         """
         # Enable RH repository
         with manifests.clone() as manifest:
-            default_sat.put(manifest.content, manifest.filename)
+            default_sat.put(manifest, manifest.filename)
         Subscription.upload({'file': manifest.filename, 'organization-id': module_org.id})
         RepositorySet.enable(
             {
@@ -300,7 +300,7 @@ def _enable_rhel_content(organization, repo_name, releasever=None, product=None,
     Repository.update({'download-policy': 'immediate', 'mirror-on-sync': 'no', 'id': repo['id']})
     if sync:
         # Synchronize the repository
-        Repository.synchronize({'id': repo['id']}, timeout=7200)
+        Repository.synchronize({'id': repo['id']}, timeout=7200000)
     repo = Repository.info(
         {
             'name': REPOS[repo_name]['name'],
@@ -736,7 +736,8 @@ class TestContentViewSync:
             rhel_cv_name, rhel_repo, class_export_entities['exporting_org']
         )
         ContentView.version_export(
-            {'export-dir': f'{function_export_cv_directory}', 'id': exporting_cvv_id}, timeout=7200
+            {'export-dir': f'{function_export_cv_directory}', 'id': exporting_cvv_id},
+            timeout=7200000,
         )
         exporting_cvv_version = rhel_cv['versions'][0]['version']
         exported_tar = (
@@ -755,7 +756,7 @@ class TestContentViewSync:
         )
         importing_cv, _ = _create_cv(rhel_cv_name, imp_rhel_repo, importing_org, publish=False)
         ContentView.version_import(
-            {'export-tar': exported_tar, 'organization-id': importing_org['id']}, timeout=7200
+            {'export-tar': exported_tar, 'organization-id': importing_org['id']}, timeout=7200000
         )
         importing_cvv_id = ContentView.info({'id': importing_cv['id']})['versions'][0]['id']
         imported_packages = Package.list({'content-view-version-id': importing_cvv_id})
@@ -811,7 +812,7 @@ class TestContentViewSync:
         exported_packages = default_sat.execute(
             f'tar -tf {function_export_cv_directory}/{contents_tar} | grep .rpm | wc -l'
         )
-        assert len(cvv_packages) == int(exported_packages.stdout[0])
+        assert len(cvv_packages) == int(exported_packages.stdout.strip())
 
     @pytest.mark.tier1
     @pytest.mark.upgrade

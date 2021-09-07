@@ -121,6 +121,6 @@ class TestGetAvailableCapsulePort:
     @mock.patch('robottelo.helpers.ssh')
     def test_return_port(self, ssh):
         """get_available_capsule_port returns a port number."""
-        ssh.command = mock.MagicMock(return_value=FakeSSHResult('""', 0))
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult('""', 0, (0, '')))
         port = get_available_capsule_port()
         assert port, "No available capsule port found."
