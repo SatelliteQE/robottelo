@@ -16,6 +16,8 @@
 
 :Upstream: No
 """
+from random import choice
+
 import pytest
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
@@ -1143,6 +1145,85 @@ class TestRepository:
         repo = Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         assert repo['content-counts']['packages'] == '32'
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'yum',
+                    'name': gen_string('alpha'),
+                    'url': settings.repos.yum_1.url,
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        'repo_options_2',
+        **parametrized(
+            [
+                {
+                    'content-type': 'yum',
+                    'name': gen_string('alpha'),
+                }
+            ]
+        ),
+    )
+    @pytest.mark.tier2
+    def test_mirror_on_sync_removes_rpm(self, module_org, repo, repo_options_2):
+        """
+            Check that a package removed upstream is removed downstream when the repo
+            is next synced if mirror-on-sync is enabled (the default setting).
+
+        :id: 637d6479-842d-4570-97eb-3a986eca2142
+
+        :Setup:
+            1. Create product with yum type repository (repo 1), URL to upstream, sync it.
+            2. Create another product with yum type repository (repo 2), URL to repo 1, sync it.
+            3. Delete one package from repo 1.
+            4. Sync the second repo (repo 2) from the first repo (repo 1).
+
+        :Steps:
+            1. Check that the package deleted from repo 1 was removed from repo 2.
+
+        :expectedresults: A package removed from repo 1 is removed from repo 2 when synced.
+
+        :CaseImportance: Medium
+        """
+        # Add description to repo 1 and its product
+        Product.update(
+            {
+                'id': repo.get('product')['id'],
+                'organization': module_org.label,
+                'description': 'Fake Upstream',
+            }
+        )
+        Repository.update({'id': repo['id'], 'description': ['Fake Upstream']})
+        # Sync repo 1 from the real upstream
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        assert repo['content-counts']['packages'] == '32'
+        # Make 2nd repo
+        prod_2 = make_product({'organization-id': module_org.id, 'description': 'Downstream'})
+        repo_options_2['organization-id'] = module_org.id
+        repo_options_2['product-id'] = prod_2['id']
+        repo_options_2['url'] = repo.get('published-at')
+        repo_2 = make_repository(repo_options_2)
+        Repository.update({'id': repo_2['id'], 'description': ['Downstream']})
+        repo_2 = Repository.info({'id': repo_2['id']})
+        Repository.synchronize({'id': repo_2['id']})
+        # Get list of repo 1's packages and remove one
+        package = choice(Package.list({'repository-id': repo['id']}))
+        Repository.remove_content({'id': repo['id'], 'ids': [package['id']]})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['content-counts']['packages'] == '31'
+        # Re-synchronize repo_2, the downstream repository
+        Repository.synchronize({'id': repo_2['id']})
+        repo_2 = Repository.info({'id': repo_2['id']})
+        assert repo_2['sync']['status'] == 'Success'
+        assert repo_2['content-counts']['packages'] == '31'
 
     @pytest.mark.tier2
     @pytest.mark.parametrize(
@@ -3066,34 +3147,6 @@ def test_file_repo_contains_only_newer_file():
         1. Check that the published repo contains only the new version of the file
 
     :expectedresults: only the latest version of the file is present in the repo
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: High
-    """
-
-
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_mirror_on_sync_removes_RPM():
-    """
-        Check that a package removed upstream is removed downstream when the repo
-        is next synced.
-
-    :id: 637d6479-842d-4570-97eb-3a986eca2142
-
-    :Setup:
-        1. Create a product with a yum type repository (repo 1)
-        2. Add a link to an external repo and sync it
-        3. Create another product with a yum type repository (repo 2)
-        4. Add a link to the repo created in step 1 and sync it
-        5. Delete one package from repo 1.
-        6. Sync the second repo (repo 2) created in step 3.
-
-    :Steps:
-        1. Check that the package deleted from repo 1 was removed from repo 2
-
-    :expectedresults: A package removed from repo 1 is removed from repo 2 when synced
 
     :CaseAutomation: NotAutomated
 
