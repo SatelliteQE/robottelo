@@ -19,7 +19,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo import ssh
-from robottelo.constants import FOREMAN_TEMPLATES_COMMUNITY_URL
+from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
+from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 
 
 @pytest.fixture(scope='module')
@@ -48,9 +49,9 @@ def test_positive_import_templates(session, templates_org, templates_loc):
             associate = always
             filter = Alterator default PXELinux
             prefix = <any_prefix>
-            repo = Community Repo
+            repo = custom Repo
             dirname = provisioning_templates
-        3. Submit to Import the template from community repo.
+        3. Submit to Import the template from custom repo.
 
     :expectedresults:
 
@@ -60,6 +61,7 @@ def test_positive_import_templates(session, templates_org, templates_loc):
     :CaseImportance: Critical
     """
     import_template = 'Alterator default PXELinux'
+    branch = 'automation'
     prefix_name = gen_string('alpha', 8)
     with session:
         session.organization.select(org_name=templates_org.name)
@@ -68,14 +70,15 @@ def test_positive_import_templates(session, templates_org, templates_loc):
             {
                 'sync_type': 'Import',
                 'template.associate': 'Always',
+                'template.branch': branch,
                 'template.dirname': 'provisioning_templates',
                 'template.filter': import_template,
                 'template.lock': 'Lock',
                 'template.prefix': f'{prefix_name} ',
-                'template.repo': FOREMAN_TEMPLATES_COMMUNITY_URL,
+                'template.repo': FOREMAN_TEMPLATE_IMPORT_URL,
             }
         )
-        assert import_title == f'Import from {FOREMAN_TEMPLATES_COMMUNITY_URL}'
+        assert import_title == f'Import from {FOREMAN_TEMPLATE_IMPORT_URL} and branch {branch}'
         imported_template = f'{prefix_name} {import_template}'
         assert session.provisioningtemplate.is_locked(imported_template)
         pt = session.provisioningtemplate.read(imported_template)
@@ -89,7 +92,7 @@ def test_positive_import_templates(session, templates_org, templates_loc):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_export_templates(session):
+def test_positive_export_templates(session, create_import_export_local_dir):
     """Export the satellite templates to local directory
 
     :id: 1c24cf51-7198-48aa-a70a-8c0441333374
@@ -101,8 +104,8 @@ def test_positive_export_templates(session):
         1. Navigate to Host -> Sync Templates, and choose Export.
         2. Select fields:
             metadata_export_mode = keep
-            filter = Alterator default PXELinux
-            repo = '/var/lib/pulp/katello-export'
+            filter = Kickstart default PXELinux
+            repo = `FOREMAN_TEMPLATE_ROOT_DIR`
             dirname = `dir_name`
         3. Submit to Export the template to local directory.
 
@@ -114,22 +117,20 @@ def test_positive_export_templates(session):
 
     :CaseImportance: Critical
     """
-    repo = '/var/lib/pulp/katello-export'
-    export_template = 'Alterator default PXELinux'
-    dir_name = gen_string('alpha', 8)
-    dir_path = f'{repo}/{dir_name}'
+    dir_name, dir_path = create_import_export_local_dir
+    export_template = 'Kickstart default PXELinux'
     with session:
         export_title = session.sync_template.sync(
             {
                 'sync_type': 'Export',
                 'template.metadata_export_mode': 'Keep',
                 'template.filter': export_template,
-                'template.repo': repo,
+                'template.repo': FOREMAN_TEMPLATE_ROOT_DIR,
                 'template.dirname': dir_name,
             }
         )
-        assert export_title == f'Export to {repo} as user {session._user}'
-    exported_file = f'{dir_path}/provisioning_templates/PXELinux/alterator_default_pxelinux.erb'
+        assert export_title == f'Export to {FOREMAN_TEMPLATE_ROOT_DIR} as user {session._user}'
+    exported_file = f'{dir_path}/provisioning_templates/PXELinux/kickstart_default_pxelinux.erb'
     result = ssh.command(f'find {exported_file} -type f')
     assert result.return_code == 0
     search_string = f'name: {export_template}'
