@@ -205,7 +205,7 @@ class TestTailoringFiles:
         )
         assert tailoring_file['name'] == name
         result = TailoringFiles.download_tailoring_file({'name': name, 'path': '/var/tmp/'})
-        assert file_path in result[0]
+        assert file_path in result
         result = default_sat.execute(f'find {file_path} 2> /dev/null')
         assert result.status == 0
         assert file_path == result.stdout.strip()

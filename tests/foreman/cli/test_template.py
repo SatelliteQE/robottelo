@@ -215,7 +215,7 @@ def test_positive_create_with_content():
     template = make_template({'content': content, 'name': name})
     assert template['name'] == name
     template_content = Template.dump({'id': template['id']})
-    assert content in template_content[0]
+    assert content in template_content
 
 
 @pytest.mark.tier1

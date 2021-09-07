@@ -2253,10 +2253,9 @@ def test_negative_without_attach_with_lce(module_host_subscription, host_subscri
 
     # get list of available subscriptions which are matched with default subscription
     subscriptions = module_host_subscription.client.run(
-        'subscription-manager list --available --matches "%s" --pool-only'
-        % DEFAULT_SUBSCRIPTION_NAME
+        f'subscription-manager list --available --matches "{DEFAULT_SUBSCRIPTION_NAME}" --pool-only'
     )
-    pool_id = subscriptions.stdout[0]
+    pool_id = subscriptions.stdout.strip()
     # attach to plain RHEL subsctiption
     module_host_subscription.client.run('subscription-manager attach --pool "%s"' % pool_id)
     assert module_host_subscription.client.subscribed

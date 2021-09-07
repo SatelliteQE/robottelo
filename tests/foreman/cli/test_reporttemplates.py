@@ -71,7 +71,7 @@ def local_org(default_sat):
     """Create org with CLI factory and upload cloned manifest"""
     org = make_org()
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     return org
 
 
@@ -256,8 +256,8 @@ def test_positive_generate_report_nofilter_and_with_filter():
     rt_host_statuses = ReportTemplate.info({'name': 'Host - Statuses'})
     result_no_filter = ReportTemplate.generate({'name': rt_host_statuses['name']})
 
-    assert host1['name'] in [item.split(',')[0] for item in result_no_filter]
-    assert host2['name'] in [item.split(',')[0] for item in result_no_filter]
+    assert host1['name'] in [item.split(',')[0] for item in result_no_filter.splitlines()]
+    assert host2['name'] in [item.split(',')[0] for item in result_no_filter.splitlines()]
 
     result = ReportTemplate.generate(
         {
@@ -267,8 +267,8 @@ def test_positive_generate_report_nofilter_and_with_filter():
             ),
         }
     )
-    assert host1['name'] in [item.split(',')[0] for item in result]
-    assert host2['name'] not in [item.split(',')[0] for item in result]
+    assert host1['name'] in [item.split(',')[0] for item in result.splitlines()]
+    assert host2['name'] not in [item.split(',')[0] for item in result.splitlines()]
 
 
 @pytest.mark.tier2
