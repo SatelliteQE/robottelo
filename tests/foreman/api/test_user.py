@@ -479,7 +479,7 @@ class TestSshKeyInUser:
         """
         user = entities.User().create()
         ssh_name = gen_string('alpha')
-        ssh_key = gen_ssh_keypairs[1]
+        ssh_key = gen_ssh_keypairs()[1]
         user_sshkey = entities.SSHKey(user=user, name=ssh_name, key=ssh_key).create()
         assert ssh_name == user_sshkey.name
         assert ssh_key == user_sshkey.key
@@ -558,7 +558,7 @@ class TestSshKeyInUser:
         invalid_ssh_key_name = gen_string('alpha', length=300)
         with pytest.raises(HTTPError) as context:
             entities.SSHKey(
-                user=create_user['user'], name=invalid_ssh_key_name, key=gen_ssh_keypairs[1]
+                user=create_user['user'], name=invalid_ssh_key_name, key=gen_ssh_keypairs()[1]
             ).create()
         assert re.search("Name is too long", context.value.response.text)
 
@@ -577,7 +577,7 @@ class TestSshKeyInUser:
         :expectedresults: Multiple types of supported ssh keys can be added to
             user
         """
-        rsa = gen_ssh_keypairs[1]
+        rsa = gen_ssh_keypairs()[1]
         dsa = create_user['data_keys']['ssh_keys']['dsa']
         ecdsa = create_user['data_keys']['ssh_keys']['ecdsa']
         ed = create_user['data_keys']['ssh_keys']['ed']
@@ -608,7 +608,7 @@ class TestSshKeyInUser:
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
         user = entities.User(organization=[org], location=[loc]).create()
-        ssh_key = gen_ssh_keypairs[1]
+        ssh_key = gen_ssh_keypairs()[1]
         entities.SSHKey(user=user, name=gen_string('alpha'), key=ssh_key).create()
         host = entities.Host(owner=user, owner_type='User', organization=org, location=loc).create()
         sshkey_updated_for_host = f'{ssh_key} {user.login}@{default_sat.hostname}'

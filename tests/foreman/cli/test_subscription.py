@@ -203,7 +203,7 @@ def test_positive_delete_manifest_as_another_user(default_sat):
     ).create()
     # use the first admin to upload a manifest
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     Subscription.with_user(username=user1.login, password=user1_password).upload(
         {'file': manifest.filename, 'organization-id': org.id}
     )

@@ -55,7 +55,7 @@ class Repository(Base):
         return result
 
     @classmethod
-    def synchronize(cls, options, return_raw_response=None, timeout=3600):
+    def synchronize(cls, options, return_raw_response=None, timeout=3600000):
         """Synchronizes a repository."""
         cls.command_sub = 'synchronize'
         return cls.execute(

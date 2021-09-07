@@ -4,7 +4,6 @@ from tempfile import mkstemp
 import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
-from robottelo import ssh
 from robottelo.config import settings
 from robottelo.errors import GCECertNotFoundError
 from robottelo.hosts import Satellite
@@ -78,14 +77,14 @@ def install_cockpit_plugin(default_sat, register_to_dogfood):
 
 
 @pytest.fixture(scope='session')
-def gce_cert():
+def gce_cert(default_sat):
     _, gce_cert_file = mkstemp(suffix='.json')
     cert = json.loads(settings.gce.cert)
     cert['local_path'] = gce_cert_file
     with open(gce_cert_file, 'w') as f:
         json.dump(cert, f)
-    ssh.upload_file(gce_cert_file, settings.gce.cert_path)
-    if ssh.command(f'[ -f {settings.gce.cert_path} ]').return_code != 0:
+    default_sat.put(gce_cert_file, settings.gce.cert_path)
+    if default_sat.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
         raise GCECertNotFoundError(
             f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
         )

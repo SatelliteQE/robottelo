@@ -90,7 +90,7 @@ class Capsule(Base):
         return result
 
     @classmethod
-    def content_synchronize(cls, options, return_raw_response=None, timeout=3600):
+    def content_synchronize(cls, options, return_raw_response=None, timeout=3600000):
         """Synchronize the content to the capsule."""
 
         cls.command_sub = 'content synchronize'

@@ -568,7 +568,7 @@ def test_positive_synchronize_rh_product_past_sync_date(default_sat):
     delay = 2 * 60
     org = make_org()
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {
@@ -634,7 +634,7 @@ def test_positive_synchronize_rh_product_future_sync_date(default_sat):
     delay = 2 * 60  # delay for sync date in seconds
     org = make_org()
     with manifests.clone() as manifest:
-        default_sat.put(manifest.content, manifest.filename)
+        default_sat.put(manifest, manifest.filename)
     Subscription.upload({'file': manifest.filename, 'organization-id': org['id']})
     RepositorySet.enable(
         {
