@@ -20,6 +20,7 @@ import copy
 import csv
 import os
 import random
+import re
 
 import pytest
 import yaml
@@ -1413,7 +1414,9 @@ def test_positive_global_registration_end_to_end(
         result = ' '.join(
             JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
         )
-        assert invocation_command['success'] == '1', result
+        assert (
+            invocation_command['message'] == f'Job invocation {invocation_command["id"]} created'
+        ), result
         assert 'Insights API confirms registration' in result
         # check rex interface is set
         host = Host.info({'name': client.hostname})
@@ -1469,9 +1472,10 @@ def test_global_registration_with_capsule_host():
     """
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_global_registration_with_gpg_repo_and_default_package():
+def test_global_registration_with_gpg_repo_and_default_package(
+    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+):
     """Host registration form produces a correct registration command and host is
     registered successfully with gpg repo enabled and have default package
     installed.
@@ -1490,14 +1494,43 @@ def test_global_registration_with_gpg_repo_and_default_package():
         4. open the global registration form and update the gpg repo and key
         5. check host is registered successfully with installed same package
         6. check gpg repo is exist in registered host
-
-    :CaseAutomation: ManualOnly
     """
+    client = rhel7_contenthost
+    repo_name = 'foreman_register'
+    repo_url = settings.repos.gr_yum_repo.url
+    repo_gpg_url = settings.repos.gr_yum_repo.gpg_url
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'general.capsule': module_proxy.name,
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+                'advanced.force': True,
+                'advanced.install_packages': 'mlocate vim',
+                'advanced.repository': repo_url,
+                'advanced.repository_gpg_key_url': repo_gpg_url,
+            }
+        )
+
+    # rhel repo required for insights client installation,
+    # syncing it to the satellite would take too long
+    client.configure_rhel_repo(settings.repos.rhel7_repo)
+    # run curl
+    result = client.execute(cmd)
+    assert result.status == 0
+    result = client.execute('yum list installed | grep mlocate')
+    assert result.status == 0
+    assert 'mlocate' in result.stdout
+    result = client.execute(f'yum -v repolist {repo_name}')
+    assert result.status == 0
+    assert repo_url in result.stdout
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier3
-def test_global_re_registration_host_with_force_ignore_error_options():
+def test_global_re_registration_host_with_force_ignore_error_options(
+    session, module_activation_key, module_os, module_proxy, rhel7_contenthost
+):
     """If the ignore_error and force checkbox is checked then registered host can
     get re-registered without any error.
 
@@ -1513,14 +1546,34 @@ def test_global_re_registration_host_with_force_ignore_error_options():
         3. open the global registration form and select --force and --Ignore Errors option
         4. registered the host with generated curl command
         5. re-register the same host again and check it is getting registered
-
-    :CaseAutomation: ManualOnly
     """
+    client = rhel7_contenthost
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'general.capsule': module_proxy.name,
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+                'advanced.force': True,
+                'advanced.ignore_error': True,
+            }
+        )
+    client.execute(cmd)
+    result = client.execute(f'rpm -qa | grep "katello-ca-consumer-{module_proxy.name}"')
+    assert result.status == 0
+    result = client.execute('subscription-manager identity')
+    assert result.status == 0
+    # rerun the register command
+    client.execute(cmd)
+    result = client.execute('subscription-manager identity')
+    assert result.status == 0
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_global_registration_token_restriction():
+def test_global_registration_token_restriction(
+    session, module_activation_key, rhel7_contenthost, module_os, module_proxy, default_sat
+):
     """Global registration token should be only used for registration call, it
     should be restricted for any other api calls.
 
@@ -1535,8 +1588,28 @@ def test_global_registration_token_restriction():
         1. open the global registration form and generate the curl token
         2. use that curl token to execute other api calls e.g. GET /hosts, /users
 
-    :CaseAutomation: ManualOnly
     """
+    client = rhel7_contenthost
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'general.capsule': module_proxy.name,
+                'general.operating_system': module_os.title,
+                'advanced.activation_keys': module_activation_key.name,
+                'general.insecure': True,
+            }
+        )
+
+    pattern = re.compile("Authorization.*(?=')")
+    auth_header = re.search(pattern, cmd).group()
+
+    # build curl
+    curl_users = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/users/'
+    curl_hosts = f'curl -X GET -k -H {auth_header} -i {default_sat.url}/api/hosts/'
+    for curl_cmd in (curl_users, curl_hosts):
+        result = client.execute(curl_cmd)
+        assert result.status == 0
+        'Unable to authenticate user' in result.stdout
 
 
 @pytest.mark.tier2
