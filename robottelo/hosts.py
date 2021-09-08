@@ -19,6 +19,8 @@ from wrapanapi.entities.vm import VmState
 from robottelo import constants
 from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_job_invocation
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
 from robottelo.config import settings
@@ -502,6 +504,39 @@ class ContentHost(Host):
         #  this stage can be ignored.
         self.execute('puppet agent -t 2> /dev/null')
 
+    def job_invocation(self, job_template):
+        """
+        Invoke a job on the host.
+        Args:
+            job-template: name of job-templete to be used.
+
+        Returns:
+
+        """
+        invocation_command = make_job_invocation(
+            {'job-template': job_template, 'search-query': f"name ~ {self.hostname}"}
+        )
+        result = JobInvocation.info({'id': invocation_command['id']})
+        try:
+            assert result['success'] == '1'
+        except AssertionError:
+            result = 'host output: {}'.format(
+                ' '.join(
+                    JobInvocation.get_output(
+                        {'id': invocation_command['id'], 'host': self.hostname}
+                    )
+                )
+            )
+            data = self.execute(
+                'rpm -qa |grep scap; yum repolist;cat /etc/foreman_scap_client/config.yaml; '
+                'cat /etc/cron.d/foreman_scap_client_cron;tail -n 100 /var/log/messages'
+            )
+            raise AssertionError(
+                f'Failed to execute foreman_scap_client run. '
+                f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
+                f'job_invocation: {result}'
+            )
+
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
 
@@ -518,11 +553,11 @@ class ContentHost(Host):
         if result.status != 0:
             data = self.execute(
                 'rpm -qa |grep scap; yum repolist;cat /etc/foreman_scap_client/config.yaml; '
-                'cat /etc/cron.d/foreman_scap_client_cron'
+                'cat /etc/cron.d/foreman_scap_client_cron; tail -n 100 /var/log/messages'
             )
             raise ContentHostError(
                 f'Failed to execute foreman_scap_client run. '
-                f'Command exited with code: {result.status}, stderr: {result.stderr}, '
+                f'Command exited with code: {result.status}, stderr: {result.stderr}, stdout: {result.stdout}'
                 f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
             )
 

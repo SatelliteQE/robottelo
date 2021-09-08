@@ -264,7 +264,7 @@ def test_positive_upload_to_satellite(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.execute_foreman_scap_client()
+        vm.job_invocation('Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -289,7 +289,7 @@ def test_positive_upload_to_satellite(
             assert updated_result.status == 0
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
-            vm.execute_foreman_scap_client()
+            vm.job_invocation('Run OpenSCAP scans')
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
@@ -391,7 +391,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.execute_foreman_scap_client()
+        vm.job_invocation('Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -401,7 +401,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', [DISTRO_RHEL8, DISTRO_RHEL7])
+@pytest.mark.parametrize('distro', [DISTRO_RHEL7])
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
 ):
