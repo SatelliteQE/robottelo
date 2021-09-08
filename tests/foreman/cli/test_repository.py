@@ -2405,7 +2405,7 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy', 'ansible_hub'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collecion_from_galaxy(self, repo, module_org, module_product):
+    def test_positive_sync_ansible_collection_from_galaxy(self, repo, module_org, module_product):
         """Sync ansible collection repository from Ansible Galaxy
 
         :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
