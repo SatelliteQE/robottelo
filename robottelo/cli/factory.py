@@ -622,6 +622,8 @@ def make_repository_with_credentials(options=None, credentials=None):
         'http-proxy-policy': None,
         'ansible-collection-requirements': None,
         'ansible-collection-requirements-file': None,
+        'ansible-collection-auth-token': None,
+        'ansible-collection-auth-url': None,
         'url': settings.repos.yum_1.url,
     }
     repo_cls = _entity_with_credentials(credentials, Repository)

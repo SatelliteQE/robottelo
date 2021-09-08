@@ -2385,20 +2385,27 @@ class TestAnsibleCollectionRepository:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
-                    'content-type': 'ansible_collection',
-                    'url': ANSIBLE_GALAXY,
-                    'ansible-collection-requirements': '{collections: [ \
+        [
+            {
+                'content-type': 'ansible_collection',
+                'url': ANSIBLE_GALAXY,
+                'ansible-collection-requirements': '{collections: [ \
                             { name: theforeman.foreman, version: "2.1.0" }, \
                             { name: theforeman.operations, version: "0.1.0"} ]}',
-                }
-            ]
-        ),
+            },
+            {
+                'content-type': 'ansible_collection',
+                'url': settings.ansible_hub.url,
+                'ansible-collection-auth-token': settings.ansible_hub.token,
+                'ansible-collection-auth-url': settings.ansible_hub.sso_url,
+                'ansible-collection-requirements': '{collections: \
+                                                         [redhat.satellite_operations ]}',
+            },
+        ],
+        ids=['ansible_galaxy', 'ansible_hub'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collecion_from_gallaxy(self, repo, module_org, module_product):
+    def test_positive_sync_ansible_collection_from_galaxy(self, repo, module_org, module_product):
         """Sync ansible collection repository from Ansible Galaxy
 
         :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
@@ -2408,6 +2415,8 @@ class TestAnsibleCollectionRepository:
         :CaseLevel: Integration
 
         :CaseImportance: High
+
+        :parametrized: yes
 
         """
         Repository.synchronize({'id': repo['id']})

@@ -37,6 +37,11 @@ VALIDATORS = dict(
         Validator('subscription.rhn_password', must_exist=True),
         Validator('subscription.rhn_poolid', must_exist=True),
     ],
+    ansible_hub=[
+        Validator('ansible_hub.url', must_exist=True),
+        Validator('ansible_hub.token', must_exist=True),
+        Validator('ansible_hub.sso_url', must_exist=True),
+    ],
     azurerm=[
         Validator(
             'azurerm.client_id',
