@@ -71,3 +71,14 @@ jobs:
         with:
           file: coverage.xml
           name: ${{ github.run_id }}-py-${{ matrix.python-version }}
+
+      - name: Get changed files
+        run: |
+          URL="https://api.github.com/repos/SatelliteQE/robottelo/pulls/${{ github.event.pull_request.number }}/files"
+          echo "PATHS=$(curl -s -X GET -G $URL | jq -r '.[] | .filename' | tr '\r\n' ',')" >> $GITHUB_ENV
+
+      - name: Customer scenario check
+        run: |
+          make customer-scenario-check paths=${{env.PATHS}}
+        env:
+          ROBOTTELO_BUGZILLA__API_KEY: '${{ secrets.BUGZILLA_KEY }}'

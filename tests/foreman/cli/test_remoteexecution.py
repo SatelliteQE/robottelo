@@ -191,8 +191,6 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
-        :CaseImportance: Critical
-
         :parametrized: yes
         """
         self.org = module_org

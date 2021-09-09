@@ -167,6 +167,10 @@ clean-cache:
 
 clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
 
+customer-scenario-check:
+	$(info "Checking the customer scenario status of associated BZs")
+	@scripts/customer_scenarios.py --paths $(paths)
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
