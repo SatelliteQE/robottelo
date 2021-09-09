@@ -96,8 +96,6 @@ class TestRemoteExecution:
 
         :BZ: 1647582
 
-        :customerscenario: true
-
         :parametrized: yes
         """
         client = fixture_vmsetup
@@ -211,8 +209,6 @@ class TestRemoteExecution:
         :expectedresults: Verify the job was successfully ran against the host
 
         :bz: 1872688, 1811166
-
-        :customerscenario: true
 
         :CaseImportance: Critical
 
