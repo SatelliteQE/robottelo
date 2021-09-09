@@ -80,6 +80,7 @@ def validate_task_status(repo_id, org_id, max_tries=6):
         f' and organization_id = {org_id}'
         f' and resource_id = {repo_id}',
         max_tries=max_tries,
+        search_rate=10,
     )
 
 
@@ -659,14 +660,20 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait until the next recurrence
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
@@ -702,14 +709,20 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
@@ -748,14 +761,20 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id for product in products]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check products were not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check products {products[0].name} and {products[1].name}"
+        f" were not synced by {sync_plan.name}"
+    )
     sleep(delay / 4)
     # Verify products has not been synced yet
     for repo in repos:
         with pytest.raises(AssertionError):
             validate_task_status(repo.id, module_org.id, max_tries=1)
     # Wait the rest of expected time
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check products were synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check products {products[0].name}"
+        f" and {products[1].name} were synced by {sync_plan.name}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     for repo in repos:
@@ -804,14 +823,20 @@ def test_positive_synchronize_rh_product_past_sync_date():
     # Associate sync plan with product
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait until the next recurrence
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
@@ -860,14 +885,20 @@ def test_positive_synchronize_rh_product_future_sync_date():
         validate_task_status(repo.id, org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product has not been synced yet
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
@@ -896,14 +927,20 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
@@ -934,14 +971,20 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
-    logger.info(f'Waiting {delay / 4} seconds to check product {product.name} was not synced')
+    logger.info(
+        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
+        f" was not synced by {sync_plan['name']}"
+    )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
     with pytest.raises(AssertionError):
         validate_task_status(repo.id, module_org.id, max_tries=1)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
-    logger.info(f'Waiting {delay * 3 / 4} seconds to check product {product.name} was synced')
+    logger.info(
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
+        f" was synced by {sync_plan['name']}"
+    )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
     validate_task_status(repo.id, module_org.id)
