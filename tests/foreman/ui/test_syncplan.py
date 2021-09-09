@@ -42,6 +42,7 @@ def validate_task_status(repo_id, org_id, max_tries=10):
         f' and organization_id = {org_id}'
         f' and resource_id = {repo_id}',
         max_tries=max_tries,
+        search_rate=10,
     )
 
 
