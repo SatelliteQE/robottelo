@@ -629,7 +629,17 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
             [host.name],
             {'organization': new_host_org.name, 'on_mismatch': 'Fix Organization on Mismatch'},
         )
-        assert not session.host.search(host.name)
+        assert not entities.Host(organization=module_org).search(
+            query={'search': f'name="{host.name}"'}
+        )
+        assert (
+            len(
+                entities.Host(organization=new_host_org).search(
+                    query={'search': f'name="{host.name}"'}
+                )
+            )
+            == 1
+        )
         session.organization.select(org_name=new_host_org.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         session.host.apply_action(
@@ -637,7 +647,17 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
             [host.name],
             {'location': new_host_location.name, 'on_mismatch': 'Fix Location on Mismatch'},
         )
-        assert not session.host.search(host.name)
+        assert not entities.Host(location=module_loc).search(
+            query={'search': f'name="{host.name}"'}
+        )
+        assert (
+            len(
+                entities.Host(location=new_host_location).search(
+                    query={'search': f'name="{host.name}"'}
+                )
+            )
+            == 1
+        )
         session.location.select(loc_name=new_host_location.name)
         assert session.host.search(host.name)[0]['Name'] == host.name
         values = session.host.get_details(host.name)
