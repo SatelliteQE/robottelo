@@ -58,6 +58,8 @@ ak_name = {
     'rhel7': gen_string('alpha'),
     'rhel6': gen_string('alpha'),
 }
+target_cores = 4
+target_memory = '8GiB'
 
 
 def fetch_scap_and_profile_id(scap_name, scap_profile):
@@ -224,7 +226,12 @@ def test_positive_upload_to_satellite(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=distro,
+        host_classes={'host': ContentHost},
+        target_cores=target_cores,
+        target_memory=target_memory,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -370,7 +377,12 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=DISTRO_RHEL7,
+        host_classes={'host': ContentHost},
+        target_cores=target_cores,
+        target_memory=target_memory,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
@@ -401,7 +413,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', [DISTRO_RHEL7])
+@pytest.mark.parametrize('distro', [DISTRO_RHEL7, DISTRO_RHEL8])
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
 ):
@@ -464,7 +476,12 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=distro,
+        host_classes={'host': ContentHost},
+        target_cores=target_cores,
+        target_memory=target_memory,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -572,7 +589,12 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=DISTRO_RHEL7,
+        host_classes={'host': ContentHost},
+        target_cores=target_cores,
+        target_memory=target_memory,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
@@ -619,7 +641,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.execute_foreman_scap_client()
+        vm.job_invocation('Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})

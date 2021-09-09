@@ -505,12 +505,10 @@ class ContentHost(Host):
         self.execute('puppet agent -t 2> /dev/null')
 
     def job_invocation(self, job_template):
-        """
-        Invoke a job on the host.
-        Args:
-            job-template: name of job-templete to be used.
+        """Invoke a job on the host by passing name of the job-template.
 
-        Returns:
+        :param job-template: name of job-templete to be used.
+        :return: None.
 
         """
         invocation_command = make_job_invocation(
@@ -527,15 +525,7 @@ class ContentHost(Host):
                     )
                 )
             )
-            data = self.execute(
-                'rpm -qa |grep scap; yum repolist;cat /etc/foreman_scap_client/config.yaml; '
-                'cat /etc/cron.d/foreman_scap_client_cron;tail -n 100 /var/log/messages'
-            )
-            raise AssertionError(
-                f'Failed to execute foreman_scap_client run. '
-                f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
-                f'job_invocation: {result}'
-            )
+            raise AssertionError(result)
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
@@ -557,8 +547,9 @@ class ContentHost(Host):
             )
             raise ContentHostError(
                 f'Failed to execute foreman_scap_client run. '
-                f'Command exited with code: {result.status}, stderr: {result.stderr}, stdout: {result.stdout}'
-                f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
+                f'Command exited with code: {result.status}, stderr: {result.stderr}, '
+                f'stdout: {result.stdout} host_data_stdout: {data.stdout}, '
+                f'and host_data_stderr: {data.stderr}'
             )
 
     def configure_rex(self, satellite, org, subnet_id=None, by_ip=True, register=True):
