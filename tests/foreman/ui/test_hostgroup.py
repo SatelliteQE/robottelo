@@ -77,7 +77,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert session.hostgroup.search(new_name)[0]['Name'] == new_name
         # Delete host group
         session.hostgroup.delete(new_name)
-        assert not session.hostgroup.search(new_name)
+        assert not entities.HostGroup().search(query={'search': f'name={new_name}'})
 
 
 @pytest.mark.tier2
