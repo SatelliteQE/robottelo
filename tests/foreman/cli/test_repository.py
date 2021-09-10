@@ -24,12 +24,15 @@ from wait_for import wait_for
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.content_export import ContentExport
+from robottelo.cli.content_import import ContentImport
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_gpg_key
 from robottelo.cli.factory import make_lifecycle_environment
+from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
 from robottelo.cli.factory import make_role
@@ -2422,6 +2425,59 @@ class TestAnsibleCollectionRepository:
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content-type': 'ansible_collection',
+                'url': ANSIBLE_GALAXY,
+                'ansible-collection-requirements': '{collections: [ \
+                            { name: theforeman.foreman, version: "2.1.0" }, \
+                            { name: theforeman.operations, version: "0.1.0"} ]}',
+            }
+        ],
+        ids=['ansible_galaxy'],
+        indirect=True,
+    )
+    def test_positive_export_ansible_collection(
+        self, repo, module_org, module_product, default_sat
+    ):
+        """Export ansible collection between organizations
+
+        :id: 4858227e-1669-476d-8da3-4e6bfb6b7e2a
+
+        :expectedresults: All content exported and imported successfully
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+
+        """
+        import_org = make_org()
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        # export
+        result = ContentExport.completeLibrary({'organization-id': module_org.id})
+        default_sat.execute(
+            f'cp -r /var/lib/pulp/exports/{module_org.name} /var/lib/pulp/imports/.'
+        )
+        default_sat.execute('chown -R pulp:pulp /var/lib/pulp/imports')
+        export_metadata = result['message'].split()[1]
+        # import
+        import_path = export_metadata.replace('/metadata.json', '').replace('exports', 'imports')
+        ContentImport.library({'organization-id': import_org['id'], 'path': import_path})
+        cv = ContentView.info({'name': 'Import-Library', 'organization-label': import_org['label']})
+        assert cv['description'] == 'Content View used for importing library'
+        prods = Product.list({'organization-id': import_org['id']})
+        prod = Product.info({'id': prods[0]['id'], 'organization-id': import_org['id']})
+        assert prod['content'][0]['content-type'] == 'ansible_collection'
+        repo = Repository.info({'name': prod['content'][0]['repo-name'], 'product-id': prod['id']})
+        result = default_sat.execute(f'curl {repo["published-at"]}')
+        assert "available_versions" in result.stdout
 
 
 class TestMD5Repository:
