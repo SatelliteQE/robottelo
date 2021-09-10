@@ -29,7 +29,7 @@ from robottelo.datafactory import gen_string
 
 PM_NAME = 'generic_1'
 
-pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_open("BZ:1996035")]
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
@@ -83,6 +83,8 @@ def domain(module_host):
 @pytest.mark.tier2
 def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
     """Perform end to end testing for smart class parameter component
+
+    :BZ: 1996035
 
     :id: 05ccb04e-5d21-44cc-a01c-807469be06c0
 
@@ -184,6 +186,8 @@ def test_positive_end_to_end(session, module_puppet_classes, sc_params_list):
 def test_positive_create_matcher_attribute_priority(session, sc_params_list, module_host, domain):
     """Matcher Value set on Attribute Priority for Host.
 
+    :BZ: 1996035
+
     :id: b83afe54-207e-4d6b-b705-1f3601c484a6
 
     :steps:
@@ -270,6 +274,8 @@ def test_positive_create_matcher_attribute_priority(session, sc_params_list, mod
 def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module_host, domain):
     """Merge the values of all the associated matchers, remove duplicates.
 
+    :BZ: 1996035
+
     :id: c8557813-2c09-4196-b1c1-f7e609aa0310
 
     :steps:
@@ -345,6 +351,8 @@ def test_positive_create_matcher_avoid_duplicate(session, sc_params_list, module
 def test_positive_update_matcher_from_attribute(session, sc_params_list, module_host):
     """Impact on parameter on editing the parameter value from attribute.
 
+    :BZ: 1996035
+
     :id: a7b3ecde-a311-421c-be4b-0f72ab1f44ba
 
     :steps:
@@ -413,6 +421,8 @@ def test_positive_impact_parameter_delete_attribute(
 ):
     """Impact on parameter after deleting associated attribute.
 
+    :BZ: 1996035
+
     :id: 5d9bed6d-d9c0-4eb3-aaf7-bdda1f9203dd
 
     :steps:
@@ -469,6 +479,8 @@ def test_positive_impact_parameter_delete_attribute(
 @pytest.mark.tier2
 def test_positive_hidden_value_in_attribute(session, sc_params_list, module_host):
     """Update the hidden default value of parameter in attribute. Then unhide.
+
+    :BZ: 1996035
 
     :id: c10c20bd-0284-4e5d-b789-fddd3b81b81b
 

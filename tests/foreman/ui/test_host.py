@@ -438,14 +438,14 @@ def test_positive_end_to_end(session, module_host_template, module_org, module_g
             module_host_template.operatingsystem.name, module_host_template.operatingsystem.major
         )
         assert os_name in displayed_host['Operating System']
-        assert displayed_host['Installed'] == '-'
+        assert displayed_host['Installed'] == 'N/A'
         # update
         session.host.update(host_name, {'host.name': new_name})
         assert not session.host.search(host_name)
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         # delete
         session.host.delete(new_host_name)
-        assert not session.host.search(new_host_name)
+        assert not entities.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
 @pytest.mark.tier4
@@ -851,10 +851,11 @@ def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_l
         assert content_host['breadcrumb'] == created_host.name
 
 
-@pytest.mark.skip_if_open("BZ:1996035")
 @pytest.mark.tier3
 def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
     """Remove a host parameter as a non-admin user with enough permissions
+
+    :BZ: 1996035
 
     :id: 598111c1-fdb6-42e9-8c28-fae999b5d112
 
