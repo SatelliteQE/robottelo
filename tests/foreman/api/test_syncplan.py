@@ -661,8 +661,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
@@ -671,8 +671,8 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait until the next recurrence
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
@@ -710,8 +710,8 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -720,8 +720,8 @@ def test_positive_synchronize_custom_product_future_sync_date(module_org):
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
@@ -824,8 +824,8 @@ def test_positive_synchronize_rh_product_past_sync_date():
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -834,8 +834,8 @@ def test_positive_synchronize_rh_product_past_sync_date():
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait until the next recurrence
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
@@ -886,8 +886,8 @@ def test_positive_synchronize_rh_product_future_sync_date():
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product has not been synced yet
@@ -896,8 +896,8 @@ def test_positive_synchronize_rh_product_future_sync_date():
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
@@ -928,8 +928,8 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
@@ -938,8 +938,8 @@ def test_positive_synchronize_custom_product_daily_recurrence(module_org):
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
@@ -972,8 +972,8 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
     logger.info(
-        f"Waiting {(delay / 4)} seconds to check product {product['name']}"
-        f" was not synced by {sync_plan['name']}"
+        f"Waiting {(delay / 4)} seconds to check product {product.name}"
+        f" was not synced by {sync_plan.name}"
     )
     sleep(delay / 4)
     # Verify product is not synced and doesn't have any content
@@ -982,8 +982,8 @@ def test_positive_synchronize_custom_product_weekly_recurrence(module_org):
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Wait the rest of expected time
     logger.info(
-        f"Waiting {(delay * 3 / 4)} seconds to check product {product['name']}"
-        f" was synced by {sync_plan['name']}"
+        f"Waiting {(delay * 3 / 4)} seconds to check product {product.name}"
+        f" was synced by {sync_plan.name}"
     )
     sleep(delay * 3 / 4)
     # Verify product was synced successfully
