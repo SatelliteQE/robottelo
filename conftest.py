@@ -10,7 +10,7 @@ pytest_plugins = [
     'pytest_plugins.manual_skipped',
     'pytest_plugins.marker_deselection',
     'pytest_plugins.markers',
-    'pytest_plugins.testimony_markers',
+    'pytest_plugins.metadata_markers',
     'pytest_plugins.settings_skip',
     'pytest_plugins.rerun_rp.rerun_rp',
     # Fixtures
