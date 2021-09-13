@@ -59,7 +59,7 @@ ak_name = {
     'rhel6': gen_string('alpha'),
 }
 target_cores = 4
-target_memory = '8GiB'
+target_memory = '16GiB'
 
 
 def fetch_scap_and_profile_id(scap_name, scap_profile):
@@ -247,7 +247,13 @@ def test_positive_upload_to_satellite(
                 'puppet-environment-id': puppet_env.id,
             }
         )
-
+        Host.set_parameter(
+            {
+                'host': vm.hostname.lower(),
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         SmartClassParameter.update(
             {
                 'name': 'fetch_remote_resources',
@@ -266,12 +272,12 @@ def test_positive_upload_to_satellite(
             }
         )
 
-        vm.configure_puppet(rhel_repo)
+        vm.configure_puppet(rhel_repo, default_sat.hostname)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.job_invocation('Run OpenSCAP scans')
+        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -296,7 +302,7 @@ def test_positive_upload_to_satellite(
             assert updated_result.status == 0
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
-            vm.job_invocation('Run OpenSCAP scans')
+            default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
@@ -398,12 +404,19 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
                 'puppet-environment-id': puppet_env.id,
             }
         )
-        vm.configure_puppet(settings.repos.rhel7_repo)
+        Host.set_parameter(
+            {
+                'host': vm.hostname.lower(),
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        vm.configure_puppet(settings.repos.rhel7_repo, default_sat.hostname)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.job_invocation('Run OpenSCAP scans')
+        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -641,7 +654,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        vm.job_invocation('Run OpenSCAP scans')
+        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})

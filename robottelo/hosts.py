@@ -19,8 +19,6 @@ from wrapanapi.entities.vm import VmState
 from robottelo import constants
 from robottelo.api.utils import update_provisioning_template
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_job_invocation
-from robottelo.cli.job_invocation import JobInvocation
 from robottelo.config import configure_airgun
 from robottelo.config import configure_nailgun
 from robottelo.config import settings
@@ -498,34 +496,11 @@ class ContentHost(Host):
         # ca list", so that we sign it.
         self.execute('puppet agent -t')
         proxy_host = Host(proxy_hostname)
-        proxy_host.execute(cmd='puppetserver ca sign --all')
+        proxy_host.execute('puppetserver ca sign --all')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
         self.execute('puppet agent -t 2> /dev/null')
-
-    def job_invocation(self, job_template):
-        """Invoke a job on the host by passing name of the job-template.
-
-        :param job-template: name of job-templete to be used.
-        :return: None.
-
-        """
-        invocation_command = make_job_invocation(
-            {'job-template': job_template, 'search-query': f"name ~ {self.hostname}"}
-        )
-        result = JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': self.hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)
 
     def execute_foreman_scap_client(self, policy_id=None):
         """Executes foreman_scap_client on the vm to create security audit report.
@@ -1221,3 +1196,27 @@ class Satellite(Capsule):
         update_provisioning_template(name=template, old=old, new=new)
         yield
         update_provisioning_template(name=template, old=new, new=old)
+
+    def job_invocation(self, hostname, job_template):
+        """Invoke a job on the content host by passing it's hostname and name of the job-template.
+
+        :param hostname: hostname of client.
+        :param job_template: name of job-templete to be used.
+        :return: None.
+
+        """
+        invocation_command = self.cli.JobInvocation.create(
+            {'job-template': job_template, 'search-query': f"name ~ {hostname}"}
+        )
+        result = self.cli.JobInvocation.info({'id': invocation_command['id']})
+        try:
+            assert result['success'] == '1'
+        except AssertionError:
+            result = 'host output: {}'.format(
+                ' '.join(
+                    self.cli.JobInvocation.get_output(
+                        {'id': invocation_command['id'], 'host': hostname}
+                    )
+                )
+            )
+            raise AssertionError(result)
