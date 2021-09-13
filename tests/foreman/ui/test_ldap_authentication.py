@@ -498,8 +498,6 @@ def test_positive_update_external_roles(
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
             assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert ldap_auth_source['ldap_user_name'] in current_user
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]}
         )
@@ -560,9 +558,8 @@ def test_positive_delete_external_roles(
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert ldap_auth_source['ldap_user_name'] in current_user
+            location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
+            assert location.name == location_name
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]}
         )
@@ -625,9 +622,8 @@ def test_positive_update_external_user_roles(
             test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
-            current_user = ldapsession.location.read(location_name, 'current_user')['current_user']
-            assert ldap_auth_source['ldap_user_name'] in current_user
+            location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
+            assert location.name == location_name
         session.user.update(
             ldap_auth_source['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
         )
@@ -1520,7 +1516,7 @@ def test_email_of_the_user_should_be_copied(session, auth_source_ipa, ipa_data, 
     with Session(
         user=ipa_data['ldap_user_name'], password=ipa_data['ldap_user_passwd']
     ) as ldapsession:
-        ldapsession.task.read_all()
+        ldapsession.bookmark.search('controller = hosts')
     with session:
         user_value = session.user.read(ipa_data['ldap_user_name'], widget_names='user')
         assert user_value['user']['mail'] == result
@@ -1552,7 +1548,7 @@ def test_deleted_idm_user_should_not_be_able_to_login(auth_source_ipa, ldap_tear
     result = ssh.command(cmd=add_user_cmd, hostname=settings.ipa.hostname)
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
-        ldapsession.task.read_all()
+        ldapsession.bookmark.search('controller = hosts')
     result = ssh.command(cmd=f'ipa user-del {test_user}', hostname=settings.ipa.hostname)
     assert result.return_code == 0
     with Session(user=test_user, password=settings.ipa.password) as ldapsession:
@@ -1895,7 +1891,8 @@ def test_verify_group_permissions(
     location_name = gen_string('alpha')
     with Session(user=idm_users[1], password=settings.server.ssh_password) as ldapsession:
         ldapsession.location.create({'name': location_name})
-        assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+        location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
+        assert location.name == location_name
 
 
 @pytest.mark.tier2
