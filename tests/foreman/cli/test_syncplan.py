@@ -505,7 +505,7 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 
     :BZ: 1655595
     """
-    delay = 2 * 60  # delay for sync date in seconds
+    delay = 4 * 60  # delay for sync date in seconds
     products = [make_product({'organization-id': module_org.id}) for _ in range(3)]
     repos = [
         make_repository({'product-id': product['id']}) for product in products for _ in range(2)
@@ -521,6 +521,10 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
         }
     )
     # Verify products have not been synced yet
+    logger.info(
+        f"Check products {products[0]['name']} and {products[1]['name']}"
+        f" were not synced before sync plan created in org {module_org.label}"
+    )
     for repo in repos:
         with pytest.raises(AssertionError):
             validate_task_status(repo['id'], module_org.id, max_tries=1)

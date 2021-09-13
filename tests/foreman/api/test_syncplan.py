@@ -624,7 +624,7 @@ def test_negative_synchronize_custom_product_past_sync_date(module_org):
     validate_repo_content(repo, ['erratum', 'package', 'package_group'], after_sync=False)
     # Create and Associate sync plan with product
     sync_plan = entities.SyncPlan(
-        organization=module_org, enabled=True, sync_date=datetime.utcnow()
+        organization=module_org, enabled=True, sync_date=datetime.utcnow().replace(second=0)
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Verify product was not synced right after it was added to sync plan
@@ -656,7 +656,7 @@ def test_positive_synchronize_custom_product_past_sync_date(module_org):
         organization=module_org,
         enabled=True,
         interval='hourly',
-        sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
+        sync_date=datetime.utcnow().replace(second=0) - timedelta(seconds=interval - delay),
     ).create()
     sync_plan.add_products(data={'product_ids': [product.id]})
     # Wait quarter of expected time
@@ -743,15 +743,19 @@ def test_positive_synchronize_custom_products_future_sync_date(module_org):
 
     :BZ: 1695733
     """
-    delay = 2 * 60  # delay for sync date in seconds
-    products = [entities.Product(organization=module_org).create() for _ in range(3)]
+    delay = 4 * 60  # delay for sync date in seconds
+    products = [entities.Product(organization=module_org).create() for _ in range(2)]
     repos = [
         entities.Repository(product=product).create() for product in products for _ in range(2)
     ]
     # Verify products have not been synced yet
+    logger.info(
+        f"Check products {products[0].name} and {products[1].name}"
+        f" were not synced before sync plan created in org {module_org.label}"
+    )
     for repo in repos:
         with pytest.raises(AssertionError):
-            validate_task_status(repo.id, module_org.id)
+            validate_task_status(repo.id, module_org.id, max_tries=1)
     # Create and Associate sync plan with products
     # BZ:1695733 is closed WONTFIX so apply this workaround
     logger.info('Need to set seconds to zero because BZ#1695733')
