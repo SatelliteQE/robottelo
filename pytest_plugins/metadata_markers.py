@@ -57,7 +57,18 @@ assignee_regex = re.compile(
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(session, items, config):
-    """Add markers for testimony tokens"""
+    """Add markers and user_properties for testimony token metadata
+
+    user_properties is used by the junit plugin, and thus by many test report systems
+    Handle test function/class/module/session scope metadata coming from test docblocks
+    Apply user_properties, ibutsu metadata, and pytest markers
+
+    Markers for metadata use the testimony token name as the mark name
+    The value of the token for the mark is the first mark arg
+
+    Control test collection for custom options related to testimony metadata
+
+    """
     # split the option string and handle no option, single option, multiple
     # config.getoption(default) doesn't work like you think it does, hence or ''
     importance = [i for i in (config.getoption('importance') or '').split(',') if i != '']
@@ -99,6 +110,16 @@ def pytest_collection_modifyitems(session, items, config):
         item.user_properties.append(
             ("start_time", datetime.datetime.utcnow().strftime(FMT_XUNIT_TIME))
         )
+
+        # add custom ibutsu metadata fields for test case grouping and heatmaps
+        if hasattr(item, "_ibutsu"):
+            item._ibutsu["data"]["metadata"].update(
+                {
+                    # TODO Work with ibutsu team, better mechanism for defining 'special' data
+                    # TODO Add sat version to this item data at test execution time
+                    "component": item.get_closest_marker('component').args[0]
+                }
+            )
 
         # exit early if no filters were passed
         if importance or component or assignee:
