@@ -26,7 +26,7 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(session, items, config):
-    content_host_fixture_names = getmembers(content_hosts, isfunction)
+    content_host_fixture_names = [m[0] for m in getmembers(content_hosts, isfunction)]
     for item in items:
         if set(item.fixturenames).intersection(set(content_host_fixture_names)):
             # TODO check param for indirect version parametrization
