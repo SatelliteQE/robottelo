@@ -20,7 +20,9 @@ from random import choice
 
 import pytest
 from fauxfactory import gen_alphanumeric
+from fauxfactory import gen_integer
 from fauxfactory import gen_string
+from fauxfactory import gen_url
 from nailgun import entities
 from wait_for import wait_for
 
@@ -44,6 +46,7 @@ from robottelo.cli.module_stream import ModuleStream
 from robottelo.cli.package import Package
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
 from robottelo.cli.srpm import Srpm
@@ -2170,25 +2173,46 @@ class TestRepository:
             key: value for key, value in actual_result.items() if key in expected_result
         }
 
-    @pytest.mark.stubbed
     @pytest.mark.tier1
-    def test_negative_update_red_hat_repo():
+    @pytest.mark.skip_if_open('BZ:2002653')
+    def test_negative_update_red_hat_repo(self, module_manifest_org):
         """Updates to Red Hat products fail.
 
         :id: d3ac0ea2-faab-4df4-be66-733e1b7ae6b4
 
         :customerscenario: true
 
-        :BZ: 1756951
+        :BZ: 1756951, 2002653
 
         :Steps:
             1. Import manifest and enable a Red Hat repository.
-            2. Update the repository url:
+            2. Attempt to update the Red Hat repository:
                # hammer repository update --id <id> --url http://example.com/repo
 
         :expectedresults: hammer returns error code. The repository is not updated.
         """
-        pass
+
+        rh_repo_set_id = RepositorySet.list({'organization-id': module_manifest_org.id})[0]['id']
+
+        RepositorySet.enable(
+            {
+                'organization-id': module_manifest_org.id,
+                'basearch': "x86_64",
+                'id': rh_repo_set_id,
+            }
+        )
+        repo_list = Repository.list({'organization-id': module_manifest_org.id})
+
+        rh_repo_id = Repository.list({'organization-id': module_manifest_org.id})[0]['id']
+
+        Repository.update(
+            {
+                'id': rh_repo_id,
+                'url': f'{gen_url(scheme="https")}:{gen_integer(min_value=10, max_value=9999)}',
+            }
+        )
+        repo_info = Repository.info({'organization-id': module_manifest_org.id, 'id': rh_repo_id})
+        assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 7.0
