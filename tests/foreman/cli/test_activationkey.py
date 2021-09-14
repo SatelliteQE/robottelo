@@ -25,6 +25,7 @@ from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_string
 
 from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -799,8 +800,8 @@ def test_positive_add_redhat_and_custom_products(module_org):
     assert {REPOSET['rhst7'], repo['name']} == {pc['name'] for pc in content}
 
 
-@pytest.mark.stubbed
-def test_positive_delete_manifest(module_org):
+@pytest.mark.tier2
+def test_positive_delete_manifest(function_org):
     """Check if deleting a manifest removes it from Activation key
 
     :id: 8256ac6d-3f60-4668-897d-2e88d29532d3
@@ -815,8 +816,24 @@ def test_positive_delete_manifest(module_org):
     :expectedresults: Deleting a manifest removes it from the Activation
         key
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    with manifests.clone() as manifest:
+        upload_manifest(function_org.id, manifest.content)
+    new_ak = make_activation_key({'organization-id': function_org.id})
+    ak_subs = ActivationKey.subscriptions({'id': new_ak['id'], 'organization-id': function_org.id})
+    subscription_result = Subscription.list(
+        {'organization-id': function_org.id, 'order': 'id desc'}, per_page=False
+    )
+    result = ActivationKey.add_subscription(
+        {'id': new_ak['id'], 'subscription-id': subscription_result[-1]['id']}
+    )
+    assert 'Subscription added to activation key.' in result
+    Subscription.delete_manifest({'organization-id': function_org.id})
+    ak_subs_info = ActivationKey.subscriptions(
+        {'id': new_ak['id'], 'organization-id': function_org.id}
+    )
+    assert len(ak_subs) == len(ak_subs_info)
 
 
 @pytest.mark.run_in_one_thread
