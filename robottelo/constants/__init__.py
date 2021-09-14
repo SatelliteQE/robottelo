@@ -361,7 +361,7 @@ REPOSET = {
     'rhst7_68': 'Red Hat Satellite Tools 6.8 (for RHEL 7 Server) (RPMs)',
     'rhst7_69': 'Red Hat Satellite Tools 6.9 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.9 (for RHEL 6 Server) (RPMs)',
-    'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)',
+    'rhaht': 'Red Hat Enterprise Linux Atomic Host (RPMs)',
     'rhdt7': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhscl7': ('Red Hat Software Collections RPMs for Red Hat Enterprise Linux 7 Server'),
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
@@ -536,7 +536,7 @@ REPOS = {
         'distro': DISTRO_RHEL6,
         'key': 'rhct6',
     },
-    'rhaht': {'name': ('Red Hat Enterprise Linux Atomic Host Trees')},
+    'rhaht': {'name': ('Red Hat Enterprise Linux Atomic Host RPMs x86_64')},
     'rhdt7': {
         'name': ('Red Hat Developer Tools RPMs for Red Hat Enterprise Linux 7 Server x86_64')
     },
