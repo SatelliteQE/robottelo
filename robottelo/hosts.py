@@ -1196,27 +1196,3 @@ class Satellite(Capsule):
         update_provisioning_template(name=template, old=old, new=new)
         yield
         update_provisioning_template(name=template, old=new, new=old)
-
-    def job_invocation(self, hostname, job_template):
-        """Invoke a job on the content host by passing it's hostname and name of the job-template.
-
-        :param hostname: hostname of client.
-        :param job_template: name of job-templete to be used.
-        :return: None.
-
-        """
-        invocation_command = self.cli.JobInvocation.create(
-            {'job-template': job_template, 'search-query': f"name ~ {hostname}"}
-        )
-        result = self.cli.JobInvocation.info({'id': invocation_command['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    self.cli.JobInvocation.get_output(
-                        {'id': invocation_command['id'], 'host': hostname}
-                    )
-                )
-            )
-            raise AssertionError(result)

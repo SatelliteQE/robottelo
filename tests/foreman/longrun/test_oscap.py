@@ -277,7 +277,7 @@ def test_positive_upload_to_satellite(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
+        vm.execute_foreman_scap_client()
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -302,7 +302,7 @@ def test_positive_upload_to_satellite(
             assert updated_result.status == 0
             # Runs the actual oscap scan on the vm/clients and
             # uploads report to Internal Capsule.
-            default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
+            vm.execute_foreman_scap_client()
             result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
             assert result is not None
 
@@ -416,7 +416,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
+        vm.execute_foreman_scap_client()
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         arf_report = Arfreport.list({'search': f'host={vm.hostname.lower()}', 'per-page': 1})
@@ -654,7 +654,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
         # uploads report to Internal Capsule.
-        default_sat.job_invocation(vm.hostname, 'Run OpenSCAP scans')
+        vm.execute_foreman_scap_client()
         # Assert whether oscap reports are uploaded to
         # Satellite6.
         result = Arfreport.list({'search': f'host={vm.hostname.lower()}'})
