@@ -78,15 +78,16 @@ def test_rhcloud_insights_e2e(
         )
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(query)
-        wait_for_tasks(
+        result = wait_for_tasks(
             search_query=f'{job_query} and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
-        result = entities.JobInvocation().search(
-            query={'search': f'host = {rhel8_insights_vm.hostname} and started_at >= "{timestamp}"'}
-        )
-        assert result[0].status == 0
+        task_output = entities.ForemanTask().search(query={'search': result[0].id})
+        try:
+            assert task_output[0].result == 'success'
+        except AssertionError:
+            raise AssertionError(f'result: {result} task_output: {task_output}')
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for_tasks(

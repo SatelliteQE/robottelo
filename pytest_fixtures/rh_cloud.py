@@ -43,10 +43,10 @@ def organization_ak_setup(module_manifest_org):
 def rhel8_insights_vm(default_sat, organization_ak_setup, rhel8_contenthost_module):
     """A module-level fixture to create rhel8 content host registered with insights."""
     org, ak = organization_ak_setup
+    rhel8_contenthost_module.configure_rex(satellite=default_sat, org=org, register=False)
     rhel8_contenthost_module.configure_rhai_client(
         satellite=default_sat, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
     )
-    add_remote_execution_ssh_key(rhel8_contenthost_module.ip_addr)
     yield rhel8_contenthost_module
 
 
