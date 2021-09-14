@@ -84,7 +84,7 @@ def promote(content_view_version, environment_id, force=False):
     return content_view_version.promote(data=data)
 
 
-def upload_manifest(organization_id, manifest):
+def upload_manifest(organization_id, manifest, simple_content_access=False):
     """Call ``nailgun.entities.Subscription.upload``.
 
     :param organization_id: An organization ID.
@@ -92,9 +92,14 @@ def upload_manifest(organization_id, manifest):
     :returns: Whatever ``nailgun.entities.Subscription.upload`` returns.
 
     """
-    return entities.Subscription().upload(
+    results = entities.Subscription().upload(
         data={'organization_id': organization_id}, files={'content': manifest}
     )
+    if simple_content_access is False:
+        entities.Organization(org=organization_id).sca_disable()
+    else:
+        entities.Organization(org=organization_id).sca_enable()
+    return results
 
 
 def publish_puppet_module(puppet_modules, repo_url, organization_id=None):

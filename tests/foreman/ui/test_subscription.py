@@ -47,7 +47,7 @@ pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.skip_if_not_set('fake_m
 def golden_ticket_host_setup():
     org = entities.Organization().create()
     with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(org.id, manifest.content)
+        upload_manifest(org.id, manifest.content, simple_content_access=True)
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=org.id,

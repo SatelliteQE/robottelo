@@ -42,7 +42,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 @pytest.fixture(scope='module')
 def golden_ticket_host_setup(request, module_org):
     with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+        upload_manifest(module_org.id, manifest.content, simple_content_access=True)
     new_product = make_product({'organization-id': module_org.id})
     new_repo = make_repository({'product-id': new_product['id']})
     Repository.synchronize({'id': new_repo['id']})

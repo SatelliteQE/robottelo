@@ -43,7 +43,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 @pytest.fixture(scope='module')
 def rh_repo(module_org):
     with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+        upload_manifest(module_org.id, manifest.content, simple_content_access=True)
     rh_repo_id = enable_rhrepo_and_fetchid(
         basearch='x86_64',
         org_id=module_org.id,
@@ -388,7 +388,7 @@ def test_positive_expired_SCA_cert_handling(module_org, rhel7_contenthost, defau
     :CaseImportance: High
     """
     with manifests.clone(name='golden_ticket') as manifest:
-        upload_manifest(module_org.id, manifest.content)
+        upload_manifest(module_org.id, manifest.content, simple_content_access=True)
     ak = entities.ActivationKey(
         content_view=module_org.default_content_view,
         max_hosts=100,
