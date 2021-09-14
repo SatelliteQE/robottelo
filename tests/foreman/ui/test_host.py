@@ -49,6 +49,7 @@ from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
+from robottelo.cli.settings import Settings
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -374,6 +375,15 @@ def module_activation_key(manifest_org):
             activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': subs.id})
             break
     return activation_key
+
+
+@pytest.fixture(scope='function')
+def remove_vm_on_delete():
+    Settings.set({'name': 'destroy_vm_on_host_delete', 'value': 'true'})
+    assert Settings.list({'search': 'name=destroy_vm_on_host_delete'})[0]['value'] == 'true'
+    yield
+    Settings.set({'name': 'destroy_vm_on_host_delete', 'value': 'false'})
+    assert Settings.list({'search': 'name=destroy_vm_on_host_delete'})[0]['value'] == 'false'
 
 
 @pytest.mark.tier2
@@ -1837,6 +1847,7 @@ def test_positive_provision_end_to_end(
 
 
 @pytest.mark.on_premises_provisioning
+@pytest.mark.run_in_one_thread
 @pytest.mark.tier4
 def test_positive_delete_libvirt(
     session,
@@ -1845,6 +1856,7 @@ def test_positive_delete_libvirt(
     module_libvirt_domain,
     module_libvirt_hostgroup,
     module_libvirt_resource,
+    remove_vm_on_delete,
 ):
     """Create a new Host on libvirt compute resource and delete it
     afterwards
@@ -1889,7 +1901,7 @@ def test_positive_delete_libvirt(
             'its disks, and is irreversible. This behavior can be changed via global '
             'setting "Destroy associated VM on host delete".'.format(name)
         ) == message
-        assert not session.host.search(name)
+        assert not entities.Host().search(query={'search': f'name="{hostname}"'})
 
 
 @pytest.fixture
@@ -2003,9 +2015,18 @@ def gce_hostgroup(
 
 
 @pytest.mark.tier4
+@pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_provision_end_to_end(
-    session, default_sat, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
+    session,
+    default_sat,
+    module_org,
+    module_loc,
+    module_os,
+    gce_domain,
+    gce_hostgroup,
+    googleclient,
+    remove_vm_on_delete,
 ):
     """Provision Host on GCE compute resource
 
@@ -2073,7 +2094,7 @@ def test_positive_gce_provision_end_to_end(
                     'its disks, and is irreversible. This behavior can be changed via '
                     'global setting "Destroy associated VM on host delete".'.format(hostname)
                 ) == message
-                assert not session.host.search(hostname)
+                assert not entities.Host().search(query={'search': f'name="{hostname}"'})
                 # 2.2 GCE Backend Assertions
                 assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
@@ -2087,9 +2108,18 @@ def test_positive_gce_provision_end_to_end(
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
+@pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
 def test_positive_gce_cloudinit_provision_end_to_end(
-    session, default_sat, module_org, module_loc, module_os, gce_domain, gce_hostgroup, googleclient
+    session,
+    default_sat,
+    module_org,
+    module_loc,
+    module_os,
+    gce_domain,
+    gce_hostgroup,
+    googleclient,
+    remove_vm_on_delete,
 ):
     """Provision Host on GCE compute resource
 
@@ -2150,7 +2180,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                     'its disks, and is irreversible. This behavior can be changed via '
                     'global setting "Destroy associated VM on host delete".'.format(hostname)
                 ) == message
-                assert not session.host.search(hostname)
+                assert not entities.Host().search(query={'search': f'name="{hostname}"'})
                 # 2.2 GCE Backend Assertions
                 assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
         except Exception as error:
