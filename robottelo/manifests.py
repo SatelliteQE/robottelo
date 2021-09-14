@@ -232,7 +232,7 @@ def upload_manifest_locked(org_id, manifest=None, interface=INTERFACE_API, timeo
         # And as we are in locked state, other functions/tests can try to upload the manifest in
         # other processes and we do not want to be interrupted by the default configuration
         # ssh_client timeout.
-        timeout = 1500
+        timeout = 1500000
     if interface == INTERFACE_API:
         with manifest:
             result = entities.Subscription().upload(
