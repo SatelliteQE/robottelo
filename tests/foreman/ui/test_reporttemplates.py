@@ -430,7 +430,6 @@ def test_positive_schedule_generation_and_get_mail(session, module_org, module_l
         f'send "q\\r"\n'
     )
 
-    
     default_sat.execute(f"expect -c '{expect_script}'")
     default_sat.get(remote_path=gzip_path, local_path=local_gzip_file)
     os.system(f'gunzip {local_gzip_file}')
