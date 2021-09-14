@@ -366,6 +366,26 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, 
     return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
 
+def form_repo_url(capsule, org=None, lce=None, cv=None, prod=None, repo=None):
+    """Forms url of a repo or CV published on a Satellite or Capsule.
+
+    :param object capsule: Capsule or Satellite object providing its url
+    :param str org: organization label
+    :param str lce: lifecycle environment label
+    :param str cv: content view label
+    :param str prod: product label
+    :param str repo: repository label
+    :return: url of the specific repo or CV
+    """
+    if not all([capsule, org, prod, repo]):
+        raise ValueError('`capsule`, `org`, `prod` and `repo` arguments are required')
+
+    if lce and cv:
+        return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
+    else:
+        return f'{capsule.url}/pulp/content/{org}/Library/custom/{prod}/{repo}/'
+
+
 def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False, hostname=None):
     """Creates a repository from given packages and publishes it into pulp's
     directory for web access.

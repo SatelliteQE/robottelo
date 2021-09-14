@@ -17,7 +17,6 @@
 :Upstream: No
 """
 import os
-from time import sleep
 
 import pytest
 from fauxfactory import gen_string
@@ -34,11 +33,12 @@ from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
+from robottelo.helpers import form_repo_url
 from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
 from robottelo.host_info import get_repo_files
+from robottelo.host_info import get_repo_files_by_url
 from robottelo.host_info import get_repomd_revision
-from robottelo.utils.issue_handlers import is_open
 
 
 class TestSatelliteContentManagement:
@@ -237,24 +237,22 @@ class TestCapsuleContentManagement:
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
 
-        # Verify previously uploaded content is present on capsule
-        lce_repo_path = form_repo_path(
+        # Verify that new artifacts were created on Capsule
+        result = capsule_configured.run('find /var/lib/pulp/media/artifact -type f | wc -l')
+        assert int(result.stdout) > 0
+
+        # Verify the RPM published on Capsule
+        caps_repo_url = form_repo_url(
+            capsule_configured,
             org=org.label,
             lce=lce.label,
             cv=cv.label,
             prod=product.label,
             repo=repo.label,
-            capsule=True,
         )
-        for _ in range(5):
-            capsule_rpms = get_repo_files(lce_repo_path, hostname=capsule_configured.ip_addr)
-            if len(capsule_rpms) != 0:
-                break
-            else:
-                sleep(5)
-
-        assert len(capsule_rpms) == 1
-        assert capsule_rpms[0] == constants.RPM_TO_UPLOAD
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert len(caps_files) == 1
+        assert caps_files[0] == constants.RPM_TO_UPLOAD
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -380,7 +378,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_capsule_sync(self, capsule_configured):
+    def test_positive_capsule_sync(self, capsule_configured, default_sat):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
         repository (add 1 new package), sync repository once again.
@@ -404,13 +402,9 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: System
         """
-        repo_name = gen_string('alphanumeric')
-        # Create and publish custom repository with 2 packages in it
-        repo_url = create_repo(
-            repo_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[0:2]
-        )
         # Create organization, product, repository in satellite, and lifecycle
         # environment
+        repo_url = settings.repos.yum_1.url
         org = entities.Organization(smart_proxy=[capsule_configured.nailgun_capsule.id]).create()
         product = entities.Product(organization=org).create()
         repo = entities.Repository(product=product, url=repo_url).create()
@@ -451,59 +445,45 @@ class TestCapsuleContentManagement:
         # Content of the published content view in
         # lifecycle environment should equal content of the
         # repository
-        lce_repo_path = form_repo_path(
-            org=org.label, lce=lce.label, cv=cv.label, prod=product.label, repo=repo.label
-        )
-        cvv_repo_path = form_repo_path(
-            org=org.label, cv=cv.label, cvv=cvv.version, prod=product.label, repo=repo.label
-        )
+        assert repo.content_counts['package'] == cvv.package_count
+
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
         sync_status = capsule_configured.nailgun_capsule.content_get_sync()
         last_sync_time = sync_status['last_sync_time']
 
-        # If BZ1439691 is open, need to sync repo once more, as repodata
-        # will change on second attempt even with no changes in repo
-        if is_open('BZ:1439691'):
-            repo.sync()
-            repo = repo.read()
-            cv.publish()
-            cv = cv.read()
-            assert len(cv.version) == 2
-            cv.version.sort(key=lambda version: version.id)
-            cvv = cv.version[-1].read()
-            promote(cvv, lce.id)
-            cvv = cvv.read()
-            assert len(cvv.environment) == 2
-            sync_status = capsule_configured.nailgun_capsule.content_get_sync()
-            assert (
-                len(sync_status['active_sync_tasks'])
-                or sync_status['last_sync_time'] != last_sync_time
-            )
-            for task in sync_status['active_sync_tasks']:
-                entities.ForemanTask(id=task['id']).poll()
-            sync_status = capsule_configured.nailgun_capsule.content_get_sync()
-            last_sync_time = sync_status['last_sync_time']
-
         # Assert that the content published on the capsule is exactly the
         # same as in repository on satellite
-        lce_revision_capsule = get_repomd_revision(
-            lce_repo_path, hostname=capsule_configured.ip_addr
+        sat_repo_url = form_repo_url(
+            default_sat,
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=product.label,
+            repo=repo.label,
         )
+        caps_repo_url = form_repo_url(
+            capsule_configured,
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+        sat_files = get_repo_files_by_url(sat_repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert sat_files == caps_files
 
-        assert get_repo_files(lce_repo_path, hostname=capsule_configured.ip_addr) == get_repo_files(
-            cvv_repo_path
-        )
+        lce_revision_capsule = get_repomd_revision(caps_repo_url)
 
         # Sync repository for a second time
         result = repo.sync()
         # Assert that the task summary contains a message that says the
         # publish was skipped because content had not changed
-
         assert result['result'] == 'success'
-        assert result['output']['post_sync_skipped']
-        assert result['humanized']['output'] == 'No new packages.'
+        assert result['output']['post_action_skipped']
+        assert 'Associating Content: 0/0' in result['humanized']['output']
 
         # Publish a new version of content view
         cv.publish()
@@ -529,16 +509,14 @@ class TestCapsuleContentManagement:
 
         # Assert that the value of repomd revision of repository in
         # lifecycle environment on the capsule has not changed
-        new_lce_revision_capsule = get_repomd_revision(
-            lce_repo_path, hostname=capsule_configured.ip_addr
-        )
-
+        new_lce_revision_capsule = get_repomd_revision(caps_repo_url)
         assert lce_revision_capsule == new_lce_revision_capsule
 
         # Update a repository with 1 new rpm
-        create_repo(repo_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[-1:])
-        # Sync, publish and promote the repository
-        repo.sync()
+        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        # Publish and promote the repository
         repo = repo.read()
         cv.publish()
         cv = cv.read()
@@ -558,18 +536,12 @@ class TestCapsuleContentManagement:
         )
 
         # Assert that packages count in the repository is updated
-
-        assert repo.content_counts['package'] == 3
+        assert repo.content_counts['package'] == (constants.FAKE_1_YUM_REPOS_COUNT + 1)
 
         # Assert that the content of the published content view in
         # lifecycle environment is exactly the same as content of the
         # repository
-        cvv_repo_path = form_repo_path(
-            org=org.label, cv=cv.label, cvv=cvv.version, prod=product.label, repo=repo.label
-        )
-
         assert repo.content_counts['package'] == cvv.package_count
-        assert get_repo_files(lce_repo_path) == get_repo_files(cvv_repo_path)
 
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -577,9 +549,9 @@ class TestCapsuleContentManagement:
 
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
-        assert get_repo_files(lce_repo_path, hostname=capsule_configured.ip_addr) == get_repo_files(
-            cvv_repo_path
-        )
+        sat_files = get_repo_files_by_url(sat_repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert sat_files == caps_files
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
@@ -615,6 +587,7 @@ class TestCapsuleContentManagement:
         lce = entities.LifecycleEnvironment(organization=org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
+
         # Associate the lifecycle environment with the capsule
         capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': lce.id}
@@ -659,26 +632,26 @@ class TestCapsuleContentManagement:
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def test_positive_on_demand_sync(self, capsule_configured, default_sat):
-        """Create a repository with 'on_demand' sync, add it to lifecycle
-        environment with a capsule, sync repository, examine existing packages
-        on capsule, download any package, examine packages once more
+        """Create a repository with 'on_demand' policy, add it to a CV,
+        promote to an 'on_demand' Capsule's LCE, check artifacts were created,
+        download a published package, assert it matches the source.
 
         :id: ba470269-a7ad-4181-bc7c-8e17a177ca20
 
         :expectedresults:
 
-            1. After initial syncing only symlinks are present on both
-               satellite and capsule, no real packages were fetched.
-            2. All the symlinks are pointing to non-existent files.
-            3. Attempt to download package is successful
-            4. Downloaded package checksum matches checksum of the source
-               package
+            1. A custom yum repository is successfully synced and ContentView published
+            2. The ContentView is successfully promoted to the Capsule's LCE and the content
+               is automatically synced to the Capsule
+            3. Artifacts are created on the Capsule in /var/lib/pulp/media/artifacts/
+            4. Package is successfully downloaded from the Capsule, its checksum matches
+               the original package from the upstream repo
 
         :CaseLevel: System
         """
         repo_url = settings.repos.yum_3.url
         packages_count = constants.FAKE_3_YUM_REPOS_COUNT
-        package = constants.FAKE_1_YUM_REPO_RPMS[0]
+        package = constants.FAKE_3_YUM_REPO_RPMS[0]
         # Create organization, product, repository in satellite, and lifecycle
         # environment
         org = entities.Organization().create()
@@ -720,68 +693,32 @@ class TestCapsuleContentManagement:
 
         assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
 
-        # Check whether the symlinks for all the packages were created on
-        # satellite
-        cvv_repo_path = form_repo_path(
-            org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
-        )
-        result = ssh.command(f'find {cvv_repo_path}/ -type l')
-        assert result.return_code == 0
-
-        links = {link for link in result.stdout if link}
-
-        assert len(links) == packages_count
-
-        # Ensure all the symlinks on satellite are broken (pointing to
-        # nonexistent files)
-        result = ssh.command(f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print')
-
-        assert result.return_code == 0
-
-        broken_links = {link for link in result.stdout if link}
-
-        assert len(broken_links) == packages_count
-        assert broken_links == links
-
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
-        lce_repo_path = form_repo_path(
-            org=org.label, lce=lce.label, cv=cv.label, prod=prod.label, repo=repo.label
+
+        # Verify that new artifacts were created on Capsule but rpms were not downloaded
+        result = capsule_configured.run('find /var/lib/pulp/media/artifact -type f | wc -l')
+        assert 0 < int(result.stdout) < packages_count
+
+        # Verify packages on Capsule match the source
+        caps_repo_url = form_repo_url(
+            capsule_configured,
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=prod.label,
+            repo=repo.label,
         )
-        # Check whether the symlinks for all the packages were created on
-        # capsule
-        result = capsule_configured.run(f'find {lce_repo_path}/ -type l')
+        source_files = get_repo_files_by_url(repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert source_files == caps_files
+        assert len(caps_files) == packages_count
 
-        assert result.status == 0
-
-        links = {link for link in result.stdout if link}
-
-        assert len(links) == packages_count
-
-        # Ensure all the symlinks on capsule are broken (pointing to
-        # nonexistent files)
-        result = capsule_configured.run(
-            f'find {lce_repo_path}/ -type l ! -exec test -e {{}} \\; -print',
-        )
-
-        assert result.status == 0
-
-        broken_links = {link for link in result.stdout if link}
-
-        assert len(broken_links) == packages_count
-        assert broken_links == links
-
-        # Download package from satellite and get its md5 checksum
-        # Not using default_sat.url as it uses https
-        published_repo_url = 'http://{}{}/pulp/{}/'.format(
-            default_sat.hostname,
-            f':{settings.server.port}' if settings.server.port else '',
-            lce_repo_path.split('http/')[1],
-        )
-        package_md5 = md5_by_url(f'{repo_url}{package}')
+        # Download a package from the Capsule and get its md5 checksum
+        published_package_md5 = md5_by_url(f'{caps_repo_url}/{package}')
         # Get md5 checksum of source package
-        published_package_md5 = md5_by_url(f'{published_repo_url}{package}')
+        package_md5 = md5_by_url(f'{repo_url}/{package}')
         # Assert checksums are matching
         assert package_md5 == published_package_md5
 
@@ -936,7 +873,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_update_with_immediate_sync(self, request, capsule_configured, default_sat):
+    def test_positive_update_with_immediate_sync(self, capsule_configured, default_sat):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
         more.
@@ -1009,12 +946,6 @@ class TestCapsuleContentManagement:
 
         # Update capsule's download policy as well
         self.update_capsule_download_policy(capsule_configured, 'immediate')
-        # Make sure to revert capsule's download policy after the test as the
-        # capsule is shared among other tests
-
-        @request.addfinalizer
-        def _cleanup():
-            self.update_capsule_download_policy(capsule_configured, 'on_demand')
 
         # Sync repository once again
         repo.sync()
@@ -1039,57 +970,25 @@ class TestCapsuleContentManagement:
 
         assert len(sync_status['active_sync_tasks']) >= 1 or sync_status['last_sync_time']
 
-        # Check whether the symlinks for all the packages were created on
-        # satellite
-        cvv_repo_path = form_repo_path(
-            org=org.label, cv=cv.label, cvv=cvv.version, prod=prod.label, repo=repo.label
-        )
-        result = default_sat.execute(f'find {cvv_repo_path}/ -type l')
-        assert result.status == 0
-
-        links = {link for link in result.stdout if link}
-
-        assert len(links) == packages_count
-
-        # Ensure there're no broken symlinks (pointing to nonexistent files) on
-        # satellite
-        result = default_sat.execute(
-            f'find {cvv_repo_path}/ -type l ! -exec test -e {{}} \\; -print'
-        )
-
-        assert result.status == 0
-
-        broken_links = {link for link in result.stdout if link}
-
-        assert len(broken_links) == 0
-
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
-        lce_repo_path = form_repo_path(
-            org=org.label, lce=lce.label, cv=cv.label, prod=prod.label, repo=repo.label
+
+        # Verify that new artifacts were created on Capsule
+        result = capsule_configured.run('find /var/lib/pulp/media/artifact -type f | wc -l')
+        assert int(result.stdout) > packages_count
+
+        # Verify the count of RPMs published on Capsule
+        caps_repo_url = form_repo_url(
+            capsule_configured,
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=prod.label,
+            repo=repo.label,
         )
-        # Check whether the symlinks for all the packages were created on
-        # capsule
-        result = capsule_configured.run(f'find {lce_repo_path}/ -type l')
-
-        assert result.status == 0
-
-        links = {link for link in result.stdout if link}
-
-        assert len(links) == packages_count
-
-        # Ensure there're no broken symlinks (pointing to nonexistent files) on
-        # capsule
-        result = capsule_configured.run(
-            f'find {lce_repo_path}/ -type l ! -exec test -e {{}} \\; -print',
-        )
-
-        assert result.status == 0
-
-        broken_links = {link for link in result.stdout if link}
-
-        assert len(broken_links) == 0
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert len(caps_files) == packages_count
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')

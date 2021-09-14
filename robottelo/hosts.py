@@ -983,9 +983,9 @@ class Capsule(ContentHost):
                 f'{settings.robottelo.tmp_dir}/capsule-{self.ip_addr}.log',
             )
             raise CapsuleHostError(f'foreman installer failed at capsule host: {result.stderr}')
-        result = self.execute('systemctl status pulp_celerybeat.service')
+        result = self.execute('satellite-maintain service status')
         if 'inactive (dead)' in '\n'.join(result.stdout):
-            raise CapsuleHostError('pulp_celerybeat service not running')
+            raise CapsuleHostError('a core service is not running at capsule host')
 
 
 class Satellite(Capsule):
