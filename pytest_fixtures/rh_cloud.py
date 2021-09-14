@@ -5,30 +5,21 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL8
 from robottelo.helpers import add_remote_execution_ssh_key
-from robottelo.rh_cloud_utils import setting_update
 
 
 @pytest.fixture
-def set_rh_cloud_token():
+def set_rh_cloud_token(default_sat):
     """A function-level fixture to set rh cloud token value."""
-    setting_update('rh_cloud_token', settings.rh_cloud.token)
+    default_sat.update_setting('rh_cloud_token', settings.rh_cloud.token)
     yield
-    setting_update('rh_cloud_token', '')
+    default_sat.update_setting('rh_cloud_token', '')
 
 
 @pytest.fixture
-def unset_rh_cloud_token():
+def unset_rh_cloud_token(default_sat):
     """A function-level fixture to unset rh cloud token value."""
     yield
-    setting_update('rh_cloud_token', '')
-
-
-@pytest.fixture(scope='module')
-def enable_lab_features():
-    """A module-level fixture to enable lab features."""
-    setting_update('lab_features', True)
-    yield
-    setting_update('lab_features', False)
+    default_sat.update_setting('rh_cloud_token', '')
 
 
 @pytest.fixture(scope='module')
@@ -49,11 +40,11 @@ def organization_ak_setup(module_manifest_org):
 
 
 @pytest.fixture(scope='module')
-def rhel8_insights_vm(organization_ak_setup, rhel8_contenthost_module):
+def rhel8_insights_vm(default_sat, organization_ak_setup, rhel8_contenthost_module):
     """A module-level fixture to create rhel8 content host registered with insights."""
     org, ak = organization_ak_setup
     rhel8_contenthost_module.configure_rhai_client(
-        activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
+        satellite=default_sat, activation_key=ak.name, org=org.label, rhel_distro=DISTRO_RHEL8
     )
     add_remote_execution_ssh_key(rhel8_contenthost_module.ip_addr)
     yield rhel8_contenthost_module

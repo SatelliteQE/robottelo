@@ -19,6 +19,7 @@
 from datetime import datetime
 
 import pytest
+from nailgun import entities
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
@@ -31,7 +32,6 @@ def test_rhcloud_insights_e2e(
     rhel8_insights_vm,
     fixable_rhel8_vm,
     organization_ak_setup,
-    enable_lab_features,
     unset_rh_cloud_token,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
@@ -62,10 +62,6 @@ def test_rhcloud_insights_e2e(
     with session:
         session.organization.select(org_name=org.name)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
-        # This is a workaround for BZ#1983575. Remove following two code lines once BZ is fixed.
-        session.browser.refresh()
-        session.cloudinsights.sync_hits()
-
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
@@ -80,18 +76,17 @@ def test_rhcloud_insights_e2e(
             result['Recommendation'] == 'The dnf installs lower versions of packages when the '
             '"best" option is not present in the /etc/dnf/dnf.conf'
         )
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(query)
         wait_for_tasks(
             search_query=f'{job_query} and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
         )
-        job_invocation = wait_for_tasks(
-            search_query=f'{job_query} and started_at >= "{timestamp}"',
-            search_rate=15,
-            max_tries=10,
+        result = entities.JobInvocation().search(
+            query={'search': f'host = {rhel8_insights_vm.hostname} and started_at >= "{timestamp}"'}
         )
-        assert job_invocation[0].result == 'success'
+        assert result[0].status == 0
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for_tasks(
