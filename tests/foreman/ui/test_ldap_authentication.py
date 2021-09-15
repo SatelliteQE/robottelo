@@ -221,7 +221,7 @@ def generate_otp(secret):
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
-def test_positive_end_to_end(session, ldap_tear_down, ldap_auth_source):
+def test_positive_end_to_end(session, ldap_auth_source, ldap_tear_down):
     """Perform end to end testing for LDAP authentication component
 
     :id: a6528239-e090-4379-a850-3900ee625b24
@@ -234,19 +234,20 @@ def test_positive_end_to_end(session, ldap_tear_down, ldap_auth_source):
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     new_server = gen_url()
     ldap_auth_name = gen_string('alphanumeric')
     with session:
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_auth_source['ldap_hostname'],
-                'ldap_server.server_type': ldap_auth_source['server_type'],
-                'account.account_name': ldap_auth_source['ldap_user_name'],
-                'account.password': ldap_auth_source['ldap_user_passwd'],
-                'account.base_dn': ldap_auth_source['base_dn'],
-                'account.groups_base_dn': ldap_auth_source['group_base_dn'],
-                'attribute_mappings.login': ldap_auth_source['attr_login'],
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.server_type': ldap_data['server_type'],
+                'account.account_name': ldap_data['ldap_user_name'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'attribute_mappings.login': ldap_data['attr_login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
@@ -262,7 +263,7 @@ def test_positive_end_to_end(session, ldap_tear_down, ldap_auth_source):
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
+def test_positive_create_org_and_loc(session, ldap_auth_source, ldap_tear_down):
     """Create LDAP auth_source with org and loc assigned.
 
     :id: 4f595af4-fc01-44c6-a614-a9ec827e3c3c
@@ -277,6 +278,7 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     org = entities.Organization().create()
     loc = entities.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
@@ -284,13 +286,13 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_auth_source['ldap_hostname'],
-                'ldap_server.server_type': ldap_auth_source['server_type'],
-                'account.account_name': ldap_auth_source['ldap_user_name'],
-                'account.password': ldap_auth_source['ldap_user_passwd'],
-                'account.base_dn': ldap_auth_source['base_dn'],
-                'account.groups_base_dn': ldap_auth_source['group_base_dn'],
-                'attribute_mappings.login': ldap_auth_source['attr_login'],
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.server_type': ldap_data['server_type'],
+                'account.account_name': ldap_data['ldap_user_name'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'attribute_mappings.login': ldap_data['attr_login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
@@ -303,15 +305,15 @@ def test_positive_create_org_and_loc(session, ldap_tear_down, ldap_auth_source):
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ldap_auth_source['ldap_hostname']
+        assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '389'
-        assert ldap_source['ldap_server']['server_type'] == ldap_auth_source['server_type']
-        assert ldap_source['account']['account_name'] == ldap_auth_source['ldap_user_name']
-        assert ldap_source['account']['base_dn'] == ldap_auth_source['base_dn']
-        assert ldap_source['account']['groups_base_dn'] == ldap_auth_source['group_base_dn']
+        assert ldap_source['ldap_server']['server_type'] == ldap_data['server_type']
+        assert ldap_source['account']['account_name'] == ldap_data['ldap_user_name']
+        assert ldap_source['account']['base_dn'] == ldap_data['base_dn']
+        assert ldap_source['account']['groups_base_dn'] == ldap_data['group_base_dn']
         assert not ldap_source['account']['onthefly_register']
         assert ldap_source['account']['usergroup_sync']
-        assert ldap_source['attribute_mappings']['login'] == ldap_auth_source['attr_login']
+        assert ldap_source['attribute_mappings']['login'] == ldap_data['attr_login']
         assert ldap_source['attribute_mappings']['first_name'] == LDAP_ATTR['firstname']
         assert ldap_source['attribute_mappings']['last_name'] == LDAP_ATTR['surname']
         assert ldap_source['attribute_mappings']['mail'] == LDAP_ATTR['mail']
@@ -342,12 +344,13 @@ def test_positive_create_with_https(
 
     :parametrized: yes
     """
-    if ldap_auth_source['auth_type'] == 'ipa':
+    ldap_data, auth_source = ldap_auth_source
+    if ldap_data['auth_type'] == 'ipa':
         set_certificate_in_satellite(server_type='IPA', default_sat=default_sat)
         username = settings.ipa.user
     else:
         set_certificate_in_satellite(
-            server_type='AD', default_sat=default_sat, hostname=ldap_auth_source['ldap_hostname']
+            server_type='AD', default_sat=default_sat, hostname=ldap_data['ldap_hostname']
         )
         username = settings.ldap.username
     org = entities.Organization().create()
@@ -358,15 +361,15 @@ def test_positive_create_with_https(
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_auth_source['ldap_hostname'],
+                'ldap_server.host': ldap_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
-                'ldap_server.server_type': ldap_auth_source['server_type'],
-                'account.account_name': ldap_auth_source['ldap_user_cn'],
-                'account.password': ldap_auth_source['ldap_user_passwd'],
-                'account.base_dn': ldap_auth_source['base_dn'],
-                'account.groups_base_dn': ldap_auth_source['group_base_dn'],
+                'ldap_server.server_type': ldap_data['server_type'],
+                'account.account_name': ldap_data['ldap_user_cn'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
                 'account.onthefly_register': True,
-                'attribute_mappings.login': ldap_auth_source['attr_login'],
+                'attribute_mappings.login': ldap_data['attr_login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
@@ -379,27 +382,21 @@ def test_positive_create_with_https(
         assert session.ldapauthentication.read_table_row(ldap_auth_name)['Name'] == ldap_auth_name
         ldap_source = session.ldapauthentication.read(ldap_auth_name)
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
-        assert ldap_source['ldap_server']['host'] == ldap_auth_source['ldap_hostname']
+        assert ldap_source['ldap_server']['host'] == ldap_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-    with Session(test_name, username, ldap_auth_source['ldap_user_passwd']) as ldapsession:
+    with Session(test_name, username, ldap_data['ldap_user_passwd']) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.user.search('')
     users = entities.User().search(
-        query={'search': 'login="{}"'.format(ldap_auth_source['ldap_user_name'])}
+        query={'search': 'login="{}"'.format(ldap_data['ldap_user_name'])}
     )
-    assert users[0].login == ldap_auth_source['ldap_user_name']
+    assert users[0].login == ldap_data['ldap_user_name']
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_add_katello_role(
-    test_name,
-    session,
-    auth_source,
-    auth_source_ipa,
-    ldap_usergroup_name,
-    ldap_tear_down,
-    ldap_auth_source,
+    test_name, session, ldap_usergroup_name, ldap_auth_source, ldap_tear_down
 ):
     """Associate katello roles to User Group.
     [belonging to external User Group.]
@@ -416,10 +413,8 @@ def test_positive_add_katello_role(
 
     :parametrized: yes
     """
-    if ldap_auth_source['auth_type'] == 'ipa':
-        auth_source_name = 'LDAP-' + auth_source_ipa.name
-    else:
-        auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     ak_name = gen_string('alpha')
     user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
     katello_role = entities.Role().create()
@@ -435,22 +430,20 @@ def test_positive_add_katello_role(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
-    ) as session:
+    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
         with pytest.raises(NavigationTriesExceeded):
             session.architecture.search('')
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_auth_source['ldap_user_name'] in current_user
+        assert ldap_data['ldap_user_name'] in current_user
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_update_external_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
+    test_name, session, ldap_usergroup_name, ldap_auth_source, ldap_tear_down
 ):
     """Added AD UserGroup roles get pushed down to user
 
@@ -472,8 +465,9 @@ def test_positive_update_external_roles(
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
+    auth_source_name = f'LDAP-{auth_source.name}'
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
@@ -492,30 +486,29 @@ def test_positive_update_external_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
         ) as ldapsession:
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
             ldapsession.location.create({'name': location_name})
-            assert ldapsession.location.search(location_name)[0]['Name'] == location_name
+            location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
+            assert location.name == location_name
         session.usergroup.update(
             ldap_usergroup_name, {'roles.resources.assigned': [katello_role.name]}
         )
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
-    with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
-    ) as session:
+    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_auth_source['ldap_user_name'] in current_user
+        assert ldap_data['ldap_user_name'] in current_user
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_delete_external_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
+    test_name, session, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
 ):
     """Deleted AD UserGroup roles get pushed down to user
 
@@ -537,7 +530,8 @@ def test_positive_delete_external_roles(
 
     :parametrized: yes
     """
-    auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     foreman_permissions = {'Location': PERMISSIONS['Location']}
@@ -553,7 +547,7 @@ def test_positive_delete_external_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
         ) as ldapsession:
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
@@ -564,16 +558,16 @@ def test_positive_delete_external_roles(
             ldap_usergroup_name, {'roles.resources.unassigned': [foreman_role.name]}
         )
     with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.location.create({'name': gen_string('alpha')})
 
 
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
+@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 def test_positive_update_external_user_roles(
-    test_name, session, auth_source, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
+    test_name, session, ldap_usergroup_name, ldap_tear_down, ldap_auth_source
 ):
     """Assure that user has roles/can access feature areas for
     additional roles assigned outside any roles assigned by his group
@@ -587,10 +581,11 @@ def test_positive_update_external_user_roles(
     :steps:
         1. Create an UserGroup.
         2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. Assign some more roles to a User(which is part of external AD
+        3. Create an External AuthSource UserGroup as per the UserGroup name
+           in AuthSource(e.g. AD/IDM)
+        4. Assign some more roles to a User(which is part of external Auth Source.
            UserGroup) at the User level.
-        5. Login to sat6 with the above AD user and attempt to access areas
+        5. Login to Satellite with the above AuthSource user and attempt to access areas
            assigned specifically to user.
 
     :expectedresults: User can access not only those feature areas in his
@@ -599,8 +594,9 @@ def test_positive_update_external_user_roles(
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source.name
+    auth_source_name = f'LDAP-{auth_source.name}'
     location_name = gen_string('alpha')
     foreman_role = entities.Role().create()
     katello_role = entities.Role().create()
@@ -619,23 +615,22 @@ def test_positive_update_external_user_roles(
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         with Session(
-            test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
         ) as ldapsession:
             ldapsession.location.create({'name': location_name})
             location = entities.Location().search(query={'search': f'name="{location_name}"'})[0]
             assert location.name == location_name
+        session.location.select('Any Location')
         session.user.update(
-            ldap_auth_source['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
+            ldap_data['ldap_user_name'], {'roles.resources.assigned': [katello_role.name]}
         )
-    with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
-    ) as session:
+    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.architecture.search('')
         session.activationkey.create({'name': ak_name})
         assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         current_user = session.activationkey.read(ak_name, 'current_user')['current_user']
-        assert ldap_auth_source['ldap_user_name'] in current_user
+        assert ldap_data['ldap_user_name'] in current_user
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -643,8 +638,6 @@ def test_positive_update_external_user_roles(
 def test_positive_add_admin_role_with_org_loc(
     test_name,
     session,
-    auth_source,
-    auth_source_ipa,
     ldap_usergroup_name,
     module_org,
     ldap_tear_down,
@@ -669,10 +662,8 @@ def test_positive_add_admin_role_with_org_loc(
         access some of the pages, with the associated org and loc
         in LDAP Auth source page as the context set.
     """
-    if ldap_auth_source['auth_type'] == 'ipa':
-        auth_source_name = 'LDAP-' + auth_source_ipa.name
-    else:
-        auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     ak_name = gen_string('alpha')
     location_name = gen_string('alpha')
     with session:
@@ -685,13 +676,11 @@ def test_positive_add_admin_role_with_org_loc(
             }
         )
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
-    with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
-    ) as session:
+    with Session(test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']) as session:
         session.location.create({'name': location_name})
         assert session.location.search(location_name)[0]['Name'] == location_name
         location = session.location.read(location_name, ['current_user', 'primary'])
-        assert ldap_auth_source['ldap_user_name'] in location['current_user']
+        assert ldap_data['ldap_user_name'] in location['current_user']
         assert location['primary']['name'] == location_name
         session.organization.select(module_org.name)
         session.activationkey.create({'name': ak_name})
@@ -705,8 +694,6 @@ def test_positive_add_admin_role_with_org_loc(
 def test_positive_add_foreman_role_with_org_loc(
     test_name,
     session,
-    auth_source,
-    auth_source_ipa,
     ldap_usergroup_name,
     module_org,
     module_loc,
@@ -733,10 +720,8 @@ def test_positive_add_foreman_role_with_org_loc(
         access foreman entities as per roles, with the associated org and
         loc in LDAP Auth source page as the context set.
     """
-    if ldap_auth_source['auth_type'] == 'ipa':
-        auth_source_name = 'LDAP-' + auth_source_ipa.name
-    else:
-        auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     name = gen_string('alpha')
     user_permissions = {
         'Hostgroup': PERMISSIONS['Hostgroup'],
@@ -757,7 +742,7 @@ def test_positive_add_foreman_role_with_org_loc(
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
-            test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
         ) as ldapsession:
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
@@ -774,8 +759,6 @@ def test_positive_add_foreman_role_with_org_loc(
 def test_positive_add_katello_role_with_org(
     test_name,
     session,
-    auth_source,
-    auth_source_ipa,
     ldap_usergroup_name,
     module_org,
     ldap_tear_down,
@@ -799,10 +782,8 @@ def test_positive_add_katello_role_with_org(
         access katello entities as per roles, with the associated org
         in LDAP Auth source page as the context set.
     """
-    if ldap_auth_source['auth_type'] == 'ipa':
-        auth_source_name = 'LDAP-' + auth_source_ipa.name
-    else:
-        auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     ak_name = gen_string('alpha')
     user_permissions = {
         'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
@@ -824,7 +805,7 @@ def test_positive_add_katello_role_with_org(
         assert session.usergroup.search(ldap_usergroup_name)[0]['Name'] == ldap_usergroup_name
         session.usergroup.refresh_external_group(ldap_usergroup_name, EXTERNAL_GROUP_NAME)
         with Session(
-            test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+            test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
         ) as ldapsession:
             with pytest.raises(NavigationTriesExceeded):
                 ldapsession.architecture.search('')
@@ -844,9 +825,7 @@ def test_positive_add_katello_role_with_org(
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_user_in_ldap_mode(
-    session, auth_source, auth_source_ipa, auth_source_open_ldap, ldap_auth_source, ldap_tear_down
-):
+def test_positive_create_user_in_ldap_mode(session, ldap_auth_source, ldap_tear_down):
     """Create User in ldap mode
 
     :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
@@ -855,7 +834,8 @@ def test_positive_create_user_in_ldap_mode(
 
     :expectedresults: User is created without specifying the password
     """
-    auth_source_name = 'LDAP-' + auth_source.name
+    ldap_data, auth_source = ldap_auth_source
+    auth_source_name = f'LDAP-{auth_source.name}'
     name = gen_string('alpha')
     with session:
         session.user.create({'user.login': name, 'user.auth': auth_source_name})
@@ -866,9 +846,7 @@ def test_positive_create_user_in_ldap_mode(
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
-def test_positive_login_user_no_roles(
-    auth_source, auth_source_ipa, test_name, ldap_tear_down, ldap_auth_source
-):
+def test_positive_login_user_no_roles(test_name, ldap_tear_down, ldap_auth_source):
     """Login with LDAP Auth for user with no roles/rights
 
     :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
@@ -882,8 +860,9 @@ def test_positive_login_user_no_roles(
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
     ) as ldapsession:
         ldapsession.task.read_all()
 
@@ -891,9 +870,7 @@ def test_positive_login_user_no_roles(
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_login_user_basic_roles(
-    test_name, session, auth_source, auth_source_ipa, ldap_tear_down, ldap_auth_source
-):
+def test_positive_login_user_basic_roles(test_name, session, ldap_tear_down, ldap_auth_source):
     """Login with LDAP for user with roles/rights
 
     :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
@@ -907,21 +884,20 @@ def test_positive_login_user_basic_roles(
     :expectedresults: Log in to foreman UI successfully and can access
         appropriate functional areas in UI
     """
+    ldap_data, auth_source = ldap_auth_source
     name = gen_string('alpha')
     role = entities.Role().create()
     permissions = {'Architecture': PERMISSIONS['Architecture']}
     create_role_permissions(role, permissions)
     with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded):
             ldapsession.usergroup.search('')
     with session:
-        session.user.update(
-            ldap_auth_source['ldap_user_name'], {'roles.resources.assigned': [role.name]}
-        )
+        session.user.update(ldap_data['ldap_user_name'], {'roles.resources.assigned': [role.name]})
     with Session(
-        test_name, ldap_auth_source['ldap_user_name'], ldap_auth_source['ldap_user_passwd']
+        test_name, ldap_data['ldap_user_name'], ldap_data['ldap_user_passwd']
     ) as ldapsession:
         ldapsession.architecture.create({'name': name})
         assert ldapsession.architecture.search(name)[0]['Name'] == name
@@ -1442,10 +1418,9 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     with session:
-        session.ldapauthentication.test_connection(
-            {'ldap_server.host': ldap_auth_source['ldap_hostname']}
-        )
+        session.ldapauthentication.test_connection({'ldap_server.host': ldap_data['ldap_hostname']})
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
@@ -1456,16 +1431,17 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
     :id: 3f09de90-a656-11ea-aa43-4ceb42ab8dbc
 
     :steps:
-        1. Randomaly generate a string as a incorrect password.
+        1. Randomly generate a string as a incorrect password.
         2. Try login with the incorrect password
 
     :expectedresults: Login fails
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     incorrect_password = gen_string('alphanumeric')
     with Session(
-        test_name, user=ldap_auth_source['ldap_user_name'], password=incorrect_password
+        test_name, user=ldap_data['ldap_user_name'], password=incorrect_password
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -1473,7 +1449,7 @@ def test_negative_login_with_incorrect_password(test_name, ldap_auth_source):
 
 
 @pytest.mark.tier2
-def test_negative_login_with_disable_user(ipa_data, auth_source_ipa):
+def test_negative_login_with_disable_user(ipa_data, auth_source_ipa, ldap_tear_down):
     """Disabled IDM user cannot login
 
     :id: 49f28006-aa1f-11ea-90d3-4ceb42ab8dbc
@@ -1573,26 +1549,27 @@ def test_onthefly_functionality(session, ldap_auth_source, ldap_tear_down):
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     ldap_auth_name = gen_string('alphanumeric')
     with session:
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_auth_source['ldap_hostname'],
-                'ldap_server.server_type': ldap_auth_source['server_type'],
-                'account.account_name': ldap_auth_source['ldap_user_cn'],
-                'account.password': ldap_auth_source['ldap_user_passwd'],
-                'account.base_dn': ldap_auth_source['base_dn'],
-                'account.groups_base_dn': ldap_auth_source['group_base_dn'],
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.server_type': ldap_data['server_type'],
+                'account.account_name': ldap_data['ldap_user_cn'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
                 'account.onthefly_register': False,
-                'attribute_mappings.login': ldap_auth_source['attr_login'],
+                'attribute_mappings.login': ldap_data['attr_login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
             }
         )
     with Session(
-        user=ldap_auth_source['ldap_user_name'], password=ldap_auth_source['ldap_user_passwd']
+        user=ldap_data['ldap_user_name'], password=ldap_data['ldap_user_passwd']
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
@@ -1661,20 +1638,21 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
 
     :parametrized: yes
     """
+    ldap_data, auth_source = ldap_auth_source
     ldap_auth_name = gen_string('alphanumeric')
-    auth_source_name = 'LDAP-' + ldap_auth_name
+    auth_source_name = f'LDAP-{auth_source.name}'
     with session:
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
-                'ldap_server.host': ldap_auth_source['ldap_hostname'],
-                'ldap_server.server_type': ldap_auth_source['server_type'],
-                'account.account_name': ldap_auth_source['ldap_user_name'],
-                'account.password': ldap_auth_source['ldap_user_passwd'],
-                'account.base_dn': ldap_auth_source['base_dn'],
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.server_type': ldap_data['server_type'],
+                'account.account_name': ldap_data['ldap_user_name'],
+                'account.password': ldap_data['ldap_user_passwd'],
+                'account.base_dn': ldap_data['base_dn'],
                 'account.onthefly_register': False,
-                'account.groups_base_dn': ldap_auth_source['group_base_dn'],
-                'attribute_mappings.login': ldap_auth_source['attr_login'],
+                'account.groups_base_dn': ldap_data['group_base_dn'],
+                'attribute_mappings.login': ldap_data['attr_login'],
                 'attribute_mappings.first_name': LDAP_ATTR['firstname'],
                 'attribute_mappings.last_name': LDAP_ATTR['surname'],
                 'attribute_mappings.mail': LDAP_ATTR['mail'],
@@ -1682,29 +1660,29 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
         )
         session.user.create(
             {
-                'user.login': ldap_auth_source['ldap_user_name'],
+                'user.login': ldap_data['ldap_user_name'],
                 'user.auth': auth_source_name,
                 'roles.admin': True,
             }
         )
     with Session(
-        user=ldap_auth_source['ldap_user_name'], password=ldap_auth_source['ldap_user_passwd']
+        user=ldap_data['ldap_user_name'], password=ldap_data['ldap_user_passwd']
     ) as ldapsession:
         with pytest.raises(NavigationTriesExceeded) as error:
             ldapsession.user.search('')
         assert error.typename == 'NavigationTriesExceeded'
     with session:
-        user_values = session.user.read(ldap_auth_source['ldap_user_name'])
-        assert ldap_auth_source['ldap_user_name'] == user_values['user']['login']
-        assert ldap_auth_source['ldap_user_name'] in user_values['user']['firstname']
-        assert ldap_auth_source['ldap_user_name'] in user_values['user']['lastname']
-        assert ldap_auth_source['ldap_user_name'] in user_values['user']['mail']
+        user_values = session.user.read(ldap_data['ldap_user_name'])
+        assert ldap_data['ldap_user_name'] == user_values['user']['login']
+        assert ldap_data['ldap_user_name'] in user_values['user']['firstname']
+        assert ldap_data['ldap_user_name'] in user_values['user']['lastname']
+        assert ldap_data['ldap_user_name'] in user_values['user']['mail']
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_login_failure_if_internal_user_exist(
-    session, test_name, ldap_auth_source, module_org, module_loc
+    session, test_name, ldap_auth_source, module_org, module_loc, ldap_tear_down
 ):
     """Verify the failure of login for the AD/IPA user in case same username
     internal user exists
@@ -1722,8 +1700,9 @@ def test_login_failure_if_internal_user_exist(
     :expectedresults: external AD/IPA user should not be able to login with the
         same username as internal
     """
+    ldap_data, auth_source = ldap_auth_source
     try:
-        internal_username = ldap_auth_source['ldap_user_name']
+        internal_username = ldap_data['ldap_user_name']
         internal_password = gen_string('alphanumeric')
         user = entities.User(
             admin=True,
@@ -1732,9 +1711,7 @@ def test_login_failure_if_internal_user_exist(
             login=internal_username,
             password=internal_password,
         ).create()
-        with Session(
-            test_name, internal_username, ldap_auth_source['ldap_user_passwd']
-        ) as ldapsession:
+        with Session(test_name, internal_username, ldap_data['ldap_user_passwd']) as ldapsession:
             with pytest.raises(NavigationTriesExceeded) as error:
                 ldapsession.user.search('')
             assert error.typename == 'NavigationTriesExceeded'
@@ -1824,7 +1801,7 @@ def test_positive_group_sync_open_ldap_authsource(
         entities as per roles.
     """
     ak_name = gen_string('alpha')
-    auth_source_name = 'LDAP-' + auth_source_open_ldap.name
+    auth_source_name = f'LDAP-{auth_source_open_ldap.name}'
     user_permissions = {'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey']}
     katello_role = entities.Role().create()
     create_role_permissions(katello_role, user_permissions)
