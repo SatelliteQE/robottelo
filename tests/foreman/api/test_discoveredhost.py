@@ -28,7 +28,6 @@ from nailgun import entity_mixins
 from wait_for import TimedOutError
 from wait_for import wait_for
 
-from robottelo import ssh
 from robottelo.cli.factory import configure_env_for_provision
 from robottelo.datafactory import valid_data_list
 from robottelo.helpers import get_nailgun_config
@@ -44,15 +43,7 @@ class HostNotDiscoveredException(Exception):
 def _read_log(ch, pattern):
     """Read a first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    while ch.recv_ready():
-        log_line = ''
-        # read bytes one-by-one until we have a complete log line
-        while ch.recv_ready():
-            char = ch.recv(1).decode('utf-8')
-            if char == '\n':
-                break
-            else:
-                log_line += char
+    for log_line in ch.stdout().splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
@@ -368,7 +359,9 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.run_in_one_thread
     @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
-    def test_positive_provision_pxe_host(self, _module_user, discovery_settings, provisioning_env):
+    def test_positive_provision_pxe_host(
+        self, _module_user, discovery_settings, provisioning_env, default_sat
+    ):
         """Provision a pxe-based discovered hosts
 
         :id: e805b9c5-e8f6-4129-a0e6-ab54e5671ddb
@@ -389,13 +382,11 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        # TODO!!
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
-            channel.send('foreman-tail\r')
+        with default_sat.session.shell() as shell:
+            shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
-                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+                discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
                 # Provision just discovered host
                 discovered_host.hostgroup = entities.HostGroup(
                     cfg, id=provisioning_env['hostgroup']['id']
@@ -426,7 +417,13 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.tier3
     @pytest.mark.skip_if_not_set('vlan_networking')
     def test_positive_auto_provision_pxe_host(
-        self, _module_user, module_org, module_location, discovery_settings, provisioning_env
+        self,
+        _module_user,
+        module_org,
+        module_location,
+        discovery_settings,
+        provisioning_env,
+        default_sat,
     ):
         """Auto provision a pxe-based host by executing discovery rules
 
@@ -450,13 +447,11 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        # TODO!!
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
-            channel.send('foreman-tail\r')
+        with default_sat.session.shell() as shell:
+            shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
-                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+                discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
                 # Provision just discovered host
                 discovered_host.hostgroup = entities.HostGroup(
                     cfg, id=provisioning_env['hostgroup']['id']
@@ -540,7 +535,9 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.run_in_one_thread
     @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
-    def test_positive_reboot_pxe_host(self, _module_user, discovery_settings, provisioning_env):
+    def test_positive_reboot_pxe_host(
+        self, _module_user, discovery_settings, provisioning_env, default_sat
+    ):
         """Rebooting a pxe based discovered host
 
         :id: 69c807f8-5646-4aa6-8b3c-5ecab69560fc
@@ -562,13 +559,11 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open a ssh channel and attach it to foreman-tail output
-        # TODO!!
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
-            channel.send('foreman-tail\r')
+        with default_sat.session.shell() as shell:
+            shell.send('foreman-tail')
 
             with LibvirtGuest() as pxe_host:
-                discovered_host = _assert_discovered_host(pxe_host, channel, user_config=cfg)
+                discovered_host = _assert_discovered_host(pxe_host, shell, user_config=cfg)
                 discovered_host.reboot()
 
                 # assert that server receives DHCP discover from hosts PXELinux
@@ -581,7 +576,7 @@ class TestLibvirtHostDiscovery:
                     (f"DHCPACK on [0-9.]+ to {pxe_host.mac}", "DHCPACK"),
                 ]:
                     try:
-                        _wait_for_log(channel, pattern[0], timeout=30)
+                        _wait_for_log(shell, pattern[0], timeout=30)
                     except TimedOutError:
                         # raise assertion error
                         raise AssertionError(f'Timed out waiting for {pattern[1]} from VM')
@@ -590,7 +585,12 @@ class TestLibvirtHostDiscovery:
     @pytest.mark.skip_if_not_set('vlan_networking')
     @pytest.mark.tier3
     def test_positive_reboot_all_pxe_hosts(
-        self, _module_user, discovered_host_cleanup, discovery_settings, provisioning_env
+        self,
+        _module_user,
+        discovered_host_cleanup,
+        discovery_settings,
+        provisioning_env,
+        default_sat,
     ):
         """Rebooting all pxe-based discovered hosts
 
@@ -613,15 +613,14 @@ class TestLibvirtHostDiscovery:
             cfg.auth = (_module_user[0].login, _module_user[1])
 
         # open ssh channels and attach them to foreman-tail output
-        # TODO!!
-        channel_1, channel_2 = ssh.get_client().invoke_shell(), ssh.get_client().invoke_shell()
-        channel_1.send('foreman-tail\r')
-        channel_2.send('foreman-tail\r')
+        shell_1, shell_2 = default_sat.session.shell(), default_sat.session.shell()
+        shell_1.send('foreman-tail')
+        shell_2.send('foreman-tail')
 
         with LibvirtGuest() as pxe_host_1:
-            _assert_discovered_host(pxe_host_1, channel_1, user_config=cfg)
+            _assert_discovered_host(pxe_host_1, shell_1, user_config=cfg)
             with LibvirtGuest() as pxe_host_2:
-                _assert_discovered_host(pxe_host_2, channel_2, user_config=cfg)
+                _assert_discovered_host(pxe_host_2, shell_2, user_config=cfg)
                 # reboot_all method leads to general /discovered_hosts/ path, so it doesn't matter
                 # what DiscoveredHost object we execute this on
                 try:
@@ -633,7 +632,7 @@ class TestLibvirtHostDiscovery:
                         raise e
                 # assert that server receives DHCP discover from hosts PXELinux
                 # this means that the hosts got rebooted
-                for pxe_host in [(pxe_host_1, channel_1), (pxe_host_2, channel_2)]:
+                for pxe_host in [(pxe_host_1, shell_1), (pxe_host_2, shell_2)]:
                     for pattern in [
                         (
                             f"DHCPDISCOVER from {pxe_host[0].mac}",
@@ -692,10 +691,8 @@ class TestLibvirtHostDiscovery:
         new_dhcp_conf_to = subnet.to[: subnet.to.rfind('.') + 1] + str(int(old_sub_to_4o) - 10)
 
         cfg = get_nailgun_config()
-        # TODO!!
-        ssh_client = ssh.get_client()
-        with ssh_client.invoke_shell() as channel:
-            channel.send('foreman-tail\r')
+        with default_sat.session.shell() as shell:
+            shell.send('foreman-tail')
             try:
                 # updating the ranges in component and in dhcp.conf
                 subnet.from_ = new_subnet_from
@@ -706,7 +703,7 @@ class TestLibvirtHostDiscovery:
                     f'systemctl restart dhcpd'
                 )
                 with LibvirtGuest() as pxe_host:
-                    discovered_host = _assert_discovered_host(pxe_host, channel, cfg)
+                    discovered_host = _assert_discovered_host(pxe_host, shell, cfg)
                     # Assert Discovered host discovered within dhcp.conf range before provisioning
                     assert int(discovered_host.ip.split('.')[-1]) <= int(
                         new_dhcp_conf_to.split('.')[-1]
