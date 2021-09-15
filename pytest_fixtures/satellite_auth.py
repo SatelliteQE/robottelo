@@ -142,12 +142,12 @@ def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
 
 
 @pytest.fixture
-def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, open_ldap_data):
+def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data, open_ldap_data):
     auth_type = request.param.lower()
     if 'ad' in auth_type:
         ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
         # entity create with AD settings
-        entities.AuthSourceLDAP(
+        auth_source = entities.AuthSourceLDAP(
             onthefly_register=True,
             account=ad_data['ldap_user_name'],
             account_password=ad_data['ldap_user_passwd'],
@@ -163,12 +163,12 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_location],
+            location=[module_loc],
         ).create()
         ldap_data = ad_data
     elif auth_type == 'ipa':
         # entity create with IPA settings
-        entities.AuthSourceLDAP(
+        auth_source = entities.AuthSourceLDAP(
             onthefly_register=True,
             account=ipa_data['ldap_user_cn'],
             account_password=ipa_data['ldap_user_passwd'],
@@ -184,12 +184,12 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_location],
+            location=[module_loc],
         ).create()
         ldap_data = ipa_data
     elif auth_type == 'openldap':
         # entity create with OpenLdap settings
-        entities.AuthSourceLDAP(
+        auth_source = entities.AuthSourceLDAP(
             onthefly_register=True,
             account=open_ldap_data['ldap_user_cn'],
             account_password=open_ldap_data['ldap_user_passwd'],
@@ -205,7 +205,7 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_location],
+            location=[module_loc],
         ).create()
         ldap_data = open_ldap_data
     else:
@@ -220,7 +220,7 @@ def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, op
     else:
         ldap_data['server_type'] = LDAP_SERVER_TYPE['UI']['posix']
         ldap_data['attr_login'] = LDAP_ATTR['login']
-    yield ldap_data
+    yield ldap_data, auth_source
 
 
 @pytest.fixture(scope='session')
