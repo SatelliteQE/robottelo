@@ -4,7 +4,6 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL8
-from robottelo.helpers import add_remote_execution_ssh_key
 
 
 @pytest.fixture
