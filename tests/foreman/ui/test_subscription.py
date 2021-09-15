@@ -303,7 +303,7 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, def
         assert product_name in content_products
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier3
 def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthost, default_sat):
     """Ensure that Virtual Data Centers guest subscription Provided
@@ -335,7 +335,7 @@ def test_positive_view_vdc_guest_subscription_products(session, rhel7_contenthos
     """
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
-    provisioning_server = settings.compute_resources.libvirt_hostname
+    provisioning_server = settings.libvirt.libvirt_hostname
     rh_product_repository = RHELAnsibleEngineRepository(cdn=True)
     product_name = rh_product_repository.data['product']
     # Create a new virt-who config

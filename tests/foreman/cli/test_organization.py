@@ -279,7 +279,7 @@ def test_positive_add_and_remove_hostgroups(module_org):
     assert hostgroups[1]['name'] not in org_info['hostgroups'], "Failed to remove hostgroup by id"
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier2
 @pytest.mark.libvirt_discovery
 @pytest.mark.upgrade
@@ -302,7 +302,7 @@ def test_positive_add_and_remove_compute_resources(module_org):
         make_compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+                'url': f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
             },
         )
         for _ in range(0, 2)

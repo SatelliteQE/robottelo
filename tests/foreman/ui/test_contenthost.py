@@ -702,7 +702,7 @@ def test_positive_virt_who_hypervisor_subscription_status(session, rhel7_content
     org = entities.Organization().create()
     lce = entities.LifecycleEnvironment(organization=org).create()
     # TODO move this to either hack around virt-who service or use an env-* compute resource
-    provisioning_server = settings.compute_resources.libvirt_hostname
+    provisioning_server = settings.libvirt.libvirt_hostname
     # Create a new virt-who config
     virt_who_config = make_virt_who_config(
         {

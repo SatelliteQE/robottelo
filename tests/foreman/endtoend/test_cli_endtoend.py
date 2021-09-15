@@ -100,6 +100,7 @@ def test_positive_cli_find_admin_user():
     assert result['admin'] == 'yes'
 
 
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.tier4
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
@@ -327,7 +328,7 @@ def test_positive_cli_end_to_end(fake_manifest_is_set, rhel6_contenthost, defaul
         {
             'name': gen_alphanumeric(),
             'provider': 'Libvirt',
-            'url': f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+            'url': f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         },
     )
 
