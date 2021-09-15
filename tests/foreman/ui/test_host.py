@@ -182,7 +182,7 @@ def module_libvirt_resource(module_org, module_loc):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
-    resource_url = f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system'
+    resource_url = f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system'
     comp_res = [
         res
         for res in entities.LibvirtComputeResource().search()

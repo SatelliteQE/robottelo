@@ -380,9 +380,7 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
     # compute boolean is added to not block existing test's that depend on
     # Libvirt resource and use this same functionality to all CR's.
     if compute is False:
-        resource_url = 'qemu+ssh://root@{}/system'.format(
-            settings.compute_resources.libvirt_hostname
-        )
+        resource_url = f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system'
         comp_res = [
             res
             for res in entities.LibvirtComputeResource().search()

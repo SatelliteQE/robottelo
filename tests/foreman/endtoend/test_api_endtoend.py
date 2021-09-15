@@ -1064,7 +1064,7 @@ class TestEndToEnd:
             [service['status'] == 'ok' for service in services.values()]
         ), 'Not all services seem to be up and running!'
 
-    @pytest.mark.skip_if_not_set('compute_resources')
+    @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
     @pytest.mark.upgrade
     @pytest.mark.skipif(
@@ -1219,7 +1219,7 @@ class TestEndToEnd:
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url=f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+            url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         ).create()
 
         # step 2.17: Create a new subnet

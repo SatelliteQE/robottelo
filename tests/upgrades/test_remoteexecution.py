@@ -29,7 +29,7 @@ from robottelo.helpers import add_remote_execution_ssh_key
 
 @pytest.fixture(scope='class')
 def compute_resource_setup(self, default_org):
-    self.libvirt_vm = settings.compute_resources.libvirt_hostname
+    self.libvirt_vm = settings.libvirt.libvirt_hostname
     self.default_org_id = default_org.id
     self.org = default_org
     self.bridge = settings.vlan_networking.bridge
@@ -44,8 +44,8 @@ def compute_resource_setup(self, default_org):
 # TODO Mark with infra markers from #8391
 @pytest.mark.skipif((not settings.vlan_networking), reason='vlan_networking required')
 @pytest.mark.skipif(
-    (not settings.compute_resources.libvirt_hostname),
-    reason='compute_resources.libvirt_hostname required',
+    (not settings.libvirt.libvirt_hostname),
+    reason='libvirt.libvirt_hostname required',
 )
 @pytest.mark.skipif((not settings.upgrade.vm_domain), reason='upgrade.vm_domain required')
 class TestScenarioREXCapsule:
@@ -143,8 +143,8 @@ class TestScenarioREXCapsule:
 # TODO Mark with infra markers from #8391
 @pytest.mark.skipif((not settings.vlan_networking), reason='vlan_networking required')
 @pytest.mark.skipif(
-    (not settings.compute_resources.libvirt_hostname),
-    reason='compute_resources.libvirt_hostname required',
+    (not settings.libvirt.libvirt_hostname),
+    reason='libvirt.libvirt_hostname required',
 )
 @pytest.mark.skipif((not settings.upgrade.vm_domain), reason='upgrade.vm_domain required')
 class TestScenarioREXSatellite:

@@ -35,7 +35,7 @@ from robottelo.datafactory import valid_data_list
 
 pytestmark = [
     pytest.mark.on_premises_provisioning,
-    pytest.mark.skip_if_not_set('compute_resources'),
+    pytest.mark.skip_if_not_set('libvirt'),
 ]
 
 
@@ -45,9 +45,7 @@ def setup():
     setupEntities = type("", (), {})()
     setupEntities.org = entities.Organization().create()
     setupEntities.loc = entities.Location(organization=[setupEntities.org]).create()
-    setupEntities.current_libvirt_url = (
-        LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
-    )
+    setupEntities.current_libvirt_url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
     return setupEntities
 
 
