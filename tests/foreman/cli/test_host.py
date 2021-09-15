@@ -787,7 +787,7 @@ def test_positive_unregister(
     assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.host_create
 @pytest.mark.libvirt_discovery
 @pytest.mark.onprem_provisioning
@@ -804,7 +804,7 @@ def test_positive_create_using_libvirt_without_mac(
     :CaseImportance: Critical
     """
     compute_resource = entities.LibvirtComputeResource(
-        url=f'qemu+ssh://root@{settings.compute_resources.libvirt_hostname}/system',
+        url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         organization=[module_org.id],
         location=[module_location.id],
     ).create()

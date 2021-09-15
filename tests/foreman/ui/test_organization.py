@@ -205,7 +205,7 @@ def test_positive_create_with_all_users(session):
         assert org.name in user_values['organizations']['resources']['assigned']
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):
@@ -217,7 +217,7 @@ def test_positive_update_compresource(session):
 
     :CaseLevel: Integration
     """
-    url = f'{LIBVIRT_RESOURCE_URL}{settings.compute_resources.libvirt_hostname}'
+    url = f'{LIBVIRT_RESOURCE_URL}{settings.libvirt.libvirt_hostname}'
     resource = entities.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
     org = entities.Organization().create()

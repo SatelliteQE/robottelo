@@ -203,7 +203,7 @@ def test_positive_add_org_hostgroup_template(session):
         assert template.name in loc_values['provisioning_templates']['resources']['assigned']
 
 
-@pytest.mark.skip_if_not_set('compute_resources')
+@pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 def test_positive_update_compresource(session):
@@ -215,7 +215,7 @@ def test_positive_update_compresource(session):
 
     :CaseLevel: Integration
     """
-    url = LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
+    url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
     resource = entities.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
     loc = entities.Location().create()

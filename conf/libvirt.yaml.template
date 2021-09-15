@@ -1,4 +1,4 @@
-COMPUTE_RESOURCES:
+LIBVIRT:
   # External Libvirt Hostname
   LIBVIRT_HOSTNAME:  # libvirt.example.com
   # Path on the Libvirt host, where the virtual images will be stored.
