@@ -11,7 +11,7 @@ This module is intended to be used for upgrade tests, that have two run stages,
     Second stage: post_upgrade::
 
         The test marked as post upgrade will be run, any saved data in dependent pre_upgrade stage
-        can be restored, if a dependent test fail, the post upgrade test will be skipped
+        can be restored, if a dependent test fail, the post upgrade test will be errored
 
         pytest -m "post_upgrade" tests/foreman/upgrade
 
@@ -231,6 +231,17 @@ def pre_upgrade_data(request):
     return data
 
 
+def pytest_configure(config):
+    """Register custom markers to avoid warnings."""
+    markers = [
+        "pre_upgrade: Mark tests to run before upgrade.",
+        "post_upgrade(depend_on=None): Mark tests to run after upgrade.",
+        "fail: Mark test to fail if dependant test fails.",
+    ]
+    for marker in markers:
+        config.addinivalue_line("markers", marker)
+
+
 def pytest_sessionstart(session):
     """Do some setup for automation-tools and satellite6-upgrade"""
     # Fabric Config setup
@@ -326,11 +337,10 @@ def pytest_collection_modifyitems(items, config):
         _set_test_node_id(item.function, item.nodeid)
 
     if POST_UPGRADE:
-        # will skip item/post_upgrade test if pre_upgrade test status failed.
+        # will mark `fail` item/post_upgrade test if pre_upgrade test status failed.
         post_upgrade_items = [
             item for item in items if item.get_closest_marker(POST_UPGRADE_MARK) is not None
         ]
-        deselected_items = []
         for item in post_upgrade_items:
             dependant_on_functions = []
             for marker in item.iter_markers(POST_UPGRADE_MARK):
@@ -342,11 +352,21 @@ def pytest_collection_modifyitems(items, config):
                 depend_on_node_ids = [_get_test_node_id(f) for f in dependant_on_functions]
                 for depend_on_node_id in depend_on_node_ids:
                     if depend_on_node_id in pre_upgrade_failed_tests:
-                        log(
-                            f'Deselected (because of dependant test failed): {item.nodeid}',
-                            'INFO',
+                        item.add_marker(
+                            pytest.mark.fail(reason=f'The dependant test {item.nodeid} failed!')
                         )
-                        deselected_items.append(item)
 
-        config.hook.pytest_deselected(items=deselected_items)
-        items[:] = [item for item in items if item not in deselected_items]
+
+class DependentTestFailed(Exception):
+    """Raise when the dependent test fails"""
+
+    pass
+
+
+@pytest.fixture(autouse=True)
+def post_upgrade_dependant_fail(request):
+    """Called after fail mark added on post_upgrade tests using above collection modification"""
+    fail = request.node.get_closest_marker('fail')
+    if fail:
+        reason = fail.kwargs.get('reason')
+        raise DependentTestFailed(reason)
