@@ -59,7 +59,7 @@ class LibvirtGuest:
         self.cpu = cpu
         self.ram = ram
         if libvirt_server is None:
-            self.libvirt_server = settings.compute_resources.libvirt_hostname
+            self.libvirt_server = settings.libvirt.libvirt_hostname
         else:
             self.libvirt_server = libvirt_server
         if self.libvirt_server is None or self.libvirt_server == '':

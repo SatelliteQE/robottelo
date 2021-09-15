@@ -78,9 +78,9 @@ VALIDATORS = dict(
         )
     ],
     clients=[Validator('clients.provisioning_server')],
-    compute_resources=[
-        Validator('compute_resources.libvirt_hostname', must_exist=True),
-        Validator('compute_resources.libvirt_image_dir', default='/var/lib/libvirt/images'),
+    libvirt=[
+        Validator('libvirt.libvirt_hostname', must_exist=True),
+        Validator('libvirt.libvirt_image_dir', default='/var/lib/libvirt/images'),
     ],
     container_repo=[
         Validator(

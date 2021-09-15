@@ -27,12 +27,12 @@ from robottelo.constants import COMPUTE_PROFILE_SMALL
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 
-pytestmark = [pytest.mark.skip_if_not_set('compute_resources')]
+pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
 
 @pytest.fixture(scope='module')
 def module_libvirt_url():
-    return LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
+    return LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
 
 @pytest.mark.on_premises_provisioning
