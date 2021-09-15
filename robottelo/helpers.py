@@ -307,22 +307,15 @@ def default_url_on_new_port(oldport, newport):
     :rtype: str
 
     """
-    # TODO!!!
     domain = settings.server.hostname
 
-    with ssh.get_connection() as connection:
+    with ssh.get_client.session.shell() as channel:
         command = f'ncat -kl -p {newport} -c "ncat {domain} {oldport}"'
         logger.debug(f'Creating tunnel: {command}')
-        transport = connection.get_transport()
-        channel = transport.open_session()
-        channel.get_pty()
-        channel.exec_command(command)
+        channel.send(command)
         # if exit_status appears until command_timeout, throw error
-        if channel.exit_status_ready():
-            if channel.recv_exit_status() != 0:
-                stderr = ''
-                while channel.recv_stderr_ready():
-                    stderr += channel.recv_stderr(1)
+        if channel.eof():
+            if (stderr := channel.get_exit_status()[1]) != 0:
                 logger.debug(f'Tunnel failed: {stderr}')
                 # Something failed, so raise an exception.
                 raise CapsuleTunnelError(stderr)
