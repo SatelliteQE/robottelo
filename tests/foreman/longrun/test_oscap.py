@@ -42,6 +42,8 @@ from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
+from robottelo.constants import OSCAP_TARGET_CORES
+from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
@@ -58,8 +60,6 @@ ak_name = {
     'rhel7': gen_string('alpha'),
     'rhel6': gen_string('alpha'),
 }
-target_cores = 4
-target_memory = '16GiB'
 
 
 def fetch_scap_and_profile_id(scap_name, scap_profile):
@@ -229,8 +229,8 @@ def test_positive_upload_to_satellite(
     with VMBroker(
         nick=distro,
         host_classes={'host': ContentHost},
-        target_cores=target_cores,
-        target_memory=target_memory,
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
@@ -386,8 +386,8 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
     with VMBroker(
         nick=DISTRO_RHEL7,
         host_classes={'host': ContentHost},
-        target_cores=target_cores,
-        target_memory=target_memory,
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
@@ -492,8 +492,8 @@ def test_positive_oscap_run_via_ansible(
     with VMBroker(
         nick=distro,
         host_classes={'host': ContentHost},
-        target_cores=target_cores,
-        target_memory=target_memory,
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
@@ -605,8 +605,8 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
     with VMBroker(
         nick=DISTRO_RHEL7,
         host_classes={'host': ContentHost},
-        target_cores=target_cores,
-        target_memory=target_memory,
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
     ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)

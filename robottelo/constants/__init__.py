@@ -1531,6 +1531,8 @@ LDAP_ATTR = {
     'mail': 'mail',
 }
 
+OSCAP_TARGET_CORES = 4
+OSCAP_TARGET_MEMORY = '16GiB'
 OSCAP_PERIOD = {'weekly': 'Weekly', 'monthly': 'Monthly', 'custom': 'Custom'}
 
 OSCAP_WEEKDAY = {
