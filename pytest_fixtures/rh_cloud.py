@@ -30,10 +30,12 @@ def organization_ak_setup(module_manifest_org):
         environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
         auto_attach=True,
     ).create()
-    subscription = entities.Subscription(organization=module_manifest_org).search(
+    subscription = entities.Subscription(organization=module_manifest_org)
+    subscription.refresh_manifest(data={'organization_id': module_manifest_org.id})
+    default_subscription = subscription.search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
-    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': subscription.id})
+    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
     yield module_manifest_org, ak
     ak.delete()
 

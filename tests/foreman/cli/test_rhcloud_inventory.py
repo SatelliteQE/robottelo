@@ -78,8 +78,10 @@ def test_positive_inventory_generate_upload_cli(
     try:
         ssh.download_file(remote_report_path, local_report_path)
     except FileNotFoundError:
-        file_tree = default_sat.execute('ll /var/lib/foreman/red_hat_inventory/uploads; '
-                                   'll /var/lib/foreman/red_hat_inventory/')
+        file_tree = default_sat.execute(
+            'ls -l /var/lib/foreman/red_hat_inventory/uploads; '
+            'ls -l /var/lib/foreman/red_hat_inventory/'
+        )
         raise FileNotFoundError(
             f'result: {result} \n remote_report_path: {remote_report_path} \n '
             f'local_report_path: {local_report_path} \n '
