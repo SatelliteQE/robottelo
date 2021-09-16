@@ -32,6 +32,7 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.content_info import get_repo_files
+from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_path
