@@ -496,7 +496,7 @@ class ContentHost(Host):
         # ca list", so that we sign it.
         self.execute('puppet agent -t')
         proxy_host = Host(proxy_hostname)
-        proxy_host.execute(cmd='puppetserver ca sign --all')
+        proxy_host.execute('puppetserver ca sign --all')
         # This particular puppet run would create the host entity under
         # 'All Hosts' and let's redirect stderr to /dev/null as errors at
         #  this stage can be ignored.
@@ -518,12 +518,13 @@ class ContentHost(Host):
         if result.status != 0:
             data = self.execute(
                 'rpm -qa |grep scap; yum repolist;cat /etc/foreman_scap_client/config.yaml; '
-                'cat /etc/cron.d/foreman_scap_client_cron'
+                'cat /etc/cron.d/foreman_scap_client_cron; tail -n 100 /var/log/messages'
             )
             raise ContentHostError(
                 f'Failed to execute foreman_scap_client run. '
                 f'Command exited with code: {result.status}, stderr: {result.stderr}, '
-                f'host_data_stdout: {data.stdout}, and host_data_stderr: {data.stderr}'
+                f'stdout: {result.stdout} host_data_stdout: {data.stdout}, '
+                f'and host_data_stderr: {data.stderr}'
             )
 
     def configure_rex(self, satellite, org, subnet_id=None, by_ip=True, register=True):

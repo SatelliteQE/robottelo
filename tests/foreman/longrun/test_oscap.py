@@ -42,6 +42,8 @@ from robottelo.constants import DISTRO_RHEL8
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_PROFILE
+from robottelo.constants import OSCAP_TARGET_CORES
+from robottelo.constants import OSCAP_TARGET_MEMORY
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.helpers import file_downloader
@@ -224,7 +226,12 @@ def test_positive_upload_to_satellite(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=distro,
+        host_classes={'host': ContentHost},
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -240,7 +247,13 @@ def test_positive_upload_to_satellite(
                 'puppet-environment-id': puppet_env.id,
             }
         )
-
+        Host.set_parameter(
+            {
+                'host': vm.hostname.lower(),
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
         SmartClassParameter.update(
             {
                 'name': 'fetch_remote_resources',
@@ -259,7 +272,7 @@ def test_positive_upload_to_satellite(
             }
         )
 
-        vm.configure_puppet(rhel_repo)
+        vm.configure_puppet(rhel_repo, default_sat.hostname)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
@@ -370,7 +383,12 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
         }
     )
     # Creates vm's and runs openscap scan and uploads report to satellite6.
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=DISTRO_RHEL7,
+        host_classes={'host': ContentHost},
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
@@ -386,7 +404,14 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
                 'puppet-environment-id': puppet_env.id,
             }
         )
-        vm.configure_puppet(settings.repos.rhel7_repo)
+        Host.set_parameter(
+            {
+                'host': vm.hostname.lower(),
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            }
+        )
+        vm.configure_puppet(settings.repos.rhel7_repo, default_sat.hostname)
         result = vm.run('cat /etc/foreman_scap_client/config.yaml | grep profile')
         assert result.status == 0
         # Runs the actual oscap scan on the vm/clients and
@@ -401,7 +426,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
 
 @pytest.mark.upgrade
 @pytest.mark.tier4
-@pytest.mark.parametrize('distro', [DISTRO_RHEL8, DISTRO_RHEL7])
+@pytest.mark.parametrize('distro', [DISTRO_RHEL7, DISTRO_RHEL8])
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, default_sat
 ):
@@ -464,7 +489,12 @@ def test_positive_oscap_run_via_ansible(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(nick=distro, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=distro,
+        host_classes={'host': ContentHost},
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[distro])
@@ -572,7 +602,12 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
             'organizations': module_org.name,
         }
     )
-    with VMBroker(nick=DISTRO_RHEL7, host_classes={'host': ContentHost}) as vm:
+    with VMBroker(
+        nick=DISTRO_RHEL7,
+        host_classes={'host': ContentHost},
+        target_cores=OSCAP_TARGET_CORES,
+        target_memory=OSCAP_TARGET_MEMORY,
+    ) as vm:
         host_name, _, host_domain = vm.hostname.partition('.')
         vm.install_katello_ca(default_sat)
         vm.register_contenthost(module_org.name, ak_name[DISTRO_RHEL7])
