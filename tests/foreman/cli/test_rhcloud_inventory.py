@@ -24,7 +24,9 @@ from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 
 @pytest.mark.tier3
-def test_positive_inventory_generate_upload_cli(organization_ak_setup, registered_hosts):
+def test_positive_inventory_generate_upload_cli(
+    organization_ak_setup, registered_hosts, default_sat
+):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
 
@@ -65,15 +67,25 @@ def test_positive_inventory_generate_upload_cli(organization_ak_setup, registere
     org, ak = organization_ak_setup
     cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f'Generated and uploaded inventory report for organization \'{org.name}\''
-    result = ssh.command(cmd)
-    assert result.return_code == 0
-    assert result.stdout[0] == upload_success_msg
+    result = default_sat.execute(cmd)
+    assert result.status == 0
+    assert upload_success_msg in result.stdout
 
     local_report_path = f'/tmp/report_for_{org.id}.tar.xz'
     remote_report_path = (
         f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
-    ssh.download_file(remote_report_path, local_report_path)
+    try:
+        ssh.download_file(remote_report_path, local_report_path)
+    except FileNotFoundError:
+        file_tree = default_sat.execute('ll /var/lib/foreman/red_hat_inventory/uploads; '
+                                   'll /var/lib/foreman/red_hat_inventory/')
+        raise FileNotFoundError(
+            f'result: {result} \n remote_report_path: {remote_report_path} \n '
+            f'local_report_path: {local_report_path} \n '
+            f'registered_hosts[0]: {registered_hosts[0].nailgun_host} \n'
+            f'file_tree: {file_tree}'
+        )
     local_file_data = get_local_file_data(local_report_path)
     assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
     assert local_file_data['size'] > 0
