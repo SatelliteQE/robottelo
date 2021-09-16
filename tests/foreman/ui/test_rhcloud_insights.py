@@ -84,10 +84,7 @@ def test_rhcloud_insights_e2e(
             max_tries=10,
         )
         task_output = entities.ForemanTask().search(query={'search': result[0].id})
-        try:
-            assert task_output[0].result == 'success'
-        except AssertionError:
-            raise AssertionError(f'result: {result} task_output: {task_output}')
+        assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for_tasks(
