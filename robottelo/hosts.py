@@ -1196,3 +1196,9 @@ class Satellite(Capsule):
         update_provisioning_template(name=template, old=old, new=new)
         yield
         update_provisioning_template(name=template, old=new, new=old)
+
+    def update_setting(self, name, value):
+        """change setting value"""
+        setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
+        setting.value = value
+        setting.update({'value'})
