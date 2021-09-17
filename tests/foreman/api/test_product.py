@@ -19,17 +19,12 @@ http://<sat6>/apidoc/v2/products.html
 
 :Upstream: No
 """
-import re
-
 import pytest
-from fauxfactory import gen_integer
 from fauxfactory import gen_string
-from fauxfactory import gen_url
 from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo import manifests
-from robottelo import ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
@@ -423,16 +418,17 @@ def test_positive_assign_http_proxy_to_products():
     # create HTTP proxies
     http_proxy_a = entities.HTTPProxy(
         name=gen_string('alpha', 15),
-        url=f"{gen_url(scheme='https')}:{gen_integer(min_value=10, max_value=9999)}",
+        url=settings.http_proxy.un_auth_proxy_url,
         organization=[org],
     ).create()
 
     http_proxy_b = entities.HTTPProxy(
         name=gen_string('alpha', 15),
-        url=f"{gen_url(scheme='https')}:{gen_integer(min_value=10, max_value=9999)}",
+        url=settings.http_proxy.auth_proxy_url,
+        username=settings.http_proxy.username,
+        password=settings.http_proxy.password,
         organization=[org],
     ).create()
-    proxy_fqdn = re.split(r'[:]', http_proxy_b.url)[1].strip("//")
 
     # Create products and repositories
     product_a = entities.Product(organization=org).create()
@@ -462,7 +458,3 @@ def test_positive_assign_http_proxy_to_products():
         assert r.http_proxy_id == http_proxy_b.id
 
     product_a.sync({'async': True})
-
-    # Verify that proxy FQDN appears in log during sync.
-    result = ssh.command(f'grep -F {proxy_fqdn} /var/log/messages')
-    assert result.return_code == 0

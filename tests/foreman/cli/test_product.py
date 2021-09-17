@@ -301,23 +301,22 @@ def test_positive_assign_http_proxy_to_products(module_org):
             'http-proxy-id': http_proxy_b['id'],
         }
     )
+    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
+        result = Repository.info({'id': repo['id']})
+        assert result['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
+        assert result['http-proxy']['id'] == http_proxy_b['id']
     # Perform sync and verify packages count
     Product.synchronize({'id': product_a['id'], 'organization-id': module_org.id})
     Product.synchronize({'id': product_b['id'], 'organization-id': module_org.id})
-
-    for repo in repo_a1, repo_a2, repo_b1, repo_b2:
-        r = Repository.info({'id': repo['id']})
-        assert r['http-proxy']['http-proxy-policy'] == 'use_selected_http_proxy'
-        assert r['http-proxy']['id'] == http_proxy_b['id']
-        assert int(r['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
     Product.update_proxy(
         {'ids': f"{product_a['id']},{product_b['id']}", 'http-proxy-policy': 'none'}
     )
 
     for repo in repo_a1, repo_a2, repo_b1, repo_b2:
-        r = Repository.info({'id': repo['id']})
-        assert r['http-proxy']['http-proxy-policy'] == 'none'
+        result = Repository.info({'id': repo['id']})
+        assert result['http-proxy']['http-proxy-policy'] == 'none'
+        assert int(result['content-counts']['packages']) == FAKE_0_YUM_REPO_PACKAGES_COUNT
 
 
 @pytest.mark.tier2

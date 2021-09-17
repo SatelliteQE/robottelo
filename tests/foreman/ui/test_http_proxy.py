@@ -125,7 +125,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             {
                 'name': repo_a1_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': settings.repos.yum_1.url,
+                'repo_content.upstream_url': settings.repos.yum_0.url,
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )
@@ -150,8 +150,8 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             product_b.name,
             {
                 'name': repo_b1_name,
-                'repo_type': REPO_TYPE['puppet'],
-                'repo_content.upstream_url': settings.repos.puppet_0.url,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_0.url,
                 'repo_content.http_proxy_policy': 'Global Default',
             },
         )
@@ -162,8 +162,8 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
             product_b.name,
             {
                 'name': repo_b2_name,
-                'repo_type': REPO_TYPE['puppet'],
-                'repo_content.upstream_url': settings.repos.puppet_0.url,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
                 'repo_content.http_proxy_policy': 'No HTTP Proxy',
             },
         )
