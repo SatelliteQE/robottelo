@@ -1,0 +1,20 @@
+content_host:
+    deploy_workflow: workflow-name
+    default_rhel_version: 7
+    rhel_versions:
+        - 6
+        - 7
+        - 8
+    hardware:
+        RHEL6:
+            RELEASE: 6.10
+            MEMORY: 1GiB
+            CORES: 1
+        RHEL7:
+            RELEASE: 7.9
+            MEMORY: 1GiB
+            CORES: 1
+        RHEL8:
+            RELEASE: 8.3
+            MEMORY: 1536 MiB
+            CORES: 1
