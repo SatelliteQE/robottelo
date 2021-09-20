@@ -77,6 +77,7 @@ def test_rhcloud_insights_e2e(
             '"best" option is not present in the /etc/dnf/dnf.conf'
         )
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+
         session.cloudinsights.remediate(query)
         result = wait_for_tasks(
             search_query=f'{job_query} and started_at >= "{timestamp}"',
