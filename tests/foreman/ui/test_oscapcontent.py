@@ -68,10 +68,7 @@ def test_positive_end_to_end(session, oscap_content_path, default_sat):
         )
         oscap_values = session.oscapcontent.read(title)
         assert oscap_values['file_upload']['title'] == title
-        assert (
-            oscap_values['file_upload']['uploaded_scap_file']
-            == oscap_content_path.rsplit('/', 1)[-1]
-        )
+        assert oscap_values['file_upload']['uploaded_scap_file'] == oscap_content_path.name
         assert org.name in oscap_values['organizations']['resources']['assigned']
         assert loc.name in oscap_values['locations']['resources']['assigned']
         session.oscapcontent.update(title, {'file_upload.title': new_title})

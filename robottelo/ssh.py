@@ -1,6 +1,8 @@
 """Utility module to handle the shared ssh connection."""
 from functools import lru_cache
 
+from ssh2 import exceptions
+
 from robottelo.cli import hammer
 
 
@@ -51,7 +53,19 @@ def command(
         password=password,
         port=port,
     )
-    result = client.execute(cmd, timeout=timeout)
+    try:
+        result = client.execute(cmd, timeout=timeout)
+    except (exceptions.Timeout, exceptions.SocketSendError):
+        # If the client is in a bad state, invalidate the cache and get a new one
+        get_client.cache_clear()
+        client = get_client(
+            hostname=hostname,
+            username=username,
+            password=password,
+            port=port,
+        )
+        result = client.execute(cmd, timeout=timeout)
+
     if output_format and result.status == 0:
         if output_format == 'csv':
             result.stdout = hammer.parse_csv(result.stdout) if result.stdout else {}
