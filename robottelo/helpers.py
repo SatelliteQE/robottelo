@@ -309,7 +309,7 @@ def default_url_on_new_port(oldport, newport):
     """
     domain = settings.server.hostname
 
-    with ssh.get_client.session.shell() as channel:
+    with ssh.get_client().session.shell() as channel:
         command = f'ncat -kl -p {newport} -c "ncat {domain} {oldport}"'
         logger.debug(f'Creating tunnel: {command}')
         channel.send(command)
