@@ -1,7 +1,10 @@
 import pytest
+import requests
 from fauxfactory import gen_string
 
 from robottelo import ssh
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_TEMPLATE_EXPORT_API
 from robottelo.constants import FOREMAN_TEMPLATE_ROOT_DIR
 
 
@@ -28,3 +31,29 @@ def create_import_export_local_dir():
     ssh.command(f'cp example_template.erb {dir_path}')
     yield dir_name, dir_path
     ssh.command(f'rm -rf {dir_path}')
+
+
+@pytest.fixture()
+def github_branch():
+    """Creates a new branch on github repository for exporting templates.
+
+    Finally, removes branch from github after test is completed as a teardown part.
+    """
+    headers = {'Authorization': f"Token {settings.github.token}"}
+    origin_branch_name = 'master'
+    origin_branch = requests.get(
+        f"{FOREMAN_TEMPLATE_EXPORT_API}git/refs/heads/{origin_branch_name}", headers=headers
+    ).json()
+    sha = origin_branch['object']['sha']
+    new_branch = gen_string('alpha')
+    res = requests.post(
+        f"{FOREMAN_TEMPLATE_EXPORT_API}git/refs",
+        json={"ref": f"refs/heads/{new_branch}", "sha": sha},
+        headers=headers,
+    )
+    assert res.status_code == 201
+    yield new_branch
+    res = requests.delete(
+        f'{FOREMAN_TEMPLATE_EXPORT_API}git/refs/heads/{new_branch}', headers=headers
+    )
+    assert res.status_code == 204

@@ -1814,6 +1814,8 @@ HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
 
 FOREMAN_TEMPLATE_IMPORT_URL = 'https://github.com/SatelliteQE/foreman_templates.git'
 
+FOREMAN_TEMPLATE_EXPORT_API = 'https://api.github.com/repos/SatelliteQE/foreman_templates/'
+
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/'
     'example_template.erb'

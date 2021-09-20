@@ -141,6 +141,13 @@ VALIDATORS = dict(
         Validator('gce.cert_path', startswith='/usr/share/foreman/'),
         Validator('gce.zone', is_in=VALID_GCE_ZONES),
     ],
+    github=[
+        Validator(
+            'github.username',
+            'github.token',
+            must_exist=True,
+        ),
+    ],
     http_proxy=[
         Validator(
             'http_proxy.un_auth_proxy_url',

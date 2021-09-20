@@ -15,6 +15,7 @@
 :Upstream: No
 """
 import pytest
+import requests
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import get
@@ -23,6 +24,8 @@ from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_TEMPLATE_EXPORT_API
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 
@@ -104,9 +107,9 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
-    @pytest.mark.stubbed
     @pytest.mark.tier2
-    def test_positive_export_filtered_templates_to_git(self):
+    @pytest.mark.skip_if_not_set('github')
+    def test_positive_export_filtered_templates_to_git(self, module_org, github_branch):
         """Assure only templates with a given filter regex are pushed to
         git template (new templates are created, existing updated).
 
@@ -123,6 +126,24 @@ class TestTemplateSyncTestCase:
 
         :CaseAutomation: NotAutomated
         """
+        dirname = 'export'
+        auth = f"{settings.github.username}:{settings.github.token}"
+        url = f'https://{auth}@{FOREMAN_TEMPLATE_IMPORT_URL[8:]}'
+        output = TemplateSync.exports(
+            {
+                'repo': url,
+                'branch': github_branch,
+                'organization-id': module_org.id,
+                'filter': 'atomic',
+                'dirname': dirname,
+            }
+        )
+        exported_count = [row == 'Exported: true' for row in output].count(True)
+        headers = {'Authorization': f"Token {settings.github.token}"}
+        path = f"{dirname}/provisioning_templates/provision"
+        url = f"{FOREMAN_TEMPLATE_EXPORT_API}contents/{path}"
+        github_count = len(requests.get(url, headers=headers, params={"ref": github_branch}).json())
+        assert exported_count == github_count
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org):
