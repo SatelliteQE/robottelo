@@ -255,7 +255,7 @@ def test_positive_candlepin_events_processed_by_STOMP():
 
 @pytest.mark.tier2
 def test_positive_auto_attach_disabled_golden_ticket(
-    module_org, golden_ticket_host_setup, rhel77_contenthost_class, default_sat
+    module_org, golden_ticket_host_setup, rhel7_contenthost_class, default_sat
 ):
     """Verify that Auto-Attach is disabled or "Not Applicable"
     when a host organization is in Simple Content Access mode (Golden Ticket)
@@ -269,12 +269,10 @@ def test_positive_auto_attach_disabled_golden_ticket(
 
     :CaseImportance: Medium
     """
-    rhel77_contenthost_class.install_katello_ca(default_sat)
-    rhel77_contenthost_class.register_contenthost(
-        module_org.label, golden_ticket_host_setup['name']
-    )
-    assert rhel77_contenthost_class.subscribed
-    host = Host.list({'search': rhel77_contenthost_class.hostname})
+    rhel7_contenthost_class.install_katello_ca(default_sat)
+    rhel7_contenthost_class.register_contenthost(module_org.label, golden_ticket_host_setup['name'])
+    assert rhel7_contenthost_class.subscribed
+    host = Host.list({'search': rhel7_contenthost_class.hostname})
     host_id = host[0]['id']
     with pytest.raises(CLIReturnCodeError) as context:
         Host.subscription_auto_attach({'host-id': host_id})
