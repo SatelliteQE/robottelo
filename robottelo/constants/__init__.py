@@ -367,6 +367,7 @@ REPOSET = {
     'rhae2': 'Red Hat Ansible Engine 2.9 RPMs for Red Hat Enterprise Linux 7 Server',
     'rhst8': 'Red Hat Satellite Tools 6.9 for RHEL 8 x86_64 (RPMs)',
     'fdrh8': 'Fast Datapath for RHEL 8 x86_64 (RPMs)',
+    'rhel8_bos_ks': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Kickstart)',
 }
 
 NO_REPOS_AVAILABLE = "This system has no repositories available through subscriptions."
@@ -564,6 +565,15 @@ REPOS = {
         'product': PRDS['rhel8'],
         'distro': DISTRO_RHEL8,
         'key': 'rhst',
+    },
+    'rhel8_bos_ks': {
+        'id': 'rhel-8-for-x86_64-baseos-kickstart',
+        'name': 'Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8.4',
+        'version': '8.4',
+        'reposet': REPOSET['rhel8_bos_ks'],
+        'product': PRDS['rhel8'],
+        'distro': DISTRO_RHEL8,
+        'key': 'rhel8_bos_ks',
     },
 }
 

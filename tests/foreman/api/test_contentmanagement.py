@@ -91,7 +91,7 @@ class TestSatelliteContentManagement:
         assert response, f"Repository {repo} failed to sync."
 
     @pytest.mark.tier4
-    def test_positive_sync_kickstart_repo(self, default_sat):
+    def test_positive_sync_kickstart_repo(self, module_manifest_org, default_sat):
         """No encoding gzip errors on kickstart repositories
         sync.
 
@@ -119,24 +119,28 @@ class TestSatelliteContentManagement:
 
         :BZ: 1687801
         """
-        org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
-        repo = entities.Repository(
-            product=product, url=constants.repos.CUSTOM_KICKSTART_REPO
-        ).create()
-        repo.sync()
-        repo.download_policy = 'immediate'
-        repo = repo.update(['download_policy'])
-        call_entity_method_with_timeout(repo.sync, timeout=600)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_manifest_org.id,
+            product=constants.PRDS['rhel8'],
+            repo=constants.REPOS['rhel8_bos_ks']['name'],
+            reposet=constants.REPOSET['rhel8_bos_ks'],
+            releasever='8.4',
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        rh_repo.download_policy = 'immediate'
+        rh_repo = rh_repo.update(['download_policy'])
+        call_entity_method_with_timeout(rh_repo.sync, timeout=600)
         result = default_sat.execute(
             'grep pulp /var/log/messages | grep failed | grep encoding | grep gzip'
         )
         assert result.status == 1
         assert not result.stdout
-        repo = repo.read()
-        assert repo.content_counts['package'] > 0
-        assert repo.content_counts['package_group'] > 0
-        assert repo.content_counts['rpm'] > 0
+        rh_repo = rh_repo.read()
+        assert rh_repo.content_counts['package'] > 0
+        assert rh_repo.content_counts['package_group'] > 0
+        assert rh_repo.content_counts['rpm'] > 0
 
 
 @pytest.mark.run_in_one_thread
