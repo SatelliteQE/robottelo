@@ -75,22 +75,22 @@ def vm(
     rh_repo_gt_manifest,
     module_gt_manifest_org,
     module_ak,
-    rhel77_contenthost_module,
+    rhel7_contenthost_module,
     default_sat,
 ):
     # python-psutil obsoleted by python2-psutil, install older python2-psutil for errata test.
-    rhel77_contenthost_module.run(
+    rhel7_contenthost_module.run(
         'rpm -Uvh https://download.fedoraproject.org/pub/epel/7/x86_64/Packages/p/'
         'python2-psutil-5.6.7-1.el7.x86_64.rpm'
     )
-    rhel77_contenthost_module.install_katello_ca(default_sat)
-    rhel77_contenthost_module.register_contenthost(module_gt_manifest_org.label, module_ak.name)
-    host = entities.Host().search(query={'search': f'name={rhel77_contenthost_module.hostname}'})
+    rhel7_contenthost_module.install_katello_ca(default_sat)
+    rhel7_contenthost_module.register_contenthost(module_gt_manifest_org.label, module_ak.name)
+    host = entities.Host().search(query={'search': f'name={rhel7_contenthost_module.hostname}'})
     host_id = host[0].id
     host_content = entities.Host(id=host_id).read_json()
     assert host_content["subscription_status"] == 5
-    rhel77_contenthost_module.install_katello_host_tools()
-    return rhel77_contenthost_module
+    rhel7_contenthost_module.install_katello_host_tools()
+    return rhel7_contenthost_module
 
 
 @pytest.mark.tier2
