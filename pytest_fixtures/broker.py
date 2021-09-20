@@ -82,7 +82,7 @@ def capsule_configured(capsule_latest, default_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
     capsule_latest.install_katello_ca(default_sat)
     capsule_latest.register_contenthost()
-    capsule_latest.capsule_setup()
+    capsule_latest.capsule_setup(sat_host=default_sat)
     yield capsule_latest
 
 

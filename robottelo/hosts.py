@@ -10,6 +10,7 @@ from urllib.parse import urlunsplit
 
 from broker import VMBroker
 from broker.hosts import Host
+from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha
 from fauxfactory import gen_string
 from nailgun import entities
@@ -50,7 +51,7 @@ def get_sat_version():
 
     try:
         sat_version = Satellite().version
-    except (AuthenticationError, ContentHostError):
+    except (AuthenticationError, ContentHostError, BoxKeyError):
         if hasattr(settings.server.version, 'release'):
             sat_version = str(settings.server.version.release)
         elif hasattr(settings.robottelo, 'satellite_version'):
