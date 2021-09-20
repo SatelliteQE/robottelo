@@ -19,9 +19,9 @@ def host_conf(request):
         params = [*request.node.callspec.params.values()][0]
     conf['workflow'] = params.get('workflow', settings.content_host.deploy_workflow)
     _rhelver = f"rhel{params.get('rhel_version', settings.content_host.default_rhel_version)}"
-    conf['rhel_ver'] = settings.content_host.hardware.get(f'{_rhelver}').release
-    conf['memory'] = params.get('memory', settings.content_host.hardware.get(f'{_rhelver}').memory)
-    conf['cores'] = params.get('cores', settings.content_host.hardware.get(f'{_rhelver}').cores)
+    conf['rhel_ver'] = settings.content_host.hardware.get(_rhelver).release
+    conf['memory'] = params.get('memory', settings.content_host.hardware.get(_rhelver).memory)
+    conf['cores'] = params.get('cores', settings.content_host.hardware.get(_rhelver).cores)
     return conf
 
 
@@ -34,58 +34,51 @@ def rhel_contenthost(host_conf):
         yield host
 
 
-@pytest.fixture
+@pytest.fixture(params=[{'rhel_version': '7'}])
 def rhel7_contenthost(host_conf):
     """A function-level fixture that provides a rhel7 content host object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
         yield host
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="class", params=[{'rhel_version': '7'}])
+def rhel7_contenthost_class(host_conf):
+    """A fixture for use with unittest classes. Provides a rhel7 Content Host object"""
+    with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
+        yield host
+
+
+@pytest.fixture(scope='module', params=[{'rhel_version': '7'}])
 def rhel7_contenthost_module(host_conf):
-    """A module-level fixture that provides a content host object based on the rhel7 nick"""
+    """A module-level fixture that provides a rhel7 content host object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(params=[{'rhel_version': '8'}])
 def rhel8_contenthost(host_conf):
-    """A fixture that provides a content host object based on the rhel8 nick"""
+    """A fixture that provides a rhel8 content host object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope='module', params=[{'rhel_version': '8'}])
 def rhel8_contenthost_module(host_conf):
-    """A module-level fixture that provides a content host object based on the rhel8 nick"""
+    """A module-level fixture that provides a rhel8 content host object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(params=[{'rhel_version': 6}])
 def rhel6_contenthost(host_conf):
-    """A function-level fixture that provides a content host object based on the rhel6 nick"""
-    with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture(scope="module")
-def rhel77_contenthost_module(host_conf):
-    """A module-level fixture that provides a RHEL7.7 Content Host object"""
-    with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture(scope="class")
-def rhel77_contenthost_class(host_conf):
-    """A fixture for use with unittest classes. Provides a Content Host object"""
+    """A function-level fixture that provides a rhel6 content host object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}) as host:
         yield host
 
 
 @pytest.fixture(scope='module')
 def content_hosts(host_conf):
-    """A module-level fixture that provides two content hosts object based on the rhel7 nick"""
+    """A module-level fixture that provides two rhel7 content hosts object"""
     with VMBroker(**host_conf, host_classes={'host': ContentHost}, _count=2) as hosts:
         hosts[0].set_infrastructure_type('physical')
         yield hosts
