@@ -1,6 +1,6 @@
 """Test Puppet Class Parameter related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -20,8 +20,6 @@ import json
 
 import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
@@ -43,7 +41,7 @@ def _valid_sc_parameters_data():
     ]
 
 
-class TestScenarioPositivePuppetParameterAndDatatypeIntact:
+class TestScenarioPuppetParameterAndDatatypeIntactPostUpgrade:
     """Puppet Class Parameters value and type is intact post upgrade
 
     :id: 08012f39-240b-40df-b893-2ee767129737
@@ -52,7 +50,7 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
 
         1. In Preupgrade Satellite, Import a puppet module having parameters
         2. Update existing class parameters with different value and type
-        3. Upgrade the satellite to next/latest version
+        3. Upgrade the satellite.
         4. Postupgrade, Verify the data and type of updated parameters
 
     :expectedresults: The puppet class parameters data and type should be
@@ -103,21 +101,10 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         else:
             assert sc_param.default_value == data['value']
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     @pytest.mark.parametrize('count', list(range(1, 10)))
     def test_pre_puppet_class_parameter_data_and_type(self, count, _setup_scenario):
-        """Puppet Class parameters with different data type are created
-
-        :parametrized: yes
-
-        :steps:
-
-            1. In Preupgrade Satellite, Import a puppet module having
-            parameters
-            2. Update existing class parameters with different value and type
-
-        :expectedresults: The parameters are updated with different data types
-        """
+        """Puppet Class parameters with different data type are created"""
         data = _valid_sc_parameters_data()[count - 1]
         sc_param = entities.SmartClassParameters().search(
             query={'search': f'parameter="api_classparameters_scp_00{count}"'}
@@ -130,19 +117,10 @@ class TestScenarioPositivePuppetParameterAndDatatypeIntact:
         assert sc_param.parameter_type == data['sc_type']
         self._validate_value(data, sc_param)
 
-    @post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
+    @pytest.mark.post_upgrade(depend_on=test_pre_puppet_class_parameter_data_and_type)
     @pytest.mark.parametrize('count', list(range(1, 10)))
     def test_post_puppet_class_parameter_data_and_type(self, count, _clean_scenario):
-        """Puppet Class Parameters value and type is intact post upgrade
-
-        :parametrized: yes
-
-        :steps: Postupgrade, Verify the value and type of updated parameters
-
-        :expectedresults: The puppet class parameters data and type should be
-            intact post upgrade
-        """
-
+        """Puppet Class Parameters value and type is intact post upgrade"""
         data = _valid_sc_parameters_data()[count - 1]
         sc_param = entities.SmartClassParameters().search(
             query={'search': f'parameter="api_classparameters_scp_00{count}"'}

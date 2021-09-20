@@ -1,6 +1,6 @@
 """Test for Repository related Upgrade Scenarios
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,11 +18,10 @@
 """
 import os
 
+import pytest
 from fabric.api import execute
 from fabric.api import run
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -50,29 +49,26 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
     """This test scenario is to verify the upstream username in post-upgrade for a custom
     repository which does have a upstream username but not password set on it in pre-upgrade.
 
-    Test Steps:
+    :id: 11c5ceee-bfe0-4ce9-8f7b-67a835baf522
+
+    :steps:
 
         1. Before Satellite upgrade, Create a custom repository and sync it.
         2. Set the upstream username on same repository using foreman-rake.
         3. Upgrade Satellite.
         4. Check if the upstream username value is removed for same repository.
+
+    :expectedresults:
+
+        1. Upstream username should be set on repository.
+        2. Post upgrade, upstream username should not exists on same repository.
+
+    :bz: 1641785
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_repository_scenario_upstream_authorization(self, default_sat):
-        """Create a custom repository and set the upstream username on it.
-
-        :id: preupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
-
-        :steps:
-            1. Create a custom repository and sync it.
-            2. Set the upstream username on same repository using foreman-rake.
-
-        :expectedresults:
-            1. Upstream username should be set on repository.
-
-        :BZ: 1641785
-        """
+        """Create a custom repository and set the upstream username on it."""
 
         org = default_sat.api.Organization().create()
         custom_repo = create_sync_custom_repo(org_id=org.id)
@@ -85,21 +81,9 @@ class TestScenarioRepositoryUpstreamAuthorizationCheck:
         global_dict = {self.__class__.__name__: {'repo_id': custom_repo}}
         create_dict(global_dict)
 
-    @post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
+    @pytest.mark.post_upgrade(depend_on=test_pre_repository_scenario_upstream_authorization)
     def test_post_repository_scenario_upstream_authorization(self):
-        """Verify upstream username for pre-upgrade created repository.
-
-        :id: postupgrade-11c5ceee-bfe0-4ce9-8f7b-67a835baf522
-
-        :steps:
-            1. Verify upstream username for pre-upgrade created repository using
-            foreman-rake.
-
-        :expectedresults:
-            1. upstream username should not exists on same repository.
-
-        :BZ: 1641785
-        """
+        """Verify upstream username for pre-upgrade created repository."""
 
         repo_id = get_entity_data(self.__class__.__name__)['repo_id']
         rake_repo = f'repo = Katello::RootRepository.find_by_id({repo_id})'
@@ -113,7 +97,9 @@ class TestScenarioCustomRepoCheck:
     via client then we alter the created custom repository and satellite will be able
     to sync back the repo.
 
-    Test Steps:
+    :id: eb6831b1-c5b6-4941-a325-994a09467478
+
+    :steps:
 
         1. Before Satellite upgrade.
         2. Create new Organization and Location.
@@ -125,28 +111,19 @@ class TestScenarioCustomRepoCheck:
         8. Sync repo, publish new version of cv.
         9. Try to install new package on client.
 
+    :expectedresults:
+
+        1. Custom repo is created.
+        2. Package is installed on Content host.
+        3. Post upgrade, Content host should able to pull the new rpm.
+
     BZ: 1429201,1698549
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_custom_repo_check(self, default_sat):
         """This is pre-upgrade scenario test to verify if we can create a
-         custom repository and consume it via content host.
-
-        :id: preupgrade-eb6831b1-c5b6-4941-a325-994a09467478
-
-        :steps:
-            1. Before Satellite upgrade.
-            2. Create new Organization, Location.
-            3. Create Product, custom repo, cv.
-            4. Create activation key and add subscription.
-            5. Create a content host, register and install package on it.
-
-        :expectedresults:
-
-            1. Custom repo is created.
-            2. Package is installed on Content host.
-
+        custom repository and consume it via content host.
         """
         org = default_sat.api.Organization().create()
         loc = default_sat.api.Location(organization=[org]).create()
@@ -208,22 +185,11 @@ class TestScenarioCustomRepoCheck:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
     def test_post_scenario_custom_repo_check(self, default_sat):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
         the repo.
-
-        :id: postupgrade-5c793577-e573-46a7-abbf-b6fd1f20b06e
-
-        :steps:
-            1. Remove old and add new package into custom repo.
-            2. Sync repo , publish the new version of cv.
-            3. Try to install new package on client.
-
-
-        :expectedresults: Content host should able to pull the new rpm.
-
         """
         entity_data = get_entity_data(self.__class__.__name__)
         client = entity_data.get('rhel_client')

@@ -1,6 +1,6 @@
 """Test Host/Provisioning related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -23,8 +23,6 @@ import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 from wait_for import wait_for
@@ -38,10 +36,12 @@ from robottelo.constants import VALID_GCE_ZONES
 class TestScenarioPositiveGCEHostComputeResource:
     """The host can be provisioned on GCE CR created in previous version
 
+    :id: 21b1b367-0eda-4a86-82ed-2cd7631c0553
+
     :steps:
 
         1. In Preupgrade Satellite, create GCE Compute Resource
-        2. Upgrade the satellite to next/latest version
+        2. Upgrade the satellite
         3. Postupgrade, The Compute Resource attributes can be manipulated
         4. The host can be provisioned on GCE CR created in previous satellite version
 
@@ -68,9 +68,9 @@ class TestScenarioPositiveGCEHostComputeResource:
             if host:
                 entities.Host(id=host[0].id).delete()
 
-    @pre_upgrade
-    def test_pre_create_gce_cr_and_host(self, arch_os_domain, function_org, gce_cert):
-        """"""
+    @pytest.mark.pre_upgrade
+    def test_pre_create_gce_cr(self, arch_os_domain, function_org, gce_cert):
+        """Create a GCE Compute Resource"""
         arch, os, domain_name = arch_os_domain
         cr_name = gen_string('alpha')
         loc = entities.Location().create()
@@ -109,9 +109,9 @@ class TestScenarioPositiveGCEHostComputeResource:
         assert gce_cr.name == cr_name
         assert gce_img.name == 'autoupgrade_gce_img'
 
-    @post_upgrade(depend_on=test_pre_create_gce_cr_and_host)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_gce_cr)
     def test_post_create_gce_cr_and_host(self, default_sat, arch_os_domain, delete_host):
-        """"""
+        """Update pre-upgrade GCE CR and provision host on that CR"""
         arch, os, domain_name = arch_os_domain
         hostname = gen_string('alpha')
         self.__class__.fullhost = f'{hostname}.{domain_name}'.lower()

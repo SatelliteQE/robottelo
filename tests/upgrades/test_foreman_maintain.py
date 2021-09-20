@@ -1,6 +1,6 @@
 """Test for Foreman-maintain related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,19 +16,24 @@
 
 :Upstream: No
 """
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
+import pytest
 
 
 class TestForemanMaintain:
-    """The test class contains pre-upgrade and post-upgrade scenarios to test
-    foreman-maintain utility
+    """Test foreman-maintain utility intact post upgrade
 
-    Test Steps:
+    :id: fc2c54b2-2663-11ea-b47c-48f17f1fc2e1
+
+    :steps:
+
         1. Before Satellite upgrade, Perform test for "foreman-maintain upgrade list-versions"
         2. Upgrade satellite/capsule.
         3. Perform tests for foreman-maintain upgrade list-versions, after upgrade.
-        4. Check if tests passed.
+
+    :expectedresults:
+
+        1. Versions should be current z-stream.
+        2. After upgrade, Versions should be next z-stream.
     """
 
     @staticmethod
@@ -97,18 +102,11 @@ class TestForemanMaintain:
         next_version = ".".join(major_version)
         return zstream_version, next_version
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_foreman_maintain_upgrade_list_versions(self, default_sat):
-        """Pre-upgrade sceanrio that tests list of satellite version
+        """
+        Pre-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
-
-        :id: preupgrade-fc2c54b2-2663-11ea-b47c-48f17f1fc2e1
-
-        :steps:
-            1. Run foreman-maintain upgrade list-versions
-
-        :expectedresults: Versions should be current z-stream.
-
         """
         (
             satellite_version,
@@ -127,18 +125,11 @@ class TestForemanMaintain:
             zstream_version = -1
         assert zstream_version in upgradable_version
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_foreman_maintain_upgrade_list_versions(self, default_sat):
-        """Post-upgrade sceanrio that tests list of satellite version
+        """
+        Post-upgrade sceanrio that tests list of satellite version
         which satellite can be upgraded.
-
-        :id: postupgrade-0bce689c-2664-11ea-b47c-48f17f1fc2e1
-
-        :steps:
-            1. Run foreman-maintain upgrade list-versions.
-
-        :expectedresults: Versions should be next z-stream.
-
         """
         (
             satellite_version,

@@ -1,6 +1,6 @@
 """Test Hostgroup related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,26 +16,34 @@
 
 :Upstream: No
 """
+import pytest
 from fauxfactory import gen_string
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
-class TestHostgroup:
+class TestHostgroupManipulatedPostUpgrade:
     """
-    Hostgroup with different data type are created
+    Hostgroup with different data type are created and manipulated post upgrade
+
+    :id: 79958754-94b6-4bfe-af12-7d4031cd2dd2
+
+    :steps:
+
+        1. In Preupgrade Satellite, Create hostgroup with different entities.
+        2. After upgrade, check hostgroup entities.
+        3. Update existing hostgroup with new entities
+        4. Clone hostgroup.
+        5. Delete hostgroup, parent hostgroup, cloned hostgroup, domain, subnet, os, loc, org.
+
+    :expectedresults:
+
+        1. Hostgroup should be create successfully.
+        2. After upgrade, Hostgroup remain same.
+        3. Hostgroup entities updated, cloned and deleted.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_hostgroup(self, request, default_sat):
-        """Hostgroup with different data type are created
-
-        :id: preupgrade-79958754-94b6-4bfe-af12-7d4031cd2dd2
-
-        :steps: In Preupgrade Satellite, Create hostgroup with different entities.
-
-        :expectedresults: Hostgroup should be create successfully.
-        """
+        """Hostgroup with different data type are created"""
 
         proxy = default_sat.api.SmartProxy().search(
             query={'search': f'url = {default_sat.url}:9090'}
@@ -80,27 +88,10 @@ class TestHostgroup:
         ).create()
         assert host_group.name == f"{test_name}_host_grp"
 
-    @post_upgrade(depend_on=test_pre_create_hostgroup)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_hostgroup)
     def test_post_crud_hostgroup(self, request, dependent_scenario_name, default_sat):
         """After upgrade, Update, delete and clone should work on existing hostgroup(created before
         upgrade)
-
-        :id: postupgrade-79958754-94b6-4bfe-af12-7d4031cd2dd2
-
-        :steps:
-
-            1. After upgrade, check hostgroup entities.
-            2. Update existing hostgroup with new entities
-            3. Clone hostgroup.
-            4. Delete hostgroup, parent hostgroup, cloned hostgroup, domain, subnet, os, loc, org.
-
-        :expectedresults: After upgrade
-            1- Hostgroup remain same.
-            2- Hostgroup entities update should work.
-            3- Hostgroup cloned should work.
-            4- Cloned hostgroup should be the subset of original hostgroup.
-            5- Hostgroup entities deletion should work
-
         """
         pre_test_name = dependent_scenario_name
         # verify host-group is intact after upgrade

@@ -1,6 +1,6 @@
 """Test for Content View related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,33 +16,45 @@
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.config import settings
 from robottelo.constants import RPM_TO_UPLOAD
 from robottelo.helpers import get_data_file
 
 
-class TestContentView:
-    """The test class contains the pre-upgrade and post-upgrade scenario to test the behavior of
-    content view before and after the upgrade.
+class TestContentViewPostUpgrade:
+    """
+    Test the behavior of content view before and after the upgrade.
+
+    :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
+
+    :steps:
+
+        1. Create custom repositories of yum and file type.
+        2. Create content-view.
+        3. Add yum and file repositories in the content view.
+        4. Publish the content-view.
+        5. Upgrade the Satellite.
+        6. Check yum and file repository which was added in CV before upgrade.
+        7. Check the content view which was was created before upgrade.
+        8. Remove yum repository from existing CV.
+        9. Create new yum repository in existing CV.
+        10. Publish content-view
+
+    :expectedresults:
+
+        1. Content-view created with various repositories.
+        2. After upgrade, All the repositories should be intact.
+        3. Content view created before upgrade should be intact.
+        4. The new repository should be added/updated to the CV.
     """
 
-    @pre_upgrade
-    def test_cv_preupgrade_scenario(self, request, default_sat):
-        """Pre-upgrade scenario that creates content-view with various repositories.
-
-        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
-
-        :steps:
-          1. Create custom repositories of yum and file type.
-          2. Create content-view.
-          3. Add yum and file repositories in the content view.
-          4. Publish the content-view.
-
-        :expectedresults: Content-view created with various repositories.
+    @pytest.mark.pre_upgrade
+    def test_cv_preupgrade_scenario(self, request):
+        """
+        Pre-upgrade scenario that creates content-view with various repositories.
         """
         test_name = request.node.name
         org = entities.Organization(name=f'{request.node.name}_org').create()
@@ -67,24 +79,10 @@ class TestContentView:
         cv.publish()
         assert len(cv.read_json()['versions']) == 1
 
-    @post_upgrade(depend_on=test_cv_preupgrade_scenario)
+    @pytest.mark.post_upgrade(depend_on=test_cv_preupgrade_scenario)
     def test_cv_postupgrade_scenario(self, request, dependent_scenario_name):
-        """After upgrade, the existing content-view(created before upgrade) should be updated.
-
-        :id: a4ebbfa1-106a-4962-9c7c-082833879ae8
-
-        :steps:
-          1. Check yum and file repository which was added in CV before upgrade.
-          2. Check the content view which was was created before upgrade.
-          3. Remove yum repository from existing CV.
-          4. Create new yum repository in existing CV.
-          5. Publish content-view
-
-        :expectedresults: After upgrade,
-          1. All the repositories should be intact.
-          2. Content view created before upgrade should be intact.
-          3. The new repository should be added/updated to the CV.
-
+        """
+        After upgrade, the existing content-view(created before upgrade) should be updated.
         """
         pre_test_name = dependent_scenario_name
         org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]

@@ -1,6 +1,6 @@
 """Test for User Group related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -20,8 +20,6 @@ import pytest
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR
@@ -31,21 +29,28 @@ from robottelo.constants import LDAP_SERVER_TYPE
 class TestUserGroupMembership:
     """
     Usergroup membership should exist after upgrade.
+
+    :id: 4b11d883-f523-4f38-b65a-650ecd90335c
+
+    :steps:
+
+        1. Create ldap auth pre upgrade.
+        2. Login with ldap User in satellite and logout.
+        3. Create usergroup and assign ldap user to it.
+        4. Upgrade the satellite
+        5. verify ldap user(created before upgrade) is part of user group.
+        6. Update ldap auth.
+
+    :expectedresults:
+
+        1. The usergroup, with ldap user as member, should be created successfully.
+        2. After upgrade, user group membership should remain the same and LDAP
+        auth update should work.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_usergroup_with_ldap_user(self, request, default_sat):
-        """Create Usergroup in preupgrade version.
-
-        :id: preupgrade-4b11d883-f523-4f38-b65a-650ecd90335c
-
-        :steps:
-            1. Create ldap auth pre upgrade.
-            2. Login with ldap User in satellite and logout.
-            3. Create usergroup and assign ldap user to it.
-
-        :expectedresults: The usergroup, with ldap user as member, should be created successfully.
-        """
+        """Create Usergroup in preupgrade version."""
         authsource = default_sat.api.AuthSourceLDAP(
             onthefly_register=True,
             account=settings.ldap.username,
@@ -77,19 +82,10 @@ class TestUserGroupMembership:
         user_group = user_group.update(['user'])
         assert user.login == user_group.user[0].read().login
 
-    @post_upgrade(depend_on=test_pre_create_usergroup_with_ldap_user)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_usergroup_with_ldap_user)
     def test_post_verify_usergroup_membership(self, request, dependent_scenario_name):
         """After upgrade, check the LDAP user created before the upgrade still exists and its
-         update functionality should work.
-
-        :id: postupgrade-7545fc6a-bd57-4403-90c8-c68a7a3b5bca
-
-        :steps:
-            1. verify ldap user(created before upgrade) is part of user group.
-            2. Update ldap auth.
-
-        :expectedresults: After upgrade, user group membership should remain the same and LDAP
-        auth update should work.
+        update functionality should work.
         """
         pre_test_name = dependent_scenario_name
         user_group = entities.UserGroup().search(

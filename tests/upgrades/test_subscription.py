@@ -1,6 +1,6 @@
 """Test for subscription related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import delete_manifest
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import upload_manifest
@@ -35,19 +34,24 @@ from robottelo.upgrade_utility import host_location_update
 class TestManifestScenarioRefresh:
     """
     The scenario to test the refresh of a manifest created before upgrade.
+
+    :id: 29b246aa-2c7f-49f4-870a-7a0075e184b1
+
+    :steps:
+
+        1. Before Satellite upgrade, upload and refresh manifest.
+        2. After upgrade, refresh manifest.
+        3. Delete manifest.
+
+    :expectedresults:
+
+        1. Manifest should be uploaded and refreshed successfully.
+        2. After upgrade, Pre-upgrade manifest should be refreshed and deleted.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_manifest_scenario_refresh(self, request):
-        """Before upgrade, upload & refresh the manifest.
-
-        :id: preupgrade-29b246aa-2c7f-49f4-870a-7a0075e184b1
-
-        :steps:
-            1. Before Satellite upgrade, upload and refresh manifest.
-
-        :expectedresults: Manifest should be uploaded and refreshed successfully.
-        """
+        """Before upgrade, upload & refresh the manifest."""
         org = entities.Organization(name=f"{request.node.name}_org").create()
         upload_manifest(settings.fake_manifest.url['default'], org.name)
         history = entities.Subscription(organization=org).manifest_history(
@@ -58,19 +62,9 @@ class TestManifestScenarioRefresh:
         sub.refresh_manifest(data={'organization_id': org.id})
         assert len(sub.search()) > 0
 
-    @post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
+    @pytest.mark.post_upgrade(depend_on=test_pre_manifest_scenario_refresh)
     def test_post_manifest_scenario_refresh(self, request, dependent_scenario_name):
-        """After upgrade, Check the manifest refresh and delete functionality.
-
-        :id: postupgrade-29b246aa-2c7f-49f4-870a-7a0075e184b1
-
-        :steps:
-            1. Refresh manifest.
-            2. Delete manifest.
-
-        :expectedresults: After upgrade,
-            1. Pre-upgrade manifest should be refreshed and deleted.
-        """
+        """After upgrade, Check the manifest refresh and delete functionality."""
         pre_test_name = dependent_scenario_name
         org = entities.Organization().search(query={'search': f'name={pre_test_name}_org'})[0]
         request.addfinalizer(org.delete)
@@ -88,26 +82,35 @@ class TestSubscriptionAutoAttach:
     """
     The scenario to test auto-attachment of subscription on the the client registered before
     upgrade.
+
+
+    :id: 940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
+
+    :steps:
+
+        1. Before Satellite upgrade.
+        2. Create new Organization and Location.
+        3. Upload a manifest in it.
+        4. Create a AK with 'auto-attach False' and without Subscription add in it.
+        5. Create a content host.
+        6. Update content host location.
+        7. Upgrade the satellite
+        8. Run subscription auto-attach on content host.
+        9. Delete the content host, activation key, location & organization.
+
+
+    :expectedresults:
+
+        1. Content host should be created.
+        2. Content host location should be updated.
+        3. After upgrade, Pre-upgrade content host should get subscribed.
+        4. All the cleanup should be completed successfully.
     """
 
-    @pre_upgrade
-    def test_pre_subscription_scenario_autoattach(self, request, default_sat):
-        """Create content host and register with Satellite
 
-        :id: preupgrade-940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
-
-        :steps:
-            1. Before Satellite upgrade.
-            2. Create new Organization and Location.
-            3. Upload a manifest in it.
-            4. Create a AK with 'auto-attach False' and without Subscription add in it.
-            5. Create a content host.
-            6. Update content host location.
-
-        :expectedresults:
-            1. Content host should be created.
-            2. Content host location should be updated.
-        """
+    @pytest.mark.pre_upgrade
+    def test_pre_subscription_scenario_autoattach(self, request):
+        """Create content host and register with Satellite"""
         docker_vm = settings.upgrade.docker_vm
         container_name = f"{request.node.name}_docker_client"
         org = entities.Organization(name=request.node.name + "_org").create()
@@ -145,22 +148,10 @@ class TestSubscriptionAutoAttach:
         )[docker_vm]
         assert org.name in status
 
-    @post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
-    def test_post_subscription_scenario_autoattach(
-        self, request, dependent_scenario_name, default_sat
-    ):
+    @pytest.mark.post_upgrade(depend_on=test_pre_subscription_scenario_autoattach)
+    def test_post_subscription_scenario_autoattach(self, request, dependent_scenario_name):
         """Run subscription auto-attach on pre-upgrade content host registered
         with Satellite.
-
-        :id: postupgrade-940fc78c-ffa6-4d9a-9c4b-efa1b9480a22
-
-        :steps:
-            1. Run subscription auto-attach on content host.
-            2. Delete the content host, activation key, location & organization.
-
-        :expectedresults: After upgrade,
-            1. Pre-upgrade content host should get subscribed.
-            2. All the cleanup should be completed successfully.
         """
         docker_vm = settings.upgrade.docker_vm
         pre_test_name = dependent_scenario_name

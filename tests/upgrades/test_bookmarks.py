@@ -1,6 +1,6 @@
 """Test for bookmark related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -12,42 +12,45 @@
 
 :TestType: Functional
 
-:CaseImportance: High
+:CaseImportance: Critical
 
 :Upstream: No
 """
+import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.constants import BOOKMARK_ENTITIES
 
 
-class TestPublicDisableBookmark:
+class TestPublicDisabledBookmarkPostUpgrade:
     """
-    Public disabled Bookmarks created before upgrade should be unchanged after upgrade.
+    Test public disabled Bookmarks created before upgrade should be unchanged after upgrade.
 
+    :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
+
+    :steps:
+
+        1. Create public disabled bookmarks before the upgrade for all system entities
+        using available bookmark data.
+        2. Check the bookmark attribute status(controller, name, query public)
+        for all the system entities.
+        3. Upgrade the satellite.
+        4. Check the bookmark status after post-upgrade.
+        5. Remove the bookmark.
+
+    :expectedresults:
+
+        1. Before upgrade, Public disabled bookmark should be created successfully.
+        2. After upgrade,Public disabled bookmarks details for all the system entities
+        should be unchanged after upgrade.
+
+    :bz: 1833264, 1826734, 1862119
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_public_disable_bookmark(self, request):
-        """Create public disabled bookmarks for system entities using available bookmark
-        data.
-
-        :id: preupgrade-c4f90034-ea57-4a4d-9b73-0f57f824d89e
-
-        :Steps:
-
-            1. Create public disabled bookmarks before the upgrade for all system entities
-            using available bookmark data.
-            2. Check the bookmark attribute status(controller, name, query public)
-            for all the system entities.
-
-        :expectedresults: Public disabled bookmark should be created successfully.
-
-        :BZ: 1833264, 1826734, 1862119
-
-        :CaseImportance: Critical
+        """
+        Create public disabled bookmarks for system entities using available bookmark data.
         """
 
         for entity in BOOKMARK_ENTITIES:
@@ -64,22 +67,11 @@ class TestPublicDisableBookmark:
             assert bm.query == f"name={book_mark_name}"
             assert not bm.public
 
-    @post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_public_disable_bookmark)
     def test_post_create_public_disable_bookmark(self, dependent_scenario_name):
-        """Check the status of public disabled bookmark for all the
-        system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.
-
-        :id: postupgrade-3b3abb85-cad2-4cbb-ad21-2780523351fd
-
-        :Steps:
-
-            1. Check the bookmark status after post-upgrade.
-            2. Remove the bookmark.
-
-        :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade.
-
-        :CaseImportance: Critical
+        """
+        Check the status of public disabled bookmark for all the system entities(activation keys,
+        tasks, compute profile, content hosts etc) after upgrade.
         """
         pre_test_name = dependent_scenario_name
         for entity in BOOKMARK_ENTITIES:
@@ -89,34 +81,38 @@ class TestPublicDisableBookmark:
             assert bm.name == book_mark_name
             assert bm.query == f"name={book_mark_name}"
             assert not bm.public
-
             bm.delete()
 
 
-class TestPublicEnableBookmark:
+class TestPublicEnabledBookmarkPostUpgrade:
     """
-    Public enabled Bookmarks created before upgrade should be unchanged after upgrade.
+    Test public enabled Bookmarks created before upgrade should be unchanged after upgrade.
+
+    :id: c4f90034-ea57-4a4d-9b73-0f57f824d89e
+
+    :steps:
+
+        1. Create public enable bookmarks before the upgrade for all system entities
+        using available bookmark data.
+        2. Check the bookmark attribute(controller, name, query public) status
+        for all the system entities.
+        3. Upgrade the Satellite.
+        4. Check the bookmark status after post-upgrade.
+        5. Remove the bookmark.
+
+    :expectedresults:
+
+        1. Before upgrade, Public enabled bookmark should be created successfully.
+        2. After upgrade, Public disabled bookmarks details for all the system entities
+        should be unchanged after upgrade.
+
+    :bz: 1833264, 1826734, 1862119
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_public_enable_bookmark(self, request):
-        """Create public enable bookmark for system entities using available bookmark
-        data.
-
-        :id: preupgrade-c4f90034-ea57-4a4d-9b73-0f57f824d89e
-
-        :Steps:
-
-            1. Create public enable bookmarks before the upgrade for all system entities
-            using available bookmark data.
-            2. Check the bookmark attribute(controller, name, query public) status
-            for all the system entities.
-
-        :expectedresults: Public enabled bookmark should be created successfully.
-
-        :BZ: 1833264, 1826734, 1862119
-
-        :CaseImportance: Critical
+        """
+        Create public enable bookmark for system entities using available bookmark data.
         """
 
         for entity in BOOKMARK_ENTITIES:
@@ -132,22 +128,10 @@ class TestPublicEnableBookmark:
             assert bm.query == f"name={book_mark_name}"
             assert bm.public
 
-    @post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_public_enable_bookmark)
     def test_post_create_public_enable_bookmark(self, dependent_scenario_name):
         """Check the status of public enabled bookmark for all the
         system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.
-
-        :id: postupgrade-3b3abb85-cad2-4cbb-ad21-2780523351fd
-
-        :Steps:
-
-            1. Check the bookmark status after post-upgrade.
-            2. Remove the bookmark.
-
-        :expectedresults: Public disabled bookmarks details for all the system entities
-        should be unchanged after upgrade.
-
-        :CaseImportance: Critical
         """
         pre_test_name = dependent_scenario_name
         for entity in BOOKMARK_ENTITIES:

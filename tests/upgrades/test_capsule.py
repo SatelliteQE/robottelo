@@ -1,6 +1,6 @@
 """Test for Capsule related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite & Capsule
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from fabric.api import run
 from upgrade.helpers.tasks import wait_untill_capsule_sync
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import rpm1
 from upgrade_tests.helpers.scenarios import rpm2
 
@@ -46,27 +45,32 @@ def cleanup(content_view, repo, product):
     run("foreman-rake katello:delete_orphaned_content")
 
 
-class TestCapsuleSync:
+class TestCapsuleSyncsPostUpgrade:
     """
-    The test class contains pre-upgrade and post-upgrade scenario to test the capsule sync
-    in the post-upgrade of pre-upgraded repo.
+    Test the capsule sync in the post-upgrade of pre-upgraded repo.
+
+    :id: eb8970fa-98cc-4a99-99fb-1c12c4e319c9
+
+    :steps:
+
+        1. Before Satellite upgrade, Sync a repo/rpm in satellite
+        2. Upgrade the Satellite.
+        3. Run capsule sync post upgrade.
+        4. Check if the repo/rpm is been synced to capsule.
+
+    :expectedresults:
+
+        1. The repo/rpm should be synced to satellite
+        2. Activation key's environment id should be available in the content views environment
+        id's list
+        3. After upgrade, The capsule sync should be successful
+        4. The repos/rpms from satellite should be synced to satellite
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_user_scenario_capsule_sync(self, request, default_sat, default_org):
         """Pre-upgrade scenario that creates and sync repository with
         rpm in satellite which will be synced in post upgrade scenario.
-
-        :id: preupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
-
-        :steps:
-            1. Before Satellite upgrade, Sync a repo/rpm in satellite
-
-        :expectedresults:
-            1. The repo/rpm should be synced to satellite
-            2. Activation key's environment id should be available in the content views environment
-            id's list
-
         """
         pre_test_name = request.node.name
         repo_name = f"{pre_test_name}_repo"
@@ -97,24 +101,12 @@ class TestCapsuleSync:
         content_view_env_id = [env.id for env in content_view.read().environment]
         assert ak_env.id in content_view_env_id
 
-    @post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
+    @pytest.mark.post_upgrade(depend_on=test_pre_user_scenario_capsule_sync)
     def test_post_user_scenario_capsule_sync(
         self, request, dependent_scenario_name, default_sat, default_org
     ):
         """Post-upgrade scenario that sync capsule from satellite and then
         verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
-
-
-        :id: postupgrade-eb8970fa-98cc-4a99-99fb-1c12c4e319c9
-
-        :steps:
-            1. Run capsule sync post upgrade.
-            2. Check if the repo/rpm is been synced to capsule.
-
-        :expectedresults:
-            1. The capsule sync should be successful
-            2. The repos/rpms from satellite should be synced to satellite
-
         """
         request.addfinalizer(lambda: cleanup(content_view, repo, product))
         pre_test_name = dependent_scenario_name
@@ -154,31 +146,30 @@ class TestCapsuleSync:
         assert result == '0'
 
 
-class TestCapsuleSyncNewRepo:
+class TestCapsuleSyncNewRepoPostUpgrade:
     """
-    The test class contains a post-upgrade scenario to test the capsule sync of new added yum
-    and puppet repo.
+    Post-upgrade scenario that creates and sync repository with rpm, sync capsule with satellite
+    and verifies if the repo/rpm in satellite is synced to capsule.
+
+    :id: 7c1d3441-3e8d-4ac2-8102-30e18274658c
+
+    :steps:
+
+        1. Upgrade satellite from previous satellite version.
+        2. Post Upgrade , Sync a repo/rpm in satellite.
+        3. Run capsule sync.
+        4. Check if the repo/rpm is been synced to capsule.
+
+    :expectedresults:
+
+        1. The repo/rpm should be synced to satellite
+        2. Capsule sync should be successful
+        3. The repo/rpm from satellite should be synced to capsule
     """
 
-    @post_upgrade
+    @pytest.mark.post_upgrade
     def test_post_user_scenario_capsule_sync_yum_repo(self, request, default_sat, default_org):
-        """Post-upgrade scenario that creates and sync repository with
-        rpm, sync capsule with satellite and verifies if the repo/rpm in
-        satellite is synced to capsule.
-
-        :id: postupgrade-7c1d3441-3e8d-4ac2-8102-30e18274658c
-
-        :steps:
-            1. Post Upgrade , Sync a repo/rpm in satellite.
-            2. Run capsule sync.
-            3. Check if the repo/rpm is been synced to capsule.
-
-        :expectedresults:
-            1. The repo/rpm should be synced to satellite
-            2. Capsule sync should be successful
-            3. The repo/rpm from satellite should be synced to capsule
-
-        """
+        """Sync Capsule Post upgrade"""
         request.addfinalizer(lambda: cleanup(content_view, repo, product))
         repo_name = gen_string('alpha')
         rpm_name = rpm2.split('/')[-1]

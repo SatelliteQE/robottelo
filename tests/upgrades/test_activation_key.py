@@ -1,6 +1,6 @@
 """Test Activation Key related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -19,14 +19,32 @@
 import pytest
 from nailgun import entities
 from requests.exceptions import HTTPError
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 
-class TestActivationKey:
+class TestActivationKeyManipulate:
     """
-    The test class contains steps to test the activation keys exists post upgrade and can be
-    operated/modified.
+    Test the activation keys exists post upgrade and can be operated/modified.
+
+    :id: a7443b54-eb2e-497b-8a50-92abeae01496
+
+    :steps:
+
+        1. Create the activation key.
+        2. Add subscription in the activation key.
+        3: Check the subscription id of the activation key and compare it with custom_repos
+        product id.
+        4. Update the host collection in the activation key.
+        5. Upgrade the Satellite.
+        6. Postupgrade, verify activation key has same entities associated.
+        7. Update existing activation key with new entities.
+        8. Delete activation key.
+
+    :expectedresults:
+
+        1. Activation key should be created successfully and it's subscription id
+        should be same with custom repos product id.
+        2. Activation key's entities should be same after upgrade and activation
+        key update and delete should work.
     """
 
     @pytest.fixture(scope='function')
@@ -50,27 +68,14 @@ class TestActivationKey:
         ak_details = {'org': org, "cv": cv, 'ak': ak, 'custom_repo': custom_repo}
         yield ak_details
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     @pytest.mark.parametrize(
         'activation_key_setup', ['test_pre_create_activation_key'], indirect=True
     )
     def test_pre_create_activation_key(self, activation_key_setup):
-        """Before Upgrade, Creates the activation key with different entities and update their
-        contents.
-
-        :id: preupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
-
-        :steps:
-            1. Create the activation key.
-            2. Add subscription in the activation key.
-            3: Check the subscription id of the activation key and compare it with custom_repos
-            product id.
-            4. Update the host collection in the activation key.
-
-        :parametrized: yes
-
-        :expectedresults: Activation key should be created successfully and it's subscription id
-        should be same with custom repos product id.
+        """
+        Before Upgrade, Creates the activation key with different entities and update their
+        contents
         """
         ak = activation_key_setup['ak']
         org_subscriptions = entities.Subscription(organization=activation_key_setup['org']).search()
@@ -83,19 +88,10 @@ class TestActivationKey:
         ak.update(['host_collection'])
         assert len(ak.host_collection) == 1
 
-    @post_upgrade(depend_on=test_pre_create_activation_key)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_activation_key)
     def test_post_crud_activation_key(self, dependent_scenario_name):
-        """After Upgrade, Activation keys entities remain the same and all their functionality works.
-
-        :id: postupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
-
-        :steps:
-            1. Postupgrade, Verify activation key has same entities associated.
-            2. Update existing activation key with new entities.
-            3. Delete activation key.
-
-        :expectedresults: Activation key's entities should be same after upgrade and activation
-        key update and delete should work.
+        """
+        After Upgrade, Activation keys entities remain the same and all their functionality works
         """
         pre_test_name = dependent_scenario_name
         org = entities.Organization().search(query={'search': f'name={pre_test_name}_org'})

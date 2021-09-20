@@ -1,6 +1,6 @@
 """Test for Inter Satellite Sync related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -18,8 +18,6 @@
 """
 import pytest
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.package import Package
@@ -28,23 +26,31 @@ from robottelo.cli.package import Package
 class TestSatelliteSync:
     """
     Test Content-view created before upgrade can be exported and imported after upgrade
-    """
 
-    @pre_upgrade
-    def test_pre_version_cv_export_import(self, request):
-        """Before Upgrade, Create the content view and publish, and promote it.
+    :id: f19e4928-94db-4df6-8ce8-b5e4afe34258
 
-        :id: preupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
-
-        :steps:
+    :steps:
 
         1. Create a ContentView
         2. Publish and promote the Content View
         3. Check the package count of promoted content view.
+        4. Upgrade the satellite
+        5. After upgrade, Export the existing content-view version.
+        6. Import the existing content-view version.
+        7. Delete the imported and exported content-vew, product, repo and organization.
 
-        :expectedresults: Before the upgrade, Content view published and promoted, and  package
+    :expectedresults:
+
+        1. Before the upgrade, Content view published and promoted, and  package
         count should be greater than 0.
-        """
+        2. After upgrade, Content view created before upgrade should be imported
+        and exported successfully.
+        3. Imported and Exported content view should be deleted successfully.
+    """
+
+    @pytest.mark.pre_upgrade
+    def test_pre_version_cv_export_import(self, request):
+        """Before Upgrade, Create the content view and publish, and promote it."""
         test_name = request.node.name
         org = entities.Organization(name=f"{test_name}_org").create()
         product = entities.Product(organization=org, name=f"{test_name}_prod").create()
@@ -62,7 +68,7 @@ class TestSatelliteSync:
         cv = cv.read()
         assert cv.version[0].read().package_count > 0
 
-    @post_upgrade(depend_on=test_pre_version_cv_export_import)
+    @pytest.mark.post_upgrade(depend_on=test_pre_version_cv_export_import)
     @pytest.mark.parametrize(
         'set_importing_org',
         [
@@ -79,21 +85,7 @@ class TestSatelliteSync:
         self, request, set_importing_org, dependent_scenario_name, default_sat
     ):
         """After upgrade, content view version import and export works on the existing content
-         view(that we created before the upgrade).
-
-        :id: postupgrade-f19e4928-94db-4df6-8ce8-b5e4afe34258
-
-        :parametrized: yes
-
-        :steps:
-            1: Export the existing content-view version.
-            2: Import the existing content-view version.
-            3: Delete the imported and exported content-vew, product, repo and organization.
-
-        :expectedresults: After upgrade,
-            1: Content view created before upgrade should be imported and exported successfully.
-            2: Imported and Exported content view should be deleted successfully
-        """
+        view(that we created before the upgrade)."""
         pre_test_name = dependent_scenario_name
         export_base = '/var/lib/pulp/katello-export/'
         org = entities.Organization().search(query={'search': f'name="{pre_test_name}_org"'})[0]

@@ -1,6 +1,6 @@
 """Test for Loaded yum plugins count related Upgrade Scenarios
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -16,11 +16,10 @@
 
 :Upstream: No
 """
+import pytest
 from fabric.api import execute
 from nailgun import entities
 from upgrade.helpers.docker import docker_execute_command
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import dockerize
 from upgrade_tests.helpers.scenarios import get_entity_data
@@ -45,7 +44,9 @@ class TestScenarioYumPluginsCount:
     """The test class contains pre and post upgrade scenarios to test the
     loaded yum plugins count on content host.
 
-    Test Steps:
+    :id: 45241ada-c2c4-409e-a6e2-92c2cf0ac16c
+
+    :steps:
 
         1. Before Satellite upgrade.
         2. Create LifecycleEnvironment.
@@ -53,13 +54,20 @@ class TestScenarioYumPluginsCount:
         4. Create 'Content View' and activation key.
         5. Create a content host, register and install katello-agent on it.
         6. Upgrade Satellite/Capsule.
-        7. Create Product, custom tools repo, sync them.
-        8. Attached custom subscription to content host.
-        9. Upgrade Katello-agent and restart goferd.
-        10. Verifying the loaded yum plugins count.
+        7. Create Product, custom tools repo and sync them.
+        8. Add in content-view and publish it.
+        9. Attach custom subscription to content host.
+        10. Install katello-host-tools, so enabled_repos_upload yum plugin is enabled.
+        11. Update katello-agent and Restart goferd.
+        12. Check yum plugins count.
+
+    :expectedresults:
+
+        1. The content host is created.
+        2. katello-agent install and goferd run.
+        3. After upgrade, Loaded yum plugins should not load more than two times.
 
     BZ: 1625649
-
     """
 
     def _check_yum_plugins_count(self, client_container_id):
@@ -111,25 +119,9 @@ class TestScenarioYumPluginsCount:
 
         return [entities.Repository(id=repo_id) for repo_id in [repo1_id, repo2_id]]
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_scenario_yum_plugins_count(self, default_org):
-        """Create content host and register with Satellite.
-
-        :id: preupgrade-45241ada-c2c4-409e-a6e2-92c2cf0ac16c
-
-        :steps:
-
-            1. Before Satellite upgrade.
-            2. Create LifecycleEnvironment.
-            3. Enable/sync 'base os RHEL7' and tools repos.
-            4. Create 'Content View' and activation key.
-            5. Create a content host, register and install katello-host-tools and katello-agent.
-
-        :expectedresults:
-
-            1. The content host is created.
-            2. katello-agent install and goferd run.
-        """
+        """Create content host and register with Satellite."""
         environment = entities.LifecycleEnvironment(organization=default_org).search(
             query={'search': 'name=Library'}
         )[0]
@@ -170,24 +162,9 @@ class TestScenarioYumPluginsCount:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
+    @pytest.mark.post_upgrade(depend_on=test_pre_scenario_yum_plugins_count)
     def test_post_scenario_yum_plugins_count(self, default_org):
-        """Upgrade katello agent on pre-upgrade content host registered
-        with Satellite.
-
-        :id: postupgrade-45241ada-c2c4-409e-a6e2-92c2cf0ac16c
-
-        :steps:
-            1. Create Product, custom tools repo and sync them.
-            2. Add in content-view and publish it.
-            3. Attach custom subscription to content host.
-            4. Install katello-host-tools, so enabled_repos_upload yum plugin is enabled.
-            4. Update katello-agent and Restart goferd.
-            5. Check yum plugins count.
-
-        :expectedresults:
-            1. Loaded yum plugins should not load more than two times.
-        """
+        """Upgrade katello agent on pre-upgrade content host registered with Satellite."""
 
         entity_data = get_entity_data(self.__class__.__name__)
         client = entity_data.get('rhel_client')

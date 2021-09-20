@@ -1,6 +1,6 @@
 """Test for Virt-who related Upgrade Scenario's
 
-:Requirement: Upgraded Satellite
+:Requirement: UpgradedSatellite
 
 :CaseAutomation: Automated
 
@@ -19,8 +19,6 @@
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
-from upgrade_tests import post_upgrade
-from upgrade_tests import pre_upgrade
 from upgrade_tests.helpers.scenarios import create_dict
 from upgrade_tests.helpers.scenarios import get_entity_data
 
@@ -60,29 +58,33 @@ ORG_DATA = {'name': 'virtwho_upgrade_org_name'}
 
 class TestScenarioPositiveVirtWho:
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
+
+    :id: a36cbe89-47a2-422f-9881-0f86bea0e24e
+
     :steps:
 
-        1. In Preupgrade Satellite, create virt-who-config.
-        2. Upgrade the satellite to next/latest version.
-        3. Postupgrade, Verify the virt-who config is intact, update and delete.
+        1. In Preupgrade Satellite, Create and deploy virt-who configuration.
+        2. Upgrade the satellite
+        3. Post upgrade, Verify virt-who exists and has same status.
+        4. Verify the connection of the guest on Content host.
+        5. Verify the virt-who config-file exists.
+        6. Update virt-who config with new name.
+        7. Delete virt-who config.
 
-    :expectedresults: Virtwho config should be created, updated and deleted successfully.
+    :expectedresults:
+
+        1. Config can be created and deployed by command.
+        2. No error msg in /var/log/rhsm/rhsm.log.
+        3. Report is sent to satellite.
+        4. Virtual sku can be generated and attached.
+        5. After upgrade, virt-who config is intact post upgrade.
+        6. the config and guest connection have the same status.
+        7. virt-who config should update and delete successfully.
     """
 
-    @pre_upgrade
+    @pytest.mark.pre_upgrade
     def test_pre_create_virt_who_configuration(self, form_data):
-        """Create and deploy virt-who configuration.
-
-        :id: preupgrade-a36cbe89-47a2-422f-9881-0f86bea0e24e
-
-        :steps: In Preupgrade Satellite, Create and deploy virt-who configuration.
-
-        :expectedresults:
-            1. Config can be created and deployed by command.
-            2. No error msg in /var/log/rhsm/rhsm.log.
-            3. Report is sent to satellite.
-            4. Virtual sku can be generated and attached.
-        """
+        """Create and deploy virt-who configuration."""
         default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
         default_loc = entities.Location(id=default_loc_id).read()
         org = entities.Organization(name=ORG_DATA['name']).create()
@@ -132,23 +134,10 @@ class TestScenarioPositiveVirtWho:
         }
         create_dict(scenario_dict)
 
-    @post_upgrade(depend_on=test_pre_create_virt_who_configuration)
+    @pytest.mark.post_upgrade(depend_on=test_pre_create_virt_who_configuration)
     def test_post_crud_virt_who_configuration(self, form_data):
-        """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
-
-        :id: postupgrade-d7ae7b2b-3291-48c8-b412-cb54e444c7a4
-
-        :steps:
-            1. Post upgrade, Verify virt-who exists and has same status.
-            2. Verify the connection of the guest on Content host.
-            3. Verify the virt-who config-file exists.
-            4. Update virt-who config with new name.
-            5. Delete virt-who config.
-
-        :expectedresults:
-            1. virt-who config is intact post upgrade.
-            2. the config and guest connection have the same status.
-            3. virt-who config should update and delete successfully.
+        """
+        Virt-who config is intact post upgrade and verify the config can be updated and deleted.
         """
         org = entities.Organization().search(query={'search': f'name={ORG_DATA["name"]}'})[0]
 
