@@ -27,8 +27,8 @@ from robottelo.datafactory import generate_strings_list
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-@pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
-def test_positive_endtoend(ldap_auth_source, module_org, module_location):
+@pytest.mark.parametrize('auth_source_type', ['AD', 'IPA'])
+def test_positive_endtoend(auth_source_type, module_org, module_location, ad_data, ipa_data):
     """Create/update/delete LDAP authentication with AD using names of different types
 
     :id: e3607c97-7c48-4cf6-b119-2bfd895d9325
@@ -40,24 +40,32 @@ def test_positive_endtoend(ldap_auth_source, module_org, module_location):
     :CaseImportance: Critical
     """
     for server_name in generate_strings_list():
+        if auth_source_type == 'AD':
+            auth_source_data = ad_data()
+            auth_type_attr = LDAP_ATTR[f'login_{auth_source_type.lower()}']
+        elif auth_source_type == 'IPA':
+            auth_source_data = ipa_data
+            auth_source_data['ldap_user_name'] = auth_source_data['ldap_user_cn']
+            auth_type_attr = LDAP_ATTR['login']
         authsource = entities.AuthSourceLDAP(
             onthefly_register=True,
-            account=ldap_auth_source['ldap_user_name'],
-            account_password=ldap_auth_source['ldap_user_passwd'],
-            base_dn=ldap_auth_source['base_dn'],
-            groups_base=ldap_auth_source['group_base_dn'],
+            account=auth_source_data['ldap_user_cn'],
+            account_password=auth_source_data['ldap_user_passwd'],
+            base_dn=auth_source_data['base_dn'],
+            groups_base=auth_source_data['group_base_dn'],
             attr_firstname=LDAP_ATTR['firstname'],
             attr_lastname=LDAP_ATTR['surname'],
-            attr_login=LDAP_ATTR['login_ad'],
-            server_type=LDAP_SERVER_TYPE['API']['ad'],
+            attr_login=auth_type_attr,
+            server_type=LDAP_SERVER_TYPE['API'][auth_source_type.lower()],
             attr_mail=LDAP_ATTR['mail'],
             name=server_name,
-            host=ldap_auth_source['ldap_hostname'],
+            host=auth_source_data['ldap_hostname'],
             tls=False,
             port='389',
             organization=[module_org],
             location=[module_location],
         ).create()
+
         assert authsource.name == server_name
         for new_name in generate_strings_list():
             authsource.name = new_name
