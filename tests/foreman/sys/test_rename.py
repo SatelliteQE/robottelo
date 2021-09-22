@@ -38,6 +38,7 @@ class TestRenameHost:
     """Implements ``katello-change-hostname`` tests"""
 
     @pytest.mark.skip_if_open("BZ:1925616")
+    @pytest.mark.destructive
     def test_positive_rename_satellite(self, module_org, module_product, destructive_sat):
         """run katello-change-hostname on Satellite server
 

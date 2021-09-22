@@ -43,6 +43,7 @@ from robottelo.constants import LOCALES
 from robottelo.datafactory import valid_data_list
 from robottelo.datafactory import valid_emails_list
 from robottelo.datafactory import valid_usernames_list
+from robottelo.helpers import gen_ssh_keypairs
 
 
 class TestUser:
@@ -328,13 +329,15 @@ class TestUser:
 class TestSshKeyInUser:
     """Implements the SSH Key in User Tests"""
 
+    ssh_key = gen_ssh_keypairs()[1]
+
     @pytest.fixture(scope='module')
     def module_user(self):
         """Create an user"""
         return entities.User().create()
 
     @pytest.mark.tier1
-    def test_positive_CRD_ssh_key(self, module_user, ssh_key):
+    def test_positive_CRD_ssh_key(self, module_user):
         """SSH Key can be added to a User, listed and deletd
 
         :id: 57304fca-8e0d-454a-be31-34423345c8b2
@@ -345,17 +348,17 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        User.ssh_keys_add({'user': module_user.login, 'key': ssh_key, 'name': ssh_name})
+        User.ssh_keys_add({'user': module_user.login, 'key': self.ssh_key, 'name': ssh_name})
         result = User.ssh_keys_list({'user-id': module_user.id})
         assert ssh_name in [i['name'] for i in result]
         result = User.ssh_keys_info({'user-id': module_user.id, 'name': ssh_name})
-        assert ssh_key in result[0]['public-key']
+        assert self.ssh_key in result[0]['public-key']
         result = User.ssh_keys_delete({'user-id': module_user.id, 'name': ssh_name})
         result = User.ssh_keys_list({'user-id': module_user.id})
         assert ssh_name not in [i['name'] for i in result]
 
     @pytest.mark.tier1
-    def test_positive_create_ssh_key_super_admin_from_file(self, ssh_key, default_sat):
+    def test_positive_create_ssh_key_super_admin_from_file(self, default_sat):
         """SSH Key can be added to Super Admin user from file
 
         :id: b865d0ae-6317-475c-a6da-600615b71eeb
@@ -366,13 +369,13 @@ class TestSshKeyInUser:
         :CaseImportance: Critical
         """
         ssh_name = gen_string('alpha')
-        result = default_sat.execute(f"echo '{ssh_key}' > test_key.pub")
+        result = default_sat.execute(f"echo '{self.ssh_key}' > test_key.pub")
         assert result.status == 0, 'key file not created'
         User.ssh_keys_add({'user': 'admin', 'key-file': 'test_key.pub', 'name': ssh_name})
         result = User.ssh_keys_list({'user': 'admin'})
         assert ssh_name in [i['name'] for i in result]
         result = User.ssh_keys_info({'user': 'admin', 'name': ssh_name})
-        assert ssh_key == result[0]['public-key']
+        assert self.ssh_key == result[0]['public-key']
 
 
 class TestPersonalAccessToken:

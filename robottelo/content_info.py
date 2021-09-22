@@ -1,4 +1,4 @@
-"""Module that gather several informations about host"""
+"""Miscellaneous content helper functions"""
 import re
 
 import requests
