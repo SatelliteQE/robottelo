@@ -23,22 +23,10 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import AWS_EC2_FLAVOR_T2_MICRO
 from robottelo.constants import COMPUTE_PROFILE_LARGE
-from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1
 from robottelo.constants import FOREMAN_PROVIDERS
 
 pytestmark = [pytest.mark.skip_if_not_set('ec2')]
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    return entities.Location(id=default_loc_id).read()
 
 
 @pytest.fixture(scope='module')
@@ -58,7 +46,7 @@ def module_ec2_settings():
 @pytest.mark.tier2
 @pytest.mark.skip_if_not_set('http_proxy')
 def test_positive_default_end_to_end_with_custom_profile(
-    session, module_org, module_loc, module_ec2_settings
+    session, module_org, module_location, module_ec2_settings
 ):
     """Create EC2 compute resource with default properties and apply it's basic functionality.
 
@@ -91,7 +79,7 @@ def test_positive_default_end_to_end_with_custom_profile(
         username=settings.http_proxy.username,
         password=settings.http_proxy.password,
         organization=[module_org.id],
-        location=[module_loc.id],
+        location=[module_location.id],
     ).create()
     with session:
         session.computeresource.create(
@@ -104,7 +92,7 @@ def test_positive_default_end_to_end_with_custom_profile(
                 'provider_content.secret_key': module_ec2_settings['secret_key'],
                 'provider_content.region.value': module_ec2_settings['region'],
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         cr_values = session.computeresource.read(cr_name)
@@ -112,7 +100,7 @@ def test_positive_default_end_to_end_with_custom_profile(
         assert cr_values['description'] == cr_description
         assert cr_values['provider_content']['http_proxy']['value'] == http_proxy.name
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
-        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_location.name]
         session.computeresource.edit(
             cr_name,
             {
@@ -129,7 +117,7 @@ def test_positive_default_end_to_end_with_custom_profile(
             new_org.name,
         }
         assert set(cr_values['locations']['resources']['assigned']) == {
-            module_loc.name,
+            module_location.name,
             new_loc.name,
         }
         session.computeresource.update_computeprofile(

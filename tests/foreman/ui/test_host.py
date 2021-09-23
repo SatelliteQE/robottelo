@@ -92,22 +92,6 @@ def scap_policy(scap_content):
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc(module_org, default_sat):
-    location = entities.Location(organization=[module_org]).create()
-    smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-    )
-    smart_proxy.location.append(entities.Location(id=location.id))
-    smart_proxy.update(['location'])
-    return location
-
-
-@pytest.fixture(scope='module')
 def module_global_params():
     """Create 3 global parameters and clean up at teardown"""
     global_parameters = []
@@ -123,8 +107,8 @@ def module_global_params():
 
 
 @pytest.fixture(scope='module')
-def module_host_template(module_org, module_loc):
-    host_template = entities.Host(organization=module_org, location=module_loc)
+def module_host_template(module_org, smart_proxy_location):
+    host_template = entities.Host(organization=module_org, location=smart_proxy_location)
     host_template.create_missing()
     host_template.name = None
     return host_template
@@ -143,13 +127,13 @@ def default_architecture():
 
 
 @pytest.fixture(scope='module')
-def module_environment(module_org, module_loc):
+def module_environment(module_org, smart_proxy_location):
     # Create new puppet environment
-    return entities.Environment(organization=[module_org], location=[module_loc]).create()
+    return entities.Environment(organization=[module_org], location=[smart_proxy_location]).create()
 
 
 @pytest.fixture(scope='module')
-def module_os(default_architecture, default_partition_table, module_org, module_loc):
+def module_os(default_architecture, default_partition_table, module_org, smart_proxy_location):
     # Get the OS ID
     os = entities.OperatingSystem().search(
         query={'search': 'name="RedHat" AND major="7"'}
@@ -171,14 +155,14 @@ def os_path(module_os):
 
 
 @pytest.fixture(scope='module')
-def module_proxy(module_org, module_loc, default_sat):
+def module_proxy(module_org, smart_proxy_location, default_sat):
     # Search for SmartProxy, and associate organization/location
     proxy = entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
     return proxy
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_resource(module_org, module_loc):
+def module_libvirt_resource(module_org, smart_proxy_location):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
@@ -190,7 +174,7 @@ def module_libvirt_resource(module_org, module_loc):
     ]
     if len(comp_res) > 0:
         computeresource = entities.LibvirtComputeResource(id=comp_res[0].id).read()
-        computeresource.location.append(module_loc)
+        computeresource.location.append(smart_proxy_location)
         computeresource.organization.append(module_org)
         computeresource = computeresource.update(['location', 'organization'])
     else:
@@ -200,33 +184,33 @@ def module_libvirt_resource(module_org, module_loc):
             url=resource_url,
             set_console_password=False,
             display_type='VNC',
-            location=[module_loc],
+            location=[smart_proxy_location],
             organization=[module_org],
         ).create()
     return f'{computeresource.name} (Libvirt)'
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_domain(module_org, module_loc, module_proxy, default_sat):
+def module_libvirt_domain(module_org, smart_proxy_location, module_proxy, default_sat):
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
     _, _, domain = default_sat.hostname.partition('.')
     domain = entities.Domain().search(query={'search': f'name="{domain}"'})
     if len(domain) > 0:
         domain = domain[0].read()
-        domain.location.append(module_loc)
+        domain.location.append(smart_proxy_location)
         domain.organization.append(module_org)
         domain.dns = module_proxy
         domain = domain.update(['dns', 'location', 'organization'])
     else:
         domain = entities.Domain(
-            dns=module_proxy, location=[module_loc], organization=[module_org]
+            dns=module_proxy, location=[smart_proxy_location], organization=[module_org]
         ).create()
     return domain
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_proxy):
+def module_libvirt_subnet(module_org, smart_proxy_location, module_libvirt_domain, module_proxy):
     # Search if subnet is defined with given network.
     # If so, just update its relevant fields otherwise,
     # Create new subnet
@@ -235,7 +219,7 @@ def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_
     if len(subnet) > 0:
         subnet = subnet[0].read()
         subnet.domain.append(module_libvirt_domain)
-        subnet.location.append(module_loc)
+        subnet.location.append(smart_proxy_location)
         subnet.organization.append(module_org)
         subnet.dns = module_proxy
         subnet.dhcp = module_proxy
@@ -250,7 +234,7 @@ def module_libvirt_subnet(module_org, module_loc, module_libvirt_domain, module_
         subnet = entities.Subnet(
             network=network,
             mask=settings.vlan_networking.netmask,
-            location=[module_loc],
+            location=[smart_proxy_location],
             organization=[module_org],
             domain=[module_libvirt_domain],
             ipam='DHCP',
@@ -280,13 +264,13 @@ def module_repository(os_path, module_product):
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_media(module_org, module_loc, os_path, module_os):
+def module_libvirt_media(module_org, smart_proxy_location, os_path, module_os):
     media = entities.Media().search(query={'search': f'path="{os_path}"'})
     if len(media) > 0:
         # Media with this path already exist, make sure it is correct
         media = media[0].read()
         media.organization.append(module_org)
-        media.location.append(module_loc)
+        media.location.append(smart_proxy_location)
         media.operatingsystem.append(module_os)
         media.os_family = 'Redhat'
         media = media.update(['organization', 'location', 'operatingsystem', 'os_family'])
@@ -294,7 +278,7 @@ def module_libvirt_media(module_org, module_loc, os_path, module_os):
         # Create new media
         media = entities.Media(
             organization=[module_org],
-            location=[module_loc],
+            location=[smart_proxy_location],
             operatingsystem=[module_os],
             path_=os_path,
             os_family='Redhat',
@@ -317,7 +301,7 @@ def module_content_view(module_org, module_repository, module_lce):
 @pytest.fixture(scope='module')
 def module_libvirt_hostgroup(
     module_org,
-    module_loc,
+    smart_proxy_location,
     default_partition_table,
     default_architecture,
     module_os,
@@ -335,7 +319,7 @@ def module_libvirt_hostgroup(
         subnet=module_libvirt_subnet,
         lifecycle_environment=module_lce,
         content_view=module_content_view,
-        location=[module_loc],
+        location=[smart_proxy_location],
         environment=module_environment,
         puppet_proxy=module_proxy,
         puppet_ca_proxy=module_proxy,
@@ -585,7 +569,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_action(session):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_positive_create_with_puppet_class(
-    session, module_host_template, module_org, module_loc, default_sat
+    session, module_host_template, module_org, smart_proxy_location, default_sat
 ):
     """Create new Host with puppet class assigned to it
 
@@ -600,7 +584,7 @@ def test_positive_create_with_puppet_class(
     env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env = entities.Environment(
         id=env.id,
-        location=[module_loc],
+        location=[smart_proxy_location],
         organization=[module_org],
     ).update(['location', 'organization'])
     with session:
@@ -619,7 +603,7 @@ def test_positive_create_with_puppet_class(
 
 
 @pytest.mark.tier2
-def test_positive_assign_taxonomies(session, module_org, module_loc):
+def test_positive_assign_taxonomies(session, module_org, smart_proxy_location):
     """Ensure Host organization and Location can be assigned.
 
     :id: 52466df5-6f56-4faa-b0f8-42b63731f494
@@ -629,7 +613,7 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
 
     :CaseLevel: Integration
     """
-    host = entities.Host(organization=module_org, location=module_loc).create()
+    host = entities.Host(organization=module_org, location=smart_proxy_location).create()
     new_host_org = entities.Organization().create()
     new_host_location = entities.Location(organization=[new_host_org]).create()
     with session:
@@ -657,7 +641,7 @@ def test_positive_assign_taxonomies(session, module_org, module_loc):
             [host.name],
             {'location': new_host_location.name, 'on_mismatch': 'Fix Location on Mismatch'},
         )
-        assert not entities.Host(location=module_loc).search(
+        assert not entities.Host(location=smart_proxy_location).search(
             query={'search': f'name="{host.name}"'}
         )
         assert (
@@ -826,7 +810,7 @@ def test_negative_delete_primary_interface(session, module_host_template):
 
 
 @pytest.mark.tier2
-def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_loc):
+def test_positive_view_hosts_with_non_admin_user(test_name, module_org, smart_proxy_location):
     """View hosts and content hosts as a non-admin user with only view_hosts, edit_hosts
     and view_organization permissions
 
@@ -849,11 +833,11 @@ def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_l
         admin=False,
         password=user_password,
         organization=[module_org],
-        location=[module_loc],
+        location=[smart_proxy_location],
         default_organization=module_org,
-        default_location=module_loc,
+        default_location=smart_proxy_location,
     ).create()
-    created_host = entities.Host(location=module_loc, organization=module_org).create()
+    created_host = entities.Host(location=smart_proxy_location, organization=module_org).create()
     with Session(test_name, user=user.login, password=user_password) as session:
         host = session.host.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
@@ -862,7 +846,7 @@ def test_positive_view_hosts_with_non_admin_user(test_name, module_org, module_l
 
 
 @pytest.mark.tier3
-def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_loc):
+def test_positive_remove_parameter_non_admin_user(test_name, module_org, smart_proxy_location):
     """Remove a host parameter as a non-admin user with enough permissions
 
     :BZ: 1996035
@@ -890,16 +874,16 @@ def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_
         admin=False,
         password=user_password,
         organization=[module_org],
-        location=[module_loc],
+        location=[smart_proxy_location],
         default_organization=module_org,
-        default_location=module_loc,
+        default_location=smart_proxy_location,
     ).create()
     host = entities.Host(
         content_facet_attributes={
             'content_view_id': module_org.default_content_view.id,
             'lifecycle_environment_id': module_org.library.id,
         },
-        location=module_loc,
+        location=smart_proxy_location,
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
@@ -912,7 +896,7 @@ def test_positive_remove_parameter_non_admin_user(test_name, module_org, module_
 
 
 @pytest.mark.tier3
-def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_loc):
+def test_negative_remove_parameter_non_admin_user(test_name, module_org, smart_proxy_location):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
 
@@ -944,16 +928,16 @@ def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_
         admin=False,
         password=user_password,
         organization=[module_org],
-        location=[module_loc],
+        location=[smart_proxy_location],
         default_organization=module_org,
-        default_location=module_loc,
+        default_location=smart_proxy_location,
     ).create()
     host = entities.Host(
         content_facet_attributes={
             'content_view_id': module_org.default_content_view.id,
             'lifecycle_environment_id': module_org.library.id,
         },
-        location=module_loc,
+        location=smart_proxy_location,
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
@@ -966,7 +950,7 @@ def test_negative_remove_parameter_non_admin_user(test_name, module_org, module_
 
 
 @pytest.mark.tier3
-def test_positive_check_permissions_affect_create_procedure(test_name, module_loc):
+def test_positive_check_permissions_affect_create_procedure(test_name, smart_proxy_location):
     """Verify whether user permissions affect what entities can be selected
     when host is created
 
@@ -1050,9 +1034,9 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
         admin=False,
         password=user_password,
         organization=[org],
-        location=[module_loc],
+        location=[smart_proxy_location],
         default_organization=org,
-        default_location=module_loc,
+        default_location=smart_proxy_location,
     ).create()
     host_fields = [
         {'name': 'host.hostgroup', 'unexpected_value': hg.name, 'expected_value': filter_hg.name},
@@ -1089,7 +1073,7 @@ def test_positive_check_permissions_affect_create_procedure(test_name, module_lo
 
 
 @pytest.mark.tier2
-def test_positive_search_by_parameter(session, module_org, module_loc):
+def test_positive_search_by_parameter(session, module_org, smart_proxy_location):
     """Search for the host by global parameter assigned to it
 
     :id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
@@ -1104,9 +1088,11 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
     param_value = gen_string('alpha')
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=module_org, location=module_loc, host_parameters_attributes=parameters
+        organization=module_org,
+        location=smart_proxy_location,
+        host_parameters_attributes=parameters,
     ).create()
-    additional_host = entities.Host(organization=module_org, location=module_loc).create()
+    additional_host = entities.Host(organization=module_org, location=smart_proxy_location).create()
     with session:
         # Check that hosts present in the system
         for host in [param_host, additional_host]:
@@ -1118,7 +1104,9 @@ def test_positive_search_by_parameter(session, module_org, module_loc):
 
 
 @pytest.mark.tier4
-def test_positive_search_by_parameter_with_different_values(session, module_org, module_loc):
+def test_positive_search_by_parameter_with_different_values(
+    session, module_org, smart_proxy_location
+):
     """Search for the host by global parameter assigned to it by its value
 
     :id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
@@ -1134,7 +1122,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
     hosts = [
         entities.Host(
             organization=module_org,
-            location=module_loc,
+            location=smart_proxy_location,
             host_parameters_attributes=[{'name': param_name, 'value': param_value}],
         ).create()
         for param_value in param_values
@@ -1151,7 +1139,7 @@ def test_positive_search_by_parameter_with_different_values(session, module_org,
 
 
 @pytest.mark.tier2
-def test_positive_search_by_parameter_with_prefix(session, module_loc):
+def test_positive_search_by_parameter_with_prefix(session, smart_proxy_location):
     """Search by global parameter assigned to host using prefix 'not' and
     any random string as parameter value to make sure that all hosts will
     be present in the list
@@ -1169,9 +1157,9 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
     search_param_value = gen_string('alphanumeric')
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=org, location=module_loc, host_parameters_attributes=parameters
+        organization=org, location=smart_proxy_location, host_parameters_attributes=parameters
     ).create()
-    additional_host = entities.Host(organization=org, location=module_loc).create()
+    additional_host = entities.Host(organization=org, location=smart_proxy_location).create()
     with session:
         session.organization.select(org_name=org.name)
         # Check that the hosts are present
@@ -1183,7 +1171,7 @@ def test_positive_search_by_parameter_with_prefix(session, module_loc):
 
 
 @pytest.mark.tier2
-def test_positive_search_by_parameter_with_operator(session, module_loc):
+def test_positive_search_by_parameter_with_operator(session, smart_proxy_location):
     """Search by global parameter assigned to host using operator '<>' and
     any random string as parameter value to make sure that all hosts will
     be present in the list
@@ -1205,9 +1193,9 @@ def test_positive_search_by_parameter_with_operator(session, module_loc):
     entities.CommonParameter(name=param_name, value=param_global_value).create()
     parameters = [{'name': param_name, 'value': param_value}]
     param_host = entities.Host(
-        organization=org, location=module_loc, host_parameters_attributes=parameters
+        organization=org, location=smart_proxy_location, host_parameters_attributes=parameters
     ).create()
-    additional_host = entities.Host(organization=org, location=module_loc).create()
+    additional_host = entities.Host(organization=org, location=smart_proxy_location).create()
     with session:
         session.organization.select(org_name=org.name)
         # Check that the hosts are present
@@ -1247,7 +1235,7 @@ def test_positive_search_with_org_and_loc_context(session):
 
 
 @pytest.mark.tier2
-def test_positive_search_by_org(session, module_loc):
+def test_positive_search_by_org(session, smart_proxy_location):
     """Search for host by specifying host's organization name
 
     :id: a3bb5bc5-cb9c-4b56-b383-f3e4d3d4d222
@@ -1261,7 +1249,7 @@ def test_positive_search_by_org(session, module_loc):
 
     :CaseLevel: Integration
     """
-    host = entities.Host(location=module_loc).create()
+    host = entities.Host(location=smart_proxy_location).create()
     org = host.organization.read()
     with session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
@@ -1324,7 +1312,7 @@ def test_positive_validate_inherited_cv_lce(session, module_host_template, defau
 
 @pytest.mark.tier2
 def test_positive_global_registration_form(
-    session, module_activation_key, module_org, module_loc, module_os, default_sat
+    session, module_activation_key, module_org, smart_proxy_location, module_os, default_sat
 ):
     """Host registration form produces a correct curl command for various inputs
 
@@ -1342,7 +1330,9 @@ def test_positive_global_registration_form(
     rex_value = not result[0]['value']
     result = GlobalParameter().list({'search': 'host_registration_insights'})
     insights_value = not result[0]['value']
-    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
+    hostgroup = entities.HostGroup(
+        organization=[module_org], location=[smart_proxy_location]
+    ).create()
     iface = 'eth0'
     with session:
         cmd = session.host.get_register_command(
@@ -1360,7 +1350,7 @@ def test_positive_global_registration_form(
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
         f'hostgroup_id={hostgroup.id}',
-        f'location_id={module_loc.id}',
+        f'location_id={smart_proxy_location.id}',
         f'operatingsystem_id={module_os.id}',
         f'remote_execution_interface={iface}',
         f'setup_insights={"true" if insights_value else "false"}',
@@ -1374,7 +1364,7 @@ def test_positive_global_registration_form(
 
 @pytest.mark.tier3
 def test_positive_global_registration_end_to_end(
-    session, module_activation_key, module_org, module_loc, module_os, module_proxy
+    session, module_activation_key, module_org, smart_proxy_location, module_os, module_proxy
 ):
     """Host registration form produces a correct registration command and host is
     registered successfully with it, remote execution and insights are set up
@@ -1407,7 +1397,7 @@ def test_positive_global_registration_end_to_end(
     expected_pairs = [
         f'organization_id={module_org.id}',
         f'activation_keys={module_activation_key.name}',
-        f'location_id={module_loc.id}',
+        f'location_id={smart_proxy_location.id}',
         f'operatingsystem_id={module_os.id}',
         f'{module_proxy.name}:9090',
         'insecure',
@@ -1643,7 +1633,9 @@ def test_global_registration_token_restriction(
 
 
 @pytest.mark.tier2
-def test_positive_inherit_puppet_env_from_host_group_when_create(session, module_org, module_loc):
+def test_positive_inherit_puppet_env_from_host_group_when_create(
+    session, module_org, smart_proxy_location
+):
     """Host group puppet environment is inherited to host in create
     procedure
 
@@ -1659,7 +1651,9 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(session, module
     """
     hg_name = gen_string('alpha')
     env_name = gen_string('alpha')
-    entities.Environment(name=env_name, organization=[module_org], location=[module_loc]).create()
+    entities.Environment(
+        name=env_name, organization=[module_org], location=[smart_proxy_location]
+    ).create()
     with session:
         session.hostgroup.create(
             {'host_group.name': hg_name, 'host_group.puppet_environment': env_name}
@@ -1752,7 +1746,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(session, module
 
 @pytest.mark.tier4
 @pytest.mark.upgrade
-def test_positive_bulk_delete_host(session, module_loc):
+def test_positive_bulk_delete_host(session, smart_proxy_location):
     """Delete multiple hosts from the list
 
     :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
@@ -1764,12 +1758,12 @@ def test_positive_bulk_delete_host(session, module_loc):
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    host_template = entities.Host(organization=org, location=module_loc)
+    host_template = entities.Host(organization=org, location=smart_proxy_location)
     host_template.create_missing()
     hosts_names = [
         entities.Host(
             organization=org,
-            location=module_loc,
+            location=smart_proxy_location,
             root_pass=host_template.root_pass,
             architecture=host_template.architecture,
             domain=host_template.domain,
@@ -1796,7 +1790,7 @@ def test_positive_bulk_delete_host(session, module_loc):
 def test_positive_provision_end_to_end(
     session,
     module_org,
-    module_loc,
+    smart_proxy_location,
     module_libvirt_domain,
     module_libvirt_hostgroup,
     module_libvirt_resource,
@@ -1811,13 +1805,15 @@ def test_positive_provision_end_to_end(
     """
     hostname = gen_string('alpha').lower()
     root_pwd = gen_string('alpha', 15)
-    puppet_env = entities.Environment(location=[module_loc], organization=[module_org]).create()
+    puppet_env = entities.Environment(
+        location=[smart_proxy_location], organization=[module_org]
+    ).create()
     with session:
         session.host.create(
             {
                 'host.name': hostname,
                 'host.organization': module_org.name,
-                'host.location': module_loc.name,
+                'host.location': smart_proxy_location.name,
                 'host.hostgroup': module_libvirt_hostgroup.name,
                 'host.inherit_deploy_option': False,
                 'host.deploy': module_libvirt_resource,
@@ -1853,7 +1849,7 @@ def test_positive_provision_end_to_end(
 def test_positive_delete_libvirt(
     session,
     module_org,
-    module_loc,
+    smart_proxy_location,
     module_libvirt_domain,
     module_libvirt_hostgroup,
     module_libvirt_resource,
@@ -1875,13 +1871,15 @@ def test_positive_delete_libvirt(
     """
     hostname = gen_string('alpha').lower()
     root_pwd = gen_string('alpha', 15)
-    puppet_env = entities.Environment(location=[module_loc], organization=[module_org]).create()
+    puppet_env = entities.Environment(
+        location=[smart_proxy_location], organization=[module_org]
+    ).create()
     with session:
         session.host.create(
             {
                 'host.name': hostname,
                 'host.organization': module_org.name,
-                'host.location': module_loc.name,
+                'host.location': smart_proxy_location.name,
                 'host.hostgroup': module_libvirt_hostgroup.name,
                 'host.inherit_deploy_option': False,
                 'host.deploy': module_libvirt_resource,
@@ -1919,17 +1917,17 @@ def gce_cloudinit_template(googleclient, gce_cert):
 
 
 @pytest.fixture
-def gce_domain(module_org, module_loc, gce_cert):
+def gce_domain(module_org, smart_proxy_location, gce_cert):
     domain_name = f'{settings.gce.zone}.c.{gce_cert["project_id"]}.internal'
     domain = entities.Domain().search(query={'search': f'name={domain_name}'})
     if domain:
         domain = domain[0]
         domain.organization = [module_org]
-        domain.location = [module_loc]
+        domain.location = [smart_proxy_location]
         domain.update(['organization', 'location'])
     if not domain:
         domain = entities.Domain(
-            name=domain_name, location=[module_loc], organization=[module_org]
+            name=domain_name, location=[smart_proxy_location], organization=[module_org]
         ).create()
     return domain
 
@@ -1941,7 +1939,7 @@ def gce_resource_with_image(
     gce_cert,
     default_architecture,
     module_os,
-    module_loc,
+    smart_proxy_location,
     module_org,
 ):
     with Session('gce_tests') as session:
@@ -1958,7 +1956,7 @@ def gce_resource_with_image(
                 'provider_content.certificate_path': settings.gce.cert_path,
                 'provider_content.zone.value': settings.gce.zone,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [smart_proxy_location.name],
             }
         )
     gce_cr = entities.AbstractComputeResource().search(query={'search': f'name={cr_name}'})[0]
@@ -1987,7 +1985,7 @@ def gce_resource_with_image(
 @pytest.fixture
 def gce_hostgroup(
     module_org,
-    module_loc,
+    smart_proxy_location,
     default_partition_table,
     default_architecture,
     module_os,
@@ -2004,7 +2002,7 @@ def gce_hostgroup(
         domain=gce_domain,
         lifecycle_environment=module_lce,
         content_view=module_content_view,
-        location=[module_loc],
+        location=[smart_proxy_location],
         environment=module_environment,
         puppet_proxy=module_proxy,
         puppet_ca_proxy=module_proxy,
@@ -2022,7 +2020,7 @@ def test_positive_gce_provision_end_to_end(
     session,
     default_sat,
     module_org,
-    module_loc,
+    smart_proxy_location,
     module_os,
     gce_domain,
     gce_hostgroup,
@@ -2044,7 +2042,7 @@ def test_positive_gce_provision_end_to_end(
     storage = [{'size': 20}]
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Provision GCE Host
         try:
             with default_sat.skip_yum_update_during_provisioning(
@@ -2115,7 +2113,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     session,
     default_sat,
     module_org,
-    module_loc,
+    smart_proxy_location,
     module_os,
     gce_domain,
     gce_hostgroup,
@@ -2137,7 +2135,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
     root_pwd = gen_string('alpha', random.choice([8, 15]))
     with Session('gce_tests') as session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Provision GCE Host
         try:
             with default_sat.skip_yum_update_during_provisioning(

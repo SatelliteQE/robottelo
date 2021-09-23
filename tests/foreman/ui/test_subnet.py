@@ -18,31 +18,20 @@
 """
 import pytest
 from fauxfactory import gen_ipaddr
-from nailgun import entities
 
 from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
-@pytest.fixture(scope='module')
-def module_dom(module_org, module_loc):
-    d = entities.Domain(organization=[module_org.id], location=[module_loc.id]).create()
+def module_dom(default_sat, module_org, module_location):
+    d = default_sat.api.Domain(organization=[module_org.id], location=[module_location.id]).create()
     yield d.read()
     d.delete()
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_dom):
+def test_positive_end_to_end(session, default_sat, module_dom):
     """Perform end to end testing for subnet component in ipv6 network
 
     :id: f77031c9-2ca8-44db-8afa-d0212aeda540
@@ -70,7 +59,7 @@ def test_positive_end_to_end(session, module_dom):
                 'domains.resources.assigned': [module_dom.name],
             }
         )
-        sn = entities.Subnet().search(query={'search': f'name={name}'})
+        sn = default_sat.api.Subnet().search(query={'search': f'name={name}'})
         assert sn, f'Subnet {sn} expected to exist, but it is not listed'
         sn = sn[0]
         subnet_values = session.subnet.read(name, widget_names=['subnet', 'domains'])
@@ -89,6 +78,6 @@ def test_positive_end_to_end(session, module_dom):
         sn.domain = []
         sn.update(['domain'])
         session.subnet.delete(new_name)
-        assert not entities.Subnet().search(
+        assert not default_sat.api.Subnet().search(
             query={'search': f'name={new_name}'}
         ), 'The subnet was supposed to be deleted'

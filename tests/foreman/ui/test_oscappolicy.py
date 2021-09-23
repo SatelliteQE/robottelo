@@ -26,23 +26,18 @@ from robottelo.datafactory import gen_string
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc(module_org):
-    return entities.Location(organization=[module_org]).create()
-
-
-@pytest.fixture(scope='module')
-def module_host_group(module_loc, module_org):
-    return entities.HostGroup(location=[module_loc], organization=[module_org]).create()
+def module_host_group(module_location, module_org):
+    return entities.HostGroup(location=[module_location], organization=[module_org]).create()
 
 
 @pytest.mark.tier2
 def test_positive_check_dashboard(
-    session, module_host_group, module_loc, module_org, oscap_content_path, import_ansible_roles
+    session,
+    module_host_group,
+    module_location,
+    module_org,
+    oscap_content_path,
+    import_ansible_roles,
 ):
     """Create OpenScap Policy which is connected to the host. That policy
     dashboard should be rendered and correctly display information about
@@ -77,7 +72,7 @@ def test_positive_check_dashboard(
     promote(content_view.version[0], environment_id=lce.id)
     entities.Host(
         hostgroup=module_host_group,
-        location=module_loc,
+        location=module_location,
         organization=module_org,
         content_facet_attributes={
             'content_view_id': content_view.id,
@@ -98,7 +93,7 @@ def test_positive_check_dashboard(
                 'scap_content.xccdf_profile': OSCAP_PROFILE['security7'],
                 'schedule.period': 'Weekly',
                 'schedule.period_selection.weekday': 'Friday',
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
                 'host_group.resources.assigned': [module_host_group.name],
             }
@@ -113,7 +108,7 @@ def test_positive_check_dashboard(
 def test_positive_end_to_end(
     session,
     module_host_group,
-    module_loc,
+    module_location,
     module_org,
     oscap_content_path,
     tailoring_file_path,
@@ -162,7 +157,7 @@ def test_positive_end_to_end(
                 'scap_content.xccdf_profile_tailoring_file': tailoring_type,
                 'schedule.period': 'Monthly',
                 'schedule.period_selection.day_of_month': '5',
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
                 'host_group.resources.assigned': [module_host_group.name],
             }
@@ -179,7 +174,7 @@ def test_positive_end_to_end(
         assert oscappolicy_values['scap_content']['xccdf_profile_tailoring_file'] == tailoring_type
         assert oscappolicy_values['schedule']['period'] == 'Monthly'
         assert oscappolicy_values['schedule']['period_selection']['day_of_month'] == '5'
-        assert module_loc.name in oscappolicy_values['locations']['resources']['assigned']
+        assert module_location.name in oscappolicy_values['locations']['resources']['assigned']
         assert module_org.name in oscappolicy_values['organizations']['resources']['assigned']
         assert oscappolicy_values['host_group']['resources']['assigned'] == [module_host_group.name]
         # Update oscap policy with new name

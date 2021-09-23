@@ -24,7 +24,7 @@ from robottelo.ui.utils import create_fake_host
 @pytest.mark.skip_if_open("BZ:1758260")
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for hardware model component
 
     :id: 93663cc9-7c8f-4f43-8050-444be1313bed
@@ -42,7 +42,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     vendor_class = gen_string('alpha')
     info = gen_string('alpha')
     new_name = gen_string('alpha')
-    host_template = entities.Host(organization=module_org, location=module_loc)
+    host_template = entities.Host(organization=module_org, location=module_location)
     host_template.create_missing()
     with session:
         # Create new hardware model

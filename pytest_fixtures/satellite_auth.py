@@ -75,7 +75,7 @@ def open_ldap_data():
 
 
 @pytest.fixture(scope='function')
-def auth_source(module_org, module_loc, ad_data):
+def auth_source(module_org, module_location, ad_data):
     ad_data = ad_data()
     return entities.AuthSourceLDAP(
         onthefly_register=True,
@@ -93,12 +93,12 @@ def auth_source(module_org, module_loc, ad_data):
         tls=False,
         port='389',
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
     ).create()
 
 
 @pytest.fixture(scope='function')
-def auth_source_ipa(module_org, module_loc, ipa_data):
+def auth_source_ipa(module_org, module_location, ipa_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=ipa_data['ldap_user_cn'],
@@ -115,12 +115,12 @@ def auth_source_ipa(module_org, module_loc, ipa_data):
         tls=False,
         port='389',
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
     ).create()
 
 
 @pytest.fixture(scope='function')
-def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
+def auth_source_open_ldap(module_org, module_location, open_ldap_data):
     return entities.AuthSourceLDAP(
         onthefly_register=True,
         account=open_ldap_data['ldap_user_cn'],
@@ -137,7 +137,7 @@ def auth_source_open_ldap(module_org, module_loc, open_ldap_data):
         tls=False,
         port='389',
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
     ).create()
 
 

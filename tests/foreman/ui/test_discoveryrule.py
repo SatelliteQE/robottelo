@@ -27,11 +27,6 @@ from robottelo.api.utils import create_discovered_host
 
 
 @pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
-@pytest.fixture(scope='module')
 def manager_loc():
     return entities.Location().create()
 
@@ -42,10 +37,10 @@ def module_org():
 
 
 @pytest.fixture
-def module_discovery_env(module_org, module_loc):
+def module_discovery_env(module_org, module_location):
     discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
     default_discovery_loc = discovery_loc.value
-    discovery_loc.value = module_loc.name
+    discovery_loc.value = module_location.name
     discovery_loc.update(['value'])
     discovery_org = entities.Setting().search(query={'search': 'name="discovery_organization"'})[0]
     default_discovery_org = discovery_org.value
@@ -59,14 +54,14 @@ def module_discovery_env(module_org, module_loc):
 
 
 @pytest.fixture
-def manager_user(manager_loc, module_loc, module_org):
+def manager_user(manager_loc, module_location, module_org):
     manager_role = entities.Role().search(query={'search': 'name="Discovery Manager"'})[0]
     password = gen_string('alphanumeric')
     manager_user = entities.User(
         login=gen_string('alpha'),
         role=[manager_role],
         password=password,
-        location=[module_loc, manager_loc],
+        location=[module_location, manager_loc],
         organization=[module_org],
     ).create()
     manager_user.password = password
@@ -74,7 +69,7 @@ def manager_user(manager_loc, module_loc, module_org):
 
 
 @pytest.fixture
-def reader_user(module_loc, module_org):
+def reader_user(module_location, module_org):
     password = gen_string('alphanumeric')
     reader_role = entities.Role().search(query={'search': 'name="Discovery Reader"'})[0]
     reader_user = entities.User(
@@ -82,7 +77,7 @@ def reader_user(module_loc, module_org):
         role=[reader_role],
         password=password,
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
     ).create()
     reader_user.password = password
     return reader_user
@@ -135,7 +130,7 @@ def test_positive_delete_rule_with_non_admin_user(manager_loc, manager_user, mod
 
 @pytest.mark.tier2
 def test_positive_view_existing_rule_with_non_admin_user(
-    module_loc, module_org, reader_user, test_name
+    module_location, module_org, reader_user, test_name
 ):
     """Existing rule should be viewed to non-admin user by associating
     discovery_reader role.
@@ -154,7 +149,7 @@ def test_positive_view_existing_rule_with_non_admin_user(
     """
     hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
-        hostgroup=hg, organization=[module_org], location=[module_loc]
+        hostgroup=hg, organization=[module_org], location=[module_location]
     ).create()
     with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
         dr_val = session.discoveryrule.read_all()
@@ -162,7 +157,9 @@ def test_positive_view_existing_rule_with_non_admin_user(
 
 
 @pytest.mark.tier2
-def test_negative_delete_rule_with_non_admin_user(module_loc, module_org, reader_user, test_name):
+def test_negative_delete_rule_with_non_admin_user(
+    module_location, module_org, reader_user, test_name
+):
     """Delete rule with non-admin user by associating discovery_reader role
 
     :id: 23a7627c-6a9b-493b-871f-698543adf1d2
@@ -174,7 +171,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org, reader
     """
     hg = entities.HostGroup(organization=[module_org]).create()
     dr = entities.DiscoveryRule(
-        hostgroup=hg, organization=[module_org], location=[module_loc]
+        hostgroup=hg, organization=[module_org], location=[module_location]
     ).create()
     with Session(test_name, user=reader_user.login, password=reader_user.password) as session:
         with pytest.raises(ValueError):
@@ -186,7 +183,7 @@ def test_negative_delete_rule_with_non_admin_user(module_loc, module_org, reader
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_positive_list_host_based_on_rule_search_query(
-    session, module_org, module_loc, module_discovery_env
+    session, module_org, module_location, module_discovery_env
 ):
     """List all the discovered hosts resolved by given rule's search query
     e.g. all discovered hosts with cpu_count = 2, and list rule's associated
@@ -213,10 +210,10 @@ def test_positive_list_host_based_on_rule_search_query(
     cpu_count = gen_integer(2, 10)
     rule_search = f'cpu_count = {cpu_count}'
     # any way create a host to be sure that this org has more than one host
-    host = entities.Host(organization=module_org, location=module_loc).create()
+    host = entities.Host(organization=module_org, location=module_location).create()
     host_group = entities.HostGroup(
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
         medium=host.medium,
         root_pass=gen_string('alpha'),
         operatingsystem=host.operatingsystem,
@@ -225,7 +222,10 @@ def test_positive_list_host_based_on_rule_search_query(
         architecture=host.architecture,
     ).create()
     discovery_rule = entities.DiscoveryRule(
-        hostgroup=host_group, search_=rule_search, organization=[module_org], location=[module_loc]
+        hostgroup=host_group,
+        search_=rule_search,
+        organization=[module_org],
+        location=[module_location],
     ).create()
     discovered_host = create_discovered_host(
         ip_address=ip_address, options={'physicalprocessorcount': cpu_count}
@@ -235,7 +235,7 @@ def test_positive_list_host_based_on_rule_search_query(
     provisioned_host_name = '{}.{}'.format(discovered_host['name'], host.domain.read().name)
     with session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+        session.location.select(loc_name=module_location.name)
         values = session.discoveryrule.read_all()
         assert discovery_rule.name in [rule['Name'] for rule in values]
         values = session.discoveryrule.read_discovered_hosts(discovery_rule.name)
@@ -256,7 +256,7 @@ def test_positive_list_host_based_on_rule_search_query(
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for discovery rule component.
 
     :id: dd35e566-dc3a-43d3-939c-a33ae528740f
@@ -277,8 +277,10 @@ def test_positive_end_to_end(session, module_org, module_loc):
     new_hostname = gen_string('alpha')
     new_hosts_limit = str(gen_integer(101, 200))
     new_priority = str(gen_integer(101, 200))
-    entities.HostGroup(name=hg_name, organization=[module_org], location=[module_loc]).create()
-    entities.HostGroup(name=new_hg_name, organization=[module_org], location=[module_loc]).create()
+    entities.HostGroup(name=hg_name, organization=[module_org], location=[module_location]).create()
+    entities.HostGroup(
+        name=new_hg_name, organization=[module_org], location=[module_location]
+    ).create()
     new_org = entities.Organization().create()
     new_loc = entities.Location().create()
     with session:
@@ -292,7 +294,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'primary.priority': priority,
                 'primary.enabled': False,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         values = session.discoveryrule.read(
@@ -306,7 +308,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert values['primary']['priority'] == priority
         assert values['primary']['enabled'] is False
         assert values['organizations']['resources']['assigned'] == [module_org.name]
-        assert values['locations']['resources']['assigned'] == [module_loc.name]
+        assert values['locations']['resources']['assigned'] == [module_location.name]
         session.discoveryrule.update(
             rule_name,
             {
@@ -336,7 +338,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert {new_org.name, module_org.name} == set(
             values['organizations']['resources']['assigned']
         )
-        assert {new_loc.name, module_loc.name} == set(values['locations']['resources']['assigned'])
+        assert {new_loc.name, module_location.name} == set(
+            values['locations']['resources']['assigned']
+        )
         session.discoveryrule.delete(new_rule_name)
         rules = session.discoveryrule.read_all()
         assert new_rule_name not in [rule['Name'] for rule in rules]

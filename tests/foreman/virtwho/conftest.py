@@ -1,42 +1,13 @@
-import nailgun.entities
 import pytest
 from airgun.session import Session
 from fauxfactory import gen_string
 from requests.exceptions import HTTPError
 
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
 from robottelo.logging import logger
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    """Shares the same organization for all tests in specific test module.
-    Returns 'Default Organization' by default, override this fixture on
-
-    :rtype: :class:`nailgun.entities.Organization`
-    """
-    default_org_id = (
-        nailgun.entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0].id
-    )
-    return nailgun.entities.Organization(id=default_org_id).read()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    """Shares the same location for all tests in specific test module.
-    Returns 'Default Location' by default, override this fixture on
-
-    :rtype: :class:`nailgun.entities.Organization`
-    """
-    default_loc_id = (
-        nailgun.entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    )
-    return nailgun.entities.Location(id=default_loc_id).read()
-
-
-@pytest.fixture(scope='module')
-def module_user(request, module_org, module_loc):
+def module_user(request, default_sat, module_org, module_location):
     """Creates admin user with default org set to module org and shares that
     user for all tests in the same test module. User's login contains test
     module name as a prefix.
@@ -48,10 +19,10 @@ def module_user(request, module_org, module_loc):
     login = f'{test_module_name}_{gen_string("alphanumeric")}'
     password = gen_string('alphanumeric')
     logger.debug('Creating session user %r', login)
-    user = nailgun.entities.User(
+    user = default_sat.api.User(
         admin=True,
         default_organization=module_org,
-        default_location=module_loc,
+        default_location=module_location,
         description=f'created automatically by airgun for module "{test_module_name}"',
         login=login,
         password=password,

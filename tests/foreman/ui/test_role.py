@@ -28,19 +28,9 @@ from robottelo.constants import ROLES
 from robottelo.datafactory import gen_string
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for role component
 
     :id: 3284016a-e2df-4a0e-aa24-c95ab132eec1
@@ -70,14 +60,14 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'name': role_name,
                 'description': role_description,
                 'organizations.assigned': [module_org.name],
-                'locations.assigned': [module_loc.name],
+                'locations.assigned': [module_location.name],
             }
         )
         values = session.role.read(role_name)
         assert values['name'] == role_name
         assert values['description'] == role_description
         assert values['organizations']['assigned'] == [module_org.name]
-        assert values['locations']['assigned'] == [module_loc.name]
+        assert values['locations']['assigned'] == [module_location.name]
         session.filter.create(
             role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
         )
@@ -104,7 +94,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert values['name'] == new_role_name
         assert values['description'] == new_role_description
         assert set(values['organizations']['assigned']) == {module_org.name, new_org.name}
-        assert set(values['locations']['assigned']) == {module_loc.name, new_loc.name}
+        assert set(values['locations']['assigned']) == {module_location.name, new_loc.name}
         # delete the role
         session.role.delete(new_role_name)
         assert not session.role.search(new_role_name)
@@ -173,7 +163,7 @@ def test_positive_delete_cloned_builtin(session):
 
 
 @pytest.mark.tier2
-def test_positive_create_filter_without_override(session, module_org, module_loc, test_name):
+def test_positive_create_filter_without_override(session, module_org, module_location, test_name):
     """Create filter in role w/o overriding it
 
     :id: a7f76f6e-6c13-4b34-b38c-19501b65786f
@@ -203,7 +193,7 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
             {
                 'name': role_name,
                 'organizations.assigned': [module_org.name],
-                'locations.assigned': [module_loc.name],
+                'locations.assigned': [module_location.name],
             }
         )
         assert session.role.search(role_name)[0]['Name'] == role_name
@@ -236,7 +226,7 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
                 'user.mail': 'test@eample.com',
                 'roles.resources.assigned': [role_name],
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
     with Session(test_name, user=username, password=password) as session:
@@ -256,7 +246,7 @@ def test_positive_create_filter_without_override(session, module_org, module_loc
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_non_overridable_filter(session, module_org, module_loc, test_name):
+def test_positive_create_non_overridable_filter(session, module_org, module_location, test_name):
     """Create non overridden filter in role
 
     :id: 5ee281cf-28fa-439d-888d-b1f9aacc6d57
@@ -287,7 +277,7 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loc,
             {
                 'name': role_name,
                 'organizations.assigned': [module_org.name],
-                'locations.assigned': [module_loc.name],
+                'locations.assigned': [module_location.name],
             }
         )
         assert session.role.search(role_name)[0]['Name'] == role_name
@@ -319,7 +309,7 @@ def test_positive_create_non_overridable_filter(session, module_org, module_loc,
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_overridable_filter(session, module_org, module_loc, test_name):
+def test_positive_create_overridable_filter(session, module_org, module_location, test_name):
     """Create overridden filter in role
 
     :id: 325e7e3e-60fc-4182-9585-0449d9660e8d
@@ -355,7 +345,7 @@ def test_positive_create_overridable_filter(session, module_org, module_loc, tes
             {
                 'name': role_name,
                 'organizations.assigned': [role_org.name, module_org.name],
-                'locations.assigned': [role_loc.name, module_loc.name],
+                'locations.assigned': [role_loc.name, module_location.name],
             }
         )
         assert session.role.search(role_name)[0]['Name'] == role_name
@@ -365,7 +355,7 @@ def test_positive_create_overridable_filter(session, module_org, module_loc, tes
                 'resource_type': 'Subnet',
                 'permission.assigned': ['view_subnets', 'create_subnets'],
                 'override': True,
-                'taxonomies_tabs.locations.resources.assigned': [module_loc.name],
+                'taxonomies_tabs.locations.resources.assigned': [module_location.name],
                 'taxonomies_tabs.organizations.resources.assigned': [module_org.name],
             },
         )
@@ -392,12 +382,12 @@ def test_positive_create_overridable_filter(session, module_org, module_loc, tes
                 'user.mail': 'test@eample.com',
                 'roles.resources.assigned': [role_name],
                 'organizations.resources.assigned': [role_org.name, module_org.name],
-                'locations.resources.assigned': [role_loc.name, module_loc.name],
+                'locations.resources.assigned': [role_loc.name, module_location.name],
             }
         )
     with Session(test_name, user=username, password=password) as session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+        session.location.select(loc_name=module_location.name)
         session.subnet.create(
             {
                 'subnet.name': subnet_name,

@@ -21,7 +21,6 @@ import time
 
 import pytest
 from broker import VMBroker
-from nailgun import entities
 from wait_for import wait_for
 
 from robottelo.api.utils import update_vm_host_location
@@ -29,22 +28,11 @@ from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 
 
-@pytest.fixture(scope='module')
-def module_loc(module_org, default_sat):
-    location = entities.Location(organization=[module_org]).create()
-    smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-    )
-    smart_proxy.location.append(entities.Location(id=location.id))
-    smart_proxy.update(['location'])
-    return location
-
-
 @pytest.fixture
-def module_vm_client_by_ip(rhel7_contenthost, module_org, module_loc, default_sat):
+def module_vm_client_by_ip(rhel7_contenthost, module_org, smart_proxy_location, default_sat):
     """Setup a VM client to be used in remote execution by ip"""
     rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
-    update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
+    update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 
 
@@ -136,7 +124,7 @@ def test_positive_run_custom_job_template_by_ip(session, module_vm_client_by_ip)
 @pytest.mark.upgrade
 @pytest.mark.tier3
 def test_positive_run_job_template_multiple_hosts_by_ip(
-    session, module_org, module_loc, default_sat
+    session, module_org, smart_proxy_location, default_sat
 ):
     """Run a job template against multiple hosts by ip
 
@@ -161,7 +149,7 @@ def test_positive_run_job_template_multiple_hosts_by_ip(
         for host in hosts:
             host_names.append(host.hostname)
             host.configure_rex(satellite=default_sat, org=module_org)
-            update_vm_host_location(host, location_id=module_loc.id)
+            update_vm_host_location(host, location_id=smart_proxy_location.id)
         with session:
             hosts = session.host.search(
                 ' or '.join([f'name="{hostname}"' for hostname in host_names])

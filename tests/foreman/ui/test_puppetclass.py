@@ -21,19 +21,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc(module_org):
-    return entities.Location(organization=[module_org]).create()
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for puppet class component
 
     :id: f837eec0-101c-4aff-a270-652005bdee51
@@ -45,7 +35,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     :CaseImportance: High
     """
     name = gen_string('alpha')
-    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
+    hostgroup = entities.HostGroup(organization=[module_org], location=[module_location]).create()
     puppet_class = entities.PuppetClass(name=name).create()
     with session:
         # Check that created puppet class can be found in UI

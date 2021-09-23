@@ -29,7 +29,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.fixture(scope='module')
-def module_org():
+def discovery_org():
     org = entities.Organization().create()
     # Update default discovered host organization
     discovery_org = entities.Setting().search(query={'search': 'name="discovery_organization"'})[0]
@@ -42,8 +42,8 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def module_loc(module_org):
-    loc = entities.Location(name=gen_string('alpha'), organization=[module_org]).create()
+def discovery_location(discovery_org):
+    loc = entities.Location(name=gen_string('alpha'), organization=[discovery_org]).create()
     # Update default discovered host location
     discovery_loc = entities.Setting().search(query={'search': 'name="discovery_location"'})[0]
     default_discovery_loc = discovery_loc.value
@@ -55,12 +55,12 @@ def module_loc(module_org):
 
 
 @pytest.fixture(scope='module')
-def provisioning_env(module_org, module_loc):
+def provisioning_env(discovery_org, discovery_location):
     # Build PXE default template to get default PXE file
     entities.ProvisioningTemplate().build_pxe_default()
     return configure_provisioning(
-        org=module_org,
-        loc=module_loc,
+        org=discovery_org,
+        loc=discovery_location,
         os='Redhat {}'.format(RHELRepository().repo_data['version']),
     )
 
@@ -71,12 +71,12 @@ def discovered_host():
 
 
 @pytest.fixture(scope='module')
-def module_host_group(module_org, module_loc):
-    host = entities.Host(organization=module_org, location=module_loc)
+def module_host_group(discovery_org, discovery_location):
+    host = entities.Host(organization=discovery_org, location=discovery_location)
     host.create_missing()
     return entities.HostGroup(
-        organization=[module_org],
-        location=[module_loc],
+        organization=[discovery_org],
+        location=[discovery_location],
         medium=host.medium,
         root_pass=gen_string('alpha'),
         operatingsystem=host.operatingsystem,
@@ -166,7 +166,7 @@ def test_positive_pxe_less_with_dhcp_unattended(session, provisioning_env):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_positive_provision_using_quick_host_button(
-    session, module_org, module_loc, discovered_host, module_host_group
+    session, discovery_org, discovery_location, discovered_host, module_host_group
 ):
     """Associate hostgroup while provisioning a discovered host from
     host properties model window and select quick host.
@@ -190,7 +190,10 @@ def test_positive_provision_using_quick_host_button(
     host_name = f'{discovered_host_name}.{domain_name}'
     with session:
         session.discoveredhosts.provision(
-            discovered_host_name, module_host_group.name, module_org.name, module_loc.name
+            discovered_host_name,
+            module_host_group.name,
+            discovery_org.name,
+            discovery_location.name,
         )
         values = session.host.get_details(host_name)
         assert values['properties']['properties_table']['Status'] == 'OK'
@@ -198,7 +201,9 @@ def test_positive_provision_using_quick_host_button(
 
 
 @pytest.mark.tier3
-def test_positive_update_name(session, module_org, module_loc, module_host_group, discovered_host):
+def test_positive_update_name(
+    session, discovery_org, discovery_location, module_host_group, discovered_host
+):
     """Update the discovered host name and provision it
 
     :id: 3770b007-5006-4815-ae03-fbd330aad304
@@ -222,8 +227,8 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
         session.discoveredhosts.provision(
             discovered_host_name,
             module_host_group.name,
-            module_org.name,
-            module_loc.name,
+            discovery_org.name,
+            discovery_location.name,
             quick=False,
             host_values={'host.name': new_name},
         )
@@ -235,7 +240,9 @@ def test_positive_update_name(session, module_org, module_loc, module_host_group
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
-def test_positive_auto_provision_host_with_rule(session, module_org, module_loc, module_host_group):
+def test_positive_auto_provision_host_with_rule(
+    session, discovery_org, discovery_location, module_host_group
+):
     """Create a new discovery rule and automatically create host from discovered host using that
     discovery rule.
 
@@ -258,8 +265,8 @@ def test_positive_auto_provision_host_with_rule(session, module_org, module_loc,
         max_count=1,
         hostgroup=module_host_group,
         search_=f'ip = {host_ip}',
-        location=[module_loc],
-        organization=[module_org],
+        location=[discovery_location],
+        organization=[discovery_org],
     ).create()
     with session:
         session.discoveredhosts.apply_action('Auto Provision', [discovered_host_name])
@@ -296,7 +303,7 @@ def test_positive_delete(session, discovered_host):
 
 
 @pytest.mark.tier3
-def test_positive_update_default_taxonomies(session, module_org, module_loc):
+def test_positive_update_default_taxonomies(session, discovery_org, discovery_location):
     """Change the default organization and location of more than one
     discovered hosts from 'Select Action' drop down
 
@@ -313,9 +320,9 @@ def test_positive_update_default_taxonomies(session, module_org, module_loc):
     """
     host_names = [create_discovered_host()['name'] for _ in range(2)]
     new_org = entities.Organization().create()
-    module_loc.organization.append(new_org)
-    module_loc.update(['organization'])
-    new_loc = entities.Location(organization=[module_org]).create()
+    discovery_location.organization.append(new_org)
+    discovery_location.update(['organization'])
+    new_loc = entities.Location(organization=[discovery_org]).create()
     with session:
         values = session.discoveredhosts.search('name = "{}" or name = "{}"'.format(*host_names))
         assert set(host_names) == {value['Name'] for value in values}

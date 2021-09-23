@@ -18,24 +18,13 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.constants import INSTALL_MEDIUM_URL
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc(module_org):
-    return entities.Location(organization=[module_org]).create()
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for media component
 
     :id: fb7a248a-21ef-43b2-a488-8d7628a55ccd
@@ -57,7 +46,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'medium.path': path,
                 'medium.os_family': 'Windows',
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         assert session.media.search(name)[0]['Name'] == name
@@ -66,7 +55,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert media_values['medium']['path'] == path
         assert media_values['medium']['os_family'] == 'Windows'
         assert media_values['organizations']['resources']['assigned'] == [module_org.name]
-        assert media_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert media_values['locations']['resources']['assigned'] == [module_location.name]
         # Update media with new name
         session.media.update(name, {'medium.name': new_name})
         assert session.media.search(new_name)[0]['Name'] == new_name

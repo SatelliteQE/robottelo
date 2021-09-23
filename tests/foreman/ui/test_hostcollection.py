@@ -44,17 +44,6 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def module_loc(module_org, default_sat):
-    location = entities.Location(organization=[module_org]).create()
-    smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-    )
-    smart_proxy.location.append(entities.Location(id=location.id))
-    smart_proxy.update(['location'])
-    return location
-
-
-@pytest.fixture(scope='module')
 def module_lce(module_org):
     return entities.LifecycleEnvironment(organization=module_org).create()
 
@@ -84,7 +73,7 @@ def module_repos_collection_module_stream(module_org, module_lce):
 
 
 @pytest.fixture
-def vm_content_hosts(module_loc, module_repos_collection, default_sat):
+def vm_content_hosts(smart_proxy_location, module_repos_collection, default_sat):
     distro = module_repos_collection.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
@@ -92,12 +81,14 @@ def vm_content_hosts(module_loc, module_repos_collection, default_sat):
                 client, default_sat, install_katello_agent=False
             )
             client.add_rex_key(satellite=default_sat)
-            update_vm_host_location(client, module_loc.id)
+            update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 
 @pytest.fixture
-def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_stream, default_sat):
+def vm_content_hosts_module_stream(
+    smart_proxy_location, module_repos_collection_module_stream, default_sat
+):
     distro = module_repos_collection_module_stream.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
@@ -105,7 +96,7 @@ def vm_content_hosts_module_stream(module_loc, module_repos_collection_module_st
                 client, default_sat, install_katello_agent=False
             )
             client.add_rex_key(satellite=default_sat)
-            update_vm_host_location(client, module_loc.id)
+            update_vm_host_location(client, smart_proxy_location.id)
         yield clients
 
 
@@ -223,7 +214,7 @@ def _get_content_repository_urls(repos_collection, lce, content_view, default_sa
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, smart_proxy_location):
     """Perform end to end testing for host collection component
 
     :id: 1d40bc74-8e05-42fa-b6e3-2999dc3b730d
@@ -237,7 +228,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     hc_name = gen_string('alpha')
     new_name = gen_string('alpha')
     description = gen_string('alpha')
-    host = entities.Host(organization=module_org, location=module_loc).create()
+    host = entities.Host(organization=module_org, location=smart_proxy_location).create()
     with session:
         # Create new host collection
         session.hostcollection.create(
@@ -267,7 +258,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-def test_negative_install_via_remote_execution(session, module_org, module_loc):
+def test_negative_install_via_remote_execution(session, module_org, smart_proxy_location):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution.
 
@@ -282,7 +273,7 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org, location=module_loc).create())
+        hosts.append(entities.Host(organization=module_org, location=smart_proxy_location).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts], organization=module_org
     ).create()
@@ -300,7 +291,7 @@ def test_negative_install_via_remote_execution(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-def test_negative_install_via_custom_remote_execution(session, module_org, module_loc):
+def test_negative_install_via_custom_remote_execution(session, module_org, smart_proxy_location):
     """Test basic functionality of the Hosts collection UI install package via
     remote execution - customize first.
 
@@ -315,7 +306,7 @@ def test_negative_install_via_custom_remote_execution(session, module_org, modul
     """
     hosts = []
     for _ in range(2):
-        hosts.append(entities.Host(organization=module_org, location=module_loc).create())
+        hosts.append(entities.Host(organization=module_org, location=smart_proxy_location).create())
     host_collection = entities.HostCollection(
         host=[host.id for host in hosts], organization=module_org
     ).create()
@@ -628,7 +619,7 @@ def test_positive_change_assigned_content(
 
 
 @pytest.mark.tier3
-def test_negative_hosts_limit(session, module_org, module_loc):
+def test_negative_hosts_limit(session, module_org, smart_proxy_location):
     """Check that Host limit actually limits usage
 
     :id: 57b70977-2110-47d9-be3b-461ad15c70c7
@@ -657,7 +648,7 @@ def test_negative_hosts_limit(session, module_org, module_loc):
         hosts.append(
             entities.Host(
                 organization=module_org,
-                location=module_loc,
+                location=smart_proxy_location,
                 content_facet_attributes={
                     'content_view_id': cv.id,
                     'lifecycle_environment_id': lce.id,

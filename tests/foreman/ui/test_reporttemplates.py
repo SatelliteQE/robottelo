@@ -140,7 +140,7 @@ def test_positive_preview_report(session):
 
 
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for report template component's CRUD operations
 
     :id: b44d4cc8-a78e-47cf-9993-0bb871ac2c96
@@ -175,7 +175,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
                 'inputs': template_input,
                 'type.snippet': False,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         # READ report template
@@ -191,7 +191,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             == template_input[0]['input_content.description']
         )
         assert rt['type']['snippet'] is False
-        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['locations']['resources']['assigned'][0] == module_location.name
         assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # UPDATE report template
         session.reporttemplate.update(name, {'template.name': new_name, 'type.snippet': True})
@@ -207,7 +207,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
             == template_input[0]['input_content.description']
         )
         assert rt['type']['snippet'] is True
-        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['locations']['resources']['assigned'][0] == module_location.name
         assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # LOCK
         session.reporttemplate.lock(new_name)
@@ -225,7 +225,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         assert rt['inputs'][0]['required'] is True
         assert rt['inputs'][0]['input_type'] == 'User input'
         assert rt['type']['snippet'] is True
-        assert rt['locations']['resources']['assigned'][0] == module_loc.name
+        assert rt['locations']['resources']['assigned'][0] == module_location.name
         assert rt['organizations']['resources']['assigned'][0] == module_org.name
         # EXPORT
         file_path = session.reporttemplate.export(new_name)
@@ -239,7 +239,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_generate_registered_hosts_report(session, module_org, module_loc):
+def test_positive_generate_registered_hosts_report(session, module_org, module_location):
     """Use provided Host - Registered Content Hosts report for testing
 
     :id: b44d4cd8-a78e-47cf-9993-0bb871ac2c96
@@ -256,7 +256,7 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
     os = entities.OperatingSystem(name=os_name).create()
     host_cnt = 3
     host_templates = [
-        entities.Host(organization=module_org, location=module_loc, operatingsystem=os)
+        entities.Host(organization=module_org, location=module_location, operatingsystem=os)
         for i in range(host_cnt)
     ]
     for host_template in host_templates:
@@ -289,7 +289,7 @@ def test_positive_generate_registered_hosts_report(session, module_org, module_l
 @pytest.mark.upgrade
 @pytest.mark.tier2
 def test_positive_generate_subscriptions_report_json(
-    session, module_org, module_loc, setup_content
+    session, module_org, module_location, setup_content
 ):
     """Use provided Subscriptions report, generate JSON
 
@@ -384,7 +384,9 @@ def test_positive_autocomplete(session):
 
 
 @pytest.mark.tier2
-def test_positive_schedule_generation_and_get_mail(session, module_org, module_loc, default_sat):
+def test_positive_schedule_generation_and_get_mail(
+    session, module_org, module_location, default_sat
+):
     """Schedule generating a report. Request the result be sent via e-mail.
 
     :id: cd19b90d-836f-4efd-c3bc-d5e09a909a67

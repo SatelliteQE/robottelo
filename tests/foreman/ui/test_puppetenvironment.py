@@ -17,26 +17,15 @@
 :Upstream: No
 """
 import pytest
-from nailgun import entities
 
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for puppet environment component
 
     :id: 2ef32b2d-acdd-4cb1-a760-da4fd1166167
@@ -53,7 +42,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         session.puppetenvironment.create(
             {
                 'environment.name': name,
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
             }
         )
@@ -62,7 +51,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
         env_values = session.puppetenvironment.read(name)
         assert env_values['environment']['name'] == name
         assert env_values['organizations']['resources']['assigned'][0] == module_org.name
-        assert env_values['locations']['resources']['assigned'][0] == module_loc.name
+        assert env_values['locations']['resources']['assigned'][0] == module_location.name
         session.puppetenvironment.update(name, {'environment.name': new_name})
         found_envs = session.puppetenvironment.search(new_name)
         assert new_name in [env['Name'] for env in found_envs]
@@ -71,7 +60,9 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(session, module_loc):
+def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
+    session, default_sat, module_location
+):
     """An environment that is present in different organizations should be
     visible for any created host and hostgroup in those organizations
 
@@ -89,26 +80,26 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(session, 
     :CaseImportance: High
     """
     env_name = gen_string('alpha')
-    orgs = [entities.Organization().create() for _ in range(2)]
+    orgs = [default_sat.api.Organization().create() for _ in range(2)]
     with session:
         session.puppetenvironment.create(
             {
                 'environment.name': env_name,
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [org.name for org in orgs],
             }
         )
         for org in orgs:
             session.organization.select(org_name=org.name)
             assert session.puppetenvironment.search(env_name)[0]['Name'] == env_name
-            host = entities.Host(location=module_loc, organization=org)
+            host = default_sat.api.Host(location=module_location, organization=org)
             host.create_missing()
             os_name = f'{host.operatingsystem.name} {host.operatingsystem.major}'
             session.host.create(
                 {
                     'host.name': host.name,
                     'host.organization': org.name,
-                    'host.location': module_loc.name,
+                    'host.location': module_location.name,
                     'host.lce': ENVIRONMENT,
                     'host.content_view': DEFAULT_CV,
                     'host.puppet_environment': env_name,

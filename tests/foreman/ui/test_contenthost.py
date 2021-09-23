@@ -134,8 +134,8 @@ def run_remote_command_on_content_host(command, vm_module_streams):
 
 
 @pytest.fixture(scope='module')
-def module_host_template(module_org, module_loc):
-    host_template = entities.Host(organization=module_org, location=module_loc)
+def module_host_template(module_org, module_location):
+    host_template = entities.Host(organization=module_org, location=module_location)
     host_template.create_missing()
     host_template.name = None
     return host_template

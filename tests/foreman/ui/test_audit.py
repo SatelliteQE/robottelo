@@ -28,17 +28,12 @@ def module_org():
     return entities.Organization().create()
 
 
-@pytest.fixture(scope='module')
-def module_loc(module_org):
-    return entities.Location(organization=[module_org]).create()
-
-
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_event(session, module_org, module_loc):
+def test_positive_create_event(session, module_org, module_location):
     """When new host is created, corresponding audit entry appear in the application
 
     :id: d0595705-f4b2-4f06-888b-ee93edd4acf8
@@ -53,17 +48,17 @@ def test_positive_create_event(session, module_org, module_loc):
 
     :BZ: 1730360
     """
-    host = entities.Host(organization=module_org, location=module_loc).create()
+    host = entities.Host(organization=module_org, location=module_location).create()
     with session:
         session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_loc.name)
+        session.location.select(loc_name=module_location.name)
         values = session.audit.search('type=host')
         assert values.get('action_type') == 'create'
         assert values.get('resource_type') == 'HOST'
         assert values.get('resource_name') == host.name
         assert values.get('created_at')
         assert values.get('affected_organization') == module_org.name
-        assert values.get('affected_location') == module_loc.name
+        assert values.get('affected_location') == module_location.name
         summary = {
             prop['column0']: prop['column1']
             for prop in values.get('action_summary')
@@ -81,7 +76,7 @@ def test_positive_create_event(session, module_org, module_loc):
         assert summary.get('Managed') == 'true'
         assert summary.get('Enabled') == 'true'
         assert summary.get('Organization') == module_org.name
-        assert summary.get('Location') == module_loc.name
+        assert summary.get('Location') == module_location.name
 
 
 @pytest.mark.tier2

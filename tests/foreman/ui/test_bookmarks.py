@@ -31,17 +31,7 @@ from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
-@pytest.fixture(scope='module')
-def ui_entities(module_org, module_loc):
+def ui_entities(module_org, module_location):
     """Collects the list of all applicable UI entities for testing and does all
     required preconditions.
     """
@@ -61,7 +51,7 @@ def ui_entities(module_org, module_loc):
         if entity_setup:
             # entities with 1 organization and location
             if entity_name in ('Host',):
-                entity_setup(organization=module_org, location=module_loc).create()
+                entity_setup(organization=module_org, location=module_location).create()
             # entities with no organizations and locations
             elif entity_name in (
                 'ComputeProfile',
@@ -74,7 +64,7 @@ def ui_entities(module_org, module_loc):
                 entity_setup().create()
             # entities with multiple organizations and locations
             else:
-                entity_setup(organization=[module_org], location=[module_loc]).create()
+                entity_setup(organization=[module_org], location=[module_location]).create()
     return ui_entities
 
 

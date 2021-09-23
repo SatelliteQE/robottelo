@@ -696,7 +696,7 @@ def test_positive_add_foreman_role_with_org_loc(
     session,
     ldap_usergroup_name,
     module_org,
-    module_loc,
+    module_location,
     ldap_tear_down,
     ldap_auth_source,
 ):
@@ -751,7 +751,7 @@ def test_positive_add_foreman_role_with_org_loc(
         assert len(hostgroup['organizations']['resources']['assigned']) == 1
         assert module_org.name in hostgroup['organizations']['resources']['assigned']
         assert len(hostgroup['locations']['resources']['assigned']) == 1
-        assert module_loc.name in hostgroup['locations']['resources']['assigned']
+        assert module_location.name in hostgroup['locations']['resources']['assigned']
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA'], indirect=True)
@@ -1165,7 +1165,7 @@ def test_external_new_user_login_and_check_count_rhsso(
 @pytest.mark.skip_if_open("BZ:1873439")
 @pytest.mark.destructive
 def test_login_failure_rhsso_user_if_internal_user_exist(
-    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_loc
+    enable_external_auth_rhsso, rhsso_setting_setup, session, module_org, module_location
 ):
     """Verify the failure of login for the external rhsso user in case same username
     internal user exists
@@ -1190,7 +1190,7 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
     entities.User(
         admin=True,
         default_organization=module_org,
-        default_location=module_loc,
+        default_location=module_location,
         login=username,
         password=settings.rhsso.rhsso_password,
     ).create()
@@ -1213,7 +1213,7 @@ def test_user_permissions_rhsso_user_after_group_delete(
     rhsso_setting_setup,
     session,
     module_org,
-    module_loc,
+    module_location,
 ):
     """Verify the rhsso user permissions in satellite should get revoked after the
         termination of rhsso user's external rhsso group
@@ -1278,7 +1278,7 @@ def test_user_permissions_rhsso_user_multiple_group(
     rhsso_setting_setup,
     session,
     module_org,
-    module_loc,
+    module_location,
     groups_teardown,
     rhsso_groups_teardown,
 ):
@@ -1680,7 +1680,7 @@ def test_verify_attribute_of_users_are_updated(session, ldap_auth_source, ldap_t
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
 @pytest.mark.tier2
 def test_login_failure_if_internal_user_exist(
-    session, test_name, ldap_auth_source, module_org, module_loc, ldap_tear_down
+    session, test_name, ldap_auth_source, module_org, module_location, ldap_tear_down
 ):
     """Verify the failure of login for the AD/IPA user in case same username
     internal user exists
@@ -1705,7 +1705,7 @@ def test_login_failure_if_internal_user_exist(
         user = entities.User(
             admin=True,
             default_organization=module_org,
-            default_location=module_loc,
+            default_location=module_location,
             login=internal_username,
             password=internal_password,
         ).create()
