@@ -1321,3 +1321,22 @@ class Satellite(Capsule):
         setting.value = value
         setting.update({'value'})
         return default_setting_value
+
+    def register_to_dogfood(self):
+        dogfood_canonical_hostname = settings.repos.dogfood_repo_host.partition('//')[2]
+        # get hostname of dogfood machine
+        dig_result = self.execute(f'dig +short {dogfood_canonical_hostname}')
+        # the host name finishes with a dot, so last character is removed
+        dogfood_hostname = dig_result.stdout.split()[0][:-1]
+        dogfood = Satellite(dogfood_hostname)
+        self.install_katello_ca(satellite=dogfood)
+        # satellite version consist from x.y.z, we need only x.y
+        sat_release = '.'.join(self.version.split('.')[:2])
+        cmd_result = self.register_contenthost(
+            org=f'{settings.subscription.dogfood_org}',
+            activation_key=f'satellite-{sat_release}-qa-rhel7',
+        )
+        if cmd_result.status != 0:
+            raise SatelliteHostError(
+                f'Error during registration, command output: {cmd_result.stdout}'
+            )

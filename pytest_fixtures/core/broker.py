@@ -68,6 +68,14 @@ def satellite_host(satellite_factory):
     VMBroker(hosts=[new_sat]).checkin()
 
 
+@pytest.fixture(scope='module')
+def module_satellite_host(satellite_factory):
+    """A fixture that provides a Satellite based on config settings"""
+    new_sat = satellite_factory()
+    yield new_sat
+    VMBroker(hosts=[new_sat]).checkin()
+
+
 @pytest.fixture
 def capsule_host(capsule_factory):
     """A fixture that provides a Capsule based on config settings"""
@@ -89,4 +97,11 @@ def capsule_configured(capsule_host, default_sat):
 def destructive_sat(satellite_host):
     """Destructive tests require changing settings.server.hostname for now"""
     with satellite_host as sat:
+        yield sat
+
+
+@pytest.fixture(scope='module')
+def module_destructive_sat(module_satellite_host):
+    """Destructive tests require changing settings.server.hostname for now"""
+    with module_satellite_host as sat:
         yield sat
