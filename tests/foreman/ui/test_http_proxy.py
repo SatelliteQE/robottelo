@@ -184,3 +184,49 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
         assert repo_b2_values['repo_content']['http_proxy_policy'] == proxy_policy.format(
             http_proxy_b.name
         )
+
+
+@pytest.mark.tier1
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
+def test_set_default_http_proxy(session, module_org, module_location, setting_update):
+    """Setting "Default HTTP proxy" to "no global default".
+
+    :id: e93733e1-5c05-4b7f-89e4-253b9ce55a5a
+
+    :Steps:
+        1. Navigate to Infrastructure > Http Proxies
+        2. Create a Http Proxy
+        3. GoTo to Administer > Settings > content tab
+        4. Update the "Default HTTP Proxy" with created above.
+        5. Update "Default HTTP Proxy" to "no global default".
+
+
+    :parametrized: yes
+
+    :expectedresults: Setting "Default HTTP Proxy" to "no global default" result in success.'''
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Acceptance
+    """
+
+    property_name = setting_update.name
+
+    http_proxy_a = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.un_auth_proxy_url,
+        organization=[module_org.id],
+        location=[module_location.id],
+    ).create()
+
+    with session:
+        session.settings.update(
+            f'name = {property_name}', f'{http_proxy_a.name} ({http_proxy_a.url})'
+        )
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == f'{http_proxy_a.name} ({http_proxy_a.url})'
+
+        session.settings.update(f'name = {property_name}', "no global default")
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == "Empty"
