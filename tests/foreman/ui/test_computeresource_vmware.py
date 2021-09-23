@@ -107,7 +107,7 @@ def module_vmware_settings():
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier1
-def test_positive_end_to_end(session, module_org, module_loc, module_vmware_settings):
+def test_positive_end_to_end(session, module_org, module_location, module_vmware_settings):
     """Perform end to end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
@@ -138,7 +138,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
                 'provider_content.vnc_console_passwords': vnc_console_passwords,
                 'provider_content.enable_caching': enable_caching,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         cr_values = session.computeresource.read(cr_name)
@@ -154,7 +154,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
         assert cr_values['provider_content']['vnc_console_passwords'] == vnc_console_passwords
         assert cr_values['provider_content']['enable_caching'] == enable_caching
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
-        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_location.name]
         session.computeresource.edit(
             cr_name,
             {
@@ -171,7 +171,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_vmware_sett
             new_org.name,
         }
         assert set(cr_values['locations']['resources']['assigned']) == {
-            module_loc.name,
+            module_location.name,
             new_loc.name,
         }
         # check that the compute resource is listed in one of the default compute profiles

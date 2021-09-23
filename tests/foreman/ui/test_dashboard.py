@@ -194,7 +194,7 @@ def test_positive_task_status(session):
 @pytest.mark.tier3
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_user_access_with_host_filter(
-    test_name, module_loc, rhel7_contenthost, default_sat
+    test_name, module_location, rhel7_contenthost, default_sat
 ):
     """Check if user with necessary host permissions can access dashboard
     and required widgets are rendered with proper values
@@ -233,8 +233,8 @@ def test_positive_user_access_with_host_filter(
     entities.User(
         default_organization=org,
         organization=[org],
-        default_location=module_loc,
-        location=[module_loc],
+        default_location=module_location,
+        location=[module_location],
         role=[role],
         login=user_login,
         password=user_password,

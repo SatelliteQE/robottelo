@@ -27,22 +27,12 @@ from robottelo.helpers import read_data_file
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
-@pytest.fixture(scope='module')
 def template_data():
     return read_data_file(OS_TEMPLATE_DATA_FILE)
 
 
 @pytest.fixture(scope='function', autouse=False)
-def clone_setup(module_org, module_loc):
+def clone_setup(module_org, module_location):
     name = gen_string('alpha')
     content = gen_string('alpha')
     os_list = [entities.OperatingSystem().create().title for _ in range(2)]
@@ -50,7 +40,7 @@ def clone_setup(module_org, module_loc):
         'pt': entities.ProvisioningTemplate(
             name=name,
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
             template=content,
             snippet=False,
         ).create(),
@@ -93,7 +83,7 @@ def test_positive_clone(session, clone_setup):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc, template_data):
+def test_positive_end_to_end(session, module_org, module_location, template_data):
     """Perform end to end testing for provisioning template component
 
     :id: b44d4cc8-b78e-47cf-9993-0bb871ac2c96
@@ -107,8 +97,10 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     os = entities.OperatingSystem().create()
-    host_group = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
-    environment = entities.Environment(organization=[module_org], location=[module_loc]).create()
+    host_group = entities.HostGroup(organization=[module_org], location=[module_location]).create()
+    environment = entities.Environment(
+        organization=[module_org], location=[module_location]
+    ).create()
     input_name = gen_string('alpha')
     variable_name = gen_string('alpha')
     template_input = [
@@ -134,7 +126,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
                 'association.applicable_os.assigned': [os.title],
                 'association.hg_environment_combination': combination,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         assert entities.ProvisioningTemplate().search(query={'search': f'name=={name}'}), (
@@ -154,7 +146,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         assert pt['association']['applicable_os']['assigned'][0] == os.title
         assert pt['association']['hg_environment_combination'][0]['host_group'] == host_group.name
         assert pt['association']['hg_environment_combination'][0]['environment'] == environment.name
-        assert pt['locations']['resources']['assigned'][0] == module_loc.name
+        assert pt['locations']['resources']['assigned'][0] == module_location.name
         assert pt['organizations']['resources']['assigned'][0] == module_org.name
         session.provisioningtemplate.update(name, {'template.name': new_name, 'type.snippet': True})
         updated_pt = entities.ProvisioningTemplate().search(query={'search': f'name=={new_name}'})

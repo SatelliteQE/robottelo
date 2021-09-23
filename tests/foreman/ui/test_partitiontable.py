@@ -18,20 +18,9 @@
 """
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.helpers import read_data_file
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
 
 
 @pytest.fixture(scope='module')
@@ -223,7 +212,7 @@ def test_positive_clone(session):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc, template_data):
+def test_positive_end_to_end(session, module_org, module_location, template_data):
     """Perform end to end testing for partition table component
 
     :id: ade8e9b8-01a7-476b-ad01-f3e6c119ec25
@@ -259,7 +248,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
                 'template.audit_comment': audit_comment,
                 'inputs': template_inputs,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         assert session.partitiontable.search(name)[0]['Name'] == name
@@ -271,7 +260,7 @@ def test_positive_end_to_end(session, module_org, module_loc, template_data):
         assert pt['inputs'][0]['name'] == input_name
         assert pt['inputs'][0]['required'] is True
         assert pt['inputs'][0]['input_type'] == 'Puppet parameter'
-        assert module_loc.name in pt['locations']['resources']['assigned']
+        assert module_location.name in pt['locations']['resources']['assigned']
         assert module_org.name in pt['organizations']['resources']['assigned']
         session.partitiontable.update(
             name,

@@ -62,20 +62,12 @@ def rhev_data():
     }
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
 @pytest.mark.parametrize('version', [True, False])
-def test_positive_end_to_end(session, rhev_data, module_org, module_loc, module_ca_cert, version):
+def test_positive_end_to_end(
+    session, rhev_data, module_org, module_location, module_ca_cert, version
+):
     """Perform end to end testing for compute resource RHEV.
 
     :id: 3c079675-e5d3-490e-9b7e-1c2950f9965d
@@ -313,7 +305,9 @@ def test_positive_resource_vm_power_management(session, module_ca_cert, rhev_dat
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.parametrize('version', [True, False])
-def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhev_data, version):
+def test_positive_VM_import(
+    session, module_ca_cert, module_org, module_location, rhev_data, version
+):
     """Import an existing VM as a Host
 
     :id: 47aea4b7-9258-4863-8966-9a0bc9e94116
@@ -330,18 +324,20 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
     """
     # create entities for hostgroup
     default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    entities.SmartProxy(id=1, location=[default_loc_id, module_loc.id]).update()
-    domain = entities.Domain(organization=[module_org.id], location=[module_loc]).create()
+    entities.SmartProxy(id=1, location=[default_loc_id, module_location.id]).update()
+    domain = entities.Domain(organization=[module_org.id], location=[module_location]).create()
     subnet = entities.Subnet(
-        organization=[module_org.id], location=[module_loc], domain=[domain]
+        organization=[module_org.id], location=[module_location], domain=[domain]
     ).create()
     architecture = entities.Architecture().create()
-    ptable = entities.PartitionTable(organization=[module_org.id], location=[module_loc]).create()
+    ptable = entities.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
     operatingsystem = entities.OperatingSystem(
         architecture=[architecture], ptable=[ptable]
     ).create()
     medium = entities.Media(
-        organization=[module_org.id], location=[module_loc], operatingsystem=[operatingsystem]
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
     ).create()
     le = (
         entities.LifecycleEnvironment(name="Library", organization=module_org.id)
@@ -359,7 +355,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
         architecture=architecture,
         domain=domain,
         subnet=subnet,
-        location=[module_loc.id],
+        location=[module_location.id],
         medium=medium,
         operatingsystem=operatingsystem,
         organization=[module_org],
@@ -382,12 +378,12 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
                 'provider_content.api4': version,
                 'provider_content.datacenter.value': rhev_data['datacenter'],
                 'provider_content.certification_authorities': module_ca_cert,
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         session.hostgroup.update(hostgroup_name, {'host_group.deploy': name + " (RHV)"})
         session.computeresource.vm_import(
-            name, rhev_data['vm_name'], hostgroup_name, module_loc.name
+            name, rhev_data['vm_name'], hostgroup_name, module_location.name
         )
         assert session.host.search(rhev_data['vm_name']) is not None
     # disassociate the host so the corresponding VM doesn't get removed from the CR on host delete
@@ -400,7 +396,7 @@ def test_positive_VM_import(session, module_ca_cert, module_org, module_loc, rhe
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier3
 @pytest.mark.parametrize('version', [True, False])
-def test_positive_update_organization(session, rhev_data, module_loc, module_ca_cert, version):
+def test_positive_update_organization(session, rhev_data, module_location, module_ca_cert, version):
     """Update a rhev Compute Resource organization
 
     :id: f6656c8e-70a3-40e5-8dda-2154f2eeb042
@@ -450,7 +446,7 @@ def test_positive_update_organization(session, rhev_data, module_loc, module_ca_
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-def test_positive_image_end_to_end(session, rhev_data, module_loc, module_ca_cert):
+def test_positive_image_end_to_end(session, rhev_data, module_location, module_ca_cert):
     """Perform end to end testing for compute resource RHV component image.
 
     :id: 62a5c52f-dd15-45e7-8200-c64bb335474f

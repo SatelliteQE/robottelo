@@ -23,7 +23,7 @@ from nailgun import entities
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_loc, module_org):
+def test_positive_end_to_end(session, module_location, module_org):
     """Perform end to end testing for compute profile component
 
     :id: 5445fc7e-7b3f-472f-8a94-93f89aca6c22
@@ -37,7 +37,7 @@ def test_positive_end_to_end(session, module_loc, module_org):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     compute_resource = entities.LibvirtComputeResource(
-        location=[module_loc], organization=[module_org], url='qemu+ssh://root@test/system'
+        location=[module_location], organization=[module_org], url='qemu+ssh://root@test/system'
     ).create()
     with session:
         session.computeprofile.create({'name': name})

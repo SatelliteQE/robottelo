@@ -23,16 +23,6 @@ from nailgun import entities
 from robottelo.datafactory import valid_domain_names
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.fixture
 def valid_domain_name():
     return list(valid_domain_names(interface='ui').values())[0]
@@ -135,7 +125,7 @@ def test_positive_remove_parameter(session, valid_domain_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc, valid_domain_name):
+def test_positive_end_to_end(session, module_org, module_location, valid_domain_name):
     """Perform end to end testing for domain component
 
     :id: ce90fd87-3e63-4298-a771-38f4aacce091
@@ -156,7 +146,7 @@ def test_positive_end_to_end(session, module_org, module_loc, valid_domain_name)
                 'domain.dns_domain': dns_domain_name,
                 'domain.full_name': full_domain_name,
                 'parameters.params': [param],
-                'locations.multiselect.assigned': [module_loc.name],
+                'locations.multiselect.assigned': [module_location.name],
                 'organizations.multiselect.assigned': [module_org.name],
             }
         )
@@ -165,7 +155,7 @@ def test_positive_end_to_end(session, module_org, module_loc, valid_domain_name)
         assert domain_values['domain']['dns_domain'] == dns_domain_name
         assert domain_values['domain']['full_name'] == full_domain_name
         assert domain_values['parameters']['params'] == [param]
-        assert domain_values['locations']['multiselect']['assigned'][0] == module_loc.name
+        assert domain_values['locations']['multiselect']['assigned'][0] == module_location.name
         assert domain_values['organizations']['multiselect']['assigned'][0] == module_org.name
         # Update domain with new name
         session.domain.update(full_domain_name, {'domain.full_name': new_name})

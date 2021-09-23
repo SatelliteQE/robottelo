@@ -26,19 +26,9 @@ from robottelo.config import settings
 from robottelo.constants import REPO_TYPE
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_create_update_delete(session, module_org, module_loc):
+def test_positive_create_update_delete(session, module_org, module_location):
     """Create new http-proxy with attributes, update and delete it.
 
     :id: 0c7cdf3d-778f-427a-9a2f-42ad7c23aa15
@@ -64,7 +54,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
                 'http_proxy.url': http_proxy_url,
                 'http_proxy.username': username,
                 'http_proxy.password': password,
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
                 'organizations.resources.assigned': [module_org.name],
             }
         )
@@ -73,7 +63,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
         assert http_proxy_values['http_proxy']['name'] == http_proxy_name
         assert http_proxy_values['http_proxy']['url'] == http_proxy_url
         assert http_proxy_values['http_proxy']['username'] == username
-        assert http_proxy_values['locations']['resources']['assigned'][0] == module_loc.name
+        assert http_proxy_values['locations']['resources']['assigned'][0] == module_location.name
         assert http_proxy_values['organizations']['resources']['assigned'][0] == module_org.name
         # Update http_proxy with new name
         session.http_proxy.update(http_proxy_name, {'http_proxy.name': updated_proxy_name})
@@ -85,7 +75,7 @@ def test_positive_create_update_delete(session, module_org, module_loc):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_loc):
+def test_positive_assign_http_proxy_to_products_repositories(session, module_org, module_location):
     """Assign HTTP Proxy to Products and Repositories.
 
     :id: 2b803f9c-8d5d-4467-8eba-18244ebc0201
@@ -100,7 +90,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
         name=gen_string('alpha', 15),
         url=settings.http_proxy.un_auth_proxy_url,
         organization=[module_org.id],
-        location=[module_loc.id],
+        location=[module_location.id],
     ).create()
     http_proxy_b = entities.HTTPProxy(
         name=gen_string('alpha', 15),
@@ -108,7 +98,7 @@ def test_positive_assign_http_proxy_to_products_repositories(session, module_org
         username=settings.http_proxy.username,
         password=settings.http_proxy.password,
         organization=[module_org.id],
-        location=[module_loc.id],
+        location=[module_location.id],
     ).create()
     # Create products
     product_a = entities.Product(

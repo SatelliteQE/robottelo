@@ -24,7 +24,7 @@ from nailgun import entities
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_user(session, module_org, module_loc):
+def test_positive_delete_with_user(session, module_org, module_location):
     """Delete a Usergroup that contains a user
 
     :id: 2bda3db5-f54f-412f-831f-8e005631f271
@@ -40,7 +40,7 @@ def test_positive_delete_with_user(session, module_org, module_loc):
         login=user_name,
         password=gen_string('alpha'),
         organization=[module_org],
-        location=[module_loc],
+        location=[module_location],
     ).create()
     with session:
         session.usergroup.create(
@@ -53,7 +53,7 @@ def test_positive_delete_with_user(session, module_org, module_loc):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for usergroup component
 
     :id: c1c7c383-b118-4caf-a5ef-4e75fdbbacdc
@@ -67,7 +67,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     user = entities.User(
-        password=gen_string('alpha'), organization=[module_org], location=[module_loc]
+        password=gen_string('alpha'), organization=[module_org], location=[module_location]
     ).create()
     user_group = entities.UserGroup().create()
     with session:

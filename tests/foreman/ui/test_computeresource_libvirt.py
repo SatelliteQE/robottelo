@@ -37,7 +37,7 @@ def module_libvirt_url():
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url):
+def test_positive_end_to_end(session, module_org, module_location, module_libvirt_url):
     """Perform end to end testing for compute resource Libvirt component.
 
     :id: 4f4650c8-32f3-4dab-b3bf-9c54d0cda3b2
@@ -68,7 +68,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
                 'provider_content.display_type': display_type,
                 'provider_content.console_passwords': console_passwords,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         cr_values = session.computeresource.read(cr_name)
@@ -78,7 +78,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
         assert cr_values['provider_content']['display_type'] == display_type
         assert cr_values['provider_content']['console_passwords'] == console_passwords
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
-        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_location.name]
         session.computeresource.edit(
             cr_name,
             {
@@ -97,7 +97,7 @@ def test_positive_end_to_end(session, module_org, module_loc, module_libvirt_url
             new_org.name,
         }
         assert set(cr_values['locations']['resources']['assigned']) == {
-            module_loc.name,
+            module_location.name,
             new_loc.name,
         }
         # check that the compute resource is listed in one of the default compute profiles

@@ -18,28 +18,16 @@
 """
 import pytest
 from inflection import camelize
-from nailgun import entities
 
 from robottelo.api.utils import update_vm_host_location
 from robottelo.datafactory import gen_string
 
 
-@pytest.fixture(scope='module')
-def module_loc(module_org, default_sat):
-    location = entities.Location(organization=[module_org]).create()
-    smart_proxy = (
-        entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
-    )
-    smart_proxy.location.append(entities.Location(id=location.id))
-    smart_proxy.update(['location'])
-    return location
-
-
 @pytest.fixture
-def module_rhel_client_by_ip(module_org, module_loc, rhel7_contenthost, default_sat):
+def module_rhel_client_by_ip(module_org, smart_proxy_location, rhel7_contenthost, default_sat):
     """Setup a broker rhel client to be used in remote execution by ip"""
     rhel7_contenthost.configure_rex(satellite=default_sat, org=module_org)
-    update_vm_host_location(rhel7_contenthost, location_id=module_loc.id)
+    update_vm_host_location(rhel7_contenthost, location_id=smart_proxy_location.id)
     yield rhel7_contenthost
 
 

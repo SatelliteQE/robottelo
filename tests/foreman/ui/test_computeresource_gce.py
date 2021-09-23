@@ -31,7 +31,9 @@ from robottelo.constants import GCE_NETWORK_DEFAULT
 @pytest.mark.tier2
 @pytest.mark.upgrade
 @pytest.mark.skip_if_not_set('http_proxy', 'gce')
-def test_positive_default_end_to_end_with_custom_profile(session, module_org, module_loc, gce_cert):
+def test_positive_default_end_to_end_with_custom_profile(
+    session, module_org, module_location, gce_cert
+):
     """Create GCE compute resource with default properties and apply it's basic functionality.
 
     :id: 59ffd83e-a984-4c22-b91b-cad055b4fbd7
@@ -61,7 +63,7 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
         username=settings.http_proxy.username,
         password=settings.http_proxy.password,
         organization=[module_org.id],
-        location=[module_loc.id],
+        location=[module_location.id],
     ).create()
     with session:
         # Compute Resource Create and Assertions
@@ -76,7 +78,7 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
                 'provider_content.certificate_path': settings.gce.cert_path,
                 'provider_content.zone.value': settings.gce.zone,
                 'organizations.resources.assigned': [module_org.name],
-                'locations.resources.assigned': [module_loc.name],
+                'locations.resources.assigned': [module_location.name],
             }
         )
         cr_values = session.computeresource.read(cr_name)
@@ -84,7 +86,7 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
         assert cr_values['provider_content']['zone']['value']
         assert cr_values['provider_content']['http_proxy']['value'] == http_proxy.name
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
-        assert cr_values['locations']['resources']['assigned'] == [module_loc.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_location.name]
         assert cr_values['provider_content']['google_project_id'] == gce_cert['project_id']
         assert cr_values['provider_content']['client_email'] == gce_cert['client_email']
         # Compute Resource Edit/Updates and Assertions
@@ -104,7 +106,7 @@ def test_positive_default_end_to_end_with_custom_profile(session, module_org, mo
             new_org.name,
         }
         assert set(cr_values['locations']['resources']['assigned']) == {
-            module_loc.name,
+            module_location.name,
             new_loc.name,
         }
 

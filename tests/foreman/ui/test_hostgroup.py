@@ -25,18 +25,8 @@ from robottelo.constants import DEFAULT_CV
 from robottelo.constants import ENVIRONMENT
 
 
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    return entities.Location().create()
-
-
 @pytest.mark.tier2
-def test_positive_end_to_end(session, module_org, module_loc):
+def test_positive_end_to_end(session, module_org, module_location):
     """Perform end to end testing for host group component
 
     :id: 537d95f2-fe32-4e06-a2cb-21c80fe8e2e2
@@ -51,7 +41,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
     architecture = entities.Architecture().create()
     os = entities.OperatingSystem(architecture=[architecture]).create()
     os_name = f'{os.name} {os.major}'
-    domain = entities.Domain(organization=[module_org], location=[module_loc]).create()
+    domain = entities.Domain(organization=[module_org], location=[module_location]).create()
     with session:
         # Create host group with some data
         session.hostgroup.create(
@@ -81,7 +71,7 @@ def test_positive_end_to_end(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
+def test_negative_delete_with_discovery_rule(session, module_org, module_location):
     """Attempt to delete hostgroup which has dependent discovery rule
 
     :id: bd046e9a-f0d0-4110-8f94-fd04193cb3af
@@ -95,9 +85,9 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
 
     :CaseImportance: High
     """
-    hostgroup = entities.HostGroup(organization=[module_org], location=[module_loc]).create()
+    hostgroup = entities.HostGroup(organization=[module_org], location=[module_location]).create()
     entities.DiscoveryRule(
-        hostgroup=hostgroup, organization=[module_org], location=[module_loc]
+        hostgroup=hostgroup, organization=[module_org], location=[module_location]
     ).create()
     with session:
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
@@ -109,7 +99,7 @@ def test_negative_delete_with_discovery_rule(session, module_org, module_loc):
 
 
 @pytest.mark.tier2
-def test_create_with_config_group(session, module_org, module_loc):
+def test_create_with_config_group(session, module_org, module_location):
     """Create new host group with assigned config group to it
 
     :id: 05a64d6b-113b-4652-86bf-19bc65b70131
@@ -117,7 +107,9 @@ def test_create_with_config_group(session, module_org, module_loc):
     :expectedresults: Host group created and contains proper config group
     """
     name = gen_string('alpha')
-    environment = entities.Environment(organization=[module_org], location=[module_loc]).create()
+    environment = entities.Environment(
+        organization=[module_org], location=[module_location]
+    ).create()
     config_group = entities.ConfigGroup().create()
     with session:
         # Create host group with config group
@@ -137,7 +129,7 @@ def test_create_with_config_group(session, module_org, module_loc):
 
 @pytest.mark.tier2
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_create_with_puppet_class(session, module_org, module_loc, default_sat):
+def test_create_with_puppet_class(session, module_org, module_location, default_sat):
     """Create new host group with assigned puppet class to it
 
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
@@ -150,10 +142,10 @@ def test_create_with_puppet_class(session, module_org, module_loc, default_sat):
     env = default_sat.api.Environment().search(query={'search': f'name={env_name}'})[0].read()
     env = entities.Environment(
         id=env.id,
-        location=[module_loc],
+        location=[module_location],
         organization=[module_org],
     ).update(['location', 'organization'])
-    env = entities.Environment(id=env.id, location=[module_loc]).update(['location'])
+    env = entities.Environment(id=env.id, location=[module_location]).update(['location'])
     with session:
         # Create host group with puppet class
         session.hostgroup.create(

@@ -20,7 +20,6 @@ from random import choice
 
 import pytest
 from fauxfactory import gen_string
-from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
@@ -33,12 +32,12 @@ from robottelo.datafactory import parametrized
 
 
 @pytest.fixture(scope='module')
-def module_locs():
-    return [entities.Location().create(), entities.Location().create()]
+def module_locations(default_sat):
+    return (default_sat.api.Location().create(), default_sat.api.Location().create())
 
 
 @pytest.mark.tier2
-def test_negative_list_with_parameters(module_org, module_locs):
+def test_negative_list_with_parameters(module_org, module_locations):
     """Test Environment List filtering parameters validation.
 
     :id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
@@ -50,17 +49,19 @@ def test_negative_list_with_parameters(module_org, module_locs):
 
     :BZ: 1337947
     """
-    make_environment({'organization-ids': module_org.id, 'location-ids': module_locs[0].id})
+    make_environment({'organization-ids': module_org.id, 'location-ids': module_locations[0].id})
     # Filter by non-existing location and existing organization
     with pytest.raises(CLIReturnCodeError):
         Environment.list({'organization-id': module_org.id, 'location-id': gen_string('numeric')})
     # Filter by non-existing organization and existing location
     with pytest.raises(CLIReturnCodeError):
         Environment.list(
-            {'organization-id': gen_string('numeric'), 'location-id': module_locs[0].id}
+            {'organization-id': gen_string('numeric'), 'location-id': module_locations[0].id}
         )
     # Filter by another location
-    results = Environment.list({'organization': module_org.name, 'location': module_locs[1].name})
+    results = Environment.list(
+        {'organization': module_org.name, 'location': module_locations[1].name}
+    )
     assert len(results) == 0
 
 
@@ -83,7 +84,7 @@ def test_negative_create_with_name(name):
 
 @pytest.mark.tier1
 @pytest.mark.upgrade
-def test_positive_CRUD_with_attributes(module_org, module_locs):
+def test_positive_CRUD_with_attributes(default_sat, module_org, module_locations):
     """Check if Environment with attributes can be created, updated and removed
 
     :id: d2187971-86b2-40c9-a93c-66f37691ae2b
@@ -101,9 +102,13 @@ def test_positive_CRUD_with_attributes(module_org, module_locs):
     # Create with attributes
     env_name = gen_string('alpha')
     environment = make_environment(
-        {'location-ids': module_locs[0].id, 'organization-ids': module_org.id, 'name': env_name}
+        {
+            'location-ids': module_locations[0].id,
+            'organization-ids': module_org.id,
+            'name': env_name,
+        }
     )
-    assert module_locs[0].name in environment['locations']
+    assert module_locations[0].name in environment['locations']
     assert module_org.name in environment['organizations']
     assert env_name == environment['name']
 
@@ -112,24 +117,28 @@ def test_positive_CRUD_with_attributes(module_org, module_locs):
     assert len(result) == 1
     assert result[0]['name'] == env_name
     # List by org loc id
-    results = Environment.list({'organization-id': module_org.id, 'location-id': module_locs[0].id})
+    results = Environment.list(
+        {'organization-id': module_org.id, 'location-id': module_locations[0].id}
+    )
     assert env_name in [res['name'] for res in results]
     # List by org loc name
-    results = Environment.list({'organization': module_org.name, 'location': module_locs[0].name})
+    results = Environment.list(
+        {'organization': module_org.name, 'location': module_locations[0].name}
+    )
     assert env_name in [res['name'] for res in results]
 
     # Update org and loc
-    new_org = entities.Organization().create()
+    new_org = default_sat.api.Organization().create()
     Environment.update(
         {
-            'location-ids': module_locs[1].id,
+            'location-ids': module_locations[1].id,
             'organization-ids': new_org.id,
             'name': environment['name'],
         }
     )
     env_info = Environment.info({'name': environment['name']})
-    assert module_locs[1].name in env_info['locations']
-    assert module_locs[0].name not in env_info['locations']
+    assert module_locations[1].name in env_info['locations']
+    assert module_locations[0].name not in env_info['locations']
     assert new_org.name in env_info['organizations']
     assert module_org.name not in env_info['organizations']
     # Update name

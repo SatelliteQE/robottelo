@@ -23,24 +23,12 @@ import pytest
 import yaml
 from nailgun import entities
 
-from robottelo.constants import DEFAULT_LOC
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import gen_string
 
 PM_NAME = 'generic_1'
 
 pytestmark = [pytest.mark.run_in_one_thread]
-
-
-@pytest.fixture(scope='module')
-def module_org():
-    return entities.Organization().create()
-
-
-@pytest.fixture(scope='module')
-def module_loc():
-    default_loc_id = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0].id
-    return entities.Location(id=default_loc_id).read()
 
 
 @pytest.fixture(scope='module')
@@ -53,7 +41,7 @@ def sc_params_list(module_puppet_classes):
 @pytest.fixture(scope='module')
 def module_host(
     module_org,
-    module_loc,
+    module_location,
     module_env_search,
     module_puppet_classes,
     default_smart_proxy,
@@ -63,7 +51,7 @@ def module_host(
     )[0]
     host = entities.Host(
         organization=module_org,
-        location=module_loc,
+        location=module_location,
         content_facet_attributes={
             'lifecycle_environment_id': lce.id,
         },
