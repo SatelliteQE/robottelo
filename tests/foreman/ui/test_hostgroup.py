@@ -188,3 +188,73 @@ def test_positive_create_new_host():
     :customerscenario: true
     """
     pass
+
+
+def test_positive_nested_host_groups(
+    session, module_org, module_lce, module_published_cv, module_ak_cv_lce, default_sat
+):
+    """Verify create, update and delete operation for nested host-groups
+
+    :id: 547f8e72-df65-48eb-aeb1-6b5fd3cbf4e5
+
+    :Steps:
+
+        1. Create the parent host-group.
+        2. Create, Update and Delete the nested host-group.
+
+    :expectedresults: Crud operations with nest host-group should work as expected.
+
+    :BZ: 1996077
+
+    :customerscenario: true
+    """
+    parent_hg_name = gen_string('alpha')
+    child_hg_name = gen_string('alpha')
+    description = gen_string('alpha')
+    architecture = default_sat.api.Architecture().create()
+    os = default_sat.api.OperatingSystem(architecture=[architecture]).create()
+    os_name = f'{os.name} {os.major}'
+    with session:
+        # Create parent host-group with default lce and content view
+        session.hostgroup.create(
+            {
+                'host_group.name': parent_hg_name,
+                'host_group.description': description,
+                'host_group.lce': ENVIRONMENT,
+                'host_group.content_view': DEFAULT_CV,
+                'operating_system.architecture': architecture.name,
+                'operating_system.operating_system': os_name,
+            }
+        )
+        assert default_sat.api.HostGroup().search(query={'search': f'name={parent_hg_name}'})
+
+        # Create nested host group
+        session.hostgroup.create(
+            {
+                'host_group.parent_name': parent_hg_name,
+                'host_group.name': child_hg_name,
+            }
+        )
+        assert default_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
+        child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
+        assert parent_hg_name in child_hostgroup_values['host_group']['parent_name']
+        assert ENVIRONMENT in child_hostgroup_values['host_group']['lce']
+        assert DEFAULT_CV in child_hostgroup_values['host_group']['content_view']
+
+        # Update nested host group
+        session.hostgroup.update(
+            f'{parent_hg_name}/{child_hg_name}',
+            {
+                'host_group.lce': module_lce.name,
+                'host_group.content_view': module_published_cv.name,
+                'host_group.activation_keys': module_ak_cv_lce.name,
+            },
+        )
+        child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
+        assert parent_hg_name in child_hostgroup_values['host_group']['parent_name']
+        assert module_lce.name in child_hostgroup_values['host_group']['lce']
+        assert module_published_cv.name in child_hostgroup_values['host_group']['content_view']
+
+        # Delete nested host group
+        session.hostgroup.delete(f'{parent_hg_name}/{child_hg_name}')
+        assert not default_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
