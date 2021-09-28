@@ -433,7 +433,7 @@ def test_positive_schedule_generation_and_get_mail(
     )
 
     default_sat.execute(f"expect -c '{expect_script}'")
-    default_sat.get(remote_path=gzip_path, local_path=local_gzip_file)
+    default_sat.get(remote_path=str(gzip_path), local_path=str(local_gzip_file))
     os.system(f'gunzip {local_gzip_file}')
     data = json.load(local_gzip_file.read_text())
     subscription_search = default_sat.api.Subscription(organization=module_org).search()

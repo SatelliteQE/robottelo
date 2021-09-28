@@ -96,8 +96,8 @@ class TestSSH:
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        settings.server.ssh_client.command_timeout = 300
-        settings.server.ssh_client.connection_timeout = 10
+        settings.server.ssh_client.command_timeout = 300000
+        settings.server.ssh_client.connection_timeout = 10000
 
         ret = ssh.command('ls -la')
         assert ret[1].cmd == 'ls -la'

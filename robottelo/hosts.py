@@ -101,6 +101,7 @@ class SatelliteHostError(Exception):
 
 class ContentHost(Host):
     run = Host.execute
+    default_timeout = settings.server.ssh_client.command_timeout * 1000
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
@@ -450,7 +451,7 @@ class ContentHost(Host):
         """
         destination_key_path = f'/root/.ssh/{destination_key_name}'
         self.put(local_path=source_key_path, remote_path=destination_key_path)
-        result = self.run(f'chmod 600 {destination_key_path}')
+        result = self.execute(f'chmod 600 {destination_key_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to chmod ssh key file:\n{result.stderr}')
 
@@ -517,17 +518,17 @@ class ContentHost(Host):
         ssh_key_file_path = f'{ssh_path}/{ssh_key_name}'
         # setup the config file
         ssh_config_file_path = f'{ssh_path}/config'
-        result = self.run(f'touch {ssh_config_file_path}')
+        result = self.execute(f'touch {ssh_config_file_path}')
         if result.status != 0:
             raise CLIFactoryError(f'Failed to create ssh config file:\n{result.stderr}')
-        result = self.run(
+        result = self.execute(
             f'echo "\nHost {host}\n\tHostname {host}\n\tUser {user}\n'
             f'\tIdentityFile {ssh_key_file_path}\n" >> {ssh_config_file_path}'
         )
         if result.status != 0:
             raise CLIFactoryError(f'Failed to write to ssh config file:\n{result.stderr}')
         # add host entry to ssh known_hosts
-        result = self.run(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
+        result = self.execute(f'ssh-keyscan {host} >> {ssh_path}/known_hosts')
         if result.status != 0:
             raise CLIFactoryError(
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
@@ -750,7 +751,7 @@ class ContentHost(Host):
         if product_label:
             # Enable custom repositories
             for repo_label in repo_labels:
-                result = self.run(
+                result = self.execute(
                     f'yum-config-manager --enable {org_label}_{product_label}_{repo_label}'
                 )
                 if result.status != 0:
@@ -856,7 +857,7 @@ class ContentHost(Host):
         virt_who_deploy_filename = f'{gen_alpha(length=5)}-virt-who-deploy-{config_id}'
         virt_who_deploy_file = f'{virt_who_deploy_directory}/{virt_who_deploy_filename}'
         # create the virt-who directory on the broker VM
-        self.run(f'mkdir -p {virt_who_deploy_directory}')
+        self.execute(f'mkdir -p {virt_who_deploy_directory}')
         # create the virt-who directory on satellite
         satellite = Satellite()
         satellite.execute(f'mkdir -p {virt_who_deploy_directory}')
@@ -865,13 +866,13 @@ class ContentHost(Host):
         satellite.session.remote_copy(virt_who_deploy_file, self)
 
         # ensure the virt-who config deploy script is executable
-        result = self.run(f'chmod +x {virt_who_deploy_file}')
+        result = self.execute(f'chmod +x {virt_who_deploy_file}')
         if result.status != 0:
             raise CLIFactoryError(
                 f'Failed to set deployment script as executable:\n{result.stderr}'
             )
         # execute the deployment script
-        result = self.run(f'{virt_who_deploy_file}')
+        result = self.execute(f'{virt_who_deploy_file}')
         if result.status != 0:
             raise CLIFactoryError(f'Deployment script failure:\n{result.stderr}')
         # after this step, we should have virt-who service installed and started
@@ -879,15 +880,15 @@ class ContentHost(Host):
             # usually to be sure that the virt-who generated the report we need
             # to force a one shot report, for this we have to stop the virt-who
             # service
-            result = self.run('service virt-who stop')
+            result = self.execute('service virt-who stop')
             if result.status != 0:
                 raise CLIFactoryError(f'Failed to stop the virt-who service:\n{result.stderr}')
-            result = self.run('virt-who --one-shot', timeout=900000)
+            result = self.execute('virt-who --one-shot', timeout=900000)
             if result.status != 0:
                 raise CLIFactoryError(
                     f'Failed when executing virt-who --one-shot:\n{result.stderr}'
                 )
-            result = self.run('service virt-who start')
+            result = self.execute('service virt-who start')
             if result.status != 0:
                 raise CLIFactoryError(f'Failed to start the virt-who service:\n{result.stderr}')
         # after this step the hypervisor as a content host should be created
@@ -1028,7 +1029,7 @@ class Capsule(ContentHost):
             command_opts = {'scenario': self.__class__.__name__.lower()}
             command_opts.update(cmd_kwargs)
             installer_obj = InstallerCommand(*cmd_args, **command_opts)
-        return self.execute(installer_obj.get_command())
+        return self.execute(installer_obj.get_command(), timeout=0)
 
     def capsule_setup(self, sat_host=None, **installer_kwargs):
         """Prepare the host and run the capsule installer"""
@@ -1041,7 +1042,7 @@ class Capsule(ContentHost):
         )
         self.configure_rhel_repo(settings.repos.rhel7_repo)
         # self.execute('yum repolist')
-        self.execute('yum -y update')
+        self.execute('yum -y update', timeout=0)
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
         # self.execute('yum -y install satellite-capsule', timeout=1200000)
