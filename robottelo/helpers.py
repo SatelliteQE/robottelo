@@ -309,17 +309,29 @@ def default_url_on_new_port(oldport, newport):
     """
     domain = settings.server.hostname
 
-    with ssh.get_client().session.shell() as channel:
-        command = f'ncat -kl -p {newport} -c "ncat {domain} {oldport}"'
+    client = ssh.get_client()
+    pre_ncat_procs = client.execute('pgrep ncat').stdout.splitlines()
+
+    with client.session.shell() as channel:
+        # if ncat isn't backgrounded, it prevents the channel from closing
+        command = f'ncat -kl -p {newport} -c "ncat {domain} {oldport}" &'
+        # broker 0.1.25 makes these debug messages redundant
         logger.debug(f'Creating tunnel: {command}')
         channel.send(command)
-        # if exit_status appears until command_timeout, throw error
-        if channel.eof():
-            if (stderr := channel.get_exit_status()[1]) != 0:
-                logger.debug(f'Tunnel failed: {stderr}')
-                # Something failed, so raise an exception.
-                raise CapsuleTunnelError(stderr)
-        yield f'https://{domain}:{newport}'
+        post_ncat_procs = client.execute('pgrep ncat').stdout.splitlines()
+        ncat_pid = set(post_ncat_procs).difference(set(pre_ncat_procs))
+        if not len(ncat_pid):
+            stderr = channel.get_exit_status()[1]
+            logger.debug(f'Tunnel failed: {stderr}')
+            # Something failed, so raise an exception.
+            raise CapsuleTunnelError(f'Starting ncat failed: {stderr}')
+        forward_url = f'https://{domain}:{newport}'
+        logger.debug(f'Yielding capsule forward port url: {forward_url}')
+        try:
+            yield forward_url
+        finally:
+            logger.debug(f'Killing ncat pid: {ncat_pid}')
+            client.execute(f'kill {ncat_pid.pop()}')
 
 
 class Storage:
