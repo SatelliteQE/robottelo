@@ -90,6 +90,8 @@ class Base:
             # This behavior could (and maybe should) change in the near future.
             # In the meantime, we don't need it here so we just use the message itself
             response.stderr = response.stderr[1]
+        if isinstance(response.stderr, bytes):
+            response.stderr = response.stderr.decode()
         if response.status != 0:
             full_msg = (
                 f'Command "{cls.command_base} {cls.command_sub}" '

@@ -1,12 +1,9 @@
 """Utility module to handle the shared ssh connection."""
-from functools import lru_cache
-
 from ssh2 import exceptions
 
 from robottelo.cli import hammer
 
 
-@lru_cache
 def get_client(
     hostname=None,
     username=None,
