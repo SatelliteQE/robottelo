@@ -26,7 +26,7 @@ from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_gpg_key
+from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
@@ -58,7 +58,7 @@ def test_positive_CRUD(module_org):
     :CaseImportance: Critical
     """
     desc = list(valid_data_list().values())[0]
-    gpg_key = make_gpg_key({'organization-id': module_org.id})
+    gpg_key = make_content_credential({'organization-id': module_org.id})
     name = list(valid_data_list().values())[0]
     label = valid_labels_list()[0]
     sync_plan = make_sync_plan({'organization-id': module_org.id})
@@ -81,7 +81,7 @@ def test_positive_CRUD(module_org):
 
     # update
     desc = list(valid_data_list().values())[0]
-    new_gpg_key = make_gpg_key({'organization-id': module_org.id})
+    new_gpg_key = make_content_credential({'organization-id': module_org.id})
     new_sync_plan = make_sync_plan({'organization-id': module_org.id})
     new_prod_name = gen_string('alpha', 8)
     Product.update(

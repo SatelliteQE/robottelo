@@ -31,9 +31,9 @@ from robottelo.cli.content_export import ContentExport
 from robottelo.cli.content_import import ContentImport
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_content_credential
 from robottelo.cli.factory import make_content_view
 from robottelo.cli.factory import make_filter
-from robottelo.cli.factory import make_gpg_key
 from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
@@ -135,7 +135,7 @@ def repo(repo_options):
 @pytest.fixture
 def gpg_key(module_org):
     """Create a new GPG key."""
-    return make_gpg_key({'organization-id': module_org.id})
+    return make_content_credential({'organization-id': module_org.id})
 
 
 class TestRepository:
@@ -1414,7 +1414,7 @@ class TestRepository:
         """
         Repository.update({'id': repo['id'], 'gpg-key-id': gpg_key['id']})
 
-        gpg_key_new = make_gpg_key({'organization-id': module_org.id})
+        gpg_key_new = make_content_credential({'organization-id': module_org.id})
         Repository.update({'id': repo['id'], 'gpg-key-id': gpg_key_new['id']})
         result = Repository.info({'id': repo['id']})
         assert result['gpg-key']['id'] == gpg_key_new['id']

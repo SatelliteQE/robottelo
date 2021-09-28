@@ -33,7 +33,6 @@ from robottelo.cli.discoveryrule import DiscoveryRule
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.filter import Filter
-from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
@@ -330,43 +329,6 @@ def make_discoveryrule(options=None):
     }
 
     return create_object(DiscoveryRule, args, options)
-
-
-@cacheable
-def make_gpg_key(options=None):
-    """Creates a GPG Key
-
-    :param options: Check options using `hammer gpg create --help` on satellite.
-
-    :returns GPGKey object
-    """
-    # Organization ID is a required field.
-    if not options or not options.get('organization-id'):
-        raise CLIFactoryError('Please provide a valid ORG ID.')
-
-    # Create a fake gpg key file if none was provided
-    if not options.get('key'):
-        _, key_filename = mkstemp(text=True)
-        os.chmod(key_filename, 0o700)
-        with open(key_filename, 'w') as gpg_key_file:
-            gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
-    else:
-        # If the key is provided get its local path and remove it from options
-        # to not override the remote path
-        key_filename = options.pop('key')
-
-    args = {
-        'key': f'/tmp/{gen_alphanumeric()}',
-        'name': gen_alphanumeric(),
-        'organization': None,
-        'organization-id': None,
-        'organization-label': None,
-    }
-
-    # Upload file to server
-    ssh.get_client().put(key_filename, args['key'])
-
-    return create_object(GPGKey, args, options)
 
 
 @cacheable
