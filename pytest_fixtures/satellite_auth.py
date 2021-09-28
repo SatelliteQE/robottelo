@@ -142,7 +142,7 @@ def auth_source_open_ldap(module_org, module_location, open_ldap_data):
 
 
 @pytest.fixture
-def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data, open_ldap_data):
+def ldap_auth_source(request, module_org, module_location, ad_data, ipa_data, open_ldap_data):
     auth_type = request.param.lower()
     if 'ad' in auth_type:
         ad_data = ad_data('2019') if '2019' in auth_type else ad_data()
@@ -163,7 +163,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data, open_ld
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
         ).create()
         ldap_data = ad_data
     elif auth_type == 'ipa':
@@ -184,7 +184,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data, open_ld
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
         ).create()
         ldap_data = ipa_data
     elif auth_type == 'openldap':
@@ -205,7 +205,7 @@ def ldap_auth_source(request, module_org, module_loc, ad_data, ipa_data, open_ld
             tls=False,
             port='389',
             organization=[module_org],
-            location=[module_loc],
+            location=[module_location],
         ).create()
         ldap_data = open_ldap_data
     else:
