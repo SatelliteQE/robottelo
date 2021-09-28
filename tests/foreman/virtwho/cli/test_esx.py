@@ -33,12 +33,12 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
+from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import hypervisor_json_create
 from robottelo.virtwho_utils import virtwho_package_locked
-from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
 @pytest.fixture()
@@ -179,7 +179,7 @@ class TestVirtWhoConfigforEsx:
             VirtWhoConfig.update({'id': virtwho_config['id'], 'debug': key})
             command = get_configure_command(virtwho_config['id'])
             deploy_configure_by_command(command, form_data['hypervisor-type'])
-            assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG), value
+            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
         VirtWhoConfig.delete({'name': new_name})
         assert not VirtWhoConfig.exists(search=('name', new_name))
 
@@ -209,7 +209,7 @@ class TestVirtWhoConfigforEsx:
             VirtWhoConfig.update({'id': virtwho_config['id'], 'interval': key})
             command = get_configure_command(virtwho_config['id'])
             deploy_configure_by_command(command, form_data['hypervisor-type'])
-            assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
+            assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))
 
@@ -304,14 +304,14 @@ class TestVirtWhoConfigforEsx:
         assert result['connection']['ignore-proxy'] == no_proxy
         command = get_configure_command(virtwho_config['id'])
         deploy_configure_by_command(command, form_data['hypervisor-type'])
-        assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy_url
-        assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+        assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
+        assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
 
         # Check the http proxy option, update it via http proxy id
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(type='http')
         VirtWhoConfig.update({'id': virtwho_config['id'], 'http-proxy-id': http_proxy_id})
         deploy_configure_by_command(command, form_data['hypervisor-type'])
-        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy_url
+        assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
 
         VirtWhoConfig.delete({'name': virtwho_config['name']})
         assert not VirtWhoConfig.exists(search=('name', form_data['name']))

@@ -27,10 +27,10 @@ from robottelo.constants import DEFAULT_ORG
 from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
+from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_option
-from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
 @pytest.fixture(scope='class')
@@ -184,7 +184,7 @@ class TestVirtWhoConfigforEsx:
             virtwho_config.update(['debug'])
             command = get_configure_command(virtwho_config.id)
             deploy_configure_by_command(command, form_data['hypervisor_type'])
-            assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == value
+            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
@@ -217,7 +217,7 @@ class TestVirtWhoConfigforEsx:
             virtwho_config.update(['interval'])
             command = get_configure_command(virtwho_config.id)
             deploy_configure_by_command(command, form_data['hypervisor_type'])
-            assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
+            assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 
@@ -314,7 +314,7 @@ class TestVirtWhoConfigforEsx:
         command = get_configure_command(virtwho_config.id)
         deploy_configure_by_command(command, form_data['hypervisor_type'])
         # Check default NO_PROXY option
-        assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == '*'
+        assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == '*'
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(type='http')
         no_proxy = 'test.satellite.com'
@@ -323,14 +323,14 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.update(['http_proxy_id', 'no_proxy'])
         command = get_configure_command(virtwho_config.id)
         deploy_configure_by_command(command, form_data['hypervisor_type'])
-        assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy_url
-        assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+        assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
+        assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
         # Check HTTTPs Proxy option
         https_proxy_url, https_proxy_name, https_proxy_id = create_http_proxy()
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
         deploy_configure_by_command(command, form_data['hypervisor_type'])
-        assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy_url
+        assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         virtwho_config.delete()
         assert not entities.VirtWhoConfig().search(query={'search': f"name={form_data['name']}"})
 

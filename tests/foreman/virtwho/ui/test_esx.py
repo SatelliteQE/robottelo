@@ -29,6 +29,7 @@ from robottelo.virtwho_utils import create_http_proxy
 from robottelo.virtwho_utils import delete_configure_option
 from robottelo.virtwho_utils import deploy_configure_by_command
 from robottelo.virtwho_utils import deploy_configure_by_script
+from robottelo.virtwho_utils import ETC_VIRTWHO_CONFIG
 from robottelo.virtwho_utils import get_configure_command
 from robottelo.virtwho_utils import get_configure_file
 from robottelo.virtwho_utils import get_configure_id
@@ -36,7 +37,6 @@ from robottelo.virtwho_utils import get_configure_option
 from robottelo.virtwho_utils import get_virtwho_status
 from robottelo.virtwho_utils import restart_virtwho_service
 from robottelo.virtwho_utils import update_configure_option
-from robottelo.virtwho_utils import VIRTWHO_SYSCONFIG
 
 
 @pytest.fixture()
@@ -149,12 +149,12 @@ class TestVirtwhoConfigforEsx:
             config_id = get_configure_id(name)
             config_command = get_configure_command(config_id)
             deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-            assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == '1'
+            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '1'
             session.virtwho_configure.edit(name, {'debug': False})
             results = session.virtwho_configure.read(name)
             assert results['overview']['debug'] is False
             deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-            assert get_configure_option('VIRTWHO_DEBUG', VIRTWHO_SYSCONFIG) == '0'
+            assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == '0'
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
@@ -193,7 +193,7 @@ class TestVirtwhoConfigforEsx:
                 results = session.virtwho_configure.read(name)
                 assert results['overview']['interval'] == option
                 deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-                assert get_configure_option('VIRTWHO_INTERVAL', VIRTWHO_SYSCONFIG) == value
+                assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
@@ -305,14 +305,14 @@ class TestVirtwhoConfigforEsx:
             assert results['overview']['proxy'] == https_proxy
             assert results['overview']['no_proxy'] == no_proxy
             deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-            assert get_configure_option('https_proxy', VIRTWHO_SYSCONFIG) == https_proxy
-            assert get_configure_option('NO_PROXY', VIRTWHO_SYSCONFIG) == no_proxy
+            assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy
+            assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
             # Check the http proxy setting
             session.virtwho_configure.edit(name, {'proxy': http_proxy})
             results = session.virtwho_configure.read(name)
             assert results['overview']['proxy'] == http_proxy
             deploy_configure_by_command(config_command, form_data['hypervisor_type'])
-            assert get_configure_option('http_proxy', VIRTWHO_SYSCONFIG) == http_proxy
+            assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy
             session.virtwho_configure.delete(name)
             assert not session.virtwho_configure.search(name)
 
