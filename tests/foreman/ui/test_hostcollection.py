@@ -83,10 +83,7 @@ def vm_content_hosts(module_loc, module_repos_collection, default_sat):
     distro = module_repos_collection.distro
     with VMBroker(nick=distro, host_classes={'host': ContentHost}, _count=2) as clients:
         for client in clients:
-            module_repos_collection.setup_virtual_machine(
-                client, default_sat, install_katello_agent=False
-            )
-            add_remote_execution_ssh_key(client.ip_addr)
+            module_repos_collection.setup_virtual_machine(client, default_sat)
             update_vm_host_location(client, module_loc.id)
         yield clients
 
