@@ -47,6 +47,7 @@ def module_repository(module_product):
     return repo
 
 
+@pytest.mark.skip_if_open("BZ:2009069")
 @pytest.mark.tier2
 def test_positive_search(session, module_org, module_product, module_repository):
     """Search for a docker image tag and reads details of it
@@ -61,8 +62,8 @@ def test_positive_search(session, module_org, module_product, module_repository)
     with session:
         session.organization.select(org_name=module_org.name)
         search = session.containerimagetag.search('latest')
-        assert module_product.name == search[0]['Product Name']
-        assert module_repository.name == search[0]['Repository Name']
+        assert module_product.name in [i['Product Name'] for i in search]
+        assert module_repository.name in [i['Repository Name'] for i in search]
         values = session.containerimagetag.read('latest')
         assert module_product.name == values['details']['product']
         assert module_repository.name == values['details']['repository']
