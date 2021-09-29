@@ -22,10 +22,45 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.logging import logger
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
+from robottelo.products import RepositoryCollection
+from robottelo.products import RHELAnsibleEngineRepository
+from robottelo.products import SatelliteToolsRepository
+from robottelo.products import YumRepository
+
+CUSTOM_REPO_URL = settings.repos.yum_6.url
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
+
+
+@pytest.fixture(scope='module')
+def module_repos_col(module_org, module_lce, default_sat, request):
+    upload_manifest_locked(org_id=module_org.id)
+    repos_collection = RepositoryCollection(
+        distro=DISTRO_RHEL7,
+        repositories=[
+            SatelliteToolsRepository(),
+            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
+            # force the host to consume an RH product with adding a cdn repo.
+            RHELAnsibleEngineRepository(cdn=True),
+            YumRepository(url=CUSTOM_REPO_URL),
+        ],
+    )
+    repos_collection.setup_content(module_org.id, module_lce.id)
+    yield repos_collection
+
+    @request.addfinalizer
+    def _cleanup():
+        try:
+            default_sat.api.Subscription(organization=module_org).delete_manifest(
+                data={'organization_id': module_org.id}
+            )
+        except Exception:
+            logger.exception('Exception cleaning manifest:')
 
 
 @pytest.mark.tier2
@@ -289,3 +324,46 @@ def test_positive_download_debug_cert_after_refresh(session):
                 session.subscription.refresh_manifest()
     finally:
         entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})
+
+
+@pytest.mark.tier2
+def test_positive_errata_view_organization_switch(
+    session, module_org, module_lce, module_repos_col, default_sat
+):
+    """Verify no errata list visible on Organization switch
+    :id: a5317b2d-2593-4bee-9b20-78066cf2964c
+    :Steps: Create an Organization having a product synced which contains errata.
+    :expectedresults: Verify that the errata belonging to one Organization is not
+                      showing in the Default organization.
+    :CaseImportance: High
+    :CaseLevel: Integration
+    """
+    rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
+    rc.setup_content(module_org.id, module_lce.id)
+    with session:
+        assert (
+            session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
+            == CUSTOM_REPO_ERRATA_ID
+        )
+        session.organization.select(org_name="Default Organization")
+        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_product_view_organization_switch(session, module_org, module_product):
+    """Verify product created in one organization is not visible in another
+    :id: 47f3580e-6071-4499-bf27-1ded62a7d3e3
+    :Steps:
+            1. Create an Organization having a product and verify that product is present in
+               the Organization.
+            2. Switch the Organization to default and verify that product is not visible in it.
+    :expectedresults: Verify that the Product belonging to one Organization is not visible in
+                      another organization.
+    :CaseLevel: Integration
+    :CaseImportance: High
+    """
+    with session:
+        assert session.product.search(module_product.name)
+        session.organization.select(org_name="Default Organization")
+        assert not session.product.search(module_product.name) == module_product.name
