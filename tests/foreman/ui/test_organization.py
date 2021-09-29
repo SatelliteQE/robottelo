@@ -24,8 +24,36 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.constants import LIBVIRT_RESOURCE_URL
+from robottelo.logging import logger
 from robottelo.manifests import original_manifest
 from robottelo.manifests import upload_manifest_locked
+from robottelo.products import RepositoryCollection
+from robottelo.products import YumRepository
+
+CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[2]
+
+
+@pytest.fixture(scope='module')
+def module_repos_col(module_org, module_lce, default_sat, request):
+    upload_manifest_locked(org_id=module_org.id)
+    repos_collection = RepositoryCollection(
+        repositories=[
+            # As Satellite Tools may be added as custom repo and to have a "Fully entitled" host,
+            # force the host to consume an RH product with adding a cdn repo.
+            YumRepository(url=settings.repos.yum_0.url),
+        ],
+    )
+    repos_collection.setup_content(module_org.id, module_lce.id)
+    yield repos_collection
+
+    @request.addfinalizer
+    def _cleanup():
+        try:
+            default_sat.api.Subscription(organization=module_org).delete_manifest(
+                data={'organization_id': module_org.id}
+            )
+        except Exception:
+            logger.exception('Exception cleaning manifest:')
 
 
 @pytest.mark.tier2
@@ -33,7 +61,7 @@ from robottelo.manifests import upload_manifest_locked
 def test_positive_end_to_end(session):
     """Perform end to end testing for organization component
 
-    :id: 91003f52-63a6-4b0d-9b68-2b5717fd200e
+    :id: abe878a9-a6bc-41e5-a39a-0fed9012b80f
 
     :expectedresults: All expected CRUD actions finished successfully
 
@@ -153,7 +181,7 @@ def test_positive_end_to_end(session):
 def test_positive_search_scoped(session):
     """Test scoped search functionality for organization by label
 
-    :id: 18ad9aad-335a-414e-843e-e1c05ec6bcbb
+    :id: f0d81840-ecbb-43d2-9aff-236a9ec1c595
 
     :customerscenario: true
 
@@ -182,7 +210,7 @@ def test_positive_create_with_all_users(session):
     organization. Verify that user is assigned to organization and
     vice versa organization is assigned to user
 
-    :id: 5bfcbd10-750c-4ef6-87b6-a8eb2eae4ce7
+    :id: 6032be70-00a0-4ccd-ad01-391546074879
 
     :customerscenario: true
 
@@ -212,7 +240,7 @@ def test_positive_create_with_all_users(session):
 def test_positive_update_compresource(session):
     """Add/Remove compute resource from/to organization.
 
-    :id: db119bb1-8f79-415b-a056-70a19ffceeea
+    :id: a49349b9-4637-4ef6-b65b-bd3eccb5a12a
 
     :expectedresults: Compute resource is added and then removed.
 
@@ -243,7 +271,7 @@ def test_positive_delete_with_manifest_lces(session):
     """Create Organization with valid values and upload manifest.
     Then try to delete that organization.
 
-    :id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
+    :id: 2f0d580f-2207-4e5e-86ec-80071a29f56c
 
     :expectedresults: Organization is deleted successfully.
 
@@ -272,7 +300,7 @@ def test_positive_download_debug_cert_after_refresh(session):
     certificate for that organization and refresh added manifest for few
     times in a row
 
-    :id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
+    :id: f437c033-a662-4697-b418-5479a8a0a397
 
     :expectedresults: Scenario passed successfully
 
@@ -290,3 +318,56 @@ def test_positive_download_debug_cert_after_refresh(session):
                 session.subscription.refresh_manifest()
     finally:
         entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})
+
+
+@pytest.mark.tier2
+def test_positive_errata_view_organization_switch(
+    session, module_org, module_lce, module_repos_col, default_sat
+):
+    """Verify no errata list visible on Organization switch
+
+    :id: faad9cf3-f8d5-49a6-87d1-431837b67675
+
+    :Steps: Create an Organization having a product synced which contains errata.
+
+    :expectedresults: Verify that the errata belonging to one Organization is not
+                      showing in the Default organization.
+
+    :CaseImportance: High
+
+    :CaseLevel: Integration
+    """
+    rc = RepositoryCollection(repositories=[YumRepository(settings.repos.yum_3.url)])
+    rc.setup_content(module_org.id, module_lce.id)
+    with session:
+        assert (
+            session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)[0]['Errata ID']
+            == CUSTOM_REPO_ERRATA_ID
+        )
+        session.organization.select(org_name="Default Organization")
+        assert not session.errata.search(CUSTOM_REPO_ERRATA_ID, applicable=False)
+
+
+@pytest.mark.tier2
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_product_view_organization_switch(session, module_org, module_product):
+    """Verify product created in one organization is not visible in another
+
+    :id: 50cc459a-3a23-433a-99b9-9f3b929e6d64
+
+    :Steps:
+            1. Create an Organization having a product and verify that product is present in
+               the Organization.
+            2. Switch the Organization to default and verify that product is not visible in it.
+
+    :expectedresults: Verify that the Product belonging to one Organization is not visible in
+                      another organization.
+
+    :CaseLevel: Integration
+
+    :CaseImportance: High
+    """
+    with session:
+        assert session.product.search(module_product.name)
+        session.organization.select(org_name="Default Organization")
+        assert not session.product.search(module_product.name) == module_product.name
