@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import time
 from datetime import datetime
 from datetime import timedelta
 from random import choice
@@ -31,7 +30,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import promote
-from robottelo.api.utils import wait_for_errata_applicability_task
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import add_role_permissions
@@ -43,6 +41,7 @@ from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.cli.host import Host
 from robottelo.cli.host import HostInterface
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.scparams import SmartClassParameter
@@ -1856,21 +1855,17 @@ def test_positive_erratum_applicability(katello_host_tools_client):
     """
     client = katello_host_tools_client['client']
     host_info = katello_host_tools_client['host_info']
-    before_install = int(time.time())
     client.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    wait_for_errata_applicability_task(int(host_info['id']), before_install)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
     ]
     assert settings.repos.yum_6.errata[2] in applicable_erratum_ids
-    before_upgrade = int(time.time())
     # apply errata
     result = client.run(f'yum update -y --advisory {settings.repos.yum_6.errata[2]}')
     assert result.status == 0
-    wait_for_errata_applicability_task(int(host_info['id']), before_upgrade)
     applicable_erratum = Host.errata_list({'host-id': host_info['id']})
     applicable_erratum_ids = [
         errata['erratum-id'] for errata in applicable_erratum if errata['installable'] == 'true'
@@ -1880,21 +1875,36 @@ def test_positive_erratum_applicability(katello_host_tools_client):
 
 @pytest.mark.katello_host_tools
 @pytest.mark.tier3
-def test_negative_install_package(katello_host_tools_client):
-    """Attempt to install a package to a host remotely
+def test_positive_install_package_via_rex(
+    katello_host_tools_client, default_sat, katello_host_tools_repos
+):
+    """Install a package to a host remotely using remote execution,
+    install package using Katello SSH job template, host package list is used to verify that
 
     :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
 
-    :expectedresults: Package was not installed
+    :expectedresults: Package was installed
 
     :CaseLevel: System
     """
+    client = katello_host_tools_client['client']
     host_info = katello_host_tools_client['host_info']
-    with pytest.raises(CLIReturnCodeError) as context:
-        Host.package_install({'host-id': host_info['id'], 'packages': FAKE_1_CUSTOM_PACKAGE})
-    assert (
-        'The task has been cancelled. Is katello-agent installed and goferd running on the Host?'
-    ) in str(context.value.message)
+    client.configure_rex(satellite=default_sat, org=katello_host_tools_repos['org'], register=False)
+    # Apply errata to the host collection using job invocation
+    JobInvocation.create(
+        {
+            'feature': 'katello_package_install',
+            'search-query': f'name ~ {client.hostname}',
+            'inputs': f'package={FAKE_1_CUSTOM_PACKAGE}',
+            'organization-id': katello_host_tools_repos['org'].id,
+        }
+    )
+    result = client.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
+    assert result.status == 0
+    installed_packages = Host.package_list(
+        {'host-id': host_info['id'], 'search': f'name={FAKE_1_CUSTOM_PACKAGE_NAME}'}
+    )
+    assert len(installed_packages) == 1
 
 
 # ------------------------ HOST SUBSCRIPTION SUBCOMMAND FIXTURES AND CLASS -----------------------
