@@ -101,7 +101,7 @@ class SatelliteHostError(Exception):
 
 class ContentHost(Host):
     run = Host.execute
-    default_timeout = settings.server.ssh_client.command_timeout * 1000
+    default_timeout = settings.server.ssh_client.command_timeout
 
     def __init__(self, hostname, auth=None, **kwargs):
         """ContentHost object with optional ssh connection
