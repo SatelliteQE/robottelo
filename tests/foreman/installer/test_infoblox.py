@@ -4,9 +4,9 @@
 
 :CaseLevel: System
 
-:CaseComponent: Infobloxintegration
+:CaseComponent: DHCP & DNS
 
-:Assignee: rdrazny
+:Assignee: dsynk
 
 :TestType: Functional
 
@@ -15,6 +15,29 @@
 :Upstream: No
 """
 import pytest
+
+from robottelo.helpers import InstallerCommand
+
+
+@pytest.mark.tier4
+def test_isc_dhcp_plugin_installation(default_sat):
+    """Check that there are no packaging issues with ISC DHCP plugin
+    :id: 6fc3827b-e431-4105-b2e9-f302044bdc09
+
+    :Steps: Run installer with option
+        --enable-foreman-proxy-plugin-dhcp-remote-isc
+
+    :expectedresults: Plugin installs successfully
+
+    :customerscenario: true
+
+    :BZ: 1994490
+    """
+    installer_obj = InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc')
+    command_output = default_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    rpm_result = default_sat.execute('rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc')
+    assert rpm_result.status == 0
 
 
 @pytest.mark.stubbed
