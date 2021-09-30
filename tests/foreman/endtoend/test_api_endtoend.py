@@ -85,6 +85,7 @@ API_PATHS = {
         '/ansible/api/ansible_roles/fetch',
         '/ansible/api/ansible_roles/import',
         '/ansible/api/ansible_roles/obsolete',
+        '/ansible/api/ansible_roles/sync',
     ),
     'ansible_variables': (
         '/ansible/api/ansible_variables/:id',
@@ -140,10 +141,7 @@ API_PATHS = {
         '/api/bookmarks/:id',
         '/api/bookmarks/:id',
     ),
-    'candlepin_dynflow_proxy': (
-        '/katello/api/consumers/:id/profiles',
-        '/katello/api/systems/:id/deb_package_profile',
-    ),
+    'candlepin_dynflow_proxy': ('/katello/api/consumers/:id/profiles',),
     'candlepin_proxies': (
         '/katello/api/consumers/:id/tracer',
         '/katello/api/systems/:id/enabled_repos',
@@ -194,6 +192,7 @@ API_PATHS = {
         '/api/compute_resources/:id/available_security_groups',
         '/api/compute_resources/:id/available_storage_domains',
         '/api/compute_resources/:id/available_storage_pods',
+        '/api/compute_resources/:id/available_vnic_profiles',
         '/api/compute_resources/:id/available_zones',
         '/api/compute_resources/:id/refresh_cache',
         '/api/compute_resources/:id/available_virtual_machines',
@@ -240,11 +239,11 @@ API_PATHS = {
     ),
     'content_exports': (
         '/katello/api/content_exports',
-        '/katello/api/content_exports/api_status',
         '/katello/api/content_exports/version',
         '/katello/api/content_exports/library',
     ),
     'content_imports': (
+        '/katello/api/content_imports',
         '/katello/api/content_imports/version',
         '/katello/api/content_imports/library',
     ),
@@ -291,10 +290,8 @@ API_PATHS = {
         '/katello/api/content_view_versions/:id',
         '/katello/api/content_view_versions/:id',
         '/katello/api/content_view_versions/:id',
-        '/katello/api/content_view_versions/:id/export',
         '/katello/api/content_view_versions/:id/promote',
         '/katello/api/content_view_versions/:id/republish_repositories',
-        '/katello/api/content_view_versions/import',
         '/katello/api/content_view_versions/incremental_update',
     ),
     'dashboard': ('/api/dashboard',),
@@ -349,7 +346,6 @@ API_PATHS = {
         '/api/smart_proxies/:id/import_puppetclasses',
     ),
     'errata': (
-        '/katello/api/content_view_versions/:id/available_errata',
         '/katello/api/errata/compare',
         '/katello/api/errata/:id',
     ),
@@ -387,15 +383,6 @@ API_PATHS = {
         '/foreman_tasks/api/tasks/bulk_search',
         '/foreman_tasks/api/tasks/callback',
         '/foreman_tasks/api/tasks/summary',
-    ),
-    'gpg_keys': (
-        '/katello/api/gpg_keys',
-        '/katello/api/gpg_keys',
-        '/katello/api/gpg_keys/:id',
-        '/katello/api/gpg_keys/:id',
-        '/katello/api/gpg_keys/:id',
-        '/katello/api/gpg_keys/:id/content',
-        '/katello/api/gpg_keys/:id/content',
     ),
     'home': ('/api', '/api/status'),
     'host_autocomplete': (),
@@ -519,6 +506,12 @@ API_PATHS = {
         '/api/compute_resources/:compute_resource_id/images/:id',
         '/api/compute_resources/:compute_resource_id/images/:id',
     ),
+    'inventory': (
+        '/api/organizations/:organization_id/rh_cloud/report',
+        '/api/organizations/:organization_id/rh_cloud/report',
+        '/api/organizations/:organization_id/rh_cloud/inventory_sync',
+        '/api/rh_cloud/enable_connector',
+    ),
     'interfaces': (
         '/api/hosts/:host_id/interfaces',
         '/api/hosts/:host_id/interfaces',
@@ -618,6 +611,25 @@ API_PATHS = {
         '/katello/api/ostree_branches/:id',
         '/katello/api/ostree_branches/compare',
     ),
+    'oval_contents': (
+        '/api/compliance/oval_contents',
+        '/api/compliance/oval_contents/:id',
+        '/api/compliance/oval_contents',
+        '/api/compliance/oval_contents/:id',
+        '/api/compliance/oval_contents/:id',
+        '/api/compliance/oval_contents/sync',
+    ),
+    'oval_policies': (
+        '/api/compliance/oval_policies',
+        '/api/compliance/oval_policies/:id',
+        '/api/compliance/oval_policies',
+        '/api/compliance/oval_policies/:id',
+        '/api/compliance/oval_policies/:id',
+        '/api/compliance/oval_policies/:id/assign_hostgroups',
+        '/api/compliance/oval_policies/:id/assign_hosts',
+        '/api/compliance/oval_policies/:id/oval_content',
+    ),
+    'oval_reports': ('/api/compliance/oval_reports/:cname/:oval_policy_id/:date',),
     'package_groups': (
         '/katello/api/package_group',
         '/katello/api/package_group',
@@ -725,7 +737,13 @@ API_PATHS = {
         '/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
     ),
     'scap_content_profiles': ('/api/compliance/scap_content_profiles',),
+    'simple_content_access': (
+        '/katello/api/organizations/:organization_id/simple_content_access/eligible',
+        '/katello/api/organizations/:organization_id/simple_content_access/enable',
+        '/katello/api/organizations/:organization_id/simple_content_access/disable',
+    ),
     'registration': ('/api/register', '/api/register'),
+    'registration_commands': ('/api/registration_commands',),
     'report_templates': (
         '/api/report_templates',
         '/api/report_templates/:id',
@@ -805,7 +823,6 @@ API_PATHS = {
         '/api/users/:user_id/ssh_keys/:id',
         '/api/users/:user_id/ssh_keys/:id',
     ),
-    'statistics': ('/api/statistics',),
     'subnet_disks': ('/bootdisk/api', '/bootdisk/api/subnets/:subnet_id'),
     'subnets': (
         '/api/subnets',
@@ -816,7 +833,6 @@ API_PATHS = {
         '/api/subnets/:id/freeip',
     ),
     'subscriptions': (
-        '/katello/api/activation_keys/:activation_key_id/subscriptions',
         '/katello/api/organizations/:organization_id/subscriptions',
         '/katello/api/organizations/:organization_id/subscriptions/delete_manifest',
         '/katello/api/organizations/:organization_id/subscriptions/:id',
@@ -868,7 +884,6 @@ API_PATHS = {
     ),
     'template_invocations': ('/api/job_invocations/:job_invocation_id/template_invocations',),
     'template_kinds': ('/api/template_kinds',),
-    'trends': ('/api/trends', '/api/trends/:id', '/api/trends', '/api/trends/:id'),
     'upstream_subscriptions': (
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
         '/katello/api/organizations/:organization_id/upstream_subscriptions',
@@ -896,6 +911,24 @@ API_PATHS = {
         '/api/users',
         '/api/users/:id',
         '/api/users/:id',
+    ),
+    'webhooks': (
+        '/api/webhooks',
+        '/api/webhooks/:id',
+        '/api/webhooks',
+        '/api/webhooks/:id',
+        '/api/webhooks/:id',
+        '/api/webhooks/events',
+    ),
+    'webhook_templates': (
+        '/api/webhook_templates',
+        '/api/webhook_templates/:id',
+        '/api/webhook_templates',
+        '/api/webhook_templates/import',
+        '/api/webhook_templates/:id',
+        '/api/webhook_templates/:id',
+        '/api/webhook_templates/:id/clone',
+        '/api/webhook_templates/:id/export',
     ),
 }
 
