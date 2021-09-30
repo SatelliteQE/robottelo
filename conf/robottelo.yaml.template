@@ -1,7 +1,4 @@
 ROBOTTELO:
-  # The directory where screenshots will be saved.
-  # Note:- Content under /tmp may be deleted after a reboot.
-  SCREENSHOTS_PATH: /tmp/robottelo/screenshots/
   LOCALE: en_US.UTF-8
   # Update upstream=false for downstream run
   UPSTREAM: false
@@ -11,52 +8,11 @@ ROBOTTELO:
   TMP_DIR: /var/tmp
   # Web Server to provide various test artifacts
   ARTIFACTS_SERVER: replace-with-artifacts-server
-  # Webdriver logging options
-  # A list of commands to be logged
-  LOG_DRIVER_COMMANDS:
-    - newSession
-    - windowMaximize
-    - get
-    - findElement
-    - sendKeysToElement
-    - clickElement
-    - mouseMoveTo
+
   # - The URL of container hosting repos on SatLab
   # Example url - http://<container_hostname_or_ip>:<port>
   # Use https://github.com/SatelliteQE/fedorapeople-repos to deploy and configure the repos hosting container
   REPOS_HOSTING_URL: replace-with-repo-hosting-url
-  # browser tells robottelo which browser to use when testing UI. Valid values
-  # are:
-  # * selenium
-  # * docker: to use a browser inside a docker container. In order to use this
-  #   feature make sure that the docker daemon is running locally and has its
-  #   unix socket published at unix://var/run/docker.sock. Also make sure that
-  #   the docker image selenium/standalone-firefox is available.
-  # * remote: to access the remote browser, the webdriver and command_executor
-  #   are required.
-  BROWSER: selenium
-  # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
-  WEBDRIVER: chrome
-  # Run browser for UI tests with semicolon delimeted options such as headless. Currently supported for only chrome.
-  BROWSEROPTIONS: replace-with-browser-options
-  # The base DesiredCapabilities dict will be get by the browser
-  # specified by webdriver config. If you override browserName then that
-  # browser will be used instead.
-  WEBDRIVER_DESIRED_CAPABILITIES:
-    PLATFORM:
-    MAXDURATION:
-    IDLETIMEOUT:
-    START-MAXIMISED:
-    SCREENRESOLUTION:
-    TAGS:
-  # Binary location for selected wedriver (not needed if using saucelabs)
-  # webdriver_binary=/usr/bin/chromedriver
-  # webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
-  WEBDRIVER_BINARY: /usr/bin/chromedriver
-  # Zalenium command_executor
-  COMMAND_EXECUTOR: http://127.0.0.1:4444/wd/hub
-  # CDN sync
-  CDN: true
   # Run one datapoint or multiple datapoints for tests
   RUN_ONE_DATAPOINT: false
   # Satellite version supported by this branch
