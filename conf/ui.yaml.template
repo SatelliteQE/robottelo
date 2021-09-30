@@ -1,0 +1,45 @@
+UI:
+  SCREENSHOTS_PATH: /tmp/robottelo/screenshots/
+  # Webdriver logging options
+  LOG_DRIVER_COMMANDS:
+  - newSession
+  - windowMaximize
+  - get
+  - findElement
+  - sendKeysToElement
+  - clickElement
+  - mouseMoveTo
+
+  # browser tells robottelo which browser to use when testing UI. Valid values
+  # are:
+  # * selenium
+  # * docker: to use a browser inside a docker container. In order to use this
+  #   feature make sure that the docker daemon is running locally and has its
+  #   unix socket published at unix://var/run/docker.sock. Also make sure that
+  #   the docker image selenium/standalone-firefox is available.
+  # * remote: to access the remote browser, the webdriver and command_executor
+  #   are required.
+  BROWSER: selenium
+  # Webdriver to use. Valid values are chrome, firefox
+  WEBDRIVER: chrome
+  # Binary location for selected wedriver (not needed if using saucelabs)
+  WEBDRIVER_BINARY: /usr/bin/chromedriver
+
+  # Web_Kaifuku Settings (checkout https://github.com/RonnyPfannschmidt/webdriver_kaifuku)
+  WEBKAIFUKU:
+    webdriver: chrome/remote
+    webdriver_options:
+      command_executor: http://localhost:4444/wd/hub
+      desired_capabilities:
+        browserName: chrome
+        chromeOptions:
+          args:
+            - 'disable-web-security'
+            - 'ignore-certificate-errors'
+          prefs:
+            download.prompt_for_download: False
+        platform: any
+        maxduration: 5400
+        idletimeout: 1000
+        start-maximised: true
+        screenresolution: 1600x1200
