@@ -11,7 +11,7 @@ Inflector==3.0.1
 jinja2==3.0.1
 navmazing==1.1.6
 pexpect==4.8.0
-productmd==1.32
+productmd==1.33
 pyotp==2.6.0
 pytest==6.2.5
 pytest-services==2.2.1
