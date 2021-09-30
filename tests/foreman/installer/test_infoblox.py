@@ -86,6 +86,7 @@ def test_infoblox_dns_plugin_installation(default_sat):
     command_opts = {
         'foreman-proxy-plugin-dns-infoblox-username': 'fakeusername',
         'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
+        'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
     }
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = default_sat.execute(installer_obj.get_command())
