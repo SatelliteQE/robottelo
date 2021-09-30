@@ -112,7 +112,9 @@ class TestSubscriptionAutoAttach:
         container_name = f"{request.node.name}_docker_client"
         org = entities.Organization(name=request.node.name + "_org").create()
         loc = entities.Location(name=request.node.name + "_loc", organization=[org]).create()
-        manifests.upload_manifest_locked(org.id, interface=manifests.INTERFACE_API)
+        manifests.upload_manifest_locked(
+            satellite=default_sat, org_id=org.id, interface=manifests.INTERFACE_API
+        )
         act_key = entities.ActivationKey(
             auto_attach=False,
             organization=org.id,

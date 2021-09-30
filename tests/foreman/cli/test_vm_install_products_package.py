@@ -68,7 +68,9 @@ def test_vm_install_package(org, lce, distro, cdn, default_sat):
         ],
     )
     # Create repos, content view, and activation key.
-    repos_collection.setup_content(org['id'], lce['id'], upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org['id'], lce_id=lce['id'], upload_manifest=True
+    )
     with VMBroker(nick=distro, host_classes={'host': ContentHost}) as host:
         # install katello-agent
         repos_collection.setup_virtual_machine(

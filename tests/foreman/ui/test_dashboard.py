@@ -246,7 +246,9 @@ def test_positive_user_access_with_host_filter(
             distro=DISTRO_RHEL7,
             repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_6.url)],
         )
-        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+        repos_collection.setup_content(
+            satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+        )
         repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
         result = rhel7_contenthost.run(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}')
         assert result.status == 0

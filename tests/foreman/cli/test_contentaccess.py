@@ -181,7 +181,7 @@ def test_negative_rct_not_shows_golden_ticket_enabled(default_sat):
     org = entities.Organization().create()
     # upload organization manifest with org environment access disabled
     manifest = manifests.clone()
-    manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id, manifest=manifest)
     result = default_sat.execute(f'rct cat-manifest {manifest.filename}')
     assert result.status == 0
     assert 'Content Access Mode: Simple Content Access' not in result.stdout

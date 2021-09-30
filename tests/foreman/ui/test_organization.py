@@ -238,7 +238,7 @@ def test_positive_update_compresource(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_delete_with_manifest_lces(session):
+def test_positive_delete_with_manifest_lces(session, default_sat):
     """Create Organization with valid values and upload manifest.
     Then try to delete that organization.
 
@@ -250,8 +250,8 @@ def test_positive_delete_with_manifest_lces(session):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    upload_manifest_locked(org.id)
+    org = default_sat.api.Organization().create()
+    upload_manifest_locked(satellite=default_sat, org_id=org.id)
     with session:
         session.organization.select(org.name)
         session.lifecycleenvironment.create({'name': 'DEV'})
@@ -266,7 +266,7 @@ def test_positive_delete_with_manifest_lces(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_download_debug_cert_after_refresh(session):
+def test_positive_download_debug_cert_after_refresh(session, default_sat):
     """Create organization with valid manifest. Download debug
     certificate for that organization and refresh added manifest for few
     times in a row
@@ -279,13 +279,15 @@ def test_positive_download_debug_cert_after_refresh(session):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
+    org = default_sat.api.Organization().create()
     try:
-        upload_manifest_locked(org.id, original_manifest())
+        upload_manifest_locked(satellite=default_sat, org_id=org.id, manifest=original_manifest())
         with session:
             session.organization.select(org.name)
             for _ in range(3):
                 assert org.download_debug_certificate()
                 session.subscription.refresh_manifest()
     finally:
-        entities.Subscription(organization=org).delete_manifest(data={'organization_id': org.id})
+        default_sat.api.Subscription(organization=org).delete_manifest(
+            data={'organization_id': org.id}
+        )

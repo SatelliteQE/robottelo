@@ -815,9 +815,10 @@ class ContentHost(Host):
         ]
         repos.extend(extra_repos)
         content_setup_data = cli_factory.setup_cdn_and_custom_repos_content(
-            org['id'],
-            lce['id'],
-            repos,
+            satellite=satellite,
+            org_id=org['id'],
+            lce_id=lce['id'],
+            repos=repos,
             upload_manifest=upload_manifest,
             rh_subscriptions=[constants.DEFAULT_SUBSCRIPTION_NAME],
         )

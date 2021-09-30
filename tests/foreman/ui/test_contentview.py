@@ -1392,7 +1392,7 @@ def test_positive_promote_composite_with_custom_content(session):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier2
-def test_positive_publish_rh_content_with_errata_by_date_filter(session):
+def test_positive_publish_rh_content_with_errata_by_date_filter(session, default_sat):
     """Publish a CV, containing only RH repo, having errata excluding by
     date filter
 
@@ -1415,7 +1415,11 @@ def test_positive_publish_rh_content_with_errata_by_date_filter(session):
         distro=DISTRO_RHEL6, repositories=[VirtualizationAgentsRepository()]
     )
     repos_collection.setup_content(
-        org.id, lce.id, download_policy='immediate', upload_manifest=True
+        satellite=default_sat,
+        org_id=org.id,
+        lce_id=lce.id,
+        download_policy='immediate',
+        upload_manifest=True,
     )
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     cvf = entities.ErratumContentViewFilter(
@@ -2293,7 +2297,7 @@ def test_positive_add_all_security_errata_by_date_range_filter(session, module_o
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier3
-def test_positive_edit_rh_custom_spin(session):
+def test_positive_edit_rh_custom_spin(session, default_sat):
     """Edit content views for a custom rh spin.  For example, modify a filter
 
     :id: 05639074-ef6d-4c6b-8ff6-53033821e686
@@ -2313,7 +2317,9 @@ def test_positive_edit_rh_custom_spin(session):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
@@ -2354,7 +2360,7 @@ def test_positive_edit_rh_custom_spin(session):
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.upgrade
 @pytest.mark.tier2
-def test_positive_promote_with_rh_custom_spin(session):
+def test_positive_promote_with_rh_custom_spin(session, default_sat):
     """attempt to promote a content view containing a custom RH
     spin - i.e., contains filters.
 
@@ -2372,7 +2378,9 @@ def test_positive_promote_with_rh_custom_spin(session):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     cv = entities.ContentView(id=repos_collection.setup_content_data['content_view']['id']).read()
     with session:
         session.organization.select(org.name)
@@ -2812,7 +2820,9 @@ def test_positive_subscribe_system_with_custom_content(session, rhel7_contenthos
         distro=DISTRO_RHEL7,
         repositories=[SatelliteToolsRepository(), YumRepository(url=settings.repos.yum_0.url)],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     assert rhel7_contenthost.subscribed
     with session:
@@ -2854,7 +2864,9 @@ def test_positive_subscribe_system_with_puppet_modules(session, rhel7_contenthos
             ),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     assert rhel7_contenthost.subscribed
     with session:
@@ -3007,7 +3019,7 @@ def test_positive_custom_ostree_end_to_end(session, module_org):
 
 @pytest.mark.skip_if_open("BZ:1625783")
 @pytest.mark.tier3
-def test_positive_rh_ostree_end_to_end(session):
+def test_positive_rh_ostree_end_to_end(session, default_sat):
     """Create content view with RH ostree contents, publish and promote it
     to Library +1 env. Then disassociate repository from that content view
 
@@ -3040,7 +3052,7 @@ def test_positive_rh_ostree_end_to_end(session):
     repo_name = rh_repo['name']
     # Create new org to import manifest
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
     enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
     with session:
@@ -3131,7 +3143,7 @@ def test_positive_mixed_content_end_to_end(session, module_org):
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_rh_mixed_content_end_to_end(session):
+def test_positive_rh_mixed_content_end_to_end(session, default_sat):
     """Create a CV with RH ostree as well as RH yum contents and publish and promote
     them to next environment. Remove promoted version afterwards
 
@@ -3162,7 +3174,7 @@ def test_positive_rh_mixed_content_end_to_end(session):
         'releasever': None,
     }
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
     for rh_repo in [rh_ah_repo, rh_st_repo]:
         enable_sync_redhat_repo(rh_repo, org.id)
     lce = entities.LifecycleEnvironment(organization=org).create()
@@ -3312,7 +3324,9 @@ def test_positive_composite_child_inc_update(session, rhel7_contenthost, default
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7, repositories=[SatelliteToolsRepository(), YumRepository(url=repo_url)]
     )
-    content_data = repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    content_data = repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     composite_cv = entities.ContentView(composite=True, organization=org).create()
     composite_cv.component = [
         entities.ContentView(id=content_data['content_view']['id']).read().version[0]

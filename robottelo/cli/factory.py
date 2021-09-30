@@ -2330,6 +2330,7 @@ def setup_cdn_and_custom_repositories(org_id, repos, download_policy='on_demand'
 
 
 def setup_cdn_and_custom_repos_content(
+    satellite,
     org_id,
     lce_id=None,
     repos=None,
@@ -2362,7 +2363,10 @@ def setup_cdn_and_custom_repos_content(
         # Upload the organization manifest
         try:
             manifests.upload_manifest_locked(
-                org_id, manifests.clone(), interface=manifests.INTERFACE_CLI
+                satellite=satellite,
+                org_id=org_id,
+                manifest=manifests.clone(),
+                interface=manifests.INTERFACE_CLI,
             )
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to upload manifest\n{err.msg}')

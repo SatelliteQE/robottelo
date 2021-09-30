@@ -63,8 +63,10 @@ def module_yum_repo2(module_product):
 
 
 @pytest.fixture(scope='module')
-def module_rh_repo(module_org):
-    manifests.upload_manifest_locked(module_org.id, manifests.clone())
+def module_rh_repo(module_org, default_sat):
+    manifests.upload_manifest_locked(
+        satellite=default_sat, org_id=module_org.id, manifest=manifests.clone()
+    )
     rhst = SatelliteToolsRepository(cdn=True)
     repo_id = enable_rhrepo_and_fetchid(
         basearch=rhst.data['arch'],

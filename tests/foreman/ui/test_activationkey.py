@@ -98,7 +98,9 @@ def test_positive_end_to_end_register(session, rhel7_contenthost, default_sat):
     repos_collection = RepositoryCollection(
         distro=constants.DISTRO_RHEL7, repositories=[SatelliteToolsRepository()]
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     ak_name = repos_collection.setup_content_data['activation_key']['name']
 
     repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
@@ -1098,7 +1100,7 @@ def test_positive_service_level_subscription_with_custom_product(
     :CaseLevel: System
     """
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
     entities_ids = setup_org_for_a_custom_repo(
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )

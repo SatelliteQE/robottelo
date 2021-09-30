@@ -49,7 +49,7 @@ def module_lce(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection(module_org, module_lce):
+def module_repos_collection(module_org, module_lce, default_sat):
     repos_collection = RepositoryCollection(
         distro=constants.DISTRO_DEFAULT,
         repositories=[
@@ -58,17 +58,21 @@ def module_repos_collection(module_org, module_lce):
             YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id, upload_manifest=True
+    )
     return repos_collection
 
 
 @pytest.fixture(scope='module')
-def module_repos_collection_module_stream(module_org, module_lce):
+def module_repos_collection_module_stream(module_org, module_lce, default_sat):
     repos_collection = RepositoryCollection(
         distro=constants.DISTRO_RHEL8,
         repositories=[YumRepository(url=settings.repos.module_stream_1.url)],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id, upload_manifest=True
+    )
     return repos_collection
 
 

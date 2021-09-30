@@ -92,24 +92,24 @@ def _set_setting_value(setting_entity, value):
     setting_entity.update(['value'])
 
 
-def _org():
+def _org(satellite):
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
         name='remote_execution_connect_by_ip', value='Yes', organization=org.id
     ).create()
-    upload_manifest_locked(org.id)
+    upload_manifest_locked(satellite=satellite, org_id=org.id)
     return org
 
 
 @pytest.fixture(scope='module')
-def module_org():
-    return _org()
+def module_org(default_sat):
+    return _org(default_sat)
 
 
 @pytest.fixture
-def org():
-    return _org()
+def org(default_sat):
+    return _org(default_sat)
 
 
 @pytest.fixture(scope='module')
@@ -123,7 +123,7 @@ def lce(org):
 
 
 @pytest.fixture(scope='module')
-def module_repos_col(module_org, module_lce):
+def module_repos_col(module_org, module_lce, default_sat):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
@@ -134,7 +134,9 @@ def module_repos_col(module_org, module_lce):
             YumRepository(url=CUSTOM_REPO_URL),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id
+    )
     return repos_collection
 
 
@@ -147,7 +149,7 @@ def vm(module_repos_col, default_sat):
 
 
 @pytest.fixture(scope='module')
-def module_rhva_repos_col(module_org, module_lce):
+def module_rhva_repos_col(module_org, module_lce, default_sat):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL6,
         repositories=[
@@ -156,12 +158,14 @@ def module_rhva_repos_col(module_org, module_lce):
             VirtualizationAgentsRepository(cdn=True),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id
+    )
     return repos_collection
 
 
 @pytest.fixture(scope='module')
-def module_erratatype_repos_col(module_org, module_lce):
+def module_erratatype_repos_col(module_org, module_lce, default_sat):
     repos_collection = RepositoryCollection(
         distro=DISTRO_RHEL7,
         repositories=[
@@ -173,7 +177,9 @@ def module_erratatype_repos_col(module_org, module_lce):
             YumRepository(url=settings.repos.yum_9.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, module_lce.id)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id
+    )
     return repos_collection
 
 
@@ -303,7 +309,9 @@ def test_content_host_errata_page_pagination(session, org, lce, default_sat):
             YumRepository(url=settings.repos.yum_3.url),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         client.add_rex_key(satellite=default_sat)
         # Add repo and install packages that need errata
@@ -844,7 +852,9 @@ def test_positive_filtered_errata_status_installable_param(
             YumRepository(url=CUSTOM_REPO_URL),
         ],
     )
-    repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+    )
     with VMBroker(nick=repos_collection.distro, host_classes={'host': ContentHost}) as client:
         repos_collection.setup_virtual_machine(client, default_sat)
         assert _install_client_package(client, FAKE_1_CUSTOM_PACKAGE, errata_applicability=True)

@@ -871,6 +871,7 @@ class RepositoryCollection:
 
     def setup_content(
         self,
+        satellite,
         org_id,
         lce_id,
         upload_manifest=False,
@@ -896,7 +897,7 @@ class RepositoryCollection:
         if self.need_subscription:
             # upload manifest only when needed
             if upload_manifest and not self.organization_has_manifest(org_id):
-                manifests.upload_manifest_locked(org_id, interface=manifests.INTERFACE_CLI)
+                manifests.upload_manifest_locked(satellite=satellite, org_id=org_id)
             if not rh_subscriptions:
                 # add the default subscription if no subscription provided
                 rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]

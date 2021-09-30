@@ -167,7 +167,7 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
-def test_positive_access_with_non_admin_user_with_manifest(test_name):
+def test_positive_access_with_non_admin_user_with_manifest(test_name, default_sat):
     """Access subscription page with user that has only view_subscriptions
     permission and organization that has a manifest uploaded.
 
@@ -184,12 +184,12 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
 
     :CaseImportance: Critical
     """
-    org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
-    role = entities.Role(organization=[org]).create()
+    org = default_sat.api.Organization().create()
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
+    role = default_sat.api.Role(organization=[org]).create()
     create_role_permissions(role, {'Katello::Subscription': ['view_subscriptions']})
     user_password = gen_string('alphanumeric')
-    user = entities.User(
+    user = default_sat.api.User(
         admin=False,
         role=[role],
         password=user_password,
@@ -204,7 +204,7 @@ def test_positive_access_with_non_admin_user_with_manifest(test_name):
 
 
 @pytest.mark.tier2
-def test_positive_access_manifest_as_another_admin_user(test_name):
+def test_positive_access_manifest_as_another_admin_user(test_name, default_sat):
     """Other admin users should be able to access and manage a manifest
     uploaded by a different admin.
 
@@ -220,18 +220,18 @@ def test_positive_access_manifest_as_another_admin_user(test_name):
 
     :CaseImportance: High
     """
-    org = entities.Organization().create()
+    org = default_sat.api.Organization().create()
     user1_password = gen_string('alphanumeric')
-    user1 = entities.User(
+    user1 = default_sat.api.User(
         admin=True, password=user1_password, organization=[org], default_organization=org
     ).create()
     user2_password = gen_string('alphanumeric')
-    user2 = entities.User(
+    user2 = default_sat.api.User(
         admin=True, password=user2_password, organization=[org], default_organization=org
     ).create()
     # use the first admin to upload a manifest
     with Session(test_name, user=user1.login, password=user1_password) as session:
-        manifests.upload_manifest_locked(org.id)
+        manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
         assert session.subscription.has_manifest
         # store subscriptions that have "Red Hat" in the name for later
         rh_subs = session.subscription.search("Red Hat")
@@ -282,7 +282,11 @@ def test_positive_view_vdc_subscription_products(session, rhel7_contenthost, def
     )
     product_name = repos_collection.rh_repos[0].data['product']
     repos_collection.setup_content(
-        org.id, lce.id, upload_manifest=True, rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME]
+        satellite=default_sat,
+        org_id=org.id,
+        lce_id=lce.id,
+        upload_manifest=True,
+        rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME],
     )
     rhel7_contenthost.contenthost_setup(
         default_sat,

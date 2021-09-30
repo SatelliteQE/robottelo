@@ -74,11 +74,11 @@ def module_manifest_org():
 
 
 @pytest.fixture(scope='module')
-def module_gt_manifest_org():
+def module_gt_manifest_org(default_sat):
     """Creates a new org and loads GT manifest in the new org"""
     org = entities.Organization().create()
     manifest = manifests.clone(org_environment_access=True, name='golden_ticket')
-    manifests.upload_manifest_locked(org.id, manifest, interface=manifests.INTERFACE_CLI)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id, manifest=manifest)
     org.manifest_filename = manifest.filename
     return org
 

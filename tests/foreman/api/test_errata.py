@@ -813,11 +813,13 @@ def test_positive_incremental_update_required(
 
 
 @pytest.fixture(scope='module')
-def repos_collection(module_org, module_lce):
+def repos_collection(default_sat, module_org, module_lce):
     repos_collection = RepositoryCollection(
         distro=constants.DISTRO_RHEL8, repositories=[YumRepository(url=settings.repos.swid_tag.url)]
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=module_lce.id, upload_manifest=True
+    )
     return repos_collection
 
 

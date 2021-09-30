@@ -66,7 +66,7 @@ def module_org():
 
 
 @pytest.fixture(scope='module')
-def repos_collection(module_org):
+def repos_collection(default_sat, module_org):
     """Adds required repositories, AK, LCE and CV for content host testing"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
     repos_collection = RepositoryCollection(
@@ -78,12 +78,14 @@ def repos_collection(module_org):
             YumRepository(url=settings.repos.yum_6.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=lce.id, upload_manifest=True
+    )
     return repos_collection
 
 
 @pytest.fixture(scope='module')
-def repos_collection_for_module_streams(module_org):
+def repos_collection_for_module_streams(default_sat, module_org):
     """Adds required repositories, AK, LCE and CV for content host testing for
     module streams"""
     lce = entities.LifecycleEnvironment(organization=module_org).create()
@@ -96,7 +98,9 @@ def repos_collection_for_module_streams(module_org):
             YumRepository(url=settings.repos.module_stream_1.url),
         ],
     )
-    repos_collection.setup_content(module_org.id, lce.id, upload_manifest=True)
+    repos_collection.setup_content(
+        satellite=default_sat, org_id=module_org.id, lce_id=lce.id, upload_manifest=True
+    )
     return repos_collection
 
 
@@ -1357,7 +1361,9 @@ def test_content_access_after_stopped_foreman(
                 YumRepository(url=settings.repos.yum_6.url),
             ],
         )
-        repos_collection.setup_content(org.id, lce.id, upload_manifest=True)
+        repos_collection.setup_content(
+            satellite=default_sat, org_id=org.id, lce_id=lce.id, upload_manifest=True
+        )
         repos_collection.setup_virtual_machine(rhel7_contenthost, default_sat)
     result = rhel7_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0

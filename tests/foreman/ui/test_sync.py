@@ -48,9 +48,9 @@ def module_custom_product(module_org):
 
 
 @pytest.fixture(scope='module')
-def module_org_with_manifest():
+def module_org_with_manifest(default_sat):
     org = entities.Organization().create()
-    manifests.upload_manifest_locked(org.id)
+    manifests.upload_manifest_locked(satellite=default_sat, org_id=org.id)
     return org
 
 
