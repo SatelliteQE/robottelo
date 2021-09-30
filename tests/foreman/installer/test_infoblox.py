@@ -40,6 +40,62 @@ def test_isc_dhcp_plugin_installation(default_sat):
     assert rpm_result.status == 0
 
 
+@pytest.mark.tier4
+def test_infoblox_dhcp_plugin_installation(default_sat):
+    """Check that there are no packaging issues with Infoblox DHCP plugin
+    :id: 83f4596c-9641-4df5-ba3d-fb1e5b99ff9b
+
+    :Steps: Run installer with options
+        --enable-foreman-proxy-plugin-dhcp-infoblox
+        --foreman-proxy-plugin-dhcp-infoblox-username fakeusername
+        --foreman-proxy-plugin-dhcp-infoblox-password fakepassword
+
+    :expectedresults: Plugin installs successfully
+
+    :BZ: 2000237
+    """
+    command_args = 'enable-foreman-proxy-plugin-dhcp-infoblox'
+    command_opts = {
+        'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
+        'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
+    }
+    installer_obj = InstallerCommand(command_args, **command_opts)
+    command_output = default_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    rpm_result = default_sat.execute(
+        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q'
+    )
+    assert rpm_result.status == 0
+
+
+@pytest.mark.tier4
+def test_infoblox_dns_plugin_installation(default_sat):
+    """Check that there are no packaging issues with Infoblox DNS plugin
+    :id: 2ffa6b48-8033-4541-892e-c139f67080a4
+
+    :Steps: Run installer with options
+        --enable-foreman-proxy-plugin-dns-infoblox
+        --foreman-proxy-plugin-dns-infoblox-username fakeusername
+        --foreman-proxy-plugin-dns-infoblox-password fakepassword
+
+    :expectedresults: Plugin installs successfully
+
+    :BZ: 2000237
+    """
+    command_args = 'enable-foreman-proxy-plugin-dns-infoblox'
+    command_opts = {
+        'foreman-proxy-plugin-dns-infoblox-username': 'fakeusername',
+        'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
+    }
+    installer_obj = InstallerCommand(command_args, **command_opts)
+    command_output = default_sat.execute(installer_obj.get_command())
+    assert 'Success!' in command_output.stdout
+    rpm_result = default_sat.execute(
+        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q'
+    )
+    assert rpm_result.status == 0
+
+
 @pytest.mark.stubbed
 @pytest.mark.tier3
 @pytest.mark.upgrade
