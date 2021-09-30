@@ -25,6 +25,6 @@ robozilla:
     fileLevel: DEBUG
 broker:
     level: WARNING
-    fileLevel: INFO
+    fileLevel: DEBUG
 other:
     fileLevel: INFO
