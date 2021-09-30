@@ -712,7 +712,7 @@ def test_positive_assign_compliance_policy(session, scap_policy):
         assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
 
 
-@pytest.mark.skipif((settings.robottelo.webdriver != 'chrome'), reason='Only tested on Chrome')
+@pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
 @pytest.mark.tier3
 def test_positive_export(session):
     """Create few hosts and export them via UI

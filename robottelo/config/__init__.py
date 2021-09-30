@@ -148,15 +148,12 @@ def configure_airgun():
                 'username': settings.server.admin_username,
             },
             'selenium': {
-                'browser': settings.robottelo.browser,
-                'screenshots_path': settings.robottelo.screenshots_path,
-                'webdriver': settings.robottelo.webdriver,
-                'webdriver_binary': settings.robottelo.webdriver_binary,
-                'command_executor': settings.robottelo.command_executor,
+                'browser': settings.ui.browser,
+                'screenshots_path': settings.ui.screenshots_path,
+                'webdriver': settings.ui.webdriver,
+                'webdriver_binary': settings.ui.webdriver_binary,
             },
-            'webdriver_desired_capabilities': (
-                settings.robottelo.webdriver_desired_capabilities or {}
-            ),
+            'webkaifuku': {'config': settings.ui.webkaifuku} or {},
         }
     )
 
