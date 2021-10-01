@@ -8,7 +8,7 @@
 
 :CaseComponent: Search
 
-:Assignee: lvrtelov
+:Assignee: jhenner
 
 :TestType: Functional
 
