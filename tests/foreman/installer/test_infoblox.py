@@ -4,7 +4,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: DHCP & DNS
+:CaseComponent: DHCPDNS
 
 :Assignee: dsynk
 
@@ -29,6 +29,8 @@ def test_isc_dhcp_plugin_installation(default_sat):
 
     :expectedresults: Plugin installs successfully
 
+    :CaseAutomation: Automated
+
     :customerscenario: true
 
     :BZ: 1994490
@@ -51,6 +53,8 @@ def test_infoblox_dhcp_plugin_installation(default_sat):
         --foreman-proxy-plugin-dhcp-infoblox-password fakepassword
 
     :expectedresults: Plugin installs successfully
+
+    :CaseAutomation: Automated
 
     :BZ: 2000237
     """
@@ -79,6 +83,8 @@ def test_infoblox_dns_plugin_installation(default_sat):
         --foreman-proxy-plugin-dns-infoblox-password fakepassword
 
     :expectedresults: Plugin installs successfully
+
+    :CaseAutomation: Automated
 
     :BZ: 2000237
     """
