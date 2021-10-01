@@ -22,6 +22,7 @@ from robottelo.helpers import InstallerCommand
 @pytest.mark.tier4
 def test_isc_dhcp_plugin_installation(default_sat):
     """Check that there are no packaging issues with ISC DHCP plugin
+
     :id: 6fc3827b-e431-4105-b2e9-f302044bdc09
 
     :Steps: Run installer with option
@@ -30,18 +31,6 @@ def test_isc_dhcp_plugin_installation(default_sat):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
-
-    :CaseComponent: DHCPDNS
-
-    :Assignee: dsynk
-
-    :TestType: Functional
-
-    :CaseImportance: High
-
-    :Upstream: No
 
     :Requirement: Installer
 
@@ -59,6 +48,7 @@ def test_isc_dhcp_plugin_installation(default_sat):
 @pytest.mark.tier4
 def test_infoblox_dhcp_plugin_installation(default_sat):
     """Check that there are no packaging issues with Infoblox DHCP plugin
+
     :id: 83f4596c-9641-4df5-ba3d-fb1e5b99ff9b
 
     :Steps: Run installer with options
@@ -69,18 +59,6 @@ def test_infoblox_dhcp_plugin_installation(default_sat):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
-
-    :CaseComponent: DHCPDNS
-
-    :Assignee: dsynk
-
-    :TestType: Functional
-
-    :CaseImportance: High
-
-    :Upstream: No
 
     :Requirement: Installer
 
@@ -103,6 +81,7 @@ def test_infoblox_dhcp_plugin_installation(default_sat):
 @pytest.mark.tier4
 def test_infoblox_dns_plugin_installation(default_sat):
     """Check that there are no packaging issues with Infoblox DNS plugin
+
     :id: 2ffa6b48-8033-4541-892e-c139f67080a4
 
     :Steps: Run installer with options
@@ -113,18 +92,6 @@ def test_infoblox_dns_plugin_installation(default_sat):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
-
-    :CaseLevel: System
-
-    :CaseComponent: DHCPDNS
-
-    :Assignee: dsynk
-
-    :TestType: Functional
-
-    :CaseImportance: High
-
-    :Upstream: No
 
     :Requirement: Installer
 
