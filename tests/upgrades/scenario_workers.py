@@ -26,8 +26,7 @@ def save_worker_hostname(test_name, default_sat):
 
 @pytest.fixture(scope='session')
 def shared_workers():
-    if json_file.exists():
-        return json.loads(json_file.read_text())
+    return json.loads(json_file.read_text())
 
 
 def get_worker_hostname_from_testname(test_name, shared_workers):
