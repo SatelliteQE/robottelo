@@ -31,6 +31,8 @@ def test_isc_dhcp_plugin_installation(default_sat):
 
     :CaseAutomation: Automated
 
+    :CaseLevel: System
+
     :customerscenario: true
 
     :BZ: 1994490
@@ -55,6 +57,8 @@ def test_infoblox_dhcp_plugin_installation(default_sat):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
+
+    :CaseLevel: System
 
     :BZ: 2000237
     """
@@ -85,6 +89,8 @@ def test_infoblox_dns_plugin_installation(default_sat):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
+
+    :CaseLevel: System
 
     :BZ: 2000237
     """
