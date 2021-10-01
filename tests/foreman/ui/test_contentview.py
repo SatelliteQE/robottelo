@@ -3908,3 +3908,43 @@ def test_positive_depsolve_with_module_errata(session, module_org):
             assert items['Name'] in rpm_pack
         assert result['module_streams']['table'][0]['Name'] == mod_stream
         assert result['errata']['table'][0]['Errata ID'] == settings.repos.yum_10.errata[0]
+
+
+@pytest.mark.tier2
+def test_positive_filter_by_pkg_group_name(session, module_org, default_sat):
+    """Publish a filtered version of a Content View, filtering on the package group's name.
+
+    :id: c7021f46-0168-44f7-a863-4aa34533efdb
+
+    :expectedresults: Published Content View's contents is filtered
+                based on package group.
+
+    :CaseImportance: Medium
+    """
+
+    filter_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    package_group = 'birds'
+    expected_packages = [('cockateel'), ('duck'), ('penguin'), ('stork')]
+    create_sync_custom_repo(module_org.id, repo_name=repo_name)
+    repo = default_sat.api.Repository(name=repo_name).search(
+        query={'organization_id': module_org.id}
+    )[0]
+    cv = default_sat.api.ContentView(organization=module_org, repository=[repo]).create()
+    with session:
+        session.contentviewfilter.create(
+            cv.name,
+            {
+                'name': filter_name,
+                'content_type': FILTER_CONTENT_TYPE['package group'],
+                'inclusion_type': FILTER_TYPE['include'],
+            },
+        )
+        session.contentviewfilter.add_package_group(cv.name, filter_name, package_group)
+        cvf = session.contentviewfilter.read(cv.name, filter_name)
+        assert cvf['content_tabs']['assigned'][0]['Name'] == package_group
+        # Publish CV and check filter worked
+        session.contentview.publish(cv.name)
+        result = session.contentview.read_version(cv.name, VERSION)
+        # Assert only the expected packages are present
+        assert expected_packages == [pkg['Name'] for pkg in result['rpm_packages']['table']]
