@@ -27,7 +27,6 @@ from navmazing import NavigationTriesExceeded
 from robottelo import manifests
 from robottelo.api.utils import create_role_permissions
 from robottelo.config import settings
-from robottelo.constants import CHECKSUM_TYPE
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DOWNLOAD_POLICIES
@@ -484,9 +483,9 @@ def test_positive_end_to_end_custom_yum_crud(session, module_org, module_prod):
     :CaseImportance: High
     """
     repo_name = gen_string('alpha')
-    checksum_type = CHECKSUM_TYPE['sha256']
+    checksum_type = 'sha256'
     new_repo_name = gen_string('alphanumeric')
-    new_checksum_type = CHECKSUM_TYPE['sha1']
+    new_checksum_type = 'sha1'
     gpg_key = entities.GPGKey(
         content=read_data_file(VALID_GPG_KEY_FILE), organization=module_org
     ).create()

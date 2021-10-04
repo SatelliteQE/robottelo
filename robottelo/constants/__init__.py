@@ -324,8 +324,6 @@ DOWNLOAD_POLICIES = {
     'immediate': "Immediate",
 }
 
-CHECKSUM_TYPE = {'default': "Default", 'sha256': "sha256", 'sha1': "sha1"}
-
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
