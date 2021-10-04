@@ -16,7 +16,6 @@
 
 :Upstream: No
 """
-import logging
 import tempfile
 from urllib.parse import urljoin
 
@@ -28,47 +27,17 @@ from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
 from requests.exceptions import SSLError
 
+from robottelo import constants
+from robottelo import datafactory
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.constants import CHECKSUM_TYPE
-from robottelo.constants import CONTAINER_REGISTRY_HUB
-from robottelo.constants import CONTAINER_UPSTREAM_NAME
-from robottelo.constants import DEFAULT_ARCHITECTURE
-from robottelo.constants import DOWNLOAD_POLICIES
-from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS
-from robottelo.constants import PRDS
-from robottelo.constants import REPO_TYPE
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
-from robottelo.constants import RPM_TO_UPLOAD
-from robottelo.constants import SRPM_TO_UPLOAD
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE
-from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.constants.repos import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS
-from robottelo.constants.repos import FAKE_5_YUM_REPO
-from robottelo.constants.repos import FAKE_7_PUPPET_REPO
-from robottelo.constants.repos import FAKE_YUM_SRPM_DUPLICATE_REPO
-from robottelo.constants.repos import FAKE_YUM_SRPM_REPO
-from robottelo.datafactory import invalid_http_credentials
-from robottelo.datafactory import invalid_names_list
-from robottelo.datafactory import invalid_values_list
-from robottelo.datafactory import parametrized
-from robottelo.datafactory import valid_data_list
-from robottelo.datafactory import valid_docker_repository_names
-from robottelo.datafactory import valid_http_credentials
-from robottelo.datafactory import valid_labels_list
+from robottelo.constants import repos as repo_constants
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
-
-# from robottelo.api.utils import call_entity_method_with_timeout
-# from robottelo.constants.repos import FEDORA26_OSTREE_REPO
-# from robottelo.constants.repos import FEDORA27_OSTREE_REPO
-
-
-logger = logging.getLogger('robottelo')
+from robottelo.logging import logger
 
 
 @pytest.fixture
@@ -119,7 +88,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
+        **datafactory.parametrized(
+            {id: {'name': name} for id, name in datafactory.valid_data_list().items()}
+        ),
         indirect=True,
     )
     def test_positive_create_with_name(self, repo_options, repo):
@@ -199,11 +170,11 @@ class TestRepository:
         ).create()
 
         rh_repo_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
+            basearch=constants.DEFAULT_ARCHITECTURE,
             org_id=module_manifest_org.id,
-            product=PRDS['rhae'],
-            repo=REPOS['rhae2']['name'],
-            reposet=REPOSET['rhae2'],
+            product=constants.PRDS['rhae'],
+            repo=constants.REPOS['rhae2']['name'],
+            reposet=constants.REPOSET['rhae2'],
             releasever=None,
         )
         rh_repo = entities.Repository(
@@ -221,7 +192,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'label': label} for label in valid_labels_list()]),
+        **datafactory.parametrized([{'label': label} for label in datafactory.valid_labels_list()]),
         indirect=True,
     )
     def test_positive_create_with_label(self, repo_options, repo):
@@ -244,7 +215,7 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'url': settings.repos.yum_2.url}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'url': settings.repos.yum_2.url}]),
         indirect=True,
     )
     def test_positive_create_yum(self, repo_options, repo):
@@ -267,13 +238,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 {
                     'content_type': 'yum',
-                    'url': FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
                 }
-                for creds in valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials(url_encoded=True)
             ]
         ),
         indirect=True,
@@ -296,8 +267,11 @@ class TestRepository:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [{'content_type': 'yum', 'download_policy': policy} for policy in DOWNLOAD_POLICIES]
+        **datafactory.parametrized(
+            [
+                {'content_type': 'yum', 'download_policy': policy}
+                for policy in constants.DOWNLOAD_POLICIES
+            ]
         ),
         indirect=True,
     )
@@ -316,7 +290,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'content_type': 'yum'}]), indirect=True
+        'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
     def test_positive_create_with_default_download_policy(self, repo):
         """Verify if the default download policy is assigned
@@ -339,7 +313,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'content_type': 'yum'}]), indirect=True
+        'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
     def test_positive_create_immediate_update_to_on_demand(self, repo):
         """Update `immediate` download policy to `on_demand`
@@ -365,7 +339,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': 'immediate'}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'immediate'}]),
         indirect=True,
     )
     def test_positive_create_immediate_update_to_background(self, repo):
@@ -387,7 +361,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
         indirect=True,
     )
     def test_positive_create_on_demand_update_to_immediate(self, repo):
@@ -409,7 +383,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
         indirect=True,
     )
     def test_positive_create_on_demand_update_to_background(self, repo):
@@ -431,7 +405,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
         indirect=True,
     )
     def test_positive_create_background_update_to_immediate(self, repo):
@@ -453,7 +427,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
+        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
         indirect=True,
     )
     def test_positive_create_background_update_to_on_demand(self, repo):
@@ -475,11 +449,11 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'checksum_type': checksum_type, 'download_policy': 'immediate'}
+        **datafactory.parametrized(
+            {
+                checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
                 for checksum_type in ('sha1', 'sha256')
-            ]
+            }
         ),
         indirect=True,
     )
@@ -500,11 +474,11 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'checksum_type': checksum_type, 'download_policy': 'background'}
-                for checksum_type in (CHECKSUM_TYPE['sha1'], CHECKSUM_TYPE['sha256'])
-            ]
+        **datafactory.parametrized(
+            {
+                checksum_type: {'checksum_type': checksum_type, 'download_policy': 'background'}
+                for checksum_type in ('sha1', 'sha256')
+            }
         ),
         indirect=True,
     )
@@ -524,7 +498,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'unprotected': unprotected} for unprotected in (True, False)]),
+        **datafactory.parametrized([{'unprotected': unprotected} for unprotected in (True, False)]),
         indirect=True,
     )
     def test_positive_create_unprotected(self, repo_options, repo):
@@ -552,7 +526,7 @@ class TestRepository:
         :CaseLevel: Integration
         """
         gpg_key = entities.GPGKey(
-            organization=module_org, content=read_data_file(VALID_GPG_KEY_FILE)
+            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_FILE)
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key).create()
         # Verify that the given GPG key ID is used.
@@ -577,7 +551,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'name': name} for name in invalid_values_list()]),
+        **datafactory.parametrized([{'name': name} for name in datafactory.invalid_values_list()]),
         indirect=True,
     )
     def test_negative_create_name(self, repo_options):
@@ -597,7 +571,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
+        **datafactory.parametrized(
+            {id: {'name': name} for id, name in datafactory.valid_data_list().items()}
+        ),
         indirect=True,
     )
     def test_negative_create_with_same_name(self, repo_options, repo):
@@ -631,7 +607,7 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'url': url} for url in invalid_names_list()]),
+        **datafactory.parametrized([{'url': url} for url in datafactory.invalid_names_list()]),
         indirect=True,
     )
     def test_negative_create_url(self, repo_options):
@@ -654,10 +630,10 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
-                {'url': FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in valid_http_credentials()
+                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
+                for cred in datafactory.valid_http_credentials()
                 if cred['quote']
             ]
         ),
@@ -683,10 +659,10 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
-                {'url': FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
-                for cred in invalid_http_credentials()
+                {'url': repo_constants.FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])}
+                for cred in datafactory.invalid_http_credentials()
             ]
         ),
         indirect=True,
@@ -708,7 +684,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content_type': 'yum', 'download_policy': gen_string('alpha', 5)}]),
+        **datafactory.parametrized(
+            [{'content_type': 'yum', 'download_policy': gen_string('alpha', 5)}]
+        ),
         indirect=True,
     )
     def test_negative_create_with_invalid_download_policy(self, repo_options):
@@ -729,7 +707,7 @@ class TestRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'content_type': 'yum'}]), indirect=True
+        'repo_options', **datafactory.parametrized([{'content_type': 'yum'}]), indirect=True
     )
     def test_negative_update_to_invalid_download_policy(self, repo):
         """Verify that YUM repository cannot be updated to invalid
@@ -751,10 +729,10 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 {'content_type': content_type, 'download_policy': 'on_demand'}
-                for content_type in REPO_TYPE.keys()
+                for content_type in constants.REPO_TYPE.keys()
                 if content_type != 'yum'
             ]
         ),
@@ -779,7 +757,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'checksum_type': gen_string('alpha'), 'download_policy': 'immediate'}]),
+        **datafactory.parametrized(
+            {'invalid_type': {'checksum_type': gen_string('alpha'), 'download_policy': 'immediate'}}
+        ),
         indirect=True,
     )
     def test_negative_create_checksum(self, repo_options):
@@ -823,11 +803,11 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'checksum_type': checksum_type, 'download_policy': 'immediate'}
+        **datafactory.parametrized(
+            {
+                checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
                 for checksum_type in ('sha1', 'sha256')
-            ]
+            }
         ),
         indirect=True,
     )
@@ -847,7 +827,7 @@ class TestRepository:
             repo.update(['download_policy'])
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list().values()))
+    @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.valid_data_list()))
     def test_positive_update_name(self, repo, name):
         """Update repository name to another valid name.
 
@@ -866,11 +846,11 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {'checksum_type': checksum_type, 'download_policy': 'immediate'}
+        **datafactory.parametrized(
+            {
+                checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
                 for checksum_type in ('sha1', 'sha256')
-            ]
+            }
         ),
         indirect=True,
     )
@@ -939,13 +919,13 @@ class TestRepository:
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
-            organization=module_org, content=read_data_file(VALID_GPG_KEY_FILE)
+            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_FILE)
         ).create()
         repo = entities.Repository(product=module_product, gpg_key=gpg_key_1).create()
 
         # Update the repo and make it point to a new GPG key.
         gpg_key_2 = entities.GPGKey(
-            organization=module_org, content=read_data_file(VALID_GPG_KEY_BETA_FILE)
+            organization=module_org, content=read_data_file(constants.VALID_GPG_KEY_BETA_FILE)
         ).create()
 
         repo.gpg_key = gpg_key_2
@@ -963,7 +943,7 @@ class TestRepository:
         :CaseLevel: Integration
         """
         # Upload RPM content.
-        with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
         # Verify the repository's contents.
         assert repo.read().content_counts['rpm'] == 1
@@ -985,7 +965,7 @@ class TestRepository:
         """
         # upload srpm
         entities.ContentUpload(repository=repo).upload(
-            filepath=get_data_file(SRPM_TO_UPLOAD), content_type='srpm'
+            filepath=get_data_file(constants.SRPM_TO_UPLOAD), content_type='srpm'
         )
         assert repo.read().content_counts['srpm'] == 1
         srpm_detail = entities.Srpms().search(query={'repository_id': repo.id})
@@ -1002,7 +982,10 @@ class TestRepository:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
-        'repo_options', [{'url': FAKE_YUM_SRPM_REPO}], ids=['yum_fake'], indirect=True
+        'repo_options',
+        [{'url': repo_constants.FAKE_YUM_SRPM_REPO}],
+        ids=['yum_fake'],
+        indirect=True,
     )
     def test_positive_create_delete_srpm_repo(self, repo):
         """Create a repository, sync SRPM contents and remove repo
@@ -1054,7 +1037,7 @@ class TestRepository:
         assert repo.read().content_counts['rpm'] == 0
 
     @pytest.mark.tier1
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
+    @pytest.mark.parametrize('name', **datafactory.parametrized(datafactory.invalid_values_list()))
     def test_negative_update_name(self, repo, name):
         """Attempt to update repository name to invalid one
 
@@ -1093,12 +1076,12 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'url',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 repo.format(cred['login'], cred['pass'])
-                for cred in valid_http_credentials()
+                for cred in datafactory.valid_http_credentials()
                 if cred['quote']
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
+                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
             ]
         ),
     )
@@ -1124,11 +1107,11 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'url',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 repo.format(cred['login'], cred['pass'])
-                for cred in invalid_http_credentials()
-                for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
+                for cred in datafactory.invalid_http_credentials()
+                for repo in (repo_constants.FAKE_5_YUM_REPO, repo_constants.FAKE_7_PUPPET_REPO)
             ]
         ),
     )
@@ -1166,13 +1149,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 {
                     'content_type': 'yum',
-                    'url': FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
                 }
-                for creds in valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials(url_encoded=True)
                 if creds['http_valid']
             ]
         ),
@@ -1202,13 +1185,13 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 {
                     'content_type': 'yum',
-                    'url': FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
+                    'url': repo_constants.FAKE_5_YUM_REPO.format(creds['login'], creds['pass']),
                 }
-                for creds in valid_http_credentials(url_encoded=True)
+                for creds in datafactory.valid_http_credentials(url_encoded=True)
                 if not creds['http_valid']
             ]
         ),
@@ -1266,7 +1249,9 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'name': name} for name in valid_data_list().values()]),
+        **datafactory.parametrized(
+            {id: {'name': name} for id, name in datafactory.valid_data_list().items()}
+        ),
         indirect=True,
     )
     def test_positive_delete(self, repo):
@@ -1320,8 +1305,8 @@ class TestRepository:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [{'content_type': 'yum', 'unprotected': False, 'url': settings.repos.yum_2.url}]
+        **datafactory.parametrized(
+            {'yum': {'content_type': 'yum', 'unprotected': False, 'url': settings.repos.yum_2.url}}
         ),
         indirect=True,
     )
@@ -1417,9 +1402,9 @@ class TestRepositorySync:
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=module_org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhst7']['name'],
-            reposet=REPOSET['rhst7'],
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
         entities.Repository(id=repo_id).sync()
@@ -1430,7 +1415,7 @@ class TestRepositorySync:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        [{'content_type': 'yum', 'url': FAKE_0_YUM_REPO_STRING_BASED_VERSIONS}],
+        [{'content_type': 'yum', 'url': repo_constants.FAKE_0_YUM_REPO_STRING_BASED_VERSIONS}],
         ids=['yum_repo'],
         indirect=True,
     )
@@ -1453,7 +1438,7 @@ class TestRepositorySync:
         repo.sync()
         repo = repo.read()
 
-        for key, count in FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS.items():
+        for key, count in constants.FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS.items():
             assert repo.content_counts[key] == count
 
     @pytest.mark.stubbed
@@ -1478,15 +1463,15 @@ class TestDockerRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
+        **datafactory.parametrized(
             [
                 {
                     'content_type': 'docker',
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': name,
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-                for name in valid_docker_repository_names()
+                for name in datafactory.valid_docker_repository_names()
             ]
         ),
         indirect=True,
@@ -1508,15 +1493,15 @@ class TestDockerRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1539,15 +1524,15 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1572,7 +1557,9 @@ class TestDockerRepository:
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'content_type': 'docker'}]), indirect=True
+        'repo_options',
+        **datafactory.parametrized({'docker': {'content_type': 'docker'}}),
+        indirect=True,
     )
     def test_positive_update_name(self, repo):
         """Update a repository's name.
@@ -1597,9 +1584,9 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                'private_registry': {
                     'content_type': 'docker',
                     'docker_upstream_name': settings.docker.private_registry_name,
                     'name': gen_string('alpha'),
@@ -1607,7 +1594,7 @@ class TestDockerRepository:
                     'upstream_password': settings.docker.private_registry_password,
                     'url': settings.docker.private_registry_url,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1633,9 +1620,9 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                'private_registry': {
                     'content_type': 'docker',
                     'docker_upstream_name': settings.docker.private_registry_name,
                     'name': gen_string('alpha'),
@@ -1643,7 +1630,7 @@ class TestDockerRepository:
                     'upstream_password': 'ThisIsaWrongPassword',
                     'url': settings.docker.private_registry_url,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1675,9 +1662,9 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                'docker_redhat': {
                     'content_type': 'docker',
                     'docker_upstream_name': settings.docker.private_registry_name,
                     'name': gen_string('alpha'),
@@ -1685,7 +1672,7 @@ class TestDockerRepository:
                     'upstream_password': gen_string('alpha'),
                     'url': 'https://redhat.com',
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1714,16 +1701,16 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                'private_registry': {
                     'content_type': 'docker',
                     'docker_upstream_name': settings.docker.private_registry_name,
                     'name': gen_string('alpha'),
                     'upstream_username': settings.docker.private_registry_username,
                     'url': settings.docker.private_registry_url,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1758,16 +1745,16 @@ class TestDockerRepository:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
                     'docker_tags_whitelist': ['latest'],
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1788,15 +1775,15 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1829,16 +1816,16 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
                     'docker_tags_whitelist': ['latest', gen_string('alpha')],
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1860,16 +1847,16 @@ class TestDockerRepository:
     @pytest.mark.tier2
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized(
-            [
-                {
+        **datafactory.parametrized(
+            {
+                constants.CONTAINER_UPSTREAM_NAME: {
                     'content_type': 'docker',
                     'docker_tags_whitelist': [gen_string('alpha') for _ in range(3)],
-                    'docker_upstream_name': CONTAINER_UPSTREAM_NAME,
+                    'docker_upstream_name': constants.CONTAINER_UPSTREAM_NAME,
                     'name': gen_string('alphanumeric', 10),
-                    'url': CONTAINER_REGISTRY_HUB,
+                    'url': constants.CONTAINER_REGISTRY_HUB,
                 }
-            ]
+            }
         ),
         indirect=True,
     )
@@ -1899,7 +1886,7 @@ class TestDockerRepository:
 #     )
 #     @pytest.mark.parametrize(
 #         'repo_options',
-#         **parametrized(
+#         **datafactory.parametrized(
 #             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
 #         ),
 #         indirect=True,
@@ -1923,7 +1910,7 @@ class TestDockerRepository:
 #     )
 #     @pytest.mark.parametrize(
 #         'repo_options',
-#         **parametrized(
+#         **datafactory.parametrized(
 #             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
 #         ),
 #         indirect=True,
@@ -1950,7 +1937,7 @@ class TestDockerRepository:
 #     )
 #     @pytest.mark.parametrize(
 #         'repo_options',
-#         **parametrized(
+#         **datafactory.parametrized(
 #             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
 #         ),
 #         indirect=True,
@@ -1978,7 +1965,7 @@ class TestDockerRepository:
 #     )
 #     @pytest.mark.parametrize(
 #         'repo_options',
-#         **parametrized(
+#         **datafactory.parametrized(
 #             [{'content_type': 'ostree', 'unprotected': False, 'url': FEDORA27_OSTREE_REPO}]
 #         ),
 #         indirect=True,
@@ -2020,9 +2007,9 @@ class TestDockerRepository:
 #             upload_manifest(module_org.id, manifest.content)
 #         repo_id = enable_rhrepo_and_fetchid(
 #             org_id=module_org.id,
-#             product=PRDS['rhah'],
-#             repo=REPOS['rhaht']['name'],
-#             reposet=REPOSET['rhaht'],
+#             product=constants.PRDS['rhah'],
+#             repo=constants.REPOS['rhaht']['name'],
+#             reposet=constants.REPOSET['rhaht'],
 #             releasever=None,
 #             basearch=None,
 #         )
@@ -2043,7 +2030,7 @@ class TestSRPMRepository:
         :expectedresults: srpms can be listed in organization, content view, Lifecycle env
         """
         entities.ContentUpload(repository=repo).upload(
-            filepath=get_data_file(SRPM_TO_UPLOAD), content_type='srpm'
+            filepath=get_data_file(constants.SRPM_TO_UPLOAD), content_type='srpm'
         )
 
         cv = entities.ContentView(organization=module_org, repository=[repo]).create()
@@ -2064,7 +2051,9 @@ class TestSRPMRepository:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
+        'repo_options',
+        **datafactory.parametrized({'fake_srpm': {'url': repo_constants.FAKE_YUM_SRPM_REPO}}),
+        indirect=True,
     )
     def test_positive_repo_sync_publish_promote_cv(self, module_org, env, repo):
         """Synchronize repository with SRPMs, add repository to content view
@@ -2116,7 +2105,14 @@ class TestSRPMRepositoryIgnoreContent:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'ignorable_content': ['srpm'], 'url': FAKE_YUM_SRPM_REPO}]),
+        **datafactory.parametrized(
+            {
+                'ignore_enabled': {
+                    'ignorable_content': ['srpm'],
+                    'url': repo_constants.FAKE_YUM_SRPM_REPO,
+                }
+            }
+        ),
         indirect=True,
     )
     def test_positive_ignore_srpm_duplicate(self, repo):
@@ -2137,7 +2133,11 @@ class TestSRPMRepositoryIgnoreContent:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_DUPLICATE_REPO}]), indirect=True
+        'repo_options',
+        **datafactory.parametrized(
+            {'fake_duplicate': {'url': repo_constants.FAKE_YUM_SRPM_DUPLICATE_REPO}}
+        ),
+        indirect=True,
     )
     def test_positive_sync_srpm_duplicate(self, repo):
         """Test sync of SRPM duplicated repository.
@@ -2160,7 +2160,14 @@ class TestSRPMRepositoryIgnoreContent:
     )
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'ignorable_content': ['srpm'], 'url': FAKE_YUM_SRPM_REPO}]),
+        **datafactory.parametrized(
+            {
+                'ignore_enabled': {
+                    'ignorable_content': ['srpm'],
+                    'url': repo_constants.FAKE_YUM_SRPM_REPO,
+                }
+            }
+        ),
         indirect=True,
     )
     def test_positive_ignore_srpm_sync(self, repo):
