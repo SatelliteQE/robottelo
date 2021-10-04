@@ -1,7 +1,7 @@
 # For running tests and checking code quality using these modules.
 codecov==2.1.12
 flake8==3.9.2
-pytest-cov==2.12.1
+pytest-cov==3.0.0
 redis==3.5.3
 pre-commit==2.15.0
 
