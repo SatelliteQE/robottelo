@@ -21,7 +21,6 @@ from nailgun import entities
 from robottelo.ui.utils import create_fake_host
 
 
-@pytest.mark.skip_if_open("BZ:1758260")
 @pytest.mark.tier2
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, module_org, module_location):
@@ -67,10 +66,8 @@ def test_positive_end_to_end(session, module_org, module_location):
         host_values = session.host.read(host_name, 'additional_information')
         assert host_values['additional_information']['hardware_model'] == new_name
         # Make an attempt to delete hardware model that associated with host
-        with pytest.raises(AssertionError) as context:
-            session.hardwaremodel.delete(new_name)
-        assert f"error: '{new_name} is used by {host_name}'" in str(context.value)
+        session.hardwaremodel.delete(new_name, err_message=f'{new_name} is used by {host_name}')
         session.host.update(host_name, {'additional_information.hardware_model': ''})
         # Delete hardware model
         session.hardwaremodel.delete(new_name)
-        assert not session.hardwaremodel.search(new_name)
+        assert not entities.Host().search(query={'search': f'name="{new_name}"'})
