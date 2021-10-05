@@ -16,18 +16,18 @@
 """
 import pytest
 
+from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
 
 def register_satellite(sat):
-    sat_version = str(sat.execute('rpm -q satellite | cut -d- -f2 | cut -d. -f1,2 | tr -d "\n"'))
     sat.execute(
         'yum -y localinstall '
-        'http://dogfood.sat.engineering.redhat.com/pub/katello-ca-consumer-latest.noarch.rpm'
+        f'{settings.repos.dogfood_repo_host}/pub/katello-ca-consumer-latest.noarch.rpm'
     )
     sat.execute(
         'subscription-manager register --org Sat6-CI '
-        f'--activationkey satellite-{sat_version}-qa-rhel7'
+        f'--activationkey {settings.subscription.dogfood_activationkey}'
     )
     return sat
 
