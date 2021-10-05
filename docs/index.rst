@@ -74,12 +74,12 @@ $ docker build -t robottelo .
 
 In order to run tests, you will need to mount your robottelo.properties file.::
 
-$ docker run -v {path to robottelo dir}/robottelo.properties:/robottelo/robottelo.properties satelliteqe/robottelo <test command>
+$ docker run -v {path to robottelo dir}/robottelo.properties:/robottelo/robottelo.properties:z satelliteqe/robottelo <test command>
 
 You can also mount the entire robottelo directory to include the properties file
 and any new tests you have written.::
 
-$ docker run -it -v {path to robottelo dir}:/robottelo satelliteqe/robottelo /bin/bash
+$ docker run -it -v {path to robottelo dir}:/robottelo:z satelliteqe/robottelo /bin/bash
 
 **Notes:**
 
