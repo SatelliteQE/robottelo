@@ -1291,7 +1291,11 @@ class Satellite(Capsule):
         update_provisioning_template(name=template, old=new, new=old)
 
     def update_setting(self, name, value):
-        """change setting value"""
+        """changes setting value and returns the setting value before the change."""
         setting = self.api.Setting().search(query={'search': f'name="{name}"'})[0]
+        default_setting_value = setting.value
+        if default_setting_value is None:
+            default_setting_value = ''
         setting.value = value
         setting.update({'value'})
+        return default_setting_value

@@ -57,14 +57,12 @@ def fixable_rhel8_vm(rhel8_insights_vm):
     rhel8_insights_vm.run('insights-client')
 
 
-def disable_inventory_settings(default_sat):
-    default_sat.update_setting('obfuscate_inventory_hostnames', False)
-    default_sat.update_setting('obfuscate_inventory_ips', False)
-    default_sat.update_setting('exclude_installed_packages', False)
-
-
 @pytest.fixture
-def inventory_settings():
-    disable_inventory_settings()
+def inventory_settings(default_sat):
+    hostnames_setting = default_sat.update_setting('obfuscate_inventory_hostnames', False)
+    ip_setting = default_sat.update_setting('obfuscate_inventory_ips', False)
+    packages_setting = default_sat.update_setting('exclude_installed_packages', False)
     yield
-    disable_inventory_settings()
+    default_sat.update_setting('obfuscate_inventory_hostnames', hostnames_setting)
+    default_sat.update_setting('obfuscate_inventory_ips', ip_setting)
+    default_sat.update_setting('exclude_installed_packages', packages_setting)

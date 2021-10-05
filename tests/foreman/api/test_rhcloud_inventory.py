@@ -25,15 +25,13 @@ from nailgun import entities
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
-from robottelo.rh_cloud_utils import get_remote_report_checksum
 from robottelo.rh_cloud_utils import get_report_data
 
 
-def common_assertion(report_path, org):
+def common_assertion(report_path):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
 
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -83,7 +81,7 @@ def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, re
     assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     # Download report
     entities.RHCloud(organization_id=1).download_report(destination=local_report_path)
-    common_assertion(local_report_path, org.id)
+    common_assertion(local_report_path)
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
     hostnames = [host['fqdn'] for host in json_data['hosts']]
@@ -104,10 +102,9 @@ def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, re
         assert len(host_profiles['installed_packages']) > 1
 
 
-@pytest.mark.stubbed
-def test_rhcloud_inventory_api_hosts_synchronization():
-    """Test RH Cloud plugin api to synchronize list of available hosts
-    from cloud and mark them in Satellite.
+@pytest.mark.tier3
+def test_rhcloud_inventory_api_hosts_synchronization(organization_ak_setup, registered_hosts):
+    """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
     :id: 7be22e1c-906b-4ae5-93dd-5f79f395601c
 
@@ -116,19 +113,31 @@ def test_rhcloud_inventory_api_hosts_synchronization():
         1. Prepare machine and upload its data to Insights.
         2. Add Cloud API key in Satellite
         3. Sync inventory status using RH Cloud plugin api.
-        4. Assert content of response message once synchronization finishes.
+        4. Assert content of finished tasks.
         5. Get host details.
         6. Assert inventory status for the host.
 
     :expectedresults:
-        1. Response of RH Cloud plugins api for syncing inventory status
-        should contain number of hosts synchronized and missed.
-        2. Presence in cloud is displayed in host properties.
+        1. Task detail should contain should contain number of hosts
+            synchronized and disconnected.
 
-    :CaseImportance: Critical
-
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: Automated
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = registered_hosts
+    inventory_sync = entities.RHCloud(organization_id=org.id).inventory_sync()
+    result = wait_for_tasks(
+        search_query=f'id = {inventory_sync["task"]["id"]}',
+        search_rate=15,
+        max_tries=10,
+    )
+    task_output = entities.ForemanTask().search(
+        query={'search': f'id = {inventory_sync["task"]["id"]}'}
+    )
+    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
+    assert task_output[0].output['host_statuses']['sync'] == 2
+    assert task_output[0].output['host_statuses']['disconnect'] == 0
+    # To Do: Add support in Nailgun to get Insights and Inventory host properties.
 
 
 @pytest.mark.stubbed
