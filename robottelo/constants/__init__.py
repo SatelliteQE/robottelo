@@ -1664,7 +1664,6 @@ BOOKMARK_ENTITIES = [
     {'name': 'ContentView', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
     {'name': 'Package', 'controller': 'katello_erratum_packages', 'skip_for_ui': True},
-    {'name': 'PuppetModule', 'controller': 'katello_puppet_modules', 'skip_for_ui': True},
     {'name': 'ContainerImageTag', 'controller': 'katello_docker_tags', 'skip_for_ui': True},
     {'name': 'Host', 'controller': 'hosts', 'setup': entities.Host},
     {'name': 'ContentHost', 'controller': 'hosts', 'skip_for_ui': True},
