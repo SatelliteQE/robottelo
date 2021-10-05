@@ -1,6 +1,6 @@
 """Tests for Infoblox Plugin
 
-:Requirement: Infoblox
+:Requirement: Infoblox, Installer
 
 :CaseLevel: System
 
@@ -45,8 +45,6 @@ def test_isc_dhcp_plugin_installation(satellite_latest):
 
     :CaseAutomation: Automated
 
-    :Requirement: Installer
-
     :customerscenario: true
 
     :BZ: 1994490
@@ -73,8 +71,6 @@ def test_infoblox_dhcp_plugin_installation(satellite_latest):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
-
-    :Requirement: Installer
 
     :BZ: 2000237
     """
@@ -107,8 +103,6 @@ def test_infoblox_dns_plugin_installation(satellite_latest):
     :expectedresults: Plugin installs successfully
 
     :CaseAutomation: Automated
-
-    :Requirement: Installer
 
     :BZ: 2000237
     """
