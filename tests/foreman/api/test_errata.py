@@ -46,6 +46,11 @@ CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 
 @pytest.fixture(scope='module')
+def module_org():
+    return entities.Organization().create()
+
+
+@pytest.fixture(scope='module')
 def activation_key(module_org, module_lce):
     activation_key = entities.ActivationKey(
         environment=module_lce, organization=module_org
@@ -242,7 +247,7 @@ def test_positive_install_in_host(
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
     )
     rhel7_contenthost.add_rex_key(satellite=default_sat)
-    default_sat.JobInvocation().run(
+    default_sat.api.JobInvocation().run(
         data={
             'feature': 'katello_errata_install',
             'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
@@ -287,7 +292,7 @@ def test_positive_install_multiple_in_host(
     assert applicable_errata_count > 1
     rhel7_contenthost.add_rex_key(satellite=default_sat)
     for errata in settings.repos.yum_9.errata[:2]:
-        default_sat.JobInvocation().run(
+        default_sat.api.JobInvocation().run(
             data={
                 'feature': 'katello_errata_install',
                 'inputs': {'errata': f'{errata}'},
@@ -728,6 +733,7 @@ def test_positive_get_diff_for_cv_envs():
     assert {cvv.id for cvv in cvvs} == set(both_cvvs_errata['comparison'])
 
 
+@pytest.mark.skip_if_open("BZ:2013093")
 @pytest.mark.tier3
 def test_positive_incremental_update_required(
     module_org,
