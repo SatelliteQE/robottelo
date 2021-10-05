@@ -16,10 +16,38 @@
 
 :Upstream: No
 """
+from datetime import datetime
+
 import pytest
+from fauxfactory import gen_alphanumeric
+from nailgun import entities
+
+from robottelo.api.utils import wait_for_tasks
+from robottelo.config import robottelo_tmp_dir
+from robottelo.rh_cloud_utils import get_local_file_data
+from robottelo.rh_cloud_utils import get_remote_report_checksum
+from robottelo.rh_cloud_utils import get_report_data
 
 
-def test_rhcloud_inventory_api_e2e():
+def common_assertion(report_path, org):
+    """Function to perform common assertions"""
+    local_file_data = get_local_file_data(report_path)
+
+    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
+    assert local_file_data['size'] > 0
+    assert local_file_data['extractable']
+    assert local_file_data['json_files_parsable']
+
+    slices_in_metadata = set(local_file_data['metadata_counts'].keys())
+    slices_in_tar = set(local_file_data['slices_counts'].keys())
+    assert slices_in_metadata == slices_in_tar
+    for slice_name, hosts_count in local_file_data['metadata_counts'].items():
+        assert hosts_count == local_file_data['slices_counts'][slice_name]
+
+
+@pytest.mark.run_in_one_thread
+@pytest.mark.tier3
+def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, registered_hosts):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
     :id: 8ead1ff6-a8f5-461b-9dd3-f50d96d6ed57
@@ -39,6 +67,41 @@ def test_rhcloud_inventory_api_e2e():
 
     :BZ: 1807829, 1926100, 1965234
     """
+    org, ak = organization_ak_setup
+    virtual_host, baremetal_host = registered_hosts
+    generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+    local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
+    # Generate report
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    entities.RHCloud(organization_id=org.id).generate_report()
+    result = wait_for_tasks(
+        search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
+        search_rate=15,
+        max_tries=10,
+    )
+    task_output = entities.ForemanTask().search(query={'search': result[0].id})
+    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
+    # Download report
+    entities.RHCloud(organization_id=1).download_report(destination=local_report_path)
+    common_assertion(local_report_path, org.id)
+    # Assert Hostnames, IP addresses, and installed packages are present in report.
+    json_data = get_report_data(local_report_path)
+    hostnames = [host['fqdn'] for host in json_data['hosts']]
+    assert virtual_host.hostname in hostnames
+    assert baremetal_host.hostname in hostnames
+    ip_addresses = [
+        host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
+        for host in json_data['hosts']
+    ]
+    ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
+    assert virtual_host.ip_addr in ip_addresses
+    assert baremetal_host.ip_addr in ip_addresses
+    assert virtual_host.ip_addr in ipv4_addresses
+    assert baremetal_host.ip_addr in ipv4_addresses
+    all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
+    for host_profiles in all_host_profiles:
+        assert 'installed_packages' in host_profiles
+        assert len(host_profiles['installed_packages']) > 1
 
 
 @pytest.mark.stubbed

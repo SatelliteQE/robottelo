@@ -55,3 +55,16 @@ def fixable_rhel8_vm(rhel8_insights_vm):
     rhel8_insights_vm.run('dnf update -y dnf')
     rhel8_insights_vm.run('sed -i -e "/^best/d" /etc/dnf/dnf.conf')
     rhel8_insights_vm.run('insights-client')
+
+
+def disable_inventory_settings(default_sat):
+    default_sat.update_setting('obfuscate_inventory_hostnames', False)
+    default_sat.update_setting('obfuscate_inventory_ips', False)
+    default_sat.update_setting('exclude_installed_packages', False)
+
+
+@pytest.fixture
+def inventory_settings():
+    disable_inventory_settings()
+    yield
+    disable_inventory_settings()

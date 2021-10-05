@@ -20,32 +20,11 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytest
-from nailgun import entities
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_remote_report_checksum
 from robottelo.rh_cloud_utils import get_report_data
-
-
-def setting_update(name, value):
-    """change setting value"""
-    setting = entities.Setting().search(query={'search': f'name="{name}"'})[0]
-    setting.value = value
-    setting.update({'value'})
-
-
-def disable_inventory_settings():
-    setting_update('obfuscate_inventory_hostnames', False)
-    setting_update('obfuscate_inventory_ips', False)
-    setting_update('exclude_installed_packages', False)
-
-
-@pytest.fixture
-def inventory_settings():
-    disable_inventory_settings()
-    yield
-    disable_inventory_settings()
 
 
 def common_assertion(report_path, inventory_data, org):
@@ -198,7 +177,9 @@ def test_hosts_synchronization():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_obfuscate_host_names(inventory_settings, organization_ak_setup, registered_hosts, session):
+def test_obfuscate_host_names(
+    default_sat, inventory_settings, organization_ak_setup, registered_hosts, session
+):
     """Test whether `Obfuscate host names` setting works as expected.
 
     :id: 3c3a36b6-6566-446b-b803-3f8f9aab2511
@@ -255,7 +236,7 @@ def test_obfuscate_host_names(inventory_settings, organization_ak_setup, registe
         session.cloudinventory.update({'obfuscate_hostnames': False})
 
         # Enable obfuscate_hostnames setting.
-        setting_update('obfuscate_inventory_hostnames', True)
+        default_sat.update_setting('obfuscate_inventory_hostnames', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
@@ -281,7 +262,7 @@ def test_obfuscate_host_names(inventory_settings, organization_ak_setup, registe
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_obfuscate_host_ipv4_addresses(
-    inventory_settings, organization_ak_setup, registered_hosts, session
+    default_sat, inventory_settings, organization_ak_setup, registered_hosts, session
 ):
     """Test whether `Obfuscate host ipv4 addresses` setting works as expected.
 
@@ -348,7 +329,7 @@ def test_obfuscate_host_ipv4_addresses(
         session.cloudinventory.update({'obfuscate_ips': False})
 
         # Enable obfuscate_inventory_ips setting.
-        setting_update('obfuscate_inventory_ips', True)
+        default_sat.update_setting('obfuscate_inventory_ips', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
@@ -381,7 +362,7 @@ def test_obfuscate_host_ipv4_addresses(
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_exclude_packages_setting(
-    inventory_settings, organization_ak_setup, registered_hosts, session
+    default_sat, inventory_settings, organization_ak_setup, registered_hosts, session
 ):
     """Test whether `Exclude Packages` setting works as expected.
 
@@ -442,7 +423,7 @@ def test_exclude_packages_setting(
             assert 'installed_packages' not in host_profiles
 
         # Enable exclude_installed_packages setting.
-        setting_update('exclude_installed_packages', True)
+        default_sat.update_setting('exclude_installed_packages', True)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         wait_for_tasks(
