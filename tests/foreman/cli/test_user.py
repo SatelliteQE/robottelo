@@ -32,10 +32,12 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_filter
 from robottelo.cli.factory import make_location
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_role
 from robottelo.cli.factory import make_user
+from robottelo.cli.filter import Filter
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 from robottelo.config import settings
@@ -405,7 +407,7 @@ class TestPersonalAccessToken:
         result = User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
-        token_value = result[0]['message'].split('\n')[-1]
+        token_value = result[0]['message'].split(':')[-1]
         curl_command = f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
         command_output = default_sat.execute(curl_command)
         assert user['login'] in command_output.stdout
@@ -429,7 +431,7 @@ class TestPersonalAccessToken:
         :expectedresults:
             1. When used with the correct role and end point, corresponding
                output should be displayed.
-            2. When an incorrect role and end point is used, missing
+            2. When an incorrect end point is used, missing
                permission should be displayed.
 
         :CaseLevel: System
@@ -437,18 +439,19 @@ class TestPersonalAccessToken:
         :CaseImportance: High
         """
         user = make_user()
-        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
         result = User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
-        token_value = result[0]['message'].split('\n')[-1]
-        command_output = default_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/hosts'
-        )
-        assert default_sat.hostname in command_output.stdout
+        token_value = result[0]['message'].split(':')[-1]
         command_output = default_sat.execute(
             f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        )
+        assert user['login'] in command_output.stdout
+        assert user['email'] in command_output.stdout
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/dashboard'
         )
         assert 'Access denied' in command_output.stdout
 
@@ -470,7 +473,7 @@ class TestPersonalAccessToken:
         :CaseImportance: Medium
         """
         user = make_user()
-        User.add_role({'login': user['login'], 'role': 'View hosts'})
+        User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
         datetime_now = datetime.datetime.utcnow()
         datetime_expire = datetime_now + datetime.timedelta(seconds=20)
@@ -479,13 +482,61 @@ class TestPersonalAccessToken:
             action="create",
             options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
         )
-
-        token_value = result[0]['message'].split('\n')[-1]
+        token_value = result[0]['message'].split(':')[-1]
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        )
+        assert user['login'] in command_output.stdout
+        assert user['email'] in command_output.stdout
+        sleep(20)
         command_output = default_sat.execute(
             f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/hosts'
         )
-        assert default_sat.hostname in command_output.stdout
-        sleep(20)
+        assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
+
+    @pytest.mark.tier2
+    def test_custom_personal_access_token_role(self, default_sat):
+        """Personal access token for non admin user with custom role
+
+        :id: dcbd22df-2641-4d3e-a1ad-76f36642e31b
+
+        :steps:
+            1. Create role with PAT and View Users
+            2. Create non admin user and assign the role
+            3. Create PAT for the user and test with the end point
+            4. Revoke the token and then test for end point.
+
+        :expectedresults: Non admin user is able to view only the assigned entity
+
+        :CaseLevel: System
+
+        :CaseImportance: High
+
+        :BZ: 1974685, 1996048
+        """
+        role = make_role()
+        permissions = [
+            permission['name']
+            for permission in Filter.available_permissions(
+                {"search": "resource_type=PersonalAccessToken"}
+            )
+        ]
+        permissions = ','.join(permissions)
+        make_filter({'role-id': role['id'], 'permissions': permissions})
+        make_filter({'role-id': role['id'], 'permissions': 'view_users'})
+        user = make_user()
+        User.add_role({'login': user['login'], 'role': role['name']})
+        token_name = gen_alphanumeric()
+        result = User.access_token(
+            action="create", options={'name': token_name, 'user-id': user['id']}
+        )
+        token_value = result[0]['message'].split(':')[-1]
+        command_output = default_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
+        )
+        assert user['login'] in command_output.stdout
+        assert user['email'] in command_output.stdout
+        User.access_token(action="revoke", options={'name': token_name, 'user-id': user['id']})
         command_output = default_sat.execute(
             f'curl -k -u {user["login"]}:{token_value} {default_sat.url}/api/v2/users'
         )
