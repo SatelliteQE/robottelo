@@ -2515,8 +2515,8 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy', 'ansible_hub'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collection_from_galaxy(self, repo, module_org, module_product):
-        """Sync ansible collection repository from Ansible Galaxy
+    def test_positive_sync_ansible_collection(self, repo, module_org, module_product):
+        """Sync ansible collection repository from Ansible Galaxy and Hub
 
         :id: 4b6a819b-8c3d-4a74-bd97-ee3f34cf5d92
 
@@ -2585,6 +2585,59 @@ class TestAnsibleCollectionRepository:
         repo = Repository.info({'name': prod['content'][0]['repo-name'], 'product-id': prod['id']})
         result = default_sat.execute(f'curl {repo["published-at"]}')
         assert "available_versions" in result.stdout
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content-type': 'ansible_collection',
+                'url': ANSIBLE_GALAXY,
+                'ansible-collection-requirements': '{collections: [ \
+                            { name: theforeman.foreman, version: "2.1.0" }, \
+                            { name: theforeman.operations, version: "0.1.0"} ]}',
+            }
+        ],
+        ids=['ansible_galaxy'],
+        indirect=True,
+    )
+    def test_positive_sync_ansible_collection_from_satellite(
+        self, repo, module_org, module_product, default_sat
+    ):
+        """Sync ansible collection from another organization
+
+        :id: f7897a56-d014-4189-b4c7-df8f15aaf30a
+
+        :expectedresults: All content synced successfully
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+
+        """
+        import_org = make_org()
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        published_url = repo['published-at']
+        # sync from different org
+        prod_2 = make_product(
+            {'organization-id': import_org['id'], 'description': 'Sync from Satellite'}
+        )
+        repo_2 = make_repository(
+            {
+                'organization-id': import_org['id'],
+                'product-id': prod_2['id'],
+                'url': published_url,
+                'content-type': 'ansible_collection',
+                'ansible-collection-reqirements': '{collections: \
+                    [{ name: theforeman.operations, version: "0.1.0"}]}',
+            }
+        )
+        Repository.synchronize({'id': repo_2['id']})
+        repo_2_status = Repository.info({'id': repo_2['id']})
+        assert repo_2_status['sync']['status'] == 'Success'
 
 
 class TestMD5Repository:
