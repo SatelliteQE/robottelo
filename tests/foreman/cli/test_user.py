@@ -518,7 +518,7 @@ class TestPersonalAccessToken:
         permissions = [
             permission['name']
             for permission in Filter.available_permissions(
-                {"search": "resource_type=PersonalAccessToken"}
+                {'search': 'resource_type=PersonalAccessToken'}
             )
         ]
         permissions = ','.join(permissions)
