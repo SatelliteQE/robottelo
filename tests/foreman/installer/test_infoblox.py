@@ -26,14 +26,15 @@ def register_satellite(sat):
         f'{settings.repos.dogfood_repo_host}/pub/katello-ca-consumer-latest.noarch.rpm'
     )
     sat.execute(
-        'subscription-manager register --org Sat6-CI '
+        f'subscription-manager register --org {settings.subscription.dogfood_org} '
         f'--activationkey {settings.subscription.dogfood_activationkey}'
     )
     return sat
 
 
 @pytest.mark.tier4
-def test_isc_dhcp_plugin_installation(satellite_latest):
+@pytest.mark.destructive
+def test_isc_dhcp_plugin_installation(destructive_sat):
     """Check that there are no packaging issues with ISC DHCP plugin
 
     :id: 6fc3827b-e431-4105-b2e9-f302044bdc09
@@ -49,16 +50,17 @@ def test_isc_dhcp_plugin_installation(satellite_latest):
 
     :BZ: 1994490
     """
-    register_satellite(satellite_latest)
+    register_satellite(destructive_sat)
     installer_obj = InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc')
-    command_output = satellite_latest.execute(installer_obj.get_command())
+    command_output = destructive_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    rpm_result = satellite_latest.execute('rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc')
+    rpm_result = destructive_sat.execute('rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc')
     assert rpm_result.status == 0
 
 
 @pytest.mark.tier4
-def test_infoblox_dhcp_plugin_installation(satellite_latest):
+@pytest.mark.destructive
+def test_infoblox_dhcp_plugin_installation(destructive_sat):
     """Check that there are no packaging issues with Infoblox DHCP plugin
 
     :id: 83f4596c-9641-4df5-ba3d-fb1e5b99ff9b
@@ -74,23 +76,24 @@ def test_infoblox_dhcp_plugin_installation(satellite_latest):
 
     :BZ: 2000237
     """
-    register_satellite(satellite_latest)
+    register_satellite(destructive_sat)
     command_args = 'enable-foreman-proxy-plugin-dhcp-infoblox'
     command_opts = {
         'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
         'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
     }
     installer_obj = InstallerCommand(command_args, **command_opts)
-    command_output = satellite_latest.execute(installer_obj.get_command())
+    command_output = destructive_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    rpm_result = satellite_latest.execute(
+    rpm_result = destructive_sat.execute(
         'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q'
     )
     assert rpm_result.status == 0
 
 
 @pytest.mark.tier4
-def test_infoblox_dns_plugin_installation(satellite_latest):
+@pytest.mark.destructive
+def test_infoblox_dns_plugin_installation(destructive_sat):
     """Check that there are no packaging issues with Infoblox DNS plugin
 
     :id: 2ffa6b48-8033-4541-892e-c139f67080a4
@@ -106,7 +109,7 @@ def test_infoblox_dns_plugin_installation(satellite_latest):
 
     :BZ: 2000237
     """
-    register_satellite(satellite_latest)
+    register_satellite(destructive_sat)
     command_args = 'enable-foreman-proxy-plugin-dns-infoblox'
     command_opts = {
         'foreman-proxy-plugin-dns-infoblox-username': 'fakeusername',
@@ -114,9 +117,9 @@ def test_infoblox_dns_plugin_installation(satellite_latest):
         'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
     }
     installer_obj = InstallerCommand(command_args, **command_opts)
-    command_output = satellite_latest.execute(installer_obj.get_command())
+    command_output = destructive_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    rpm_result = satellite_latest.execute(
+    rpm_result = destructive_sat.execute(
         'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q'
     )
     assert rpm_result.status == 0
