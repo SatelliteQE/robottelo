@@ -8,6 +8,7 @@ from fnmatch import fnmatch
 from io import StringIO
 
 import paramiko
+from broker.helpers import translate_timeout
 
 from robottelo.cli import hammer
 from robottelo.logging import logger
@@ -108,7 +109,7 @@ def get_client(
     if password is None and key_filename is None:
         key_string = key_string or settings.server.ssh_key_string
         key_string = paramiko.rsakey.RSAKey.from_private_key(StringIO(str(key_string)))
-    timeout = timeout or settings.server.ssh_client.connection_timeout
+    timeout = timeout or translate_timeout(settings.server.ssh_client.connection_timeout) // 1000
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
@@ -370,8 +371,11 @@ def command(
     from robottelo.config import settings
 
     hostname = hostname or settings.server.hostname
-    timeout = timeout or settings.server.ssh_client.command_timeout
-    connection_timeout = connection_timeout or settings.server.ssh_client.connection_timeout
+    timeout = timeout or translate_timeout(settings.server.ssh_client.command_timeout) // 1000
+    connection_timeout = (
+        connection_timeout
+        or translate_timeout(settings.server.ssh_client.connection_timeout) // 1000
+    )
     with get_connection(
         hostname=hostname,
         username=username,
@@ -398,9 +402,11 @@ def execute_command(cmd, connection, output_format=None, timeout=None, connectio
     from robottelo.config import settings
 
     if timeout is None:
-        timeout = settings.server.ssh_client.command_timeout
+        timeout = translate_timeout(settings.server.ssh_client.command_timeout) // 1000
     if connection_timeout is None:
-        connection_timeout = settings.server.ssh_client.connection_timeout
+        connection_timeout = (
+            translate_timeout(settings.server.ssh_client.connection_timeout) // 1000
+        )
     logger.info('>>> %s', cmd)
     _, stdout, stderr = connection.exec_command(cmd, timeout=connection_timeout)
     if timeout:
