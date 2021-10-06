@@ -36,6 +36,7 @@ from robottelo.config import settings
 from robottelo.constants import CHECKSUM_TYPE
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import CONTAINER_UPSTREAM_NAME
+from robottelo.constants import DEFAULT_ARCHITECTURE
 from robottelo.constants import DOWNLOAD_POLICIES
 from robottelo.constants import FAKE_0_YUM_REPO_STRING_BASED_VERSIONS_COUNTS
 from robottelo.constants import PRDS
@@ -171,6 +172,51 @@ class TestRepository:
         repo_2.http_proxy_policy = 'none'
         repo_2.update(['http_proxy_policy'])
         assert repo_2.http_proxy_policy == 'none'
+
+    @pytest.mark.skip_if_open("BZ:2011303")
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    def test_positive_sync_redhat_repo_using_http_proxy(self, module_manifest_org):
+        """Assign http_proxy to Redhat repository and perform repository sync.
+
+        :id: 38df5479-9127-49f3-a30e-26b33655971a
+
+        :expectedresults: HTTP Proxy can be assigned to redhat repository and sync operation
+            performed successfully.
+
+        :Assignee: jpathan
+
+        :BZ: 2011303
+
+        :CaseImportance: Critical
+        """
+        http_proxy = entities.HTTPProxy(
+            name=gen_string('alpha', 15),
+            url=settings.http_proxy.auth_proxy_url,
+            username=settings.http_proxy.username,
+            password=settings.http_proxy.password,
+            organization=[module_manifest_org.id],
+        ).create()
+
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=module_manifest_org.id,
+            product=PRDS['rhae'],
+            repo=REPOS['rhae2']['name'],
+            reposet=REPOSET['rhae2'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(
+            id=rh_repo_id,
+            http_proxy_policy='use_selected_http_proxy',
+            http_proxy_id=http_proxy.id,
+            download_policy='immediate',
+        ).update()
+        assert rh_repo.http_proxy_policy == 'use_selected_http_proxy'
+        assert rh_repo.http_proxy_id == http_proxy.id
+        assert rh_repo.download_policy == 'immediate'
+        rh_repo.sync()
+        assert rh_repo.read().content_counts['rpm'] >= 1
 
     @pytest.mark.tier1
     @pytest.mark.parametrize(
