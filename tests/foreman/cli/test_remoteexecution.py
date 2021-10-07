@@ -405,7 +405,7 @@ class TestRemoteExecution:
             raise AssertionError(result)
 
         sleep(150)
-        rec_logic = RecurringLogic.info({'id': invocation_command['recurring-logic-id']})
+        rec_logic = RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
 
@@ -423,7 +423,7 @@ class TestRemoteExecution:
         """
         client = fixture_vmsetup
         system_current_time = default_sat.execute('date --utc +"%b %d %Y %I:%M%p"').stdout
-        current_time_object = datetime.strptime(system_current_time, '%b %d %Y %I:%M%p')
+        current_time_object = datetime.strptime(system_current_time.strip('\n'), '%b %d %Y %I:%M%p')
         plan_time = (current_time_object + timedelta(seconds=30)).strftime("%Y-%m-%d %H:%M")
         Host.set_parameter(
             {
