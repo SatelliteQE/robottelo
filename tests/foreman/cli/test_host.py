@@ -1461,7 +1461,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.status == 0
-    yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
+    yaml_content = yaml.load(response.stdout, yaml.SafeLoader)
     host_initial_params = yaml_content.get('Parameters')
     # set parameter
     Host.set_parameter({'host-id': function_host['id'], 'name': param_name, 'value': param_value})
@@ -1469,7 +1469,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host):
         {'id': function_host['id']}, output_format='yaml', return_raw_response=True
     )
     assert response.status == 0
-    yaml_content = yaml.load('\n'.join(response.stdout), yaml.SafeLoader)
+    yaml_content = yaml.load(response.stdout, yaml.SafeLoader)
     host_parameters = yaml_content.get('Parameters')
     # check that number of params increased by one
     assert len(host_parameters) == 1 + len(host_initial_params)
@@ -2517,5 +2517,7 @@ def test_positive_dump_enc_yaml(default_sat):
 
     :CaseImportance: Critical
     """
-    hostname = default_sat.execute('hostname').stdout.strip()
-    assert isinstance(Host.enc_dump({'name': hostname}), list)
+    enc_dump = Host.enc_dump({'name': default_sat.hostname})
+    assert f'fqdn: {default_sat.hostname}' in enc_dump
+    assert f'ip: {default_sat.ip_addr}' in enc_dump
+    assert 'ssh-rsa' in enc_dump
