@@ -23,6 +23,7 @@ from nailgun import entities
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_LOC
 
 
 @pytest.mark.run_in_one_thread
@@ -61,6 +62,7 @@ def test_rhcloud_insights_e2e(
     )
     with session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         wait_for_tasks(
