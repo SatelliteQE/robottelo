@@ -50,6 +50,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.settings import Settings
+from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import DEFAULT_ARCHITECTURE
@@ -74,6 +75,13 @@ def _get_set_from_list_of_dict(value):
     :param list value: a list of simple dict.
     """
     return {tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value}
+
+
+# this fixture inherits the fixture called module_user in confest.py, method name has to be same
+@pytest.fixture(scope='module')
+def module_user(module_user, smart_proxy_location):
+    User.update({'id': module_user.id, 'default-location-id': smart_proxy_location.id})
+    yield module_user
 
 
 @pytest.fixture
@@ -1431,9 +1439,7 @@ def test_positive_global_registration_end_to_end(
                 'search-query': f"name ~ {client.hostname}",
             }
         )
-        result = ' '.join(
-            JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
-        )
+        result = JobInvocation.get_output({'id': invocation_command['id'], 'host': client.hostname})
         assert (
             invocation_command['message'] == f'Job invocation {invocation_command["id"]} created'
         ), result
