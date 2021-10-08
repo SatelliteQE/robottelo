@@ -1,6 +1,7 @@
 from inspect import getmembers
 from inspect import isfunction
 
+from pytest_fixtures import broker
 from pytest_fixtures import content_hosts
 from robottelo.config import settings
 
@@ -31,3 +32,12 @@ def pytest_collection_modifyitems(session, items, config):
         if set(item.fixturenames).intersection(set(content_host_fixture_names)):
             # TODO check param for indirect version parametrization
             item.add_marker('content_host')
+
+    sat_excluded_fns = ['default_sat', 'wait_for', 'satellite_factory']
+    satellite_fixture_names = [
+        m[0] for m in getmembers(broker, isfunction) if m[0] not in sat_excluded_fns
+    ]
+    for item in items:
+        if set(item.fixturenames).intersection(set(satellite_fixture_names)):
+            # TODO check param for indirect version parametrization
+            item.add_marker('satellite_fixture')
