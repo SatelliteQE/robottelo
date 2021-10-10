@@ -33,11 +33,11 @@ from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import YumRepository
 
-
 pytestmark = [
     pytest.mark.run_in_one_thread,
     pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+        (not settings.robottelo.REPOS_HOSTING_URL),
+        reason='Missing repos_hosting_url'
     ),
 ]
 
@@ -45,24 +45,34 @@ CUSTOM_REPO_URL = settings.repos.yum_9.url
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_6.errata[2]
 
 
+@pytest.fixture(scope='function')
+def errata_org():
+    return entities.Organization().create()
+
+
+@pytest.fixture(scope='function')
+def errata_lce(errata_org):
+    return entities.LifecycleEnvironment(organization=errata_org).create()
+
+
 @pytest.fixture(scope='module')
-def activation_key(module_org, module_lce):
+def activation_key(errata_org, errata_lce):
     activation_key = entities.ActivationKey(
-        environment=module_lce, organization=module_org
+        environment=errata_lce, organization=errata_org
     ).create()
     return activation_key
 
 
 @pytest.fixture(scope='module')
-def rh_repo(module_org, module_lce, module_cv, activation_key):
+def rh_repo(errata_org, errata_lce, module_cv, activation_key):
     return setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
             'repository-set': constants.REPOSET['rhst7'],
             'repository': constants.REPOS['rhst7']['name'],
-            'organization-id': module_org.id,
+            'organization-id': errata_org.id,
             'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
+            'lifecycle-environment-id': errata_lce.id,
             'activationkey-id': activation_key.id,
         },
         force_manifest_upload=True,
@@ -70,20 +80,21 @@ def rh_repo(module_org, module_lce, module_cv, activation_key):
 
 
 @pytest.fixture(scope='module')
-def custom_repo(module_org, module_lce, module_cv, activation_key):
+def custom_repo(errata_org, errata_lce, module_cv, activation_key):
     return setup_org_for_a_custom_repo(
         {
             'url': settings.repos.yum_9.url,
-            'organization-id': module_org.id,
+            'organization-id': errata_org.id,
             'content-view-id': module_cv.id,
-            'lifecycle-environment-id': module_lce.id,
+            'lifecycle-environment-id': errata_lce.id,
             'activationkey-id': activation_key.id,
         }
     )
 
 
 def _install_package(
-    module_org, clients, host_ids, package_name, via_ssh=True, rpm_package_name=None
+        errata_org, clients, host_ids, package_name, via_ssh=True,
+        rpm_package_name=None
 ):
     """Install package via SSH CLI if via_ssh is True, otherwise
     install via http api: PUT /api/v2/hosts/bulk/install_content
@@ -97,7 +108,7 @@ def _install_package(
     else:
         entities.Host().install_content(
             data={
-                'organization_id': module_org.id,
+                'organization_id': errata_org.id,
                 'included': {'ids': host_ids},
                 'content_type': 'package',
                 'content': [package_name],
@@ -106,16 +117,17 @@ def _install_package(
         _validate_package_installed(clients, rpm_package_name)
 
 
-def _validate_package_installed(hosts, package_name, expected_installed=True, timeout=120):
+def _validate_package_installed(hosts, package_name, expected_installed=True,
+                                timeout=120):
     """Check whether package was installed on the list of hosts."""
     for host in hosts:
         for _ in range(timeout // 15):
             result = host.run(f'rpm -q {package_name}')
             if (
-                result.status == 0
-                and expected_installed
-                or result.status != 0
-                and not expected_installed
+                    result.status == 0
+                    and expected_installed
+                    or result.status != 0
+                    and not expected_installed
             ):
                 break
             sleep(15)
@@ -129,11 +141,13 @@ def _validate_package_installed(hosts, package_name, expected_installed=True, ti
             )
 
 
-def _validate_errata_counts(module_org, host, errata_type, expected_value, timeout=120):
+def _validate_errata_counts(errata_org, host, errata_type, expected_value,
+                            timeout=120):
     """Check whether host contains expected errata counts."""
     for _ in range(timeout // 5):
         host = host.read()
-        if host.content_facet_attributes['errata_counts'][errata_type] == expected_value:
+        if host.content_facet_attributes['errata_counts'][
+            errata_type] == expected_value:
             break
         sleep(5)
     else:
@@ -148,7 +162,7 @@ def _validate_errata_counts(module_org, host, errata_type, expected_value, timeo
         )
 
 
-def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
+def _fetch_available_errata(errata_org, host, expected_amount, timeout=120):
     """Fetch available errata for host."""
     errata = host.errata()
     for _ in range(timeout // 5):
@@ -159,13 +173,15 @@ def _fetch_available_errata(module_org, host, expected_amount, timeout=120):
     else:
         pytest.fail(
             'Host {} contains {} available errata, but expected to '
-            'contain {} of them'.format(host.name, len(errata['results']), expected_amount)
+            'contain {} of them'.format(host.name, len(errata['results']),
+                                        expected_amount)
         )
 
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo, default_sat):
+def test_positive_install_in_hc(errata_org, activation_key, custom_repo,
+                                rh_repo, default_sat):
     """Install errata in a host-collection
 
     :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
@@ -181,22 +197,24 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
     :BZ: 1983043
     """
     with VMBroker(
-        nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost}, _count=2
+            nick=constants.DISTRO_RHEL7, host_classes={'host': ContentHost},
+            _count=2
     ) as clients:
         for client in clients:
             client.install_katello_ca(default_sat)
-            client.register_contenthost(module_org.label, activation_key.name)
+            client.register_contenthost(errata_org.label, activation_key.name)
             assert client.subscribed
             client.enable_repo(constants.REPOS['rhst7']['id'])
             client.add_rex_key(satellite=default_sat)
         host_ids = [client.nailgun_host.id for client in clients]
         _install_package(
-            module_org,
+            errata_org,
             clients=clients,
             host_ids=host_ids,
             package_name=constants.FAKE_1_CUSTOM_PACKAGE,
         )
-        host_collection = default_sat.api.HostCollection(organization=module_org).create()
+        host_collection = default_sat.api.HostCollection(
+            organization=errata_org).create()
         host_ids = [client.nailgun_host.id for client in clients]
         host_collection.host_ids = host_ids
         host_collection = host_collection.update(['host_ids'])
@@ -206,7 +224,7 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
                 'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
                 'targeting_type': 'static_query',
                 'search_query': f'host_collection_id = {host_collection.id}',
-                'organization_id': module_org.id,
+                'organization_id': errata_org.id,
             }
         )
         _validate_package_installed(clients, constants.FAKE_2_CUSTOM_PACKAGE)
@@ -214,7 +232,8 @@ def test_positive_install_in_hc(module_org, activation_key, custom_repo, rh_repo
 
 @pytest.mark.tier3
 def test_positive_install_in_host(
-    module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost, default_sat
+        errata_org, activation_key, custom_repo, rh_repo, rhel7_contenthost,
+        default_sat
 ):
     """Install errata in a host
 
@@ -231,12 +250,13 @@ def test_positive_install_in_host(
     :BZ: 1983043
     """
     rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
+    rhel7_contenthost.register_contenthost(errata_org.label,
+                                           activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
     host_id = rhel7_contenthost.nailgun_host.id
     _install_package(
-        module_org,
+        errata_org,
         clients=[rhel7_contenthost],
         host_ids=[host_id],
         package_name=constants.FAKE_1_CUSTOM_PACKAGE,
@@ -248,15 +268,17 @@ def test_positive_install_in_host(
             'inputs': {'errata': f'{CUSTOM_REPO_ERRATA_ID}'},
             'targeting_type': 'static_query',
             'search_query': f'name = {rhel7_contenthost.hostname}',
-            'organization_id': module_org.id,
+            'organization_id': errata_org.id,
         },
     )
-    _validate_package_installed([rhel7_contenthost], constants.FAKE_2_CUSTOM_PACKAGE)
+    _validate_package_installed([rhel7_contenthost],
+                                constants.FAKE_2_CUSTOM_PACKAGE)
 
 
 @pytest.mark.tier3
 def test_positive_install_multiple_in_host(
-    module_org, activation_key, custom_repo, rh_repo, rhel7_contenthost, default_sat
+        errata_org, activation_key, custom_repo, rh_repo, rhel7_contenthost,
+        default_sat
 ):
     """For a host with multiple applicable errata install one and ensure
     the rest of errata is still available
@@ -274,16 +296,19 @@ def test_positive_install_multiple_in_host(
     :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
+    rhel7_contenthost.register_contenthost(errata_org.label,
+                                           activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
     host = rhel7_contenthost.nailgun_host
     for package in constants.FAKE_9_YUM_OUTDATED_PACKAGES:
         _install_package(
-            module_org, clients=[rhel7_contenthost], host_ids=[host.id], package_name=package
+            errata_org, clients=[rhel7_contenthost], host_ids=[host.id],
+            package_name=package
         )
     host = host.read()
-    applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
+    applicable_errata_count = host.content_facet_attributes['errata_counts'][
+        'total']
     assert applicable_errata_count > 1
     rhel7_contenthost.add_rex_key(satellite=default_sat)
     for errata in settings.repos.yum_9.errata[:2]:
@@ -293,17 +318,19 @@ def test_positive_install_multiple_in_host(
                 'inputs': {'errata': f'{errata}'},
                 'targeting_type': 'static_query',
                 'search_query': f'name = {rhel7_contenthost.hostname}',
-                'organization_id': module_org.id,
+                'organization_id': errata_org.id,
             },
         )
         host = host.read()
         applicable_errata_count -= 1
-        assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
+        assert host.content_facet_attributes['errata_counts'][
+                   'total'] == applicable_errata_count
 
 
 @pytest.mark.tier3
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_list(module_org, custom_repo, default_sat):
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL),
+                    reason='Missing repos_hosting_url')
+def test_positive_list(errata_org, custom_repo, default_sat):
     """View all errata specific to repository
 
     :id: 1efceabf-9821-4804-bacf-2213ac0c7550
@@ -319,14 +346,17 @@ def test_positive_list(module_org, custom_repo, default_sat):
     """
     repo1 = default_sat.api.Repository(id=custom_repo['repository-id']).read()
     repo2 = default_sat.api.Repository(
-        product=default_sat.api.Product().create(), url=settings.repos.yum_3.url
+        product=default_sat.api.Product().create(),
+        url=settings.repos.yum_3.url
     ).create()
     repo2.sync()
     repo1_errata_ids = [
-        errata['errata_id'] for errata in repo1.errata(data={'per_page': '1000'})['results']
+        errata['errata_id'] for errata in
+        repo1.errata(data={'per_page': '1000'})['results']
     ]
     repo2_errata_ids = [
-        errata['errata_id'] for errata in repo2.errata(data={'per_page': '1000'})['results']
+        errata['errata_id'] for errata in
+        repo2.errata(data={'per_page': '1000'})['results']
     ]
     assert len(repo1_errata_ids) == len(settings.repos.yum_9.errata)
     assert len(repo2_errata_ids) == len(settings.repos.yum_3.errata)
@@ -337,7 +367,7 @@ def test_positive_list(module_org, custom_repo, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_list_updated(module_org, default_sat):
+def test_positive_list_updated(errata_org, default_sat):
     """View all errata in an Org sorted by Updated
 
     :id: 560d6584-70bd-4d1b-993a-cc7665a9e600
@@ -350,8 +380,9 @@ def test_positive_list_updated(module_org, default_sat):
 
     :CaseLevel: System
     """
-    repo = default_sat.api.Repository(name=constants.REPOS['rhva6']['name']).search(
-        query={'organization_id': module_org.id}
+    repo = default_sat.api.Repository(
+        name=constants.REPOS['rhva6']['name']).search(
+        query={'organization_id': errata_org.id}
     )
     if repo:
         repo = repo[0]
@@ -361,7 +392,7 @@ def test_positive_list_updated(module_org, default_sat):
                 'product': constants.PRDS['rhel'],
                 'repository-set': constants.REPOSET['rhva6'],
                 'repository': constants.REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
+                'organization-id': errata_org.id,
                 'releasever': constants.DEFAULT_RELEASE_VERSION,
                 'basearch': constants.DEFAULT_ARCHITECTURE,
             }
@@ -376,7 +407,7 @@ def test_positive_list_updated(module_org, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_filter_by_cve(module_org, default_sat):
+def test_positive_filter_by_cve(errata_org, default_sat):
     """Filter errata by CVE
 
     :id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
@@ -389,8 +420,9 @@ def test_positive_filter_by_cve(module_org, default_sat):
 
     :CaseLevel: System
     """
-    repo = default_sat.api.Repository(name=constants.REPOS['rhva6']['name']).search(
-        query={'organization_id': module_org.id}
+    repo = default_sat.api.Repository(
+        name=constants.REPOS['rhva6']['name']).search(
+        query={'organization_id': errata_org.id}
     )
     if repo:
         repo = repo[0]
@@ -400,7 +432,7 @@ def test_positive_filter_by_cve(module_org, default_sat):
                 'product': constants.PRDS['rhel'],
                 'repository-set': constants.REPOSET['rhva6'],
                 'repository': constants.REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
+                'organization-id': errata_org.id,
                 'releasever': constants.DEFAULT_RELEASE_VERSION,
                 'basearch': constants.DEFAULT_ARCHITECTURE,
             }
@@ -419,7 +451,7 @@ def test_positive_filter_by_cve(module_org, default_sat):
 
 
 @pytest.mark.tier3
-def test_positive_sort_by_issued_date(module_org):
+def test_positive_sort_by_issued_date(errata_org):
     """Filter errata by issued date
 
     :id: 6b4a783a-a7b4-4af4-b9e6-eb2928b7f7c1
@@ -433,7 +465,7 @@ def test_positive_sort_by_issued_date(module_org):
     :CaseLevel: System
     """
     repo = entities.Repository(name=constants.REPOS['rhva6']['name']).search(
-        query={'organization_id': module_org.id}
+        query={'organization_id': errata_org.id}
     )
     if repo:
         repo = repo[0]
@@ -443,7 +475,7 @@ def test_positive_sort_by_issued_date(module_org):
                 'product': constants.PRDS['rhel'],
                 'repository-set': constants.REPOSET['rhva6'],
                 'repository': constants.REPOS['rhva6']['name'],
-                'organization-id': module_org.id,
+                'organization-id': errata_org.id,
                 'releasever': constants.DEFAULT_RELEASE_VERSION,
                 'basearch': constants.DEFAULT_ARCHITECTURE,
                 # 'content-view-id': content_view.id,
@@ -462,7 +494,7 @@ def test_positive_sort_by_issued_date(module_org):
 
 @pytest.mark.tier3
 @pytest.mark.skip_if_open("BZ:1682940")
-def test_positive_filter_by_envs(module_org):
+def test_positive_filter_by_envs(errata_org):
     """Filter applicable errata for a content host by current and
     Library environments
 
@@ -486,7 +518,8 @@ def test_positive_filter_by_envs(module_org):
     org = entities.Organization().create()
     env = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
+    activation_key = entities.ActivationKey(environment=env,
+                                            organization=org).create()
     setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
@@ -500,21 +533,26 @@ def test_positive_filter_by_envs(module_org):
     )
     new_cv = entities.ContentView(organization=org).create()
     new_repo = entities.Repository(
-        product=entities.Product(organization=org).create(), url=CUSTOM_REPO_URL
+        product=entities.Product(organization=org).create(),
+        url=CUSTOM_REPO_URL
     ).create()
     assert new_repo.sync()['result'] == 'success'
     new_cv = new_cv.read()
     new_cv.repository.append(new_repo)
     new_cv = new_cv.update(['repository'])
     new_cv.publish()
-    library_env = entities.LifecycleEnvironment(name='Library', organization=org).search()[0]
-    errata_library = entities.Errata(environment=library_env).search(query={'per_page': '1000'})
-    errata_env = entities.Errata(environment=env).search(query={'per_page': '1000'})
+    library_env = \
+    entities.LifecycleEnvironment(name='Library', organization=org).search()[0]
+    errata_library = entities.Errata(environment=library_env).search(
+        query={'per_page': '1000'})
+    errata_env = entities.Errata(environment=env).search(
+        query={'per_page': '1000'})
     assert len(errata_library) > len(errata_env)
 
 
 @pytest.mark.tier3
-def test_positive_get_count_for_host(module_org, rhel6_contenthost, default_sat):
+def test_positive_get_count_for_host(errata_org, rhel6_contenthost,
+                                     default_sat):
     """Available errata count when retrieving Host
 
     :id: 2f35933f-8026-414e-8f75-7f4ec048faae
@@ -533,7 +571,8 @@ def test_positive_get_count_for_host(module_org, rhel6_contenthost, default_sat)
     org = entities.Organization().create()
     env = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
+    activation_key = entities.ActivationKey(environment=env,
+                                            organization=org).create()
     setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
@@ -580,17 +619,21 @@ def test_positive_get_count_for_host(module_org, rhel6_contenthost, default_sat)
     rhel6_contenthost.install_katello_agent()
     host = rhel6_contenthost.nailgun_host
     for errata in ('security', 'bugfix', 'enhancement'):
-        _validate_errata_counts(module_org, host, errata_type=errata, expected_value=0)
+        _validate_errata_counts(errata_org, host, errata_type=errata,
+                                expected_value=0)
     rhel6_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
-    _validate_errata_counts(module_org, host, errata_type='security', expected_value=1)
+    _validate_errata_counts(errata_org, host, errata_type='security',
+                            expected_value=1)
     rhel6_contenthost.run(f'yum install -y {constants.REAL_0_RH_PACKAGE}')
     for errata in ('bugfix', 'enhancement'):
-        _validate_errata_counts(module_org, host, errata_type=errata, expected_value=1)
+        _validate_errata_counts(errata_org, host, errata_type=errata,
+                                expected_value=1)
 
 
 @pytest.mark.upgrade
 @pytest.mark.tier3
-def test_positive_get_applicable_for_host(module_org, rhel6_contenthost, default_sat):
+def test_positive_get_applicable_for_host(errata_org, rhel6_contenthost,
+                                          default_sat):
     """Get applicable errata ids for a host
 
     :id: 51d44d51-eb3f-4ee4-a1df-869629d427ac
@@ -608,7 +651,8 @@ def test_positive_get_applicable_for_host(module_org, rhel6_contenthost, default
     org = entities.Organization().create()
     env = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
+    activation_key = entities.ActivationKey(environment=env,
+                                            organization=org).create()
     setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
@@ -654,14 +698,14 @@ def test_positive_get_applicable_for_host(module_org, rhel6_contenthost, default
     rhel6_contenthost.enable_repo(constants.REPOS['rhva6']['id'])
     rhel6_contenthost.install_katello_agent()
     host = rhel6_contenthost.nailgun_host
-    erratum = _fetch_available_errata(module_org, host, expected_amount=0)
+    erratum = _fetch_available_errata(errata_org, host, expected_amount=0)
     assert len(erratum) == 0
     rhel6_contenthost.run(f'yum install -y {constants.FAKE_1_CUSTOM_PACKAGE}')
-    erratum = _fetch_available_errata(module_org, host, 1)
+    erratum = _fetch_available_errata(errata_org, host, 1)
     assert len(erratum) == 1
     assert CUSTOM_REPO_ERRATA_ID in [errata['errata_id'] for errata in erratum]
     rhel6_contenthost.run(f'yum install -y {constants.REAL_0_RH_PACKAGE}')
-    erratum = _fetch_available_errata(module_org, host, 3)
+    erratum = _fetch_available_errata(errata_org, host, 3)
     assert len(erratum) == 3
     assert {constants.REAL_1_ERRATA_ID, constants.REAL_2_ERRATA_ID}.issubset(
         {errata['errata_id'] for errata in erratum}
@@ -690,7 +734,8 @@ def test_positive_get_diff_for_cv_envs():
     org = entities.Organization().create()
     env = entities.LifecycleEnvironment(organization=org).create()
     content_view = entities.ContentView(organization=org).create()
-    activation_key = entities.ActivationKey(environment=env, organization=org).create()
+    activation_key = entities.ActivationKey(environment=env,
+                                            organization=org).create()
     setup_org_for_a_rh_repo(
         {
             'product': constants.PRDS['rhel'],
@@ -712,32 +757,36 @@ def test_positive_get_diff_for_cv_envs():
             'activationkey-id': activation_key.id,
         }
     )
-    new_env = entities.LifecycleEnvironment(organization=org, prior=env).create()
+    new_env = entities.LifecycleEnvironment(organization=org,
+                                            prior=env).create()
     cvvs = content_view.read().version[-2:]
     promote(cvvs[-1], new_env.id)
     result = entities.Errata().compare(
-        data={'content_view_version_ids': [cvv.id for cvv in cvvs], 'per_page': '9999'}
+        data={'content_view_version_ids': [cvv.id for cvv in cvvs],
+              'per_page': '9999'}
     )
     cvv2_only_errata = next(
-        errata for errata in result['results'] if errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
+        errata for errata in result['results'] if
+        errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
     )
     assert [cvvs[-1].id] == cvv2_only_errata['comparison']
     both_cvvs_errata = next(
-        errata for errata in result['results'] if errata['errata_id'] == constants.REAL_0_ERRATA_ID
+        errata for errata in result['results'] if
+        errata['errata_id'] == constants.REAL_0_ERRATA_ID
     )
     assert {cvv.id for cvv in cvvs} == set(both_cvvs_errata['comparison'])
 
 
 @pytest.mark.tier3
 def test_positive_incremental_update_required(
-    module_org,
-    module_lce,
-    activation_key,
-    module_cv,
-    custom_repo,
-    rh_repo,
-    rhel7_contenthost,
-    default_sat,
+        errata_org,
+        errata_lce,
+        activation_key,
+        module_cv,
+        custom_repo,
+        rh_repo,
+        rhel7_contenthost,
+        default_sat,
 ):
     """Given a set of hosts and errata, check for content view version
     and environments that need updating."
@@ -766,14 +815,15 @@ def test_positive_incremental_update_required(
     :CaseLevel: System
     """
     rhel7_contenthost.install_katello_ca(default_sat)
-    rhel7_contenthost.register_contenthost(module_org.label, activation_key.name)
+    rhel7_contenthost.register_contenthost(errata_org.label,
+                                           activation_key.name)
     assert rhel7_contenthost.subscribed
     rhel7_contenthost.enable_repo(constants.REPOS['rhst7']['id'])
     rhel7_contenthost.install_katello_agent()
     host = rhel7_contenthost.nailgun_host
     # install package to create demand for an Erratum
     _install_package(
-        module_org,
+        errata_org,
         [rhel7_contenthost],
         [host.id],
         constants.FAKE_1_CUSTOM_PACKAGE,
@@ -783,7 +833,7 @@ def test_positive_incremental_update_required(
     # Call nailgun to make the API POST to see if any incremental updates are required
     response = entities.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_org.id,
+            'organization_id': errata_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': [settings.repos.yum_6.errata[2]],
         },
@@ -798,48 +848,58 @@ def test_positive_incremental_update_required(
     module_cv = module_cv.read()
     CV1V = module_cv.version[-1].read()
     # Must promote a CV version into a new Environment before we can add errata
-    promote(CV1V, module_lce.id)
+    promote(CV1V, errata_lce.id)
     module_cv = module_cv.read()
     # Call nailgun to make the API POST to ensure an incremental update is required
     response = entities.Host().bulk_available_incremental_updates(
         data={
-            'organization_id': module_org.id,
+            'organization_id': errata_org.id,
             'included': {'ids': [host.id]},
             'errata_ids': [settings.repos.yum_6.errata[2]],
         },
     )
-    assert 'next_version' in response[0], 'Incremental update should be suggested'
+    assert 'next_version' in response[
+        0], 'Incremental update should be suggested'
     'at this point'
 
 
 @pytest.fixture(scope='module')
-def repos_collection(module_org, module_lce):
+def repos_collection(errata_org, errata_lce):
     repos_collection = RepositoryCollection(
-        distro=constants.DISTRO_RHEL8, repositories=[YumRepository(url=settings.repos.swid_tag.url)]
+        distro=constants.DISTRO_RHEL8,
+        repositories=[YumRepository(url=settings.repos.swid_tag.url)]
     )
-    repos_collection.setup_content(module_org.id, module_lce.id, upload_manifest=True)
+    repos_collection.setup_content(errata_org.id, errata_lce.id,
+                                   upload_manifest=True)
     return repos_collection
 
 
-def _run_remote_command_on_content_host(module_org, command, vm, return_result=False):
+def _run_remote_command_on_content_host(errata_org, command, vm,
+                                        return_result=False):
     result = vm.run(command)
     assert result.status == 0
     if return_result:
         return result.stdout
 
 
-def _set_prerequisites_for_swid_repos(module_org, vm):
+def _set_prerequisites_for_swid_repos(errata_org, vm):
     _run_remote_command_on_content_host(
-        module_org, f'wget --no-check-certificate {settings.repos.swid_tools_repo}', vm
+        errata_org,
+        f'wget --no-check-certificate {settings.repos.swid_tools_repo}', vm
     )
-    _run_remote_command_on_content_host(module_org, "mv *swid*.repo /etc/yum.repos.d", vm)
-    _run_remote_command_on_content_host(module_org, "yum install -y swid-tools", vm)
-    _run_remote_command_on_content_host(module_org, "dnf install -y dnf-plugin-swidtags", vm)
+    _run_remote_command_on_content_host(errata_org,
+                                        "mv *swid*.repo /etc/yum.repos.d", vm)
+    _run_remote_command_on_content_host(errata_org,
+                                        "yum install -y swid-tools", vm)
+    _run_remote_command_on_content_host(errata_org,
+                                        "dnf install -y dnf-plugin-swidtags",
+                                        vm)
 
 
-def _validate_swid_tags_installed(module_org, vm, module_name):
+def _validate_swid_tags_installed(errata_org, vm, module_name):
     result = _run_remote_command_on_content_host(
-        module_org, f"swidq -i -n {module_name} | grep 'Name'", vm, return_result=True
+        errata_org, f"swidq -i -n {module_name} | grep 'Name'", vm,
+        return_result=True
     )
     assert module_name in result
 
@@ -847,7 +907,8 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 @pytest.mark.tier3
 @pytest.mark.upgrade
 def test_errata_installation_with_swidtags(
-    module_org, module_lce, repos_collection, rhel8_contenthost, default_sat
+        errata_org, errata_lce, repos_collection, rhel8_contenthost,
+        default_sat
 ):
     """Verify errata installation with swid_tags and swid tags get updated after
     module stream update.
@@ -890,14 +951,15 @@ def test_errata_installation_with_swidtags(
 
     # install older module stream
     rhel8_contenthost.add_rex_key(satellite=default_sat)
-    _set_prerequisites_for_swid_repos(module_org, vm=rhel8_contenthost)
+    _set_prerequisites_for_swid_repos(errata_org, vm=rhel8_contenthost)
     _run_remote_command_on_content_host(
-        module_org, f'dnf -y module install {module_name}:0:{version}', rhel8_contenthost
+        errata_org, f'dnf -y module install {module_name}:0:{version}',
+        rhel8_contenthost
     )
 
     # validate swid tags Installed
     before_errata_apply_result = _run_remote_command_on_content_host(
-        module_org,
+        errata_org,
         f"swidq -i -n {module_name} | grep 'File' | grep -o 'rpm-.*.swidtag'",
         rhel8_contenthost,
         return_result=True,
@@ -905,19 +967,22 @@ def test_errata_installation_with_swidtags(
     assert before_errata_apply_result != ''
     host = rhel8_contenthost.nailgun_host
     host = host.read()
-    applicable_errata_count = host.content_facet_attributes['errata_counts']['total']
+    applicable_errata_count = host.content_facet_attributes['errata_counts'][
+        'total']
     assert applicable_errata_count == 1
 
     # apply modular errata
     _run_remote_command_on_content_host(
-        module_org, f'dnf -y module update {module_name}', rhel8_contenthost
+        errata_org, f'dnf -y module update {module_name}', rhel8_contenthost
     )
-    _run_remote_command_on_content_host(module_org, 'dnf -y upload-profile', rhel8_contenthost)
+    _run_remote_command_on_content_host(errata_org, 'dnf -y upload-profile',
+                                        rhel8_contenthost)
     host = host.read()
     applicable_errata_count -= 1
-    assert host.content_facet_attributes['errata_counts']['total'] == applicable_errata_count
+    assert host.content_facet_attributes['errata_counts'][
+               'total'] == applicable_errata_count
     after_errata_apply_result = _run_remote_command_on_content_host(
-        module_org,
+        errata_org,
         f"swidq -i -n {module_name} | grep 'File'| grep -o 'rpm-.*.swidtag'",
         rhel8_contenthost,
         return_result=True,
@@ -963,17 +1028,21 @@ def rhel8_custom_repo_cv(module_manifest_org):
 
 @pytest.fixture(scope='module')
 def rhel8_module_ak(
-    module_manifest_org, default_lce, rh_repo_module_manifest, rhel8_custom_repo_cv
+        module_manifest_org, default_lce, rh_repo_module_manifest,
+        rhel8_custom_repo_cv
 ):
     rhel8_module_ak = entities.ActivationKey(
         content_view=module_manifest_org.default_content_view,
-        environment=entities.LifecycleEnvironment(id=module_manifest_org.library.id),
+        environment=entities.LifecycleEnvironment(
+            id=module_manifest_org.library.id),
         organization=module_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key
     rhel8_module_ak.content_override(
         data={
-            'content_overrides': [{'content_label': constants.REPOS['rhst8']['id'], 'value': '1'}]
+            'content_overrides': [
+                {'content_label': constants.REPOS['rhst8']['id'],
+                 'value': '1'}]
         }
     )
     # Fetch available subscriptions
@@ -987,21 +1056,23 @@ def rhel8_module_ak(
     product = entities.Product(organization=module_manifest_org).search(
         query={'search': "redhat=false"}
     )
-    custom_sub = entities.Subscription(organization=module_manifest_org).search(
+    custom_sub = entities.Subscription(
+        organization=module_manifest_org).search(
         query={'search': f"name={product[0].name}"}
     )
-    rhel8_module_ak.add_subscriptions(data={'subscription_id': custom_sub[0].id})
+    rhel8_module_ak.add_subscriptions(
+        data={'subscription_id': custom_sub[0].id})
     return rhel8_module_ak
 
 
 @pytest.mark.tier2
 def test_apply_modular_errata_using_default_content_view(
-    module_manifest_org,
-    default_lce,
-    rhel8_contenthost,
-    rhel8_module_ak,
-    rhel8_custom_repo_cv,
-    default_sat,
+        module_manifest_org,
+        default_lce,
+        rhel8_contenthost,
+        rhel8_module_ak,
+        rhel8_custom_repo_cv,
+        default_sat,
 ):
     """
     Registering a RHEL8 system to the default content view with no modules enabled results in
@@ -1032,12 +1103,14 @@ def test_apply_modular_errata_using_default_content_view(
     version = '20180704244205'
 
     rhel8_contenthost.install_katello_ca(default_sat)
-    rhel8_contenthost.register_contenthost(module_manifest_org.label, rhel8_module_ak.name)
+    rhel8_contenthost.register_contenthost(module_manifest_org.label,
+                                           rhel8_module_ak.name)
     assert rhel8_contenthost.subscribed
     host = rhel8_contenthost.nailgun_host
     host = host.read()
     # Assert no errata on host, no packages applicable or installable
-    errata = _fetch_available_errata(module_manifest_org, host, expected_amount=0)
+    errata = _fetch_available_errata(module_manifest_org, host,
+                                     expected_amount=0)
     assert len(errata) == 0
     rhel8_contenthost.install_katello_host_tools()
     # Install older version of module stream to generate the errata
@@ -1049,7 +1122,8 @@ def test_apply_modular_errata_using_default_content_view(
     errata = _fetch_available_errata(module_manifest_org, host, 2)
     assert len(errata) == 2
     # Assert that errata package is required
-    assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0]['packages']
+    assert constants.FAKE_3_CUSTOM_PACKAGE in errata[0]['module_streams'][0][
+        'packages']
     # Update module
     result = rhel8_contenthost.execute(
         f'yum -y module update {module_name}:{stream}:{version}',
