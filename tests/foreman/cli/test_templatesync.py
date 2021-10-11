@@ -14,14 +14,19 @@
 
 :Upstream: No
 """
+import base64
+from urllib.parse import urlparse
+
 import pytest
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import get
+from requests import post
 from requests.exceptions import HTTPError
 
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL
 from robottelo.constants import FOREMAN_TEMPLATE_TEST_TEMPLATE
 
@@ -72,8 +77,6 @@ class TestTemplateSyncTestCase:
             3. With force - true, assert that the locked template is updated.
 
         :CaseImportance: Medium
-
-        :CaseAutomation: NotAutomated
         """
         prefix = gen_string('alpha')
         _, dir_path = create_import_export_local_dir
@@ -103,11 +106,61 @@ class TestTemplateSyncTestCase:
         else:
             pytest.fail('The template is not imported for force test')
 
-    @pytest.mark.stubbed
     @pytest.mark.tier2
-    def test_positive_export_filtered_templates_to_git(self):
+    @pytest.mark.skip_if_not_set('git')
+    def test_positive_update_templates_in_git(self, module_org, git_repository, git_branch):
+        """Assure only templates with a given filter are pushed to
+        git repository and existing template file is updated.
+
+        :id: 5b0be026-2983-4570-bc63-d9aba36fca65
+
+        :Steps:
+            1. Repository contains file with same name as exported template.
+            2. Export "Atomic Kickstart default" templates to git repo.
+
+        :expectedresults:
+            1. Assert matching templates are exported to git repo.
+            2. Assert file is updated
+
+        :CaseImportance: High
+        """
+        dirname = 'export'
+        path = f"{dirname}/provisioning_templates/provision/atomic_kickstart_default.erb"
+        content = base64.b64encode(gen_string('alpha').encode('ascii'))
+        # create template file in repository
+        auth = (settings.git.username, settings.git.password)
+        api_url = (
+            f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
+        )
+        res = post(f"{api_url}/{path}", auth=auth, json={"branch": git_branch, "content": content})
+        assert res.status_code == 201
+        # export template to git
+        netloc = urlparse(settings.git.url).netloc
+        auth = f"{settings.git.username}:{settings.git.password}"
+        url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
+        output = TemplateSync.exports(
+            {
+                'repo': url,
+                'branch': git_branch,
+                'organization-id': module_org.id,
+                'filter': "Atomic Kickstart default",
+                'dirname': dirname,
+            }
+        ).split('\n')
+        exported_count = ['Exported: true' in row.strip() for row in output].count(True)
+        assert exported_count == 1
+        auth = (settings.git.username, settings.git.password)
+        git_file = get(f"{api_url}/{path}", auth=auth, params={"ref": git_branch}).json()
+        decoded = base64.b64decode(git_file['content'])
+        assert content != decoded
+
+    @pytest.mark.tier2
+    @pytest.mark.skip_if_not_set('git')
+    def test_positive_export_filtered_templates_to_git(
+        self, module_org, git_repository, git_branch
+    ):
         """Assure only templates with a given filter regex are pushed to
-        git template (new templates are created, existing updated).
+        git repository.
 
         :id: fd583f85-f170-4b93-b9b1-36d72f31c31f
 
@@ -115,13 +168,29 @@ class TestTemplateSyncTestCase:
             1. Export only the templates matching with regex e.g: `^atomic.*` to git repo.
 
         :expectedresults:
-            1. Assert result is {'message': 'success'} and templates exported.
-            2. Assert matching templates are exported to git repo.
+            1. Assert matching templates are exported to git repo.
 
         :CaseImportance: Critical
-
-        :CaseAutomation: NotAutomated
         """
+        dirname = 'export'
+        auth = f"{settings.git.username}:{settings.git.password}"
+        netloc = urlparse(settings.git.url).netloc
+        url = f'http://{auth}@{netloc}/{settings.git.username}/{git_repository}'
+        output = TemplateSync.exports(
+            {
+                'repo': url,
+                'branch': git_branch,
+                'organization-id': module_org.id,
+                'filter': 'atomic',
+                'dirname': dirname,
+            }
+        ).split('\n')
+        exported_count = ['Exported: true' in row.strip() for row in output].count(True)
+        path = f"{dirname}/provisioning_templates/provision"
+        auth = (settings.git.username, settings.git.password)
+        url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
+        git_count = len(get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
+        assert exported_count == git_count
 
     @pytest.mark.tier2
     def test_positive_export_filtered_templates_to_temp_dir(self, module_org, default_sat):
@@ -140,7 +209,7 @@ class TestTemplateSyncTestCase:
         dir_path = '/tmp'
         output = TemplateSync.exports(
             {'repo': dir_path, 'organization-id': module_org.id, 'filter': 'ansible'}
-        )
+        ).split('\n')
         exported_count = [row == 'Exported: true' for row in output].count(True)
         assert exported_count == int(
             default_sat.execute(f'find {dir_path} -type f -name *ansible* | wc -l').stdout.strip()
