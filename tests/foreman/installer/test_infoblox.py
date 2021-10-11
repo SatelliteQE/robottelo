@@ -19,6 +19,31 @@ import pytest
 from robottelo.config import settings
 from robottelo.helpers import InstallerCommand
 
+params = [
+    (
+        'enable-foreman-proxy-plugin-dhcp-remote-isc',
+        {'foreman-proxy-dhcp': 'true'},
+        'rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc',
+    ),
+    (
+        'enable-foreman-proxy-plugin-dhcp-infoblox',
+        {
+            'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
+            'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
+        },
+        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q',
+    ),
+    (
+        'enable-foreman-proxy-plugin-dns-infoblox',
+        {
+            'foreman-proxy-plugin-dns-infoblox-username': 'fakeusername',
+            'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
+            'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
+        },
+        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q',
+    ),
+]
+
 
 def register_satellite(sat):
     sat.execute(
@@ -34,94 +59,27 @@ def register_satellite(sat):
 
 @pytest.mark.tier4
 @pytest.mark.destructive
-def test_isc_dhcp_plugin_installation(destructive_sat):
-    """Check that there are no packaging issues with ISC DHCP plugin
+@pytest.mark.parametrize("command_args,command_opts,rpm_command", params)
+def test_plugin_installation(destructive_sat, command_args, command_opts, rpm_command):
+    """Check that external DNS and DHCP plugins install correctly
 
-    :id: 6fc3827b-e431-4105-b2e9-f302044bdc09
+    :id: c75aa5f3-870a-4f4a-9d7a-0a871b47fd6f
 
-    :Steps: Run installer with option
-        --enable-foreman-proxy-plugin-dhcp-remote-isc
+    :Steps: Run installer with mininum options required to install plugins
 
-    :expectedresults: Plugin installs successfully
+    :expectedresults: Plugins install successfully
 
     :CaseAutomation: Automated
 
     :customerscenario: true
 
-    :BZ: 1994490
+    :BZ: 1994490, 2000237
     """
     register_satellite(destructive_sat)
-    installer_obj = InstallerCommand('enable-foreman-proxy-plugin-dhcp-remote-isc')
-    command_output = destructive_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    rpm_result = destructive_sat.execute('rpm -q tfm-rubygem-smart_proxy_dhcp_remote_isc')
-    assert rpm_result.status == 0
-
-
-@pytest.mark.tier4
-@pytest.mark.destructive
-def test_infoblox_dhcp_plugin_installation(destructive_sat):
-    """Check that there are no packaging issues with Infoblox DHCP plugin
-
-    :id: 83f4596c-9641-4df5-ba3d-fb1e5b99ff9b
-
-    :Steps: Run installer with options
-        --enable-foreman-proxy-plugin-dhcp-infoblox
-        --foreman-proxy-plugin-dhcp-infoblox-username fakeusername
-        --foreman-proxy-plugin-dhcp-infoblox-password fakepassword
-
-    :expectedresults: Plugin installs successfully
-
-    :CaseAutomation: Automated
-
-    :BZ: 2000237
-    """
-    register_satellite(destructive_sat)
-    command_args = 'enable-foreman-proxy-plugin-dhcp-infoblox'
-    command_opts = {
-        'foreman-proxy-plugin-dhcp-infoblox-username': 'fakeusername',
-        'foreman-proxy-plugin-dhcp-infoblox-password': 'fakepassword',
-    }
     installer_obj = InstallerCommand(command_args, **command_opts)
     command_output = destructive_sat.execute(installer_obj.get_command())
     assert 'Success!' in command_output.stdout
-    rpm_result = destructive_sat.execute(
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dhcp_infoblox | xargs rpm -q'
-    )
-    assert rpm_result.status == 0
-
-
-@pytest.mark.tier4
-@pytest.mark.destructive
-def test_infoblox_dns_plugin_installation(destructive_sat):
-    """Check that there are no packaging issues with Infoblox DNS plugin
-
-    :id: 2ffa6b48-8033-4541-892e-c139f67080a4
-
-    :Steps: Run installer with options
-        --enable-foreman-proxy-plugin-dns-infoblox
-        --foreman-proxy-plugin-dns-infoblox-username fakeusername
-        --foreman-proxy-plugin-dns-infoblox-password fakepassword
-
-    :expectedresults: Plugin installs successfully
-
-    :CaseAutomation: Automated
-
-    :BZ: 2000237
-    """
-    register_satellite(destructive_sat)
-    command_args = 'enable-foreman-proxy-plugin-dns-infoblox'
-    command_opts = {
-        'foreman-proxy-plugin-dns-infoblox-username': 'fakeusername',
-        'foreman-proxy-plugin-dns-infoblox-password': 'fakepassword',
-        'foreman-proxy-plugin-dns-infoblox-dns-server': 'infoblox.example.com',
-    }
-    installer_obj = InstallerCommand(command_args, **command_opts)
-    command_output = destructive_sat.execute(installer_obj.get_command())
-    assert 'Success!' in command_output.stdout
-    rpm_result = destructive_sat.execute(
-        'echo tfm-rubygem-infoblox tfm-rubygem-smart_proxy_dns_infoblox | xargs rpm -q'
-    )
+    rpm_result = destructive_sat.execute(rpm_command)
     assert rpm_result.status == 0
 
 
