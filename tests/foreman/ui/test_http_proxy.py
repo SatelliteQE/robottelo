@@ -230,3 +230,66 @@ def test_set_default_http_proxy(session, module_org, module_location, setting_up
         session.settings.update(f'name = {property_name}', "no global default")
         result = session.settings.read(f'name = {property_name}')
         assert result['table'][0]['Value'] == "Empty"
+
+
+@pytest.mark.tier1
+@pytest.mark.run_in_one_thread
+@pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
+def test_check_http_proxy_value_repository_details(
+    session, function_org, function_location, function_product, setting_update
+):
+
+    """Deleted Global Http Proxy is reflected in repository details page".
+
+    :id: 3f64255a-ef6c-4acb-b99b-e5579133b564
+
+    :Steps:
+        1. Create Http Proxy (Go to Infrastructure > Http Proxies > New Http Proxy)
+        2. GoTo to Administer > Settings > content tab
+        3. Update the "Default HTTP Proxy" with created above.
+        4. Create repository with Global Default Http Proxy.
+        5. Delete the Http Proxy
+
+    :BZ: 1820193
+
+    :parametrized: yes
+
+    :expectedresults:
+        1. After deletion of  "Default Http Proxy" its field on settings page should be
+            set to no global defult
+        2. "HTTP Proxy" field  in repository details page should be set to Global Default (None).
+
+    :CaseImportance: Medium
+
+    :CaseLevel: Acceptance
+    """
+
+    property_name = setting_update.name
+    repo_name = gen_string('alpha')
+    http_proxy_a = entities.HTTPProxy(
+        name=gen_string('alpha', 15),
+        url=settings.http_proxy.un_auth_proxy_url,
+        organization=[function_org.id],
+        location=[function_location.id],
+    ).create()
+
+    with session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location.name)
+        session.settings.update(
+            f'name = {property_name}', f'{http_proxy_a.name} ({http_proxy_a.url})'
+        )
+        session.repository.create(
+            function_product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_0.url,
+            },
+        )
+        session.http_proxy.delete(http_proxy_a.name)
+        result = session.settings.read(f'name = {property_name}')
+        assert result['table'][0]['Value'] == "Empty"
+        session.repository.search(function_product.name, repo_name)[0]['Name']
+        repo_values = session.repository.read(function_product.name, repo_name)
+        assert repo_values['repo_content']['http_proxy_policy'] == 'Global Default (None)'

@@ -53,6 +53,16 @@ def function_org():
     return entities.Organization().create()
 
 
+@pytest.fixture(scope='function')
+def function_location():
+    return entities.Location().create()
+
+
+@pytest.fixture(scope='function')
+def function_product(function_org):
+    return entities.Product(organization=function_org).create()
+
+
 @pytest.fixture(scope='module')
 def module_org():
     return entities.Organization().create()
