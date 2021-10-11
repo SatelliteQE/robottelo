@@ -958,7 +958,7 @@ def test_host_errata_search_commands(
         }
     )
     result = [item['name'] for item in result]
-    assert errata_hosts[0].hostname not in result
+    assert errata_hosts[0].hostname in result
     assert errata_hosts[1].hostname not in result
 
 
