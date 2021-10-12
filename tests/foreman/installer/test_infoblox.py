@@ -59,7 +59,11 @@ def register_satellite(sat):
 
 @pytest.mark.tier4
 @pytest.mark.destructive
-@pytest.mark.parametrize("command_args,command_opts,rpm_command", params)
+@pytest.mark.parametrize(
+    'command_args,command_opts,rpm_command',
+    params,
+    ids=['isc_dhcp', 'infoblox_dhcp', 'infoblox_dns'],
+)
 def test_plugin_installation(destructive_sat, command_args, command_opts, rpm_command):
     """Check that external DNS and DHCP plugins install correctly
 
