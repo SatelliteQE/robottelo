@@ -20,7 +20,6 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from operator import itemgetter
-from time import sleep
 
 import pytest
 from broker.broker import VMBroker
@@ -1418,7 +1417,6 @@ def test_update_applicable_package_using_default_content_view(errata_host):
     :CaseImportance: High
     """
     # check that package is applicable
-    sleep(5)
     applicable_packages = Package.list(
         {
             'host-id': errata_host.nailgun_host.id,
@@ -1529,7 +1527,6 @@ def test_install_applicable_package_to_registerd_host(chost):
     :CaseImportance: High
     """
     # Assert that the package is not applicable
-    sleep(5)
     applicable_packages = Package.list(
         {
             'host-id': chost.nailgun_host.id,
