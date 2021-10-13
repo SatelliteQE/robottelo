@@ -63,6 +63,7 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.constants import OSCAP_PERIOD
 from robottelo.constants import OSCAP_WEEKDAY
 from robottelo.constants import PERMISSIONS
+from robottelo.constants import REPO_TYPE
 from robottelo.constants import RHEL_6_MAJOR_VERSION
 from robottelo.constants import RHEL_7_MAJOR_VERSION
 from robottelo.datafactory import gen_string
@@ -1515,9 +1516,16 @@ def test_global_registration_form_populate(
         assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_global_registration_with_capsule_host():
+def test_global_registration_with_capsule_host(
+    session,
+    capsule_configured,
+    rhel7_contenthost,
+    module_org,
+    module_location,
+    module_os,
+    module_lce_library,
+):
     """Host registration form produces a correct registration command and host is
     registered successfully with selected capsule from form.
 
@@ -1537,6 +1545,64 @@ def test_global_registration_with_capsule_host():
 
     :CaseAutomation: ManualOnly
     """
+    client = rhel7_contenthost
+    product = entities.Product(organization=module_org).create()
+    repo = entities.Repository(
+        url=settings.repos.yum_1.url,
+        content_type=REPO_TYPE['yum'],
+        product=product,
+    ).create()
+    # Sync all repositories in the product
+    product.sync()
+    capsule = entities.Capsule(id=capsule_configured.nailgun_capsule.id).search(
+        query={'search': f'name={capsule_configured.hostname}'}
+    )[0]
+    module_org.smart_proxy = [capsule]
+    module_location.smart_proxy = [capsule]
+    module_org.update(['smart_proxy'])
+    module_location.update(['smart_proxy'])
+
+    # Associate the lifecycle environment with the capsule
+    capsule.content_add_lifecycle_environment(data={'environment_id': module_lce_library.id})
+    result = capsule.content_lifecycle_environments()
+
+    # Create a content view with the repository
+    cv = entities.ContentView(organization=module_org, repository=[repo]).create()
+
+    # Publish new version of the content view
+    cv.publish()
+    cv = cv.read()
+
+    assert len(cv.version) == 1
+
+    activation_key = entities.ActivationKey(
+        content_view=cv, environment=module_lce_library, organization=module_org
+    ).create()
+
+    # Assert that a task to sync lifecycle environment to the capsule
+    # is started (or finished already)
+    sync_status = capsule.content_get_sync()
+    assert len(sync_status['active_sync_tasks']) >= 1 or sync_status['last_sync_time']
+
+    # Wait till capsule sync finishes
+    for task in sync_status['active_sync_tasks']:
+        entities.ForemanTask(id=task['id']).poll()
+    with session:
+        cmd = session.host.get_register_command(
+            {
+                'general.operating_system': module_os.title,
+                'general.capsule': capsule_configured.hostname,
+                'advanced.activation_keys': activation_key.name,
+                'general.insecure': True,
+            }
+        )
+    client.configure_rhel_repo(settings.repos.rhel7_repo)
+    # run curl
+    client.execute(cmd)
+    result = client.execute('subscription-manager identity')
+    assert result.status == 0
+    assert module_lce_library.name in result.stdout
+    assert module_org.name in result.stdout
 
 
 @pytest.mark.tier2
@@ -1569,8 +1635,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.capsule': module_proxy.name,
                 'general.operating_system': module_os.title,
+                'general.capsule': module_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -1618,8 +1684,8 @@ def test_global_re_registration_host_with_force_ignore_error_options(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.capsule': module_proxy.name,
                 'general.operating_system': module_os.title,
+                'general.capsule': module_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
                 'advanced.force': True,
@@ -1660,8 +1726,8 @@ def test_global_registration_token_restriction(
     with session:
         cmd = session.host.get_register_command(
             {
-                'general.capsule': module_proxy.name,
                 'general.operating_system': module_os.title,
+                'general.capsule': module_proxy.name,
                 'advanced.activation_keys': module_activation_key.name,
                 'general.insecure': True,
             }
