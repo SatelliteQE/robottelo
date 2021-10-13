@@ -1,7 +1,6 @@
 from inspect import getmembers
 from inspect import isfunction
 
-from pytest_fixtures import content_hosts
 from robottelo.config import settings
 
 
@@ -26,6 +25,8 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(session, items, config):
+    from pytest_fixtures import content_hosts
+
     content_host_fixture_names = [m[0] for m in getmembers(content_hosts, isfunction)]
     for item in items:
         if set(item.fixturenames).intersection(set(content_host_fixture_names)):

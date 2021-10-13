@@ -22,6 +22,7 @@ VALIDATORS = dict(
         Validator('server.admin_password', default='changeme'),
         Validator('server.admin_username', default='admin'),
         Validator('server.deploy_workflow', must_exist=True),
+        Validator('server.deploy_arguments', is_type_of=dict, default={}),
         Validator('server.scheme', default='https'),
         Validator('server.port', default=443),
         Validator('server.ssh_username', default='root'),
@@ -67,6 +68,7 @@ VALIDATORS = dict(
         Validator('capsule.version.release', must_exist=True),
         Validator('capsule.version.source', must_exist=True),
         Validator('capsule.deploy_workflow', must_exist=True),
+        Validator('capsule.deploy_arguments', is_type_of=dict, default={}),
     ],
     certs=[
         Validator(
