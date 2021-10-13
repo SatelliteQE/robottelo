@@ -2238,7 +2238,7 @@ def test_positive_gce_cloudinit_provision_end_to_end(
             googleclient.disconnect()
 
 
-@pytest.mark.run_in_one_thread
+@pytest.mark.destructive
 @pytest.mark.upgrade
 @pytest.mark.usefixtures('install_cockpit_plugin')
 @pytest.mark.tier2
