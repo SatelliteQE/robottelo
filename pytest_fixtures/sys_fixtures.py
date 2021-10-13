@@ -62,7 +62,7 @@ def register_to_dogfood(default_sat):
 @pytest.fixture
 def install_cockpit_plugin(default_sat, register_to_dogfood):
     cmd_result = default_sat.execute(
-        'foreman-installer --enable-foreman-plugin-remote-execution-cockpit'
+        'foreman-installer --enable-foreman-plugin-remote-execution-cockpit', timeout='30m'
     )
     if cmd_result.status != 0:
         raise SatelliteHostError(
