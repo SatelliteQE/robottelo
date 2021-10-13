@@ -27,7 +27,7 @@ SERVER:
   # The Ansible Tower workflow used to deploy a satellite
   DEPLOY_WORKFLOW: "deploy-sat-jenkins"
   # Dictionary of arguments which should be passed along to the deploy workflow
-  DEPLOY_ARGUMENTS:
+  # DEPLOY_ARGUMENTS:
   # HTTP scheme when building the server URL
   # Suggested values for "scheme" are "http" and "https".
   SCHEME: https
