@@ -797,7 +797,9 @@ def test_positive_synchronize_rh_product_past_sync_date():
 
     :expectedresults: Product is synchronized successfully.
 
-    :BZ: 1279539
+    :customerscenario: true
+
+    :BZ: 1279539, 1879537
 
     :CaseLevel: System
     """
@@ -845,6 +847,13 @@ def test_positive_synchronize_rh_product_past_sync_date():
     # Verify product was synced successfully
     validate_task_status(repo.id, org.id)
     validate_repo_content(repo, ['erratum', 'package', 'package_group'])
+    # Add disassociate RH product from sync plan check for BZ#1879537
+    assert len(sync_plan.read().product) == 1
+    # Disable the reposet
+    reposet = entities.RepositorySet(name=REPOSET['rhst7'], product=product).search()[0]
+    reposet.disable(data={'basearch': 'x86_64', 'releasever': None, 'product_id': product.id})
+    # Assert that the Sync Plan now has no product associated with it
+    assert len(sync_plan.read().product) == 0
 
 
 @pytest.mark.run_in_one_thread
