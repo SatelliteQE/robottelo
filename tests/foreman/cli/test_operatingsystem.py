@@ -363,7 +363,7 @@ class TestOperatingSystem:
 
 @pytest.mark.tier2
 @pytest.mark.skip_if_open("BZ:1649011")
-def test_positive_os_list_with_default_organization_set(satellite_latest):
+def test_positive_os_list_with_default_organization_set(satellite_host):
     """list operating systems when the default organization is set
 
     :id: 2c1ba416-a5d5-4031-b154-54794569a85b
@@ -375,21 +375,19 @@ def test_positive_os_list_with_default_organization_set(satellite_latest):
     :expectedresults: os list should list operating systems when the
         default organization is set
     """
-    satellite_latest.api.OperatingSystem().create()
-    os_list_before_default = satellite_latest.cli.OperatingSys.list()
+    satellite_host.api.OperatingSystem().create()
+    os_list_before_default = satellite_host.cli.OperatingSys.list()
     assert len(os_list_before_default) > 0
     try:
-        satellite_latest.cli.Defaults.add(
-            {'param-name': 'organization', 'param-value': DEFAULT_ORG}
-        )
-        result = satellite_latest.execute('hammer defaults list')
+        satellite_host.cli.Defaults.add({'param-name': 'organization', 'param-value': DEFAULT_ORG})
+        result = satellite_host.execute('hammer defaults list')
         assert result.status == 0
         assert DEFAULT_ORG in result.stdout
-        os_list_after_default = satellite_latest.cli.OperatingSys.list()
+        os_list_after_default = satellite_host.cli.OperatingSys.list()
         assert len(os_list_after_default) > 0
 
     finally:
-        satellite_latest.cli.Defaults.delete({'param-name': 'organization'})
-        result = satellite_latest.execute('hammer defaults list')
+        satellite_host.cli.Defaults.delete({'param-name': 'organization'})
+        result = satellite_host.execute('hammer defaults list')
         assert result.status == 0
         assert DEFAULT_ORG not in result.stdout

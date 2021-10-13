@@ -11,10 +11,10 @@ from robottelo.hosts import SatelliteHostError
 
 
 @pytest.fixture
-def foreman_service_teardown(satellite_latest):
+def foreman_service_teardown(satellite_host):
     """stop and restart of foreman service"""
-    yield satellite_latest
-    satellite_latest.execute('foreman-maintain service start --only=foreman')
+    yield satellite_host
+    satellite_host.execute('foreman-maintain service start --only=foreman')
 
 
 @pytest.fixture
