@@ -16,16 +16,13 @@
 
 :Upstream: No
 """
-import os
 import re
 
 import pytest
-from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
@@ -33,7 +30,6 @@ from robottelo.config import settings
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
-from robottelo.helpers import create_repo
 from robottelo.helpers import form_repo_url
 from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
@@ -139,6 +135,58 @@ class TestSatelliteContentManagement:
         assert rh_repo.content_counts['package'] > 0
         assert rh_repo.content_counts['package_group'] > 0
         assert rh_repo.content_counts['rpm'] > 0
+
+    @pytest.mark.tier2
+    def test_positive_mirror_on_sync(self, default_sat):
+        """Assert that the content of a repository with 'Mirror on Sync' enabled
+        is restored properly after resync.
+
+        :id: cbf1c781-cb96-4b4a-bae2-15c9f5be5e50
+
+        :steps:
+            1. Create and sync a repo with 'Mirror on Sync' enabled.
+            2. Remove all packages from the repo and upload another one.
+            3. Resync the repo again.
+            4. Check the content was restored properly.
+
+        :expectedresults:
+            1. The resync restores the original content properly.
+
+        :CaseLevel: System
+        """
+        repo_url = settings.repos.yum_0.url
+        packages_count = constants.FAKE_0_YUM_REPO_PACKAGES_COUNT
+
+        org = entities.Organization().create()
+        prod = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            download_policy='immediate', mirror_on_sync=True, product=prod, url=repo_url
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['package'] == packages_count
+
+        # remove all packages from the repo and upload another one
+        packages = entities.Package(repository=repo).search(query={'per_page': '1000'})
+        repo.remove_content(data={'ids': [package.id for package in packages]})
+
+        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        repo = repo.read()
+        assert repo.content_counts['package'] == 1
+        files = get_repo_files_by_url(repo.full_path)
+        assert len(files) == 1
+        assert constants.RPM_TO_UPLOAD in files
+
+        # resync the repo again and check the content
+        repo.sync()
+
+        repo = repo.read()
+        assert repo.content_counts['package'] == packages_count
+        files = get_repo_files_by_url(repo.full_path)
+        assert len(files) == packages_count
+        assert constants.RPM_TO_UPLOAD not in files
 
 
 @pytest.mark.run_in_one_thread
@@ -710,155 +758,6 @@ class TestCapsuleContentManagement:
         package_md5 = md5_by_url(f'{repo_url}/{package}')
         # Assert checksums are matching
         assert package_md5 == published_package_md5
-
-    @pytest.mark.tier4
-    @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_mirror_on_sync(self, capsule_configured, rhel7_contenthost, default_sat):
-        """Create 2 repositories with 'on_demand' download policy and mirror on
-        sync option, associate them with capsule, sync first repo, move package
-        from first repo to second one, sync it, attempt to install package on
-        some host.
-
-        :id: 39149642-1e7e-4ef8-8762-bec295913014
-
-        :BZ: 1426408
-
-        :expectedresults: host, subscribed to second repo only, can
-            successfully install package
-
-        :CaseLevel: System
-        """
-        repo1_name = gen_string('alphanumeric')
-        repo2_name = gen_string('alphanumeric')
-        # Create and publish first custom repository with 2 packages in it
-        repo1_url = create_repo(
-            repo1_name, settings.repos.yum_1.url, constants.FAKE_1_YUM_REPO_RPMS[1:3]
-        )
-        # Create and publish second repo with no packages in it
-        repo2_url = create_repo(repo2_name)
-        # Create organization, product, repository in satellite, and lifecycle
-        # environment
-        org = entities.Organization().create()
-        prod1 = entities.Product(organization=org).create()
-        repo1 = entities.Repository(
-            download_policy='on_demand', mirror_on_sync=True, product=prod1, url=repo1_url
-        ).create()
-        prod2 = entities.Product(organization=org).create()
-        repo2 = entities.Repository(
-            download_policy='on_demand', mirror_on_sync=True, product=prod2, url=repo2_url
-        ).create()
-        lce1 = entities.LifecycleEnvironment(organization=org).create()
-        lce2 = entities.LifecycleEnvironment(organization=org).create()
-        # Associate the lifecycle environments with the capsule
-        for lce_id in (lce1.id, lce2.id):
-            capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
-                data={'environment_id': lce_id}
-            )
-        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
-
-        assert len(result['results']) >= 2
-        assert {lce1.id, lce2.id}.issubset([capsule_lce['id'] for capsule_lce in result['results']])
-
-        # Create content views with the repositories
-        cv1 = entities.ContentView(organization=org, repository=[repo1]).create()
-        cv2 = entities.ContentView(organization=org, repository=[repo2]).create()
-        # Sync first repository
-        repo1.sync()
-        repo1 = repo1.read()
-        # Publish new version of the content view
-        cv1.publish()
-        cv1 = cv1.read()
-
-        assert len(cv1.version) == 1
-
-        cvv1 = cv1.version[-1].read()
-        # Promote content view to lifecycle environment
-        promote(cvv1, lce1.id)
-        cvv1 = cvv1.read()
-
-        assert len(cvv1.environment) == 2
-
-        # Assert that a task to sync lifecycle environment to the capsule
-        # is started (or finished already)
-        sync_status = capsule_configured.nailgun_capsule.content_get_sync()
-
-        assert len(sync_status['active_sync_tasks']) or sync_status['last_sync_time']
-
-        # Wait till capsule sync finishes
-        for task in sync_status['active_sync_tasks']:
-            entities.ForemanTask(id=task['id']).poll()
-        # Move one package from the first repo to second one
-        ssh.command(
-            'mv {} {}'.format(
-                os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
-                    repo1_name,
-                    constants.FAKE_1_YUM_REPO_RPMS[2],
-                ),
-                os.path.join(
-                    constants.PULP_PUBLISHED_YUM_REPOS_PATH,
-                    repo2_name,
-                    constants.FAKE_1_YUM_REPO_RPMS[2],
-                ),
-            )
-        )
-        # Update repositories (re-trigger 'createrepo' command)
-        create_repo(repo1_name)
-        create_repo(repo2_name)
-        # Synchronize first repository
-        repo1.sync()
-        cv1.publish()
-        cv1 = cv1.read()
-
-        assert len(cv1.version) == 2
-
-        cv1.version.sort(key=lambda version: version.id)
-        cvv1 = cv1.version[-1].read()
-        # Promote content view to lifecycle environment
-        promote(cvv1, lce1.id)
-        cvv1 = cvv1.read()
-
-        assert len(cvv1.environment) == 2
-
-        # Synchronize second repository
-        repo2.sync()
-        repo2 = repo2.read()
-
-        assert repo2.content_counts['package'] == 1
-
-        cv2.publish()
-        cv2 = cv2.read()
-
-        assert len(cv2.version) == 1
-
-        cvv2 = cv2.version[-1].read()
-        # Promote content view to lifecycle environment
-        promote(cvv2, lce2.id)
-        cvv2 = cvv2.read()
-
-        assert len(cvv2.environment) == 2
-
-        # Create activation key, add subscription to second repo only
-        activation_key = entities.ActivationKey(
-            content_view=cv2, environment=lce2, organization=org
-        ).create()
-        subscription = entities.Subscription(organization=org).search(
-            query={'search': f'name={prod2.name}'}
-        )[0]
-        activation_key.add_subscriptions(data={'subscription_id': subscription.id})
-        # Subscribe a host with activation key
-        rhel7_contenthost.install_katello_ca(default_sat)
-        rhel7_contenthost.register_contenthost(org.label, activation_key.name)
-        # Install the package
-        package_name = constants.FAKE_1_YUM_REPO_RPMS[2].rstrip('.rpm')
-        result = rhel7_contenthost.run(f'yum install -y {package_name}')
-        assert result.status == 0
-
-        # Ensure package installed
-        result = rhel7_contenthost.run(f'rpm -qa | grep {package_name}')
-
-        assert result.status == 0
-        assert package_name in result.stdout[0]
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')

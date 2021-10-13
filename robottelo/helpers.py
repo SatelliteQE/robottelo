@@ -372,7 +372,7 @@ def get_func_name(func, test_item=None):
     return '.'.join(names)
 
 
-def form_repo_url(capsule, org=None, lce=None, cv=None, prod=None, repo=None):
+def form_repo_url(capsule, org, prod, repo, lce=None, cv=None):
     """Forms url of a repo or CV published on a Satellite or Capsule.
 
     :param object capsule: Capsule or Satellite object providing its url
@@ -383,9 +383,6 @@ def form_repo_url(capsule, org=None, lce=None, cv=None, prod=None, repo=None):
     :param str repo: repository label
     :return: url of the specific repo or CV
     """
-    if not all([capsule, org, prod, repo]):
-        raise ValueError('`capsule`, `org`, `prod` and `repo` arguments are required')
-
     if lce and cv:
         return f'{capsule.url}/pulp/content/{org}/{lce}/{cv}/custom/{prod}/{repo}/'
     else:
