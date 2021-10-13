@@ -28,8 +28,8 @@ settings.validators.register(**VALIDATORS)
 
 try:
     settings.validators.validate()
-except ValidationError:
-    logger.warning("Dynaconf validation failed, continuing for the sake of unit tests")
+except ValidationError as err:
+    logger.warning(f'Dynaconf validation failed, continuing for the sake of unit tests\n{err}')
 
 
 if not os.getenv('BROKER_DIRECTORY'):

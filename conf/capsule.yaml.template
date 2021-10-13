@@ -12,3 +12,5 @@ CAPSULE:
     SOURCE: "internal"
   # The Ansible Tower workflow used to deploy a capsule
   DEPLOY_WORKFLOW: deploy-sat-capsule
+  # Dictionary of arguments which should be passed along to the deploy workflow
+  # DEPLOY_ARGUMENTS:
