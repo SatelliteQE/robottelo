@@ -16,16 +16,15 @@ def default_sat(align_to_satellite):
 
 @pytest.fixture(scope='session')
 def satellite_factory():
-    def factory(retry_limit=3, delay=300, **broker_args):
+    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
+        broker_args.update(settings.server.deploy_arguments)
         vmb = VMBroker(
             host_classes={'host': Satellite},
-            workflow=settings.server.deploy_workflow,
+            workflow=workflow or settings.server.deploy_workflow,
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
-        sat = wait_for(
-            vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
-        )
+        sat = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
         return sat.out
 
     return factory
@@ -33,14 +32,15 @@ def satellite_factory():
 
 @pytest.fixture(scope='session')
 def capsule_factory():
-    def factory(retry_limit=3, delay=300, **broker_args):
+    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
+        broker_args.update(settings.capsule.deploy_arguments)
         vmb = VMBroker(
-            host_classes={'host': Capsule}, workflow=settings.capsule.deploy_workflow, **broker_args
+            host_classes={'host': Capsule},
+            workflow=workflow or settings.capsule.deploy_workflow,
+            **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
-        cap = wait_for(
-            vmb.checkout, func_kwargs=broker_args, timeout=timeout, delay=delay, fail_condition=[]
-        )
+        cap = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
         return cap.out
 
     return factory
