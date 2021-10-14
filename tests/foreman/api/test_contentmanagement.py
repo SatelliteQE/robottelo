@@ -24,14 +24,11 @@ from nailgun import client
 from nailgun import entities
 
 from robottelo import constants
-from robottelo import manifests
 from robottelo import ssh
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
-from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
-from robottelo.content_info import get_repo_files
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import create_repo
@@ -559,7 +556,7 @@ class TestCapsuleContentManagement:
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
-    def test_positive_iso_library_sync(self, capsule_configured):
+    def test_positive_iso_library_sync(self, module_manifest_org, capsule_configured):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
         to capsule automatically
 
@@ -573,13 +570,10 @@ class TestCapsuleContentManagement:
 
         :CaseLevel: System
         """
-        # Create organization, product, enable & sync RH repository with ISOs
-        org = entities.Organization(smart_proxy=[capsule_configured.nailgun_capsule.id]).create()
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        # Enable & sync RH repository with ISOs
         rh_repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=org.id,
+            org_id=module_manifest_org.id,
             product=constants.PRDS['rhsc'],
             repo=constants.REPOS['rhsc7_iso']['name'],
             reposet=constants.REPOSET['rhsc7_iso'],
@@ -588,7 +582,7 @@ class TestCapsuleContentManagement:
         rh_repo = entities.Repository(id=rh_repo_id).read()
         call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         # Find "Library" lifecycle env for specific organization
-        lce = entities.LifecycleEnvironment(organization=org).search(
+        lce = entities.LifecycleEnvironment(organization=module_manifest_org).search(
             query={'search': f'name={constants.ENVIRONMENT}'}
         )[0]
 
@@ -602,19 +596,16 @@ class TestCapsuleContentManagement:
         assert lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
         # Create a content view with the repository
-        cv = entities.ContentView(organization=org, repository=[rh_repo]).create()
+        cv = entities.ContentView(organization=module_manifest_org, repository=[rh_repo]).create()
         # Publish new version of the content view
         cv.publish()
         cv = cv.read()
 
         assert len(cv.version) == 1
-        # Verify ISOs are present on satellite
-        repo_path = os.path.join(
-            constants.PULP_PUBLISHED_ISO_REPOS_PATH, rh_repo.backend_identifier
-        )
-        sat_isos = get_repo_files(repo_path, extension='iso')
 
-        assert len(result) > 0
+        # Verify ISOs are present on satellite
+        sat_isos = get_repo_files_by_url(rh_repo.full_path, extension='iso')
+        assert len(sat_isos) == 4
 
         # Assert that a task to sync lifecycle environment to the capsule
         # is started (or finished already)
@@ -625,13 +616,15 @@ class TestCapsuleContentManagement:
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll(timeout=600)
-        # Verify all the ISOs are present on capsule
-        capsule_isos = get_repo_files(
-            repo_path, extension='iso', hostname=capsule_configured.ip_addr
-        )
 
-        assert len(result) > 0
-        assert set(sat_isos) == set(capsule_isos)
+        # Verify all the ISOs are present on capsule
+        caps_path = (
+            f'{capsule_configured.url}/pulp/content/{module_manifest_org.label}/{lce.label}'
+            f'/{cv.label}/content/dist/rhel/server/7/7Server/x86_64/sat-capsule/6.4/iso/'
+        )
+        caps_isos = get_repo_files_by_url(caps_path, extension='iso')
+        assert len(caps_isos) == 4
+        assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')
