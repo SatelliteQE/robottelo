@@ -252,7 +252,7 @@ def test_positive_create_and_update_with_hostgroup(
 
 
 @pytest.mark.tier2
-def test_positive_create_inherit_lce_cv(default_contentview, module_lce_library, module_org):
+def test_positive_create_inherit_lce_cv(module_default_org_view, module_lce_library, module_org):
     """Create a host with hostgroup specified. Make sure host inherited
     hostgroup's lifecycle environment and content-view
 
@@ -266,7 +266,7 @@ def test_positive_create_inherit_lce_cv(default_contentview, module_lce_library,
     :BZ: 1391656
     """
     hostgroup = entities.HostGroup(
-        content_view=default_contentview,
+        content_view=module_default_org_view,
         lifecycle_environment=module_lce_library,
         organization=[module_org],
     ).create()
@@ -611,7 +611,7 @@ def test_positive_create_and_update_with_compute_profile(module_compute_profile)
 
 @pytest.mark.tier2
 def test_positive_create_and_update_with_content_view(
-    module_org, module_location, default_contentview, module_lce_library
+    module_org, module_location, module_default_org_view, module_lce_library
 ):
     """Create and update host with a content view specified
 
@@ -625,19 +625,19 @@ def test_positive_create_and_update_with_content_view(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': default_contentview.id,
+            'content_view_id': module_default_org_view.id,
             'lifecycle_environment_id': module_lce_library.id,
         },
     ).create()
-    assert host.content_facet_attributes['content_view_id'] == default_contentview.id
+    assert host.content_facet_attributes['content_view_id'] == module_default_org_view.id
     assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_library.id
 
     host.content_facet_attributes = {
-        'content_view_id': default_contentview.id,
+        'content_view_id': module_default_org_view.id,
         'lifecycle_environment_id': module_lce_library.id,
     }
     host = host.update(['content_facet_attributes'])
-    assert host.content_facet_attributes['content_view_id'] == default_contentview.id
+    assert host.content_facet_attributes['content_view_id'] == module_default_org_view.id
     assert host.content_facet_attributes['lifecycle_environment_id'] == module_lce_library.id
 
 
@@ -1025,7 +1025,7 @@ def test_positive_read_enc_information(
     module_puppet_classes,
     module_lce_library,
     default_smart_proxy,
-    default_contentview,
+    module_default_org_view,
 ):
     """Attempt to read host ENC information
 
@@ -1052,7 +1052,7 @@ def test_positive_read_enc_information(
         environment=module_env_search,
         puppetclass=module_puppet_classes,
         content_facet_attributes={
-            'content_view_id': default_contentview.id,
+            'content_view_id': module_default_org_view.id,
             'lifecycle_environment_id': module_lce_library.id,
         },
         host_parameters_attributes=host_parameters_attributes,
@@ -1068,7 +1068,7 @@ def test_positive_read_enc_information(
     host_enc_parameters = host_enc_info['data']['parameters']
     assert host_enc_parameters['organization'] == module_org.name
     assert host_enc_parameters['location'] == module_location.name
-    assert host_enc_parameters['content_view'] == default_contentview.label
+    assert host_enc_parameters['content_view'] == module_default_org_view.label
     assert host_enc_parameters['lifecycle_environment'] == module_lce_library.name
     for param in host_parameters_attributes:
         assert param['name'] in host_enc_parameters
