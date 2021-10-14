@@ -19,6 +19,7 @@
 from random import choice
 
 import pytest
+import requests
 from fauxfactory import gen_alphanumeric
 from fauxfactory import gen_integer
 from fauxfactory import gen_string
@@ -3091,32 +3092,74 @@ class TestFileRepository:
         repo = Repository.info({'id': repo['id']})
         assert int(repo['content-counts']['files']) > 1
 
+    @pytest.mark.tier2
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content-type': 'file', 'url': CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_file_repo_contains_only_newer_file(self, repo_options, repo, default_sat):
+        """
+            Check that a file-type repo contains only the newer of
+            two versions of a file with the same name.
 
-@pytest.mark.stubbed
-@pytest.mark.tier2
-def test_file_repo_contains_only_newer_file():
-    """
-        Check that a published file-type repo contains only the newer of
-        two versions of a file with the same name.
+        :id: d2530bc4-647c-41cd-a062-5dcf8f9086c6
 
-    :id: d2530bc4-647c-41cd-a062-5dcf8f9086c6
+        :Setup:
+            1. Create a product with a file type repository.
+            2. Create a text file locally.
+            3. Upload the file and check it is in the published repo.
+            4. Add some text keyword to the file locally.
+            5. Upload new version of file.
 
-    :Setup:
-        1. Create a product with a file type repository
-        2. Create a text file locally
-        3. Upload the file and check it is in the published repo
-        4. Add some text keyword to the file locally
-        5. Upload new version of file
+        :Steps:
+            1. Check that the repo contains only the new version of the file
 
-    :Steps:
-        1. Check that the published repo contains only the new version of the file
+        :expectedresults: The file is not duplicated and only the latest version of the file
+            is present in the repo.
 
-    :expectedresults: only the latest version of the file is present in the repo
-
-    :CaseAutomation: NotAutomated
-
-    :CaseImportance: High
-    """
+        :parametrized: yes
+        """
+        text_file_name = f'test-{gen_string("alpha", 5)}.txt'.lower()
+        default_sat.execute(f'echo "First File" > /tmp/{text_file_name}')
+        result = Repository.upload_content(
+            {
+                'name': repo['name'],
+                'organization': repo['organization'],
+                'path': f"/tmp/{text_file_name}",
+                'product-id': repo['product']['id'],
+            }
+        )
+        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        repo = Repository.info({'id': repo['id']})
+        # Assert there is only one file
+        assert repo['content-counts']['files'] == '1'
+        filesearch = entities.File().search(
+            query={"search": f"name={text_file_name} and repository={repo['name']}"}
+        )
+        assert text_file_name == filesearch[0].name
+        # Create new version of the file by changing the text
+        default_sat.execute(f'echo "Second File" > /tmp/{text_file_name}')
+        result = Repository.upload_content(
+            {
+                'name': repo['name'],
+                'organization': repo['organization'],
+                'path': f"/tmp/{text_file_name}",
+                'product-id': repo['product']['id'],
+            }
+        )
+        assert f"Successfully uploaded file '{text_file_name}'" in result[0]['message']
+        repo = Repository.info({'id': repo['id']})
+        # Assert there is still only one file
+        assert repo['content-counts']['files'] == '1'
+        filesearch = entities.File().search(
+            query={"search": f"name={text_file_name} and repository={repo['name']}"}
+        )
+        # Assert file name has not changed
+        assert text_file_name == filesearch[0].name
+        # Get the file and assert it has the updated contents
+        textfile = requests.get(f"{repo['published-at']}{text_file_name}", verify=False)
+        assert 'Second File' in textfile.text
 
 
 @pytest.mark.stubbed
