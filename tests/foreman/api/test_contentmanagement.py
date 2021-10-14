@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import os
+import re
 
 import pytest
 from fauxfactory import gen_string
@@ -33,9 +34,9 @@ from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.content_info import get_repo_files
 from robottelo.content_info import get_repo_files_by_url
+from robottelo.content_info import get_repomd
 from robottelo.content_info import get_repomd_revision
 from robottelo.helpers import create_repo
-from robottelo.helpers import form_repo_path
 from robottelo.helpers import form_repo_url
 from robottelo.helpers import get_data_file
 from robottelo.helpers import md5_by_url
@@ -269,22 +270,24 @@ class TestCapsuleContentManagement:
 
         :customerscenario: true
 
-        :BZ: 1288656, 1664288, 1732066
+        :BZ: 1288656, 1664288, 1732066, 2001052
 
         :expectedresults: checksum type is updated in repodata of corresponding
-            repository on  capsule
+            repository on capsule
 
         :CaseLevel: System
 
         :CaseImportance: Critical
         """
-        REPOMD_PATH = 'repodata/repomd.xml'
         # Create organization, product, lce and repository with sha256 checksum
         # type
         org = entities.Organization(smart_proxy=[capsule_configured.nailgun_capsule.id]).create()
         product = entities.Product(organization=org).create()
         repo = entities.Repository(
-            product=product, checksum_type='sha256', download_policy='immediate'
+            product=product,
+            checksum_type='sha256',
+            mirror_on_sync=False,
+            download_policy='immediate',
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
         # Associate the lifecycle environment with the capsule
@@ -320,23 +323,20 @@ class TestCapsuleContentManagement:
             entities.ForemanTask(id=task['id']).poll()
         sync_status = capsule_configured.nailgun_capsule.content_get_sync()
         last_sync_time = sync_status['last_sync_time']
+
         # Verify repodata's checksum type is sha256, not sha1 on capsule
-        lce_repo_path = form_repo_path(
-            org=org.label, lce=lce.label, cv=cv.label, prod=product.label, repo=repo.label
+        repo_url = form_repo_url(
+            capsule_configured,
+            org=org.label,
+            prod=product.label,
+            repo=repo.label,
+            lce=lce.label,
+            cv=cv.label,
         )
-        result = capsule_configured.run(
-            f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{REPOMD_PATH}',
-        )
-
-        assert result.status
-        assert len(result.stdout) == 0
-
-        result = capsule_configured.run(
-            f'grep -o \'checksum type="sha256"\' {lce_repo_path}/{REPOMD_PATH}'
-        )
-
-        assert result.status == 0
-        assert len(result.stdout)
+        repomd = get_repomd(repo_url)
+        checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
+        assert "sha1" not in checksum_types
+        assert "sha256" in checksum_types
 
         # Update repo's checksum type to sha1
         repo.checksum_type = 'sha1'
@@ -365,20 +365,12 @@ class TestCapsuleContentManagement:
 
         for task in sync_status['active_sync_tasks']:
             entities.ForemanTask(id=task['id']).poll()
+
         # Verify repodata's checksum type has updated to sha1 on capsule
-        result = capsule_configured.run(
-            f'grep -o \'checksum type="sha256"\' {lce_repo_path}/{REPOMD_PATH}',
-        )
-
-        assert result.status != 0
-        assert not len(result.stdout)
-
-        result = capsule_configured.run(
-            f'grep -o \'checksum type="sha1"\' {lce_repo_path}/{REPOMD_PATH}',
-        )
-
-        assert result.status == 0
-        assert len(result.stdout) > 0
+        repomd = get_repomd(repo_url)
+        checksum_types = re.findall(r'(?<=checksum type=").*?(?=")', repomd)
+        assert "sha1" in checksum_types
+        assert "sha256" not in checksum_types
 
     @pytest.mark.tier4
     @pytest.mark.skip_if_not_set('capsule', 'clients', 'fake_manifest')

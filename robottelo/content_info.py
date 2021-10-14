@@ -58,6 +58,20 @@ def get_repo_files_by_url(url, extension='rpm'):
     return sorted(files)
 
 
+def get_repomd(repo_url):
+    """Fetches content of the repomd file of a repository
+
+    :param repo_url: the 'Published_At' link of a repo
+    :return: string with repomd content
+    """
+    repomd_path = 'repodata/repomd.xml'
+    result = requests.get(f'{repo_url}/{repomd_path}', verify=False)
+    if result.status_code != 200:
+        raise requests.HTTPError(f'{repo_url}/{repomd_path} is not accessible')
+
+    return result.text
+
+
 def get_repomd_revision(repo_url):
     """Fetches a revision of a repository.
 
@@ -65,13 +79,8 @@ def get_repomd_revision(repo_url):
     :return: string containing repository revision
     :rtype: str
     """
-    repomd_path = 'repodata/repomd.xml'
-    result = requests.get(f'{repo_url}/{repomd_path}', verify=False)
-    if result.status_code != 200:
-        raise requests.HTTPError(f'{repo_url}/{repomd_path} is not accessible')
-
-    match = re.search('(?<=<revision>).*?(?=</revision>)', result.text)
+    match = re.search('(?<=<revision>).*?(?=</revision>)', get_repomd(repo_url))
     if not match:
-        raise ValueError(f'<revision> not found in {repo_url}/{repomd_path}')
+        raise ValueError(f'<revision> not found in repomd file of {repo_url}')
 
     return match.group(0)

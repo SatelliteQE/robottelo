@@ -372,37 +372,6 @@ def get_func_name(func, test_item=None):
     return '.'.join(names)
 
 
-def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None, repo=None, capsule=False):
-    """Forms unix path to the directory containing published repository in
-    pulp using provided entity names. Supports both repositories in content
-    view version and repositories in lifecycle environment. Note that either
-    `cvv` or `lce` is required.
-
-    :param str org: organization label
-    :param str optional lce: lifecycle environment label
-    :param str cv: content view label
-    :param str optional cvv: content view version, e.g. '1.0'
-    :param str prod: product label
-    :param str repo: repository label
-    :param bool capsule: whether the repo_path is from a capsule or not
-    :return: full unix path to the specific repository
-    :rtype: str
-    """
-    if not all([org, cv, prod, repo]):
-        raise ValueError('`org`, `cv`, `prod` and `repo` arguments are required')
-    if not any([lce, cvv]):
-        raise ValueError('Either `lce` or `cvv` is required')
-
-    if lce and capsule:
-        repo_path = f'{org}/{lce}/custom/{prod}/{repo}'
-    elif lce:
-        repo_path = f'{org}/{lce}/{cv}/custom/{prod}/{repo}'
-    elif cvv:
-        repo_path = f'{org}/content_views/{cv}/{cvv}/custom/{prod}/{repo}'
-
-    return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
-
-
 def form_repo_url(capsule, org=None, lce=None, cv=None, prod=None, repo=None):
     """Forms url of a repo or CV published on a Satellite or Capsule.
 
