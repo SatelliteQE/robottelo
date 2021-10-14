@@ -31,6 +31,7 @@ from nailgun import entities
 from wait_for import wait_for
 from widgetastic.exceptions import NoSuchElementException
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import call_entity_method_with_timeout
 from robottelo.api.utils import create_role_permissions
@@ -1450,9 +1451,16 @@ def test_positive_global_registration_end_to_end(
         assert 'execution' in interface[0]['type']
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier2
-def test_global_registration_form_populate():
+def test_global_registration_form_populate(
+    module_org,
+    session,
+    module_ak_with_cv,
+    module_lce,
+    module_promoted_cv,
+    default_architecture,
+    module_os,
+):
     """Host registration form should be populated automatically based on the host-group
 
     :id: b949e010-36b8-48b8-9907-36138342c72b
@@ -1470,8 +1478,40 @@ def test_global_registration_form_populate():
         4. Open the global registration form and select the same host-group
         5. check host registration form should be populated automatically based on the host-group
 
-    :CaseAutomation: ManualOnly
+    :CaseAutomation: Automated
     """
+    hg_name = gen_string('alpha')
+    iface = gen_string('alpha')
+    group_params = {'name': 'host_packages', 'value': constants.FAKE_0_CUSTOM_PACKAGE}
+    entities.HostGroup(
+        name=hg_name,
+        organization=[module_org],
+        lifecycle_environment=module_lce,
+        architecture=default_architecture,
+        operatingsystem=module_os,
+        content_view=module_promoted_cv,
+        group_parameters_attributes=[group_params],
+    ).create()
+    with session:
+        session.hostgroup.update(
+            hg_name,
+            {
+                'activation_keys.activation_keys': module_ak_with_cv.name,
+            },
+        )
+        cmd = session.host.get_register_command(
+            {
+                'general.host_group': hg_name,
+                'advanced.rex_interface': iface,
+                'general.insecure': True,
+            },
+            full_read=True,
+        )
+
+        assert hg_name in cmd['general']['host_group']
+        assert module_ak_with_cv.name in cmd['advanced']['activation_key_helper']
+        assert module_lce.name in cmd['advanced']['life_cycle_env_helper']
+        assert constants.FAKE_0_CUSTOM_PACKAGE in cmd['advanced']['install_packages_helper']
 
 
 @pytest.mark.stubbed
