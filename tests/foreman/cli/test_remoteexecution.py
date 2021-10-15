@@ -908,3 +908,5 @@ class TestAnsibleREX:
                     JobInvocation.get_output({'id': collection_job['id'], 'host': client.hostname})
                 )
             )
+        collection_path = str(client.execute('ls /etc/ansible/collections/ansible_collections'))
+        assert 'oasis' in collection_path
