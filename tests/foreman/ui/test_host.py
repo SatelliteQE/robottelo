@@ -1428,6 +1428,7 @@ def test_positive_global_registration_end_to_end(
             {
                 'host': client.hostname,
                 'name': 'remote_execution_connect_by_ip',
+                'parameter-type': 'boolean',
                 'value': 'True',
             }
         )

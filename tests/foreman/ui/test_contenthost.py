@@ -60,7 +60,10 @@ def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
-        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+        name='remote_execution_connect_by_ip',
+        value='Yes',
+        parameter_type='boolean',
+        organization=org.id,
     ).create()
     return org
 
@@ -694,7 +697,10 @@ def test_module_stream_actions_on_content_host(session, vm_module_streams):
     stream_version = '5.21'
     run_remote_command_on_content_host('dnf -y upload-profile', vm_module_streams)
     entities.Parameter(
-        name='remote_execution_connect_by_ip', value='Yes', host=vm_module_streams.hostname
+        name='remote_execution_connect_by_ip',
+        value='Yes',
+        parameter_type='boolean',
+        host=vm_module_streams.hostname,
     )
     with session:
         # install Module Stream
@@ -1344,7 +1350,10 @@ def test_content_access_after_stopped_foreman(
     org = sat.api.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     sat.api.Parameter(
-        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+        name='remote_execution_connect_by_ip',
+        value='Yes',
+        parameter_type='boolean',
+        organization=org.id,
     ).create()
     lce = sat.api.LifecycleEnvironment(organization=org).create()
     with sat:  # ensure the context section only uses this satellite

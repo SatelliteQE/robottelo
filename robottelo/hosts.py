@@ -630,7 +630,13 @@ class ContentHost(Host):
         if register and by_ip:
             # connect to host by ip
             host = self.nailgun_host.read()
-            host_parameters = [{'name': 'remote_execution_connect_by_ip', 'value': 'True'}]
+            host_parameters = [
+                {
+                    'name': 'remote_execution_connect_by_ip',
+                    'value': 'True',
+                    'parameter-type': 'boolean',
+                }
+            ]
             host.host_parameters_attributes = host_parameters
             host.update(['host_parameters_attributes'])
 

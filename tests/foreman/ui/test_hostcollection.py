@@ -38,7 +38,10 @@ def module_org():
     org = entities.Organization().create()
     # adding remote_execution_connect_by_ip=Yes at org level
     entities.Parameter(
-        name='remote_execution_connect_by_ip', value='Yes', organization=org.id
+        name='remote_execution_connect_by_ip',
+        parameter_type='boolean',
+        value='Yes',
+        organization=org.id,
     ).create()
     return org
 
