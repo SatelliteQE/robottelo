@@ -25,12 +25,20 @@ from nailgun import entities
 from robottelo import constants
 from robottelo.api.utils import promote
 from robottelo.api.utils import update_vm_host_location
+from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.hosts import ContentHost
 from robottelo.products import RepositoryCollection
 from robottelo.products import SatelliteToolsRepository
 from robottelo.products import YumRepository
+
+
+# this fixture inherits the fixture called module_user in confest.py, method name has to be same
+@pytest.fixture(scope='module')
+def module_user(module_user, smart_proxy_location):
+    User.update({'id': module_user.id, 'default-location-id': smart_proxy_location.id})
+    yield module_user
 
 
 @pytest.fixture(scope='module')
