@@ -251,6 +251,7 @@ def test_positive_upload_to_satellite(
                 'host': vm.hostname.lower(),
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
+                'parameter-type': 'boolean',
             }
         )
         SmartClassParameter.update(
@@ -408,6 +409,7 @@ def test_positive_oscap_run_with_tailoring_file_and_capsule(
                 'host': vm.hostname.lower(),
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
+                'parameter-type': 'boolean',
             }
         )
         vm.configure_puppet(settings.repos.rhel7_repo, default_sat.hostname)
@@ -503,6 +505,7 @@ def test_positive_oscap_run_via_ansible(
                 'host': vm.hostname.lower(),
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
+                'parameter-type': 'boolean',
             }
         )
         vm.configure_rhel_repo(rhel_repo)
@@ -616,6 +619,7 @@ def test_positive_oscap_run_via_ansible_bz_1814988(
                 'host': vm.hostname.lower(),
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
+                'parameter-type': 'boolean',
             }
         )
         vm.configure_rhel_repo(settings.repos.rhel7_repo)

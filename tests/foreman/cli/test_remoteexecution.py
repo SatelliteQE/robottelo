@@ -430,6 +430,7 @@ class TestRemoteExecution:
                 'host': client.hostname,
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
+                'parameter-type': 'boolean',
             }
         )
         invocation_command = make_job_invocation(
