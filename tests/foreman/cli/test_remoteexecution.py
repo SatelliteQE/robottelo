@@ -551,9 +551,9 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: Ansible
+        :CaseComponent: RemoteExecution
 
-        :Assignee: dsynk
+        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
@@ -628,9 +628,9 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: Ansible
+        :CaseComponent: RemoteExecution
 
-        :Assignee: dsynk
+        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
@@ -682,9 +682,9 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: Ansible
+        :CaseComponent: RemoteExecution
 
-        :Assignee: dsynk
+        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
@@ -760,9 +760,9 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: Ansible
+        :CaseComponent: RemoteExecution
 
-        :Assignee: dsynk
+        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
