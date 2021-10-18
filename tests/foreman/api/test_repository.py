@@ -1143,6 +1143,7 @@ class TestRepository:
         repo.sync()
         assert repo.read().content_counts['rpm'] >= 1
 
+    @pytest.mark.skip_if_open("BZ:2007655")
     @pytest.mark.tier2
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
