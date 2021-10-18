@@ -99,14 +99,13 @@ def module_location(module_org):
 
 
 @pytest.fixture(scope='module')
-def smart_proxy_location(module_org, default_sat):
-    location = entities.Location(organization=[module_org]).create()
+def smart_proxy_location(module_location, default_sat):
     smart_proxy = (
         entities.SmartProxy().search(query={'search': f'name={default_sat.hostname}'})[0].read()
     )
-    smart_proxy.location.append(entities.Location(id=location.id))
+    smart_proxy.location.append(entities.Location(id=module_location.id))
     smart_proxy.update(['location'])
-    return location
+    return module_location
 
 
 @pytest.fixture(scope='class')
