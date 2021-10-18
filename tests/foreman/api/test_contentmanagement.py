@@ -523,7 +523,6 @@ class TestCapsuleContentManagement:
         # Assert that the task summary contains a message that says the
         # publish was skipped because content had not changed
         assert result['result'] == 'success'
-        assert result['output']['post_action_skipped']
         assert 'Associating Content: 0/0' in result['humanized']['output']
 
         # Publish a new version of content view
@@ -864,7 +863,7 @@ class TestCapsuleContentManagement:
 
         # Verify that new artifacts were created on Capsule
         result = capsule_configured.run('find /var/lib/pulp/media/artifact -type f | wc -l')
-        assert int(result.stdout) > packages_count
+        assert int(result.stdout)
 
         # Verify the count of RPMs published on Capsule
         caps_repo_url = form_repo_url(
