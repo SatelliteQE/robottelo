@@ -375,28 +375,6 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **parametrized([{'content-type': 'yum', 'download-policy': 'immediate'}]),
-        indirect=True,
-    )
-    def test_positive_create_immediate_update_to_background(self, repo_options, repo):
-        """Update `immediate` download policy to `background` for a newly
-        created YUM repository
-
-        :id: 7a9243eb-012c-40ad-9105-b078ed0a9eda
-
-        :parametrized: yes
-
-        :expectedresults: immediate download policy is updated to background
-
-        :CaseImportance: Critical
-        """
-        Repository.update({'id': repo['id'], 'download-policy': 'background'})
-        result = Repository.info({'id': repo['id']})
-        assert result['download-policy'] == 'background'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
         **parametrized([{'content-type': 'yum', 'download-policy': 'on_demand'}]),
         indirect=True,
     )
@@ -415,72 +393,6 @@ class TestRepository:
         Repository.update({'id': repo['id'], 'download-policy': 'immediate'})
         result = Repository.info({'id': repo['id']})
         assert result['download-policy'] == 'immediate'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'yum', 'download-policy': 'on_demand'}]),
-        indirect=True,
-    )
-    def test_positive_create_on_demand_update_to_background(self, repo_options, repo):
-        """Update `on_demand` download policy to `background` for a newly
-        created YUM repository
-
-        :id: da600200-5bd4-4cb8-a891-37cd2233803e
-
-        :parametrized: yes
-
-        :expectedresults: on_demand download policy is updated to background
-
-        :CaseImportance: Critical
-        """
-        Repository.update({'id': repo['id'], 'download-policy': 'background'})
-        result = Repository.info({'id': repo['id']})
-        assert result['download-policy'] == 'background'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'yum', 'download-policy': 'background'}]),
-        indirect=True,
-    )
-    def test_positive_create_background_update_to_immediate(self, repo_options, repo):
-        """Update `background` download policy to `immediate` for a newly
-        created YUM repository
-
-        :id: cf4dca0c-36bd-4a3c-aa29-f435ac60b3f8
-
-        :parametrized: yes
-
-        :expectedresults: background download policy is updated to immediate
-
-        :CaseImportance: Critical
-        """
-        Repository.update({'id': repo['id'], 'download-policy': 'immediate'})
-        result = Repository.info({'id': repo['id']})
-        assert result['download-policy'] == 'immediate'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized([{'content-type': 'yum', 'download-policy': 'background'}]),
-        indirect=True,
-    )
-    def test_positive_create_background_update_to_on_demand(self, repo_options, repo):
-        """Update `background` download policy to `on_demand` for a newly
-        created YUM repository
-
-        :id: 0f943e3d-44b7-4b6e-9a7d-d33f7f4864d1
-
-        :parametrized: yes
-
-        :expectedresults: background download policy is updated to on_demand
-
-        :CaseImportance: Critical
-        """
-        Repository.update({'id': repo['id'], 'download-policy': 'on_demand'})
-        result = Repository.info({'id': repo['id']})
-        assert result['download-policy'] == 'on_demand'
 
     @pytest.mark.tier1
     @pytest.mark.upgrade
