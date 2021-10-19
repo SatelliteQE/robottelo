@@ -32,11 +32,13 @@ from robottelo.cli.factory import make_lifecycle_environment
 from robottelo.cli.factory import make_org
 from robottelo.cli.factory import make_product
 from robottelo.cli.factory import make_repository
+from robottelo.cli.file import File
 from robottelo.cli.package import Package
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
+from robottelo.config import settings
 from robottelo.constants import CONTAINER_REGISTRY_HUB
 from robottelo.constants import DEFAULT_CV
 from robottelo.constants import PRDS
@@ -1364,6 +1366,85 @@ class TestContentViewSync:
         export_dir = os.path.dirname(path['message'])
         result = default_sat.execute(f'ls {export_dir}')
         assert result.stdout != ''
+
+    @pytest.mark.tier3
+    def test_postive_import_export_cv_with_file_content(
+        self, default_sat, config_export_import_settings, export_cleanup, module_org
+    ):
+        """Exporting and Importing cv with file content
+
+        :id: d00739f0-dedf-4303-8929-889dc23260a4
+
+        :steps:
+
+            1. Create custom product and custom repo with file type
+            2. Sync repo
+            3. Create cv and add file repo created in step 1 and publish
+            4. Export cv and import cv into another satellite
+            5. Check imported cv has files in it
+
+        :expectedresults:  Imported cv should have the files present in the cv of
+            the imported system
+        """
+        # setup custom repo
+        cv_name = import_cv_name = gen_string('alpha')
+        product = make_product({'organization-id': module_org.id})
+        file_repo = make_repository(
+            {
+                'organization-id': module_org.id,
+                'product-id': product['id'],
+                'content-type': 'file',
+                'url': settings.repos.file_type_repo.url,
+            }
+        )
+        Repository.synchronize({'id': file_repo['id']})
+        # create cv and publish
+        cv = make_content_view({'name': cv_name, 'organization-id': module_org.id})
+        ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': file_repo['id'],
+            }
+        )
+        ContentView.publish({'id': cv['id']})
+        exporting_cv_id = ContentView.info({'id': cv['id']})
+        assert len(exporting_cv_id['versions']) == 1
+        exporting_cvv_id = exporting_cv_id['versions'][0]['id']
+        # check files
+        exported_files = File.list({'content-view-version-id': exporting_cvv_id})
+        assert len(exported_files)
+        # Verify export directory is empty
+        assert validate_filepath(default_sat) == ''
+        # Export cv
+        path = ContentExport.completeVersion(
+            {'id': exporting_cvv_id, 'organization-id': module_org.id}
+        )
+        # grab export dir and check all exported files are there
+        export_dir = os.path.dirname(path['message'])
+        export_folder = os.path.split(export_dir)
+        result = default_sat.execute(f'ls {export_dir}')
+        assert result.stdout != ''
+        # importing portion
+        importing_org = make_org()
+        # set disconnected mode on
+        Settings.set({'name': 'content_disconnected', 'value': "Yes"})
+        # Move export files to import location and set permission
+        default_sat.execute(f'mv {export_dir} {IMPORT_DIR}')
+        import_path = f'{IMPORT_DIR}{export_folder[1]}'
+        default_sat.execute(f'chown -R pulp:pulp {import_path}')
+        # check that files are present in import_path
+        result = default_sat.execute(f'ls {import_path}')
+        assert result.stdout != ''
+        # Import files and verify content
+        ContentImport.version({'organization-id': importing_org['id'], 'path': import_path})
+        importing_cvv = ContentView.info(
+            {'name': import_cv_name, 'organization-id': importing_org['id']}
+        )['versions']
+        assert len(importing_cvv) >= 1
+        imported_files = File.list({'content-view-version-id': importing_cvv[0]['id']})
+        assert len(imported_files)
+        assert len(exported_files) == len(imported_files)
 
 
 class TestInterSatelliteSync:
