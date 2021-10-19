@@ -951,9 +951,8 @@ def test_positive_repo_discovery_change_ssl():
     pass
 
 
-@pytest.mark.stubbed
 @pytest.mark.tier1
-def test_positive_remove_credentials():
+def test_positive_remove_credentials(session, function_product, function_org, function_location):
     """User can remove the upstream_username and upstream_password from a repository in the UI.
 
     :id: 1d4fc498-1e89-41ae-830f-d239ce389831
@@ -970,7 +969,29 @@ def test_positive_remove_credentials():
 
     :expectedresults: 'Upstream Authorization' value is cleared.
     """
-    pass
+    repo_name = gen_string('alpha')
+    upstream_username = gen_string('alpha')
+    upstream_password = gen_string('alphanumeric')
+    with session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location.name)
+        session.repository.create(
+            function_product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.yum_1.url,
+                'repo_content.upstream_username': upstream_username,
+                'repo_content.upstream_password': upstream_password,
+            },
+        )
+        session.repository.update(
+            function_product.name,
+            repo_name,
+            {'repo_content.upstream_authorization': False},
+        )
+        repo_values = session.repository.read(function_product.name, repo_name)
+        assert not repo_values['repo_content']['upstream_authorization']
 
 
 @pytest.mark.stubbed
