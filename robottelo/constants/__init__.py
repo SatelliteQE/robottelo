@@ -320,7 +320,6 @@ REPO_TYPE = {
 
 DOWNLOAD_POLICIES = {
     'on_demand': "On Demand",
-    'background': "Background",
     'immediate': "Immediate",
 }
 

@@ -339,28 +339,6 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'immediate'}]),
-        indirect=True,
-    )
-    def test_positive_create_immediate_update_to_background(self, repo):
-        """Update `immediate` download policy to `background`
-        for a newly created YUM repository
-
-        :id: 9aaf53be-1127-4559-9faf-899888a52846
-
-        :parametrized: yes
-
-        :expectedresults: immediate download policy is updated to background
-
-        :CaseImportance: Critical
-        """
-        repo.download_policy = 'background'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'background'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
         **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
         indirect=True,
     )
@@ -383,72 +361,6 @@ class TestRepository:
     @pytest.mark.tier1
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'on_demand'}]),
-        indirect=True,
-    )
-    def test_positive_create_on_demand_update_to_background(self, repo):
-        """Update `on_demand` download policy to `background`
-        for a newly created YUM repository
-
-        :id: 1d9888a0-c5b5-41a7-815d-47e936022a60
-
-        :parametrized: yes
-
-        :expectedresults: on_demand download policy is updated to background
-
-        :CaseImportance: Critical
-        """
-        repo.download_policy = 'background'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'background'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
-        indirect=True,
-    )
-    def test_positive_create_background_update_to_immediate(self, repo):
-        """Update `background` download policy to `immediate`
-        for a newly created YUM repository
-
-        :id: 169530a7-c5ce-4ca5-8cdd-15398e13e2af
-
-        :parametrized: yes
-
-        :expectedresults: background download policy is updated to immediate
-
-        :CaseImportance: Critical
-        """
-        repo.download_policy = 'immediate'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'immediate'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized([{'content_type': 'yum', 'download_policy': 'background'}]),
-        indirect=True,
-    )
-    def test_positive_create_background_update_to_on_demand(self, repo):
-        """Update `background` download policy to `on_demand`
-        for a newly created YUM repository
-
-        :id: 40a3e963-61ff-41c4-aa6c-d9a4a638af4a
-
-        :parametrized: yes
-
-        :expectedresults: background download policy is updated to on_demand
-
-        :CaseImportance: Critical
-        """
-        repo.download_policy = 'on_demand'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'on_demand'
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
         **datafactory.parametrized(
             {
                 checksum_type: {'checksum_type': checksum_type, 'download_policy': 'immediate'}
@@ -466,30 +378,6 @@ class TestRepository:
 
         :expectedresults: A repository is created and has expected checksum
             type.
-
-        :CaseImportance: Critical
-        """
-        assert repo.checksum_type == repo_options['checksum_type']
-
-    @pytest.mark.tier1
-    @pytest.mark.parametrize(
-        'repo_options',
-        **datafactory.parametrized(
-            {
-                checksum_type: {'checksum_type': checksum_type, 'download_policy': 'background'}
-                for checksum_type in ('sha1', 'sha256')
-            }
-        ),
-        indirect=True,
-    )
-    def test_positive_create_checksum_with_background_policy(self, repo_options, repo):
-        """Attempt to create repository with checksum and background policy.
-
-        :id: 4757ae21-f792-4886-a86a-799949ad82d0
-
-        :parametrized: yes
-
-        :expectedresults: A repository is created and has expected checksum type.
 
         :CaseImportance: Critical
         """
