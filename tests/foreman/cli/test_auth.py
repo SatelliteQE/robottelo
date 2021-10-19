@@ -184,6 +184,8 @@ def test_positive_change_session(admin_user, non_admin_user, default_sat):
            on next command run
         3. Login as a different user
 
+    :CaseImportance: High
+
     :expectedresults: The session is altered
 
     """
@@ -212,6 +214,8 @@ def test_positive_session_survives_unauthenticated_call(admin_user, default_sat)
         2. Authenticate, assert credentials are not demanded
            on next command run
         3. Run `hammer ping`
+
+    :CaseImportance: Medium
 
     :expectedresults: The session is unchanged
 
@@ -272,6 +276,8 @@ def test_positive_session_preceeds_saved_credentials(admin_user, default_sat):
 
     :BZ: 1471099, 1903693
 
+    :CaseImportance: High
+
     :Steps:
 
         1. Set use_sessions, set username and password,
@@ -311,6 +317,8 @@ def test_negative_no_credentials(default_sat):
     :id: 8a3b5c68-1027-450f-997c-c5630218f49f
 
     :expectedresults: Command is not executed
+
+    :CaseImportance: High
     """
     result = configure_sessions(satellite=default_sat, enable=False)
     assert result == 0, 'Failed to configure hammer sessions'
@@ -327,6 +335,8 @@ def test_negative_no_permissions(admin_user, non_admin_user, default_sat):
     :id: 756f666f-270a-4b02-b587-a2ab09b7d46c
 
     :expectedresults: Command is not executed
+
+    :CaseImportance: High
 
     """
     result = configure_sessions(default_sat)
@@ -348,6 +358,8 @@ def test_positive_password_reset(destructive_sat):
     :id: 7ab65b6f-cf41-42b9-808c-570fc928e18d
 
     :expectedresults: verify the 'foreman-rake permissions:reset' command for the admin user
+
+    :CaseImportance: High
 
     """
     result = destructive_sat.execute('foreman-rake permissions:reset')
