@@ -2412,6 +2412,8 @@ def test_syspurpose_end_to_end(module_host_subscription, host_subscription_clien
 
     :expectedresults: host is registered and system purpose values are correct.
 
+    :CaseImportance: Critical
+
     :CaseLevel: System
     """
     module_host_subscription.client = host_subscription_client
