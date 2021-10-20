@@ -846,6 +846,7 @@ def _validate_swid_tags_installed(module_org, vm, module_name):
 
 @pytest.mark.tier3
 @pytest.mark.upgrade
+@pytest.mark.pit_client
 def test_errata_installation_with_swidtags(
     module_org, module_lce, repos_collection, rhel8_contenthost, default_sat
 ):

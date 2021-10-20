@@ -81,6 +81,7 @@ def module_ak(module_org, rh_repo, custom_repo):
 
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
+@pytest.mark.pit_server
 def test_positive_create():
     """Upload a manifest.
 
@@ -257,6 +258,8 @@ def test_positive_subscription_status_disabled(
 
 
 @pytest.mark.tier2
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 def test_sca_end_to_end(module_ak, rhel_contenthost, module_org, rh_repo, custom_repo, default_sat):
     """Perform end to end testing for Simple Content Access Mode
 

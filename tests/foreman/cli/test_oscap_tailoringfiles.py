@@ -233,6 +233,8 @@ class TestTailoringFiles:
 
     @pytest.mark.stubbed
     @pytest.mark.tier4
+    @pytest.mark.pit_server
+    @pytest.mark.pit_client
     @pytest.mark.upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """End-to-End Oscap run with tailoring files and default capsule

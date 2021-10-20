@@ -227,6 +227,7 @@ class TestContentView:
         assert len(content_view.read().repository) == 0
 
     @pytest.mark.tier2
+    @pytest.mark.pit_server
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -649,6 +650,7 @@ class TestContentViewPublishPromote:
         assert len(content_view.version[-1].read().environment) == 0
 
     @pytest.mark.tier3
+    @pytest.mark.pit_server
     def test_positive_publish_multiple_repos(self, content_view, module_org):
         """Attempt to publish a content view with multiple YUM repos.
 
