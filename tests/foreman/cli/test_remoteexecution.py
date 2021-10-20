@@ -187,6 +187,8 @@ class TestRemoteExecution:
 
         :customerscenario: true
 
+        :CaseImportance: Critical
+
         :parametrized: yes
         """
         self.org = module_org
@@ -736,6 +738,8 @@ class TestAnsibleREX:
         :CaseLevel: System
 
         :bz: 1872688, 1811166
+
+        :CaseImportance: Critical
 
         :customerscenario: true
 
