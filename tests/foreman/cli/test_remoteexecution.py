@@ -60,6 +60,8 @@ class TestRemoteExecution:
     """Implements job execution tests in CLI."""
 
     @pytest.mark.tier3
+    @pytest.mark.pit_client
+    @pytest.mark.pit_server
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_default_job_template_by_ip(self, fixture_vmsetup):
         """Run default template on host connected by ip and list task
@@ -103,6 +105,8 @@ class TestRemoteExecution:
 
     @pytest.mark.skip_if_open('BZ:1804685')
     @pytest.mark.tier3
+    @pytest.mark.pit_client
+    @pytest.mark.pit_server
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_job_effective_user_by_ip(self, fixture_vmsetup):
         """Run default job template as effective user on a host by ip
@@ -520,6 +524,8 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.pit_client
+    @pytest.mark.pit_server
     @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
     def test_positive_run_effective_user_job(self, fixture_vmsetup):
         """Tests Ansible REX job having effective user runs successfully
@@ -705,6 +711,8 @@ class TestAnsibleREX:
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
+    @pytest.mark.pit_client
+    @pytest.mark.pit_server
     @pytest.mark.parametrize(
         'fixture_vmsetup',
         nick_params,

@@ -1484,6 +1484,7 @@ class TestContentView:
         assert new_cv['versions'][0]['version'] == '1.0'
 
     @pytest.mark.run_in_one_thread
+    @pytest.mark.pit_server
     @pytest.mark.tier3
     def test_positive_publish_rh_and_custom_content(self, module_manifest_org, module_rhel_content):
         """attempt to publish  a content view containing a RH and custom

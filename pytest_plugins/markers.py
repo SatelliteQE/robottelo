@@ -12,6 +12,8 @@ def pytest_configure(config):
         "tier4: Tier 4 tests",  # Long running tests
         "destructive: Destructive tests",
         "upgrade: Upgrade tests",
+        "pit_server: PIT server scenario tests",
+        "pit_client: PIT client scenario tests",
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
     ]
