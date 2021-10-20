@@ -36,51 +36,32 @@ OSP_SETTINGS = dict(
 class TestOSPComputeResourceTestCase:
     """OSPComputeResource CLI tests."""
 
-    @pytest.mark.tier1
-    def test_positive_create_osp_with_valid_name(self):
-        """Create Compute Resource of type Openstack with valid name
-
-        :id: 064c939f-b2da-4b49-b784-24559f296cd9
-
-        :expectedresults: Compute resource is created
-
-        :CaseImportance: Critical
-
-        :BZ: 1579714
+    def cr_cleanup(self, cr_id):
+        """Finalizer for removing CR from Satellite.
+        This should remove ssh key pairs from OSP in case of test fail.
         """
-        name = gen_string('alpha')
+        try:
+            ComputeResource.delete({'id': cr_id})
+        except CLIReturnCodeError:
+            pass
 
-        compute_resource = ComputeResource.create(
-            {
-                'name': name,
-                'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
-            }
-        )
-        assert compute_resource['name'] == name
-        assert compute_resource['provider'] == 'RHEL OpenStack Platform'
-        assert compute_resource['tenant'] == OSP_SETTINGS['tenant']
-
-        # List CR
-        list_cr = ComputeResource.list()
-        assert len([cr for cr in list_cr if cr['name'] == name]) == 1
-
+    @pytest.mark.upgrade
     @pytest.mark.tier3
-    def test_positive_osp_info(self):
-        """List the info of Openstack compute resource
+    @pytest.mark.parametrize('id_type', ['id', 'name'])
+    def test_crud_and_duplicate_name(self, request, id_type):
+        """Create, list, update and delete Openstack compute resource
 
-        :id: 8ed9f9e6-053a-402d-8f3d-3ba46300098d
+        :id: caf60bad-999d-483e-807f-95f52f35085d
 
-        :expectedresults: OSP Compute resource Info is displayed
+        :expectedresults: OSP Compute resource can be created updated and deleted
 
         :CaseImportance: Critical
 
+        :parametrized: yes
+
         :BZ: 1579714
         """
+        # create
         name = gen_string('alpha')
         compute_resource = make_compute_resource(
             {
@@ -93,62 +74,33 @@ class TestOSPComputeResourceTestCase:
                 'project-domain-id': OSP_SETTINGS['project_domain_id'],
             }
         )
-
+        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id']))
         assert compute_resource['name'] == name
-        assert ComputeResource.exists(search=('id', compute_resource['id']))
+        assert ComputeResource.exists(search=(id_type, compute_resource[id_type]))
 
-    @pytest.mark.tier3
-    def test_positive_delete_by_name(self):
-        """Delete the Openstack compute resource by name
-
-        :id: 8c581100-4606-4d21-a286-930fb3a7ecd8
-
-        :expectedresults: Compute resource is deleted
-
-        :CaseImportance: Critical
-
-        :BZ: 1579714
-        """
-        comp_res = make_compute_resource(
-            {
-                'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
-            }
-        )
-        assert ComputeResource.exists(search=('name', comp_res['name']))
-        ComputeResource.delete({'name': comp_res['name']})
-        assert not ComputeResource.exists(search=('name', comp_res['name']))
-
-    @pytest.mark.tier3
-    @pytest.mark.upgrade
-    def test_positive_delete_by_id(self):
-        """Delete the Openstack compute resource by id
-
-        :id: f464429f-a4ac-4504-b009-5f56f9d29317
-
-        :expectedresults: Compute resource is deleted
-
-        :CaseImportance: Critical
-
-        :BZ: 1579714
-        """
-        comp_res = make_compute_resource(
-            {
-                'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
-            }
-        )
-        assert ComputeResource.exists(search=('name', comp_res['name']))
-        ComputeResource.delete({'id': comp_res['id']})
-        assert not ComputeResource.exists(search=('name', comp_res['name']))
+        # negative create with same name
+        with pytest.raises(CLIFactoryError):
+            make_compute_resource(
+                {
+                    'name': name,
+                    'provider': 'Openstack',
+                    'user': OSP_SETTINGS['username'],
+                    'password': OSP_SETTINGS['password'],
+                    'tenant': OSP_SETTINGS['tenant'],
+                    'url': OSP_SETTINGS['hostname'],
+                    'project-domain-id': OSP_SETTINGS['project_domain_id'],
+                }
+            )
+        # update
+        new_name = gen_string('alpha')
+        ComputeResource.update({id_type: compute_resource[id_type], 'new-name': new_name})
+        if id_type == 'name':
+            compute_resource = ComputeResource.info({'name': new_name})
+        else:
+            compute_resource = ComputeResource.info({'id': compute_resource['id']})
+        assert new_name == compute_resource['name']
+        ComputeResource.delete({id_type: compute_resource[id_type]})
+        assert not ComputeResource.exists(search=(id_type, compute_resource[id_type]))
 
     @pytest.mark.tier3
     def test_negative_create_osp_with_url(self):
@@ -175,82 +127,6 @@ class TestOSPComputeResourceTestCase:
                     'project-domain-id': OSP_SETTINGS['project_domain_id'],
                 }
             )
-
-    @pytest.mark.tier3
-    def test_negative_create_with_same_name(self):
-        """Attempt to create Openstack compute resource with the same name as
-        an existing one
-
-        :id: b08132fe-6081-48e9-b7fd-9da7966aef5d
-
-        :steps:
-
-            1. Create a osp compute resource.
-            2. Create another osp compute resource with same name.
-
-        :expectedresults: Compute resource is not created
-
-        :CaseImportance: Critical
-
-        :BZ: 1579714
-        """
-        name = gen_string('alpha')
-        compute_resource = make_compute_resource(
-            {
-                'name': name,
-                'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
-            }
-        )
-        assert ComputeResource.exists(search=('name', compute_resource['name']))
-        with pytest.raises(CLIFactoryError):
-            make_compute_resource(
-                {
-                    'name': name,
-                    'provider': 'Openstack',
-                    'user': OSP_SETTINGS['username'],
-                    'password': OSP_SETTINGS['password'],
-                    'tenant': OSP_SETTINGS['tenant'],
-                    'url': OSP_SETTINGS['hostname'],
-                    'project-domain-id': OSP_SETTINGS['project_domain_id'],
-                }
-            )
-
-    @pytest.mark.tier3
-    def test_positive_update_name(self):
-        """Update Openstack compute resource name
-
-        :id: 16eb2def-34d5-49c5-be22-88139fef7f97
-
-        :steps:
-
-            1. Create a osp compute resource
-            2. Update the name of the created compute resource
-
-        :expectedresults: Compute Resource name is successfully updated
-
-        :CaseImportance: Critical
-
-        :BZ: 1579714
-        """
-        new_name = gen_string('alpha')
-        comp_res = make_compute_resource(
-            {
-                'provider': 'Openstack',
-                'user': OSP_SETTINGS['username'],
-                'password': OSP_SETTINGS['password'],
-                'tenant': OSP_SETTINGS['tenant'],
-                'url': OSP_SETTINGS['hostname'],
-                'project-domain-id': OSP_SETTINGS['project_domain_id'],
-            }
-        )
-        assert ComputeResource.exists(search=('name', comp_res['name']))
-        ComputeResource.update({'name': comp_res['name'], 'new-name': new_name})
-        assert new_name == ComputeResource.info({'id': comp_res['id']})['name']
 
     @pytest.mark.tier3
     @pytest.mark.stubbed
