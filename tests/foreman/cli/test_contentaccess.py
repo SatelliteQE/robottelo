@@ -94,6 +94,8 @@ def vm(
 
 
 @pytest.mark.tier2
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 def test_positive_list_installable_updates(vm):
     """Ensure packages applicability is functioning properly.
 
@@ -134,6 +136,8 @@ def test_positive_list_installable_updates(vm):
 
 @pytest.mark.tier2
 @pytest.mark.upgrade
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 def test_positive_erratum_installable(vm):
     """Ensure erratum applicability is showing properly, without attaching
     any subscription.

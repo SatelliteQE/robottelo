@@ -1629,6 +1629,8 @@ def test_positive_package_applicability(katello_host_tools_client):
     assert len(applicable_packages) == 0
 
 
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 @pytest.mark.katello_host_tools
 @pytest.mark.skip_if_open("BZ:1740790")
 @pytest.mark.tier3
@@ -2198,6 +2200,8 @@ def test_positive_unregister_host_subscription(module_host_subscription, host_su
         )
 
 
+@pytest.mark.pit_client
+@pytest.mark.pit_server
 @pytest.mark.host_subscription
 @pytest.mark.tier3
 def test_syspurpose_end_to_end(module_host_subscription, host_subscription_client):
