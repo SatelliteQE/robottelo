@@ -174,6 +174,8 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully ran against the host
 
+        :CaseImportance: Critical
+
         :parametrized: yes
         """
         self.org = module_org
@@ -654,6 +656,8 @@ class TestAnsibleREX:
         :CaseAutomation: Automated
 
         :CaseLevel: System
+
+        :CaseImportance: Critical
 
         :parametrized: yes
         """
