@@ -5,6 +5,7 @@ pytest_plugins = [
     'pytest_plugins.disable_rp_params',
     'pytest_plugins.infra_dependent_markers',
     'pytest_plugins.issue_handlers',
+    'pytest_plugins.fixture_markers',
     'pytest_plugins.logging_hooks',
     'pytest_plugins.manual_skipped',
     'pytest_plugins.marker_deselection',

@@ -81,6 +81,7 @@ def module_ak(module_org, rh_repo, custom_repo):
 
 @pytest.mark.skip_if_not_set('fake_manifest')
 @pytest.mark.tier1
+@pytest.mark.pit_server
 def test_positive_create():
     """Upload a manifest.
 

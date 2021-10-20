@@ -41,6 +41,7 @@ def module_loc():
 
 
 @pytest.mark.tier2
+@pytest.mark.pit_server
 @pytest.mark.upgrade
 def test_positive_end_to_end(session, test_name, module_org, module_loc):
     """Perform end to end testing for user component
