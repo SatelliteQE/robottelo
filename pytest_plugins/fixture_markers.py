@@ -14,7 +14,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             'rhel_contenthost',
             rhel_parameters,
-            ids=[f'rhel_{r["rhel_version"]}' for r in rhel_parameters],
+            ids=[f'rhel{r["rhel_version"]}' for r in rhel_parameters],
             indirect=True,
         )
 
