@@ -142,9 +142,9 @@ def test_positive_create_bookmark_public(session, random_entity, default_viewer_
             ui_lib.create_bookmark(
                 {'name': name, 'query': gen_string('alphanumeric'), 'public': name == public_name}
             )
-            assert session.bookmark.search(name)[0]['Name'] == name
+            assert any(d['Name'] == name for d in session.bookmark.search(name))
     with Session(test_name, default_viewer_role.login, default_viewer_role.password) as session:
-        assert session.bookmark.search(public_name)[0]['Name'] == public_name
+        assert any(d['Name'] == public_name for d in session.bookmark.search(public_name))
         assert not session.bookmark.search(nonpublic_name)
 
 
@@ -201,7 +201,7 @@ def test_positive_update_bookmark_public(
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
-        assert non_admin_session.bookmark.search(public_name)[0]['Name'] == public_name
+        assert any(d['Name'] == public_name for d in non_admin_session.bookmark.search(public_name))
         assert not non_admin_session.bookmark.search(nonpublic_name)
     with session:
         session.bookmark.update(public_name, {'public': False})
@@ -209,7 +209,7 @@ def test_positive_update_bookmark_public(
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
-        assert non_admin_session.bookmark.search(nonpublic_name)[0]['Name'] == nonpublic_name
+        assert any(d['Name'] == nonpublic_name for d in non_admin_session.bookmark.search(nonpublic_name))
         assert not non_admin_session.bookmark.search(public_name)
 
 
