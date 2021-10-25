@@ -27,6 +27,7 @@ from fauxfactory import gen_string
 from nailgun import client
 from nailgun import entities
 
+from robottelo import constants
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.api.utils import promote
@@ -35,18 +36,9 @@ from robottelo.config import get_credentials
 from robottelo.config import get_url
 from robottelo.config import setting_is_set
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC
-from robottelo.constants import DEFAULT_ORG
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import PRDS
-from robottelo.constants import REPOS
-from robottelo.constants import REPOSET
 from robottelo.constants.repos import CUSTOM_RPM_REPO
 from robottelo.helpers import get_nailgun_config
 from robottelo.utils.issue_handlers import is_open
-
-
-AK_CONTENT_LABEL = 'rhel-6-server-rhev-agent-rpms'
 
 
 API_PATHS = {
@@ -1029,9 +1021,11 @@ class TestEndToEnd:
 
         :expectedresults: 'Default Organization' is found
         """
-        results = entities.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})
+        results = entities.Organization().search(
+            query={'search': f'name="{constants.DEFAULT_ORG}"'}
+        )
         assert len(results) == 1
-        assert results[0].name == DEFAULT_ORG
+        assert results[0].name == constants.DEFAULT_ORG
 
     @pytest.mark.build_sanity
     def test_positive_find_default_loc(self):
@@ -1041,9 +1035,9 @@ class TestEndToEnd:
 
         :expectedresults: 'Default Location' is found
         """
-        results = entities.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})
+        results = entities.Location().search(query={'search': f'name="{constants.DEFAULT_LOC}"'})
         assert len(results) == 1
-        assert results[0].name == DEFAULT_LOC
+        assert results[0].name == constants.DEFAULT_LOC
 
     @pytest.mark.build_sanity
     def test_positive_find_admin_user(self):
@@ -1088,7 +1082,7 @@ class TestEndToEnd:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, fake_manifest_is_set, default_sat, rhel6_contenthost):
+    def test_positive_end_to_end(self, fake_manifest_is_set, default_sat, rhel7_contenthost):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1099,7 +1093,7 @@ class TestEndToEnd:
             4. Create a custom product
             5. Create a custom YUM repository
             6. Enable a Red Hat repository
-            7. Synchronize the three repositories
+            7. Synchronize these two repositories
             8. Create a new content view
             9. Associate the YUM and Red Hat repositories to new content view
             10. Publish content view
@@ -1140,34 +1134,32 @@ class TestEndToEnd:
         repositories = []
 
         # step 2.5: Create custom YUM repository
-        repo1 = entities.Repository(
+        custom_repo = entities.Repository(
             server_config, product=prod, content_type='yum', url=CUSTOM_RPM_REPO
         ).create()
-        repositories.append(repo1)
+        repositories.append(custom_repo)
 
         # step 2.6: Enable a Red Hat repository
         if fake_manifest_is_set:
-            repo3 = entities.Repository(
+            rhel_repo = entities.Repository(
                 id=enable_rhrepo_and_fetchid(
                     basearch='x86_64',
                     org_id=org.id,
-                    product=PRDS['rhel'],
-                    repo=REPOS['rhva6']['name'],
-                    reposet=REPOSET['rhva6'],
-                    releasever='6Server',
+                    product=constants.PRDS['rhel'],
+                    repo=constants.REPOS['rhst7']['name'],
+                    reposet=constants.REPOSET['rhst7'],
                 )
             )
-            repositories.append(repo3)
+            repositories.append(rhel_repo)
 
-        # step 2.7: Synchronize the three repositories
+        # step 2.7: Synchronize these two repositories
         for repo in repositories:
             repo.sync()
 
         # step 2.8: Create content view
         content_view = entities.ContentView(server_config, organization=org).create()
 
-        # step 2.9: Associate the YUM and Red Hat repositories to new content
-        # view
+        # step 2.9: Associate the YUM and Red Hat repositories to new content view
         content_view.repository = repositories
         content_view = content_view.update(['repository'])
 
@@ -1193,13 +1185,17 @@ class TestEndToEnd:
 
         # step 2.13: Add the products to the activation key
         for sub in entities.Subscription(organization=org).search():
-            if sub.name == DEFAULT_SUBSCRIPTION_NAME:
+            if sub.name == constants.DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions(data={'quantity': 1, 'subscription_id': sub.id})
                 break
         # step 2.13.1: Enable product content
         if fake_manifest_is_set:
             activation_key.content_override(
-                data={'content_overrides': [{'content_label': AK_CONTENT_LABEL, 'value': '1'}]}
+                data={
+                    'content_overrides': [
+                        {'content_label': constants.REPOS['rhst7']['id'], 'value': '1'}
+                    ]
+                }
             )
 
         # BONUS: Create a content host and associate it with promoted
@@ -1228,21 +1224,20 @@ class TestEndToEnd:
         # step 2.16: Create a new domain
         domain = entities.Domain(server_config).create()
 
-        # step 2.17: Create a new hostgroup and associate previous entities to
-        # it
+        # step 2.17: Create a new hostgroup and associate previous entities to it
         entities.HostGroup(server_config, domain=domain, subnet=subnet).create()
 
         # step 2.18: Provision a client
         # TODO this isn't provisioning through satellite as intended
         # Note it wasn't well before the change that added this todo
-        rhel6_contenthost.install_katello_ca(default_sat)
+        rhel7_contenthost.install_katello_ca(default_sat)
         # Register client with foreman server using act keys
-        rhel6_contenthost.register_contenthost(org.label, activation_key_name)
-        assert rhel6_contenthost.subscribed
+        rhel7_contenthost.register_contenthost(org.label, activation_key_name)
+        assert rhel7_contenthost.subscribed
         # Install rpm on client
-        package_name = 'python-kitchen'
-        result = rhel6_contenthost.execute(f'yum install -y {package_name}')
+        package_name = 'katello-agent'
+        result = rhel7_contenthost.execute(f'yum install -y {package_name}')
         assert result.status == 0
         # Verify that the package is installed by querying it
-        result = rhel6_contenthost.run(f'rpm -q {package_name}')
+        result = rhel7_contenthost.run(f'rpm -q {package_name}')
         assert result.status == 0
