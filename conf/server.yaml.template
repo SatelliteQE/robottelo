@@ -8,6 +8,8 @@ SERVER:
     # RELEASE: populate with satellite version
     # The snap version currently testing (if applicable)
     # SNAP:
+    # The base os rhel version where the satellite installed
+    # RHEL_RELEASE: 7.9
     # The source of Satellite packages. Can be one of:
     # internal, ga, beta
     SOURCE: "internal"

@@ -61,6 +61,20 @@ def get_sat_version():
     return Version('9999' if 'nightly' in sat_version else sat_version)
 
 
+def get_sat_rhel_version():
+    """Try to read rhel_version from Satellite host
+    if not available fallback to DynaConfs."""
+
+    try:
+        rhel_version = Satellite().os_version
+    except (AuthenticationError, ContentHostError, BoxKeyError):
+        if hasattr(settings.server.version, 'rhel_release'):
+            rhel_version = str(settings.server.version.rhel_release)
+        elif hasattr(settings.robottelo, 'rhel_version'):
+            rhel_version = settings.robottelo.rhel_version
+    return Version(rhel_version)
+
+
 def setup_capsule(satellite, capsule, registration_args=None, installation_args=None):
     """Given satellite and capsule instances, run the commands needed to set up the capsule
 
