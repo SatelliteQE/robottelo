@@ -2493,8 +2493,11 @@ class TestAnsibleCollectionRepository:
         assert cv['description'] == 'Content View used for importing library'
         prods = Product.list({'organization-id': import_org['id']})
         prod = Product.info({'id': prods[0]['id'], 'organization-id': import_org['id']})
-        assert prod['content'][0]['content-type'] == 'ansible_collection'
-        repo = Repository.info({'name': prod['content'][0]['repo-name'], 'product-id': prod['id']})
+        ac_content = [
+            cont for cont in prod['content'] if cont['content-type'] == 'ansible_collection'
+        ]
+        assert len(ac_content) > 0
+        repo = Repository.info({'name': ac_content[0]['repo-name'], 'product-id': prod['id']})
         result = default_sat.execute(f'curl {repo["published-at"]}')
         assert "available_versions" in result.stdout
 
