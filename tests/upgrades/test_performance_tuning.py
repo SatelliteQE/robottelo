@@ -69,7 +69,7 @@ class TestScenarioPerformanceTuning:
                 remote_path="/etc/foreman-installer/custom-hiera.yaml",
             )
             installer_obj = InstallerCommand(tuning='medium')
-            command_output = default_sat.execute(installer_obj.get_command())
+            command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
             assert 'Success!' in command_output.stdout
             installer_obj = InstallerCommand(help='tuning')
             command_output = default_sat.execute(installer_obj.get_command())
@@ -78,7 +78,7 @@ class TestScenarioPerformanceTuning:
         except Exception as exp:
             logger.critical(exp)
             installer_obj = InstallerCommand(tuning='default')
-            command_output = default_sat.execute(installer_obj.get_command())
+            command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
             assert 'Success!' in command_output.stdout
             assert 'default: "default"' in command_output.stdout
             raise
@@ -102,7 +102,7 @@ class TestScenarioPerformanceTuning:
 
         """
         installer_obj = InstallerCommand(help='tuning')
-        command_output = default_sat.execute(installer_obj.get_command())
+        command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
         assert 'default: "medium"' in command_output.stdout
         default_sat.get(
             local_path="custom-hiera-after-upgrade.yaml",
@@ -110,7 +110,7 @@ class TestScenarioPerformanceTuning:
         )
         assert filecmp.cmp('custom-hiera-before-upgrade.yaml', 'custom-hiera-after-upgrade.yaml')
         installer_obj = InstallerCommand(tuning='default')
-        command_output = default_sat.execute(installer_obj.get_command())
+        command_output = default_sat.execute(installer_obj.get_command(), timeout='30m')
         assert 'Success!' in command_output.stdout
         installer_obj = InstallerCommand(help='tuning')
         command_output = default_sat.execute(installer_obj.get_command())
