@@ -23,7 +23,7 @@ from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import wait_for_tasks
 
 
-CAPSULE_TARGET_VERSION = '6.9.z'
+CAPSULE_TARGET_VERSION = '6.10.z'
 
 
 @pytest.mark.tier4
