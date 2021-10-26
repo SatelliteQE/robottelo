@@ -38,15 +38,15 @@ def test_positive_ansible_modules_installation(default_sat):
     )
     assert result.status == 0
     # list installed modules
-    result = default_sat.execute(f'ls {FAM_MODULE_PATH} |  sed "s/.[^.]*$//"')
+    result = default_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
-    installed_modules = result.stdout
+    installed_modules = result.stdout.split('\n')
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
         result = default_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.status == 0
-        doc_name = result.stdout[1].lstrip()[:-1]
+        doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
     # check installed modules against the expected list
     assert FOREMAN_ANSIBLE_MODULES.sort() == installed_modules.sort()
