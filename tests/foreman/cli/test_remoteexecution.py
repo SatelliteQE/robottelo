@@ -26,8 +26,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from wait_for import wait_for
 
-from robottelo import manifests
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.factory import make_job_invocation
 from robottelo.cli.factory import make_job_template
 from robottelo.cli.globalparam import GlobalParameter
@@ -43,6 +41,8 @@ from robottelo.constants import REPOS
 from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
+
+# from pytest_fixtures.api_fixtures import module_gt_manifest_org
 
 
 @pytest.fixture()
@@ -60,6 +60,24 @@ def fixture_vmsetup(request, module_org, default_sat):
     else:
         with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
             client.configure_rex(satellite=default_sat, org=module_org)
+            yield client
+
+
+@pytest.fixture()
+def fixture_sca_vmsetup(request, module_gt_manifest_org, default_sat):
+    """Create VM and register content host to Simple Content Access organization"""
+    if '_count' in request.param.keys():
+        with VMBroker(
+            nick=request.param['nick'],
+            host_classes={'host': ContentHost},
+            _count=request.param['_count'],
+        ) as clients:
+            for client in clients:
+                client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
+            yield clients
+    else:
+        with VMBroker(nick=request.param['nick'], host_classes={'host': ContentHost}) as client:
+            client.configure_rex(satellite=default_sat, org=module_gt_manifest_org)
             yield client
 
 
@@ -850,8 +868,10 @@ class TestAnsibleREX:
         assert result.status == 0
 
     @pytest.mark.tier3
-    @pytest.mark.parametrize('fixture_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True)
-    def test_positive_install_ansible_collection(self, fixture_vmsetup, module_org):
+    @pytest.mark.parametrize(
+        'fixture_sca_vmsetup', [{'nick': 'rhel7'}], ids=['rhel7'], indirect=True
+    )
+    def test_positive_install_ansible_collection(self, fixture_sca_vmsetup, module_gt_manifest_org):
         """Test whether Ansible collection can be installed via REX
 
         :Steps:
@@ -870,14 +890,12 @@ class TestAnsibleREX:
         :Assignee: dsynk
         """
 
-        # Configuring manifest and repository to prepare for installing ansible on host
-        with manifests.clone(name="golden_ticket") as manifest:
-            upload_manifest(module_org.id, manifest.content)
+        # Configure repository to prepare for installing ansible on host
         RepositorySet.enable(
             {
                 'basearch': 'x86_64',
                 'name': REPOSET['rhae2'],
-                'organization-id': module_org.id,
+                'organization-id': module_gt_manifest_org.id,
                 'product': PRDS['rhae'],
                 'releasever': '7Server',
             }
@@ -885,11 +903,11 @@ class TestAnsibleREX:
         Repository.synchronize(
             {
                 'name': REPOS['rhae2']['name'],
-                'organization-id': module_org.id,
+                'organization-id': module_gt_manifest_org.id,
                 'product': PRDS['rhae'],
             }
         )
-        client = fixture_vmsetup
+        client = fixture_sca_vmsetup
         client.execute(f'subscription-manager repos --enable {REPOS["rhae2"]["id"]}')
         client.execute('yum -y install ansible')
         collection_job = make_job_invocation(
@@ -900,13 +918,6 @@ class TestAnsibleREX:
             }
         )
         result = JobInvocation.info({'id': collection_job['id']})
-        try:
-            assert result['success'] == '1'
-        except AssertionError:
-            result = 'host output: {}'.format(
-                ' '.join(
-                    JobInvocation.get_output({'id': collection_job['id'], 'host': client.hostname})
-                )
-            )
+        assert result['success'] == '1'
         collection_path = str(client.execute('ls /etc/ansible/collections/ansible_collections'))
         assert 'oasis' in collection_path
