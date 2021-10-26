@@ -209,7 +209,9 @@ def test_positive_update_bookmark_public(
     with Session(
         test_name, default_viewer_role.login, default_viewer_role.password
     ) as non_admin_session:
-        assert any(d['Name'] == nonpublic_name for d in non_admin_session.bookmark.search(nonpublic_name))
+        assert any(
+            d['Name'] == nonpublic_name for d in non_admin_session.bookmark.search(nonpublic_name)
+        )
         assert not non_admin_session.bookmark.search(public_name)
 
 
