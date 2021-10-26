@@ -4160,9 +4160,9 @@ class TestContentViewFileRepo:
         cv = ContentView.info({'id': cv['id']})
         assert cv['file-repositories'][0]['name'] == repo['name']
 
-    @pytest.mark.stubbed
+    @pytest.mark.skip_if_open('BZ:1908465')
     @pytest.mark.tier3
-    def test_positive_arbitrary_file_repo_removal(self):
+    def test_positive_arbitrary_file_repo_removal(self, module_org, module_product, default_sat):
         """Check a File Repository with Arbitrary File can be removed from a
         Content View
 
@@ -4179,10 +4179,21 @@ class TestContentViewFileRepo:
 
         :expectedresults: Check FR is removed from CV
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
 
         :CaseLevel: Integration
+
+        :BZ: 1908465
         """
+        cv = cli_factory.make_content_view({'organization-id': module_org.id})
+        repo = self.make_file_repository_upload_contents(
+            module_org, module_product, satellite=default_sat
+        )
+        ContentView.add_repository(
+            {'id': cv['id'], 'repository-id': repo['id'], 'organization-id': module_org.id}
+        )
+        ContentView.remove_repository({'id': cv['id'], 'repository-id': repo['id']})
+        assert cv['file-repositories'][0]['id'] != repo['id']
 
     @pytest.mark.stubbed
     @pytest.mark.tier3
