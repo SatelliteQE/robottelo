@@ -42,8 +42,6 @@ from robottelo.constants import REPOSET
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
-# from pytest_fixtures.api_fixtures import module_gt_manifest_org
-
 
 @pytest.fixture()
 def fixture_vmsetup(request, module_org, default_sat):
@@ -569,10 +567,6 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: RemoteExecution
-
-        :Assignee: pondrejk
-
         :CaseAutomation: Automated
 
         :CaseLevel: System
@@ -646,10 +640,6 @@ class TestAnsibleREX:
 
         :expectedresults: multiple asserts along the code
 
-        :CaseComponent: RemoteExecution
-
-        :Assignee: pondrejk
-
         :CaseAutomation: Automated
 
         :CaseLevel: System
@@ -699,10 +689,6 @@ class TestAnsibleREX:
             1. Run Ansible Command job with concurrency-setting
 
         :expectedresults: multiple asserts along the code
-
-        :CaseComponent: RemoteExecution
-
-        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
@@ -777,10 +763,6 @@ class TestAnsibleREX:
             4. Check the service is started on the host
 
         :expectedresults: multiple asserts along the code
-
-        :CaseComponent: RemoteExecution
-
-        :Assignee: pondrejk
 
         :CaseAutomation: Automated
 
