@@ -18,6 +18,8 @@
 """
 import tempfile
 from urllib.parse import urljoin
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
 import pytest
 from fauxfactory import gen_string
@@ -1233,6 +1235,45 @@ class TestRepository:
             cert_file.write(cert_content)
         # access repository data with organization debug certificate
         response = client.get(repo_data_file_url, cert=cert_file_path, verify=False)
+        assert response.status_code == 200
+
+    @pytest.mark.tier2
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
+    @pytest.mark.parametrize(
+        'repo_options',
+        **datafactory.parametrized(
+            {'yum': {'content_type': 'yum', 'unprotected': True, 'url': settings.repos.yum_2.url}}
+        ),
+        indirect=True,
+    )
+    def test_positive_access_unprotected_repository(self, module_org, repo, default_sat):
+        """Access files in unprotected repository over HTTP and HTTPS
+
+        :id: 43fe24c8-7a50-4d38-8259-b23e5ed5800a
+
+        :parametrized: yes
+
+        :expectedresults: The repository data file is successfully accessed.
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Medium
+        """
+        repo.sync()
+        repo_data_file_url = urljoin(repo.full_path, 'repodata/repomd.xml')
+        # ensure the repo url is based on the base server URL
+        assert repo_data_file_url.startswith(default_sat.url)
+        # try to access repository data without organization debug certificate
+        response = client.get(repo_data_file_url, verify=False)
+        assert response.status_code == 200
+        # now download with http protocol
+        parsed = urlparse(repo_data_file_url)
+        parsed_replaced = parsed._replace(scheme='http')
+        new_repo_data_file_url = urlunparse(parsed_replaced)
+        response = client.get(new_repo_data_file_url, verify=False)
         assert response.status_code == 200
 
     @pytest.mark.tier1
