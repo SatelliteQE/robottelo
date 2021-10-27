@@ -1,4 +1,4 @@
 GIT:
-    USERNAME: admin
-    PASSWORD: chageme
-    URL: http://localhost:port
+  USERNAME: admin
+  PASSWORD: chageme
+  URL: http://localhost:port
