@@ -1087,7 +1087,7 @@ class TestRepository:
             Check that a package removed upstream is removed downstream when the repo
             is next synced if mirror-on-sync is enabled (the default setting).
 
-        :id: 637d6479-842d-4570-97eb-3a986eca2142
+        :id: 1a901b8c-5b8e-470a-a455-71d161ca92b8
 
         :Setup:
             1. Create product with yum type repository (repo 1), URL to upstream, sync it.

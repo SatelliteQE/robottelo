@@ -19,7 +19,6 @@
 from datetime import datetime
 
 import pytest
-from nailgun import entities
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
@@ -29,11 +28,11 @@ from robottelo.constants import DEFAULT_LOC
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_insights_e2e(
-    session,
     rhel8_insights_vm,
     fixable_rhel8_vm,
     organization_ak_setup,
     unset_rh_cloud_token,
+    rhcloud_sat_host,
 ):
     """Synchronize hits data from cloud, verify it is displayed in Satellite and run remediation.
 
@@ -64,7 +63,7 @@ def test_rhcloud_insights_e2e(
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
     )
-    with session:
+    with rhcloud_sat_host.ui_session as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
@@ -89,7 +88,7 @@ def test_rhcloud_insights_e2e(
             search_rate=15,
             max_tries=10,
         )
-        task_output = entities.ForemanTask().search(query={'search': result[0].id})
+        task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
         assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()

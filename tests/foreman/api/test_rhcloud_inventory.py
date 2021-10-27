@@ -20,7 +20,6 @@ from datetime import datetime
 
 import pytest
 from fauxfactory import gen_alphanumeric
-from nailgun import entities
 
 from robottelo.api.utils import wait_for_tasks
 from robottelo.config import robottelo_tmp_dir
@@ -45,7 +44,9 @@ def common_assertion(report_path):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
-def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, registered_hosts):
+def test_rhcloud_inventory_api_e2e(
+    inventory_settings, organization_ak_setup, registered_hosts, rhcloud_sat_host
+):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
     :id: 8ead1ff6-a8f5-461b-9dd3-f50d96d6ed57
@@ -71,16 +72,16 @@ def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, re
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    entities.RHCloud(organization_id=org.id).generate_report()
+    rhcloud_sat_host.api.RHCloud(organization_id=org.id).generate_report()
     result = wait_for_tasks(
         search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
         search_rate=15,
         max_tries=10,
     )
-    task_output = entities.ForemanTask().search(query={'search': result[0].id})
+    task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
     assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     # Download report
-    entities.RHCloud(organization_id=1).download_report(destination=local_report_path)
+    rhcloud_sat_host.api.RHCloud(organization_id=1).download_report(destination=local_report_path)
     common_assertion(local_report_path)
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
@@ -103,7 +104,9 @@ def test_rhcloud_inventory_api_e2e(inventory_settings, organization_ak_setup, re
 
 
 @pytest.mark.tier3
-def test_rhcloud_inventory_api_hosts_synchronization(organization_ak_setup, registered_hosts):
+def test_rhcloud_inventory_api_hosts_synchronization(
+    organization_ak_setup, registered_hosts, rhcloud_sat_host
+):
     """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
     :id: 7be22e1c-906b-4ae5-93dd-5f79f395601c
@@ -125,13 +128,13 @@ def test_rhcloud_inventory_api_hosts_synchronization(organization_ak_setup, regi
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = registered_hosts
-    inventory_sync = entities.RHCloud(organization_id=org.id).inventory_sync()
+    inventory_sync = rhcloud_sat_host.api.RHCloud(organization_id=org.id).inventory_sync()
     result = wait_for_tasks(
         search_query=f'id = {inventory_sync["task"]["id"]}',
         search_rate=15,
         max_tries=10,
     )
-    task_output = entities.ForemanTask().search(
+    task_output = rhcloud_sat_host.api.ForemanTask().search(
         query={'search': f'id = {inventory_sync["task"]["id"]}'}
     )
     assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
