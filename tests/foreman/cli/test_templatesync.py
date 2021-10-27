@@ -18,11 +18,9 @@ import base64
 from urllib.parse import urlparse
 
 import pytest
+import requests
 from fauxfactory import gen_string
 from nailgun import entities
-from requests import get
-from requests import post
-from requests.exceptions import HTTPError
 
 from robottelo.cli.template import Template
 from robottelo.cli.template_sync import TemplateSync
@@ -50,8 +48,8 @@ class TestTemplateSyncTestCase:
 
         """
         # Check all Downloadable templates exists
-        if not get(FOREMAN_TEMPLATE_IMPORT_URL).status_code == 200:
-            raise HTTPError('The foreman templates git url is not accessible')
+        if not requests.get(FOREMAN_TEMPLATE_IMPORT_URL).status_code == 200:
+            pytest.fail('The foreman templates git url is not accessible')
 
         # Download the Test Template in test running folder
         default_sat.execute(f'[ -f example_template.erb ] || wget {FOREMAN_TEMPLATE_TEST_TEMPLATE}')
@@ -132,7 +130,9 @@ class TestTemplateSyncTestCase:
         api_url = (
             f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
         )
-        res = post(f"{api_url}/{path}", auth=auth, json={"branch": git_branch, "content": content})
+        res = requests.post(
+            f"{api_url}/{path}", auth=auth, json={"branch": git_branch, "content": content}
+        )
         assert res.status_code == 201
         # export template to git
         netloc = urlparse(settings.git.url).netloc
@@ -150,7 +150,7 @@ class TestTemplateSyncTestCase:
         exported_count = ['Exported: true' in row.strip() for row in output].count(True)
         assert exported_count == 1
         auth = (settings.git.username, settings.git.password)
-        git_file = get(f"{api_url}/{path}", auth=auth, params={"ref": git_branch}).json()
+        git_file = requests.get(f"{api_url}/{path}", auth=auth, params={"ref": git_branch}).json()
         decoded = base64.b64decode(git_file['content'])
         assert content != decoded
 
@@ -189,7 +189,7 @@ class TestTemplateSyncTestCase:
         path = f"{dirname}/provisioning_templates/provision"
         auth = (settings.git.username, settings.git.password)
         url = f"{settings.git.url}/api/v1/repos/{settings.git.username}/{git_repository}/contents"
-        git_count = len(get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
+        git_count = len(requests.get(f"{url}/{path}", auth=auth, params={"ref": git_branch}).json())
         assert exported_count == git_count
 
     @pytest.mark.tier2

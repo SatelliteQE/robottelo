@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 import requests
 from fauxfactory import gen_string
@@ -32,7 +34,15 @@ def create_import_export_local_dir(default_sat):
 
 
 @pytest.fixture(scope='session')
-def git_repository():
+def git_port(default_sat):
+    """Allow port for git service"""
+    port = urlparse(settings.git.url).port
+    if port:
+        default_sat.execute(f'semanage port -a -t http_port_t -p tcp {port}')
+
+
+@pytest.fixture(scope='session')
+def git_repository(git_port):
     """Creates a new repository on git provider for exporting templates.
 
     Finally, deletes repository from git provider after tests are completed as a teardown part.
@@ -44,12 +54,12 @@ def git_repository():
         auth=auth,
         json={"name": name, "auto_init": True, "default_branch": "master"},
     )
-    assert res.status_code == 201
+    res.raise_for_status()
     yield name
     res = requests.delete(
         f"{settings.git.url}/api/v1/repos/{settings.git.username}/{name}", auth=auth
     )
-    assert res.status_code == 204
+    res.raise_for_status()
 
 
 @pytest.fixture()
@@ -64,7 +74,7 @@ def git_branch(git_repository):
     res = requests.post(
         url, auth=auth, json={"new_branch_name": new_branch, "old_branch_name": "master"}
     )
-    assert res.status_code == 201
+    res.raise_for_status()
     yield new_branch
     res = requests.delete(f'{url}/{new_branch}', auth=auth)
-    assert res.status_code == 204
+    res.raise_for_status()
