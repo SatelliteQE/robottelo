@@ -35,7 +35,7 @@ def test_rhcloud_inventory_api_e2e():
         7. Host counts in metadata matches host counts in slices
         8. Assert Hostnames, IP addresses, and installed packages are present in report.
 
-    :BZ: 1807829, 1926100
+    :BZ: 1807829, 1926100, 1965234
     """
 
 

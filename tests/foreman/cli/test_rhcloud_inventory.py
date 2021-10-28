@@ -58,7 +58,7 @@ def test_positive_inventory_generate_upload_cli(
 
     :expectedresults: Inventory is generated and uploaded to cloud.redhat.com.
 
-    :BZ: 1957129
+    :BZ: 1957129, 1895953, 1956190
 
     :CaseAutomation: Automated
 

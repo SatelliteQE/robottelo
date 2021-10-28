@@ -139,16 +139,28 @@ def test_hits_synchronization():
 
     :id: c3d1edf5-f43a-4f85-bd80-825bde58f6b2
 
+    :customerscenario: true
+
     :Steps:
         1. Prepare misconfigured machine and upload its data to Insights
         2. Add Cloud API key in Satellite
         3. In Satellite UI, Configure -> Insights -> Sync now
-        4. Go to Hosts -> All Hosts and assert there is "Insights" column with content
-        5. Open host page and assert there is new Insights recommendation tab
+        4. Go to Hosts -> All Hosts
+        5. Assert there is "Insights" column with content and assert content of status popover
+        6. Open host page and assert there is new Insights recommendation tab
+        7. Assert that host properties shows reporting status for insights.
+        8. Run rh_cloud_insights:clean_statuses rake command
+        9. Assert that host properties doesn't contain insights status.
+        10. Try to delete the host
 
     :expectedresults:
-        1. There's Insights column with number of recommendations and link to cloud
-        2. Recommendations are listed on single host page
+        1. There's Insights column with number of recommendations and link to Insights page.
+        2. Insights reporting status is displayed in popover status of host
+        3. Recommendations are listed on single host page
+        4. rake command deletes insights reporting status of host.
+        5. Host is removed from Satellite.
+
+    :BZ: 1974578, 1962930, 1860422, 1865876, 1879448, 1928652
 
     :CaseAutomation: NotAutomated
     """
@@ -173,6 +185,8 @@ def test_hosts_synchronization():
         1. Toast message contains number of hosts synchronized and missed
         2. Presence in cloud is displayed in popover status of host
         3. Presence in cloud is displayed in "Properties" tab on single host page
+
+    :BZ: 1865874
 
     :CaseAutomation: NotAutomated
     """
