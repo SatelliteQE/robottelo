@@ -20,7 +20,6 @@ from datetime import datetime
 
 import pytest
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
 
@@ -68,7 +67,7 @@ def test_rhcloud_insights_e2e(
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-        wait_for_tasks(
+        rhcloud_sat_host.wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
@@ -83,7 +82,7 @@ def test_rhcloud_insights_e2e(
         )
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(query)
-        result = wait_for_tasks(
+        result = rhcloud_sat_host.wait_for_tasks(
             search_query=f'{job_query} and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,
@@ -92,7 +91,7 @@ def test_rhcloud_insights_e2e(
         assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
         timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
-        wait_for_tasks(
+        rhcloud_sat_host.wait_for_tasks(
             search_query=f'Insights full sync and started_at >= "{timestamp}"',
             search_rate=15,
             max_tries=10,

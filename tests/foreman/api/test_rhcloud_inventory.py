@@ -21,7 +21,6 @@ from datetime import datetime
 import pytest
 from fauxfactory import gen_alphanumeric
 
-from robottelo.api.utils import wait_for_tasks
 from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_report_data
@@ -73,7 +72,7 @@ def test_rhcloud_inventory_api_e2e(
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
     rhcloud_sat_host.api.RHCloud(organization_id=org.id).generate_report()
-    result = wait_for_tasks(
+    result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
         search_rate=15,
         max_tries=10,
@@ -129,7 +128,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = registered_hosts
     inventory_sync = rhcloud_sat_host.api.RHCloud(organization_id=org.id).inventory_sync()
-    result = wait_for_tasks(
+    result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'id = {inventory_sync["task"]["id"]}',
         search_rate=15,
         max_tries=10,
