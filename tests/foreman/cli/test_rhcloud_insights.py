@@ -32,6 +32,8 @@ def test_positive_connection_option(organization_ak_setup, default_sat, distro):
 
     :id: 61a4a39e-b484-49f4-a6fd-46ffc7736e50
 
+    :customerscenario: true
+
     :Steps:
 
         1. Create RHEL7 and RHEL8 VM and register to insights within org having manifest.
@@ -39,6 +41,8 @@ def test_positive_connection_option(organization_ak_setup, default_sat, distro):
         2. Run 'insights-client --test-connection'.
 
     :expectedresults: 'insights-client --test-connection' should return 0.
+
+    :BZ: 1976754
 
     :CaseImportance: Critical
     """

@@ -53,6 +53,8 @@ def test_rhcloud_insights_e2e(
         2. Remediation job finished successfully.
         3. Insights recommendation related to dnf.conf issue is not listed.
 
+    :BZ: 1965901, 1962048
+
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
