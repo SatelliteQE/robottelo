@@ -60,7 +60,7 @@ class TestSyncPlan:
     def test_pre_disabled_sync_plan_logic(self, request):
         """Pre-upgrade scenario that creates a sync plan with both disabled and enabled recurring logic.
 
-        :id:
+        :id: c75bd43d-d868-461a-9fc3-a1fc7dccc77a
 
         :steps:
             1. Create Product
@@ -144,7 +144,7 @@ class TestSyncPlan:
         """Upgrade proceedes without RecurringLogicCancelledExceptionerror.
         After upgrade, Sync interval should still be enabled.
 
-        :id:
+        :id: b7139f47-805b-47c9-84aa-bd8c6fb00b40
 
         :steps:
             1. Verify sync plan exists and works.
