@@ -15,6 +15,7 @@ pytest_plugins = [
     # Fixtures
     'pytest_fixtures.api_fixtures',
     'pytest_fixtures.broker',
+    'pytest_fixtures.content_hosts',
     'pytest_fixtures.reporting_fixtures',
     'pytest_fixtures.xdist',
     # Component Fixtures
