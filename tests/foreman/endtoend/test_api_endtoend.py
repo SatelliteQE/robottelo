@@ -1028,31 +1028,6 @@ class TestEndToEnd:
         assert len(results) == 1
         assert results[0].login == 'admin'
 
-    @pytest.mark.build_sanity
-    @pytest.mark.skip_if_open('BZ:1897360')
-    def test_positive_ping(self):
-        """Check if all services are running
-
-        :id: b8ecc7ba-8007-4067-bf99-21a82c833de7
-
-        :expectedresults: Overall and individual services status should be
-            'ok'.
-        """
-        response = entities.Ping().search_json()
-        assert response['status'] == 'ok'  # overall status
-
-        # Check that all services are OK. ['services'] is in this format:
-        #
-        # {'services': {
-        #    'candlepin': {'duration_ms': '40', 'status': 'ok'},
-        #    'candlepin_auth': {'duration_ms': '41', 'status': 'ok'},
-        #    …
-        # }, 'status': 'ok'}
-        services = response['services']
-        assert all(
-            [service['status'] == 'ok' for service in services.values()]
-        ), 'Not all services seem to be up and running!'
-
     @pytest.mark.skip_if_not_set('libvirt')
     @pytest.mark.tier4
     @pytest.mark.upgrade
