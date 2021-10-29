@@ -1,10 +1,10 @@
 import pytest
 from broker.broker import VMBroker
 
-from robottelo import manifests
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL8
+from robottelo.helpers import file_downloader
 
 
 @pytest.fixture(scope='module')
@@ -19,10 +19,10 @@ def rhcloud_sat_host(satellite_factory):
 def rhcloud_manifest_org(rhcloud_sat_host):
     """A module level fixture to get organization with manifest."""
     org = rhcloud_sat_host.api.Organization().create()
-    with manifests.original_manifest() as manifest:
-        rhcloud_sat_host.api.Subscription().upload(
-            data={'organization_id': org.id}, files={'content': manifest.content}
-        )
+    manifests_path = file_downloader(
+        file_url=settings.fake_manifest.url['default'], hostname=rhcloud_sat_host.hostname
+    )[0]
+    rhcloud_sat_host.cli.Subscription.upload({'file': manifests_path, 'organization-id': org.id})
     return org
 
 

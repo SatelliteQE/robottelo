@@ -71,7 +71,7 @@ def test_rhcloud_inventory_api_e2e(
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
-    rhcloud_sat_host.api.RHCloud(organization_id=org.id).generate_report()
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
     result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
         search_rate=15,
@@ -80,7 +80,9 @@ def test_rhcloud_inventory_api_e2e(
     task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
     assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
     # Download report
-    rhcloud_sat_host.api.RHCloud(organization_id=1).download_report(destination=local_report_path)
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_download_report(
+        destination=local_report_path
+    )
     common_assertion(local_report_path)
     # Assert Hostnames, IP addresses, and installed packages are present in report.
     json_data = get_report_data(local_report_path)
@@ -127,7 +129,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    inventory_sync = rhcloud_sat_host.api.RHCloud(organization_id=org.id).inventory_sync()
+    inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'id = {inventory_sync["task"]["id"]}',
         search_rate=15,
