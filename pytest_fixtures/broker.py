@@ -3,7 +3,6 @@ from broker.broker import VMBroker
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import BROKER_RHEL77
 from robottelo.hosts import Capsule
 from robottelo.hosts import ContentHost
 from robottelo.hosts import Satellite
@@ -51,66 +50,9 @@ def capsule_factory():
 
 
 @pytest.fixture
-def rhel7_host():
-    """A function-level fixture that provides a host object based on the rhel7 nick"""
-    with VMBroker(nick='rhel7') as host:
-        yield host
-
-
-@pytest.fixture
-def rhel7_contenthost():
-    """A function-level fixture that provides a content host object based on the rhel7 nick"""
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture
 def rhel7_contenthost_fips():
     """A function-level fixture that provides a content host object based on the rhel7_fips nick"""
     with VMBroker(nick='rhel7_fips', host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture(scope="module")
-def rhel7_contenthost_module():
-    """A module-level fixture that provides a content host object based on the rhel7 nick"""
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture
-def rhel8_contenthost():
-    """A fixture that provides a content host object based on the rhel8 nick"""
-    with VMBroker(nick='rhel8', host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture
-def rhel6_contenthost():
-    """A function-level fixture that provides a content host object based on the rhel6 nick"""
-    with VMBroker(nick='rhel6', host_classes={'host': ContentHost}) as host:
-        yield host
-
-
-@pytest.fixture(scope="module")
-def rhel77_host_module():
-    """A module-level fixture that provides a RHEL7.7 host object"""
-    with VMBroker(**BROKER_RHEL77) as host:
-        yield host
-
-
-@pytest.fixture(scope="module")
-def rhel77_contenthost_module():
-    """A module-level fixture that provides a RHEL7.7 Content Host object"""
-    with VMBroker(host_classes={'host': ContentHost}, **BROKER_RHEL77) as host:
-        yield host
-
-
-@pytest.fixture(scope="class")
-def rhel77_contenthost_class(request):
-    """A fixture for use with unittest classes. Provides a Content Host object"""
-    with VMBroker(host_classes={'host': ContentHost}, **BROKER_RHEL77) as host:
-        request.cls.content_host = host
         yield host
 
 
@@ -136,14 +78,6 @@ def capsule_configured(capsule_host, default_sat):
     capsule_host.register_contenthost()
     capsule_host.capsule_setup()
     yield capsule_host
-
-
-@pytest.fixture(scope='module')
-def content_hosts():
-    """A module-level fixture that provides two content hosts object based on the rhel7 nick"""
-    with VMBroker(nick='rhel7', host_classes={'host': ContentHost}, _count=2) as hosts:
-        hosts[0].set_infrastructure_type('physical')
-        yield hosts
 
 
 @pytest.fixture(scope='module')
