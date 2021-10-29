@@ -25,7 +25,7 @@ from robottelo.rh_cloud_utils import get_remote_report_checksum
 
 @pytest.mark.tier3
 def test_positive_inventory_generate_upload_cli(
-    organization_ak_setup, registered_hosts, rhcloud_sat_host
+    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
     """Tests Insights inventory generation and upload via foreman-rake commands:
     https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md

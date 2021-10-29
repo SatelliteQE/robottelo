@@ -50,12 +50,25 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
         environment=rhcloud_sat_host.api.LifecycleEnvironment(id=rhcloud_manifest_org.library.id),
         auto_attach=True,
     ).create()
-    subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org).search(
+    subscription = rhcloud_sat_host.api.Subscription(organization=rhcloud_manifest_org)
+    subscription.refresh_manifest(data={'organization_id': rhcloud_manifest_org.id})
+    default_subscription = subscription.search(
         query={'search': f'name="{DEFAULT_SUBSCRIPTION_NAME}"'}
     )[0]
-    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': subscription.id})
+    ak.add_subscriptions(data={'quantity': 10, 'subscription_id': default_subscription.id})
     yield rhcloud_manifest_org, ak
     ak.delete()
+
+
+@pytest.fixture(scope='module')
+def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_host):
+    """Fixture that registers content hosts to Satellite."""
+    org, ak = organization_ak_setup
+    for vm in content_hosts:
+        vm.install_katello_ca(rhcloud_sat_host)
+        vm.register_contenthost(org.label, ak.name)
+        assert vm.subscribed
+    return content_hosts
 
 
 @pytest.fixture(scope='module')

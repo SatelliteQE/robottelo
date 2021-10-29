@@ -44,7 +44,7 @@ def common_assertion(report_path):
 @pytest.mark.run_in_one_thread
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_e2e(
-    inventory_settings, organization_ak_setup, registered_hosts, rhcloud_sat_host
+    inventory_settings, organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
     """Generate report using rh_cloud plugin api's and verify its basic properties.
 
@@ -66,7 +66,7 @@ def test_rhcloud_inventory_api_e2e(
     :BZ: 1807829, 1926100, 1965234
     """
     org, ak = organization_ak_setup
-    virtual_host, baremetal_host = registered_hosts
+    virtual_host, baremetal_host = rhcloud_registered_hosts
     generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
@@ -104,7 +104,7 @@ def test_rhcloud_inventory_api_e2e(
 
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
-    organization_ak_setup, registered_hosts, rhcloud_sat_host
+    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
 ):
     """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
@@ -126,7 +126,7 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     :CaseAutomation: Automated
     """
     org, ak = organization_ak_setup
-    virtual_host, baremetal_host = registered_hosts
+    virtual_host, baremetal_host = rhcloud_registered_hosts
     inventory_sync = rhcloud_sat_host.api.RHCloud(organization_id=org.id).inventory_sync()
     result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'id = {inventory_sync["task"]["id"]}',
