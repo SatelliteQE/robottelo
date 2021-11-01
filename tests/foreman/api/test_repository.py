@@ -1908,6 +1908,7 @@ class TestDockerRepository:
 class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
 
+    @pytest.mark.skip_if_open("BZ:2016047")
     @pytest.mark.upgrade
     @pytest.mark.tier2
     def test_positive_srpm_upload_publish_promote_cv(self, module_org, env, repo):
