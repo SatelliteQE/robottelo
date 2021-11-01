@@ -99,3 +99,80 @@ def test_rhcloud_insights_e2e(
         # Workaround for alert message causing search to fail. See airgun issue 584.
         session.browser.refresh()
         assert not session.cloudinsights.search(query)
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1976853():
+    """Verify that the Insights reporting status functionality works as expected.
+
+    :id: 75629a08-b585-472b-a295-ce497075e519
+
+    :Steps:
+        1. Register a satellite content host with insights.
+        2. Change 48 hours of wait time to 4 minutes in insights_client_report_status.rb file.
+         See foreman_rh_cloud PR#596.
+        3. Unregister host from insights.
+        4. Wait 4 minutes.
+        5. Use ForemanTasks.sync_task(InsightsCloud::Async::InsightsClientStatusAging)
+         execute task manually.
+
+    :expectedresults:
+        1. Insights status for host changed to "Not reporting".
+
+    :CaseImportance: Medium
+
+    :BZ: 1976853
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1978182():
+    """Verify that Insights recommendations are listed for satellite.
+
+    :id: ee3feba3-c255-42f1-8293-b04d540dcca5
+
+    :Steps:
+        1. Register Satellite with insights.(satellite-installer --register-with-insights)
+        2. Add RH cloud token in settings.
+        3. Go to Configure > Insights > Click on Sync recommendations button.
+        4. Click on notification icon.
+        5. Select recommendation and try remediating it.
+
+    :expectedresults:
+        1. Notification about insights recommendations for Satellite is shown.
+        2. Insights recommendations are listed for satellite.
+        3. Successfully remediated the insights recommendation for Satellite itself.
+
+    :CaseImportance: High
+
+    :BZ: 1978182
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1865879():
+    """Test "allow_auto_insights_sync" setting.
+
+    :id: ddc4ed5b-43c0-4121-bf2c-b8e040e45379
+
+    :Steps:
+        1. Register few satellite content host with insights.
+        2. Enable "allow_auto_insights_sync" setting.
+        3. Wait for "InsightsScheduledSync" task to run.
+
+
+    :expectedresults:
+        1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
+         inventory status automatically if "Automatic inventory upload" setting is enabled.
+
+
+    :CaseImportance: Medium
+
+    :BZ: 1865879
+
+    :CaseAutomation: NotAutomated
+    """

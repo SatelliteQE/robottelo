@@ -457,3 +457,103 @@ def test_exclude_packages_setting(
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
             assert 'installed_packages' not in host_profiles
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1830026():
+    """Verify that the failed report upload is indicated 'X' icon on Inventory upload page.
+
+    :id: 230d3fc3-2810-4385-b07b-30f9bf632488
+
+    :Steps:
+        1. Register a satellite content host with insights.
+        2. Change 'DEST' from /var/lib/foreman/red_hat_inventory/uploads/uploader.sh
+         to an invalid url.
+        3. Go to Configure > Inventory upload > Click on restart button.
+
+    :expectedresults:
+        1. Inventory report upload failed.
+        2. Failed upload is indicated by 'X' icon.
+
+    :CaseImportance: Medium
+
+    :BZ: 1830026
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1842903():
+    """Verify that proper error message is given when no manifest is imported in an organization.
+
+    :id: 1d90bb24-2380-4653-8ed6-a084fce66d1e
+
+    :Steps:
+        1. Don't import manifest to satellite.
+        3. Go to Configure > Inventory upload > Click on restart button.
+
+    :expectedresults:
+        1. No stacktrace in production.log
+        2. Message "Skipping organization '<redacted>', no candlepin certificate defined." is shown.
+
+    :CaseImportance: Medium
+
+    :BZ: 1842903
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1965239():
+    """Test "Automatic inventory upload" setting.
+
+    :id: e84790c6-1700-46c4-9bf8-d8f1e63a7f1f
+
+    :Steps:
+        1. Register satellite content host with insights.
+        2. Sync inventory status.
+        3. Wait for "Inventory scheduled sync" task to execute.
+         (Change wait time to 1 minute for testing.)
+        4. Check whether the satellite shows successful inventory upload for the host.
+        5. Disable "Automatic inventory upload" setting.
+        6. Unregister host from insights OR Delete host from cloud.
+        7. Wait for "Inventory scheduled sync" task to execute.
+
+
+    :expectedresults:
+        1. When "Automatic inventory upload" setting is disabled then
+         "Inventory scheduled sync" task doesn't sync the inventory status.
+
+    :CaseImportance: Medium
+
+    :BZ: 1965239
+
+    :CaseAutomation: NotAutomated
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1962695():
+    """Test "Automatic inventory upload" setting.
+
+    :id: 2c830833-3f92-497c-bbb9-f485a1d8eb47
+
+    :Steps:
+        1. Register few hosts with satellite.
+        2. Enable "Automatic inventory upload" setting.
+        3. Wait for "Inventory scheduled sync" recurring logic to run.
+
+
+    :expectedresults:
+        1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
+         inventory status automatically if "Automatic inventory upload" setting is enabled.
+
+
+    :CaseImportance: Medium
+
+    :BZ: 1962695
+
+    :CaseAutomation: NotAutomated
+    """
