@@ -35,6 +35,8 @@ def test_rhcloud_inventory_api_e2e():
         7. Host counts in metadata matches host counts in slices
         8. Assert Hostnames, IP addresses, and installed packages are present in report.
 
+    :CaseImportance: Critical
+
     :BZ: 1807829, 1926100, 1965234
     """
 
@@ -60,6 +62,8 @@ def test_rhcloud_inventory_api_hosts_synchronization():
         should contain number of hosts synchronized and missed.
         2. Presence in cloud is displayed in host properties.
 
+    :CaseImportance: Critical
+
     :CaseAutomation: NotAutomated
     """
 
@@ -79,6 +83,8 @@ def test_rhcloud_inventory_bz_1893439():
         3. Generate inventory report.
         4. Assert that host is listed in the inventory report.
         5. Assert that value of mtu field in generated report is a number.
+
+    :CaseImportance: Medium
 
     :expectedresults:
         1. Host having string mtu field value is present in the inventory report.
@@ -105,6 +111,8 @@ def test_rhcloud_inventory_bz_1845113():
         3. Generate inventory report.
         4. Assert that host is listed in the inventory report.
         5. Assert that system_purpose_sla field is present in the inventory report.
+
+    :CaseImportance: Medium
 
     :expectedresults:
         1. Host is present in the inventory report.
@@ -168,7 +176,7 @@ def test_rhcloud_inventory_bz_1936906():
 
     :BZ: 1936906
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -187,11 +195,10 @@ def test_include_parameter_tags_setting():
         5. Assert that generated report contains valid json file.
 
     :expectedresults:
-        1. If "Automatic inventory upload" setting is enabled then satellite
-        automatically generate and upload inventory report.
+        1. Valid json report is created.
 
 
-    :BZ: 1793017
+    :BZ: 1981869
 
     :CaseAutomation: NotAutomated
     """

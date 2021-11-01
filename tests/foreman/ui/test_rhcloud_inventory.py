@@ -96,6 +96,8 @@ def test_rhcloud_inventory_e2e(
         7. Host counts in metadata matches host counts in slices
         8. Assert Hostnames, IP addresses, and installed packages are present in report.
 
+    :CaseImportance: Critical
+
     :BZ: 1807829, 1926100
     """
     org, ak = organization_ak_setup
@@ -159,6 +161,8 @@ def test_hits_synchronization():
         3. Recommendations are listed on single host page
         4. rake command deletes insights reporting status of host.
         5. Host is removed from Satellite.
+
+    :CaseImportance: Critical
 
     :BZ: 1974578, 1962930, 1860422, 1865876, 1879448, 1928652
 
@@ -468,7 +472,7 @@ def test_rhcloud_inventory_bz_1830026():
     :Steps:
         1. Register a satellite content host with insights.
         2. Change 'DEST' from /var/lib/foreman/red_hat_inventory/uploads/uploader.sh
-         to an invalid url.
+            to an invalid url.
         3. Go to Configure > Inventory upload > Click on restart button.
 
     :expectedresults:
@@ -479,7 +483,7 @@ def test_rhcloud_inventory_bz_1830026():
 
     :BZ: 1830026
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -501,7 +505,7 @@ def test_rhcloud_inventory_bz_1842903():
 
     :BZ: 1842903
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -515,7 +519,7 @@ def test_rhcloud_inventory_bz_1965239():
         1. Register satellite content host with insights.
         2. Sync inventory status.
         3. Wait for "Inventory scheduled sync" task to execute.
-         (Change wait time to 1 minute for testing.)
+            (Change wait time to 1 minute for testing.)
         4. Check whether the satellite shows successful inventory upload for the host.
         5. Disable "Automatic inventory upload" setting.
         6. Unregister host from insights OR Delete host from cloud.
@@ -524,13 +528,13 @@ def test_rhcloud_inventory_bz_1965239():
 
     :expectedresults:
         1. When "Automatic inventory upload" setting is disabled then
-         "Inventory scheduled sync" task doesn't sync the inventory status.
+            "Inventory scheduled sync" task doesn't sync the inventory status.
 
     :CaseImportance: Medium
 
     :BZ: 1965239
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -548,12 +552,12 @@ def test_rhcloud_inventory_bz_1962695():
 
     :expectedresults:
         1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
-         inventory status automatically if "Automatic inventory upload" setting is enabled.
+            inventory status automatically if "Automatic inventory upload" setting is enabled.
 
 
     :CaseImportance: Medium
 
     :BZ: 1962695
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """

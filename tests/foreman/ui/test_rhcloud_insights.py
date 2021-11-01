@@ -12,7 +12,7 @@
 
 :TestType: Functional
 
-:CaseImportance: Critical
+:CaseImportance: High
 
 :Upstream: No
 """
@@ -52,6 +52,8 @@ def test_rhcloud_insights_e2e(
         1. Insights recommendation related to dnf.conf issue is listed for misconfigured machine.
         2. Remediation job finished successfully.
         3. Insights recommendation related to dnf.conf issue is not listed.
+
+    :CaseImportance: Critical
 
     :BZ: 1965901, 1962048
 
@@ -110,11 +112,11 @@ def test_rhcloud_inventory_bz_1976853():
     :Steps:
         1. Register a satellite content host with insights.
         2. Change 48 hours of wait time to 4 minutes in insights_client_report_status.rb file.
-         See foreman_rh_cloud PR#596.
+            See foreman_rh_cloud PR#596.
         3. Unregister host from insights.
         4. Wait 4 minutes.
         5. Use ForemanTasks.sync_task(InsightsCloud::Async::InsightsClientStatusAging)
-         execute task manually.
+            execute task manually.
 
     :expectedresults:
         1. Insights status for host changed to "Not reporting".
@@ -123,7 +125,7 @@ def test_rhcloud_inventory_bz_1976853():
 
     :BZ: 1976853
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -149,7 +151,7 @@ def test_rhcloud_inventory_bz_1978182():
 
     :BZ: 1978182
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
     """
 
 
@@ -164,15 +166,39 @@ def test_rhcloud_inventory_bz_1865879():
         2. Enable "allow_auto_insights_sync" setting.
         3. Wait for "InsightsScheduledSync" task to run.
 
-
     :expectedresults:
         1. Satellite has "Inventory scheduled sync" recurring logic, which syncs
-         inventory status automatically if "Automatic inventory upload" setting is enabled.
-
+            inventory status automatically if "Automatic inventory upload" setting is enabled.
 
     :CaseImportance: Medium
 
     :BZ: 1865879
 
-    :CaseAutomation: NotAutomated
+    :CaseAutomation: ManualOnly
+    """
+
+
+@pytest.mark.stubbed
+def test_rhcloud_inventory_bz_1889662():
+    """Verify that hosts can be sorted and filtered based on insights
+        recommendation count.
+
+    :id: b1725ec1-60db-422e-809d-f81d99ae156e
+
+    :Steps:
+        1. Register few satellite content host with insights.
+        2. Sync Insights recommendations.
+        3. Go to Hosts > All Host
+        4. Click on "Recommendations" column.
+        5. Use insights_recommendations_count keyword to filter hosts.
+
+    :expectedresults:
+        1. Hosts are sorted based on recommendations count.
+        2. Hosts are filtered based on insights_recommendations_count.
+
+    :CaseImportance: Low
+
+    :BZ: 1889662
+
+    :CaseAutomation: ManualOnly
     """
