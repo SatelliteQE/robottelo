@@ -35,6 +35,7 @@ from robottelo.api.utils import promote
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import repos as repo_constants
+from robottelo.datafactory import parametrized
 from robottelo.helpers import get_data_file
 from robottelo.helpers import read_data_file
 from robottelo.logging import logger
@@ -2078,9 +2079,13 @@ class TestSRPMRepositoryIgnoreContent:
 class TestFileRepository:
     """Specific tests for File Repositories"""
 
-    @pytest.mark.stubbed
     @pytest.mark.tier1
-    def test_positive_upload_file_to_file_repo(self):
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_positive_upload_file_to_file_repo(self, repo):
         """Check arbitrary file can be uploaded to File Repository
 
         :id: fdb46481-f0f4-45aa-b075-2a8f6725e51b
@@ -2093,9 +2098,14 @@ class TestFileRepository:
 
         :CaseImportance: Critical
 
-        :CaseAutomation: NotAutomated
+        :CaseAutomation: Automated
         """
-        pass
+        with open(get_data_file(constants.RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        assert repo.read().content_counts['file'] == 1
+
+        filesearch = entities.File().search(query={"search": f"name={constants.RPM_TO_UPLOAD}"})
+        assert constants.RPM_TO_UPLOAD == filesearch[0].name
 
     @pytest.mark.stubbed
     @pytest.mark.tier1
