@@ -101,7 +101,7 @@ def setting_is_set(option):
     return isinstance(opt_inst, DynaBox)
 
 
-def configure_nailgun():
+def configure_nailgun(host=None):
     """Configure NailGun's entity classes.
 
     Do the following:
@@ -120,7 +120,9 @@ def configure_nailgun():
     from nailgun.config import ServerConfig
 
     entity_mixins.CREATE_MISSING = True
-    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(get_url(), get_credentials(), verify=False)
+    entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
+        host.url if host is not None else get_url(), get_credentials(), verify=False
+    )
     gpgkey_init = entities.GPGKey.__init__
 
     def patched_gpgkey_init(self, server_config=None, **kwargs):
@@ -136,7 +138,7 @@ def configure_nailgun():
 configure_nailgun()
 
 
-def configure_airgun():
+def configure_airgun(host=None):
     """Pass required settings to AirGun"""
     import airgun
 
@@ -147,7 +149,7 @@ def configure_airgun():
                 'tmp_dir': settings.robottelo.tmp_dir,
             },
             'satellite': {
-                'hostname': settings.server.get('hostname', None),
+                'hostname': host.hostname or settings.server.get('hostname', None),
                 'password': settings.server.admin_password,
                 'username': settings.server.admin_username,
             },

@@ -1094,6 +1094,29 @@ class Satellite(Capsule):
         self._cli = type('cli', (), {'_configured': False})
         self._ui_session = None
 
+    @classmethod
+    def factory(cls, retry_limit=3, delay=300, workflow=None, **broker_args):
+        """Deploys an instance through broker with the given workflow/args
+
+        Mixes in settings.server.deploy_arguments and settings.server.deploy_workflow
+        Retries by default
+
+        Returns a Sat instance or raises TimedOutError from waitfor
+
+        TODO: collapse with capsule_factory and read relevant args from settings
+        """
+        if settings.server.deploy_arguments:
+            broker_args.update(settings.server.deploy_arguments)
+        vmb = VMBroker(
+            host_classes={'host': cls},
+            workflow=workflow or settings.server.deploy_workflow,
+            **broker_args,
+        )
+        # TODO retry logic should probably be in broker itself
+        timeout = (1200 + delay) * retry_limit
+        attempt = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
+        return attempt.out
+
     @property
     def api(self):
         """Import all nailgun entities and wrap them under self.api"""

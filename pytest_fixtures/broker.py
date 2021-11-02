@@ -7,28 +7,13 @@ from robottelo.hosts import Capsule
 from robottelo.hosts import Satellite
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function', autouse=True)
 def default_sat(align_to_satellite):
-    """Returns a Satellite object for settings.server.hostname"""
-    if settings.server.hostname:
-        return Satellite()
-
-
-@pytest.fixture(scope='session')
-def satellite_factory():
-    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
-        if settings.server.deploy_arguments:
-            broker_args.update(settings.server.deploy_arguments)
-        vmb = VMBroker(
-            host_classes={'host': Satellite},
-            workflow=workflow or settings.server.deploy_workflow,
-            **broker_args,
-        )
-        timeout = (1200 + delay) * retry_limit
-        sat = wait_for(vmb.checkout, timeout=timeout, delay=delay, fail_condition=[])
-        return sat.out
-
-    return factory
+    """Returns a Satellite object aligned to the xdist worker"""
+    if isinstance(align_to_satellite, Satellite):
+        return align_to_satellite
+    else:
+        return Satellite(hostname=align_to_satellite)
 
 
 @pytest.fixture(scope='session')
@@ -49,9 +34,9 @@ def capsule_factory():
 
 
 @pytest.fixture
-def satellite_host(satellite_factory):
+def satellite_host():
     """A fixture that provides a Satellite based on config settings"""
-    new_sat = satellite_factory()
+    new_sat = Satellite.factory()
     yield new_sat
     VMBroker(hosts=[new_sat]).checkin()
 
