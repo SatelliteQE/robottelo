@@ -25,6 +25,8 @@ from robottelo.config import robottelo_tmp_dir
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_report_data
 
+generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
+
 
 def common_assertion(report_path):
     """Function to perform common assertions"""
@@ -67,7 +69,6 @@ def test_rhcloud_inventory_api_e2e(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    generate_report_task = 'ForemanInventoryUpload::Async::UploadReportJob'
     local_report_path = robottelo_tmp_dir.joinpath(f'{gen_alphanumeric()}_{org.id}.tar.xz')
     # Generate report
     timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
@@ -106,7 +107,10 @@ def test_rhcloud_inventory_api_e2e(
 
 @pytest.mark.tier3
 def test_rhcloud_inventory_api_hosts_synchronization(
-    organization_ak_setup, rhcloud_registered_hosts, rhcloud_sat_host
+    set_rh_cloud_token,
+    organization_ak_setup,
+    rhcloud_registered_hosts,
+    rhcloud_sat_host,
 ):
     """Test RH Cloud plugin api to synchronize list of available hosts from cloud.
 
@@ -129,6 +133,17 @@ def test_rhcloud_inventory_api_hosts_synchronization(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
+    # Generate report
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+    rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_generate_report()
+    result = rhcloud_sat_host.wait_for_tasks(
+        search_query=f'{generate_report_task} and started_at >= "{timestamp}"',
+        search_rate=15,
+        max_tries=10,
+    )
+    task_output = rhcloud_sat_host.api.ForemanTask().search(query={'search': result[0].id})
+    assert task_output[0].result == 'success', f'result: {result}\n task_output: {task_output}'
+    # Sync inventory status
     inventory_sync = rhcloud_sat_host.api.Organization(id=org.id).rh_cloud_inventory_sync()
     result = rhcloud_sat_host.wait_for_tasks(
         search_query=f'id = {inventory_sync["task"]["id"]}',

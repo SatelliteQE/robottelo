@@ -20,13 +20,15 @@ from datetime import datetime
 from datetime import timedelta
 
 import pytest
+from airgun.session import Session
 
+from robottelo.constants import DEFAULT_LOC
 from robottelo.rh_cloud_utils import get_local_file_data
 from robottelo.rh_cloud_utils import get_remote_report_checksum
 from robottelo.rh_cloud_utils import get_report_data
 
 
-def common_assertion(report_path, inventory_data, org):
+def common_assertion(report_path, inventory_data, org, satellite):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
     upload_success_msg = (
@@ -40,7 +42,7 @@ def common_assertion(report_path, inventory_data, org):
     for error_msg in upload_error_messages:
         assert error_msg not in inventory_data['uploading']['terminal']
 
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
+    assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -80,8 +82,9 @@ def test_rhcloud_inventory_e2e(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with rhcloud_sat_host.ui_session as session:
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(org.name)
         rhcloud_sat_host.wait_for_tasks(
@@ -93,7 +96,7 @@ def test_rhcloud_inventory_e2e(
         report_path = session.cloudinventory.download_report(org.name)
         inventory_data = session.cloudinventory.read(org.name)
 
-    common_assertion(report_path, inventory_data, org)
+    common_assertion(report_path, inventory_data, org, rhcloud_sat_host)
     json_data = get_report_data(report_path)
     hostnames = [host['fqdn'] for host in json_data['hosts']]
     assert virtual_host.hostname in hostnames
@@ -202,8 +205,9 @@ def test_obfuscate_host_names(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with rhcloud_sat_host.ui_session as session:
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_hostnames setting on inventory page.
         session.cloudinventory.update({'obfuscate_hostnames': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
@@ -221,7 +225,7 @@ def test_obfuscate_host_names(
         # Assert that obfuscate_hostnames is enabled.
         assert inventory_data['obfuscate_hostnames'] is True
         # Assert that generated archive is valid.
-        common_assertion(report_path, inventory_data, org)
+        common_assertion(report_path, inventory_data, org, rhcloud_sat_host)
         # Get report data for assertion
         json_data = get_report_data(report_path)
         hostnames = [host['fqdn'] for host in json_data['hosts']]
@@ -290,8 +294,9 @@ def test_obfuscate_host_ipv4_addresses(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with rhcloud_sat_host.ui_session as session:
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
         # Enable obfuscate_ips setting on inventory page.
         session.cloudinventory.update({'obfuscate_ips': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
@@ -308,7 +313,7 @@ def test_obfuscate_host_ipv4_addresses(
         # Assert that obfuscate_ips is enabled.
         assert inventory_data['obfuscate_ips'] is True
         # Assert that generated archive is valid.
-        common_assertion(report_path, inventory_data, org)
+        common_assertion(report_path, inventory_data, org, rhcloud_sat_host)
         # Get report data for assertion
         json_data = get_report_data(report_path)
         hostnames = [host['fqdn'] for host in json_data['hosts']]
@@ -391,8 +396,9 @@ def test_exclude_packages_setting(
     """
     org, ak = organization_ak_setup
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with rhcloud_sat_host.ui_session as session:
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
         # Enable exclude_packages setting on inventory page.
         session.cloudinventory.update({'exclude_packages': True})
         timestamp = (datetime.utcnow() - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
@@ -409,7 +415,7 @@ def test_exclude_packages_setting(
         # Disable exclude_packages setting on inventory page.
         session.cloudinventory.update({'exclude_packages': False})
         # Assert that generated archive is valid.
-        common_assertion(report_path, inventory_data, org)
+        common_assertion(report_path, inventory_data, org, rhcloud_sat_host)
         # Get report data for assertion
         json_data = get_report_data(report_path)
         # Assert that right hosts are present in report.

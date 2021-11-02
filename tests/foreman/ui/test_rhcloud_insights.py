@@ -19,6 +19,7 @@
 from datetime import datetime
 
 import pytest
+from airgun.session import Session
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC
@@ -62,7 +63,7 @@ def test_rhcloud_insights_e2e(
     job_query = (
         f'Remote action: Insights remediations for selected issues on {rhel8_insights_vm.hostname}'
     )
-    with rhcloud_sat_host.ui_session as session:
+    with Session(hostname=rhcloud_sat_host.hostname) as session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinsights.save_token_sync_hits(settings.rh_cloud.token)

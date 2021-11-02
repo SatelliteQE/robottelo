@@ -73,7 +73,7 @@ def test_positive_inventory_generate_upload_cli(
     )
     rhcloud_sat_host.get(remote_path=remote_report_path, local_path=local_report_path)
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(org.id)
+    assert local_file_data['checksum'] == get_remote_report_checksum(rhcloud_sat_host, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']

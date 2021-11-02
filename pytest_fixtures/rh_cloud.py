@@ -3,6 +3,7 @@ from broker.broker import VMBroker
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.constants import DISTRO_RHEL8
 from robottelo.helpers import file_downloader
 
@@ -62,11 +63,15 @@ def organization_ak_setup(rhcloud_sat_host, rhcloud_manifest_org):
 
 @pytest.fixture(scope='module')
 def rhcloud_registered_hosts(organization_ak_setup, content_hosts, rhcloud_sat_host):
-    """Fixture that registers content hosts to Satellite."""
+    """Fixture that registers content hosts to Satellite and Insights."""
     org, ak = organization_ak_setup
     for vm in content_hosts:
-        vm.install_katello_ca(rhcloud_sat_host)
-        vm.register_contenthost(org.label, ak.name)
+        vm.configure_rhai_client(
+            satellite=rhcloud_sat_host,
+            activation_key=ak.name,
+            org=org.label,
+            rhel_distro=DISTRO_RHEL7,
+        )
         assert vm.subscribed
     return content_hosts
 
