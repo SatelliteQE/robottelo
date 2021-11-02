@@ -162,7 +162,7 @@ class TestRemoteExecution:
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
         # assert the file is owned by the effective user
-        assert username == result.stdout
+        assert username == result.stdout.strip('\n')
 
     @pytest.mark.tier3
     @pytest.mark.parametrize(
@@ -524,7 +524,7 @@ class TestAnsibleREX:
             f'''stat -c '%U' /home/{username}/{filename}''',
         )
         # assert the file is owned by the effective user
-        assert username == result.stdout, "file ownership mismatch"
+        assert username == result.stdout.strip('\n'), "file ownership mismatch"
 
     @pytest.mark.tier3
     @pytest.mark.upgrade
