@@ -320,6 +320,46 @@ def test_positive_search_by_subscription_status(session, default_location, vm):
 
 
 @pytest.mark.tier3
+def test_positive_toggle_subscription_status(session, default_location, vm):
+    """Register host into the system, assert subscription status valid,
+    toggle status off and on again using CLI and assert status is updated in web UI.
+
+    :id: b9343e6f-9354-46ef-873f-b63851d29043
+
+    :expectedresults: Subscription status changed on the CLI is reflected in the web UI.
+
+    :customerscenario: true
+
+    :BZ: 1836868
+
+    :CaseLevel: System
+
+    :CaseImportance: Medium
+    """
+    with session:
+        session.location.select(default_location.name)
+        assert session.contenthost.search(vm.hostname)[0]['Name'] == vm.hostname
+        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
+            'subscriptions'
+        ]
+        assert subscriptions['auto_attach'].lower() == 'yes'
+        # Toggle auto-attach status to No using CLI
+        vm.run('subscription-manager auto-attach --disable && subscription-manager refresh')
+        session.browser.refresh()
+        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
+            'subscriptions'
+        ]
+        assert subscriptions['auto_attach'].lower() == 'no'
+        # Toggle auto-attach status to Yes using CLI
+        vm.run('subscription-manager auto-attach --enable && subscription-manager refresh')
+        session.browser.refresh()
+        subscriptions = session.contenthost.read(vm.hostname, widget_names='subscriptions')[
+            'subscriptions'
+        ]
+        assert subscriptions['auto_attach'].lower() == 'yes'
+
+
+@pytest.mark.tier3
 def test_negative_install_package(session, default_location, vm):
     """Attempt to install non-existent package to a host remotely
 
